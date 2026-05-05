@@ -12,6 +12,7 @@
   },
   "dependencies": {
     "@ar-agents/identity": "workspace:*",
+    "@ar-agents/identity-attest": "workspace:*",
     "@ar-agents/mercadopago": "workspace:*",
     "@ar-agents/whatsapp": "workspace:*",
     "ai": "^6.0.175",

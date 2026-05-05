@@ -26,14 +26,23 @@ export default function Home() {
   async function send() {
     if (!input.trim() || loading) return;
     const userMsg: Message = { role: "user", text: input };
-    setMessages((m) => [...m, userMsg]);
+    const nextMessages = [...messages, userMsg];
+    setMessages(nextMessages);
     setInput("");
     setLoading(true);
     try {
+      // Multi-turn: send full conversation so the agent can reference earlier
+      // request_ids (e.g., to call submit_otp_code with the right id).
+      const conversationHistory = nextMessages
+        .filter((m) => m.role === "user" || m.role === "agent")
+        .map((m) => ({
+          role: m.role === "agent" ? "assistant" : "user",
+          content: m.text,
+        }));
       const res = await fetch("/api/agent", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ message: userMsg.text }),
+        body: JSON.stringify({ messages: conversationHistory }),
       });
       const data = await res.json();
       setWhatsappMode(data.whatsappMode ?? null);
