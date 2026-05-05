@@ -16,16 +16,19 @@ function buildSetup() {
 }
 
 describe("mercadoPagoTools", () => {
-  it("exposes the expected v0.2 tool names (subscriptions + payments + checkout + customers + installments)", () => {
+  it("exposes the expected v0.3 tool names (subscriptions + payments + checkout + customers + installments + saved-card + QR)", () => {
     const { tools } = buildSetup();
     expect(Object.keys(tools).sort()).toEqual([
       "calculate_installments",
       "cancel_payment",
+      "cancel_qr_payment",
       "cancel_subscription",
       "capture_payment",
+      "charge_saved_card",
       "create_customer",
       "create_payment",
       "create_payment_preference",
+      "create_qr_payment",
       "create_subscription",
       "delete_customer_card",
       "find_customer_by_email",

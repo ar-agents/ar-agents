@@ -44,12 +44,19 @@ const DEFAULT_BASE_URL = "https://graph.facebook.com";
  *
  * Catch and surface to the agent — DON'T regex error messages.
  */
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
+
 export class WhatsAppClient {
   private readonly accessToken: string;
   private readonly phoneNumberId: PhoneNumberId;
   private readonly apiVersion: string;
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch | undefined;
+  private readonly requestTimeoutMs: number;
+  private readonly maxRetries: number;
+  private readonly onCall: WhatsAppClientOptions["onCall"];
 
   constructor(options: WhatsAppClientOptions) {
     if (!options.accessToken || !options.phoneNumberId) {
@@ -60,6 +67,84 @@ export class WhatsAppClient {
     this.apiVersion = options.apiVersion ?? DEFAULT_API_VERSION;
     this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
     this.fetchImpl = options.fetchImpl;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
+    this.maxRetries = Math.max(0, options.maxRetries ?? 1);
+    this.onCall = options.onCall;
+  }
+
+  /**
+   * Internal helper: fetch with timeout + retry on 5xx/network errors.
+   * 4xx never retried.
+   */
+  private async fetchWithRetry(
+    url: string,
+    init: RequestInit,
+    pathForObs: string,
+  ): Promise<Response> {
+    const fetchFn = this.fetchImpl ?? globalThis.fetch;
+    const t0 = Date.now();
+    let attempt = 0;
+    let lastStatus: number | null = null;
+
+    while (attempt <= this.maxRetries) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+      try {
+        const res = await fetchFn(url, { ...init, signal: controller.signal });
+        clearTimeout(timer);
+        lastStatus = res.status;
+        if (res.ok || res.status < 500) {
+          this.onCall?.({
+            method: init.method ?? "GET",
+            path: pathForObs,
+            durationMs: Date.now() - t0,
+            httpStatus: res.status,
+            retried: attempt,
+            success: res.ok,
+          });
+          return res;
+        }
+        // 5xx → retry if budget remains
+        if (attempt < this.maxRetries) {
+          attempt++;
+          await sleep(250 * Math.pow(2, attempt - 1));
+          continue;
+        }
+        this.onCall?.({
+          method: init.method ?? "GET",
+          path: pathForObs,
+          durationMs: Date.now() - t0,
+          httpStatus: res.status,
+          retried: attempt,
+          success: false,
+        });
+        return res;
+      } catch (err) {
+        clearTimeout(timer);
+        const isAbort = err instanceof Error && err.name === "AbortError";
+        if (attempt < this.maxRetries) {
+          attempt++;
+          await sleep(250 * Math.pow(2, attempt - 1));
+          continue;
+        }
+        this.onCall?.({
+          method: init.method ?? "GET",
+          path: pathForObs,
+          durationMs: Date.now() - t0,
+          httpStatus: lastStatus,
+          retried: attempt,
+          success: false,
+        });
+        if (isAbort) {
+          throw new Error(
+            `WhatsApp request timed out after ${this.requestTimeoutMs}ms: ${pathForObs}`,
+          );
+        }
+        throw err;
+      }
+    }
+    // Unreachable
+    throw new Error(`WhatsApp request failed after ${this.maxRetries} retries`);
   }
 
   /**
@@ -305,11 +390,12 @@ export class WhatsAppClient {
     filename: string | null;
     sha256: string | null;
   }> {
-    const fetchFn = this.fetchImpl ?? globalThis.fetch;
     const metaUrl = `${this.baseUrl}/${this.apiVersion}/${mediaId}`;
-    const metaRes = await fetchFn(metaUrl, {
-      headers: { Authorization: `Bearer ${this.accessToken}` },
-    });
+    const metaRes = await this.fetchWithRetry(
+      metaUrl,
+      { headers: { Authorization: `Bearer ${this.accessToken}` } },
+      `/${this.apiVersion}/${mediaId}`,
+    );
     if (!metaRes.ok) {
       const text = await metaRes.text();
       throw await this.toApiError(text, metaRes.status, "downloadMedia metadata");
@@ -320,9 +406,11 @@ export class WhatsAppClient {
       sha256?: string;
       file_size?: number;
     };
-    const fileRes = await fetchFn(meta.url, {
-      headers: { Authorization: `Bearer ${this.accessToken}` },
-    });
+    const fileRes = await this.fetchWithRetry(
+      meta.url,
+      { headers: { Authorization: `Bearer ${this.accessToken}` } },
+      `media-download`,
+    );
     if (!fileRes.ok) {
       const text = await fileRes.text();
       throw await this.toApiError(text, fileRes.status, "downloadMedia binary");
@@ -338,22 +426,26 @@ export class WhatsAppClient {
 
   /**
    * Internal: POST to /{phoneNumberId}/messages. Throws typed errors on 4xx.
+   * Uses fetchWithRetry → applies timeout + retry-on-5xx automatically.
    */
   private async postMessages(body: Record<string, unknown>): Promise<{
     messaging_product: string;
     contacts?: Array<{ input: string; wa_id: string }>;
     messages?: Array<{ id: string }>;
   }> {
-    const fetchFn = this.fetchImpl ?? globalThis.fetch;
     const url = `${this.baseUrl}/${this.apiVersion}/${this.phoneNumberId}/messages`;
-    const res = await fetchFn(url, {
-      method: "POST",
-      headers: {
-        Authorization: `Bearer ${this.accessToken}`,
-        "Content-Type": "application/json",
+    const res = await this.fetchWithRetry(
+      url,
+      {
+        method: "POST",
+        headers: {
+          Authorization: `Bearer ${this.accessToken}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify(body),
       },
-      body: JSON.stringify(body),
-    });
+      `/${this.apiVersion}/${this.phoneNumberId}/messages`,
+    );
     const text = await res.text();
     if (!res.ok) {
       throw await this.toApiError(text, res.status, "postMessages");

@@ -165,6 +165,31 @@ export class AttestationClient {
     return this.completeVerification(requestId, { token });
   }
 
+  /**
+   * Submit an OAuth authorization code (Auth0 flow callback) — `state`
+   * param maps to `requestId`, `code` is the authorization code Auth0
+   * returned. The adapter exchanges it for tokens server-side.
+   */
+  async submitOauthCode(requestId: string, oauthCode: string): Promise<Attestation> {
+    return this.completeVerification(requestId, { oauthCode });
+  }
+
+  /**
+   * Submit a Magic.link DIDToken from the client (sent by frontend after the
+   * user completes Magic's hosted login).
+   */
+  async submitMagicDidToken(requestId: string, didToken: string): Promise<Attestation> {
+    return this.completeVerification(requestId, { token: didToken });
+  }
+
+  /**
+   * Submit a MercadoPago payment_id (the webhook's `data.id` after the
+   * micro-charge completes). Used by `MercadoPagoIdentityAdapter`.
+   */
+  async submitMercadoPagoPaymentId(requestId: string, paymentId: string): Promise<Attestation> {
+    return this.completeVerification(requestId, { oauthCode: paymentId });
+  }
+
   /** Read the current state of a verification request. */
   async getRequestStatus(requestId: string): Promise<VerificationRequest> {
     const found = await this.store.getRequest(requestId);

@@ -1,7 +1,22 @@
+import { createHash } from "node:crypto";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { MercadoPagoClient } from "./client";
 import type { SubscriptionStateAdapter } from "./state";
+
+/**
+ * Deterministic idempotency key from caller-meaningful fields. Safe to retry:
+ * the SAME inputs always produce the same key, so MP dedupes on its side
+ * even if the client retries multiple times. Use a hash to keep keys short
+ * + opaque (callers can't accidentally extract sensitive data from the key).
+ */
+function deterministicIdempotencyKey(...parts: Array<string | number | undefined>): string {
+  const payload = parts
+    .filter((p) => p !== undefined && p !== null)
+    .map(String)
+    .join("|");
+  return createHash("sha256").update(payload).digest("hex").slice(0, 32);
+}
 
 export interface MercadoPagoToolsOptions {
   /** State adapter for persisting subscription records. */
@@ -52,7 +67,12 @@ type ToolName =
   | "list_payment_methods"
   | "calculate_installments"
   // Account (v0.2)
-  | "get_account_info";
+  | "get_account_info"
+  // Saved-card charging (v0.3)
+  | "charge_saved_card"
+  // QR in-store (v0.3)
+  | "create_qr_payment"
+  | "cancel_qr_payment";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -110,6 +130,16 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Account ──────────────────────────────────────────────────────────────
   get_account_info:
     "Get info about the Mercado Pago account that owns the access token: site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the right account before taking actions.",
+
+  // ── Saved-card charging (v0.3) ───────────────────────────────────────────
+  charge_saved_card:
+    "Charge a previously-saved card for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Mercado Pago does NOT support CVV-less charges via the public API — every charge needs CVV. Idempotent on (card_id, amount, external_reference): retries dedupe automatically. Returns the resulting Payment.",
+
+  // ── QR in-store (v0.3) ───────────────────────────────────────────────────
+  create_qr_payment:
+    "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS external_id (one-time setup in MP dashboard). Returns the qr_data string + a base64 PNG data URL ready to display. The QR expires in `expires_in_seconds` (default 600). MP fires `point_integration_wh` then `payment` webhooks when scanned.",
+  cancel_qr_payment:
+    "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409.",
 };
 
 /**
@@ -286,8 +316,15 @@ export function mercadoPagoTools(
           ...(input.identification !== undefined ? { identification: input.identification } : {}),
           ...(input.statement_descriptor !== undefined ? { statementDescriptor: input.statement_descriptor } : {}),
           ...(options.notificationUrl !== undefined ? { notificationUrl: options.notificationUrl } : {}),
-          // Auto-generate idempotency key from caller-meaningful fields
-          idempotencyKey: `${input.external_reference ?? input.payer_email}-${input.amount_ars}-${Date.now()}`,
+          // Deterministic idempotency key — safe to retry, same inputs always
+          // produce the same key (MP dedupes on its side).
+          idempotencyKey: deterministicIdempotencyKey(
+            "create_payment",
+            input.external_reference ?? input.payer_email,
+            input.amount_ars,
+            input.payment_method_id,
+            input.token,
+          ),
         });
         return {
           payment_id: payment.id,
@@ -410,7 +447,7 @@ export function mercadoPagoTools(
         const refund = await client.createRefund({
           paymentId: payment_id,
           ...(amount_ars !== undefined ? { amount: amount_ars } : {}),
-          idempotencyKey: `refund-${payment_id}-${amount_ars ?? "full"}`,
+          idempotencyKey: deterministicIdempotencyKey("refund", payment_id, amount_ars ?? "full"),
         });
         return {
           refund_id: refund.id,
@@ -673,6 +710,119 @@ export function mercadoPagoTools(
           site_id: me.site_id,
           user_type: me.user_type,
         };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Saved-card charging (v0.3)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    charge_saved_card: tool({
+      description: desc("charge_saved_card"),
+      inputSchema: z.object({
+        customer_id: z.string().describe("MP customer id (from create_customer / find_customer_by_email)"),
+        card_id: z.string().describe("Saved card id (from list_customer_cards)"),
+        security_code: z.string().regex(/^\d{3,4}$/).describe("CVV — 3 digits (Visa/Master) or 4 (Amex). User must provide this each charge in AR."),
+        amount_ars: z.number().positive(),
+        description: z.string().min(1).max(255),
+        installments: z.number().int().min(1).max(24).optional().describe("Default 1. Use calculate_installments first to pick a valid count."),
+        external_reference: z.string().optional(),
+        statement_descriptor: z.string().max(13).optional(),
+      }),
+      execute: async (input) => {
+        const payment = await client.chargeSavedCard({
+          customerId: input.customer_id,
+          cardId: input.card_id,
+          securityCode: input.security_code,
+          amount: input.amount_ars,
+          description: input.description,
+          ...(input.installments !== undefined ? { installments: input.installments } : {}),
+          ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
+          ...(input.statement_descriptor !== undefined ? { statementDescriptor: input.statement_descriptor } : {}),
+          idempotencyKey: deterministicIdempotencyKey(
+            "charge_saved_card",
+            input.card_id,
+            input.amount_ars,
+            input.external_reference,
+          ),
+        });
+        return {
+          payment_id: payment.id,
+          status: payment.status,
+          status_detail: payment.status_detail,
+          amount: payment.transaction_amount,
+          installments: payment.installments,
+          payment_method: payment.payment_method_id,
+          customer_id: input.customer_id,
+          card_id: input.card_id,
+          external_reference: payment.external_reference,
+          date_approved: payment.date_approved,
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // QR in-store (v0.3)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    create_qr_payment: tool({
+      description: desc("create_qr_payment"),
+      inputSchema: z.object({
+        external_pos_id: z.string().describe("Pre-configured POS external_id from MP dashboard. Required."),
+        amount_ars: z.number().positive(),
+        title: z.string().min(1).max(80).describe("Display title shown when scanning"),
+        description: z.string().max(255).optional(),
+        external_reference: z.string().optional(),
+        notification_url: z.string().url().optional().describe("Webhook URL — falls back to dashboard config if omitted"),
+        expires_in_seconds: z.number().int().min(60).max(3600).optional().describe("Default 600 (10 min)"),
+      }),
+      execute: async (input) => {
+        // Lazy-load qrcode to keep cold-start lean for users who don't use QR
+        const QRCode = (await import("qrcode")).default;
+        const me = await client.getMe();
+        const userId = String(me.id);
+        const expiresAt = new Date(
+          Date.now() + (input.expires_in_seconds ?? 600) * 1000,
+        ).toISOString();
+
+        const qr = await client.createQrPayment(userId, {
+          externalPosId: input.external_pos_id,
+          totalAmount: input.amount_ars,
+          title: input.title,
+          ...(input.description !== undefined ? { description: input.description } : {}),
+          ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
+          ...(input.notification_url !== undefined ? { notificationUrl: input.notification_url } : {}),
+          expirationDate: expiresAt,
+        });
+
+        const qrDataUrl = await QRCode.toDataURL(qr.qr_data, {
+          errorCorrectionLevel: "M",
+          margin: 1,
+          width: 512,
+        });
+
+        return {
+          in_store_order_id: qr.in_store_order_id,
+          qr_data: qr.qr_data,
+          qr_data_url: qrDataUrl,
+          expires_at: expiresAt,
+          external_pos_id: input.external_pos_id,
+          amount: input.amount_ars,
+          next_step:
+            "Display the qr_data_url image to the buyer. Wait for the payment webhook (point_integration_wh fires first, then payment topic). If buyer doesn't scan in time, call cancel_qr_payment to free the POS.",
+        };
+      },
+    }),
+
+    cancel_qr_payment: tool({
+      description: desc("cancel_qr_payment"),
+      inputSchema: z.object({
+        external_pos_id: z.string(),
+      }),
+      execute: async ({ external_pos_id }) => {
+        const me = await client.getMe();
+        await client.cancelQrPayment(String(me.id), external_pos_id);
+        return { external_pos_id, cancelled: true };
       },
     }),
   } satisfies ToolSet;

@@ -447,6 +447,62 @@ export type InstallmentOffer = z.infer<typeof InstallmentOfferSchema>;
 // Account
 // ─────────────────────────────────────────────────────────────────────────────
 
+// ─────────────────────────────────────────────────────────────────────────────
+// QR (in-store dynamic)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const QrOrderSchema = z.object({
+  in_store_order_id: z.string(),
+  qr_data: z.string(),
+}).passthrough();
+export type QrOrder = z.infer<typeof QrOrderSchema>;
+
+export interface CreateQrPaymentParams {
+  /** Pre-configured POS external_id from MP dashboard. Required. */
+  externalPosId: string;
+  /** Total amount in ARS. */
+  totalAmount: number;
+  /** Display title shown to the buyer when scanning. */
+  title: string;
+  description?: string;
+  /** Webhook URL — MP fires `point_integration_wh` then `payment` topic. */
+  notificationUrl?: string;
+  /** Your-system identifier for correlation. */
+  externalReference?: string;
+  /** ISO 8601 expiration (default 10 min from now). */
+  expirationDate?: string;
+  /** Itemized line items (optional but improves analytics). */
+  items?: Array<{
+    title: string;
+    quantity: number;
+    unit_price: number;
+    unit_measure?: string;
+    total_amount?: number;
+  }>;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Card tokens (for charge_saved_card)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const CardTokenSchema = z.object({
+  id: z.string(),
+  status: z.string().optional(),
+  date_due: z.string().optional(),
+  card_id: z.string().optional(),
+  cardholder: z.unknown().optional(),
+}).passthrough();
+export type CardToken = z.infer<typeof CardTokenSchema>;
+
+export interface CreateCardTokenParams {
+  /** Saved card id (from list_customer_cards). */
+  cardId: string;
+  /** Customer that owns the card. */
+  customerId: string;
+  /** CVV — required for AR; MP doesn't store CVV. */
+  securityCode: string;
+}
+
 export const AccountInfoSchema = z.object({
   id: z.union([z.string(), z.number()]).transform(String),
   email: z.string().nullable().optional(),

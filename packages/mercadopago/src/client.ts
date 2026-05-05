@@ -1,10 +1,13 @@
-import { classifyError, MercadoPagoError } from "./errors";
+import { classifyError, MercadoPagoError, MercadoPagoOverloadedError, MercadoPagoRateLimitError, MercadoPagoTimeoutError } from "./errors";
 import type {
   AccountInfo,
+  CardToken,
+  CreateCardTokenParams,
   CreateCustomerParams,
   CreatePaymentParams,
   CreatePreapprovalParams,
   CreatePreferenceParams,
+  CreateQrPaymentParams,
   CreateRefundParams,
   Customer,
   CustomerCard,
@@ -14,11 +17,16 @@ import type {
   PaymentsSearchResult,
   Preapproval,
   Preference,
+  QrOrder,
   Refund,
   SearchPaymentsParams,
 } from "./types";
 
 const DEFAULT_BASE_URL = "https://api.mercadopago.com";
+
+function sleep(ms: number): Promise<void> {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
 
 export interface MercadoPagoClientOptions {
   /** Access token. TEST- prefix for sandbox, APP_USR- for production. */
@@ -33,6 +41,29 @@ export interface MercadoPagoClientOptions {
    * inject your own retry/instrumentation layer or to test with MSW.
    */
   fetch?: typeof fetch;
+  /**
+   * Per-request timeout in ms. Aborts the request and throws if exceeded.
+   * Default 30_000 (30s). MP can be slow under load; 30s is a safe upper bound.
+   */
+  requestTimeoutMs?: number;
+  /**
+   * Number of retries on 5xx + network errors. Default 1 (single retry).
+   * 4xx errors are NEVER retried (they're user/config errors). Each retry
+   * uses exponential backoff: 250ms, 500ms, 1000ms, ...
+   */
+  maxRetries?: number;
+  /**
+   * Observability hook fired AFTER every request (success or failure).
+   * Useful for logging, metrics, tracing. Synchronous, fire-and-forget.
+   */
+  onCall?: (event: {
+    method: string;
+    path: string;
+    durationMs: number;
+    httpStatus: number | null;
+    retried: number;
+    success: boolean;
+  }) => void;
 }
 
 interface RequestOptions {
@@ -61,6 +92,18 @@ export class MercadoPagoClient {
   private readonly accessToken: string;
   private readonly baseUrl: string;
   private readonly fetchImpl: typeof fetch | undefined;
+  private readonly requestTimeoutMs: number;
+  private readonly maxRetries: number;
+  private readonly onCall:
+    | ((event: {
+        method: string;
+        path: string;
+        durationMs: number;
+        httpStatus: number | null;
+        retried: number;
+        success: boolean;
+      }) => void)
+    | undefined;
 
   constructor(options: MercadoPagoClientOptions) {
     if (!options.accessToken) {
@@ -71,6 +114,9 @@ export class MercadoPagoClient {
     this.accessToken = options.accessToken;
     this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
     this.fetchImpl = options.fetch;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
+    this.maxRetries = Math.max(0, options.maxRetries ?? 1);
+    this.onCall = options.onCall;
   }
 
   private async request<T>(
@@ -86,10 +132,6 @@ export class MercadoPagoClient {
     if (options?.idempotencyKey) {
       headers["X-Idempotency-Key"] = options.idempotencyKey;
     }
-    const init: RequestInit = { method, headers };
-    if (body !== undefined) {
-      init.body = JSON.stringify(body);
-    }
 
     let url = `${this.baseUrl}${path}`;
     if (options?.query) {
@@ -104,21 +146,108 @@ export class MercadoPagoClient {
     }
 
     const fetchFn = this.fetchImpl ?? globalThis.fetch;
-    const res = await fetchFn(url, init);
-    if (!res.ok) {
-      let parsed: unknown;
-      const text = await res.text();
+    const t0 = Date.now();
+    let attempt = 0;
+    let lastError: unknown;
+    let lastStatus: number | null = null;
+
+    while (attempt <= this.maxRetries) {
+      const controller = new AbortController();
+      const timer = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+
+      const init: RequestInit = { method, headers, signal: controller.signal };
+      if (body !== undefined) init.body = JSON.stringify(body);
+
       try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = text;
+        const res = await fetchFn(url, init);
+        clearTimeout(timer);
+        lastStatus = res.status;
+
+        if (res.ok) {
+          const text = await res.text();
+          this.onCall?.({
+            method,
+            path,
+            durationMs: Date.now() - t0,
+            httpStatus: res.status,
+            retried: attempt,
+            success: true,
+          });
+          if (!text) return undefined as T;
+          return JSON.parse(text) as T;
+        }
+
+        // Retry on 5xx and 429 (rate-limit); never on 4xx user/config errors
+        const isRetryable = res.status >= 500 || res.status === 429;
+        if (isRetryable && attempt < this.maxRetries) {
+          // Honor Retry-After header on 429
+          const retryAfter = res.headers.get("retry-after");
+          const waitMs = retryAfter
+            ? Number(retryAfter) * 1000
+            : 250 * Math.pow(2, attempt);
+          attempt++;
+          await sleep(waitMs);
+          continue;
+        }
+
+        // Detect HTML / non-JSON 5xx (MP overloaded)
+        const contentType = res.headers.get("content-type") ?? "";
+        if (res.status >= 500 && !contentType.includes("application/json")) {
+          this.onCall?.({
+            method,
+            path,
+            durationMs: Date.now() - t0,
+            httpStatus: res.status,
+            retried: attempt,
+            success: false,
+          });
+          throw new MercadoPagoOverloadedError(path, res.status);
+        }
+
+        let parsed: unknown;
+        const text = await res.text();
+        try { parsed = JSON.parse(text); } catch { parsed = text; }
+        const err = classifyError(res.status, path, parsed, options?.classifyContext);
+        this.onCall?.({
+          method,
+          path,
+          durationMs: Date.now() - t0,
+          httpStatus: res.status,
+          retried: attempt,
+          success: false,
+        });
+        throw err;
+      } catch (err) {
+        clearTimeout(timer);
+        // If err is a MercadoPagoError, the 5xx-final / 4xx branch already
+        // fired onCall above — don't double-fire. Just re-throw.
+        if (err instanceof MercadoPagoError) throw err;
+
+        // Network error / abort / parse error — retry if budget remains
+        const isAbort = err instanceof Error && err.name === "AbortError";
+        const isNetwork = !lastStatus && !isAbort;
+        if ((isNetwork || isAbort) && attempt < this.maxRetries) {
+          lastError = err;
+          attempt++;
+          await sleep(250 * Math.pow(2, attempt - 1));
+          continue;
+        }
+        this.onCall?.({
+          method,
+          path,
+          durationMs: Date.now() - t0,
+          httpStatus: lastStatus,
+          retried: attempt,
+          success: false,
+        });
+        if (isAbort) {
+          throw new MercadoPagoTimeoutError(path, this.requestTimeoutMs);
+        }
+        throw err;
       }
-      throw classifyError(res.status, path, parsed, options?.classifyContext);
     }
-    // Some endpoints (DELETE customer card) return 200 with empty body
-    const text = await res.text();
-    if (!text) return undefined as T;
-    return JSON.parse(text) as T;
+
+    throw lastError ?? new Error(`MercadoPago request failed after ${this.maxRetries} retries`);
   }
 
   // ───────────────────────────────────────────────────────────────────────────
@@ -483,6 +612,137 @@ export class MercadoPagoClient {
   /** Get info about the account that owns this access token. */
   async getMe(): Promise<AccountInfo> {
     return this.request<AccountInfo>("GET", "/users/me");
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Card tokens (server-side, for saved-card retokenization)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Create a single-use card token from a saved card. This is the server-side
+   * retokenization path (PCI-safe because the card data lives in MP's vault,
+   * we only pass the saved card_id + customer_id + the user-supplied CVV).
+   *
+   * Tokens expire in 7 days but typically burn on first use. AR currently
+   * REQUIRES CVV on every charge (MP doesn't store it); skipping CVV requires
+   * a private MP product enablement, not a public API.
+   */
+  async createCardToken(params: CreateCardTokenParams): Promise<CardToken> {
+    return this.request<CardToken>("POST", "/v1/card_tokens", {
+      card_id: params.cardId,
+      customer_id: params.customerId,
+      security_code: params.securityCode,
+    });
+  }
+
+  /**
+   * High-level helper: charge a saved card in 3 steps.
+   * 1. Mint a card token from {customer_id, card_id, security_code}
+   * 2. Lookup card to fill payment_method_id (avoids agent guessing)
+   * 3. Create the payment with the token + idempotency key
+   *
+   * Returns the resulting Payment. Uses deterministic idempotency from
+   * (card_id, amount, externalReference) so retries dedupe on MP's side.
+   */
+  async chargeSavedCard(params: {
+    customerId: string;
+    cardId: string;
+    securityCode: string;
+    amount: number;
+    description: string;
+    installments?: number;
+    externalReference?: string;
+    statementDescriptor?: string;
+    idempotencyKey?: string;
+  }): Promise<Payment> {
+    // Step 1: Mint single-use token
+    const token = await this.createCardToken({
+      cardId: params.cardId,
+      customerId: params.customerId,
+      securityCode: params.securityCode,
+    });
+
+    // Step 2: Lookup the saved card to fill payment_method_id
+    const card = await this.getCustomerCard(params.customerId, params.cardId);
+    const paymentMethodId = card.payment_method?.id;
+    if (!paymentMethodId) {
+      throw new MercadoPagoError(
+        `Saved card ${params.cardId} has no payment_method.id. Cannot charge.`,
+        0,
+        `/v1/customers/${params.customerId}/cards/${params.cardId}`,
+      );
+    }
+
+    // Step 3: Create payment
+    const body: Record<string, unknown> = {
+      transaction_amount: params.amount,
+      token: token.id,
+      payment_method_id: paymentMethodId,
+      installments: params.installments ?? 1,
+      description: params.description,
+      payer: { type: "customer", id: params.customerId },
+    };
+    if (params.externalReference) body.external_reference = params.externalReference;
+    if (params.statementDescriptor) body.statement_descriptor = params.statementDescriptor;
+
+    return this.request<Payment>("POST", "/v1/payments", body, {
+      ...(params.idempotencyKey !== undefined ? { idempotencyKey: params.idempotencyKey } : {}),
+      classifyContext: { customerId: params.customerId },
+    });
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // QR (in-store dynamic) — Section 2 of v0.3 spec
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Create a dynamic in-store QR order. Returns `qr_data` (EMVCo TLV string)
+   * + `in_store_order_id`. The buyer scans the QR with any AR wallet (Modo,
+   * BNA+, Cuenta DNI, Naranja X, etc. — interop is mandated by Transferencias
+   * 3.0). On payment, MP fires `point_integration_wh` then `payment` topics.
+   *
+   * Requires a pre-configured POS (`external_pos_id` from MP dashboard or
+   * `POST /pos`). The seller's `user_id` is auto-fetched from `/users/me`.
+   *
+   * The lib does NOT render the QR image — pass `qr_data` to a QR renderer
+   * (e.g., `qrcode` package) to get a data URL. The agent tool layer wraps
+   * this and returns both raw + data URL.
+   */
+  async createQrPayment(userId: string, params: CreateQrPaymentParams): Promise<QrOrder> {
+    const body: Record<string, unknown> = {
+      total_amount: params.totalAmount,
+      title: params.title,
+    };
+    if (params.description) body.description = params.description;
+    if (params.notificationUrl) body.notification_url = params.notificationUrl;
+    if (params.externalReference) body.external_reference = params.externalReference;
+    if (params.expirationDate) body.expiration_date = params.expirationDate;
+    body.items = params.items ?? [
+      {
+        title: params.title,
+        quantity: 1,
+        unit_price: params.totalAmount,
+        unit_measure: "unit",
+        total_amount: params.totalAmount,
+      },
+    ];
+
+    return this.request<QrOrder>(
+      "PUT",
+      `/instore/orders/qr/seller/collectors/${encodeURIComponent(userId)}/pos/${encodeURIComponent(params.externalPosId)}/qrs`,
+      body,
+    );
+  }
+
+  /**
+   * Cancel a pending QR order on a POS. Necessary if the buyer never scans
+   * — otherwise the next `createQrPayment` on the same POS returns 409.
+   */
+  async cancelQrPayment(userId: string, externalPosId: string): Promise<void> {
+    await this.request(
+      "DELETE",
+      `/instore/orders/qr/seller/collectors/${encodeURIComponent(userId)}/pos/${encodeURIComponent(externalPosId)}/qrs`,
+    );
   }
 }
 

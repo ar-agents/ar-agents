@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- Robustness pass + 5 new features across both packages.
+
+  # `@ar-agents/mercadopago@0.3.0`
+
+  **Robustness (Section 6 of v0.3 spec)**
+
+  - Per-request timeout via `AbortSignal` (default 30s, configurable via `requestTimeoutMs`).
+  - Auto-retry on 5xx + 429 with exponential backoff (default 1 retry, configurable via `maxRetries`). Honors `Retry-After` header on rate-limit. **Never retries on 4xx** (deterministic user/config errors).
+  - New typed errors: `MercadoPagoTimeoutError`, `MercadoPagoOverloadedError` (HTML 503 detection — when MP returns HTML instead of JSON).
+  - `onCall` observability hook fires after every request with `{ method, path, durationMs, httpStatus, retried, success }`. Wire into OpenTelemetry / Sentry / Axiom without forking the lib.
+  - **Deterministic idempotency keys** — `create_payment` and `refund_payment` now use `sha256(meaningful_fields)` instead of `Date.now()`. Retries dedupe correctly on MP's side.
+
+  **New tools (3)**
+
+  - **`charge_saved_card`** — server-side retokenize + charge for returning customers. Requires CVV (AR MP doesn't support CVV-less via public API). Idempotent on (card_id, amount, external_reference).
+  - **`create_qr_payment`** — dynamic in-store QR via MP Point. Returns raw `qr_data` (EMVCo) + ready-to-display base64 PNG `qr_data_url`. Compatible with all AR wallets (Modo, BNA+, Cuenta DNI, Naranja X) via Transferencias 3.0 interop.
+  - **`cancel_qr_payment`** — clear a pending QR order on a POS so the next `create_qr_payment` doesn't 409.
+
+  **Total tool count: 24** (was 21 in v0.2). Added `qrcode` as runtime dep for in-store flow.
+
+  # `@ar-agents/identity-attest@0.2.0`
+
+  **3 new adapters bringing total to 5**
+
+  - **`Auth0Adapter`** (trust 0.7, or 0.85 with MFA) — OAuth2 Authorization Code flow with PKCE. Server-side `id_token` verification via `jose` JWKS. Optional MFA step-up via `acr_values` — when MFA is completed, `effective_trust_level` bumps to 0.85.
+  - **`MagicLinkSdkAdapter`** (trust 0.7) — Magic.link DIDToken validation via `@magic-sdk/admin` (optional peer dep). Lazy-loaded so users without Magic don't pay cold-start cost. Returns DID + email/phone/wallet claims.
+  - **`MercadoPagoIdentityAdapter`** (trust 0.5) — partial KYC via $1 micro-charge. MP doesn't expose a public KYC API, so we use payment-payer attestation: a successful payment proves MP validated the buyer's CUIT/DNI against their internal database. Auto-refunds the $1 by default. Returns `identification_type` + `identification_number` + email + name claims.
+
+  **New client methods**
+
+  - `submitOauthCode(requestId, code)` — for OAuth callbacks (Auth0)
+  - `submitMagicDidToken(requestId, didToken)` — for Magic.link
+  - `submitMercadoPagoPaymentId(requestId, paymentId)` — for MP webhook callbacks
+
+  **Quality**
+
+  - 28/28 tests pass (was 15 in v0.1)
+  - 12.93 KB ESM brotli'd (jose is treeshakeable; was 4.44 KB without OAuth adapter)
+  - publint + arethetypeswrong all 🟢
+  - `jose` is a dep (used by Auth0Adapter); `@magic-sdk/admin` is optional peer dep
+
+  **Trust levels reference (current)**
+
+  - 0.3 — `WhatsAppOtpAdapter` (phone-owned)
+  - 0.5 — `EmailMagicLinkAdapter` (email-owned), `MercadoPagoIdentityAdapter` (partial KYC)
+  - 0.7 — `Auth0Adapter` (federated identity), `MagicLinkSdkAdapter` (Magic-managed)
+  - 0.85 — `Auth0Adapter` with MFA enforcement
+  - 0.95 — gov-verified (planned, blocked on AR SID rollout)
+
 ## 0.2.0
 
 ### Minor Changes

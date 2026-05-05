@@ -34,6 +34,8 @@ export {
   MercadoPagoPaymentRejectedError,
   MercadoPagoAuthorizeForbiddenError,
   MercadoPagoRateLimitError,
+  MercadoPagoOverloadedError,
+  MercadoPagoTimeoutError,
   classifyError,
 } from "./errors";
 
@@ -65,6 +67,12 @@ export type {
   InstallmentOffer,
   // Account
   AccountInfo,
+  // QR (v0.3)
+  QrOrder,
+  CreateQrPaymentParams,
+  // Card tokens (v0.3)
+  CardToken,
+  CreateCardTokenParams,
   // Common
   CurrencyId,
   FrequencyType,

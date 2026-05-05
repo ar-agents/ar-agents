@@ -37,6 +37,21 @@ export {
 } from "./adapters/email-magic-link";
 
 export {
+  Auth0Adapter,
+  type Auth0AdapterOptions,
+} from "./adapters/auth0";
+
+export {
+  MagicLinkSdkAdapter,
+  type MagicLinkSdkAdapterOptions,
+} from "./adapters/magic-link-sdk";
+
+export {
+  MercadoPagoIdentityAdapter,
+  type MercadoPagoIdentityAdapterOptions,
+} from "./adapters/mercadopago-identity";
+
+export {
   IdentityAttestError,
   IdentityAttestConfigError,
   VerificationRequestNotFoundError,

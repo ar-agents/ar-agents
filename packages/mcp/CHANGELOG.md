@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.1.1
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/mercadopago@0.3.0
+  - @ar-agents/identity-attest@0.2.0
+
 ## 0.1.0
 
 ### Initial release — the MCP wrapper
@@ -15,12 +23,12 @@ One MCP server that bundles the entire `@ar-agents/*` toolkit (identity, identit
 
 **Tool inventory**
 
-| Source | Tools (when configured) |
-|---|---|
-| `@ar-agents/identity` (always on) | 1-2 |
-| `@ar-agents/identity-attest` | 5 |
-| `@ar-agents/mercadopago` | 21 |
-| `@ar-agents/whatsapp` | 6 |
+| Source                            | Tools (when configured) |
+| --------------------------------- | ----------------------- |
+| `@ar-agents/identity` (always on) | 1-2                     |
+| `@ar-agents/identity-attest`      | 5                       |
+| `@ar-agents/mercadopago`          | 21                      |
+| `@ar-agents/whatsapp`             | 6                       |
 
 **Env-var configuration**
 

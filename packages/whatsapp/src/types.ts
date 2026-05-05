@@ -93,4 +93,26 @@ export interface WhatsAppClientOptions {
   baseUrl?: string;
   /** Custom fetch (testing). */
   fetchImpl?: typeof fetch;
+  /**
+   * Per-request timeout in ms. Aborts via AbortSignal and throws if exceeded.
+   * Default 30_000 (30s).
+   */
+  requestTimeoutMs?: number;
+  /**
+   * Number of retries on 5xx + network errors. Default 1. 4xx never retried
+   * (Meta's user/config errors). Exponential backoff starting at 250ms.
+   */
+  maxRetries?: number;
+  /**
+   * Observability hook fired AFTER every request (success or failure).
+   * Synchronous, fire-and-forget — useful for logging / metrics / tracing.
+   */
+  onCall?: (event: {
+    method: string;
+    path: string;
+    durationMs: number;
+    httpStatus: number | null;
+    retried: number;
+    success: boolean;
+  }) => void;
 }

@@ -142,6 +142,38 @@ export class MercadoPagoRateLimitError extends MercadoPagoError {
 }
 
 /**
+ * Thrown when MP is overloaded and serves an HTML 503 page instead of a JSON
+ * error. The library detects content-type !== application/json on 5xx and
+ * raises this typed error so retry logic + agent UX can branch correctly.
+ */
+export class MercadoPagoOverloadedError extends MercadoPagoError {
+  constructor(endpoint: string, status: number) {
+    super(
+      `Mercado Pago appears overloaded — returned a non-JSON ${status} response for ${endpoint}. Wait a few seconds and retry.`,
+      status,
+      endpoint,
+    );
+    this.name = "MercadoPagoOverloadedError";
+  }
+}
+
+/**
+ * Thrown when a request exceeds the configured `requestTimeoutMs`. Retried
+ * automatically up to `maxRetries`; this surfaces only when the budget runs
+ * out.
+ */
+export class MercadoPagoTimeoutError extends MercadoPagoError {
+  constructor(endpoint: string, public readonly timeoutMs: number) {
+    super(
+      `Mercado Pago request timed out after ${timeoutMs}ms on ${endpoint}. Increase requestTimeoutMs or check connectivity.`,
+      0,
+      endpoint,
+    );
+    this.name = "MercadoPagoTimeoutError";
+  }
+}
+
+/**
  * Maps an MP error response body to the most specific known error class. Falls
  * back to the generic MercadoPagoError when no specific pattern matches.
  */
@@ -161,7 +193,12 @@ export function classifyError(
 
   if (status === 401) return new MercadoPagoAuthError(endpoint, body);
   if (status === 429) {
-    return new MercadoPagoRateLimitError(endpoint, null, body);
+    // Try to extract Retry-After from the body if it includes one.
+    let retryAfter: number | null = null;
+    const obj = body as { retry_after?: number; "retry-after"?: number } | undefined;
+    if (obj?.retry_after) retryAfter = Number(obj.retry_after);
+    else if (obj?.["retry-after"]) retryAfter = Number(obj["retry-after"]);
+    return new MercadoPagoRateLimitError(endpoint, retryAfter, body);
   }
   if (status === 400) {
     if (lower.includes("back_url") && lower.includes("not a valid url")) {

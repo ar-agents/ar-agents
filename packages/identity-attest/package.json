@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/identity-attest",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Identity attestation pattern for AI agents — orchestrate verification flows (WhatsApp OTP, email magic link, Auth0, MercadoPago Identity, SID gov) and get back a signed attestation with a trust level. The RENAPER workaround that lets agents do KYC without institutional API access.",
   "keywords": [
     "identity",
@@ -66,25 +66,38 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "12 KB",
-      "ignore": ["node:crypto", "crypto"]
+      "limit": "30 KB",
+      "ignore": [
+        "node:crypto",
+        "crypto"
+      ]
     },
     {
       "name": "CJS",
       "path": "dist/index.cjs",
-      "limit": "12 KB",
-      "ignore": ["node:crypto", "crypto"]
+      "limit": "30 KB",
+      "ignore": [
+        "node:crypto",
+        "crypto"
+      ]
     }
   ],
   "peerDependencies": {
     "ai": ">=6.0.0",
-    "zod": ">=3.0.0"
+    "zod": ">=3.0.0",
+    "@magic-sdk/admin": ">=2.0.0"
   },
   "peerDependenciesMeta": {
-    "@ar-agents/whatsapp": { "optional": true }
+    "@ar-agents/whatsapp": {
+      "optional": true
+    },
+    "@magic-sdk/admin": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@ar-agents/whatsapp": "workspace:*",
+    "@magic-sdk/admin": "^2.8.2",
     "@types/node": "^20.19.39",
     "ai": "^6.0.175",
     "tsup": "^8.3.5",
@@ -97,5 +110,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "jose": "^6.2.3"
   }
 }
