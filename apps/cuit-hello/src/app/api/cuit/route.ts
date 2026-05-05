@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { describePersonType, parseCuit } from "@/lib/cuit";
+import { describePersonType, parseCuit } from "@ar-agents/identity";
 
 export const runtime = "nodejs";
 

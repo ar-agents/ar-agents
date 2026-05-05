@@ -7,6 +7,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
+  transpilePackages: ["@ar-agents/identity"],
 };
 
 export default nextConfig;

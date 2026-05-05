@@ -9,6 +9,20 @@ Exposes Mercado Pago's recurring-billing API to AI agents through a typed,
 opinionated tool collection. Built for the Vercel AI SDK 6 `Experimental_Agent`.
 Compatible with any caller that uses `tool()`.
 
+> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — it's targeted at LLM consumption with explicit tool-selection rules and error-recovery patterns.
+
+## At a glance
+
+| What | Value |
+| --- | --- |
+| Tools shipped | `create_subscription`, `get_subscription_status`, `cancel_subscription`, `pause_subscription`, `resume_subscription` |
+| External dependencies | Mercado Pago access token (TEST or APP_USR), state adapter (Upstash, Redis, Postgres, in-memory, etc.) |
+| Latency | 200–600ms per MP call; <1ms for state ops |
+| Cost | $0 — MP API is free; merchant pays per-transaction fees on auto-charges |
+| Side effects | `create_subscription` creates a preapproval. `cancel`/`pause`/`resume` mutate state. `get_status` is read-only. |
+| Agent safety | `cancel_subscription` description triggers confirm-before-call in Claude Sonnet 4.6+ |
+| Sites supported | MLA (Argentina) verified end-to-end. Other LATAM sites should work but aren't exercised by tests. |
+
 ## Why this exists
 
 Building an agent that operates a real Argentine business means integrating

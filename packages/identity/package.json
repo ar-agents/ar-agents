@@ -1,23 +1,26 @@
 {
-  "name": "@ar-agents/mercadopago",
+  "name": "@ar-agents/identity",
   "version": "0.1.0",
-  "description": "Mercado Pago Subscriptions as drop-in tools for the Vercel AI SDK. Argentine-focused, agent-ready.",
+  "description": "Argentine identity validation (CUIT/CUIL) + AFIP padrón lookup as drop-in tools for the Vercel AI SDK. Algorithm-only out of the box; AFIP webservice via pluggable adapter when a cert is wired.",
   "keywords": [
-    "mercadopago",
+    "afip",
+    "cuit",
+    "cuil",
+    "argentina",
     "ai-sdk",
     "vercel-ai",
     "agent",
-    "argentina",
-    "subscriptions",
-    "agentic"
+    "agentic",
+    "identity",
+    "tax-id"
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@helloastro.co>",
-  "homepage": "https://github.com/naza00000/ar-agents/tree/main/packages/mercadopago",
+  "homepage": "https://github.com/naza00000/ar-agents/tree/main/packages/identity",
   "repository": {
     "type": "git",
     "url": "https://github.com/naza00000/ar-agents.git",
-    "directory": "packages/mercadopago"
+    "directory": "packages/identity"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -52,7 +55,6 @@
   "devDependencies": {
     "@types/node": "^20.19.39",
     "ai": "^6.0.175",
-    "msw": "^2.6.0",
     "tsup": "^8.3.5",
     "typescript": "^5.9.3",
     "vitest": "^2.1.8",
