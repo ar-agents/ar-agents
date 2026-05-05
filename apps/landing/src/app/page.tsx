@@ -70,6 +70,18 @@ const PACKAGES = [
     bg: "#dbeafe",
     accent: "#1d4ed8",
   },
+  {
+    name: "@ar-agents/mcp",
+    version: "0.1.0",
+    purpose:
+      "MCP (Model Context Protocol) server that bundles the entire @ar-agents/* toolkit. One install in Claude Desktop / Cursor / any MCP host, up to 34 tools available immediately.",
+    tools: ["bundles all 4 packages above", "auto-detects from env vars", "stdio transport"],
+    npm: "https://www.npmjs.com/package/@ar-agents/mcp",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
+    demo: null,
+    bg: "#ede9fe",
+    accent: "#6d28d9",
+  },
 ];
 
 export default function Home() {
@@ -96,7 +108,7 @@ export default function Home() {
               fontFamily: "var(--font-geist-mono), monospace",
             }}
           >
-            ar-agents · 4 packages live
+            ar-agents · 5 packages live
           </p>
           <h1
             style={{
@@ -366,9 +378,6 @@ const agent = new Agent({
               color: "#52525b",
             }}
           >
-            <li>
-              <strong>@ar-agents/mcp</strong> — wrapper que expone todos los packages como MCP server (para Cursor / Claude Desktop)
-            </li>
             <li>
               <strong>@ar-agents/identity-attest v0.2</strong> — Auth0 + Cognito + MercadoPago Identity adapters
             </li>
