@@ -1,5 +1,23 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- [`12519eb`](https://github.com/ar-agents/ar-agents/commit/12519eb6868c4b3acc556803b70c6335283e39f2) - Add `WsaaWscdcAfipPadronAdapter` — production-ready AFIP padrón lookup via WSAA + WSCDC SOAP.
+
+  Imported from the new subpath `@ar-agents/identity/wsaa` (kept off the main entry so users who only need pure-algorithm validation don't pull in `node-forge`). The adapter implements `AfipPadronAdapter` and handles:
+
+  - WSAA login flow: TRA generation → PKCS#7 detached CMS signing with the integration's X.509 cert → POST to `loginCms` → parsing the returned access ticket
+  - TA caching with pluggable `TokenStore` (in-memory default; bring your own Upstash/Redis/Postgres adapter for multi-process deployments)
+  - WSCDC `getPersona_v2` SOAP call with full response parsing into `AfipPadronData` (name, tax condition, monotributo category, address, activities)
+  - Typed error surfacing: WSAA failures return `{ available: false, error: "Failed to authenticate with AFIP WSAA: ..." }` with actionable detail, never throws unexpectedly
+  - Fast path for malformed CUITs: rejected before any AFIP call
+
+  Also exports `loginCms`, `TokenCache`, `InMemoryTokenStore`, `getPersonaV2`, and the underlying `buildTraXml` / `signTra` / `parseLoginTicketResponse` / `buildGetPersonaSoap` / `parseGetPersonaResponse` helpers for callers who want to compose their own AFIP flows.
+
+  Setup requires generating an X.509 cert + key with openssl, registering it in AFIP via Clave Fiscal, and authorizing the cert for the `ws_sr_padron_a5` service. See README's "Quick start (with AFIP padrón lookup)" section for the full walkthrough.
+
 All notable changes to `@ar-agents/identity` are documented here. The format
 follows [Keep a Changelog](https://keepachangelog.com/) and the project adheres
 to [Semantic Versioning](https://semver.org/).
@@ -9,6 +27,7 @@ to [Semantic Versioning](https://semver.org/).
 Initial release. Extracted from the `cuit-hello` reference app.
 
 ### Added
+
 - `parseCuit()` / `isValidCuit()` / `computeCheckDigit()` / `normalizeCuit()` /
   `describePersonType()` — pure-algorithm CUIT/CUIL validation and parsing.
 - `identityTools()` — drop-in tool collection for the Vercel AI SDK 6+. Two
@@ -26,10 +45,12 @@ Initial release. Extracted from the `cuit-hello` reference app.
   `IdentityErrorCode`, `IdentityToolName`, `IdentityToolsOptions`.
 
 ### Tested
+
 - 20+ unit tests across `cuit`, `afip-adapter`, `tools`, and `errors` test
   files, all passing.
 
 ### Documented
+
 - `README.md` — human-friendly intro, quick start (with and without cert),
   AFIP cert setup walkthrough, standalone API reference, algorithm summary,
   test cases, error reference.
@@ -39,6 +60,7 @@ Initial release. Extracted from the `cuit-hello` reference app.
   packages, latency table, AR context for non-AR agents.
 
 ### Known limitations
+
 - AFIP padrón lookup is contract-only in v0.1; the real WSAA + WSCDC SOAP
   implementation is left to the consumer (or future v0.2 reference adapter).
 - Algorithm currently targets MLA (Argentina) only; CUIT-equivalent IDs in
