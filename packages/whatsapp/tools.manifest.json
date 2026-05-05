@@ -1,0 +1,88 @@
+{
+  "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/whatsapp",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "send_whatsapp_text",
+      "kind": "side-effect",
+      "purpose": "Send a free-form text message inside the 24-hour customer service window.",
+      "inputs": ["to", "text", "previewUrl?", "contextMessageId?"],
+      "outputs": ["messageId", "recipient"],
+      "errors": ["WhatsAppOutsideWindowError", "WhatsAppRecipientNotOnPlatformError", "WhatsAppApiError"]
+    },
+    {
+      "name": "send_whatsapp_template",
+      "kind": "side-effect",
+      "purpose": "Send a pre-approved template message — required outside the 24h window.",
+      "inputs": ["to", "templateName", "languageCode?", "bodyParams?"],
+      "outputs": ["messageId", "recipient"],
+      "errors": ["WhatsAppApiError"]
+    },
+    {
+      "name": "send_whatsapp_media",
+      "kind": "side-effect",
+      "purpose": "Send image/audio/video/document/sticker by URL or pre-uploaded media ID.",
+      "inputs": ["to", "type", "link?", "mediaId?", "caption?", "filename?"],
+      "outputs": ["messageId", "recipient"],
+      "errors": ["WhatsAppOutsideWindowError", "WhatsAppApiError"]
+    },
+    {
+      "name": "send_whatsapp_buttons",
+      "kind": "side-effect",
+      "purpose": "Send a message with up to 3 reply buttons (in-chat actions).",
+      "inputs": ["to", "bodyText", "headerText?", "footerText?", "buttons[]"],
+      "outputs": ["messageId", "recipient"],
+      "errors": ["WhatsAppApiError"]
+    },
+    {
+      "name": "send_whatsapp_list",
+      "kind": "side-effect",
+      "purpose": "Send a list-picker menu with sections (4-10 options).",
+      "inputs": ["to", "bodyText", "buttonText", "sections[]"],
+      "outputs": ["messageId", "recipient"],
+      "errors": ["WhatsAppApiError"]
+    },
+    {
+      "name": "mark_whatsapp_read",
+      "kind": "side-effect",
+      "purpose": "Mark an inbound message as read (blue double-check).",
+      "inputs": ["messageId"],
+      "outputs": ["ok", "messageId"],
+      "errors": ["WhatsAppApiError"]
+    }
+  ],
+  "adapters": [
+    {
+      "name": "WhatsAppClient",
+      "kind": "transport",
+      "purpose": "HTTP client over Meta Graph API for WhatsApp Cloud."
+    }
+  ],
+  "webhooks": [
+    {
+      "name": "parseWebhookEvent",
+      "purpose": "Parse Meta's nested webhook envelope into a normalized event (single)."
+    },
+    {
+      "name": "parseWebhookEvents",
+      "purpose": "Parse all events from a batched webhook payload (Meta can send 3+ status updates per POST)."
+    },
+    {
+      "name": "verifyWebhookSignature",
+      "purpose": "HMAC-SHA256 verification of X-Hub-Signature-256 header. Pass RAW body."
+    },
+    {
+      "name": "verifyWebhookSubscription",
+      "purpose": "Handle Meta's GET handshake with hub.challenge / hub.verify_token."
+    }
+  ],
+  "errors": [
+    "WhatsAppError",
+    "WhatsAppNotConfiguredError",
+    "WhatsAppApiError",
+    "WhatsAppRecipientNotOnPlatformError",
+    "WhatsAppOutsideWindowError",
+    "WhatsAppWebhookSignatureError"
+  ]
+}

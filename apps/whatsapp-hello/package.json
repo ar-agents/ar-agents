@@ -1,0 +1,31 @@
+{
+  "name": "whatsapp-hello",
+  "version": "0.1.1",
+  "private": true,
+  "description": "Reference app: combines @ar-agents/identity + @ar-agents/mercadopago + @ar-agents/whatsapp into a billing assistant for SaaS argentinos. Receives WhatsApp messages, validates CUIT, manages MP subscriptions, replies via WhatsApp.",
+  "scripts": {
+    "dev": "next dev --port 3015",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "@ar-agents/identity": "workspace:*",
+    "@ar-agents/mercadopago": "workspace:*",
+    "@ar-agents/whatsapp": "workspace:*",
+    "ai": "^6.0.175",
+    "next": "16.2.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "zod": "^4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "typescript": "^5"
+  }
+}

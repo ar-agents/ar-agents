@@ -7,8 +7,9 @@ import {
   type TokenStore,
 } from "./wsaa";
 import {
-  getPersonaA13,
-  WSCDC_SERVICE_NAME,
+  getPersona,
+  CONSTANCIA_INSCRIPCION_SERVICE_NAME,
+  type AfipPadronService,
 } from "./wscdc";
 import { normalizeCuit } from "./cuit";
 
@@ -29,9 +30,11 @@ import { normalizeCuit } from "./cuit";
  *    "Administración de Certificados Digitales", "Agregar Alias", upload
  *    the `.csr`. Download the `afip-cert.pem` AFIP issues.
  * 3. In "Administrador de Relaciones de Clave Fiscal", create a new relation
- *    authorizing the alias to use the `ws_sr_padron_a13` service.
- *    Note: AFIP deprecated `ws_sr_padron_a5`; A13 is the current canonical
- *    padron service (same SOAP shape, richer response).
+ *    authorizing the alias to use the chosen service:
+ *    - **Default & recommended**: `ws_sr_constancia_inscripcion` — full
+ *      constancia (datos generales + monotributo + IVA condition).
+ *    - **Lighter alternative**: `ws_sr_padron_a13` — datos generales only,
+ *      no monotributo or IVA. Use if you don't need fiscal condition data.
  * 4. Wire the adapter:
  *    ```ts
  *    import { identityTools } from "@ar-agents/identity";
@@ -40,8 +43,9 @@ import { normalizeCuit } from "./cuit";
  *    const afip = new WsaaWscdcAfipPadronAdapter({
  *      certPath: process.env.AFIP_CERT_PATH!,
  *      keyPath: process.env.AFIP_KEY_PATH!,
- *      cuitRepresentado: process.env.AFIP_CUIT!, // your CUIT
- *      env: "homo", // or "prod"
+ *      cuitRepresentado: process.env.AFIP_CUIT!,
+ *      env: "prod",
+ *      // service: "ws_sr_constancia_inscripcion" (default)
  *    });
  *    const tools = identityTools({ afip });
  *    ```
@@ -83,6 +87,17 @@ export interface WsaaWscdcAdapterOptions {
   cuitRepresentado: string;
   /** "homo" for sandbox; "prod" for live. */
   env: AfipEnv;
+  /**
+   * AFIP service to query.
+   *
+   * - `ws_sr_constancia_inscripcion` (default, recommended): full constancia
+   *   data — name, domicilio, monotributo category, IVA condition, impuestos.
+   * - `ws_sr_padron_a13`: datos generales only — no monotributo, no IVA.
+   *
+   * Both must be separately authorized in your AFIP "Administrador de
+   * Relaciones" panel. Default works for most CUIT-lookup use cases.
+   */
+  service?: AfipPadronService;
   /** Optional custom TA storage (Redis, DB, etc.) for multi-process setups. */
   tokenStore?: TokenStore;
   /** Override WSAA URL (testing only). */
@@ -97,6 +112,7 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
   private readonly cache: TokenCache;
   private readonly cuitRepresentado: string;
   private readonly env: AfipEnv;
+  private readonly service: AfipPadronService;
   private readonly wscdcEndpoint: string | undefined;
   private readonly fetchImpl: typeof fetch | undefined;
 
@@ -118,6 +134,7 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
     });
     this.cuitRepresentado = normalizeCuit(options.cuitRepresentado);
     this.env = options.env;
+    this.service = options.service ?? CONSTANCIA_INSCRIPCION_SERVICE_NAME;
     this.wscdcEndpoint = options.wscdcEndpoint;
     this.fetchImpl = options.fetchImpl;
   }
@@ -135,22 +152,23 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
 
     let ta;
     try {
-      ta = await this.cache.getTicket(WSCDC_SERVICE_NAME);
+      ta = await this.cache.getTicket(this.service);
     } catch (err) {
       const message =
         err instanceof Error ? err.message : "Unknown WSAA error";
       return {
         cuit: normalized,
         available: false,
-        error: `Failed to authenticate with AFIP WSAA: ${message}. Check that AFIP_CERT_PATH + AFIP_KEY_PATH point to valid PEMs and that the cert is authorized for service ws_sr_padron_a13 in your AFIP account.`,
+        error: `Failed to authenticate with AFIP WSAA: ${message}. Check that the cert is authorized for service ${this.service} in your AFIP account (Administrador de Relaciones → Nueva Relación → AFIP → WebServices).`,
         data: null,
       };
     }
 
     let result;
     try {
-      result = await getPersonaA13({
+      result = await getPersona({
         ta,
+        service: this.service,
         env: this.env,
         cuitRepresentado: this.cuitRepresentado,
         cuitToQuery: normalized,
@@ -163,7 +181,7 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
       return {
         cuit: normalized,
         available: false,
-        error: `Failed to call AFIP WSCDC getPersona (A13): ${message}.`,
+        error: `Failed to call AFIP getPersona (${this.service}): ${message}.`,
         data: null,
       };
     }

@@ -27,8 +27,12 @@ export {
 } from "./wsaa";
 
 export {
+  getPersona,
   getPersonaA13,
   buildGetPersonaSoap,
   parseGetPersonaResponse,
   WSCDC_SERVICE_NAME,
+  CONSTANCIA_INSCRIPCION_SERVICE_NAME,
+  PADRON_A13_SERVICE_NAME,
+  type AfipPadronService,
 } from "./wscdc";

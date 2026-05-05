@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- Add `ws_sr_constancia_inscripcion` support — full constancia data (monotributo + IVA condition + impuestos asociados).
+
+  **What's new**
+
+  - `WsaaWscdcAfipPadronAdapter` now accepts a `service` option:
+    - `"ws_sr_constancia_inscripcion"` (default, recommended) — full constancia
+    - `"ws_sr_padron_a13"` — datos generales only (lighter, no monotributo)
+  - Both share the same `getPersona` operation but the response shapes differ. The parser handles both transparently.
+  - Constancia uses the `personaServiceA5` endpoint URL (`http://a5.soap.ws.server.puc.sr/` namespace) — reuses what was previously thought of as the "deprecated A5" endpoint, but with a different TA service name (`ws_sr_constancia_inscripcion`).
+  - Live-tested against ARCA prod (AFIP rebrand) — returns nombre, condicion (MONOTRIBUTO/RESPONSABLE INSCRIPTO/EXENTO), monotributoCategoria, domicilio fiscal, actividades.
+
+  **API additions**
+
+  ```ts
+  // New exports from @ar-agents/identity/wsaa
+  import {
+    CONSTANCIA_INSCRIPCION_SERVICE_NAME, // "ws_sr_constancia_inscripcion"
+    PADRON_A13_SERVICE_NAME, // "ws_sr_padron_a13"
+    type AfipPadronService,
+    getPersona, // service-aware (replaces getPersonaA13)
+  } from "@ar-agents/identity/wsaa";
+
+  // Default — uses constancia (richer)
+  new WsaaWscdcAfipPadronAdapter({ certPem, keyPem, cuitRepresentado, env });
+
+  // Opt into the lighter A13-only flavor
+  new WsaaWscdcAfipPadronAdapter({
+    certPem,
+    keyPem,
+    cuitRepresentado,
+    env,
+    service: "ws_sr_padron_a13",
+  });
+  ```
+
+  **Backward compatibility**
+
+  - `getPersonaA13` is kept as a deprecated alias that calls `getPersona({ service: "ws_sr_padron_a13", ... })`.
+  - `WSCDC_SERVICE_NAME` now points to `ws_sr_constancia_inscripcion` (was `ws_sr_padron_a13` in v0.3). If you relied on the v0.3 default to query A13, pass `service: "ws_sr_padron_a13"` explicitly OR authorize the new constancia service in your AFIP/ARCA "Administrador de Relaciones".
+
+  **Note on AFIP → ARCA rebrand**
+
+  AFIP was renamed to ARCA (Agencia de Recaudación y Control Aduanero) in 2025. URLs, panels, and forms still mix both names — the lib uses "AFIP" in code/docs because the WSAA + WSCDC service names didn't change.
+
 ## 0.3.0
 
 ### Minor Changes
