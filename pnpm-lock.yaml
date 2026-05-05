@@ -73,6 +73,37 @@ importers:
         specifier: ^5
         version: 5.9.3
 
+  apps/landing:
+    dependencies:
+      next:
+        specifier: 16.2.4
+        version: 16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.39
+      '@types/react':
+        specifier: ^19
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.14)
+      eslint:
+        specifier: ^9
+        version: 9.39.4
+      eslint-config-next:
+        specifier: 16.2.4
+        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
   apps/mp-hello:
     dependencies:
       '@ar-agents/mercadopago':
@@ -81,6 +112,52 @@ importers:
       '@upstash/redis':
         specifier: ^1.37.0
         version: 1.37.0
+      ai:
+        specifier: ^6.0.175
+        version: 6.0.175(zod@4.4.3)
+      next:
+        specifier: 16.2.4
+        version: 16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.0)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
+      react:
+        specifier: 19.2.4
+        version: 19.2.4
+      react-dom:
+        specifier: 19.2.4
+        version: 19.2.4(react@19.2.4)
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+    devDependencies:
+      '@types/node':
+        specifier: ^20
+        version: 20.19.39
+      '@types/react':
+        specifier: ^19
+        version: 19.2.14
+      '@types/react-dom':
+        specifier: ^19
+        version: 19.2.3(@types/react@19.2.14)
+      eslint:
+        specifier: ^9
+        version: 9.39.4
+      eslint-config-next:
+        specifier: 16.2.4
+        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
+      typescript:
+        specifier: ^5
+        version: 5.9.3
+
+  apps/whatsapp-hello:
+    dependencies:
+      '@ar-agents/identity':
+        specifier: workspace:*
+        version: link:../../packages/identity
+      '@ar-agents/mercadopago':
+        specifier: workspace:*
+        version: link:../../packages/mercadopago
+      '@ar-agents/whatsapp':
+        specifier: workspace:*
+        version: link:../../packages/whatsapp
       ai:
         specifier: ^6.0.175
         version: 6.0.175(zod@4.4.3)

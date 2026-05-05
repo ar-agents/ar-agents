@@ -1,8 +1,9 @@
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
 import { identityTools, type AfipPadronAdapter } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
-import { mercadoPagoTools, MercadoPagoClient } from "@ar-agents/mercadopago";
+import { mercadoPagoTools, MercadoPagoClient, InMemoryStateAdapter } from "@ar-agents/mercadopago";
 import { whatsappTools, WhatsAppClient } from "@ar-agents/whatsapp";
+import { MockWhatsAppClient } from "./mock-whatsapp-client";
 
 const MODEL = process.env.WSP_AGENT_MODEL ?? "anthropic/claude-sonnet-4-6";
 
@@ -49,28 +50,50 @@ function buildMpClient(): MercadoPagoClient | null {
   return new MercadoPagoClient({ accessToken });
 }
 
-function buildWhatsAppClient(): WhatsAppClient | null {
+/**
+ * Real WhatsAppClient when creds are present, MockWhatsAppClient otherwise.
+ * The mock records all "sent" messages so the demo UI can show what would
+ * have been sent to the user via WhatsApp if real Meta creds were wired.
+ */
+function buildWhatsAppClient(): {
+  client: WhatsAppClient | MockWhatsAppClient;
+  mode: "live" | "mock";
+} {
   const accessToken = process.env.WA_ACCESS_TOKEN?.trim();
   const phoneNumberId = process.env.WA_PHONE_NUMBER_ID?.trim();
-  if (!accessToken || !phoneNumberId) return null;
-  return new WhatsAppClient({ accessToken, phoneNumberId });
+  if (accessToken && phoneNumberId) {
+    return {
+      client: new WhatsAppClient({ accessToken, phoneNumberId }),
+      mode: "live",
+    };
+  }
+  return { client: new MockWhatsAppClient(), mode: "mock" };
 }
+
+// Reuse a single MP state adapter across requests so subscription IDs cached
+// in one call survive into the next one (in-memory, fine for the demo).
+const mpStateAdapter = new InMemoryStateAdapter();
+
+const MP_BACK_URL =
+  process.env.MP_BACK_URL ?? "https://whatsapp-hello.example.com/billing/done";
 
 export function createWhatsAppHelloAgent() {
   const afip = buildAfipAdapter();
   const mp = buildMpClient();
-  const wa = buildWhatsAppClient();
+  const { client: wa, mode } = buildWhatsAppClient();
 
   const tools = {
     ...identityTools(afip ? { afip } : {}),
-    ...(mp ? mercadoPagoTools(mp) : {}),
-    ...(wa ? whatsappTools(wa) : {}),
+    ...(mp ? mercadoPagoTools(mp, { state: mpStateAdapter, backUrl: MP_BACK_URL }) : {}),
+    ...whatsappTools(wa as WhatsAppClient),
   };
 
-  return new Agent({
+  const agent = new Agent({
     model: MODEL,
     instructions: INSTRUCTIONS,
     tools,
     stopWhen: stepCountIs(10),
   });
+
+  return { agent, whatsappMode: mode, whatsappClient: wa };
 }

@@ -1,29 +1,55 @@
 import { NextRequest, NextResponse } from "next/server";
-import { createCuitAgent } from "@/lib/agent";
+import { createWhatsAppHelloAgent } from "@/lib/agent";
+import { MockWhatsAppClient } from "@/lib/mock-whatsapp-client";
 
 export const runtime = "nodejs";
-export const maxDuration = 30;
+export const maxDuration = 60;
 
+/**
+ * Demo endpoint — simulates a WhatsApp inbound message and runs the agent.
+ *
+ * POST /api/agent
+ * { message: "...", from?: "549..." }
+ *
+ * Response includes:
+ * - text: agent's final reply
+ * - steps: tool calls + results (the agent's reasoning trace)
+ * - whatsappMode: "live" (real Meta) or "mock" (creds missing — demo mode)
+ * - whatsappSends: array of "messages we would have sent" if mock mode
+ */
 export async function POST(req: NextRequest) {
-  let body: { message?: string; messages?: { role: string; content: string }[] };
+  let body: { message?: string; from?: string };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json(
-      { error: "Body must be valid JSON" },
-      { status: 400 },
-    );
+    return NextResponse.json({ error: "Body must be valid JSON" }, { status: 400 });
   }
 
-  const agent = createCuitAgent();
+  const { agent, whatsappMode, whatsappClient } = createWhatsAppHelloAgent();
+  if (whatsappClient instanceof MockWhatsAppClient) {
+    whatsappClient.reset();
+  }
+
+  // Frame the prompt so the agent treats it as an inbound WhatsApp message.
+  const fromPhone = body.from ?? "5491112345678";
+  const framedPrompt = `[Mensaje entrante de WhatsApp]
+De: ${fromPhone}
+Texto: ${body.message ?? ""}
+
+Procesalo según tu workflow.`;
 
   try {
-    const result = body.messages
-      ? await agent.generate({ messages: body.messages as never })
-      : await agent.generate({ prompt: body.message ?? "" });
+    const result = await agent.generate({ prompt: framedPrompt });
+
+    const whatsappSends =
+      whatsappClient instanceof MockWhatsAppClient
+        ? whatsappClient.getRecordedSends()
+        : [];
 
     return NextResponse.json({
       text: result.text,
+      whatsappMode,
+      whatsappSends,
       steps: result.steps.map((s) => ({
         text: s.text,
         toolCalls: s.toolCalls.map((t) => ({
@@ -50,19 +76,21 @@ export async function POST(req: NextRequest) {
 
 export async function GET() {
   return NextResponse.json({
-    info: "cuit-hello — Fase 3 of the AR Agents stack",
+    info: "whatsapp-hello — combined demo for the AR Agents stack (identity + mercadopago + whatsapp).",
     usage: {
       method: "POST",
       url: "/api/agent",
-      body: { message: "string" },
+      body: { message: "string", from: "5491112345678 (optional)" },
       example: {
-        message: "Validá el CUIT 20-41758101-5",
+        message: "Hola, quiero contratar el plan Pro. Mi CUIT es 20-41758101-5",
+        from: "5491112345678",
       },
     },
-    direct_validation: {
-      method: "GET",
-      url: "/api/cuit?value=20-41758101-5",
-      note: "Pure-algorithm validation without invoking the LLM. Useful for high-volume validation in form handlers.",
-    },
+    libs: [
+      "@ar-agents/identity (CUIT validation + AFIP padron lookup)",
+      "@ar-agents/mercadopago (Mercado Pago Subscriptions)",
+      "@ar-agents/whatsapp (WhatsApp Business Cloud API)",
+    ],
+    setup: "See /api/whatsapp/webhook for the production WhatsApp webhook handler. Without WA_ACCESS_TOKEN + WA_PHONE_NUMBER_ID env vars, the WhatsApp tools run in mock mode (recorded but not sent).",
   });
 }

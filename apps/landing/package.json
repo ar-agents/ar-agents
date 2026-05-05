@@ -1,0 +1,26 @@
+{
+  "name": "ar-agents-landing",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Landing page for ar-agents — drop-in tools for Vercel AI SDK to operate in Argentina (CUIT, MercadoPago, WhatsApp).",
+  "scripts": {
+    "dev": "next dev --port 3016",
+    "build": "next build",
+    "start": "next start",
+    "lint": "eslint",
+    "typecheck": "tsc --noEmit"
+  },
+  "dependencies": {
+    "next": "16.2.4",
+    "react": "19.2.4",
+    "react-dom": "19.2.4"
+  },
+  "devDependencies": {
+    "@types/node": "^20",
+    "@types/react": "^19",
+    "@types/react-dom": "^19",
+    "eslint": "^9",
+    "eslint-config-next": "16.2.4",
+    "typescript": "^5"
+  }
+}

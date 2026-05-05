@@ -1,114 +1,155 @@
+"use client";
+
+import { useState } from "react";
+
+interface Message {
+  role: "user" | "agent" | "system";
+  text: string;
+  whatsappSends?: Array<{ method: string; args: { to?: string; text?: string; bodyText?: string; templateName?: string }; fakeMessageId: string }>;
+  steps?: Array<{ toolCalls: Array<{ name: string; input: unknown }> }>;
+}
+
+const WHATSAPP_GREEN = "#dcf8c6";
+const WHATSAPP_BG = "#e5ddd5";
+
 export default function Home() {
+  const [messages, setMessages] = useState<Message[]>([
+    {
+      role: "system",
+      text: "Hablale como si fueras un cliente que escribe por WhatsApp. El agente combina @ar-agents/identity (CUIT + AFIP) + @ar-agents/mercadopago (suscripciones) + @ar-agents/whatsapp (reply via WhatsApp).",
+    },
+  ]);
+  const [input, setInput] = useState("Hola, quiero contratar el plan Pro. Mi CUIT es 20-41758101-5");
+  const [loading, setLoading] = useState(false);
+  const [whatsappMode, setWhatsappMode] = useState<"live" | "mock" | null>(null);
+
+  async function send() {
+    if (!input.trim() || loading) return;
+    const userMsg: Message = { role: "user", text: input };
+    setMessages((m) => [...m, userMsg]);
+    setInput("");
+    setLoading(true);
+    try {
+      const res = await fetch("/api/agent", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ message: userMsg.text }),
+      });
+      const data = await res.json();
+      setWhatsappMode(data.whatsappMode ?? null);
+      if (data.error) {
+        setMessages((m) => [...m, { role: "system", text: `Error: ${data.error}` }]);
+      } else {
+        setMessages((m) => [
+          ...m,
+          {
+            role: "agent",
+            text: data.text,
+            whatsappSends: data.whatsappSends,
+            steps: data.steps,
+          },
+        ]);
+      }
+    } catch (e) {
+      setMessages((m) => [
+        ...m,
+        { role: "system", text: e instanceof Error ? e.message : String(e) },
+      ]);
+    } finally {
+      setLoading(false);
+    }
+  }
+
   return (
-    <main
-      style={{
-        padding: "48px 24px",
-        fontFamily:
-          "ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif",
-        maxWidth: "720px",
-        margin: "0 auto",
-        lineHeight: 1.6,
-        color: "#0a0a0a",
-      }}
-    >
-      <header style={{ marginBottom: "32px" }}>
-        <p
-          style={{
-            fontSize: "12px",
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            color: "#71717a",
-            margin: 0,
-          }}
-        >
-          ar-agents · fase 3
+    <main style={{ minHeight: "100vh", background: "#f0f0f0", display: "flex", flexDirection: "column", alignItems: "center", padding: "24px 12px", fontFamily: "ui-sans-serif, system-ui, -apple-system, sans-serif", color: "#0a0a0a" }}>
+      <header style={{ width: "100%", maxWidth: 720, marginBottom: 16 }}>
+        <p style={{ fontSize: 12, textTransform: "uppercase", letterSpacing: "0.08em", color: "#71717a", margin: 0 }}>ar-agents · whatsapp-hello demo</p>
+        <h1 style={{ fontSize: 28, margin: "4px 0 8px", fontWeight: 600 }}>Billing assistant para SaaS argentinos</h1>
+        <p style={{ color: "#52525b", margin: "0 0 12px", fontSize: 14, lineHeight: 1.5 }}>
+          Combina <code>@ar-agents/identity</code> (CUIT + AFIP padron) + <code>@ar-agents/mercadopago</code> (suscripciones) + <code>@ar-agents/whatsapp</code> (recibir/enviar). Probalo escribiendo como un cliente de WhatsApp.
         </p>
-        <h1 style={{ fontSize: "32px", margin: "8px 0 0", fontWeight: 600 }}>
-          Hello CUIT Validator
-        </h1>
-        <p style={{ color: "#52525b", margin: "8px 0 0" }}>
-          Vercel AI SDK 6 + algoritmo modulo-11. AFIP webservice scaffolded para v0.2.
-        </p>
+        {whatsappMode && (
+          <div style={{ fontSize: 12, padding: "6px 10px", background: whatsappMode === "live" ? "#10b981" : "#f59e0b", color: "white", borderRadius: 4, display: "inline-block" }}>
+            WhatsApp mode: <strong>{whatsappMode}</strong>
+            {whatsappMode === "mock" && " (sin Meta creds — los mensajes salientes se muestran abajo en cada bubble)"}
+          </div>
+        )}
       </header>
 
-      <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: 600 }}>Endpoints</h2>
-        <ul style={{ paddingLeft: "20px" }}>
-          <li>
-            <strong>POST</strong> <code>/api/agent</code> — conversar con el agente IA
-          </li>
-          <li>
-            <strong>GET</strong> <code>/api/cuit?value=20-41758101-5</code> — validación pura sin LLM
-          </li>
-          <li>
-            <strong>POST</strong> <code>/api/cuit</code> — validación batch (body: <code>{`{values:[...]}`}</code>)
-          </li>
-        </ul>
-      </section>
+      <div style={{ width: "100%", maxWidth: 720, background: WHATSAPP_BG, borderRadius: 12, padding: 16, minHeight: 400, display: "flex", flexDirection: "column", gap: 8, border: "1px solid #d1d5db" }}>
+        {messages.map((m, i) => (
+          <Bubble key={i} message={m} />
+        ))}
+        {loading && (
+          <div style={{ alignSelf: "flex-start", color: "#52525b", fontSize: 13, padding: "8px 12px" }}>
+            agente escribiendo...
+          </div>
+        )}
+      </div>
 
-      <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: 600 }}>Probar el agente vía curl</h2>
-        <pre
-          style={{
-            background: "#fafafa",
-            border: "1px solid #e4e4e7",
-            padding: "16px",
-            borderRadius: "8px",
-            overflow: "auto",
-            fontSize: "13px",
-            lineHeight: 1.5,
-          }}
-        >{`curl -X POST http://localhost:3014/api/agent \\
-  -H "Content-Type: application/json" \\
-  -d '{"message": "Validá el CUIT 20-41758101-5 y dec\xEDme qu\xE9 sab\xE9s de \xE9l."}'`}</pre>
-      </section>
+      <div style={{ width: "100%", maxWidth: 720, marginTop: 12, display: "flex", gap: 8 }}>
+        <input
+          value={input}
+          onChange={(e) => setInput(e.target.value)}
+          onKeyDown={(e) => e.key === "Enter" && !e.shiftKey && send()}
+          placeholder="Escribí como cliente de WhatsApp..."
+          style={{ flex: 1, padding: "10px 14px", borderRadius: 24, border: "1px solid #d1d5db", fontSize: 14, outline: "none" }}
+        />
+        <button
+          onClick={send}
+          disabled={loading || !input.trim()}
+          style={{ padding: "10px 20px", borderRadius: 24, background: "#25d366", color: "white", border: "none", fontWeight: 600, cursor: loading ? "not-allowed" : "pointer", opacity: loading ? 0.5 : 1 }}
+        >
+          Enviar
+        </button>
+      </div>
 
-      <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: 600 }}>Validación directa (sin LLM)</h2>
-        <pre
-          style={{
-            background: "#fafafa",
-            border: "1px solid #e4e4e7",
-            padding: "16px",
-            borderRadius: "8px",
-            overflow: "auto",
-            fontSize: "13px",
-            lineHeight: 1.5,
-          }}
-        >{`curl http://localhost:3014/api/cuit?value=20-41758101-5
-
-# Batch
-curl -X POST http://localhost:3014/api/cuit \\
-  -H "Content-Type: application/json" \\
-  -d '{"values":["20-41758101-5","30707500126","27ABCD"]}'`}</pre>
-      </section>
-
-      <section style={{ marginBottom: "32px" }}>
-        <h2 style={{ fontSize: "18px", fontWeight: 600 }}>Estado v0.1 vs v0.2</h2>
-        <ul style={{ paddingLeft: "20px" }}>
-          <li>
-            ✅ <strong>v0.1 (this build):</strong> validación algorítmica completa
-            (formato, prefix, dígito verificador modulo 11, tipo de persona).
-          </li>
-          <li>
-            ⏳ <strong>v0.2:</strong> consulta padrón AFIP (nombre, condición tributaria,
-            categoría de monotributo). Requiere setup de cert X.509 — ver
-            <code> src/lib/afip-stub.ts</code> para los pasos.
-          </li>
-        </ul>
-      </section>
-
-      <footer
-        style={{
-          marginTop: "48px",
-          paddingTop: "24px",
-          borderTop: "1px solid #e4e4e7",
-          fontSize: "13px",
-          color: "#71717a",
-        }}
-      >
-        Setup completo en <code>README.md</code>.
+      <footer style={{ marginTop: 32, fontSize: 12, color: "#71717a", textAlign: "center" }}>
+        <code>POST /api/agent</code> · <code>POST /api/whatsapp/webhook</code> ·{" "}
+        <a href="https://github.com/ar-agents/ar-agents" style={{ color: "#71717a" }}>github</a>
       </footer>
     </main>
+  );
+}
+
+function Bubble({ message }: { message: Message }) {
+  if (message.role === "system") {
+    return (
+      <div style={{ alignSelf: "center", background: "rgba(0,0,0,0.05)", padding: "6px 12px", borderRadius: 12, fontSize: 12, color: "#52525b", maxWidth: "90%", textAlign: "center" }}>
+        {message.text}
+      </div>
+    );
+  }
+  const isUser = message.role === "user";
+  return (
+    <div style={{ alignSelf: isUser ? "flex-end" : "flex-start", maxWidth: "80%" }}>
+      <div style={{ background: isUser ? WHATSAPP_GREEN : "white", padding: "8px 12px", borderRadius: 8, boxShadow: "0 1px 0.5px rgba(0,0,0,0.13)", fontSize: 14, lineHeight: 1.4, whiteSpace: "pre-wrap" }}>
+        {message.text}
+      </div>
+      {!isUser && message.steps && message.steps.length > 0 && (
+        <details style={{ marginTop: 4, fontSize: 11, color: "#52525b" }}>
+          <summary style={{ cursor: "pointer" }}>
+            ver tool calls ({message.steps.flatMap((s) => s.toolCalls).length})
+          </summary>
+          <ul style={{ margin: "4px 0", paddingLeft: 18 }}>
+            {message.steps.flatMap((s) => s.toolCalls).map((tc, i) => (
+              <li key={i}><code>{tc.name}</code></li>
+            ))}
+          </ul>
+        </details>
+      )}
+      {!isUser && message.whatsappSends && message.whatsappSends.length > 0 && (
+        <div style={{ marginTop: 6, padding: "6px 8px", background: "#fef3c7", borderRadius: 6, fontSize: 11, color: "#78350f" }}>
+          <strong>[mock] mensajes enviados via WhatsApp:</strong>
+          <ul style={{ margin: "4px 0 0", paddingLeft: 16 }}>
+            {message.whatsappSends.map((s, i) => (
+              <li key={i}>
+                <code>{s.method}</code> → {s.args.to ?? "?"}: {(s.args.text ?? s.args.bodyText ?? s.args.templateName ?? "").toString().slice(0, 80)}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
+    </div>
   );
 }
