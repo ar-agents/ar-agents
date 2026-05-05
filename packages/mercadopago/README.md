@@ -3,7 +3,10 @@
 > Mercado Pago Subscriptions as drop-in tools for the [Vercel AI SDK](https://ai-sdk.dev/). Argentine-focused, agent-ready.
 
 [![npm version](https://img.shields.io/npm/v/@ar-agents/mercadopago.svg)](https://www.npmjs.com/package/@ar-agents/mercadopago)
+[![npm downloads](https://img.shields.io/npm/dm/@ar-agents/mercadopago.svg)](https://www.npmjs.com/package/@ar-agents/mercadopago)
 [![license](https://img.shields.io/npm/l/@ar-agents/mercadopago.svg)](./LICENSE)
+[![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/mercadopago.svg)](https://bundlephobia.com/package/@ar-agents/mercadopago)
 
 Exposes Mercado Pago's recurring-billing API to AI agents through a typed,
 opinionated tool collection. Built for the Vercel AI SDK 6 `Experimental_Agent`.

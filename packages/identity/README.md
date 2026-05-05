@@ -3,7 +3,10 @@
 > Argentine identity validation (CUIT/CUIL) + AFIP padrón lookup as drop-in tools for the [Vercel AI SDK](https://ai-sdk.dev/).
 
 [![npm version](https://img.shields.io/npm/v/@ar-agents/identity.svg)](https://www.npmjs.com/package/@ar-agents/identity)
+[![npm downloads](https://img.shields.io/npm/dm/@ar-agents/identity.svg)](https://www.npmjs.com/package/@ar-agents/identity)
 [![license](https://img.shields.io/npm/l/@ar-agents/identity.svg)](./LICENSE)
+[![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/identity.svg)](https://bundlephobia.com/package/@ar-agents/identity)
 
 Validates Argentine taxpayer identifiers in pure-algorithm mode out of the box (no setup, no API call, sub-millisecond), and looks them up against AFIP's padrón webservice through a pluggable adapter when you wire one. Built for the Vercel AI SDK 6 `Experimental_Agent` and any caller of `tool()`.
 

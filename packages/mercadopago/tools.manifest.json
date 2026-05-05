@@ -1,0 +1,144 @@
+{
+  "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
+  "package": "@ar-agents/mercadopago",
+  "version": "0.1.0",
+  "factory": "mercadoPagoTools",
+  "tools": [
+    {
+      "name": "create_subscription",
+      "summary": "Create a Mercado Pago recurring subscription. Returns the init_point URL where the customer must complete the FIRST payment with their card and CVV.",
+      "purity": "io",
+      "sideEffects": ["Creates a preapproval on MP", "Writes to SubscriptionStateAdapter"],
+      "constraints": {
+        "envVars": ["MP_ACCESS_TOKEN (TEST- for sandbox, APP_USR- for prod)"],
+        "externalIO": ["MP REST API"],
+        "latencyMs": "200-600",
+        "costPerCall": "$0 (creation is free; merchant pays per-transaction fee on auto-charges)"
+      },
+      "input": {
+        "customer_email": "string (email; cannot equal seller email)",
+        "amount_ars": "number (positive)",
+        "frequency_months": "number (1-12)",
+        "reason": "string (3-120 chars)",
+        "external_reference": "string | undefined"
+      },
+      "output": {
+        "subscription_id": "string",
+        "status": "pending",
+        "init_point_url": "string (URL the buyer must visit to complete first payment)",
+        "next_step": "string (instructions for the agent)"
+      },
+      "whenToUse": ["User asks to subscribe a customer to a recurring plan"],
+      "whenNotToUse": [
+        "User wants a one-off payment — Subscriptions API is recurring-only",
+        "User wants to charge a specific amount that varies per cycle — fix the amount or use a different MP product"
+      ],
+      "errorPatterns": [
+        {
+          "shape": "MercadoPagoBackUrlInvalidError",
+          "meaning": "App passed a non-HTTPS backUrl (e.g., http://localhost). MP rejects all non-HTTPS even in sandbox.",
+          "recovery": "App misconfiguration — surface to user as 'application error', not a user-fixable problem."
+        },
+        {
+          "shape": "MercadoPagoSelfPaymentError",
+          "meaning": "customer_email equals the seller account's email. MP refuses self-payment on subscriptions.",
+          "recovery": "Tell user to use a different buyer email."
+        },
+        {
+          "shape": "MercadoPagoAccountTypeMismatchError",
+          "meaning": "Misleading MP error 'Cannot operate between different countries'. Real cause: seller token is real-account-in-test-mode but buyer email is a test_user_*@testuser.com AFIP test user.",
+          "recovery": "Use a real consumer email as the buyer."
+        }
+      ]
+    },
+    {
+      "name": "get_subscription_status",
+      "summary": "Check the current status of a Mercado Pago subscription. Use to confirm the customer completed the first payment or to inspect next charge date.",
+      "purity": "io",
+      "sideEffects": [],
+      "constraints": {
+        "envVars": ["MP_ACCESS_TOKEN"],
+        "externalIO": ["MP REST API"],
+        "latencyMs": "200-500",
+        "costPerCall": "$0"
+      },
+      "input": { "subscription_id": "string (MP preapproval ID)" },
+      "output": {
+        "subscription_id": "string",
+        "status": "pending | authorized | paused | cancelled",
+        "payer_email": "string",
+        "amount": "number",
+        "currency": "ARS | USD | ...",
+        "next_payment_date": "ISO date | null",
+        "last_webhook_status": "string | null (cached from latest webhook)",
+        "last_webhook_at": "ISO date | null"
+      },
+      "whenToUse": [
+        "User asks if a customer paid",
+        "User asks when the next charge will happen",
+        "Need to verify subscription is still authorized after potential webhook events"
+      ],
+      "whenNotToUse": ["You haven't created a subscription yet — no ID to query"]
+    },
+    {
+      "name": "cancel_subscription",
+      "summary": "Cancel an active Mercado Pago subscription. IRREVERSIBLE — confirm with user before calling.",
+      "purity": "io",
+      "sideEffects": ["Mutates MP preapproval state to 'cancelled'", "Writes to SubscriptionStateAdapter"],
+      "constraints": {
+        "envVars": ["MP_ACCESS_TOKEN"],
+        "externalIO": ["MP REST API"],
+        "latencyMs": "200-500",
+        "costPerCall": "$0"
+      },
+      "input": { "subscription_id": "string" },
+      "output": {
+        "subscription_id": "string",
+        "status": "cancelled",
+        "message": "string"
+      },
+      "whenToUse": ["User explicitly confirms they want to cancel a subscription"],
+      "whenNotToUse": [
+        "User asked to pause temporarily — use pause_subscription instead",
+        "Without explicit user confirmation — this tool's description triggers a confirm-before-call turn in Claude Sonnet 4.6+; honor that"
+      ],
+      "irreversibility": "MP cannot reactivate a cancelled subscription. Create a fresh one to resume billing."
+    },
+    {
+      "name": "pause_subscription",
+      "summary": "Pause an authorized subscription. Charges stop until resumed.",
+      "purity": "io",
+      "sideEffects": ["Mutates MP preapproval state to 'paused'", "Writes to SubscriptionStateAdapter"],
+      "constraints": {
+        "envVars": ["MP_ACCESS_TOKEN"],
+        "externalIO": ["MP REST API"],
+        "latencyMs": "200-500",
+        "costPerCall": "$0"
+      },
+      "input": { "subscription_id": "string" },
+      "output": { "subscription_id": "string", "status": "paused", "message": "string" },
+      "whenToUse": ["User wants to pause billing temporarily but keep the subscription"],
+      "whenNotToUse": [
+        "Subscription is in pending status (not yet authorized) — pause only works on authorized subs"
+      ]
+    },
+    {
+      "name": "resume_subscription",
+      "summary": "Resume a paused subscription. Charges resume on next scheduled date.",
+      "purity": "io",
+      "sideEffects": ["Mutates MP preapproval state to 'authorized'", "Writes to SubscriptionStateAdapter"],
+      "constraints": {
+        "envVars": ["MP_ACCESS_TOKEN"],
+        "externalIO": ["MP REST API"],
+        "latencyMs": "200-500",
+        "costPerCall": "$0"
+      },
+      "input": { "subscription_id": "string" },
+      "output": { "subscription_id": "string", "status": "authorized", "message": "string" },
+      "whenToUse": ["User wants to reactivate a previously-paused subscription"],
+      "whenNotToUse": [
+        "Subscription is cancelled — MP doesn't allow resuming cancelled subs (throws MercadoPagoAuthorizeForbiddenError). Create a new subscription instead."
+      ]
+    }
+  ]
+}

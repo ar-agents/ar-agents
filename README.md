@@ -2,6 +2,10 @@
 
 > AR Tools for the Vercel AI SDK — drop-in agent tools for Argentine integrations.
 
+[![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
+[![license](https://img.shields.io/github/license/ar-agents/ar-agents.svg)](./LICENSE)
+[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+
 A monorepo of TypeScript packages that expose Argentina-specific services
 (Mercado Pago, AFIP, WhatsApp Business Cloud, Meta Ads) as tools the
 [Vercel AI SDK](https://ai-sdk.dev/) `Experimental_Agent` can invoke.

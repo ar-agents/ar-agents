@@ -16,11 +16,14 @@
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@helloastro.co>",
-  "homepage": "https://github.com/naza00000/ar-agents/tree/main/packages/identity",
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/identity",
   "repository": {
     "type": "git",
-    "url": "https://github.com/naza00000/ar-agents.git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
     "directory": "packages/identity"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
   },
   "type": "module",
   "main": "./dist/index.cjs",
@@ -28,9 +31,14 @@
   "types": "./dist/index.d.ts",
   "exports": {
     ".": {
-      "types": "./dist/index.d.ts",
-      "import": "./dist/index.js",
-      "require": "./dist/index.cjs"
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
     }
   },
   "files": [
@@ -38,16 +46,32 @@
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "tools.manifest.json"
   ],
   "scripts": {
     "build": "tsup",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'no lint configured yet'",
+    "validate": "publint && attw --pack .",
+    "size": "size-limit",
     "clean": "rm -rf dist"
   },
+  "size-limit": [
+    {
+      "name": "ESM",
+      "path": "dist/index.js",
+      "limit": "12 KB"
+    },
+    {
+      "name": "CJS",
+      "path": "dist/index.cjs",
+      "limit": "12 KB"
+    }
+  ],
   "peerDependencies": {
     "ai": ">=6.0.0",
     "zod": ">=3.0.0"

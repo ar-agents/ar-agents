@@ -11,6 +11,13 @@
     "dev": "pnpm --filter mp-hello dev"
   },
   "devDependencies": {
+    "@arethetypeswrong/cli": "^0.18.2",
+    "@changesets/changelog-github": "^0.7.0",
+    "@changesets/cli": "^2.31.0",
+    "@size-limit/preset-small-lib": "^12.1.0",
+    "@vitest/coverage-v8": "^2.1.9",
+    "publint": "^0.3.19",
+    "size-limit": "^12.1.0",
     "typescript": "^5.9.3"
   },
   "packageManager": "pnpm@10.32.1",
