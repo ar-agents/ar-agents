@@ -79,13 +79,13 @@ When `valid` is false:
     "condicion": "MONOTRIBUTO",
     "monotributoCategoria": "A",
     "fechaInscripcion": "2026-04-17",
-    "domicilioFiscal": "Cabo Corrientes 468, Monte Grande",
+    "domicilioFiscal": "Cabo Corrientes 468, Monte Grande, Buenos Aires, 1842",
     "actividades": ["Servicios informáticos"]
   }
 }
 ```
 
-When the lookup is unavailable (most common case in v0.1):
+When the lookup is unavailable (default config: no adapter wired):
 
 ```json
 {
@@ -96,7 +96,29 @@ When the lookup is unavailable (most common case in v0.1):
 }
 ```
 
-**When `available` is false**: surface the `error` message verbatim — it contains setup steps. **DO NOT** make up taxpayer info. **DO NOT** retry the call expecting a different answer.
+When the cert IS wired but AFIP rejects (cert invalid, service unauthorized, etc.):
+
+```json
+{
+  "cuit": "20417581015",
+  "available": false,
+  "error": "Failed to authenticate with AFIP WSAA: ...",
+  "data": null
+}
+```
+
+When AFIP runs but the CUIT isn't in the padron:
+
+```json
+{
+  "cuit": "99999999999",
+  "available": false,
+  "error": "No se ha encontrado a la persona consultada.",
+  "data": null
+}
+```
+
+**Iron rule**: when `available` is false, surface the `error` message verbatim — it's actionable. **DO NOT** make up taxpayer info. **DO NOT** retry the call expecting a different answer.
 
 ## Error patterns and recovery
 

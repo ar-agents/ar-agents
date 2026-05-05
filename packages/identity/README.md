@@ -56,7 +56,53 @@ console.log(result.text);
 
 ## Quick start (with AFIP padrón lookup)
 
-To unlock `lookup_cuit_afip`, implement the `AfipPadronAdapter` interface and pass it to the factory:
+This package ships a production-ready `WsaaWscdcAfipPadronAdapter` that performs the real WSAA + WSCDC SOAP calls. Import it from the `/wsaa` subpath (so users who only need pure-algorithm validation don't pull in `node-forge`):
+
+```ts
+import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { identityTools } from "@ar-agents/identity";
+import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
+
+const afip = new WsaaWscdcAfipPadronAdapter({
+  certPath: process.env.AFIP_CERT_PATH!,
+  keyPath: process.env.AFIP_KEY_PATH!,
+  cuitRepresentado: process.env.AFIP_CUIT!, // your CUIT (the one that authorized the cert)
+  env: "homo", // "prod" once homo testing passes
+});
+
+const agent = new Agent({
+  model: "anthropic/claude-sonnet-4-6",
+  tools: identityTools({ afip }),
+  stopWhen: stepCountIs(6),
+});
+```
+
+The adapter holds an in-memory TA cache keyed by service. For multi-process deployments (Vercel functions, Lambda), pass a custom `TokenStore`:
+
+```ts
+import type { TokenStore, AccessTicket } from "@ar-agents/identity/wsaa";
+import { Redis } from "@upstash/redis";
+
+class UpstashTokenStore implements TokenStore {
+  constructor(private redis: Redis) {}
+  async get(service: string): Promise<AccessTicket | null> {
+    return await this.redis.get<AccessTicket>(`afip:ta:${service}`);
+  }
+  async set(service: string, ta: AccessTicket): Promise<void> {
+    await this.redis.set(`afip:ta:${service}`, ta);
+  }
+}
+
+const afip = new WsaaWscdcAfipPadronAdapter({
+  certPath: process.env.AFIP_CERT_PATH!,
+  keyPath: process.env.AFIP_KEY_PATH!,
+  cuitRepresentado: process.env.AFIP_CUIT!,
+  env: "prod",
+  tokenStore: new UpstashTokenStore(Redis.fromEnv()),
+});
+```
+
+If you'd rather wire your own SOAP/auth implementation (different cert flow, alternative AFIP services), implement the `AfipPadronAdapter` interface directly:
 
 ```ts
 import {
@@ -65,31 +111,11 @@ import {
   type AfipPadronResult,
 } from "@ar-agents/identity";
 
-class WsaaWscdcAdapter implements AfipPadronAdapter {
+class MyCustomAdapter implements AfipPadronAdapter {
   async lookup(cuit: string): Promise<AfipPadronResult> {
-    const ta = await this.getOrRefreshTa(); // WSAA TRA → CMS sign → LoginCms
-    const persona = await this.wscdcClient.getPersona(ta, cuit);
-    return {
-      cuit,
-      available: true,
-      error: null,
-      data: {
-        nombre: persona.nombre,
-        condicion: persona.tipoClave, // "MONOTRIBUTO" | "RESPONSABLE INSCRIPTO" | ...
-        monotributoCategoria: persona.monotributo?.categoria ?? null,
-        fechaInscripcion: persona.fechaInscripcion ?? null,
-        domicilioFiscal: persona.domicilio?.direccion ?? null,
-        actividades: persona.actividades?.map((a) => a.descripcion) ?? [],
-      },
-    };
+    /* your impl */
   }
 }
-
-const agent = new Agent({
-  model: "anthropic/claude-sonnet-4-6",
-  tools: identityTools({ afip: new WsaaWscdcAdapter() }),
-  stopWhen: stepCountIs(6),
-});
 ```
 
 ## AFIP cert setup (required for `lookup_cuit_afip`)
