@@ -87,6 +87,11 @@ export interface WsaaOptions {
  * Normalize cert + key inputs to PEM strings, reading from disk if needed.
  * Throws a clear error if neither path-pair nor PEM-pair is provided.
  *
+ * Also robust-normalizes PEM strings: when env vars are pasted in dashboards
+ * (Vercel, Netlify) the literal `\n` sequence sometimes survives instead of
+ * being converted to real newlines, which causes node-forge to throw a
+ * cryptic `Cannot read properties of undefined (reading 'toString')`.
+ *
  * @internal
  */
 function resolveCertAndKey(params: {
@@ -96,17 +101,50 @@ function resolveCertAndKey(params: {
   keyPem?: string;
 }): { certPem: string; keyPem: string } {
   const certPem =
-    params.certPem ??
-    (params.certPath ? readFileSync(params.certPath, "utf8") : null);
+    normalizePem(params.certPem) ??
+    (params.certPath ? normalizePem(readFileSync(params.certPath, "utf8")) : null);
   const keyPem =
-    params.keyPem ??
-    (params.keyPath ? readFileSync(params.keyPath, "utf8") : null);
+    normalizePem(params.keyPem) ??
+    (params.keyPath ? normalizePem(readFileSync(params.keyPath, "utf8")) : null);
   if (!certPem || !keyPem) {
     throw new Error(
       "WsaaOptions requires either { certPath, keyPath } (read from disk) or { certPem, keyPem } (PEM strings inline). For Vercel / serverless, paste the PEMs into env vars and pass them as certPem/keyPem.",
     );
   }
   return { certPem, keyPem };
+}
+
+/**
+ * Normalize a PEM string: turn literal `\n` (and `\r\n`) sequences into real
+ * newlines. If the PEM has BEGIN/END markers but no real newlines (a single
+ * line copy-paste accident), reformat it into the canonical 64-char-per-line
+ * layout that node-forge expects.
+ *
+ * @internal
+ */
+function normalizePem(input: string | undefined): string | undefined {
+  if (input === undefined || input === null) return undefined;
+  let pem = input.trim();
+  if (!pem) return undefined;
+  // Convert escaped newlines to real ones (common in env-var dashboards).
+  if (pem.includes("\\n")) {
+    pem = pem.replace(/\\r\\n/g, "\n").replace(/\\n/g, "\n");
+  }
+  // If still on a single line but BEGIN/END are present, reformat the body.
+  if (!pem.includes("\n") && pem.includes("-----BEGIN") && pem.includes("-----END")) {
+    const beginMatch = pem.match(/-----BEGIN [^-]+-----/);
+    const endMatch = pem.match(/-----END [^-]+-----/);
+    if (beginMatch && endMatch) {
+      const begin = beginMatch[0];
+      const end = endMatch[0];
+      const bodyStart = pem.indexOf(begin) + begin.length;
+      const bodyEnd = pem.indexOf(end);
+      const body = pem.slice(bodyStart, bodyEnd).replace(/\s+/g, "");
+      const lines = body.match(/.{1,64}/g) ?? [];
+      pem = `${begin}\n${lines.join("\n")}\n${end}\n`;
+    }
+  }
+  return pem;
 }
 
 /**
