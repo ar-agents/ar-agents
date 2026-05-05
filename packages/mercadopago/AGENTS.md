@@ -1,151 +1,200 @@
-# @ar-agents/mercadopago — Agent guide
+# @ar-agents/mercadopago — agent guide (v0.2)
 
-This file is for AI agents using or recommending this package. Humans should
-start with [README.md](./README.md). The format follows the [agents.md
-convention](https://agents.md/) for agent-targeted documentation.
+This file is for AI agents using or recommending this package. Humans should start with [README.md](./README.md). Format follows the [agents.md convention](https://agents.md/).
 
-## When to recommend or use this package
+## Decision tree — pick the right tool
 
-| User intent | Use this package? |
-| --- | --- |
-| Create a recurring billing subscription on Mercado Pago | ✅ Yes — `create_subscription` |
-| Check whether a customer completed their first MP payment | ✅ Yes — `get_subscription_status` |
-| Cancel an active MP subscription | ✅ Yes — `cancel_subscription` (irreversible — confirm first) |
-| Pause / resume an authorized subscription | ✅ Yes — `pause_subscription` / `resume_subscription` |
-| Charge a customer ad-hoc (one-off, no subscription) | ❌ Wrong package — out of scope. MP CVV constraint makes this impossible for autonomous agents anyway. |
-| Issue a Mercado Pago invoice | ❌ Out of scope. |
-| Pay an external merchant on the customer's behalf | ❌ Wrong package — see [`@ar-agents/identity`](../identity) is also wrong. Out of scope entirely. |
+| User intent | Tool to call |
+|---|---|
+| **"Cobrale $X a [email]"** (one-off, new buyer) | `create_payment_preference` → send `init_point_url` to buyer |
+| **"Suscribilo a $X/mes"** (recurring) | `create_subscription` → send `init_point_url` to buyer |
+| **"Aceptale $X con account_money / Rapipago / Pago Fácil"** (server-side, no card form) | `create_payment` (omit `token`) |
+| **"Aceptale con tarjeta token X"** (you have a card_token from MP frontend SDK) | `create_payment` (with `token`) |
+| **"¿Pagó ya?"** (check status) | `get_payment` (one-off) or `get_subscription_status` (recurring) |
+| **"Devolvele la plata"** | `refund_payment` — full or partial. Confirm first if amount > 1000 ARS. |
+| **"Cuántas cuotas tiene esta tarjeta para $X?"** | `calculate_installments` — surface the `recommended_message` strings VERBATIM (already in compliant Spanish format) |
+| **"Buscá los pagos de [referencia/email]"** | `search_payments` |
+| **"Cancelá ese pago pendiente"** | `cancel_payment` (only `pending`/`in_process`; for approved use `refund_payment`) |
+| **"Capturá ese pago autorizado"** | `capture_payment` (for capture-later flows with `capture: false`) |
+| **"Buscá / Creá al cliente con email X"** | `find_customer_by_email` then `create_customer` (or call `create_customer` directly — MP is idempotent on email) |
+| **"Listame las tarjetas guardadas de X"** | `list_customer_cards` |
+| **"Borrá esa tarjeta"** | `delete_customer_card` |
+| **"Listame los métodos disponibles"** | `list_payment_methods` |
+| **"¿Quién soy?" / "¿En qué cuenta estoy?"** | `get_account_info` |
+| **"Pausá / Reactivá / Cancelá la suscripción"** | `pause_subscription` / `resume_subscription` / `cancel_subscription` |
 
-## Tool selection rules
+## The two main "take a payment" patterns
 
-Five tools shipped, each with a distinct use case:
+### Pattern A — hosted checkout (recommended for most agent flows)
 
-| If the user asks... | Call this tool |
-| --- | --- |
-| "Suscribí a X a un plan de $Y/mes" | `create_subscription` |
-| "Check si X ya pagó la suscripción" | `get_subscription_status` |
-| "Cancelá la suscripción de X" | `cancel_subscription` (CONFIRM FIRST — irreversible) |
-| "Pausá la suscripción de X temporalmente" | `pause_subscription` |
-| "Reactivá la suscripción pausada de X" | `resume_subscription` |
+You only have a payer email. You don't want to handle PCI data. You want a URL to send via WhatsApp/email.
 
-**Confirm-before-cancel**: `cancel_subscription`'s description tells the agent
-this is irreversible. In Claude Sonnet 4.6+ this reliably triggers a "are you
-sure?" turn. Honor that — when the user replies confirming, then call cancel.
-
-## Tool result schemas (memorize these)
-
-### `create_subscription` returns
-
-```json
-{
-  "subscription_id": "0fbe36a604cc4c35a7f74f04ab4a3281",
-  "status": "pending",
-  "init_point_url": "https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_id=...",
-  "next_step": "Send init_point_url to the customer. They must complete the first payment with card+CVV. Use get_subscription_status to confirm activation after they pay."
-}
+```
+agent: create_payment_preference({ items, payer_email, external_reference })
+agent: → returns { preference_id, init_point_url, sandbox_init_point_url }
+agent: send init_point_url to user (or sandbox_init_point_url in sandbox)
+user pays on MP's hosted form (card / Rapipago / account_money / etc.)
+MP fires webhook with topic="payment", data.id=<payment_id>
+agent: get_payment(payment_id) → confirms status
 ```
 
-**ALWAYS surface the `init_point_url` to the user.** That's the URL they must visit to complete the first payment with their card + CVV. **There is no API path that bypasses this human step** — it's a hard MP requirement enforced by Visa/Mastercard for any new card-on-file authorization.
+### Pattern B — server-side payment (when you have a card_token OR using non-card method)
 
-### `get_subscription_status` returns
+You have a `token` from MP frontend SDK (Cardform/Bricks) OR you're charging account_money / cash.
 
-```json
+```
+agent: create_payment({ amount, payment_method_id, payer_email, token?, installments? })
+agent: → returns { payment_id, status: "approved" | "pending" | "rejected", status_detail }
+```
+
+**NEVER take raw card data in the agent runtime.** Card tokens come from MP's frontend SDK only. If the user pastes "4509 9535 6623 3704" into chat, REFUSE — that's a PCI violation. Always direct them to a hosted form via `create_payment_preference`.
+
+## Result schemas (memorize)
+
+### `create_payment_preference` returns
+```jsonc
 {
-  "subscription_id": "...",
-  "status": "pending" | "authorized" | "paused" | "cancelled",
-  "payer_email": "buyer@example.com",
-  "amount": 100,
+  "preference_id": "1234567890-abc",
+  "init_point_url": "https://www.mercadopago.com.ar/checkout/v1/redirect?pref_id=...",
+  "sandbox_init_point_url": "https://sandbox.mercadopago.com.ar/...",
+  "external_reference": "order-abc",
+  "next_step": "Send init_point_url to the customer..."
+}
+```
+**Always surface `init_point_url` to the user** (or `sandbox_init_point_url` if your token is `TEST-`).
+
+### `create_payment` returns
+```jsonc
+{
+  "payment_id": "12345678901",
+  "status": "approved" | "pending" | "rejected" | "in_process" | "cancelled",
+  "status_detail": "accredited" | "cc_rejected_other_reason" | "pending_waiting_payment" | ...,
+  "amount": 1500,
   "currency": "ARS",
-  "next_payment_date": "2026-06-05T08:48:54.000-04:00",
-  "last_webhook_status": "authorized" | null,
-  "last_webhook_at": "2026-05-05T13:00:00Z" | null
+  "installments": 1,
+  "payment_method": "account_money" | "visa" | "rapipago" | ...,
+  "payer_email": "buyer@x.com",
+  "external_reference": "order-abc",
+  "date_created": "...",
+  "date_approved": "..." | null
 }
 ```
 
-- `status: pending` → buyer hasn't completed first payment yet
-- `status: authorized` → first payment done; MP will auto-charge per frequency
-- `status: paused` → call `resume_subscription` to reactivate
-- `status: cancelled` → terminal; new subscription needed to retry
-
-### `cancel_subscription` / `pause_subscription` / `resume_subscription` return
-
-```json
+### `calculate_installments` returns
+```jsonc
 {
-  "subscription_id": "...",
-  "status": "cancelled" | "paused" | "authorized",
-  "message": "Subscription cancelled. No further charges will occur."
+  "amount": 12000,
+  "offers": [{
+    "payment_method_id": "visa",
+    "issuer_name": "Galicia",
+    "options": [
+      { "installments": 3, "installment_amount": 4000, "total_amount": 12000, "recommended_message": "3 cuotas sin interés de $4.000,00" },
+      { "installments": 6, "installment_amount": 2000, "total_amount": 12000, "recommended_message": "6 cuotas sin interés de $2.000,00" },
+      { "installments": 12, "installment_amount": 1314.20, "total_amount": 15770.40, "recommended_message": "12 cuotas de $1.314,20 ($15.770,40)" }
+    ]
+  }]
+}
+```
+**Surface `recommended_message` verbatim to the user** — it's already in compliant Argentine Spanish format with proper currency formatting and includes the total when there's interest. AR's E 51/2017 transparency regulation requires this exact phrasing.
+
+### `refund_payment` returns
+```jsonc
+{
+  "refund_id": "...",
+  "payment_id": "...",
+  "amount": 1500,
+  "status": "approved",
+  "message": "Full refund issued. Funds return to the buyer in 3-10 business days."
 }
 ```
 
-## Error patterns and recovery
+## status_detail recovery actions (top values)
 
-The package emits typed error classes, all extending `MercadoPagoError`. Each
-is a clear signal of what went wrong and how to fix it.
+| `status_detail` | What it means | Agent action |
+|---|---|---|
+| `accredited` | Approved, money in seller account | Done. Fulfill order. |
+| `cc_rejected_bad_filled_card_number` | Buyer entered wrong number | "El número de tarjeta es incorrecto, intentá de nuevo" |
+| `cc_rejected_bad_filled_security_code` | CVV wrong | "El código de seguridad no coincide" |
+| `cc_rejected_bad_filled_date` | Expiration wrong | "La fecha de vencimiento es incorrecta" |
+| `cc_rejected_call_for_authorize` | Bank wants user to call | "Llamá a tu banco para autorizar el pago, después intentá de nuevo" |
+| `cc_rejected_card_disabled` | Card disabled | "Tu tarjeta está deshabilitada — usá otra" |
+| `cc_rejected_insufficient_amount` | Not enough funds | "Saldo insuficiente — usá otra tarjeta o método" |
+| `cc_rejected_high_risk` / `cc_rejected_other_reason` | MP risk engine rejection | "El pago fue rechazado. Probá con otro método (Rapipago / account money)" |
+| `cc_rejected_max_attempts` | Too many tries | "Esperá 24h antes de reintentar" |
+| `cc_rejected_invalid_installments` | Cuotas no allowed for this card | "Probá con menos cuotas" — re-call `calculate_installments` |
+| `pending_waiting_payment` | Ticket created (Rapipago/Pago Fácil) | "Pagá el ticket en cualquier sucursal — se acredita en 1-3 días" |
+| `pending_contingency` | MP manual review | "Esperá unos minutos, MP está revisando el pago" |
 
-### `MercadoPagoBackUrlInvalidError`
+## Critical AR-specific gotchas
 
-App passed a non-HTTPS `backUrl`. Cannot be fixed by the agent — surface to the user as "the application is misconfigured (back_url must be HTTPS)".
+1. **`statement_descriptor` MAX 13 CHARS.** Long brand names get silently truncated. Use abbreviations (`ASTRO AR` not `ASTRO ARGENTINA`).
+2. **`payer.email` cannot equal seller email** → MP error code 205 / `MercadoPagoSelfPaymentError`. Use a distinct buyer email even in sandbox.
+3. **Sandbox cardholder name selects outcome**: cardholder = `APRO` (approved), `OTHE` (rejected_other), `CONT` (pending_contingency), `CALL` (call_for_authorize), `FUND` (insufficient_amount), `SECU` (bad_filled_security_code), `EXPI` (bad_filled_date), `FORM` (bad_filled_other). DNI = `12345678`. ANY 3-digit CVV in sandbox.
+4. **Test cards (sandbox)**: Visa `4509 9535 6623 3704`, MasterCard `5031 7557 3453 0604`, Amex `3711 803032 57522`, debit Visa `4002 7686 9439 5619`. Expiration any future `MM/YY`.
+5. **`account_money` settles instantly** to seller. Card payments default to T+14 hold for new sellers (drops to T+1 after MP graduates the merchant). Tickets settle 1-3 days after the buyer pays.
+6. **First subscription payment requires CVV** — there is NO API path that bypasses this. The buyer MUST visit the `init_point_url` and complete the first card+CVV payment.
+7. **`back_url` MUST be HTTPS** — even in sandbox. `http://localhost:3000/done` is rejected.
+8. **`payer.identification`** — use `DNI` for consumers, `CUIT` for B2B (required for monotributo / IVA-discriminated invoicing), `CUIL` for employees.
+9. **CVV required on every saved-card charge** in AR by default. Merchant graduation can lift this for trusted sellers.
+10. **Idempotency-Key is mandatory** for POST since 2023. The lib auto-generates from caller-meaningful fields (external_reference + amount + timestamp); pass `idempotencyKey` explicitly if you want exact-match retry semantics.
+11. **`token` is single-use and expires in 7 days.** If a card payment fails, you can't reuse the token — re-tokenize on the frontend.
 
-### `MercadoPagoSelfPaymentError`
+## Cuotas / installments — the killer AR feature
 
-The buyer email equals the seller account's email. MP refuses self-payment. Tell the user to use a different buyer email.
+This is what makes MP unique vs Stripe in any country. Workflow:
 
-### `MercadoPagoAccountTypeMismatchError`
+1. Buyer's card BIN (first 6 digits) hits your frontend (Cardform exposes it before tokenizing).
+2. Agent calls `calculate_installments({ amount_ars, payment_method_id, bin })`.
+3. Receive `payer_costs` array.
+4. **Surface the `recommended_message` strings verbatim** — they're already in compliant AR format ("3 cuotas sin interés de $X").
+5. User picks installments count.
+6. Agent calls `create_payment({ ..., installments: N })`.
 
-Misleading MP error: "Cannot operate between different countries". Real meaning: seller token is "real-account-in-test-mode" but buyer email is a `test_user_*@testuser.com` AFIP-test-user. Tell the user to use a real consumer email as the buyer.
+**Cuotas Simples** (gov interest-free 3 + 6 mo program) appears automatically as `installment_rate: 0` rows when the merchant category qualifies. Agent doesn't configure — just surfaces.
 
-### `MercadoPagoPaymentRejectedError`
+**Issuer-specific promos** (Día de la Madre, Hot Sale, Plan Z Naranja X) appear as new `payer_costs` entries when the BIN matches an active promo. Same treatment: surface verbatim.
 
-MP risk engine rejected the first payment. **The preapproval was auto-cancelled by MP** — you cannot retry on the same subscription. Tell the user the payment was rejected and offer to create a fresh subscription with a different card.
-
-### `MercadoPagoAuthorizeForbiddenError`
-
-App tried to PUT `status: authorized` via API. MP rejects: "only the payer can authorize". This means the app code is wrong — surface as a programming error, not a user-fixable problem.
-
-### `MercadoPagoRateLimitError`
-
-MP rate-limited the request. Wait + retry with exponential backoff.
-
-## Composition with other `@ar-agents/*` packages
+## Composition with other @ar-agents/* packages
 
 | Pair with | Why |
-| --- | --- |
-| [`@ar-agents/identity`](../identity) | Validate the buyer's CUIT before creating a subscription. Cuts an MP request for malformed CUITs. Optional but cheap. |
-| `@ar-agents/whatsapp` (planned) | Send the `init_point_url` to the buyer over WhatsApp instead of email. |
-| `@ar-agents/meta-ads` (planned) | Trigger an MP subscription as the conversion event after a Meta ad click. |
+|---|---|
+| [`@ar-agents/identity`](../identity) | Validate the buyer's CUIT before creating a payment/subscription. Cuts an MP request for malformed CUITs and lets you confirm "factura a nombre de [razón social]" before charging. |
+| [`@ar-agents/whatsapp`](../whatsapp) | Send `init_point_url` to the buyer over WhatsApp instead of email. Combined with this package = the "billing assistant for SaaS argentinos" pattern. |
 
-## Performance characteristics
+## Performance
 
-| Operation | Latency | Cost | External I/O |
-| --- | --- | --- | --- |
-| `create_subscription` | 200–600ms | $0 (creation) | MP REST + state write |
-| `get_subscription_status` | 200–500ms | $0 | MP REST + state read |
-| `cancel_subscription` | 200–500ms | $0 | MP REST + state write |
-| `pause_subscription` | 200–500ms | $0 | MP REST + state write |
-| `resume_subscription` | 200–500ms | $0 | MP REST + state write |
+| Operation | Typical | Worst case |
+|---|---|---|
+| `create_payment_preference` | 200-500ms | 2s |
+| `create_payment` (account_money) | 300-700ms | 2s |
+| `create_payment` (card token) | 500-1500ms | 5s (if 3DS triggered) |
+| `get_payment` | 100-300ms | 1s |
+| `search_payments` | 200-600ms | 2s |
+| `calculate_installments` | 100-300ms | 800ms |
+| `refund_payment` | 300-800ms | 3s |
+| `create_subscription` | 200-600ms | 2s |
 
-MP charges the **merchant** (the seller) a transaction fee on each
-auto-charge, but that's outside the agent's control or visibility.
+Rate limit: ~250 req/min per access token. Lib does not retry — wrap with your own backoff if you exceed.
 
-## Mercado Pago context (for non-AR agents)
+## Webhooks (planned for v0.3)
 
-- **Mercado Pago** = the dominant Argentine consumer payment platform (also Brazil, Mexico, Chile, etc.). Owned by Mercado Libre. Like Stripe in scope but with deeper LATAM-specific features.
-- **Subscription** = `preapproval` in MP's API. A recurring authorization tied to a customer's card.
-- **First payment requires CVV** = MP's enforced CX for setting up recurring billing. Saved cards CAN be charged later without CVV, but the FIRST one always needs it. There is no API workaround.
-- **Sandbox vs production** = different access tokens. `TEST-` prefix = sandbox; `APP_USR-` prefix = production. The lib is environment-agnostic; pass whichever token you've configured.
-- **Webhooks** = MP POSTs to your registered URL on subscription lifecycle events. Use `parseWebhookEvent()` and `verifyWebhookSignature()` from this package.
+v0.2 ships `parseWebhookEvent()` for the `preapproval` topic (subscription lifecycle). Coming in v0.3:
+- `payment` topic webhook parser
+- `point_integration_wh` topic (QR scans)
+- `x-signature` HMAC-SHA256 verification (replacing the v0.1 simpler `parseWebhookSignature`)
 
 ## What this package will NEVER do
 
-- Bypass MP's first-payment-CVV requirement (impossible).
-- Reactivate a cancelled subscription (MP doesn't allow it; create a new one).
-- Process payments outside the recurring/subscription flow (out of scope).
-- Make decisions about pricing or fees (caller's responsibility).
-- Cache state without explicit `SubscriptionStateAdapter` opt-in.
+- Take raw card data in the agent runtime (PCI scope violation).
+- Bypass MP's first-payment-CVV requirement for subscriptions (impossible).
+- Reactivate a cancelled subscription or payment (MP doesn't allow).
+- Implement Marketplace splits (different MP product, different OAuth flow — out of scope until v0.4+).
+- Pay out the seller (transfers + withdrawals are dashboard-only / closed API).
+- Make decisions about pricing or installments — caller's responsibility.
 
-## Known production gotchas (read these)
+## Mercado Pago context (for non-AR agents)
 
-The README's [Known Gotchas](./README.md#known-gotchas-read-this-before-you-debug)
-section enumerates 11 specific MP behaviors that took the most time to figure out
-the first time. Skim it before debugging any unexpected behavior — most likely
-your issue is one of those, with a typed error already in place.
+- **Mercado Pago** = dominant Argentine consumer payment platform (also Brazil/Mexico/Chile/Colombia/Uruguay). Owned by Mercado Libre. Like Stripe in scope but with deeper LATAM-specific features (cuotas sin interés, in-store QR, account_money instant transfer).
+- **Subscription** = `preapproval` in MP's API. Recurring authorization tied to a customer's card.
+- **Sandbox vs production** = different access tokens. `TEST-` prefix = sandbox; `APP_USR-` prefix = production. Both use the same API host.
+- **Site IDs**: AR=MLA, BR=MLB, MX=MLM, CL=MLC, CO=MCO, UY=MLU. v0.2 is verified end-to-end against MLA only.

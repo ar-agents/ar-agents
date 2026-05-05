@@ -38,10 +38,34 @@ export {
 } from "./errors";
 
 export type {
+  // Subscriptions
   Preapproval,
   PreapprovalStatus,
   CreatePreapprovalParams,
   AutoRecurring,
+  // Payments
+  Payment,
+  PaymentStatus,
+  CreatePaymentParams,
+  SearchPaymentsParams,
+  PaymentsSearchResult,
+  // Refunds
+  Refund,
+  CreateRefundParams,
+  // Checkout Pro
+  Preference,
+  PreferenceItem,
+  CreatePreferenceParams,
+  // Customers + Cards
+  Customer,
+  CustomerCard,
+  CreateCustomerParams,
+  // Payment Methods + Installments
+  PaymentMethod,
+  InstallmentOffer,
+  // Account
+  AccountInfo,
+  // Common
   CurrencyId,
   FrequencyType,
   SiteId,

@@ -117,3 +117,347 @@ export interface ParsedWebhookEvent {
   /** Raw body MP sent, for caller inspection / debugging. */
   raw: WebhookBody;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Payments (v0.2)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Top-level lifecycle status of a payment. MP-canonical values; widened to
+ * string for forward compatibility.
+ */
+export const PaymentStatusSchema = z.union([
+  z.literal("pending"),
+  z.literal("approved"),
+  z.literal("authorized"),
+  z.literal("in_process"),
+  z.literal("in_mediation"),
+  z.literal("rejected"),
+  z.literal("cancelled"),
+  z.literal("refunded"),
+  z.literal("charged_back"),
+  z.string(),
+]);
+export type PaymentStatus = z.infer<typeof PaymentStatusSchema>;
+
+/** Status detail — finer granularity inside a status (e.g., why rejected). */
+export type PaymentStatusDetail = string;
+
+/**
+ * The full Payment object MP returns. Many fields are optional because they
+ * vary by payment method, status, and integration mode (Checkout Pro vs API).
+ */
+export const PaymentSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  status: PaymentStatusSchema,
+  status_detail: z.string().nullable().optional(),
+  date_created: z.string().nullable().optional(),
+  date_approved: z.string().nullable().optional(),
+  date_last_updated: z.string().nullable().optional(),
+  transaction_amount: z.number(),
+  currency_id: z.string(),
+  installments: z.number().int().nullable().optional(),
+  payment_method_id: z.string().nullable().optional(),
+  payment_type_id: z.string().nullable().optional(),
+  external_reference: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+  payer: z
+    .object({
+      id: z.union([z.string(), z.number()]).optional(),
+      email: z.string().nullable().optional(),
+      identification: z
+        .object({
+          type: z.string().nullable().optional(),
+          number: z.string().nullable().optional(),
+        })
+        .nullable()
+        .optional(),
+    })
+    .passthrough()
+    .optional(),
+  transaction_details: z
+    .object({
+      net_received_amount: z.number().nullable().optional(),
+      total_paid_amount: z.number().nullable().optional(),
+      installment_amount: z.number().nullable().optional(),
+    })
+    .passthrough()
+    .optional(),
+}).passthrough();
+export type Payment = z.infer<typeof PaymentSchema>;
+
+/** Params for creating a payment (Checkout API / transparent flow). */
+export interface CreatePaymentParams {
+  /** Amount in account currency. ARS for Argentina. */
+  transactionAmount: number;
+  /** Number of installments. Use 1 for no cuotas; AR cards typically allow up to 12. */
+  installments?: number;
+  /** MP payment_method_id — `visa`, `master`, `naranja`, `account_money`, etc. */
+  paymentMethodId: string;
+  /** Payer email — REQUIRED. Cannot equal seller email. */
+  payerEmail: string;
+  /** Card token from MP frontend SDK (Cardform). Required for credit/debit; omit for `account_money` etc. */
+  token?: string;
+  /** Description shown in payer's MP statement. */
+  description?: string;
+  /** Your-system identifier for correlation. */
+  externalReference?: string;
+  /** Optional payer identification (DNI/CUIT) — required for some payment types. */
+  identification?: { type: "DNI" | "CUIT" | "CUIL"; number: string };
+  /** Webhook override URL. Falls back to dashboard config if omitted. */
+  notificationUrl?: string;
+  /** AFIP/ARCA discount/fee/tax additions. Used to discriminate IVA, marketplace fees, etc. */
+  additionalInfo?: {
+    items?: Array<{
+      id?: string;
+      title: string;
+      quantity: number;
+      unit_price: number;
+      description?: string;
+    }>;
+  };
+  /** Statement descriptor — what shows on the buyer's card statement. Max 13 chars. */
+  statementDescriptor?: string;
+  /** When true, capture is deferred (only for credit cards) — useful for hold flows. */
+  capture?: boolean;
+  /** Idempotency key — pass the same value on retries to dedupe. Required for non-GET. */
+  idempotencyKey?: string;
+}
+
+export interface SearchPaymentsParams {
+  /** Filter by external_reference (your-system id). */
+  externalReference?: string;
+  /** Filter by payment status. */
+  status?: PaymentStatus;
+  /** Filter by payer email. */
+  payerEmail?: string;
+  /** Date range for date_created (ISO 8601). */
+  beginDate?: string;
+  endDate?: string;
+  /** Result page (default 0). */
+  offset?: number;
+  /** Page size (default 30, max 100). */
+  limit?: number;
+  /** Sort: e.g. "date_created" desc. */
+  sort?: string;
+  criteria?: "asc" | "desc";
+}
+
+export const PaymentsSearchResultSchema = z.object({
+  paging: z.object({
+    total: z.number(),
+    limit: z.number(),
+    offset: z.number(),
+  }),
+  results: z.array(PaymentSchema),
+});
+export type PaymentsSearchResult = z.infer<typeof PaymentsSearchResultSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Refunds
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const RefundSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  payment_id: z.union([z.string(), z.number()]).transform(String),
+  amount: z.number(),
+  source: z
+    .object({
+      id: z.string().nullable().optional(),
+      name: z.string().nullable().optional(),
+      type: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  date_created: z.string().nullable().optional(),
+  status: z.string().nullable().optional(),
+}).passthrough();
+export type Refund = z.infer<typeof RefundSchema>;
+
+export interface CreateRefundParams {
+  paymentId: string;
+  /** Partial refund amount. Omit for full refund. */
+  amount?: number;
+  /** Idempotency key — required for retry-safety. */
+  idempotencyKey?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Checkout Pro (Preferences)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PreferenceItemSchema = z.object({
+  id: z.string().optional(),
+  title: z.string(),
+  description: z.string().optional(),
+  picture_url: z.string().url().optional(),
+  category_id: z.string().optional(),
+  quantity: z.number().int().positive(),
+  unit_price: z.number().positive(),
+  currency_id: CurrencyIdSchema.optional(),
+});
+export type PreferenceItem = z.infer<typeof PreferenceItemSchema>;
+
+export const PreferenceSchema = z.object({
+  id: z.string(),
+  init_point: z.string().url().optional(),
+  sandbox_init_point: z.string().url().optional(),
+  client_id: z.union([z.string(), z.number()]).optional(),
+  collector_id: z.union([z.string(), z.number()]).optional(),
+  items: z.array(PreferenceItemSchema).optional(),
+  external_reference: z.string().nullable().optional(),
+  date_created: z.string().nullable().optional(),
+  expires: z.boolean().optional(),
+  expiration_date_from: z.string().nullable().optional(),
+  expiration_date_to: z.string().nullable().optional(),
+}).passthrough();
+export type Preference = z.infer<typeof PreferenceSchema>;
+
+export interface CreatePreferenceParams {
+  items: Array<{
+    title: string;
+    quantity: number;
+    unit_price: number;
+    currency_id?: CurrencyId;
+    description?: string;
+    picture_url?: string;
+  }>;
+  payer?: {
+    name?: string;
+    surname?: string;
+    email?: string;
+    phone?: { area_code?: string; number?: string };
+    identification?: { type: string; number: string };
+    address?: { street_name?: string; street_number?: number; zip_code?: string };
+  };
+  /** Where to send the buyer after success/failure/pending. */
+  backUrls?: { success?: string; failure?: string; pending?: string };
+  /** "approved" → auto-redirect on success; "all" → always; "" → never. */
+  autoReturn?: "approved" | "all";
+  /** Webhook URL. */
+  notificationUrl?: string;
+  /** Your-system id for correlation. */
+  externalReference?: string;
+  /** Max installments offered. Defaults to MP account config. */
+  paymentMethods?: {
+    excluded_payment_types?: Array<{ id: string }>;
+    excluded_payment_methods?: Array<{ id: string }>;
+    installments?: number;
+    default_installments?: number;
+  };
+  /** Statement descriptor — shows on buyer's card statement. */
+  statementDescriptor?: string;
+  /** Expiration window for the link itself. */
+  expires?: boolean;
+  expirationDateFrom?: string;
+  expirationDateTo?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Customers + Saved Cards
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const CustomerSchema = z.object({
+  id: z.string(),
+  email: z.string(),
+  first_name: z.string().nullable().optional(),
+  last_name: z.string().nullable().optional(),
+  phone: z
+    .object({ area_code: z.string().nullable().optional(), number: z.string().nullable().optional() })
+    .nullable()
+    .optional(),
+  identification: z
+    .object({ type: z.string().nullable().optional(), number: z.string().nullable().optional() })
+    .nullable()
+    .optional(),
+  date_created: z.string().nullable().optional(),
+  date_last_updated: z.string().nullable().optional(),
+  description: z.string().nullable().optional(),
+}).passthrough();
+export type Customer = z.infer<typeof CustomerSchema>;
+
+export const CustomerCardSchema = z.object({
+  id: z.string(),
+  customer_id: z.string(),
+  expiration_month: z.number().int().nullable().optional(),
+  expiration_year: z.number().int().nullable().optional(),
+  first_six_digits: z.string().nullable().optional(),
+  last_four_digits: z.string().nullable().optional(),
+  payment_method: z
+    .object({
+      id: z.string().nullable().optional(),
+      name: z.string().nullable().optional(),
+      payment_type_id: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  date_created: z.string().nullable().optional(),
+}).passthrough();
+export type CustomerCard = z.infer<typeof CustomerCardSchema>;
+
+export interface CreateCustomerParams {
+  email: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: { areaCode?: string; number?: string };
+  identification?: { type: "DNI" | "CUIT" | "CUIL"; number: string };
+  description?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Payment Methods + Installments
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PaymentMethodSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  payment_type_id: z.string(),
+  status: z.string(),
+  thumbnail: z.string().nullable().optional(),
+  secure_thumbnail: z.string().nullable().optional(),
+  min_allowed_amount: z.number().nullable().optional(),
+  max_allowed_amount: z.number().nullable().optional(),
+}).passthrough();
+export type PaymentMethod = z.infer<typeof PaymentMethodSchema>;
+
+export const InstallmentOfferSchema = z.object({
+  payment_method_id: z.string(),
+  payment_type_id: z.string(),
+  issuer: z
+    .object({
+      id: z.union([z.string(), z.number()]).optional(),
+      name: z.string().nullable().optional(),
+    })
+    .nullable()
+    .optional(),
+  payer_costs: z.array(
+    z.object({
+      installments: z.number().int(),
+      installment_rate: z.number(),
+      discount_rate: z.number().nullable().optional(),
+      installment_amount: z.number(),
+      total_amount: z.number(),
+      recommended_message: z.string().nullable().optional(),
+    }).passthrough(),
+  ),
+}).passthrough();
+export type InstallmentOffer = z.infer<typeof InstallmentOfferSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Account
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const AccountInfoSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  email: z.string().nullable().optional(),
+  nickname: z.string().nullable().optional(),
+  country_id: z.string().nullable().optional(),
+  site_id: z.string().nullable().optional(),
+  user_type: z.string().nullable().optional(),
+  status: z
+    .object({ user_type: z.string().nullable().optional() })
+    .passthrough()
+    .nullable()
+    .optional(),
+}).passthrough();
+export type AccountInfo = z.infer<typeof AccountInfoSchema>;

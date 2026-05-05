@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/mercadopago",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "factory": "mercadoPagoTools",
   "tools": [
     {
@@ -139,6 +139,208 @@
       "whenNotToUse": [
         "Subscription is cancelled — MP doesn't allow resuming cancelled subs (throws MercadoPagoAuthorizeForbiddenError). Create a new subscription instead."
       ]
+    },
+    {
+      "name": "create_payment",
+      "summary": "Create a one-off payment. Two flows: (a) with `token` from MP frontend SDK for cards, (b) without token for account_money/rapipago/pagofacil.",
+      "purity": "io",
+      "sideEffects": ["Creates a payment on MP", "May charge buyer if account_money/card token"],
+      "constraints": {
+        "envVars": ["MP_ACCESS_TOKEN"],
+        "externalIO": ["MP REST API POST /v1/payments"],
+        "latencyMs": "300-1500 (cards), 200-700 (account_money)",
+        "costPerCall": "$0 (creation); MP charges merchant per-transaction fee on success"
+      },
+      "input": {
+        "amount_ars": "number positive",
+        "payment_method_id": "string (visa | master | naranja | account_money | rapipago | ...)",
+        "payer_email": "string (cannot equal seller email)",
+        "token": "string | undefined (required for cards)",
+        "installments": "number 1-24 | undefined",
+        "external_reference": "string | undefined",
+        "identification": "{type: DNI|CUIT|CUIL, number: string} | undefined"
+      },
+      "output": {
+        "payment_id": "string",
+        "status": "approved | pending | rejected | in_process | cancelled",
+        "status_detail": "string (see AGENTS.md for recovery actions per value)",
+        "amount": "number", "currency": "ARS",
+        "installments": "number", "payment_method": "string",
+        "external_reference": "string | null",
+        "date_created": "ISO date", "date_approved": "ISO date | null"
+      },
+      "whenToUse": [
+        "User wants to charge a specific payer email with account_money / Rapipago / Pago Fácil",
+        "User has a valid card token from MP frontend SDK and wants server-side charge"
+      ],
+      "whenNotToUse": [
+        "User pasted raw card data — REFUSE (PCI scope violation). Use create_payment_preference instead.",
+        "User wants recurring billing — use create_subscription"
+      ]
+    },
+    {
+      "name": "get_payment",
+      "summary": "Fetch a single payment by ID. Use after webhook to confirm status.",
+      "purity": "io",
+      "sideEffects": [],
+      "constraints": { "latencyMs": "100-300", "externalIO": ["MP REST GET /v1/payments/:id"] },
+      "input": { "payment_id": "string" },
+      "output": "Same shape as create_payment output, plus net_received"
+    },
+    {
+      "name": "search_payments",
+      "summary": "Search payments by external_reference / status / date range. Paginated.",
+      "purity": "io",
+      "sideEffects": [],
+      "constraints": { "latencyMs": "200-600", "externalIO": ["MP REST GET /v1/payments/search"] },
+      "input": {
+        "external_reference": "string?", "status": "string?",
+        "payer_email": "string?", "begin_date": "ISO?", "end_date": "ISO?",
+        "limit": "number 1-100, default 30", "offset": "number, default 0"
+      },
+      "output": { "total": "number", "returned": "number", "offset": "number", "payments": "array of {payment_id, status, amount, currency, payer_email, external_reference, date_created}" }
+    },
+    {
+      "name": "cancel_payment",
+      "summary": "Cancel a pending or in_process payment. For approved use refund_payment.",
+      "purity": "io",
+      "sideEffects": ["Mutates payment status to cancelled on MP"],
+      "input": { "payment_id": "string" },
+      "output": { "payment_id": "string", "status": "cancelled", "message": "string" }
+    },
+    {
+      "name": "capture_payment",
+      "summary": "Capture an authorized credit-card payment created with capture=false. Optional partial amount.",
+      "purity": "io",
+      "sideEffects": ["Captures funds; settles to seller per MP rules"],
+      "input": { "payment_id": "string", "amount_ars": "number? (partial capture)" },
+      "output": { "payment_id": "string", "status": "approved", "amount": "number" }
+    },
+    {
+      "name": "refund_payment",
+      "summary": "Refund an approved payment. Partial (with amount) or full (omit). Auto-idempotent on (payment_id, amount).",
+      "purity": "io",
+      "sideEffects": ["Returns funds to buyer; debits seller balance"],
+      "constraints": { "latencyMs": "300-800", "externalIO": ["MP REST POST /v1/payments/:id/refunds"] },
+      "input": { "payment_id": "string", "amount_ars": "number? (omit for full refund)" },
+      "output": { "refund_id": "string", "payment_id": "string", "amount": "number", "status": "approved", "message": "string" },
+      "whenToUse": ["User explicitly requests a refund (full or partial)"],
+      "whenNotToUse": [
+        "Payment is still pending/in_process — use cancel_payment instead",
+        "More than 30 days since payment — MP refund window expired"
+      ],
+      "irreversibility": "Refund is irreversible. Confirm amount and payment_id with user first."
+    },
+    {
+      "name": "list_refunds",
+      "summary": "List all refunds for a given payment.",
+      "purity": "io",
+      "sideEffects": [],
+      "input": { "payment_id": "string" },
+      "output": { "payment_id": "string", "count": "number", "refunds": "array of {refund_id, amount, status, date_created}" }
+    },
+    {
+      "name": "create_payment_preference",
+      "summary": "Create a Checkout Pro hosted payment URL. RECOMMENDED for agent flows where you don't have a card token — buyer enters card on MP-hosted form (no PCI scope needed).",
+      "purity": "io",
+      "sideEffects": ["Creates a preference on MP"],
+      "constraints": { "latencyMs": "200-500", "externalIO": ["MP REST POST /checkout/preferences"] },
+      "input": {
+        "items": "array of {title, quantity, unit_price, description?, picture_url?}",
+        "payer_email": "string?", "external_reference": "string?",
+        "max_installments": "number 1-24?",
+        "statement_descriptor": "string max 13 chars?",
+        "excluded_payment_types": "array of (credit_card|debit_card|ticket|atm|bank_transfer)?"
+      },
+      "output": {
+        "preference_id": "string",
+        "init_point_url": "string (production)",
+        "sandbox_init_point_url": "string (sandbox — use this if your token is TEST-)",
+        "external_reference": "string | null",
+        "next_step": "Send init_point_url to the customer..."
+      },
+      "whenToUse": [
+        "User wants to charge a payer over WhatsApp/email/SMS",
+        "User says 'cobrale $X a [email]' and you don't have a card token"
+      ],
+      "whenNotToUse": [
+        "Recurring subscription — use create_subscription",
+        "User pasted raw card data — REFUSE (PCI violation)"
+      ]
+    },
+    {
+      "name": "get_payment_preference",
+      "summary": "Fetch a Checkout Pro preference by ID.",
+      "purity": "io", "sideEffects": [],
+      "input": { "preference_id": "string" },
+      "output": "Same as create_payment_preference output, plus items array"
+    },
+    {
+      "name": "create_customer",
+      "summary": "Create or upsert an MP customer for saving cards / repeat charges. Idempotent on email.",
+      "purity": "io",
+      "sideEffects": ["Creates customer record on MP if not exists"],
+      "input": {
+        "email": "string",
+        "first_name": "string?", "last_name": "string?",
+        "identification": "{type: DNI|CUIT|CUIL, number: string}?"
+      },
+      "output": { "customer_id": "string", "email": "string", "first_name": "string|null", "last_name": "string|null", "date_created": "ISO" }
+    },
+    {
+      "name": "find_customer_by_email",
+      "summary": "Find existing customer by email. Returns null if not found.",
+      "purity": "io", "sideEffects": [],
+      "input": { "email": "string" },
+      "output": { "found": "boolean", "customer_id": "string | null", "email": "string?", "first_name": "string?", "last_name": "string?" }
+    },
+    {
+      "name": "list_customer_cards",
+      "summary": "List saved cards for a customer.",
+      "purity": "io", "sideEffects": [],
+      "input": { "customer_id": "string" },
+      "output": { "customer_id": "string", "count": "number", "cards": "array of {card_id, last_four_digits, expiration_month, expiration_year, payment_method, payment_method_name}" }
+    },
+    {
+      "name": "delete_customer_card",
+      "summary": "Delete a saved card. Irreversible.",
+      "purity": "io", "sideEffects": ["Removes card from MP customer"],
+      "input": { "customer_id": "string", "card_id": "string" },
+      "output": { "customer_id": "string", "card_id": "string", "deleted": "true" }
+    },
+    {
+      "name": "list_payment_methods",
+      "summary": "List all payment methods enabled for the seller's MP account (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.).",
+      "purity": "io", "sideEffects": [],
+      "input": {},
+      "output": { "count": "number", "methods": "array of {id, name, payment_type, status, min_amount, max_amount}" }
+    },
+    {
+      "name": "calculate_installments",
+      "summary": "Calculate cuotas options for an amount. THE killer AR feature. Returns recommended_message strings ('12 cuotas sin interés de $X') ready to surface VERBATIM to the user.",
+      "purity": "io", "sideEffects": [],
+      "constraints": { "latencyMs": "100-300" },
+      "input": {
+        "amount_ars": "number positive",
+        "payment_method_id": "string? (e.g. visa, master, naranja)",
+        "bin": "string? 6-8 chars (first digits of card for issuer-specific promos)"
+      },
+      "output": {
+        "amount": "number",
+        "offers": "array of {payment_method_id, payment_type_id, issuer_name, options: [{installments, installment_amount, total_amount, installment_rate, recommended_message}]}"
+      },
+      "whenToUse": [
+        "User asks 'cuántas cuotas tiene esta tarjeta?'",
+        "Before create_payment with installments > 1 to validate available options",
+        "Show options BEFORE the user picks (AR transparency regulation E 51/2017 compliance)"
+      ]
+    },
+    {
+      "name": "get_account_info",
+      "summary": "Get info about the MP account that owns the access token (site_id, country, user_type).",
+      "purity": "io", "sideEffects": [],
+      "input": {},
+      "output": { "account_id": "string", "email": "string|null", "nickname": "string|null", "country_id": "string|null (AR for Argentina)", "site_id": "string|null (MLA for Argentina)", "user_type": "string|null" }
     }
   ]
 }
