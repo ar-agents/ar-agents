@@ -56,7 +56,7 @@ const PACKAGES = [
     name: "@ar-agents/whatsapp",
     version: "0.1.0",
     purpose:
-      "WhatsApp Business Cloud API — send text/template/media/interactive, webhook parser, AR phone normalizer.",
+      "WhatsApp Business Cloud API — send text/template/media/interactive, webhook parser, AR phone normalizer. Includes auto-retry, timeout, observability hooks.",
     tools: [
       "send_whatsapp_text",
       "send_whatsapp_template",
@@ -363,6 +363,59 @@ const agent = new Agent({
                 </p>
               </div>
             ))}
+          </div>
+        </section>
+
+        <section style={{ marginBottom: 48 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 600, margin: "0 0 16px" }}>
+            Live demo — the toolkit working
+          </h2>
+          <div
+            style={{
+              background: "white",
+              border: "1px solid #e4e4e7",
+              borderRadius: 12,
+              padding: 24,
+            }}
+          >
+            <p style={{ fontSize: 14, color: "#52525b", margin: "0 0 16px", lineHeight: 1.6 }}>
+              <a
+                href="https://ar-agents-whatsapp-hello.vercel.app"
+                style={{ color: "#1d4ed8", fontWeight: 500 }}
+              >
+                ar-agents-whatsapp-hello.vercel.app
+              </a>{" "}
+              — billing assistant para SaaS argentinos. Combina las 5 libs en un solo agente:
+              valida CUIT contra ARCA real, decide trust requirement por monto, gatea cobros
+              grandes con verification (WhatsApp OTP), crea suscripciones MP, responde por WhatsApp.
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr",
+                gap: "8px 16px",
+                fontSize: 13,
+                fontFamily: "var(--font-geist-mono), monospace",
+                background: "#fafafa",
+                padding: 16,
+                borderRadius: 8,
+                color: "#3f3f46",
+              }}
+            >
+              <span style={{ color: "#71717a" }}>{"<"} $5k</span>
+              <span>cobro directo, sin verification</span>
+              <span style={{ color: "#71717a" }}>$5k–$50k</span>
+              <span>requiere trust ≥ 0.3 (whatsapp_otp)</span>
+              <span style={{ color: "#71717a" }}>$50k–$500k</span>
+              <span>requiere trust ≥ 0.5 (email_magic_link / mp_identity)</span>
+              <span style={{ color: "#71717a" }}>{"> "}$500k</span>
+              <span>requiere trust ≥ 0.7 (auth0 con MFA → 0.85)</span>
+            </div>
+            <p style={{ fontSize: 12, color: "#71717a", margin: "12px 0 0", lineHeight: 1.5 }}>
+              Probalo: pedile "plan Pro mensual ($25.000), CUIT 20-41758101-5". El agente valida el
+              CUIT contra ARCA prod, decide que necesita verification, te manda un código (visible
+              en el panel mock), pasale el código de vuelta y procede.
+            </p>
           </div>
         </section>
 
