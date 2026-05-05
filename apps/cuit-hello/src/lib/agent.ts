@@ -17,23 +17,49 @@ Reglas:
 - Sé directo y específico. Vocabulario argentino natural. Sin emojis salvo que el user los use.`;
 
 /**
- * Build the AFIP adapter based on env vars. When `AFIP_CERT_PATH` +
- * `AFIP_KEY_PATH` + `AFIP_CUIT_REPRESENTADO` are all set, wire the real
- * WSAA + WSCDC adapter. Otherwise return undefined so identityTools() uses
- * the default UnconfiguredAfipPadronAdapter.
+ * Build the AFIP adapter based on env vars.
+ *
+ * Two cert input modes:
+ *   - Filesystem (local dev): set AFIP_CERT_PATH + AFIP_KEY_PATH to absolute
+ *     paths. The lib reads the PEMs from disk.
+ *   - Inline (serverless / Vercel): set AFIP_CERT_PEM + AFIP_KEY_PEM with
+ *     the PEM contents pasted into env vars (escape newlines as you would
+ *     for any multi-line env var).
+ *
+ * Either mode requires AFIP_CUIT_REPRESENTADO. Without any of the above
+ * the adapter is undefined, so identityTools() uses the default
+ * UnconfiguredAfipPadronAdapter (which returns a clear "not configured"
+ * message instead of crashing).
  */
 function buildAfipAdapter(): AfipPadronAdapter | undefined {
+  const cuit = process.env.AFIP_CUIT_REPRESENTADO;
+  if (!cuit) return undefined;
+  const env = (process.env.AFIP_ENV ?? "prod") as "homo" | "prod";
+
+  // Inline PEMs (Vercel-friendly) take precedence over file paths.
+  const certPem = process.env.AFIP_CERT_PEM;
+  const keyPem = process.env.AFIP_KEY_PEM;
+  if (certPem && keyPem) {
+    return new WsaaWscdcAfipPadronAdapter({
+      certPem,
+      keyPem,
+      cuitRepresentado: cuit,
+      env,
+    });
+  }
+
   const certPath = process.env.AFIP_CERT_PATH;
   const keyPath = process.env.AFIP_KEY_PATH;
-  const cuit = process.env.AFIP_CUIT_REPRESENTADO;
-  const env = (process.env.AFIP_ENV ?? "homo") as "homo" | "prod";
-  if (!certPath || !keyPath || !cuit) return undefined;
-  return new WsaaWscdcAfipPadronAdapter({
-    certPath,
-    keyPath,
-    cuitRepresentado: cuit,
-    env,
-  });
+  if (certPath && keyPath) {
+    return new WsaaWscdcAfipPadronAdapter({
+      certPath,
+      keyPath,
+      cuitRepresentado: cuit,
+      env,
+    });
+  }
+
+  return undefined;
 }
 
 export function createCuitAgent() {

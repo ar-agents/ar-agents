@@ -3,30 +3,39 @@ import type { AfipPadronData } from "./types";
 
 /**
  * WSCDC (Web Service Constancia de Inscripción) client. Queries AFIP's
- * `personaService_v2` to retrieve a taxpayer's registered information.
+ * `personaServiceA13` to retrieve a taxpayer's registered information.
  *
  * # Service surface
  *
- * The single useful operation is `getPersona_v2`: given a CUIT and a TA from
+ * The single useful operation is `getPersona`: given a CUIT and a TA from
  * WSAA, returns the taxpayer's name, tax condition (Monotributo / Responsable
  * Inscripto / etc.), monotributo category if applicable, registered address,
  * and registered activities.
  *
+ * Real WSDL targetNamespace is `http://a13.soap.ws.server.puc.sr/` and uses
+ * `elementFormDefault="unqualified"`, so child elements (token, sign, etc.)
+ * are NOT namespace-prefixed — only the root operation element is.
+ *
  * # Endpoints
  *
- * - homo: https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA5
- * - prod: https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA5
+ * - homo: https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA13
+ * - prod: https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA13
  *
  * Requires the integration's cert to have been authorized for the
- * `ws_sr_padron_a5` service via Clave Fiscal "Administrador de Relaciones".
+ * `ws_sr_padron_a13` service via Clave Fiscal "Administrador de Relaciones".
+ *
+ * Note: AFIP deprecated `ws_sr_padron_a5` (the previous default). A13 is the
+ * current canonical service for taxpayer constancia lookup — same SOAP shape
+ * (`getPersona_v2`), richer response (extra fields like `tipoClave`, full
+ * actividades, monotributo subdetail).
  */
 
 const WSCDC_URLS: Record<AfipEnv, string> = {
-  homo: "https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA5",
-  prod: "https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA5",
+  homo: "https://awshomo.afip.gov.ar/sr-padron/webservices/personaServiceA13",
+  prod: "https://aws.afip.gov.ar/sr-padron/webservices/personaServiceA13",
 };
 
-export const WSCDC_SERVICE_NAME = "ws_sr_padron_a5";
+export const WSCDC_SERVICE_NAME = "ws_sr_padron_a13";
 
 /**
  * Build the SOAP envelope for `getPersona_v2`. Auth comes from the TA token +
@@ -40,15 +49,15 @@ export function buildGetPersonaSoap(params: {
   cuitToQuery: string;
 }): string {
   return `<?xml version="1.0" encoding="UTF-8"?>
-<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:a5="serviceA5">
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:a13="http://a13.soap.ws.server.puc.sr/">
   <soapenv:Header/>
   <soapenv:Body>
-    <a5:getPersona_v2>
-      <a5:token>${escapeXml(params.ta.token)}</a5:token>
-      <a5:sign>${escapeXml(params.ta.sign)}</a5:sign>
-      <a5:cuitRepresentada>${params.cuitRepresentado}</a5:cuitRepresentada>
-      <a5:idPersona>${params.cuitToQuery}</a5:idPersona>
-    </a5:getPersona_v2>
+    <a13:getPersona>
+      <token>${escapeXml(params.ta.token)}</token>
+      <sign>${escapeXml(params.ta.sign)}</sign>
+      <cuitRepresentada>${params.cuitRepresentado}</cuitRepresentada>
+      <idPersona>${params.cuitToQuery}</idPersona>
+    </a13:getPersona>
   </soapenv:Body>
 </soapenv:Envelope>`;
 }
@@ -89,60 +98,103 @@ function extractAllTags(xml: string, tag: string): string[] {
 }
 
 /**
- * Parse a `getPersona_v2` SOAP response into structured padron data.
+ * Parse a `getPersona` (A13) SOAP response into structured padron data.
  *
- * @internal Exposed for testing; production callers use `lookupPadron`.
+ * # A13 response shape
+ *
+ * The actual response is wrapped as
+ * `<personaReturn><metadata>…</metadata><persona>…</persona></personaReturn>`.
+ * Inside `<persona>`:
+ * - `apellido`, `nombre`, `tipoPersona`, `tipoClave`, `estadoClave`
+ * - `descripcionActividadPrincipal` (single string, not a list)
+ * - `<domicilio>` repeated, distinguished by `<tipoDomicilio>FISCAL</tipoDomicilio>`
+ *   vs `LEGAL/REAL`. Domicilio fields: `direccion`, `localidad`,
+ *   `descripcionProvincia`, `codigoPostal` (note: NOT `codPostal`).
+ *
+ * # What A13 does NOT return
+ *
+ * - Monotributo category — A13 is "datos generales", not constancia.
+ * - Tax condition (Monotributo / Responsable Inscripto). The lib reports
+ *   `condicion: "DESCONOCIDA"` here. For the full constancia (monotributo +
+ *   IVA condition + impuestos asociados), authorize `ws_sr_constancia_inscripcion`
+ *   and use that adapter (planned for v0.3 of @ar-agents/identity).
+ *
+ * @internal Exposed for testing; production callers use the adapter.
  */
 export function parseGetPersonaResponse(
   responseXml: string,
 ): { found: boolean; data: AfipPadronData | null; rawError: string | null } {
-  // AFIP returns errorConstancia if the CUIT isn't found.
+  // AFIP returns errorConstancia or a fault if the CUIT isn't found.
   const errMsg = extractTag(responseXml, "error");
   if (errMsg && /no.*encontrad|inexistente|no.*registr/i.test(errMsg)) {
     return { found: false, data: null, rawError: errMsg };
   }
+  // SRValidationException: AFIP signals "no encontrada" via SOAP fault too.
+  const faultString = extractTag(responseXml, "faultstring");
+  if (faultString && /no.*encontrad|inexistente|no.*registr|no se encontr/i.test(faultString)) {
+    return { found: false, data: null, rawError: faultString };
+  }
 
-  // Persona block fields
-  const apellido = extractTag(responseXml, "apellido");
-  const nombreSimple = extractTag(responseXml, "nombre");
-  const tipoPersona = extractTag(responseXml, "tipoPersona");
-  const tipoClave = extractTag(responseXml, "tipoClave");
-  const estadoClave = extractTag(responseXml, "estadoClave");
-  const fechaInscripcion = extractTag(responseXml, "fechaInscripcion");
+  // Narrow to the persona block to avoid matching across siblings.
+  const personaBlock = extractTag(responseXml, "persona") ?? responseXml;
 
-  // Tax condition: AFIP returns a list of "categoria" entries under
-  // "monotributo" or "regimenGeneral". Pick the most informative one.
-  const monotributoBlock = extractTag(responseXml, "monotributo");
+  const apellido = extractTag(personaBlock, "apellido");
+  const nombreSimple = extractTag(personaBlock, "nombre");
+  const tipoPersona = extractTag(personaBlock, "tipoPersona");
+  const estadoClave = extractTag(personaBlock, "estadoClave");
+
+  // A13 doesn't return monotributo or fechaInscripcion. Use ws_sr_constancia_inscripcion
+  // for those (planned for v0.3).
+  const monotributoBlock = extractTag(personaBlock, "monotributo");
   const monotributoCategoria = monotributoBlock
     ? extractTag(monotributoBlock, "categoriaMonotributo") ?? extractTag(monotributoBlock, "descripcionCategoria")
     : null;
+  const fechaInscripcion = extractTag(personaBlock, "fechaInscripcion");
 
-  // Determine condition
+  // Determine condition. With A13-only data we usually can't tell — leave
+  // DESCONOCIDA unless the legacy A5-shape monotributo/regimenGeneral blocks
+  // are present (they aren't in A13, but we keep the heuristic for forward
+  // compatibility / test fixtures).
   let condicion = "DESCONOCIDA";
   if (monotributoBlock) {
     condicion = "MONOTRIBUTO";
   } else if (
-    /<regimenGeneral>/i.test(responseXml) ||
-    /<categoriaIVA>/i.test(responseXml)
+    /<regimenGeneral>/i.test(personaBlock) ||
+    /<categoriaIVA>/i.test(personaBlock)
   ) {
     condicion = "RESPONSABLE INSCRIPTO";
   } else if (estadoClave && /exent/i.test(estadoClave)) {
     condicion = "EXENTO";
   }
 
-  // Address
-  const domicilio = extractTag(responseXml, "domicilioFiscal") ?? extractTag(responseXml, "domicilio");
-  const direccion = domicilio ? extractTag(domicilio, "direccion") : null;
-  const localidad = domicilio ? extractTag(domicilio, "localidad") : null;
-  const provincia = domicilio ? extractTag(domicilio, "descripcionProvincia") ?? extractTag(domicilio, "provincia") : null;
-  const codPostal = domicilio ? extractTag(domicilio, "codPostal") : null;
+  // Address. A13 returns multiple <domicilio> blocks distinguished by
+  // <tipoDomicilio>. Prefer FISCAL; fall back to the first one.
+  const domicilios = extractAllBlocks(personaBlock, "domicilio");
+  const domicilioFiscalBlock =
+    domicilios.find((b) => /FISCAL/i.test(extractTag(b, "tipoDomicilio") ?? "")) ??
+    domicilios[0] ??
+    extractTag(personaBlock, "domicilioFiscal") ??
+    null;
+  const direccion = domicilioFiscalBlock ? extractTag(domicilioFiscalBlock, "direccion") : null;
+  const localidad = domicilioFiscalBlock ? extractTag(domicilioFiscalBlock, "localidad") : null;
+  const provincia = domicilioFiscalBlock
+    ? extractTag(domicilioFiscalBlock, "descripcionProvincia") ?? extractTag(domicilioFiscalBlock, "provincia")
+    : null;
+  const codPostal = domicilioFiscalBlock
+    ? extractTag(domicilioFiscalBlock, "codigoPostal") ?? extractTag(domicilioFiscalBlock, "codPostal")
+    : null;
   const domicilioStr = [direccion, localidad, provincia, codPostal]
     .filter(Boolean)
     .join(", ") || null;
 
-  // Activities
-  const actividadesBlock = extractTag(responseXml, "actividades") ?? extractTag(responseXml, "actividad") ?? "";
-  const actividades = extractAllTags(actividadesBlock, "descripcionActividad");
+  // Activities. A13 returns a single descripcionActividadPrincipal at the
+  // persona level; older A5 shape had nested <actividades><actividad><descripcionActividad/>.
+  const actividadPrincipal = extractTag(personaBlock, "descripcionActividadPrincipal");
+  const actividadesBlock = extractTag(personaBlock, "actividades") ?? extractTag(personaBlock, "actividad") ?? "";
+  const nestedActividades = extractAllTags(actividadesBlock, "descripcionActividad");
+  const actividades = actividadPrincipal
+    ? [actividadPrincipal, ...nestedActividades.filter((a) => a !== actividadPrincipal)]
+    : nestedActividades;
 
   // If no name fields at all, this isn't a valid persona response
   if (!apellido && !nombreSimple && !tipoPersona) {
@@ -170,20 +222,36 @@ export function parseGetPersonaResponse(
 }
 
 /**
+ * Extract every block of a tag's full content as an array (preserves nested
+ * structure). Used for repeated blocks like A13's multiple <domicilio>.
+ *
+ * @internal
+ */
+function extractAllBlocks(xml: string, tag: string): string[] {
+  const re = new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`, "gi");
+  const out: string[] = [];
+  let m: RegExpExecArray | null;
+  while ((m = re.exec(xml)) !== null) {
+    out.push(m[1]!.trim());
+  }
+  return out;
+}
+
+/**
  * Call `getPersona_v2` and return parsed padron data.
  *
  * @example
  * ```ts
  * const ta = await loginCms({ service: WSCDC_SERVICE_NAME, ... });
- * const result = await getPersonaV2({
+ * const result = await getPersonaA13({
  *   ta,
- *   env: "homo",
+ *   env: "prod",
  *   cuitRepresentado: "20417581015",
  *   cuitToQuery: "30707500129",
  * });
  * ```
  */
-export async function getPersonaV2(params: {
+export async function getPersonaA13(params: {
   ta: AccessTicket;
   env: AfipEnv;
   cuitRepresentado: string;
@@ -207,9 +275,13 @@ export async function getPersonaV2(params: {
     body: envelope,
   });
   const text = await res.text();
-  if (!res.ok) {
+  // SOAP services return HTTP 500 with a Fault body for "not found" cases —
+  // those are valid structured responses, not transport errors. Pass them
+  // through to the parser, which converts faults into found:false results.
+  // Only throw on responses that aren't SOAP at all (e.g., HTML 503 page).
+  if (!res.ok && !/<.*Fault[\s>]/i.test(text)) {
     throw new Error(
-      `WSCDC getPersona_v2 failed: HTTP ${res.status}. Body: ${text.slice(0, 500)}`,
+      `WSCDC getPersona (A13) HTTP ${res.status}. Body: ${text.slice(0, 500)}`,
     );
   }
   return parseGetPersonaResponse(text);

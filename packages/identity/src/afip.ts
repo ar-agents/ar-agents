@@ -8,7 +8,7 @@ import type { AfipPadronResult } from "./types";
  * AFIP's WSAA + WSCDC integration requires an X.509 certificate that:
  * - Is generated locally (openssl)
  * - Is registered with AFIP via Clave Fiscal
- * - Is authorized for the specific service (`ws_sr_padron_a5`)
+ * - Is authorized for the specific service (`ws_sr_padron_a13`)
  * - Is renewed annually
  *
  * That cert + the SOAP client live in user infrastructure, not in this
@@ -76,7 +76,7 @@ export class UnconfiguredAfipPadronAdapter implements AfipPadronAdapter {
       cuit,
       available: false,
       error:
-        "AFIP padron lookup not configured for this app. To enable: (1) generate an X.509 cert with openssl, (2) register it in AFIP via Clave Fiscal at https://auth.afip.gob.ar/, (3) authorize the service `ws_sr_padron_a5`, (4) implement `AfipPadronAdapter` and pass it to `identityTools({ afip })`. See the @ar-agents/identity README for a full walkthrough. Until then, the agent can validate the CUIT format and check digit but cannot return name / tax condition / monotributo category.",
+        "AFIP padron lookup not configured for this app. To enable: (1) generate an X.509 cert with openssl, (2) register it in AFIP via Clave Fiscal at https://auth.afip.gob.ar/, (3) authorize the service `ws_sr_padron_a13`, (4) implement `AfipPadronAdapter` and pass it to `identityTools({ afip })`. See the @ar-agents/identity README for a full walkthrough. Until then, the agent can validate the CUIT format and check digit but cannot return name / tax condition / monotributo category.",
       data: null,
     };
   }

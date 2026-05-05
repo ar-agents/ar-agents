@@ -10,25 +10,25 @@ import { generateTestCertAndKey } from "./fixtures/test-cert";
 
 describe("buildTraXml", () => {
   it("includes the requested service name", () => {
-    const xml = buildTraXml("ws_sr_padron_a5");
-    expect(xml).toContain("<service>ws_sr_padron_a5</service>");
+    const xml = buildTraXml("ws_sr_padron_a13");
+    expect(xml).toContain("<service>ws_sr_padron_a13</service>");
   });
 
   it("includes generationTime and expirationTime as ISO timestamps", () => {
-    const xml = buildTraXml("ws_sr_padron_a5", 600);
+    const xml = buildTraXml("ws_sr_padron_a13", 600);
     expect(xml).toMatch(/<generationTime>\d{4}-\d{2}-\d{2}T/);
     expect(xml).toMatch(/<expirationTime>\d{4}-\d{2}-\d{2}T/);
   });
 
   it("expirationTime is later than generationTime", () => {
-    const xml = buildTraXml("ws_sr_padron_a5", 600);
+    const xml = buildTraXml("ws_sr_padron_a13", 600);
     const gen = xml.match(/<generationTime>(.*?)<\/generationTime>/)![1]!;
     const exp = xml.match(/<expirationTime>(.*?)<\/expirationTime>/)![1]!;
     expect(new Date(exp).getTime()).toBeGreaterThan(new Date(gen).getTime());
   });
 
   it("uniqueId is numeric (epoch seconds)", () => {
-    const xml = buildTraXml("ws_sr_padron_a5");
+    const xml = buildTraXml("ws_sr_padron_a13");
     const id = xml.match(/<uniqueId>(\d+)<\/uniqueId>/)![1]!;
     expect(Number(id)).toBeGreaterThan(1_000_000_000);
   });
@@ -37,7 +37,7 @@ describe("buildTraXml", () => {
 describe("signTra", () => {
   it("produces a non-empty base64 string", () => {
     const { certPem, keyPem } = generateTestCertAndKey();
-    const tra = buildTraXml("ws_sr_padron_a5");
+    const tra = buildTraXml("ws_sr_padron_a13");
     const cms = signTra(tra, certPem, keyPem);
     expect(cms.length).toBeGreaterThan(100);
     // Base64 should contain only valid chars
@@ -46,7 +46,7 @@ describe("signTra", () => {
 
   it("produces different output for different TRAs", () => {
     const { certPem, keyPem } = generateTestCertAndKey();
-    const cms1 = signTra(buildTraXml("ws_sr_padron_a5"), certPem, keyPem);
+    const cms1 = signTra(buildTraXml("ws_sr_padron_a13"), certPem, keyPem);
     const cms2 = signTra(buildTraXml("ws_sr_padron_a4"), certPem, keyPem);
     expect(cms1).not.toBe(cms2);
   });
@@ -85,10 +85,10 @@ describe("parseLoginTicketResponse", () => {
 </soapenv:Envelope>`;
 
   it("extracts token, sign, and expirationTime from a real-shaped response", () => {
-    const ta = parseLoginTicketResponse(sampleResponse, "ws_sr_padron_a5");
+    const ta = parseLoginTicketResponse(sampleResponse, "ws_sr_padron_a13");
     expect(ta.token).toBe("FAKE_TOKEN_VALUE_HERE");
     expect(ta.sign).toBe("FAKE_SIGN_VALUE_HERE");
-    expect(ta.service).toBe("ws_sr_padron_a5");
+    expect(ta.service).toBe("ws_sr_padron_a13");
     expect(ta.expirationTimeMs).toBeGreaterThan(Date.now());
   });
 
@@ -111,10 +111,10 @@ describe("InMemoryTokenStore", () => {
       token: "T1",
       sign: "S1",
       expirationTimeMs: Date.now() + 3600_000,
-      service: "ws_sr_padron_a5",
+      service: "ws_sr_padron_a13",
     };
-    await store.set("ws_sr_padron_a5", ta);
-    const got = await store.get("ws_sr_padron_a5");
+    await store.set("ws_sr_padron_a13", ta);
+    const got = await store.get("ws_sr_padron_a13");
     expect(got).toEqual(ta);
   });
 

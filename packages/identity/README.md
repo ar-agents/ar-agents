@@ -120,7 +120,7 @@ class MyCustomAdapter implements AfipPadronAdapter {
 
 ## AFIP cert setup (required for `lookup_cuit_afip`)
 
-To call AFIP's padrón webservice you need an X.509 cert registered with AFIP and authorized for the `ws_sr_padron_a5` service. Steps:
+To call AFIP's padrón webservice you need an X.509 cert registered with AFIP and authorized for the `ws_sr_padron_a13` service. Steps:
 
 ```bash
 # 1. Generate keypair + CSR
@@ -131,7 +131,7 @@ openssl req -new -key afip-key.pem \
 ```
 
 2. Log into [AFIP with Clave Fiscal](https://auth.afip.gob.ar/) → "Administración de Certificados Digitales" → "Agregar Alias" → upload `afip.csr`. AFIP issues `afip.crt`; download it.
-3. In the same panel → "Administrador de Relaciones de Clave Fiscal" → "Adherir Servicio" → choose `WS_SR_PADRON_A5` (homologación for sandbox, producción for live).
+3. In the same panel → "Administrador de Relaciones de Clave Fiscal" → "Nueva Relación" → "Buscar" → AFIP → WebServices → `Servicio Consulta Padron A13` (`ws_sr_padron_a13`) → as Representante pick the alias (Computador Fiscal). AFIP deprecated `ws_sr_padron_a5`; A13 is the canonical replacement (same `getPersona_v2` SOAP shape).
 4. Implement `AfipPadronAdapter` using your favorite SOAP client (`node-soap`) + a CMS signer (`node-forge`, `pkcs7`). The full flow is: build TRA XML → sign as PKCS#7 detached CMS → POST to WSAA `LoginCms` → cache the returned TA → use TA in WSCDC `getPersona_v2` calls.
 5. Wire the adapter into your app:
 

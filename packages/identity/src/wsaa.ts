@@ -11,7 +11,7 @@ import forge from "node-forge";
  * that the integration must request from the WSAA endpoint:
  *
  *   1. Build a TRA (Ticket de Requerimiento de Acceso) XML for the target
- *      service (e.g., `ws_sr_padron_a5`).
+ *      service (e.g., `ws_sr_padron_a13`).
  *   2. Sign the TRA as a detached PKCS#7 (CMS) blob using the integration's
  *      X.509 certificate + private key. The cert must have been registered
  *      with AFIP via Clave Fiscal and authorized for the target service.
@@ -58,10 +58,25 @@ export interface AccessTicket {
 }
 
 export interface WsaaOptions {
-  /** Path to the integration's X.509 cert in PEM format. */
-  certPath: string;
-  /** Path to the matching RSA private key in PEM format. */
-  keyPath: string;
+  /**
+   * Path to the integration's X.509 cert in PEM format. Use this for local
+   * dev where the cert lives on disk. For Vercel / Lambda / serverless,
+   * prefer `certPem` (paste the PEM string into an env var directly).
+   *
+   * Mutually exclusive with `certPem`. Exactly one of the two must be set.
+   */
+  certPath?: string;
+  /** Path to the matching RSA private key in PEM format. See `certPath`. */
+  keyPath?: string;
+  /**
+   * The X.509 cert as a PEM string. Use this for filesystem-less runtimes
+   * (Vercel, Lambda, Cloudflare Workers): paste the contents of the cert
+   * into an env var, then read it here. The full string including the
+   * `-----BEGIN CERTIFICATE-----` / `-----END CERTIFICATE-----` markers.
+   */
+  certPem?: string;
+  /** The RSA private key as a PEM string. See `certPem`. */
+  keyPem?: string;
   /** "homo" for homologación / sandbox; "prod" for production. */
   env: AfipEnv;
   /** Optional: override the WSAA endpoint URL (advanced; for testing). */
@@ -69,9 +84,35 @@ export interface WsaaOptions {
 }
 
 /**
+ * Normalize cert + key inputs to PEM strings, reading from disk if needed.
+ * Throws a clear error if neither path-pair nor PEM-pair is provided.
+ *
+ * @internal
+ */
+function resolveCertAndKey(params: {
+  certPath?: string;
+  keyPath?: string;
+  certPem?: string;
+  keyPem?: string;
+}): { certPem: string; keyPem: string } {
+  const certPem =
+    params.certPem ??
+    (params.certPath ? readFileSync(params.certPath, "utf8") : null);
+  const keyPem =
+    params.keyPem ??
+    (params.keyPath ? readFileSync(params.keyPath, "utf8") : null);
+  if (!certPem || !keyPem) {
+    throw new Error(
+      "WsaaOptions requires either { certPath, keyPath } (read from disk) or { certPem, keyPem } (PEM strings inline). For Vercel / serverless, paste the PEMs into env vars and pass them as certPem/keyPem.",
+    );
+  }
+  return { certPem, keyPem };
+}
+
+/**
  * Build the TRA (Ticket de Requerimiento de Acceso) XML for a given service.
  *
- * @param service AFIP service name. For padron lookup use `ws_sr_padron_a5`.
+ * @param service AFIP service name. For padron lookup use `ws_sr_padron_a13`.
  * @param ttlSeconds Validity window the TRA requests; AFIP grants at most
  *                   ~12hrs regardless of what's requested. Default 600.
  *
@@ -95,8 +136,15 @@ export function buildTraXml(service: string, ttlSeconds = 600): string {
 }
 
 /**
- * Sign a TRA XML as a detached PKCS#7 / CMS blob. Returns the base64-encoded
+ * Sign a TRA XML as an attached PKCS#7 / CMS blob. Returns the base64-encoded
  * DER bytes ready to embed in a WSAA SOAP envelope.
+ *
+ * # Why attached, not detached
+ *
+ * AFIP WSAA verifies the signature against the eContent embedded in the CMS.
+ * If you sign as detached (eContent omitted), AFIP can't recompute the hash
+ * and rejects with `cms.sign.invalid` ("Firma inválida o algoritmo no
+ * soportado"). Always use attached signing here.
  *
  * @internal Exported only for testing.
  */
@@ -126,7 +174,8 @@ export function signTra(
       { type: oids.signingTime!, value: new Date() as unknown as string },
     ],
   });
-  p7.sign({ detached: true });
+  // Attached signing: eContent is embedded in the CMS so AFIP can verify.
+  p7.sign();
 
   const der = forge.asn1.toDer(p7.toAsn1()).getBytes();
   return forge.util.encode64(der);
@@ -203,7 +252,7 @@ export function parseLoginTicketResponse(
  * @example
  * ```ts
  * const ta = await loginCms({
- *   service: "ws_sr_padron_a5",
+ *   service: "ws_sr_padron_a13",
  *   certPath: "/path/to/afip-cert.pem",
  *   keyPath: "/path/to/afip-key.pem",
  *   env: "homo",
@@ -213,14 +262,19 @@ export function parseLoginTicketResponse(
  */
 export async function loginCms(params: {
   service: string;
-  certPath: string;
-  keyPath: string;
+  /** See WsaaOptions: certPath OR certPem (one required). */
+  certPath?: string;
+  /** See WsaaOptions: keyPath OR keyPem (one required). */
+  keyPath?: string;
+  /** See WsaaOptions: certPem (inline) OR certPath (filesystem). */
+  certPem?: string;
+  /** See WsaaOptions: keyPem (inline) OR keyPath (filesystem). */
+  keyPem?: string;
   env: AfipEnv;
   endpointOverride?: string;
   fetchImpl?: typeof fetch;
 }): Promise<AccessTicket> {
-  const certPem = readFileSync(params.certPath, "utf8");
-  const keyPem = readFileSync(params.keyPath, "utf8");
+  const { certPem, keyPem } = resolveCertAndKey(params);
 
   const tra = buildTraXml(params.service);
   const cms = signTra(tra, certPem, keyPem);
@@ -299,9 +353,11 @@ export class TokenCache {
     }
     const fresh = await loginCms({
       service,
-      certPath: this.options.certPath,
-      keyPath: this.options.keyPath,
       env: this.options.env,
+      ...(this.options.certPath !== undefined ? { certPath: this.options.certPath } : {}),
+      ...(this.options.keyPath !== undefined ? { keyPath: this.options.keyPath } : {}),
+      ...(this.options.certPem !== undefined ? { certPem: this.options.certPem } : {}),
+      ...(this.options.keyPem !== undefined ? { keyPem: this.options.keyPem } : {}),
       ...(this.options.endpointOverride !== undefined ? { endpointOverride: this.options.endpointOverride } : {}),
       ...(this.options.fetchImpl !== undefined ? { fetchImpl: this.options.fetchImpl } : {}),
     });

@@ -7,7 +7,7 @@ import {
   type TokenStore,
 } from "./wsaa";
 import {
-  getPersonaV2,
+  getPersonaA13,
   WSCDC_SERVICE_NAME,
 } from "./wscdc";
 import { normalizeCuit } from "./cuit";
@@ -29,8 +29,9 @@ import { normalizeCuit } from "./cuit";
  *    "Administración de Certificados Digitales", "Agregar Alias", upload
  *    the `.csr`. Download the `afip-cert.pem` AFIP issues.
  * 3. In "Administrador de Relaciones de Clave Fiscal", create a new relation
- *    authorizing the alias to use the `ws_sr_padron_a5` service. For
- *    homologación testing, also authorize the homo variant.
+ *    authorizing the alias to use the `ws_sr_padron_a13` service.
+ *    Note: AFIP deprecated `ws_sr_padron_a5`; A13 is the current canonical
+ *    padron service (same SOAP shape, richer response).
  * 4. Wire the adapter:
  *    ```ts
  *    import { identityTools } from "@ar-agents/identity";
@@ -60,10 +61,21 @@ import { normalizeCuit } from "./cuit";
  * - Unexpected errors → re-thrown for the caller to handle.
  */
 export interface WsaaWscdcAdapterOptions {
-  /** Absolute path to the X.509 certificate PEM (the file AFIP issued). */
-  certPath: string;
+  /**
+   * Absolute path to the X.509 certificate PEM (the file AFIP issued).
+   * Mutually exclusive with `certPem`. Use this for local dev.
+   */
+  certPath?: string;
   /** Absolute path to the matching RSA private key PEM. */
-  keyPath: string;
+  keyPath?: string;
+  /**
+   * The X.509 certificate as a PEM string. Use this for serverless runtimes
+   * (Vercel, Lambda) where there's no persistent filesystem — paste the PEM
+   * into an env var, then `certPem: process.env.AFIP_CERT_PEM`.
+   */
+  certPem?: string;
+  /** The matching RSA private key as a PEM string. See `certPem`. */
+  keyPem?: string;
   /**
    * The CUIT whose Clave Fiscal authorized the certificate. AFIP requires
    * this in every call as `cuitRepresentada`.
@@ -89,13 +101,17 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
   private readonly fetchImpl: typeof fetch | undefined;
 
   constructor(options: WsaaWscdcAdapterOptions) {
-    if (!options.certPath || !options.keyPath || !options.cuitRepresentado) {
+    const hasPaths = options.certPath && options.keyPath;
+    const hasPems = options.certPem && options.keyPem;
+    if ((!hasPaths && !hasPems) || !options.cuitRepresentado) {
       throw new AfipNotConfiguredError();
     }
     this.cache = new TokenCache({
-      certPath: options.certPath,
-      keyPath: options.keyPath,
       env: options.env,
+      ...(options.certPath !== undefined ? { certPath: options.certPath } : {}),
+      ...(options.keyPath !== undefined ? { keyPath: options.keyPath } : {}),
+      ...(options.certPem !== undefined ? { certPem: options.certPem } : {}),
+      ...(options.keyPem !== undefined ? { keyPem: options.keyPem } : {}),
       ...(options.tokenStore !== undefined ? { store: options.tokenStore } : {}),
       ...(options.wsaaEndpoint !== undefined ? { endpointOverride: options.wsaaEndpoint } : {}),
       ...(options.fetchImpl !== undefined ? { fetchImpl: options.fetchImpl } : {}),
@@ -126,14 +142,14 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
       return {
         cuit: normalized,
         available: false,
-        error: `Failed to authenticate with AFIP WSAA: ${message}. Check that AFIP_CERT_PATH + AFIP_KEY_PATH point to valid PEMs and that the cert is authorized for service ws_sr_padron_a5 in your AFIP account.`,
+        error: `Failed to authenticate with AFIP WSAA: ${message}. Check that AFIP_CERT_PATH + AFIP_KEY_PATH point to valid PEMs and that the cert is authorized for service ws_sr_padron_a13 in your AFIP account.`,
         data: null,
       };
     }
 
     let result;
     try {
-      result = await getPersonaV2({
+      result = await getPersonaA13({
         ta,
         env: this.env,
         cuitRepresentado: this.cuitRepresentado,
@@ -147,7 +163,7 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
       return {
         cuit: normalized,
         available: false,
-        error: `Failed to call AFIP WSCDC getPersona_v2: ${message}.`,
+        error: `Failed to call AFIP WSCDC getPersona (A13): ${message}.`,
         data: null,
       };
     }

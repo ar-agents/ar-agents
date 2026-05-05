@@ -27,7 +27,7 @@ export {
 } from "./wsaa";
 
 export {
-  getPersonaV2,
+  getPersonaA13,
   buildGetPersonaSoap,
   parseGetPersonaResponse,
   WSCDC_SERVICE_NAME,
