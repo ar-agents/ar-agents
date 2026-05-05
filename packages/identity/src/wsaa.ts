@@ -210,29 +210,39 @@ export function signTra(
     );
   }
 
-  const p7 = forge.pkcs7.createSignedData();
-  p7.content = forge.util.createBuffer(traXml, "utf8");
-  p7.addCertificate(cert);
-  // node-forge oid lookups are typed as `string | undefined` under
-  // noUncheckedIndexedAccess, but at runtime they're always defined for these
-  // canonical OIDs. Cast to satisfy TS.
-  const oids = forge.pki.oids as Record<string, string>;
-  p7.addSigner({
-    key: privateKey,
-    certificate: cert,
-    digestAlgorithm: oids.sha256!,
-    authenticatedAttributes: [
-      { type: oids.contentType!, value: oids.data! },
-      { type: oids.messageDigest! },
-      // signingTime accepts a Date at runtime; the d.ts is stale.
-      { type: oids.signingTime!, value: new Date() as unknown as string },
-    ],
-  });
-  // Attached signing: eContent is embedded in the CMS so AFIP can verify.
-  p7.sign();
+  try {
+    const p7 = forge.pkcs7.createSignedData();
+    p7.content = forge.util.createBuffer(traXml, "utf8");
+    p7.addCertificate(cert);
+    // node-forge oid lookups are typed as `string | undefined` under
+    // noUncheckedIndexedAccess, but at runtime they're always defined for these
+    // canonical OIDs. Cast to satisfy TS.
+    const oids = forge.pki.oids as Record<string, string | undefined>;
+    if (!oids.sha256 || !oids.contentType || !oids.data || !oids.messageDigest || !oids.signingTime) {
+      throw new Error(
+        `forge.pki.oids missing required entries: sha256=${!!oids.sha256}, contentType=${!!oids.contentType}, data=${!!oids.data}, messageDigest=${!!oids.messageDigest}, signingTime=${!!oids.signingTime}. This usually means node-forge was tree-shaken aggressively by the bundler.`,
+      );
+    }
+    p7.addSigner({
+      key: privateKey,
+      certificate: cert,
+      digestAlgorithm: oids.sha256,
+      authenticatedAttributes: [
+        { type: oids.contentType, value: oids.data },
+        { type: oids.messageDigest },
+        // signingTime accepts a Date at runtime; the d.ts is stale.
+        { type: oids.signingTime, value: new Date() as unknown as string },
+      ],
+    });
+    // Attached signing: eContent is embedded in the CMS so AFIP can verify.
+    p7.sign();
 
-  const der = forge.asn1.toDer(p7.toAsn1()).getBytes();
-  return forge.util.encode64(der);
+    const der = forge.asn1.toDer(p7.toAsn1()).getBytes();
+    return forge.util.encode64(der);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(`signTra (forge PKCS#7 signing) failed: ${msg}`);
+  }
 }
 
 /**
