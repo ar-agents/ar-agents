@@ -191,8 +191,24 @@ export function signTra(
   certPem: string,
   keyPem: string,
 ): string {
-  const cert = forge.pki.certificateFromPem(certPem);
-  const privateKey = forge.pki.privateKeyFromPem(keyPem);
+  let cert: forge.pki.Certificate;
+  try {
+    cert = forge.pki.certificateFromPem(certPem);
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Failed to parse certificate PEM (length=${certPem.length}, has\\n=${certPem.includes("\n")}, startsWith=${JSON.stringify(certPem.slice(0, 30))}): ${msg}`,
+    );
+  }
+  let privateKey: forge.pki.rsa.PrivateKey;
+  try {
+    privateKey = forge.pki.privateKeyFromPem(keyPem) as forge.pki.rsa.PrivateKey;
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err);
+    throw new Error(
+      `Failed to parse private key PEM (length=${keyPem.length}, has\\n=${keyPem.includes("\n")}, startsWith=${JSON.stringify(keyPem.slice(0, 30))}): ${msg}`,
+    );
+  }
 
   const p7 = forge.pkcs7.createSignedData();
   p7.content = forge.util.createBuffer(traXml, "utf8");
