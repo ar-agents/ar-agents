@@ -1,0 +1,101 @@
+{
+  "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
+  "package": "@ar-agents/identity-attest",
+  "version": "0.1.0",
+  "factory": "identityAttestTools",
+  "tools": [
+    {
+      "name": "list_verification_methods",
+      "summary": "List the verification methods registered with the AttestationClient (with trust levels).",
+      "purity": "pure",
+      "sideEffects": [],
+      "input": {},
+      "output": {
+        "count": "number",
+        "methods": "array of {id, trust_level, description}"
+      },
+      "whenToUse": ["Before kicking off a verification — pick the method by trust requirement"]
+    },
+    {
+      "name": "request_identity_verification",
+      "summary": "Start a verification flow. Adapter delivers challenge to user (OTP or magic link). Returns request_id + verification_url (for magic-link) + next_step instructions.",
+      "purity": "io",
+      "sideEffects": [
+        "Generates secret (OTP or token), persists request",
+        "Delivers challenge via adapter (sends WhatsApp / email / etc.)"
+      ],
+      "constraints": {
+        "envVars": ["ATTEST_SIGNING_SECRET (HMAC secret)"],
+        "externalIO": ["Adapter-specific: WhatsApp API, email provider, etc."],
+        "latencyMs": "300-2000 (adapter delivery)"
+      },
+      "input": {
+        "method": "string (e.g. whatsapp_otp, email_magic_link)",
+        "subject_type": "phone | email | oauth | dni | cuit | custom",
+        "subject_value": "string",
+        "external_reference": "string?"
+      },
+      "output": {
+        "request_id": "uuid",
+        "method": "string",
+        "trust_level": "number 0..1",
+        "status": "pending",
+        "expires_at": "ISO date (default 15min from now)",
+        "verification_url": "URL | null (only for magic-link adapters)",
+        "next_step": "string (instructions to surface to the user verbatim)"
+      },
+      "whenToUse": [
+        "Sensitive action requires identity proof (e.g., charge > $20k)",
+        "Cold-start: need to verify a new user's phone or email"
+      ],
+      "whenNotToUse": [
+        "User already has a recent valid attestation — check first via findLatestAttestationForSubject (programmatic, not exposed as tool yet)"
+      ]
+    },
+    {
+      "name": "submit_otp_code",
+      "summary": "Submit the OTP code the user dictated back. Returns the signed Attestation if correct.",
+      "purity": "io",
+      "sideEffects": ["Issues + persists Attestation on success", "Decrements attempts on failure"],
+      "input": { "request_id": "string", "code": "string (extract just the digits)" },
+      "output": {
+        "verified": "true",
+        "request_id": "string",
+        "trust_level": "number",
+        "subject": "{type, value}",
+        "verified_at": "ISO date",
+        "expires_at": "ISO date",
+        "message": "string"
+      },
+      "errorPatterns": [
+        { "shape": "InvalidOtpCodeError", "meaning": "Wrong code, attempts remaining > 0", "recovery": "Tell user attempts remaining; ask for code again" },
+        { "shape": "TooManyAttemptsError", "meaning": "3 strikes, request now in 'failed' state", "recovery": "Call request_identity_verification again to restart" },
+        { "shape": "VerificationExpiredError", "meaning": "TTL elapsed", "recovery": "Restart flow" }
+      ]
+    },
+    {
+      "name": "check_verification_status",
+      "summary": "Check whether a verification is pending / verified / expired / failed. Used to poll magic-link flows.",
+      "purity": "io",
+      "sideEffects": ["Auto-expires past TTL"],
+      "input": { "request_id": "string" },
+      "output": {
+        "request_id": "string",
+        "status": "pending | verified | failed | expired | cancelled",
+        "method": "string",
+        "subject": "{type, value}",
+        "trust_level": "number",
+        "expires_at": "ISO date",
+        "attestation": "object | null (set when status=verified)"
+      }
+    },
+    {
+      "name": "get_attestation",
+      "summary": "Fetch the signed attestation for a completed verification. Returns null if not yet verified.",
+      "purity": "io",
+      "sideEffects": [],
+      "input": { "request_id": "string" },
+      "output": "Full Attestation object (with signature) or {found: false}"
+    }
+  ]
+}
