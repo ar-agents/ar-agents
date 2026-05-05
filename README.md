@@ -22,9 +22,10 @@ and clean APIs.
 
 ## Apps
 
-| App                         | Purpose                                              |
-| --------------------------- | ---------------------------------------------------- |
-| [`apps/mp-hello`](./apps/mp-hello) | Reference app: Vercel AI SDK + `@ar-agents/mercadopago` end-to-end demo |
+| App                                  | Purpose                                                                         |
+| ------------------------------------ | ------------------------------------------------------------------------------- |
+| [`apps/mp-hello`](./apps/mp-hello)   | Reference app: Vercel AI SDK + `@ar-agents/mercadopago` end-to-end demo (3013) |
+| [`apps/cuit-hello`](./apps/cuit-hello) | Reference app: CUIT/CUIL validation as agent tools (3014)                      |
 
 ## Develop
 
