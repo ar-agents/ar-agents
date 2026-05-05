@@ -12,16 +12,38 @@ const PACKAGES = [
     accent: "#d97706",
   },
   {
-    name: "@ar-agents/mercadopago",
+    name: "@ar-agents/identity-attest",
     version: "0.1.0",
     purpose:
-      "Mercado Pago Subscriptions API — create/get/update/pause/cancel + webhook parser + pluggable state adapters.",
+      "RENAPER workaround pattern. Agent orchestrates verification (WhatsApp OTP, email magic-link, planned: Auth0 / MercadoPago Identity / SID gov), gets back a signed Attestation with a trust level (0..1). The pattern that didn't exist anywhere.",
     tools: [
+      "list_verification_methods",
+      "request_identity_verification",
+      "submit_otp_code",
+      "check_verification_status",
+      "get_attestation",
+    ],
+    npm: "https://www.npmjs.com/package/@ar-agents/identity-attest",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity-attest",
+    demo: null,
+    bg: "#fce7f3",
+    accent: "#be185d",
+  },
+  {
+    name: "@ar-agents/mercadopago",
+    version: "0.2.0",
+    purpose:
+      "Mercado Pago full agent toolkit: Payments + Checkout Pro + Customers + Cards + Refunds + Cuotas calculator + Subscriptions + Webhooks. The Stripe Agent Toolkit equivalent for MP.",
+    tools: [
+      "create_payment_preference",
+      "create_payment",
+      "search_payments",
+      "refund_payment",
+      "calculate_installments",
+      "create_customer",
+      "list_customer_cards",
       "create_subscription",
-      "get_subscription",
-      "update_subscription",
-      "pause_subscription",
-      "cancel_subscription",
+      "+ 13 more (21 total)",
     ],
     npm: "https://www.npmjs.com/package/@ar-agents/mercadopago",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago",
@@ -74,7 +96,7 @@ export default function Home() {
               fontFamily: "var(--font-geist-mono), monospace",
             }}
           >
-            ar-agents · v0.4
+            ar-agents · 4 packages live
           </p>
           <h1
             style={{
@@ -147,21 +169,29 @@ export default function Home() {
               fontFamily: "var(--font-geist-mono), monospace",
               margin: 0,
             }}
-          >{`pnpm add @ar-agents/identity @ar-agents/mercadopago @ar-agents/whatsapp ai zod
+          >{`pnpm add @ar-agents/identity @ar-agents/identity-attest @ar-agents/mercadopago @ar-agents/whatsapp ai zod
 
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
 import { identityTools } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
+import { AttestationClient, identityAttestTools, WhatsAppOtpAdapter } from "@ar-agents/identity-attest";
 import { mercadoPagoTools, MercadoPagoClient, InMemoryStateAdapter } from "@ar-agents/mercadopago";
 import { whatsappTools, WhatsAppClient } from "@ar-agents/whatsapp";
 
+const wa = new WhatsAppClient({...});
+const attestation = new AttestationClient({
+  signingSecret: process.env.ATTEST_SIGNING_SECRET!,
+  adapters: { whatsapp_otp: new WhatsAppOtpAdapter({ whatsappClient: wa }) },
+});
+
 const agent = new Agent({
   model: "anthropic/claude-sonnet-4-6",
-  instructions: "Sos el asistente de billing por WhatsApp...",
+  instructions: "Sos el asistente de billing. Para cobros > $20k requerís trust >= 0.5...",
   tools: {
     ...identityTools({ afip: new WsaaWscdcAfipPadronAdapter({...}) }),
+    ...identityAttestTools(attestation),
     ...mercadoPagoTools(new MercadoPagoClient({...}), { state: new InMemoryStateAdapter(), backUrl: "..." }),
-    ...whatsappTools(new WhatsAppClient({...})),
+    ...whatsappTools(wa),
   },
   stopWhen: stepCountIs(10),
 });`}</pre>
@@ -336,6 +366,12 @@ const agent = new Agent({
               color: "#52525b",
             }}
           >
+            <li>
+              <strong>@ar-agents/mcp</strong> — wrapper que expone todos los packages como MCP server (para Cursor / Claude Desktop)
+            </li>
+            <li>
+              <strong>@ar-agents/identity-attest v0.2</strong> — Auth0 + Cognito + MercadoPago Identity adapters
+            </li>
             <li>
               <strong>@ar-agents/facturacion</strong> — AFIP factura electrónica (WSFE)
             </li>
