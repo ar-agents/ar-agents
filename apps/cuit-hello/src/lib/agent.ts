@@ -32,11 +32,16 @@ Reglas:
  * message instead of crashing).
  */
 function buildAfipAdapter(): AfipPadronAdapter | undefined {
-  const cuit = process.env.AFIP_CUIT_REPRESENTADO;
+  // Trim env vars defensively — Vercel CLI's `echo X | vercel env add`
+  // pipes the value WITH a trailing newline, which silently breaks
+  // string-keyed lookups like WSAA_URLS[env].
+  const cuit = process.env.AFIP_CUIT_REPRESENTADO?.trim();
   if (!cuit) return undefined;
-  const env = (process.env.AFIP_ENV ?? "prod") as "homo" | "prod";
+  const env = (process.env.AFIP_ENV?.trim() ?? "prod") as "homo" | "prod";
 
-  // Inline PEMs (Vercel-friendly) take precedence over file paths.
+  // Inline PEMs (Vercel-friendly) take precedence over file paths. The lib
+  // re-normalizes PEMs internally (handles \\n escaping, single-line paste),
+  // but trim here too for symmetry.
   const certPem = process.env.AFIP_CERT_PEM;
   const keyPem = process.env.AFIP_KEY_PEM;
   if (certPem && keyPem) {
@@ -48,8 +53,8 @@ function buildAfipAdapter(): AfipPadronAdapter | undefined {
     });
   }
 
-  const certPath = process.env.AFIP_CERT_PATH;
-  const keyPath = process.env.AFIP_KEY_PATH;
+  const certPath = process.env.AFIP_CERT_PATH?.trim();
+  const keyPath = process.env.AFIP_KEY_PATH?.trim();
   if (certPath && keyPath) {
     return new WsaaWscdcAfipPadronAdapter({
       certPath,
