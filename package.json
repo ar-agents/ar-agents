@@ -1,0 +1,20 @@
+{
+  "name": "ar-agents",
+  "version": "0.0.0",
+  "private": true,
+  "description": "AR Tools for Vercel AI SDK — Argentine integrations as agent tools",
+  "scripts": {
+    "build": "pnpm -r --filter './packages/*' run build",
+    "test": "pnpm -r --filter './packages/*' run test",
+    "lint": "pnpm -r run lint",
+    "typecheck": "pnpm -r run typecheck",
+    "dev": "pnpm --filter mp-hello dev"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  },
+  "packageManager": "pnpm@10.32.1",
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

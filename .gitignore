@@ -1,0 +1,43 @@
+# Dependencies
+node_modules/
+.pnp
+.pnp.*
+
+# Build output
+dist/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Env (gitignored, .env.local.example is committed)
+.env*
+!.env*.example
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Vercel
+.vercel
+
+# Test
+coverage/
+.nyc_output/
+
+# Cache
+.cache/
+.turbo/

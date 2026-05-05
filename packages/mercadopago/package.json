@@ -1,0 +1,66 @@
+{
+  "name": "@ar-agents/mercadopago",
+  "version": "0.1.0",
+  "description": "Mercado Pago Subscriptions as drop-in tools for the Vercel AI SDK. Argentine-focused, agent-ready.",
+  "keywords": [
+    "mercadopago",
+    "ai-sdk",
+    "vercel-ai",
+    "agent",
+    "argentina",
+    "subscriptions",
+    "agentic"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "homepage": "https://github.com/naza00000/ar-agents/tree/main/packages/mercadopago",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/naza00000/ar-agents.git",
+    "directory": "packages/mercadopago"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/index.d.ts",
+      "import": "./dist/index.js",
+      "require": "./dist/index.cjs"
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured yet'",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "ai": "^6.0.175",
+    "msw": "^2.6.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public"
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
