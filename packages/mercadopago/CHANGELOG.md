@@ -1,5 +1,27 @@
 # Changelog
 
+## 0.10.0
+
+### Minor Changes — Compliance + DX + observability deepening
+
+**Audit logging system (NEW)**: `AuditLogger` + `AuditLogAdapter` + `InMemoryAuditLog`. Captures every state-mutating tool call (operation, actor, tenantId, inputHash, outcome, errorCode, resourceId, idempotencyKey, durationMs). PII-conscious by default (`redact: true` hashes input, `redact: false` logs raw). Pluggable storage — InMemory shipped, plug your own Postgres/S3/SIEM.
+
+**Webhook idempotency dedup (NEW)**: `WebhookDedup` class short-circuits duplicate MP webhook deliveries. MP retries on 5xx over an 8-day window — without dedup your handler processes the same event 5+ times. TTL default 7 days. Two modes: mark-on-first-sight and at-least-once.
+
+**Pagination helpers (NEW)**: `paginate()` generic + 7 typed wrappers (payments, subscriptions, account movements, settlements, merchant orders, plans, subscription payments). AsyncIterable streaming, bounded concurrency, `maxItems` cap.
+
+**Token bucket rate limiting (NEW)**: `TokenBucketRateLimiter` — proactive client-side limiter with **adaptive learning** from MP's `x-rate-limit-remaining` headers.
+
+**AR issuer cuotas catalog (NEW)**: `AR_ISSUER_PROMOS` + `AHORA_PROGRAM_PROMOS` — embedded knowledge of AR bank promos. 14 issuer promos (Naranja, Galicia, Santander, Macro, BBVA, ICBC, Patagonia, Nación, Provincia, Ciudad). New `find_applicable_promos` tool.
+
+**OpenTelemetry instrumentation subpath (NEW)**: `@ar-agents/mercadopago/otel` exports `createOtelHooks({ serviceName })`. Auto-emits spans + histograms + counters + gauges. `@opentelemetry/api` is OPTIONAL peer dep — graceful no-op fallback.
+
+**3DS challenge resolution (NEW)**: `confirmChallengeAndPoll()` polls after the buyer completes the issuer challenge. New `confirm_3ds_challenge` tool — completes the FULL 3DS flow.
+
+**New tools**: `find_applicable_promos`, `confirm_3ds_challenge`, `search_payments_all`, `list_settlements_all`. Tool count: **86** (was 82).
+
+**Quality**: 245 tests pass (was 222). publint clean, attw 🟢 across 3 subpaths (`.`, `/vercel-kv`, `/otel`). Optional peer deps: `@vercel/kv`, `@opentelemetry/api`.
+
 ## 0.9.0
 
 ### Minor Changes — Production hardening: circuit breaker, deadline propagation, property-based tests, real MP sandbox integration tests, benchmarks

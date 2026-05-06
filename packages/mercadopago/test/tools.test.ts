@@ -16,7 +16,7 @@ function buildSetup() {
 }
 
 describe("mercadoPagoTools", () => {
-  it("exposes the full v0.9 tool surface (82 tools)", () => {
+  it("exposes the full v0.10 tool surface (86 tools)", () => {
     const { tools } = buildSetup();
     expect(Object.keys(tools).sort()).toEqual([
       "analyze_payment_3ds",
@@ -30,6 +30,7 @@ describe("mercadoPagoTools", () => {
       "capture_payment",
       "charge_saved_card",
       "compute_marketplace_fee",
+      "confirm_3ds_challenge",
       "create_customer",
       "create_customer_card",
       "create_order",
@@ -47,6 +48,7 @@ describe("mercadoPagoTools", () => {
       "delete_store",
       "delete_webhook",
       "explain_payment_status",
+      "find_applicable_promos",
       "find_customer_by_email",
       "get_account_balance",
       "get_account_info",
@@ -77,6 +79,7 @@ describe("mercadoPagoTools", () => {
       "list_pos",
       "list_refunds",
       "list_settlements",
+      "list_settlements_all",
       "list_stores",
       "list_subscription_payments",
       "list_subscription_plans",
@@ -91,6 +94,7 @@ describe("mercadoPagoTools", () => {
       "resume_subscription",
       "search_merchant_orders",
       "search_payments",
+      "search_payments_all",
       "search_subscriptions",
       "subscribe_to_plan",
       "update_customer",

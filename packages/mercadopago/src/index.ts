@@ -49,7 +49,7 @@ export {
 } from "./test-cards";
 
 // v0.6 — 3DS analyzer (pure helper)
-export { analyze3DS } from "./three-ds";
+export { analyze3DS, confirmChallengeAndPoll } from "./three-ds";
 
 // v0.9 — Circuit breaker
 export {
@@ -58,6 +58,47 @@ export {
   type CircuitBreakerOptions,
   type CircuitState,
 } from "./circuit-breaker";
+
+// v0.10 — Audit logging
+export {
+  AuditLogger,
+  InMemoryAuditLog,
+  type AuditEntry,
+  type AuditLogAdapter,
+  type AuditOperation,
+} from "./audit";
+
+// v0.10 — Webhook idempotency dedup
+export { WebhookDedup, type WebhookDedupOptions, type DedupResult } from "./webhook-dedup";
+
+// v0.10 — Pagination helpers
+export {
+  paginate,
+  collect,
+  paginatePayments,
+  paginateSubscriptions,
+  paginateAccountMovements,
+  paginateSettlements,
+  paginateMerchantOrders,
+  paginateSubscriptionPlans,
+  paginateSubscriptionPayments,
+  type PaginateOptions,
+} from "./pagination";
+
+// v0.10 — Token bucket rate limiting (proactive)
+export {
+  TokenBucketRateLimiter,
+  RateLimitTimeoutError,
+  type RateLimiterOptions,
+} from "./rate-limiter";
+
+// v0.10 — AR issuer cuotas catalog (pure)
+export {
+  AHORA_PROGRAM_PROMOS,
+  AR_ISSUER_PROMOS,
+  findApplicablePromos,
+  type CuotasPromo,
+} from "./ar-issuer-promos";
 
 // v0.7 — Pure helpers
 export {

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.4
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.10.0` — compliance + DX + observability:
+  - **Audit logging** with pluggable adapter
+  - **Webhook idempotency dedup** to prevent double-processing
+  - **Pagination helpers** (AsyncIterable) for 7 paginated endpoints
+  - **Token bucket rate limiter** with adaptive learning
+  - **AR issuer cuotas catalog** (10+ AR banks + federal Ahora program)
+  - **OpenTelemetry instrumentation** via `/otel` subpath
+  - **3DS challenge resolution** via `confirmChallengeAndPoll`
+  - **+4 tools** → 86 total. **245 tests pass**.
+
 ## 0.4.3
 
 ### Patch Changes

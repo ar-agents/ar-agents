@@ -7,10 +7,12 @@ import {
   exchangeCodeForToken,
   refreshAccessToken,
 } from "./oauth";
+import { findApplicablePromos } from "./ar-issuer-promos";
 import { computeMarketplaceFee, explainPaymentStatus } from "./helpers";
+import { collect, paginatePayments, paginateSettlements } from "./pagination";
 import type { SubscriptionStateAdapter } from "./state";
 import { TEST_CARDS_AR } from "./test-cards";
-import { analyze3DS } from "./three-ds";
+import { analyze3DS, confirmChallengeAndPoll } from "./three-ds";
 import { parseWebhookEvent, verifyWebhookSignature } from "./webhook";
 
 /**
@@ -68,6 +70,24 @@ export interface MercadoPagoToolsOptions {
     clientId: string;
     clientSecret: string;
   };
+  /**
+   * v0.10 — Audit logger. When passed, every state-mutating tool call
+   * automatically emits an audit entry with operation/actor/inputHash/
+   * resourceId/outcome/duration. Read-only tools (get/search/list) skip
+   * audit logging.
+   */
+  audit?: import("./audit").AuditLogger;
+  /**
+   * v0.10 — Logical actor for audit entries (e.g., "agent:billing-bot",
+   * "user:42"). Defaults to the AuditLogger's defaultActor.
+   */
+  auditActor?: string;
+  /**
+   * v0.10 — Webhook deduplication for handle_webhook tool. Caches
+   * processed (topic, dataId, requestId) tuples to short-circuit MP's
+   * retries (which fire on 5xx and can deliver the same event 5+ times).
+   */
+  webhookDedup?: import("./webhook-dedup").WebhookDedup;
 }
 
 type ToolName =
@@ -182,7 +202,14 @@ type ToolName =
   | "compute_marketplace_fee"
   | "explain_payment_status"
   // v0.9 — Health check + observability
-  | "mp_health_check";
+  | "mp_health_check"
+  // v0.10 — AR issuer cuotas promos (pure helper)
+  | "find_applicable_promos"
+  // v0.10 — 3DS challenge resolution (combined poll-and-resolve)
+  | "confirm_3ds_challenge"
+  // v0.10 — Auto-paginate variants (collect-all)
+  | "search_payments_all"
+  | "list_settlements_all";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -408,6 +435,20 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── v0.9 — Health check + observability ──────────────────────────────────
   mp_health_check:
     "Liveness probe against MP. Returns { ok, latencyMs, userId, circuit }. USE THIS as the first call in long-running agent workflows to verify (a) network path to MP is up, (b) accessToken is valid, (c) MP is responding. Circuit-breaker state included when configured — surface to ops dashboards. Returns ok=false instead of throwing — safe to call in monitoring loops without try/catch.",
+
+  // ── v0.10 — AR issuer cuotas promos (pure) ───────────────────────────────
+  find_applicable_promos:
+    "PURE HELPER (no network, sub-ms) — returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30 program AND issuer-specific deals (Naranja con Galicia los jueves, Santander Amex en supermercados los martes, etc.). USE THIS BEFORE checkout to surface 'pagá en 12 cuotas sin interés con tu Galicia' hints to the buyer — drives conversion. Returns an array of CuotasPromo objects; the `description` field is in Spanish and ALWAYS surface verbatim. Catalog updated quarterly.",
+
+  // ── v0.10 — 3DS challenge resolution ────────────────────────────────────
+  confirm_3ds_challenge:
+    "After the buyer completes a 3DS challenge (redirected back from challengeUrl), call this to poll MP and confirm whether the payment is now resolved. Polls get_payment up to N times with exponential backoff. Returns { payment, threeDs, resolved, attempts }. USE THIS as the FINAL step in the 3DS flow (after analyze_payment_3ds detected a challenge_required). Without confirming, the payment stays in 'pending' indefinitely from the buyer's perspective.",
+
+  // ── v0.10 — Auto-paginate variants ──────────────────────────────────────
+  search_payments_all:
+    "Collect ALL payments matching a filter — auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to cap; without it, MP traversal is bounded by the toolkit's internal max (10,000 items) to prevent runaway iterations. USE WHEN the agent needs to enumerate everything (e.g., monthly reconciliation 'all approved payments in March'). For agent flows that only need 'first N matches', pass `max_items` directly.",
+  list_settlements_all:
+    "Collect ALL settlements matching a filter — auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports.",
 };
 
 /**
@@ -2442,6 +2483,116 @@ export function mercadoPagoTools(
           payment_status_detail: p.status_detail ?? null,
           ...explanation,
         };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────
+    // v0.10 — AR issuer promos (pure)
+    // ─────────────────────────────────────────────────────────────────────
+
+    find_applicable_promos: tool({
+      description: desc("find_applicable_promos"),
+      inputSchema: z.object({
+        issuer: z.string().optional().describe("Issuer name (e.g. 'Banco Galicia')"),
+        payment_method_id: z.string().optional().describe("e.g. 'visa', 'master', 'naranja'"),
+        amount_ars: z.number().positive().optional(),
+        category: z
+          .enum([
+            "electronics",
+            "appliances",
+            "clothing",
+            "supermarket",
+            "travel",
+            "education",
+            "health",
+            "general",
+          ])
+          .optional(),
+        date: z.string().datetime().optional(),
+        include_ahora_program: z.boolean().optional(),
+      }),
+      execute: async (input) => {
+        const args: Parameters<typeof findApplicablePromos>[0] = {};
+        if (input.issuer !== undefined) args.issuer = input.issuer;
+        if (input.payment_method_id !== undefined) args.paymentMethodId = input.payment_method_id;
+        if (input.amount_ars !== undefined) args.amountArs = input.amount_ars;
+        if (input.category !== undefined) args.category = input.category;
+        if (input.date !== undefined) args.date = new Date(input.date);
+        if (input.include_ahora_program !== undefined) args.includeAhoraProgram = input.include_ahora_program;
+        const promos = findApplicablePromos(args);
+        return { ok: true, count: promos.length, promos };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────
+    // v0.10 — 3DS challenge resolution (poll-and-confirm)
+    // ─────────────────────────────────────────────────────────────────────
+
+    confirm_3ds_challenge: tool({
+      description: desc("confirm_3ds_challenge"),
+      inputSchema: z.object({
+        payment_id: z.string(),
+        max_attempts: z.number().int().positive().max(20).optional(),
+        poll_interval_ms: z.number().int().positive().max(10_000).optional(),
+      }),
+      execute: async ({ payment_id, max_attempts, poll_interval_ms }) => {
+        const args: Parameters<typeof confirmChallengeAndPoll>[2] = {};
+        if (max_attempts !== undefined) args.maxAttempts = max_attempts;
+        if (poll_interval_ms !== undefined) args.pollIntervalMs = poll_interval_ms;
+        return confirmChallengeAndPoll(client, payment_id, args);
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────
+    // v0.10 — Auto-paginate variants (collect-all)
+    // ─────────────────────────────────────────────────────────────────────
+
+    search_payments_all: tool({
+      description: desc("search_payments_all"),
+      inputSchema: z.object({
+        status: z.string().optional(),
+        external_reference: z.string().optional(),
+        from: z.string().optional(),
+        to: z.string().optional(),
+        max_items: z
+          .number()
+          .int()
+          .positive()
+          .max(10_000)
+          .optional()
+          .describe("Cap on total items returned (default 10,000 hard limit)."),
+      }),
+      execute: async ({ max_items, ...filter }) => {
+        const filterClean: Record<string, string> = {};
+        for (const [k, v] of Object.entries(filter)) {
+          if (v !== undefined) filterClean[k] = v;
+        }
+        const opts: { maxItems?: number } = {};
+        if (max_items !== undefined) opts.maxItems = max_items;
+        else opts.maxItems = 10_000; // hard cap to prevent runaway
+        const all = await collect(paginatePayments(client, filterClean as never, opts));
+        return { ok: true, count: all.length, payments: all };
+      },
+    }),
+
+    list_settlements_all: tool({
+      description: desc("list_settlements_all"),
+      inputSchema: z.object({
+        from: z.string().optional(),
+        to: z.string().optional(),
+        status: z.string().optional(),
+        max_items: z.number().int().positive().max(10_000).optional(),
+      }),
+      execute: async ({ max_items, ...filter }) => {
+        const filterClean: { from?: string; to?: string; status?: string } = {};
+        if (filter.from !== undefined) filterClean.from = filter.from;
+        if (filter.to !== undefined) filterClean.to = filter.to;
+        if (filter.status !== undefined) filterClean.status = filter.status;
+        const opts: { maxItems?: number } = {};
+        if (max_items !== undefined) opts.maxItems = max_items;
+        else opts.maxItems = 10_000;
+        const all = await collect(paginateSettlements(client, filterClean, opts));
+        return { ok: true, count: all.length, settlements: all };
       },
     }),
   } satisfies ToolSet;

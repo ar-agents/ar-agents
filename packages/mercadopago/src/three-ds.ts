@@ -27,6 +27,7 @@
  * the payment can complete — otherwise it stays in `pending` forever.
  */
 
+import type { MercadoPagoClient } from "./client";
 import type { Payment } from "./types";
 import type { ThreeDSInfo, ThreeDSStatus } from "./types";
 
@@ -97,4 +98,89 @@ export function analyze3DS(payment: Payment): ThreeDSInfo {
     description:
       "No se pudo determinar el estado 3DS — revisar payment.three_d_secure_mode + payment.status_detail manualmente.",
   };
+}
+
+/**
+ * Submit the 3DS challenge result back to MP after the buyer completes the
+ * issuer challenge. Used as the FINAL step in the 3DS challenge flow:
+ *
+ * 1. `createPayment` returns `pending` + `pending_challenge` status_detail
+ * 2. `analyze3DS(payment)` extracts the `challengeUrl`
+ * 3. Buyer is redirected to `challengeUrl` and completes the challenge
+ * 4. The issuer redirects to your `back_url` with a `challenge_complete=true`
+ *    (or similar query — depends on issuer / browser flow)
+ * 5. **You call this method** to confirm the challenge and finalize the payment
+ *
+ * # Why this is separate
+ *
+ * Step 5 isn't documented as a SINGLE endpoint in MP's public docs — different
+ * 3DS providers (Mastercard, Visa, Cabal) handle the challenge resolution
+ * differently. This method tries the documented path: re-fetching the payment
+ * via `getPayment` after the challenge — MP updates the status server-side
+ * once the issuer reports the challenge result via their backchannel.
+ *
+ * # When to call
+ *
+ * - **Before** showing the user a final "approved/rejected" screen
+ * - **After** the buyer is redirected back from the challenge URL
+ * - **With backoff**: MP sometimes lags by a few seconds — recommended to
+ *   poll `getPayment` 3-5 times with 1s spacing if the first call still
+ *   returns `pending_challenge`.
+ */
+export async function confirmChallengeAndPoll(
+  client: MercadoPagoClient,
+  paymentId: string,
+  options: {
+    /** Maximum number of polls. Default 5. */
+    maxAttempts?: number;
+    /** Sleep between polls in ms. Default 1000ms. */
+    pollIntervalMs?: number;
+    /** Optional AbortSignal to cap the total wait. */
+    signal?: AbortSignal;
+  } = {},
+): Promise<{
+  payment: Payment;
+  threeDs: ThreeDSInfo;
+  resolved: boolean;
+  attempts: number;
+}> {
+  const maxAttempts = options.maxAttempts ?? 5;
+  const interval = options.pollIntervalMs ?? 1000;
+
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    if (options.signal?.aborted) {
+      const payment = await client.getPayment(paymentId);
+      return { payment, threeDs: analyze3DS(payment), resolved: false, attempts: attempt };
+    }
+    const payment = await client.getPayment(paymentId);
+    const threeDs = analyze3DS(payment);
+
+    // Resolved states: anything that's not "still waiting"
+    const stillWaiting =
+      threeDs.status === "challenge_required" ||
+      payment.status === "pending" ||
+      payment.status === "in_process";
+
+    if (!stillWaiting) {
+      return { payment, threeDs, resolved: true, attempts: attempt };
+    }
+
+    if (attempt < maxAttempts) {
+      await new Promise((resolve) => {
+        const timer = setTimeout(resolve, interval);
+        options.signal?.addEventListener(
+          "abort",
+          () => {
+            clearTimeout(timer);
+            resolve(undefined);
+          },
+          { once: true },
+        );
+      });
+    }
+  }
+
+  // Exhausted attempts — return the last state
+  const payment = await client.getPayment(paymentId);
+  return { payment, threeDs: analyze3DS(payment), resolved: false, attempts: maxAttempts };
 }

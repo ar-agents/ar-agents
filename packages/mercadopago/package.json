@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/mercadopago",
-  "version": "0.9.0",
+  "version": "0.10.0",
   "description": "The most complete Mercado Pago agent toolkit for Vercel AI SDK 6+. 82 tools, Edge Runtime, Vercel KV adapters, circuit breaker + deadline propagation + W3C trace context, HMAC webhook verify with replay protection, OAuth Marketplace, Order Management, Point Devices, marketplace splits, status_detail explainer in Spanish, AR-specific knowledge baked in. Property-tested + integration-tested vs MP sandbox + benchmarked.",
   "keywords": [
     "mercadopago",
@@ -30,6 +30,9 @@
     "*": {
       "vercel-kv": [
         "./dist/vercel-kv.d.ts"
+      ],
+      "otel": [
+        "./dist/otel.d.ts"
       ]
     }
   },
@@ -52,6 +55,16 @@
       "require": {
         "types": "./dist/vercel-kv.d.cts",
         "default": "./dist/vercel-kv.cjs"
+      }
+    },
+    "./otel": {
+      "import": {
+        "types": "./dist/otel.d.ts",
+        "default": "./dist/otel.js"
+      },
+      "require": {
+        "types": "./dist/otel.d.cts",
+        "default": "./dist/otel.cjs"
       }
     }
   },
@@ -98,17 +111,22 @@
     }
   ],
   "peerDependencies": {
+    "@opentelemetry/api": ">=1.0.0",
     "@vercel/kv": ">=2.0.0",
     "ai": ">=6.0.0",
     "zod": ">=3.0.0"
   },
   "peerDependenciesMeta": {
+    "@opentelemetry/api": {
+      "optional": true
+    },
     "@vercel/kv": {
       "optional": true
     }
   },
   "devDependencies": {
     "@fast-check/vitest": "^0.4.1",
+    "@opentelemetry/api": "^1.9.1",
     "@types/node": "^20.19.39",
     "@types/qrcode": "^1.5.6",
     "@vercel/kv": "^3.0.0",
