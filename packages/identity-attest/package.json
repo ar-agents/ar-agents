@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/identity-attest",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Identity attestation pattern for AI agents — orchestrate verification flows (WhatsApp OTP, email magic link, Auth0, MercadoPago Identity, SID gov) and get back a signed attestation with a trust level. The RENAPER workaround that lets agents do KYC without institutional API access.",
   "keywords": [
     "identity",
@@ -65,6 +65,16 @@
         "types": "./dist/magic-link-sdk.d.cts",
         "default": "./dist/magic-link-sdk.cjs"
       }
+    }
+  },
+  "typesVersions": {
+    "*": {
+      "auth0": [
+        "./dist/auth0.d.ts"
+      ],
+      "magic-link-sdk": [
+        "./dist/magic-link-sdk.d.ts"
+      ]
     }
   },
   "files": [

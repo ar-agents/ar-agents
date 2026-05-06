@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/identity-attest",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "factory": "identityAttestTools",
   "tools": [
     {
