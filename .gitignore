@@ -41,3 +41,6 @@ coverage/
 # Cache
 .cache/
 .turbo/
+
+# gstack local artifacts (security reports, learnings, checkpoints)
+.gstack/

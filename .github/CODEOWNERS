@@ -1,0 +1,25 @@
+# CODEOWNERS — required reviewers for security-sensitive paths.
+#
+# Combined with branch protection rules ("Require review from Code Owners"),
+# this prevents direct edits to CI/CD config, npm publish wiring, and
+# top-level dependency lists without owner sign-off.
+#
+# Everyone is welcome to PR. Listed owners are required reviewers.
+
+# CI/CD pipelines (have access to NPM_TOKEN via release.yml)
+/.github/workflows/   @naza00000
+/.github/dependabot.yml   @naza00000
+/.github/CODEOWNERS   @naza00000
+
+# Top-level deps + npm publish wiring
+/package.json   @naza00000
+/pnpm-lock.yaml   @naza00000
+/pnpm-workspace.yaml   @naza00000
+/.npmrc   @naza00000
+
+# Security policy + release notes
+/SECURITY.md   @naza00000
+/CONTRIBUTING.md   @naza00000
+
+# Per-package package.json (controls what ships to npm)
+/packages/*/package.json   @naza00000

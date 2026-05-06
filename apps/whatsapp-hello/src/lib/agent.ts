@@ -108,8 +108,24 @@ function buildWhatsAppClient(): {
 const mpStateAdapter = new InMemoryStateAdapter();
 // Single attestation store + signing secret across requests.
 const attestationStore = new InMemoryAttestationStore();
-const ATTEST_SIGNING_SECRET =
-  process.env.ATTEST_SIGNING_SECRET?.trim() ?? "demo-only-signing-secret-change-me-1234";
+
+// Fail-closed: a missing signing secret means attestations are forgeable by
+// anyone who reads the public source. We refuse to start the agent rather
+// than silently fall back to a known-weak secret. Generate via:
+//   openssl rand -hex 32
+// then set as ATTEST_SIGNING_SECRET in Vercel env or .env.local.
+function requireAttestSigningSecret(): string {
+  const v = process.env.ATTEST_SIGNING_SECRET?.trim();
+  if (!v) {
+    throw new Error(
+      "ATTEST_SIGNING_SECRET is required. Generate one with `openssl rand -hex 32` " +
+        "and set it in Vercel env vars (or .env.local for local dev). " +
+        "Without it, attestations would be forgeable.",
+    );
+  }
+  return v;
+}
+const ATTEST_SIGNING_SECRET = requireAttestSigningSecret();
 
 const MP_BACK_URL =
   process.env.MP_BACK_URL ?? "https://whatsapp-hello.example.com/billing/done";

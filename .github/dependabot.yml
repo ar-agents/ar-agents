@@ -1,0 +1,24 @@
+# Dependabot — keeps GitHub Action SHAs current.
+#
+# The CI/release workflows pin actions to commit SHAs for supply chain
+# integrity (per the security audit). Dependabot opens PRs when newer
+# tagged commits exist for those refs, so we don't drift behind security
+# patches in upstream actions.
+#
+# Schedule is weekly to avoid PR spam — security updates get fast-tracked
+# automatically by GitHub regardless of schedule.
+
+version: 2
+updates:
+  - package-ecosystem: "github-actions"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    commit-message:
+      prefix: "ci"
+      include: "scope"
+    labels:
+      - "dependencies"
+      - "github-actions"

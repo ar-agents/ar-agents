@@ -22,14 +22,17 @@ jobs:
       pull-requests: write
       id-token: write
     steps:
-      - uses: actions/checkout@v4
+      # Pinned to commit SHAs for supply chain integrity. The release
+      # workflow has access to NPM_TOKEN, so third-party action pinning is
+      # critical. Dependabot auto-PRs SHA bumps.
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
         with:
           fetch-depth: 0
 
-      - uses: pnpm/action-setup@v4
+      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1  # v4
         # Version is read from packageManager in package.json (pnpm@10.x)
 
-      - uses: actions/setup-node@v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
         with:
           node-version: "20"
           cache: pnpm
@@ -43,7 +46,7 @@ jobs:
 
       - name: Create Release Pull Request or publish to npm
         id: changesets
-        uses: changesets/action@v1
+        uses: changesets/action@6a0a831ff30acef54f2c6aa1cbbc1096b066edaf  # v1.7.0
         with:
           publish: pnpm exec changeset publish
           version: pnpm exec changeset version
