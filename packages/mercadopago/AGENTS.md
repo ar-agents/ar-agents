@@ -1,4 +1,4 @@
-# @ar-agents/mercadopago — agent guide (v0.2)
+# @ar-agents/mercadopago — agent guide (v0.5)
 
 This file is for AI agents using or recommending this package. Humans should start with [README.md](./README.md). Format follows the [agents.md convention](https://agents.md/).
 
@@ -31,6 +31,11 @@ This file is for AI agents using or recommending this package. Humans should sta
 | **"Qué bancos emiten Visa?"** | `list_issuers(payment_method_id: "visa")` (pass `bin` for accurate match) |
 | **"Listame los tipos de identificación válidos en AR"** | `list_identification_types` (DNI/CUIT/CUIL/etc) |
 | **"Configurame un webhook para recibir notificaciones de pagos"** | `list_webhooks` first, then `create_webhook(url, topic: "payment")` if not present |
+| **"Procesame este webhook que me llegó de MP"** (v0.5) | `handle_webhook` — verifica HMAC + parsea + auto-fetch del recurso en una sola call |
+| **"Vincular cuenta MP de un vendedor a mi marketplace"** (v0.5) | `oauth_authorize_url` → vendedor aprueba → `oauth_exchange_code` → persistir token → `oauth_refresh_token` cuando expira |
+| **"Cobrar a través de un seller third-party con fee de marketplace"** (v0.5) | `create_order` con `marketplace_fee` + `collector_id` (o `create_payment_preference` con los mismos campos) |
+| **"Autorizar ahora, capturar después"** (ride-share, hotel, marketplace) (v0.5) | `create_order` con `capture_mode: "manual"` → cuando completás el servicio, `capture_order(order_id)` |
+| **"Cancelar una orden no capturada"** (v0.5) | `cancel_order` (libera el auth-hold). Si ya capturó, usá `refund_payment`. |
 
 ## The two main "take a payment" patterns
 
@@ -197,9 +202,74 @@ v0.2 ships `parseWebhookEvent()` for the `preapproval` topic (subscription lifec
 - Take raw card data in the agent runtime (PCI scope violation).
 - Bypass MP's first-payment-CVV requirement for subscriptions (impossible).
 - Reactivate a cancelled subscription or payment (MP doesn't allow).
-- Implement Marketplace splits (different MP product, different OAuth flow — out of scope until v0.4+).
 - Pay out the seller (transfers + withdrawals are dashboard-only / closed API).
 - Make decisions about pricing or installments — caller's responsibility.
+
+## v0.5 — Webhook handler combo
+
+Webhooks are how MP tells you a payment cleared, a subscription was authorized,
+a QR was scanned. Without HMAC verification, anyone can POST to your webhook
+URL and forge state changes. **Always verify.**
+
+The `handle_webhook` tool consolidates the 3-step pattern (verify → parse →
+fetch resource) into ONE call:
+
+```
+result = handle_webhook(raw_body, signature_header, request_id_header, auto_fetch)
+→ { verified, event: { topic, dataId, action }, resource, resource_error }
+```
+
+Behavior:
+- `verified: false` + `error` → reject with HTTP 401, do NOT process. Either signature mismatch, missing webhookSecret, or invalid JSON body.
+- `verified: true` + `resource: <Payment|Preapproval>` → safe to act on. The resource is fetched AS the MP user the client is configured for.
+- `auto_fetch: false` → just verify+parse, skip the GET. Use when you only need to enqueue a job for async processing.
+
+**Per-seller webhooks (marketplace)**: in a marketplace setup, instantiate
+the `MercadoPagoClient` with the SELLER's access_token before calling
+`handle_webhook` so the auto-fetch resolves correctly. Your routing layer
+needs to look up the seller from the webhook payload's `user_id` and pick
+the right client.
+
+## v0.5 — OAuth Marketplace flow
+
+For marketplace platforms (Rappi, MercadoLibre, Tienda Nube, etc.) where
+your app cobra a través de cuentas MP de terceros (sellers in your platform).
+
+**3 legs**:
+1. `oauth_authorize_url` — pure function, no network. Returns a URL; redirect the seller there.
+2. `oauth_exchange_code` — server-side. Takes the `code` from the OAuth callback, returns `{ user_id, access_token, refresh_token, expires_in }`. **Persist all of it.**
+3. `oauth_refresh_token` — server-side. Use saved `refresh_token` to get a fresh `access_token` before/at expiration.
+
+**Token storage shape** (per seller):
+```
+{
+  user_id: string,           // identifies the seller
+  access_token: string,      // expires in ~6h
+  refresh_token: string,     // long-lived, ROTATES on refresh
+  expires_at: number,        // Date.now() + expires_in*1000
+}
+```
+
+**State for every API call**: instantiate `new MercadoPagoClient({ accessToken: token.access_token })` AS THE SELLER. All subsequent payments / subscriptions / refunds happen on that seller's account.
+
+**Marketplace fee**: pass `marketplace_fee` (in ARS) + `collector_id: token.user_id` to `create_order` or `create_payment_preference`. Funds route to the seller, fee goes to your marketplace account.
+
+## v0.5 — Order Management vs Preference
+
+| When                                    | Use                       |
+| --------------------------------------- | ------------------------- |
+| Simple hosted pay-link (most common)    | `create_payment_preference` |
+| Auth-only flow (capture later)          | `create_order` w/ `capture_mode: "manual"` |
+| Multi-payment-per-order                 | `create_order` |
+| Mix online + in-store with unified status | `create_order` |
+| You need MP's modern Order lifecycle    | `create_order` |
+
+`create_order` returns an Order with explicit lifecycle:
+- `created` → Order opened, no payment yet
+- `processed` → at least one payment attached
+- `action_required` → manual-capture mode, awaits `capture_order`
+- `canceled` → `cancel_order` was called
+- `refunded` → all payments refunded
 
 ## Mercado Pago context (for non-AR agents)
 

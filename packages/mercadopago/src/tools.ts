@@ -2,7 +2,13 @@ import { createHash } from "node:crypto";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { MercadoPagoClient } from "./client";
+import {
+  buildAuthorizeUrl,
+  exchangeCodeForToken,
+  refreshAccessToken,
+} from "./oauth";
 import type { SubscriptionStateAdapter } from "./state";
+import { parseWebhookEvent, verifyWebhookSignature } from "./webhook";
 
 /**
  * Deterministic idempotency key from caller-meaningful fields. Safe to retry:
@@ -37,6 +43,24 @@ export interface MercadoPagoToolsOptions {
    * Optional — MP falls back to dashboard config if not set.
    */
   notificationUrl?: string;
+  /**
+   * Webhook secret for the `handle_webhook` tool. Required to verify
+   * incoming webhook HMAC-SHA256 signatures. Get it from MP dev panel →
+   * "Notificaciones" → "Webhooks" → "Configurar notificaciones".
+   * If omitted, `handle_webhook` returns `{ verified: false, error: ... }`
+   * and the agent should reject the webhook.
+   */
+  webhookSecret?: string;
+  /**
+   * OAuth credentials for the marketplace flow. Required for
+   * `oauth_exchange_code` and `oauth_refresh_token` (the secret cannot be
+   * passed by the agent — it's a server-side secret). If omitted, those
+   * tools return `{ available: false }` with setup instructions.
+   */
+  oauth?: {
+    clientId: string;
+    clientSecret: string;
+  };
 }
 
 type ToolName =
@@ -94,7 +118,19 @@ type ToolName =
   | "list_webhooks"
   | "create_webhook"
   | "update_webhook"
-  | "delete_webhook";
+  | "delete_webhook"
+  // Webhook handler combo (v0.5)
+  | "handle_webhook"
+  // OAuth Marketplace (v0.5)
+  | "oauth_authorize_url"
+  | "oauth_exchange_code"
+  | "oauth_refresh_token"
+  // Order Management API (v0.5)
+  | "create_order"
+  | "get_order"
+  | "update_order"
+  | "capture_order"
+  | "cancel_order";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -206,6 +242,30 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
     "Update a webhook's URL or topic. Useful when you change deployment URLs without resubscribing from scratch.",
   delete_webhook:
     "Delete a webhook subscription. MP stops POSTing to it immediately.",
+
+  // ── Webhook handler combo (v0.5) ─────────────────────────────────────────
+  handle_webhook:
+    "Process an incoming MP webhook in ONE call: verify the HMAC-SHA256 signature, parse the event, and (optionally) auto-fetch the underlying resource (Payment, Subscription, Order). Returns the structured event PLUS the full resource. USE THIS in your webhook endpoint INSTEAD of chaining verify_webhook_signature + parse_webhook_event + get_payment manually. Pass the raw request body, x-signature header, x-request-id header, and your MP webhook secret. SAFE: returns { verified: false } when signature mismatches — caller should respond 401 and stop processing. WHEN auto_fetch is true (default), the resource is fetched as the SAME MP user the client is configured for (so for marketplace integrations, instantiate a per-seller client).",
+
+  // ── OAuth Marketplace (v0.5) ─────────────────────────────────────────────
+  oauth_authorize_url:
+    "Build the URL the SELLER (third-party MP account) visits to authorize your marketplace app. Pass the seller's redirect uri (must be whitelisted in MP dev panel) and an opaque state token (CSRF protection — bind it to the user's session). PURE FUNCTION: no network. The seller approves, MP redirects them to your `redirect_uri?code=...&state=...`. Then call oauth_exchange_code with the code.",
+  oauth_exchange_code:
+    "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response** — refresh_token is long-lived and the only way to keep the integration alive past 6h. Use the access_token to instantiate a per-seller MercadoPagoClient for marketplace flows.",
+  oauth_refresh_token:
+    "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken — persist the new refresh_token (MP often returns the same value, but always replace).",
+
+  // ── Order Management API (v0.5 — modern Order API) ───────────────────────
+  create_order:
+    "Create a new Order via MP's modern Order Management API. DIFFERENT from create_payment_preference: Order is a transactional entity with explicit lifecycle (created → processed → captured/canceled), supports MANUAL CAPTURE (auth-only, capture later — for ride-share, hotels, marketplaces) and aggregates multiple payments into one Order. Use Preference (Checkout Pro) for simple hosted pay-links; use Order when you need auth-only or multi-payment-per-order semantics. For marketplace splits, set marketplace + marketplace_fee + collector_id (the SELLER's MP user_id from oauth_exchange_code).",
+  get_order:
+    "Fetch an Order by ID. Returns the Order with its lifecycle status and any attached payments/refunds.",
+  update_order:
+    "Patch an existing Order before it's captured/canceled. Common use: update items or external_reference.",
+  capture_order:
+    "Capture a previously-authorized Order (only for orders created with capture_mode='manual'). Captures up to the originally-authorized amount; pass amount for partial capture. Common use: ride-share marks ride complete → capture; hotel checks-out guest → capture.",
+  cancel_order:
+    "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture.",
 };
 
 /**
@@ -1299,6 +1359,384 @@ export function mercadoPagoTools(
       execute: async ({ webhook_id }) => {
         await client.deleteWebhook(webhook_id);
         return { webhook_id, deleted: true };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.5 — Webhook handler combo
+    // ─────────────────────────────────────────────────────────────────────────
+
+    handle_webhook: tool({
+      description: desc("handle_webhook"),
+      inputSchema: z.object({
+        raw_body: z
+          .string()
+          .describe(
+            "The raw JSON body of the webhook request, exactly as received (do NOT re-stringify). Pass `await req.text()` from your handler.",
+          ),
+        signature_header: z
+          .string()
+          .nullable()
+          .describe("Value of the `x-signature` request header."),
+        request_id_header: z
+          .string()
+          .nullable()
+          .describe("Value of the `x-request-id` request header."),
+        auto_fetch: z
+          .boolean()
+          .optional()
+          .default(true)
+          .describe(
+            "If true (default), fetch the underlying resource (Payment, Subscription, etc.) AS the MP user the client is configured for. Set to false to skip the fetch (faster, useful when you only need the topic+id).",
+          ),
+      }),
+      execute: async ({
+        raw_body,
+        signature_header,
+        request_id_header,
+        auto_fetch,
+      }) => {
+        if (!options.webhookSecret) {
+          return {
+            verified: false,
+            error:
+              "webhookSecret not configured in mercadoPagoTools options. Pass it from MP dev panel → Notificaciones → Webhooks.",
+            event: null,
+            resource: null,
+          };
+        }
+        let parsedBody: unknown;
+        try {
+          parsedBody = JSON.parse(raw_body);
+        } catch {
+          return {
+            verified: false,
+            error: "raw_body is not valid JSON.",
+            event: null,
+            resource: null,
+          };
+        }
+        const event = parseWebhookEvent(parsedBody);
+        if (!event) {
+          return {
+            verified: false,
+            error: "Could not extract topic + dataId from webhook body.",
+            event: null,
+            resource: null,
+          };
+        }
+        const verified = verifyWebhookSignature({
+          requestId: request_id_header,
+          dataId: event.dataId,
+          signatureHeader: signature_header,
+          secret: options.webhookSecret,
+        });
+        if (!verified) {
+          return {
+            verified: false,
+            error: "HMAC-SHA256 signature mismatch. Reject the webhook (HTTP 401).",
+            event,
+            resource: null,
+          };
+        }
+        let resource: unknown = null;
+        let resourceError: string | null = null;
+        if (auto_fetch) {
+          try {
+            switch (event.topic) {
+              case "payment":
+              case "payment.created":
+              case "payment.updated":
+                resource = await client.getPayment(event.dataId);
+                break;
+              case "preapproval":
+              case "subscription_preapproval":
+                resource = await client.getPreapproval(event.dataId);
+                break;
+              case "subscription_authorized_payment":
+                // No direct fetch endpoint; the data id IS the authorized_payment id.
+                resource = { id: event.dataId, hint: "Use list_subscription_payments to enumerate parent." };
+                break;
+              default:
+                resource = null;
+                resourceError = `No auto-fetch handler for topic '${event.topic}' yet.`;
+            }
+          } catch (err) {
+            resourceError = err instanceof Error ? err.message : String(err);
+          }
+        }
+        return {
+          verified: true,
+          event,
+          resource,
+          resource_error: resourceError,
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.5 — OAuth Marketplace flow
+    // ─────────────────────────────────────────────────────────────────────────
+
+    oauth_authorize_url: tool({
+      description: desc("oauth_authorize_url"),
+      inputSchema: z.object({
+        redirect_uri: z
+          .string()
+          .url()
+          .describe(
+            "Where MP redirects the seller after approval. MUST be whitelisted in MP dev panel → Aplicaciones → tu app → Redirect URIs.",
+          ),
+        state: z
+          .string()
+          .min(8)
+          .describe(
+            "Opaque CSRF/session token echoed back. Bind to the user's session and verify on redirect.",
+          ),
+      }),
+      execute: async ({ redirect_uri, state }) => {
+        if (!options.oauth?.clientId) {
+          return {
+            available: false,
+            error:
+              "OAuth not configured. Pass `oauth: { clientId, clientSecret }` to mercadoPagoTools options.",
+            url: null,
+          };
+        }
+        const url = buildAuthorizeUrl({
+          clientId: options.oauth.clientId,
+          redirectUri: redirect_uri,
+          state,
+        });
+        return {
+          available: true,
+          url,
+          next_step:
+            "Redirect the seller to `url`. After approval MP sends them to redirect_uri?code=...&state=... — verify state matches, then call oauth_exchange_code with the code.",
+        };
+      },
+    }),
+
+    oauth_exchange_code: tool({
+      description: desc("oauth_exchange_code"),
+      inputSchema: z.object({
+        code: z
+          .string()
+          .describe("The `code` query param from the OAuth redirect URL."),
+        redirect_uri: z
+          .string()
+          .url()
+          .describe(
+            "Must EXACTLY match the redirect_uri used in oauth_authorize_url.",
+          ),
+      }),
+      execute: async ({ code, redirect_uri }) => {
+        if (!options.oauth?.clientId || !options.oauth?.clientSecret) {
+          return {
+            available: false,
+            error:
+              "OAuth not configured. Pass `oauth: { clientId, clientSecret }` to mercadoPagoTools options.",
+            token: null,
+          };
+        }
+        try {
+          const token = await exchangeCodeForToken({
+            clientId: options.oauth.clientId,
+            clientSecret: options.oauth.clientSecret,
+            code,
+            redirectUri: redirect_uri,
+          });
+          return {
+            available: true,
+            token,
+            next_step:
+              "PERSIST { user_id, access_token, refresh_token, expires_in } against this seller. Use access_token to instantiate `new MercadoPagoClient({ accessToken })` AS the seller for marketplace API calls.",
+          };
+        } catch (err) {
+          return {
+            available: true,
+            error: err instanceof Error ? err.message : String(err),
+            token: null,
+          };
+        }
+      },
+    }),
+
+    oauth_refresh_token: tool({
+      description: desc("oauth_refresh_token"),
+      inputSchema: z.object({
+        refresh_token: z
+          .string()
+          .describe("The saved refresh_token for this seller."),
+      }),
+      execute: async ({ refresh_token }) => {
+        if (!options.oauth?.clientId || !options.oauth?.clientSecret) {
+          return {
+            available: false,
+            error:
+              "OAuth not configured. Pass `oauth: { clientId, clientSecret }` to mercadoPagoTools options.",
+            token: null,
+          };
+        }
+        try {
+          const token = await refreshAccessToken({
+            clientId: options.oauth.clientId,
+            clientSecret: options.oauth.clientSecret,
+            refreshToken: refresh_token,
+          });
+          return {
+            available: true,
+            token,
+            next_step:
+              "Replace the persisted access_token + refresh_token with these new values (refresh_token may have rotated).",
+          };
+        } catch (err) {
+          return {
+            available: true,
+            error: err instanceof Error ? err.message : String(err),
+            token: null,
+          };
+        }
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.5 — Order Management API
+    // ─────────────────────────────────────────────────────────────────────────
+
+    create_order: tool({
+      description: desc("create_order"),
+      inputSchema: z.object({
+        type: z
+          .enum(["online", "in_store"])
+          .describe("'online' for hosted/checkout flow, 'in_store' for QR/POS"),
+        currency_id: z.string().optional().default("ARS"),
+        external_reference: z.string().optional(),
+        total_amount: z.number().positive().optional(),
+        items: z
+          .array(
+            z.object({
+              title: z.string(),
+              unit_price: z.number(),
+              quantity: z.number(),
+              description: z.string().optional(),
+            }),
+          )
+          .optional(),
+        payer_email: z.string().email().optional(),
+        capture_mode: z
+          .enum(["automatic", "manual"])
+          .optional()
+          .describe(
+            "'automatic' charges immediately; 'manual' authorizes only — capture later via capture_order.",
+          ),
+        notification_url: z.string().url().optional(),
+        marketplace: z
+          .string()
+          .optional()
+          .describe(
+            "Marketplace identifier (your app's name). Required for split payments.",
+          ),
+        marketplace_fee: z
+          .number()
+          .optional()
+          .describe(
+            "Fee in ARS (NOT %) credited to the marketplace's MP account.",
+          ),
+        collector_id: z
+          .union([z.string(), z.number()])
+          .optional()
+          .describe(
+            "Seller's MP user_id (from oauth_exchange_code.user_id). Funds route here; marketplace_fee is split off to your account.",
+          ),
+      }),
+      execute: async (input) => {
+        const params: Parameters<typeof client.createOrder>[0] = {
+          type: input.type,
+        };
+        if (input.currency_id) params.currency_id = input.currency_id;
+        if (input.external_reference) params.external_reference = input.external_reference;
+        if (input.total_amount !== undefined) params.total_amount = input.total_amount;
+        if (input.items) params.items = input.items;
+        if (input.payer_email) params.payer = { email: input.payer_email };
+        if (input.capture_mode) params.capture_mode = input.capture_mode;
+        if (input.notification_url) params.notification_url = input.notification_url;
+        if (input.marketplace) params.marketplace = input.marketplace;
+        if (input.marketplace_fee !== undefined) params.marketplace_fee = input.marketplace_fee;
+        if (input.collector_id !== undefined) params.collector_id = input.collector_id;
+        const order = await client.createOrder(params, {
+          idempotencyKey: deterministicIdempotencyKey(
+            "create_order",
+            input.external_reference,
+            input.total_amount,
+            input.collector_id,
+          ),
+        });
+        return {
+          order_id: order.id,
+          status: order.status ?? null,
+          capture_mode: order.capture_mode ?? params.capture_mode ?? "automatic",
+          total_amount: order.total_amount ?? null,
+        };
+      },
+    }),
+
+    get_order: tool({
+      description: desc("get_order"),
+      inputSchema: z.object({ order_id: z.string() }),
+      execute: async ({ order_id }) => {
+        const order = await client.getOrder(order_id);
+        return order;
+      },
+    }),
+
+    update_order: tool({
+      description: desc("update_order"),
+      inputSchema: z.object({
+        order_id: z.string(),
+        external_reference: z.string().optional(),
+        total_amount: z.number().optional(),
+      }),
+      execute: async ({ order_id, external_reference, total_amount }) => {
+        const patch: Parameters<typeof client.updateOrder>[1] = {};
+        if (external_reference !== undefined) patch.external_reference = external_reference;
+        if (total_amount !== undefined) patch.total_amount = total_amount;
+        const order = await client.updateOrder(order_id, patch);
+        return order;
+      },
+    }),
+
+    capture_order: tool({
+      description: desc("capture_order"),
+      inputSchema: z.object({
+        order_id: z.string(),
+        amount: z
+          .number()
+          .positive()
+          .optional()
+          .describe(
+            "Optional partial-capture amount. Omit to capture the full authorized amount.",
+          ),
+      }),
+      execute: async ({ order_id, amount }) => {
+        const order = await client.captureOrder(order_id, amount);
+        return {
+          order_id: order.id,
+          status: order.status ?? null,
+          captured_amount: amount ?? order.total_amount ?? null,
+        };
+      },
+    }),
+
+    cancel_order: tool({
+      description: desc("cancel_order"),
+      inputSchema: z.object({ order_id: z.string() }),
+      execute: async ({ order_id }) => {
+        const order = await client.cancelOrder(order_id);
+        return {
+          order_id: order.id,
+          status: order.status ?? "canceled",
+        };
       },
     }),
   } satisfies ToolSet;

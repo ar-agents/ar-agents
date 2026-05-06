@@ -16,16 +16,19 @@ function buildSetup() {
 }
 
 describe("mercadoPagoTools", () => {
-  it("exposes the full v0.4 tool surface (41 tools)", () => {
+  it("exposes the full v0.5 tool surface (50 tools)", () => {
     const { tools } = buildSetup();
     expect(Object.keys(tools).sort()).toEqual([
       "calculate_installments",
+      "cancel_order",
       "cancel_payment",
       "cancel_qr_payment",
       "cancel_subscription",
+      "capture_order",
       "capture_payment",
       "charge_saved_card",
       "create_customer",
+      "create_order",
       "create_payment",
       "create_payment_preference",
       "create_pos",
@@ -39,9 +42,11 @@ describe("mercadoPagoTools", () => {
       "find_customer_by_email",
       "get_account_info",
       "get_dispute",
+      "get_order",
       "get_payment",
       "get_payment_preference",
       "get_subscription_status",
+      "handle_webhook",
       "list_customer_cards",
       "list_identification_types",
       "list_issuers",
@@ -53,11 +58,15 @@ describe("mercadoPagoTools", () => {
       "list_subscription_payments",
       "list_subscription_plans",
       "list_webhooks",
+      "oauth_authorize_url",
+      "oauth_exchange_code",
+      "oauth_refresh_token",
       "pause_subscription",
       "refund_payment",
       "resume_subscription",
       "search_payments",
       "subscribe_to_plan",
+      "update_order",
       "update_subscription_plan",
       "update_webhook",
     ]);

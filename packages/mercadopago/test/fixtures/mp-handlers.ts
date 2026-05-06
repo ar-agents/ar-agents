@@ -618,5 +618,107 @@ export function buildHandlers(store: FakeMpStore) {
     http.delete(`${MP_BASE}/v1/webhooks/:id`, () => {
       return new HttpResponse(null, { status: 200 });
     }),
+
+    // ── v0.5 — Order Management API ────────────────────────────────────────
+    http.post(`${MP_BASE}/v1/orders`, async ({ request }) => {
+      const body = (await request.json()) as {
+        type: string;
+        currency_id?: string;
+        external_reference?: string;
+        total_amount?: number;
+        capture_mode?: string;
+        marketplace?: string;
+        marketplace_fee?: number;
+        collector_id?: string | number;
+      };
+      const id = `order_${Math.floor(Math.random() * 100000)}`;
+      return HttpResponse.json({
+        id,
+        type: body.type,
+        status: body.capture_mode === "manual" ? "action_required" : "created",
+        currency_id: body.currency_id ?? "ARS",
+        external_reference: body.external_reference,
+        total_amount: body.total_amount ?? 0,
+        capture_mode: body.capture_mode ?? "automatic",
+        marketplace: body.marketplace,
+        marketplace_fee: body.marketplace_fee,
+        collector_id: body.collector_id,
+        date_created: new Date().toISOString(),
+      });
+    }),
+    http.get(`${MP_BASE}/v1/orders/:id`, ({ params }) => {
+      return HttpResponse.json({
+        id: params.id,
+        type: "online",
+        status: "processed",
+        currency_id: "ARS",
+        total_amount: 1000,
+        date_created: new Date().toISOString(),
+      });
+    }),
+    http.put(`${MP_BASE}/v1/orders/:id`, async ({ params, request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      return HttpResponse.json({
+        id: params.id,
+        type: "online",
+        status: "created",
+        ...body,
+      });
+    }),
+    http.post(`${MP_BASE}/v1/orders/:id/capture`, async ({ params, request }) => {
+      const body = (await request.json().catch(() => ({}))) as { amount?: number };
+      return HttpResponse.json({
+        id: params.id,
+        status: "processed",
+        capture_mode: "manual",
+        total_amount: body.amount ?? 1000,
+      });
+    }),
+    http.post(`${MP_BASE}/v1/orders/:id/cancel`, ({ params }) => {
+      return HttpResponse.json({
+        id: params.id,
+        status: "canceled",
+      });
+    }),
+
+    // ── v0.5 — OAuth token endpoint ────────────────────────────────────────
+    http.post("https://api.mercadopago.com/oauth/token", async ({ request }) => {
+      const body = await request.text();
+      const params = new URLSearchParams(body);
+      const grantType = params.get("grant_type");
+      if (grantType === "authorization_code") {
+        if (params.get("code") === "BAD_CODE") {
+          return new HttpResponse(
+            JSON.stringify({ error: "invalid_grant", error_description: "code expired" }),
+            { status: 400, headers: { "Content-Type": "application/json" } },
+          );
+        }
+        return HttpResponse.json({
+          access_token: "APP_USR-test-access-token",
+          token_type: "Bearer",
+          expires_in: 21600,
+          scope: "offline_access read write",
+          user_id: "987654321",
+          refresh_token: "TG-test-refresh-token",
+          public_key: "APP_USR-public-key",
+          live_mode: false,
+        });
+      }
+      if (grantType === "refresh_token") {
+        return HttpResponse.json({
+          access_token: "APP_USR-refreshed-access-token",
+          token_type: "Bearer",
+          expires_in: 21600,
+          scope: "offline_access read write",
+          user_id: "987654321",
+          refresh_token: "TG-test-refresh-token-rotated",
+          live_mode: false,
+        });
+      }
+      return new HttpResponse(
+        JSON.stringify({ error: "unsupported_grant_type" }),
+        { status: 400, headers: { "Content-Type": "application/json" } },
+      );
+    }),
   ];
 }

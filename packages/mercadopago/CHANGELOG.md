@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- MP v0.5: production hardening + marketplace flows. **+9 tools (50 total)**.
+
+  **Webhook handler combo (1 tool)**:
+
+  - `handle_webhook` — verifies HMAC-SHA256 signature, parses the event, and (optionally) auto-fetches the underlying resource (Payment, Subscription) in ONE call. Replaces the manual chain of verify_webhook_signature + parse_webhook_event + get_payment.
+  - `mercadoPagoTools({ webhookSecret })` to enable.
+  - Returns `{ verified, event, resource, resource_error }`. Reject with HTTP 401 when `verified: false`.
+
+  **OAuth Marketplace flow (3 tools + 5 helper functions)**:
+
+  - `oauth_authorize_url` — pure function, builds the URL the seller visits to authorize your marketplace app.
+  - `oauth_exchange_code` — server-side exchange of the OAuth code for an `OAuthToken` (`access_token` + `refresh_token` + `user_id` + `expires_in`).
+  - `oauth_refresh_token` — refresh a per-seller token before it expires (~6h).
+  - Helper functions exported: `buildAuthorizeUrl`, `exchangeCodeForToken`, `refreshAccessToken`, `expirationTimeMs`, `isExpiringSoon`.
+  - `mercadoPagoTools({ oauth: { clientId, clientSecret } })` to enable.
+
+  **Order Management API (5 tools)**:
+
+  - `create_order`, `get_order`, `update_order`, `capture_order`, `cancel_order` — MP's modern Order API. Distinct from Preference: explicit lifecycle, manual-capture support (auth-only flows for ride-share, hotels, marketplaces), multi-payment-per-order semantics.
+  - `capture_mode: "manual"` enables the auth-only flow → `capture_order(id, amount?)` later.
+
+  **Marketplace split payments**:
+
+  - `marketplace`, `marketplace_fee` (in ARS), `collector_id` (seller MP user_id) supported on BOTH `create_order` AND `create_payment_preference`.
+  - Funds route to the seller; `marketplace_fee` is split off to the marketplace's MP account.
+
+  117 tests pass. publint clean. attw all green. 21.6 KB brotli'd (within 32 KB budget).
+
+  The MCP wrapper auto-picks up the new tools — `@ar-agents/mcp` patch bump.
+
 ## 0.4.0
 
 ### Minor Changes

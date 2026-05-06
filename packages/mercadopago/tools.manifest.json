@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/mercadopago",
-  "version": "0.2.0",
+  "version": "0.5.0",
   "factory": "mercadoPagoTools",
   "tools": [
     {
@@ -341,6 +341,75 @@
       "purity": "io", "sideEffects": [],
       "input": {},
       "output": { "account_id": "string", "email": "string|null", "nickname": "string|null", "country_id": "string|null (AR for Argentina)", "site_id": "string|null (MLA for Argentina)", "user_type": "string|null" }
+    },
+    {
+      "name": "handle_webhook",
+      "summary": "v0.5 — Verify HMAC + parse + auto-fetch webhook in ONE call. THE recommended way to handle MP webhooks in production.",
+      "purity": "io", "sideEffects": ["Fetches Payment / Preapproval AS the configured client when auto_fetch=true"],
+      "constraints": { "latencyMs": "150-700", "envVars": ["webhookSecret in tools options"] },
+      "input": { "raw_body": "string (raw JSON body — do NOT re-stringify)", "signature_header": "string|null (x-signature)", "request_id_header": "string|null (x-request-id)", "auto_fetch": "boolean? default true" },
+      "output": { "verified": "boolean", "event": "{ topic, dataId, action, raw } | null", "resource": "Payment | Preapproval | null", "resource_error": "string | null", "error": "string | null" },
+      "whenToUse": ["Always in webhook endpoints — REJECT (HTTP 401) when verified=false"]
+    },
+    {
+      "name": "oauth_authorize_url",
+      "summary": "v0.5 — Build the URL the SELLER visits to authorize your marketplace app. Pure function.",
+      "purity": "pure", "sideEffects": [],
+      "constraints": { "latencyMs": "<1" },
+      "input": { "redirect_uri": "string (must be whitelisted in MP dev panel)", "state": "string (CSRF token, bind to user session)" },
+      "output": { "available": "boolean", "url": "string|null", "next_step": "string" }
+    },
+    {
+      "name": "oauth_exchange_code",
+      "summary": "v0.5 — Exchange the OAuth code (from redirect) for OAuthToken { access_token, refresh_token, user_id, expires_in }.",
+      "purity": "io", "sideEffects": [],
+      "constraints": { "latencyMs": "200-500", "envVars": ["oauth.clientId + oauth.clientSecret in tools options"] },
+      "input": { "code": "string", "redirect_uri": "string (must EXACTLY match the URL used in oauth_authorize_url)" },
+      "output": { "available": "boolean", "token": "OAuthToken | null", "error": "string | null", "next_step": "string" }
+    },
+    {
+      "name": "oauth_refresh_token",
+      "summary": "v0.5 — Refresh a per-seller access_token. Always persist the new refresh_token (it may rotate).",
+      "purity": "io", "sideEffects": [],
+      "constraints": { "latencyMs": "150-400" },
+      "input": { "refresh_token": "string" },
+      "output": { "available": "boolean", "token": "OAuthToken | null", "error": "string | null" }
+    },
+    {
+      "name": "create_order",
+      "summary": "v0.5 — Create an Order (modern API). Supports manual capture (auth-only) and marketplace splits.",
+      "purity": "io", "sideEffects": ["Creates an Order in MP"],
+      "constraints": { "latencyMs": "200-500" },
+      "input": { "type": "'online' | 'in_store'", "currency_id": "string? (default ARS)", "external_reference": "string?", "total_amount": "number?", "items": "array?", "payer_email": "string?", "capture_mode": "'automatic' | 'manual'?", "notification_url": "string?", "marketplace": "string?", "marketplace_fee": "number? (ARS)", "collector_id": "string|number? (seller MP user_id)" },
+      "output": { "order_id": "string", "status": "string", "capture_mode": "string", "total_amount": "number" }
+    },
+    {
+      "name": "get_order",
+      "summary": "v0.5 — Fetch an Order by id.",
+      "purity": "io", "sideEffects": [],
+      "input": { "order_id": "string" },
+      "output": "Order"
+    },
+    {
+      "name": "update_order",
+      "summary": "v0.5 — Patch an Order (external_reference, total_amount).",
+      "purity": "io", "sideEffects": ["Mutates Order"],
+      "input": { "order_id": "string", "external_reference": "string?", "total_amount": "number?" },
+      "output": "Order"
+    },
+    {
+      "name": "capture_order",
+      "summary": "v0.5 — Capture an authorized Order (capture_mode='manual'). Optional partial-capture amount.",
+      "purity": "io", "sideEffects": ["Captures funds — IRREVERSIBLE"],
+      "input": { "order_id": "string", "amount": "number?" },
+      "output": { "order_id": "string", "status": "string", "captured_amount": "number" }
+    },
+    {
+      "name": "cancel_order",
+      "summary": "v0.5 — Cancel a non-captured Order. Releases auth-holds. For captured orders, use refund_payment.",
+      "purity": "io", "sideEffects": ["Cancels Order"],
+      "input": { "order_id": "string" },
+      "output": { "order_id": "string", "status": "string" }
     }
   ]
 }

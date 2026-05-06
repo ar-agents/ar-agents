@@ -18,7 +18,7 @@ Compatible with any caller that uses `tool()`.
 
 | What | Value |
 | --- | --- |
-| Tools shipped | `create_subscription`, `get_subscription_status`, `cancel_subscription`, `pause_subscription`, `resume_subscription` |
+| Tools shipped | **50 tools** — Subscriptions, Payments, Refunds, Checkout Pro, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, Disputes, Lookups, Webhooks management, **handle_webhook combo**, **OAuth Marketplace flow**, **Order Management API** |
 | External dependencies | Mercado Pago access token (TEST or APP_USR), state adapter (Upstash, Redis, Postgres, in-memory, etc.) |
 | Latency | 200–600ms per MP call; <1ms for state ops |
 | Cost | $0 — MP API is free; merchant pays per-transaction fees on auto-charges |
@@ -264,15 +264,20 @@ Methods:
 
 ### `mercadoPagoTools(client, options)`
 
-Returns a `ToolSet` (the Vercel AI SDK type) with five entries:
+Returns a `ToolSet` with **50 tools** spanning the full MP API surface an
+agent typically needs. See [AGENTS.md](./AGENTS.md) for the full list with
+selection guidance. Highlights:
 
-| Tool name                 | What it does                                                      |
-| ------------------------- | ----------------------------------------------------------------- |
-| `create_subscription`     | Create a new subscription, return `init_point_url` for the buyer  |
-| `get_subscription_status` | Read the latest status from MP, merged with cached webhook info   |
-| `cancel_subscription`     | Cancel the subscription (triggers safety guardrail, see #9)       |
-| `pause_subscription`      | Pause an authorized subscription                                  |
-| `resume_subscription`     | Resume a paused subscription                                      |
+- **Subscriptions + Plans** (10 tools): create_subscription, create_subscription_plan, subscribe_to_plan, list_subscription_payments, pause/resume/cancel
+- **Payments + Refunds** (7 tools): create_payment, search_payments, capture_payment, refund_payment, list_refunds…
+- **Checkout Pro** (2 tools): create_payment_preference, get_payment_preference
+- **Customers + Saved Cards** (4 tools): create_customer, find_customer_by_email, list_customer_cards, charge_saved_card (CVV-required)
+- **In-store QR + POS** (4 tools): create_qr_payment, cancel_qr_payment, create_store, create_pos
+- **Cuotas + lookups** (3 tools): calculate_installments, list_payment_methods, list_issuers
+- **Disputes + Webhooks management** (6 tools): list_payment_disputes, create_webhook, list_webhooks…
+- **v0.5 — Webhook handler combo** (1 tool): `handle_webhook` — verify HMAC + parse + auto-fetch in ONE call
+- **v0.5 — OAuth Marketplace** (3 tools): `oauth_authorize_url`, `oauth_exchange_code`, `oauth_refresh_token` — wire third-party MP accounts to your platform
+- **v0.5 — Order Management API** (5 tools): `create_order`, `get_order`, `update_order`, `capture_order`, `cancel_order` — modern API with auth-only support and marketplace splits
 
 Options:
 
@@ -281,7 +286,66 @@ mercadoPagoTools(client, {
   state: SubscriptionStateAdapter;       // required
   backUrl: string;                        // required, must be HTTPS
   descriptions?: Partial<Record<ToolName, string>>; // optional override
+  webhookSecret?: string;                 // for handle_webhook (HMAC verify)
+  oauth?: { clientId, clientSecret };     // for OAuth marketplace flow
 });
+```
+
+### v0.5 — Webhook handler combo
+
+```ts
+// In your /api/mercadopago/webhook handler
+const result = await tools.handle_webhook.execute({
+  raw_body: await req.text(),
+  signature_header: req.headers.get("x-signature"),
+  request_id_header: req.headers.get("x-request-id"),
+  auto_fetch: true, // also fetches the Payment / Subscription
+}, ctx);
+
+if (!result.verified) return new Response("unauthorized", { status: 401 });
+// Use result.event.topic, result.event.dataId, result.resource (Payment | Preapproval | …)
+```
+
+### v0.5 — OAuth Marketplace flow (3 legs)
+
+```ts
+// 1. Build authorize URL — redirect the seller here
+const { url } = await tools.oauth_authorize_url.execute({
+  redirect_uri: "https://app.test/oauth/callback",
+  state: cryptoRandomToken(), // bind to user's session, verify on redirect
+}, ctx);
+
+// 2. On redirect, exchange the code (server-side, secret required)
+const { token } = await tools.oauth_exchange_code.execute({
+  code: req.query.code,
+  redirect_uri: "https://app.test/oauth/callback",
+}, ctx);
+// Persist { token.user_id, token.access_token, token.refresh_token, token.expires_in }
+
+// 3. Refresh proactively (or reactively on 401)
+const { token } = await tools.oauth_refresh_token.execute({
+  refresh_token: savedRefreshToken,
+}, ctx);
+
+// Then operate AS the seller:
+const sellerClient = new MercadoPagoClient({ accessToken: token.access_token });
+```
+
+### v0.5 — Marketplace split payments
+
+For two-sided platforms (Rappi-style) where you collect on a seller's behalf
+and take a fee, pass `marketplace`, `marketplace_fee`, `collector_id` to
+`create_order` (or `create_payment_preference`). Funds route to the seller's
+MP account; `marketplace_fee` (in ARS) goes to your marketplace account.
+
+```ts
+await tools.create_order.execute({
+  type: "online",
+  total_amount: 10_000,
+  marketplace: "MyApp",
+  marketplace_fee: 500,            // ARS (NOT %)
+  collector_id: token.user_id,     // seller MP user_id from OAuth
+}, ctx);
 ```
 
 ### Errors

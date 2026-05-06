@@ -12,6 +12,7 @@ import type {
   CreateRefundParams,
   CreateStoreParams,
   CreateSubscriptionPlanParams,
+  CreateOrderParams,
   CreateWebhookParams,
   Customer,
   CustomerCard,
@@ -19,6 +20,7 @@ import type {
   IdentificationType,
   InstallmentOffer,
   Issuer,
+  Order,
   Payment,
   PaymentMethod,
   PaymentsSearchResult,
@@ -500,6 +502,10 @@ export class MercadoPagoClient {
     if (params.expires !== undefined) body.expires = params.expires;
     if (params.expirationDateFrom) body.expiration_date_from = params.expirationDateFrom;
     if (params.expirationDateTo) body.expiration_date_to = params.expirationDateTo;
+    // v0.5 — Marketplace split routing
+    if (params.marketplace) body.marketplace = params.marketplace;
+    if (params.marketplaceFee !== undefined) body.marketplace_fee = params.marketplaceFee;
+    if (params.collectorId !== undefined) body.collector_id = params.collectorId;
 
     return this.request<Preference>("POST", "/checkout/preferences", body);
   }
@@ -981,6 +987,80 @@ export class MercadoPagoClient {
 
   async deleteWebhook(id: string): Promise<void> {
     await this.request("DELETE", `/v1/webhooks/${id}`);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.5 — Order Management API
+  //
+  // The Order API is MP's newer abstraction for purchases, replacing some
+  // Preference flows. Distinct from Preference: Order is a transactional
+  // entity with explicit lifecycle (created → processed → captured/canceled),
+  // supports manual capture (auth-only, capture later), and can attach
+  // multiple payments to a single Order.
+  //
+  // Use Order when you need:
+  // - Auth-only flow (capture later, e.g. ride-share, hotels)
+  // - Multi-payment aggregation (one Order = N partial payments)
+  // - In-store + online unified status
+  //
+  // Stick with Preference (Checkout Pro) when you just need a hosted pay-link.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Create a new Order. Use `capture_mode: "manual"` for auth-only flows
+   * where you want to capture funds later (ride-share, hotels, marketplaces).
+   *
+   * For marketplace splits, set `marketplace`, `marketplace_fee`,
+   * `collector_id` — see `MarketplaceParams`.
+   */
+  async createOrder(
+    params: CreateOrderParams,
+    options?: RequestOptions,
+  ): Promise<Order> {
+    const body: Record<string, unknown> = {
+      type: params.type,
+    };
+    if (params.currency_id) body.currency_id = params.currency_id;
+    if (params.external_reference) body.external_reference = params.external_reference;
+    if (params.items) body.items = params.items;
+    if (params.total_amount !== undefined) body.total_amount = params.total_amount;
+    if (params.payer) body.payer = params.payer;
+    if (params.capture_mode) body.capture_mode = params.capture_mode;
+    if (params.notification_url) body.notification_url = params.notification_url;
+    if (params.marketplace) body.marketplace = params.marketplace;
+    if (params.marketplace_fee !== undefined) body.marketplace_fee = params.marketplace_fee;
+    if (params.collector_id !== undefined) body.collector_id = params.collector_id;
+
+    return this.request<Order>("POST", "/v1/orders", body, options);
+  }
+
+  async getOrder(id: string): Promise<Order> {
+    return this.request<Order>("GET", `/v1/orders/${id}`);
+  }
+
+  async updateOrder(
+    id: string,
+    patch: Partial<CreateOrderParams>,
+  ): Promise<Order> {
+    return this.request<Order>("PUT", `/v1/orders/${id}`, patch);
+  }
+
+  /**
+   * Capture a previously-authorized Order (only for orders created with
+   * `capture_mode: "manual"`). Captures up to the originally-authorized
+   * amount; pass `amount` for partial capture.
+   */
+  async captureOrder(id: string, amount?: number): Promise<Order> {
+    const body = amount !== undefined ? { amount } : {};
+    return this.request<Order>("POST", `/v1/orders/${id}/capture`, body);
+  }
+
+  /**
+   * Cancel an Order. Releases any auth-holds; marks the Order as canceled.
+   * For orders that have already been captured, use `createRefund` instead.
+   */
+  async cancelOrder(id: string): Promise<Order> {
+    return this.request<Order>("POST", `/v1/orders/${id}/cancel`);
   }
 }
 

@@ -25,6 +25,15 @@ export {
   verifyWebhookSignature,
 } from "./webhook";
 
+// v0.5 — OAuth Marketplace flow
+export {
+  buildAuthorizeUrl,
+  exchangeCodeForToken,
+  refreshAccessToken,
+  expirationTimeMs,
+  isExpiringSoon,
+} from "./oauth";
+
 export {
   MercadoPagoError,
   MercadoPagoAuthError,
@@ -91,6 +100,15 @@ export type {
   WebhookConfig,
   WebhookTopic,
   CreateWebhookParams,
+  // OAuth Marketplace (v0.5)
+  OAuthToken,
+  // Order Management API (v0.5)
+  Order,
+  OrderItem,
+  OrderStatus,
+  CreateOrderParams,
+  // Marketplace split params (v0.5)
+  MarketplaceParams,
   // Common
   CurrencyId,
   FrequencyType,

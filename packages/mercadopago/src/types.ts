@@ -351,6 +351,15 @@ export interface CreatePreferenceParams {
   expires?: boolean;
   expirationDateFrom?: string;
   expirationDateTo?: string;
+  /**
+   * Marketplace split — if set, funds route to `collector_id` (the seller)
+   * and `marketplaceFee` (in ARS) is credited to the marketplace's MP
+   * account. v0.5+. See `MarketplaceParams` for details.
+   */
+  marketplace?: string;
+  marketplaceFee?: number;
+  /** Seller's MP user_id. Funds route here when set. */
+  collectorId?: string | number;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -730,3 +739,170 @@ export interface CreateWebhookParams {
   /** Topic to subscribe to. */
   topic: WebhookTopic | string;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.5 — OAuth Marketplace flow (link third-party MP accounts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Token response from MP's OAuth `/oauth/token` endpoint. The `access_token`
+ * is what you use to make API calls AS the linked seller; the `refresh_token`
+ * is what you use to refresh the access_token before expiration (~6 hours).
+ *
+ * **Persist the refresh_token**: it does NOT expire and is the only way to
+ * keep the integration alive long-term.
+ *
+ * **Always store `user_id`** alongside the tokens — it identifies WHICH
+ * seller these tokens belong to (you'll have many in a marketplace).
+ */
+export const OAuthTokenSchema = z.object({
+  access_token: z.string(),
+  token_type: z.string().optional(),
+  /** Seconds until access_token expires. Typically 21600 (6h). */
+  expires_in: z.number().optional(),
+  scope: z.string().optional(),
+  /** The MP user_id of the seller who authorized your app. */
+  user_id: z.union([z.string(), z.number()]).transform(String),
+  refresh_token: z.string().optional(),
+  public_key: z.string().optional(),
+  live_mode: z.boolean().optional(),
+}).passthrough();
+export type OAuthToken = z.infer<typeof OAuthTokenSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.5 — Order Management API (the new API replacing some Preference flows)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Status of an Order. Distinct from Payment status — an Order can have
+ * multiple payments and the Order status reflects the aggregate state.
+ */
+export const OrderStatusSchema = z.union([
+  z.literal("created"),
+  z.literal("processed"),
+  z.literal("action_required"),
+  z.literal("canceled"),
+  z.literal("expired"),
+  z.literal("refunded"),
+  z.string(),
+]);
+export type OrderStatus = z.infer<typeof OrderStatusSchema>;
+
+export const OrderItemSchema = z.object({
+  title: z.string(),
+  unit_price: z.number(),
+  quantity: z.number(),
+  description: z.string().optional(),
+  id: z.string().optional(),
+  category_id: z.string().optional(),
+  picture_url: z.string().optional(),
+}).passthrough();
+export type OrderItem = z.infer<typeof OrderItemSchema>;
+
+export const OrderSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  type: z.string().optional(),
+  status: OrderStatusSchema.optional(),
+  status_detail: z.string().optional(),
+  external_reference: z.string().optional(),
+  total_amount: z.union([z.number(), z.string()]).optional(),
+  /** Currency for this Order (e.g. "ARS"). */
+  currency_id: z.string().optional(),
+  date_created: z.string().optional(),
+  date_last_updated: z.string().optional(),
+  items: z.array(OrderItemSchema).optional(),
+  /** Underlying transactions (payments) attached to this Order. */
+  transactions: z
+    .object({
+      payments: z.array(z.unknown()).optional(),
+      refunds: z.array(z.unknown()).optional(),
+    })
+    .passthrough()
+    .optional(),
+  /** Capture mode: "automatic" (charges immediately) or "manual" (auth-only). */
+  capture_mode: z.string().optional(),
+}).passthrough();
+export type Order = z.infer<typeof OrderSchema>;
+
+export interface CreateOrderParams {
+  /**
+   * Order type. Common values:
+   * - "online" — checkout-style (the most common)
+   * - "in_store" — POS QR / in-person
+   */
+  type: "online" | "in_store" | string;
+  /** Currency (e.g. "ARS"). */
+  currency_id?: string;
+  /** External reference for reconciliation (your internal id). */
+  external_reference?: string;
+  /** Items being ordered. */
+  items?: OrderItem[];
+  /** Total amount if you'd rather not itemize. */
+  total_amount?: number;
+  /** Customer info (payer). */
+  payer?: {
+    email?: string;
+    first_name?: string;
+    last_name?: string;
+    identification?: { type?: string; number?: string };
+  };
+  /**
+   * Capture mode:
+   * - "automatic" (default) — charge immediately when paid.
+   * - "manual" — authorize only, capture later via captureOrder().
+   */
+  capture_mode?: "automatic" | "manual";
+  /**
+   * Notification URL — MP fires webhooks for order lifecycle events here.
+   */
+  notification_url?: string;
+  /**
+   * Marketplace fee + collector — required for marketplace integrations
+   * where YOU collect on behalf of a third-party seller (you take a fee,
+   * the rest goes to the seller).
+   */
+  marketplace?: string;
+  marketplace_fee?: number;
+  collector_id?: string | number;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.5 — Marketplace split payments (also usable on regular Preference)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Marketplace fee + collector params, applied to a Preference or Order.
+ *
+ * **How it works**: when you create a Preference or Order with
+ * `collector_id` set to a SELLER's MP user_id (not yours), and you have a
+ * valid OAuth access_token for that seller, MP routes the funds to the
+ * seller's MP account, and credits `marketplace_fee` (in ARS, not %) to
+ * YOUR marketplace account.
+ *
+ * Used for two-sided platforms (Rappi, MercadoLibre, Tienda Nube, etc.)
+ * where your platform takes a fee and the seller keeps the rest.
+ */
+export interface MarketplaceParams {
+  /**
+   * Marketplace identifier — your application's marketplace name (you set
+   * this when registering your app in MP's dev panel).
+   */
+  marketplace?: string;
+  /**
+   * Fee in ARS (NOT a percentage) that goes to your marketplace account.
+   * Compute it from your own commission rate before passing.
+   */
+  marketplace_fee?: number;
+  /**
+   * The SELLER's MP user_id. The funds go to this account; the
+   * `marketplace_fee` is split off and goes to YOUR account.
+   * Get this from `OAuthToken.user_id` after the seller authorizes your app.
+   */
+  collector_id?: string | number;
+  /**
+   * Optional: split among multiple sellers. If set, `collector_id` /
+   * `marketplace_fee` are ignored.
+   */
+  application_fee?: number;
+}
+
