@@ -1,8 +1,15 @@
 name: Release
 
+# Manual trigger only. Publishing is currently done by hand via `npm publish`
+# from a maintainer's machine. This workflow is kept for the day we wire up
+# the changesets/action automated flow.
+#
+# Was firing on every push and spamming failure emails because the auto-PR
+# step ("changesets/action" creating a Version Packages PR) requires
+# "Allow GitHub Actions to create and approve pull requests" enabled in
+# repo settings → Actions → General. Until that's enabled, leave manual.
 on:
-  push:
-    branches: [main]
+  workflow_dispatch:
 
 concurrency: ${{ github.workflow }}-${{ github.ref }}
 

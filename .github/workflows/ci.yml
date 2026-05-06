@@ -23,14 +23,17 @@ jobs:
       - name: Install
         run: pnpm install --frozen-lockfile
 
+      # Build FIRST — packages with workspace deps (e.g. facturacion → identity/wsaa)
+      # need consumed package's dist/*.d.ts to exist before typecheck resolves
+      # the subpath exports.
+      - name: Build packages
+        run: pnpm -r --filter "./packages/*" run build
+
       - name: Typecheck packages
         run: pnpm -r --filter "./packages/*" run typecheck
 
       - name: Test packages (with coverage)
         run: pnpm -r --filter "./packages/*" run test:coverage
-
-      - name: Build packages
-        run: pnpm -r --filter "./packages/*" run build
 
       - name: Validate package.json + .d.ts (publint + arethetypeswrong)
         run: pnpm -r --filter "./packages/*" run validate
