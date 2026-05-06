@@ -16,6 +16,7 @@ deploy on Vercel as-is.
 | 06  | `06-3ds-challenge.ts`             | Detect challenge → redirect buyer → recover via webhook                 |
 | 07  | `07-auth-only-order.ts`           | `Order` with manual capture → capture later when service completes      |
 | 08  | `08-recovery-patterns.ts`         | Retry expired subscriptions, recover stuck-pending payments, etc.       |
+| 09  | `09-otel-wired.ts`                | Full OpenTelemetry wiring — spans + metrics for every MP call + tool    |
 
 ## Conventions
 

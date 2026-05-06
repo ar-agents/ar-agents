@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.6
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.12.0` (idempotency-by-default) and
+  `@ar-agents/whatsapp@0.2.0` (`scopedTo` mode for agent-hijacking
+  prevention).
+- **19 new registry tests** (`test/registries.test.ts`) covering both
+  configured and unconfigured paths for every registry factory:
+  identity, banking, mercadopago, whatsapp, shipping, facturacion,
+  identity-attest. Honest coverage now at 74%/48%/92%/74% (was
+  66%/26%/88%/66% with the previous threshold relaxation).
+- Coverage thresholds raised to match the new floor: 70/45/90/70.
+
 ## 0.4.5
 
 ### Patch Changes

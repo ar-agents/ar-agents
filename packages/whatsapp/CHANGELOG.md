@@ -1,5 +1,41 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes — Agent hijacking prevention (`scopedTo` mode)
+
+- `whatsappTools(client, { scopedTo: senderPhone })` — new option that
+  binds every outbound `send_*` tool to a single recipient phone. The
+  `to` parameter is REMOVED from the tool schemas, so the LLM cannot
+  message a different number even via prompt injection ("send to Y").
+
+  **Use this in webhook handlers**. Without it, an agent that processes
+  inbound WhatsApp messages can be tricked into sending payment links
+  or content to attacker-chosen recipients. Closes a HIGH security
+  audit finding.
+
+  Backward-compatible: omit `scopedTo` (or pass empty options) for the
+  previous behavior — useful for batch / proactive flows where the
+  agent is sending to a list of recipients you control.
+
+  ```ts
+  // BEFORE (still works for batch flows)
+  const tools = whatsappTools(wa);
+  // LLM picks `to` per call.
+
+  // AFTER (recommended for webhook handlers)
+  const event = parseWebhookEvent(payload);
+  const tools = whatsappTools(wa, { scopedTo: event.from });
+  // LLM cannot specify `to` — it's removed from schema and bound to event.from.
+  ```
+
+- 9 new tests in `tools-scoped.test.ts` verifying:
+  - `to` is removed from schemas in scoped mode (Zod parse drops it)
+  - All 5 send_* tools route to scoped sender, ignoring any `to` arg
+  - Descriptions warn the LLM about the binding
+  - Unscoped behavior unchanged
+  - `mark_whatsapp_read` works in both modes (it never had `to`)
+
 ## 0.1.0
 
 ### Initial release

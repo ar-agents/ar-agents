@@ -130,7 +130,16 @@ const ATTEST_SIGNING_SECRET = requireAttestSigningSecret();
 const MP_BACK_URL =
   process.env.MP_BACK_URL ?? "https://whatsapp-hello.example.com/billing/done";
 
-export function createWhatsAppHelloAgent() {
+/**
+ * Create the agent. Pass `scopedTo` (sender phone) when called from the
+ * webhook handler — that locks every send_whatsapp_* tool to the inbound
+ * sender so a crafted message can't trick the agent into messaging a
+ * different number. Closes /cso security audit finding F5.
+ *
+ * Without `scopedTo` (e.g., the demo /api/agent route, batch flows), the
+ * tools accept arbitrary `to` arguments.
+ */
+export function createWhatsAppHelloAgent(options: { scopedTo?: string } = {}) {
   const afip = buildAfipAdapter();
   const mp = buildMpClient();
   const { client: wa, mode } = buildWhatsAppClient();
@@ -152,7 +161,7 @@ export function createWhatsAppHelloAgent() {
   const tools = {
     ...identityTools(afip ? { afip } : {}),
     ...(mp ? mercadoPagoTools(mp, { state: mpStateAdapter, backUrl: MP_BACK_URL }) : {}),
-    ...whatsappTools(wa as WhatsAppClient),
+    ...whatsappTools(wa as WhatsAppClient, options.scopedTo ? { scopedTo: options.scopedTo } : {}),
     ...identityAttestTools(attestation),
   };
 

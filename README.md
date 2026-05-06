@@ -21,21 +21,62 @@ and clean APIs.
 > composition with other packages, latency tables). See the table below for
 > direct links.
 
-## Packages
+## Architecture
 
-| Package | Status | README | AGENTS.md |
-| --- | --- | --- | --- |
-| [`@ar-agents/mercadopago`](./packages/mercadopago) | v0.1 alpha | [README](./packages/mercadopago/README.md) | [AGENTS.md](./packages/mercadopago/AGENTS.md) |
-| [`@ar-agents/identity`](./packages/identity) | v0.1 alpha | [README](./packages/identity/README.md) | [AGENTS.md](./packages/identity/AGENTS.md) |
-| `@ar-agents/whatsapp` (planned) | not yet | — | — |
-| `@ar-agents/meta-ads` (planned) | not yet | — | — |
+```
+                                 ┌─────────────────────────────┐
+                                 │    Your Agent (Vercel AI    │
+                                 │    SDK 6 Experimental_Agent)│
+                                 └──────────────┬──────────────┘
+                                                │
+                          ┌─────────────────────┴──────────────────────┐
+                          │            Tool dispatch                   │
+                          │            (~70 tools across 8 packages)   │
+                          └──────────────────┬─────────────────────────┘
+                                             │
+   ┌─────────────────┬─────────────────┬─────┴───────┬──────────────────┬─────────────────┐
+   │                 │                 │             │                  │                 │
+   ▼                 ▼                 ▼             ▼                  ▼                 ▼
+identity         identity-attest   mercadopago   whatsapp           facturacion       banking + shipping
+─────────        ───────────────   ────────────   ────────           ────────────      ─────────────────
+CUIT validate    Trust-level       Subscriptions  Send / receive    Factura A/B/C    CBU/CVU validate
+ARCA padrón      attestation       Payments       Templates +       FCE MiPyMEs      Bank lookup
+WSAA cert        adapters: WA      OAuth          interactive       Pre-flight       BCRA Central
+                 OTP, email,       Marketplace    Webhook + HMAC    validator         de Deudores
+                 Auth0, Magic,     QR + Cuotas    Phone normalize                    OCA / Andreani
+                 MP Identity       3DS / fraud                                        / Correo
+                                   Webhook + HMAC
 
-## Apps
+                  All compose. All ship as Vercel AI SDK 6 tools. All Edge-Runtime safe.
+                  Same Argentine X.509 cert reused across identity + facturacion.
 
-| App | Port | Purpose |
+   ┌───────────────────────────────────────────────────────────┐
+   │   @ar-agents/mcp — wraps everything as an MCP server      │
+   │   (use the toolkit from Claude Desktop, Cursor, etc.)     │
+   └───────────────────────────────────────────────────────────┘
+```
+
+## Packages (8 published to npm)
+
+| Package | Tools | Description |
 | --- | --- | --- |
-| [`apps/mp-hello`](./apps/mp-hello) | 3013 | Reference app: Vercel AI SDK + `@ar-agents/mercadopago` end-to-end demo |
-| [`apps/cuit-hello`](./apps/cuit-hello) | 3014 | Reference app: CUIT/CUIL validation via `@ar-agents/identity` (agent + REST endpoints) |
+| [`@ar-agents/mercadopago`](./packages/mercadopago) | 30 | Subscriptions, Payments, OAuth marketplace, Cuotas, QR, 3DS, fraud scoring (`additional_info`), webhooks (HMAC + replay protection), idempotency-by-default. Edge Runtime + Vercel KV adapter. Tool middleware (compose). [Cookbook](./packages/mercadopago/cookbook) (8 recipes), [MIGRATION.md](./packages/mercadopago/MIGRATION.md) vs official SDK. |
+| [`@ar-agents/identity`](./packages/identity) | 2 | CUIT/CUIL validation (modulo-11) + AFIP/ARCA padrón lookup. WSAA SOAP cert auth via subpath. Constancia inscripción (monotributo + IVA condition). |
+| [`@ar-agents/identity-attest`](./packages/identity-attest) | 5 | RENAPER workaround pattern. Agent orchestrates verification (WhatsApp OTP, email magic-link, Auth0, Magic.link, MP Identity), gets back HMAC-signed Attestation with `trustLevel: 0..1`. The pattern that didn't exist anywhere. |
+| [`@ar-agents/whatsapp`](./packages/whatsapp) | 6 | WhatsApp Business Cloud API. Send text/template/media/buttons/list. Webhook parser + HMAC verification. AR phone normalizer. **`scopedTo` mode** binds outbound tools to a single sender (prevents agent hijacking). |
+| [`@ar-agents/facturacion`](./packages/facturacion) | 10 | AFIP/ARCA factura electrónica (WSFE). Factura A/B/C, NC/ND, FCE MiPyMEs. Local pre-flight validator (catches the 10 most common rejection reasons before round-trip). Reuses identity's X.509. |
+| [`@ar-agents/banking`](./packages/banking) | 5 | CBU/CVU validation with bank/PSP identification. Bank/PSP enumeration. BCRA Central de Deudores. Public BCRA adapter ships by default. |
+| [`@ar-agents/shipping`](./packages/shipping) | 6 | OCA + Correo Argentino + Andreani rate calculation, label creation, tracking. AR provincia normalizer. |
+| [`@ar-agents/mcp`](./packages/mcp) | wraps all | Model Context Protocol server. Drop the entire toolkit into Claude Desktop, Cursor, any MCP-aware client. |
+
+## Live demos
+
+| App | URL | What it shows |
+| --- | --- | --- |
+| [Landing](./apps/landing) | <https://ar-agents.vercel.app> | Toolkit overview |
+| [cuit-hello](./apps/cuit-hello) | <https://ar-agents-cuit-hello.vercel.app> | CUIT validation + ARCA padrón lookup (real AFIP cert) |
+| [whatsapp-hello](./apps/whatsapp-hello) | <https://ar-agents-whatsapp-hello.vercel.app> | Billing assistant combining all 5 packages — the full pattern |
+| [mp-hello](./apps/mp-hello) | dev-only | MP Subscriptions full flow (run locally, port 3013) |
 
 ## Documentation philosophy
 

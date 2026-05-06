@@ -1,0 +1,51 @@
+name: Feature request
+description: Suggest a new tool, adapter, or capability.
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an enhancement. Please describe the use case first
+        — what would you accomplish that's hard or impossible today?
+
+        For new MP / WhatsApp / AFIP capabilities: linking to the official API doc
+        for the endpoint helps prioritize.
+
+  - type: input
+    id: package
+    attributes:
+      label: Target package
+      description: Which `@ar-agents/*` package would this live in? (Or a new one?)
+      placeholder: "e.g. @ar-agents/mercadopago, @ar-agents/banking, new @ar-agents/x"
+    validations:
+      required: true
+
+  - type: textarea
+    id: usecase
+    attributes:
+      label: Use case
+      description: What are you trying to do? Concrete user scenario, not abstract.
+      placeholder: "An agent that handles a SaaS billing flow needs to ..."
+    validations:
+      required: true
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed API / tool shape
+      description: |
+        What would the tool be called? What params? What does it return?
+        Pseudocode is fine.
+      render: ts
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Existing workarounds, other libs, manual approaches.
+
+  - type: textarea
+    id: refs
+    attributes:
+      label: Reference docs
+      description: Link to MP / Meta / AFIP / Vercel official docs covering the endpoint or pattern.

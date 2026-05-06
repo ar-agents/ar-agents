@@ -1,0 +1,65 @@
+name: Bug report
+description: Something is broken — file a reproducible bug.
+labels: ["bug"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for taking the time to report a bug. Before submitting, please:
+
+        - **Security issues**: do NOT file here. Email clementenaza@gmail.com per [SECURITY.md](../../SECURITY.md).
+        - **Question / support**: please use [Discussions](../../discussions) instead.
+        - Check existing issues / closed issues — your bug may already be fixed.
+
+  - type: input
+    id: package
+    attributes:
+      label: Affected package
+      description: Which `@ar-agents/*` package?
+      placeholder: "e.g. @ar-agents/mercadopago@0.11.0"
+    validations:
+      required: true
+
+  - type: input
+    id: runtime
+    attributes:
+      label: Runtime
+      description: Node version, Edge / Vercel / Cloudflare / browser, etc.
+      placeholder: "Node 22.15.0 + Vercel Edge Runtime"
+    validations:
+      required: true
+
+  - type: textarea
+    id: reproduce
+    attributes:
+      label: Reproduction
+      description: |
+        Minimal code that reproduces the bug. A link to a CodeSandbox or repro repo is best;
+        otherwise paste the smallest snippet that triggers the issue.
+      render: ts
+    validations:
+      required: true
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: What you expected to happen
+    validations:
+      required: true
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: What actually happened
+      description: Include full error message and stack trace if any.
+      render: shell
+    validations:
+      required: true
+
+  - type: textarea
+    id: env
+    attributes:
+      label: Additional environment context
+      description: |
+        Anything else relevant — adapter implementation in use (Vercel KV, in-memory),
+        AR-specific quirks (sandbox vs prod, MLA vs other site), monorepo / framework setup.

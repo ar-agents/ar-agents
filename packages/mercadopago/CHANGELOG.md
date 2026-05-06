@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.12.0
+
+### Minor Changes — Idempotency-by-default for state-mutating writes
+
+`MercadoPagoClient` now auto-generates a UUID v4 X-Idempotency-Key header on
+every state-mutating POST request when the caller doesn't provide one
+explicitly. Naive callers (and the LLM tools layer) often forget to pass an
+idempotency key, leaving them exposed to double-charge bugs on network
+partitions. This makes the safe default: safe.
+
+- **Auto-generated keys are unique per call** (Web Crypto's `randomUUID()` —
+  Edge Runtime + Node 19+ + Cloudflare Workers + browsers).
+- **Caller-supplied keys still win** — pass `idempotencyKey: "..."` for
+  deterministic retries from a job queue (e.g., same key across retry
+  attempts).
+- **Only POST requests are auto-keyed.** GET / DELETE are HTTP-idempotent
+  by spec. PUT skips auto-gen because MP's PUT endpoints encode the dedup
+  key in the resource path (`/v1/payments/:id` → cancel; `/preapproval/:id` →
+  pause/resume — already deduped by id).
+
+6 new tests in `idempotency-default.test.ts` verify:
+- UUID v4 format on auto-gen
+- Different keys per call
+- Caller-supplied keys honored over auto-gen
+- GET requests NOT keyed
+- Works for `createPayment`, `createPreference`, `createPreapproval`
+
+### New cookbook recipe
+
+- `cookbook/09-otel-wired.ts` — full OpenTelemetry wiring example. Shows
+  how to wire `traceContext` for distributed-trace correlation, instrument
+  the client + tools, and what the resulting trace + metric shape looks
+  like in your APM. Closes the half-finished OTel story (lib + subpath
+  existed since v0.10 but no recipe wired it end-to-end).
+
 ## 0.11.0
 
 ### Minor Changes — Composability + cross-LATAM + fraud scoring

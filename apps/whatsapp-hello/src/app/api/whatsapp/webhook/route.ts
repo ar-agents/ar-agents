@@ -117,7 +117,10 @@ export async function POST(req: NextRequest) {
         ? `[user picked option: ${event.message.title}]`
         : `[user sent ${event.message.type}]`;
 
-  const { agent } = createWhatsAppHelloAgent();
+  // Scope WhatsApp tools to the inbound sender so the agent CANNOT message a
+  // different number even if the user attempts to inject "send to X" prompts.
+  // Closes /cso security audit finding F5.
+  const { agent } = createWhatsAppHelloAgent({ scopedTo: event.from });
   // Fire-and-forget — let the agent process and (in live mode) send a reply
   // via send_whatsapp_text. Webhook responds 200 immediately so Meta doesn't
   // retry. Production: queue this to a worker for reliability.
@@ -128,7 +131,7 @@ De: ${event.from} (${event.fromName ?? "sin nombre"})
 Texto: ${text}
 wamid: ${event.messageId}
 
-Procesalo según tu workflow. Acordate de marcar como leído (mark_whatsapp_read) y responder con send_whatsapp_text.`,
+Procesalo según tu workflow. Acordate de marcar como leído (mark_whatsapp_read) y responder con send_whatsapp_text — los tools ya están bound al número del sender, no podés mensajear a otro.`,
     })
     .catch((err) => {
       console.error("[wa-webhook] agent error:", err);

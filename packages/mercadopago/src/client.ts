@@ -51,6 +51,46 @@ function sleep(ms: number): Promise<void> {
   return new Promise((resolve) => setTimeout(resolve, ms));
 }
 
+/**
+ * Edge-compatible UUID v4. Uses Web Crypto's `crypto.randomUUID()` when
+ * available (Node 19+, Edge Runtime, modern browsers), falls back to
+ * `crypto.getRandomValues()`-driven RFC 4122 v4 generation otherwise.
+ *
+ * Used for auto-generating idempotency keys for state-mutating MP requests
+ * when the caller doesn't provide one explicitly.
+ */
+function randomUuid(): string {
+  // Web Crypto's randomUUID is the cleanest path. Available in:
+  // - Node 19+ (also via `node:crypto` from 14.17+ but `crypto.randomUUID`
+  //   on globalThis only landed in 19+)
+  // - Vercel Edge Runtime
+  // - Cloudflare Workers
+  // - All modern browsers (https://caniuse.com/mdn-api_crypto_randomuuid)
+  const c = (globalThis as { crypto?: Crypto }).crypto;
+  if (c?.randomUUID) {
+    return c.randomUUID();
+  }
+  // Fallback for runtimes without randomUUID but with getRandomValues.
+  if (c?.getRandomValues) {
+    const bytes = new Uint8Array(16);
+    c.getRandomValues(bytes);
+    // RFC 4122 v4: set version (0100xxxx) and variant (10xxxxxx) bits.
+    // The bang assertions are safe — we just allocated a fixed-size 16-byte
+    // Uint8Array; tsc's noUncheckedIndexedAccess sees `number | undefined`
+    // but indices 0..15 are guaranteed in-range.
+    bytes[6] = (bytes[6]! & 0x0f) | 0x40;
+    bytes[8] = (bytes[8]! & 0x3f) | 0x80;
+    const hex = Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
+    return `${hex.slice(0, 8)}-${hex.slice(8, 12)}-${hex.slice(12, 16)}-${hex.slice(16, 20)}-${hex.slice(20)}`;
+  }
+  // No crypto available — should never happen on supported runtimes.
+  // Throw rather than emit a weak random key (that defeats idempotency).
+  throw new Error(
+    "MercadoPagoClient: no Web Crypto available for idempotency key generation. " +
+      "This shouldn't happen on Node 19+, Edge Runtime, or modern browsers.",
+  );
+}
+
 export interface MercadoPagoClientOptions {
   /** Access token. TEST- prefix for sandbox, APP_USR- for production. */
   accessToken: string;
@@ -222,8 +262,25 @@ export class MercadoPagoClient {
       Authorization: `Bearer ${this.accessToken}`,
       "Content-Type": "application/json",
     };
-    if (options?.idempotencyKey) {
-      headers["X-Idempotency-Key"] = options.idempotencyKey;
+    // Idempotency-by-default for state-mutating writes. MP's API treats the
+    // X-Idempotency-Key header as "if a duplicate of a request with the same
+    // key arrives within the dedup window, return the original response
+    // instead of executing again". This protects against duplicate charges
+    // when the network drops a response after MP processed it.
+    //
+    // We auto-generate a UUID v4 for POST requests that don't pass one
+    // explicitly. Callers wanting deterministic retries (same key across
+    // attempts, e.g., from a job queue) can still pass `idempotencyKey`
+    // and we use that instead.
+    //
+    // GET / DELETE are not auto-keyed — they're idempotent by HTTP semantics.
+    // PUT skips auto-gen because MP uses PUT for status mutations
+    // (cancel/pause/resume) where the resource id IS the dedup key.
+    const isMutatingPost = method === "POST";
+    const idempotencyKey =
+      options?.idempotencyKey ?? (isMutatingPost ? randomUuid() : undefined);
+    if (idempotencyKey) {
+      headers["X-Idempotency-Key"] = idempotencyKey;
     }
 
     // v0.9 — W3C Trace Context propagation. If the caller wired traceContext,
