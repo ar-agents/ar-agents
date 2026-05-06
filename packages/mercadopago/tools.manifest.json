@@ -656,7 +656,6 @@
   ],
   "name": "@ar-agents/mercadopago",
   "meta": {
-    "generated_at": "2026-05-06T20:54:56.481Z",
     "generated_by": "scripts/regen-manifests.mjs",
     "tool_count": 89
   }

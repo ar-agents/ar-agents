@@ -72,7 +72,6 @@
   ],
   "name": "@ar-agents/shipping",
   "meta": {
-    "generated_at": "2026-05-06T20:54:56.487Z",
     "generated_by": "scripts/regen-manifests.mjs",
     "tool_count": 6
   }

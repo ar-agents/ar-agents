@@ -53,7 +53,6 @@
   ],
   "name": "@ar-agents/identity",
   "meta": {
-    "generated_at": "2026-05-06T20:54:56.454Z",
     "generated_by": "scripts/regen-manifests.mjs",
     "tool_count": 2
   }

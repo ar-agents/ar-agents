@@ -88,12 +88,16 @@ for (const pkg of packages) {
     name: pkgJson.name,
     version: pkgJson.version,
     tools: newTools,
-    meta: {
-      ...(oldManifest.meta ?? {}),
-      generated_at: new Date().toISOString(),
-      generated_by: "scripts/regen-manifests.mjs",
-      tool_count: newTools.length,
-    },
+    meta: (() => {
+      // Strip wall-clock timestamps from prior meta so the CI drift check
+      // doesn't false-positive on every run. Anything else in meta is kept.
+      const { generated_at: _ignoredGenAt, ...prior } = oldManifest.meta ?? {};
+      return {
+        ...prior,
+        generated_by: "scripts/regen-manifests.mjs",
+        tool_count: newTools.length,
+      };
+    })(),
   };
 
   writeFileSync(manifestPath, JSON.stringify(newManifest, null, 2) + "\n");
