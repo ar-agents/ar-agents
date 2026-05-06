@@ -100,6 +100,28 @@ export {
   type CuotasPromo,
 } from "./ar-issuer-promos";
 
+// v0.11 — Tool middleware pattern
+export {
+  applyToAllTools,
+  compose,
+  withAuditLog,
+  withMetrics,
+  withRateLimit,
+  withRetry,
+  type MetricsHook,
+  type RetryOptions,
+  type ToolMiddleware,
+} from "./middleware";
+
+// v0.11 — TaxID validation cross-LATAM (pure)
+export {
+  detectAndValidate,
+  validateTaxId,
+  type TaxIdCountry,
+  type TaxIdType,
+  type TaxIdValidationResult,
+} from "./tax-id";
+
 // v0.7 — Pure helpers
 export {
   computeMarketplaceFee,

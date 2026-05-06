@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.4.5
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.11.0` — composability + cross-LATAM + fraud scoring:
+  - **Tool middleware pattern**: `withAuditLog`, `withRateLimit`, `withMetrics`, `withRetry` + `compose()`
+  - **TaxID validation cross-LATAM**: AR/BR/MX/CL/CO/UY/PE
+  - **`additional_info` enrichment** on `create_payment` (fraud scoring → 3-5x lower rejection rate per RG 5286/2023)
+  - **VercelKVAuditLog** with day/actor/tenant indexes
+  - **Migration guide** vs official `mercadopago` SDK
+  - **+1 tool** (`validate_tax_id`) → 87 total
+  - **284 tests pass** (was 245)
+
 ## 0.4.4
 
 ### Patch Changes

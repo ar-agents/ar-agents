@@ -1,5 +1,25 @@
 # Changelog
 
+## 0.11.0
+
+### Minor Changes — Composability + cross-LATAM + fraud scoring
+
+**Tool middleware pattern (NEW)**: composable wrappers around any AI SDK tool. Ships `withAuditLog`, `withRateLimit`, `withMetrics`, `withRetry` + `compose()` + `applyToAllTools()`. Add audit + rate-limit + metrics to every tool with a single config block instead of wiring each concern into the tool implementation.
+
+**TaxID validation cross-LATAM (NEW)**: `validateTaxId(input, type)` for AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ two-step weighted), MX (RFC structure), CL (RUT with K), CO (NIT modulo-11), UY (RUT 12-digit), PE (RUC 11-digit + prefix). `detectAndValidate(input, country)` auto-detects type from length. New `validate_tax_id` agent tool. Pure, no network.
+
+**`additional_info` on `create_payment` (fraud scoring enrichment)**: `payer` profile (registration_date, authentication_type, is_first_purchase, is_prime_user, last_purchase), `shipments` (receiver_address, express_shipment, local_pickup), `ip_address`, `referral_url`. Per MP RG 5286/2023, payments without enrichment have 3-5x higher rejection rate — this is a real conversion uplift. Documented in tool description so the agent surfaces it proactively.
+
+**VercelKVAuditLog (NEW)**: production audit-log adapter in `@ar-agents/mercadopago/vercel-kv` subpath. Storage layout: per-entry key + ZSET indexes by day/actor/tenant for O(log N) time-range queries. Backed by Vercel KV (Upstash Redis).
+
+**Migration guide vs `mercadopago` (official SDK)** — `MIGRATION.md` shipped in tarball with side-by-side mappings, conceptual table, "when to use both" section.
+
+**CI fixes**: build packages BEFORE typecheck (was failing for facturacion → identity workspace dep with subpath exports). Release workflow now `workflow_dispatch` only (was spamming failure emails on every push because changesets/action couldn't create PRs without explicit repo permission).
+
+**New tools**: `validate_tax_id`. Tool count: **87** (was 86).
+
+**Quality**: 284 tests pass (was 245; +39 v0.11 tests covering middleware, taxId, and more). publint clean, attw 🟢 across 3 subpaths. Bundle: main 42.9 KB brotli'd (size budget bumped 40→50 KB).
+
 ## 0.10.0
 
 ### Minor Changes — Compliance + DX + observability deepening

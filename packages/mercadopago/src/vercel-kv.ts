@@ -60,6 +60,7 @@
 
 import { kv as defaultKv } from "@vercel/kv";
 import type { VercelKV } from "@vercel/kv";
+import type { AuditEntry, AuditLogAdapter, AuditOperation } from "./audit";
 import type {
   IdempotencyCache,
   OAuthTokenRecord,
@@ -71,6 +72,7 @@ import type {
 const DEFAULT_SUBSCRIPTION_PREFIX = "mp:sub:";
 const DEFAULT_OAUTH_PREFIX = "mp:oauth:";
 const DEFAULT_IDEMPOTENCY_PREFIX = "mp:idem:";
+const DEFAULT_AUDIT_PREFIX = "mp:audit:";
 
 interface VercelKVAdapterOptions {
   /**
@@ -196,5 +198,135 @@ export class VercelKVIdempotencyCache implements IdempotencyCache {
 
   async delete(key: string): Promise<void> {
     await this.kv.del(this.key(key));
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AuditLogAdapter — production audit trail with daily-bucket indexing
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Vercel KV–backed audit log adapter. Stores each entry under
+ * `mp:audit:entry:{id}` AND adds the id to a daily index sorted set
+ * `mp:audit:day:{YYYY-MM-DD}` (score = timestamp ms). This gives O(log N)
+ * time-range queries ("all entries from May 1 to May 5") without scanning
+ * the entire log.
+ *
+ * # Storage layout
+ *
+ * - `mp:audit:entry:{id}` → the full entry JSON
+ * - `mp:audit:day:{YYYY-MM-DD}` → ZSET of entry ids by timestamp (ms)
+ * - `mp:audit:actor:{actor}` → ZSET of entry ids by timestamp (for "all
+ *   entries by actor X")
+ * - `mp:audit:tenant:{tenantId}` → same, by tenant
+ *
+ * # Cost considerations
+ *
+ * Each `append()` does 1-3 KV writes (entry + 1-2 indexes). For high-traffic
+ * deployments (>10/s sustained), batch via your own queue (e.g., Vercel
+ * Queues with daily flush) and provide a custom adapter that batches.
+ */
+export class VercelKVAuditLog implements AuditLogAdapter {
+  private readonly kv: VercelKV;
+  private readonly prefix: string;
+
+  constructor(options: VercelKVAdapterOptions = {}) {
+    this.kv = options.kv ?? defaultKv;
+    this.prefix = options.prefix ?? DEFAULT_AUDIT_PREFIX;
+  }
+
+  async append(entry: AuditEntry): Promise<void> {
+    const ts = new Date(entry.timestamp).getTime();
+    const day = entry.timestamp.slice(0, 10); // YYYY-MM-DD
+    await Promise.all([
+      this.kv.set(`${this.prefix}entry:${entry.id}`, entry),
+      this.kv.zadd(`${this.prefix}day:${day}`, { score: ts, member: entry.id }),
+      this.kv.zadd(`${this.prefix}actor:${entry.actor}`, { score: ts, member: entry.id }),
+      ...(entry.tenantId
+        ? [
+            this.kv.zadd(`${this.prefix}tenant:${entry.tenantId}`, {
+              score: ts,
+              member: entry.id,
+            }),
+          ]
+        : []),
+    ]);
+  }
+
+  async query(filter: {
+    actor?: string;
+    operation?: AuditOperation;
+    tenantId?: string;
+    from?: string;
+    to?: string;
+    limit?: number;
+  }): Promise<AuditEntry[]> {
+    const limit = filter.limit ?? 100;
+    let ids: string[];
+
+    // Pick the most selective index available
+    if (filter.actor) {
+      ids = await this.zrangeByScore(
+        `${this.prefix}actor:${filter.actor}`,
+        filter.from,
+        filter.to,
+        limit,
+      );
+    } else if (filter.tenantId) {
+      ids = await this.zrangeByScore(
+        `${this.prefix}tenant:${filter.tenantId}`,
+        filter.from,
+        filter.to,
+        limit,
+      );
+    } else if (filter.from || filter.to) {
+      // Walk daily buckets for the date range
+      const fromDate = filter.from?.slice(0, 10) ?? "0000-00-00";
+      const toDate = filter.to?.slice(0, 10) ?? "9999-99-99";
+      ids = [];
+      // Cap walk to ~1 year max to avoid runaway
+      const fromTs = new Date(fromDate).getTime();
+      const toTs = new Date(toDate).getTime();
+      for (let d = fromTs; d <= toTs && ids.length < limit; d += 86_400_000) {
+        const day = new Date(d).toISOString().slice(0, 10);
+        const dayIds = await this.zrangeByScore(
+          `${this.prefix}day:${day}`,
+          filter.from,
+          filter.to,
+          limit - ids.length,
+        );
+        ids.push(...dayIds);
+      }
+    } else {
+      // No filter — bail (full scan would be unbounded)
+      return [];
+    }
+
+    // Load entries
+    const entries: AuditEntry[] = [];
+    for (const id of ids) {
+      const entry = await this.kv.get<AuditEntry>(`${this.prefix}entry:${id}`);
+      if (!entry) continue;
+      if (filter.operation && entry.operation !== filter.operation) continue;
+      entries.push(entry);
+    }
+    return entries;
+  }
+
+  private async zrangeByScore(
+    key: string,
+    from?: string,
+    to?: string,
+    limit?: number,
+  ): Promise<string[]> {
+    const min = from ? new Date(from).getTime() : 0;
+    const max = to ? new Date(to).getTime() : Number.MAX_SAFE_INTEGER;
+    const opts = {
+      byScore: true as const,
+      offset: 0,
+      ...(limit !== undefined ? { count: limit } : { count: 100 }),
+    };
+    const ids = await this.kv.zrange(key, min, max, opts);
+    return ids.map(String);
   }
 }

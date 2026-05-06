@@ -11,6 +11,7 @@ import { findApplicablePromos } from "./ar-issuer-promos";
 import { computeMarketplaceFee, explainPaymentStatus } from "./helpers";
 import { collect, paginatePayments, paginateSettlements } from "./pagination";
 import type { SubscriptionStateAdapter } from "./state";
+import { validateTaxId } from "./tax-id";
 import { TEST_CARDS_AR } from "./test-cards";
 import { analyze3DS, confirmChallengeAndPoll } from "./three-ds";
 import { parseWebhookEvent, verifyWebhookSignature } from "./webhook";
@@ -209,7 +210,9 @@ type ToolName =
   | "confirm_3ds_challenge"
   // v0.10 — Auto-paginate variants (collect-all)
   | "search_payments_all"
-  | "list_settlements_all";
+  | "list_settlements_all"
+  // v0.11 — TaxID validation cross-LATAM (pure)
+  | "validate_tax_id";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -449,6 +452,10 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
     "Collect ALL payments matching a filter — auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to cap; without it, MP traversal is bounded by the toolkit's internal max (10,000 items) to prevent runaway iterations. USE WHEN the agent needs to enumerate everything (e.g., monthly reconciliation 'all approved payments in March'). For agent flows that only need 'first N matches', pass `max_items` directly.",
   list_settlements_all:
     "Collect ALL settlements matching a filter — auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports.",
+
+  // ── v0.11 — TaxID validation cross-LATAM (pure) ──────────────────────────
+  validate_tax_id:
+    "PURE HELPER (no network, sub-ms) — validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC structure), CL (RUT with K digit), CO (NIT modulo-11), UY (RUT 12-digit checksum), PE (RUC 11-digit + prefix validation). Returns { valid, normalized, formatted, type, country, error }. USE THIS BEFORE submitting buyer identification to MP — invalid tax IDs cause 4xx rejections. Surface the Spanish error verbatim.",
 };
 
 /**
@@ -612,6 +619,63 @@ export function mercadoPagoTools(
           number: z.string(),
         }).optional().describe("Payer identification — required for some payment types in AR"),
         statement_descriptor: z.string().max(13).optional().describe("Shows on buyer's card statement (max 13 chars)"),
+        // v0.11 — fraud scoring enrichment fields
+        additional_info: z
+          .object({
+            ip_address: z
+              .string()
+              .optional()
+              .describe(
+                "Buyer's IP address (from req.headers X-Forwarded-For). STRONGLY RECOMMENDED for card payments — improves MP fraud scoring confidence and reduces false-positive rejections (3-5x lower per RG 5286/2023).",
+              ),
+            referral_url: z.string().url().optional().describe("Page the buyer came from"),
+            payer: z
+              .object({
+                first_name: z.string().optional(),
+                last_name: z.string().optional(),
+                phone: z
+                  .object({ area_code: z.string().optional(), number: z.string().optional() })
+                  .optional(),
+                address: z
+                  .object({
+                    zip_code: z.string().optional(),
+                    street_name: z.string().optional(),
+                    street_number: z.number().optional(),
+                  })
+                  .optional(),
+                registration_date: z
+                  .string()
+                  .optional()
+                  .describe("ISO 8601 — when the buyer registered on YOUR platform"),
+                authentication_type: z.string().optional(),
+                is_prime_user: z.boolean().optional(),
+                is_first_purchase_online: z.boolean().optional(),
+                last_purchase: z.string().optional(),
+              })
+              .optional(),
+            shipments: z
+              .object({
+                receiver_address: z
+                  .object({
+                    zip_code: z.string().optional(),
+                    street_name: z.string().optional(),
+                    street_number: z.number().optional(),
+                    floor: z.string().optional(),
+                    apartment: z.string().optional(),
+                    city_name: z.string().optional(),
+                    state_name: z.string().optional(),
+                    country_name: z.string().optional(),
+                  })
+                  .optional(),
+                express_shipment: z.boolean().optional(),
+                local_pickup: z.boolean().optional(),
+              })
+              .optional(),
+          })
+          .optional()
+          .describe(
+            "Fraud scoring enrichment. Pass IP address + payer profile + shipping address for materially better approval rates on card payments.",
+          ),
       }),
       execute: async (input) => {
         const payment = await client.createPayment({
@@ -624,6 +688,9 @@ export function mercadoPagoTools(
           ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
           ...(input.identification !== undefined ? { identification: input.identification } : {}),
           ...(input.statement_descriptor !== undefined ? { statementDescriptor: input.statement_descriptor } : {}),
+          ...(input.additional_info !== undefined
+            ? { additionalInfo: input.additional_info as never }
+            : {}),
           ...(options.notificationUrl !== undefined ? { notificationUrl: options.notificationUrl } : {}),
           // Deterministic idempotency key — safe to retry, same inputs always
           // produce the same key (MP dedupes on its side).
@@ -2593,6 +2660,38 @@ export function mercadoPagoTools(
         else opts.maxItems = 10_000;
         const all = await collect(paginateSettlements(client, filterClean, opts));
         return { ok: true, count: all.length, settlements: all };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────
+    // v0.11 — TaxID validation cross-LATAM (pure)
+    // ─────────────────────────────────────────────────────────────────────
+
+    validate_tax_id: tool({
+      description: desc("validate_tax_id"),
+      inputSchema: z.object({
+        tax_id: z.string().min(1).describe(
+          "The tax ID to validate. Accepts any format with or without separators (20-41758101-5, 20.41758101.5, 20417581015 all work for AR CUIT).",
+        ),
+        type: z
+          .enum([
+            "DNI",
+            "CUIT",
+            "CUIL",
+            "CPF",
+            "CNPJ",
+            "RFC",
+            "RUT_CL",
+            "NIT",
+            "RUT_UY",
+            "RUC",
+          ])
+          .describe(
+            "TaxID type. AR: DNI/CUIT/CUIL. BR: CPF (persona física) / CNPJ (persona jurídica). MX: RFC. CL: RUT_CL. CO: NIT. UY: RUT_UY. PE: RUC.",
+          ),
+      }),
+      execute: async ({ tax_id, type }) => {
+        return validateTaxId(tax_id, type);
       },
     }),
   } satisfies ToolSet;
