@@ -73,6 +73,24 @@ export type {
   // Card tokens (v0.3)
   CardToken,
   CreateCardTokenParams,
+  // Subscription Plans (v0.4)
+  SubscriptionPlan,
+  CreateSubscriptionPlanParams,
+  SubscriptionPayment,
+  // Stores + POS (v0.4)
+  Store,
+  CreateStoreParams,
+  Pos,
+  CreatePosParams,
+  // Disputes (v0.4)
+  Dispute,
+  // Lookup (v0.4)
+  IdentificationType,
+  Issuer,
+  // Webhooks management (v0.4)
+  WebhookConfig,
+  WebhookTopic,
+  CreateWebhookParams,
   // Common
   CurrencyId,
   FrequencyType,

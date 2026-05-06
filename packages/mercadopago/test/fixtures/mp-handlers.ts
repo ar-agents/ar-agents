@@ -199,6 +199,23 @@ export function buildHandlers(store: FakeMpStore) {
     // ── Subscriptions (kept from v0.1) ──────────────────────────────────────
     http.post(`${MP_BASE}/preapproval`, async ({ request }) => {
       const body = (await request.json()) as Record<string, unknown>;
+
+      // Subscribing to an existing plan — back_url + auto_recurring are inherited
+      // from the plan, not required per-subscription.
+      if (body.preapproval_plan_id) {
+        const planId = String(body.preapproval_plan_id);
+        const record = store.create({
+          reason: `Subscription to plan ${planId}`,
+          payerEmail: String(body.payer_email ?? ""),
+          backUrl: "https://example.com/inherited-from-plan",
+          externalReference:
+            body.external_reference !== undefined ? String(body.external_reference) : undefined,
+          autoRecurring: { frequency: 1, frequency_type: "months", transaction_amount: 25000, currency_id: "ARS" },
+        });
+        return HttpResponse.json(record, { status: 201 });
+      }
+
+      // Direct preapproval (no plan) — requires back_url
       const backUrl = String(body.back_url ?? "");
       if (!backUrl.startsWith("https://")) {
         return HttpResponse.json(
@@ -408,6 +425,198 @@ export function buildHandlers(store: FakeMpStore) {
         user_type: "registered",
         status: { user_type: "registered" },
       });
+    }),
+
+    // ── Subscription Plans (v0.4) ───────────────────────────────────────────
+    http.post(`${MP_BASE}/preapproval_plan`, async ({ request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      const id = `plan_${Math.random().toString(36).slice(2, 14)}`;
+      return HttpResponse.json({
+        id,
+        status: "active",
+        reason: body.reason,
+        back_url: body.back_url,
+        external_reference: body.external_reference ?? null,
+        date_created: new Date().toISOString(),
+        last_modified: new Date().toISOString(),
+        auto_recurring: body.auto_recurring,
+      });
+    }),
+    http.get(`${MP_BASE}/preapproval_plan/search`, () => {
+      return HttpResponse.json({
+        paging: { total: 1, limit: 30, offset: 0 },
+        results: [
+          {
+            id: "plan_test1",
+            status: "active",
+            reason: "Plan Pro",
+            auto_recurring: { frequency: 1, frequency_type: "months", transaction_amount: 25000, currency_id: "ARS" },
+            date_created: new Date().toISOString(),
+            last_modified: new Date().toISOString(),
+          },
+        ],
+      });
+    }),
+    http.get(`${MP_BASE}/preapproval_plan/:id`, ({ params }) => {
+      return HttpResponse.json({
+        id: String(params.id),
+        status: "active",
+        reason: "Plan Pro",
+        auto_recurring: { frequency: 1, frequency_type: "months", transaction_amount: 25000, currency_id: "ARS" },
+        date_created: new Date().toISOString(),
+        last_modified: new Date().toISOString(),
+      });
+    }),
+    http.put(`${MP_BASE}/preapproval_plan/:id`, async ({ params, request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      return HttpResponse.json({
+        id: String(params.id),
+        status: body.status ?? "active",
+        reason: body.reason ?? "Plan Pro",
+        auto_recurring: { frequency: 1, frequency_type: "months", transaction_amount: 25000, currency_id: "ARS", ...(body.auto_recurring as object ?? {}) },
+        date_created: new Date().toISOString(),
+        last_modified: new Date().toISOString(),
+      });
+    }),
+    http.get(`${MP_BASE}/authorized_payments/search`, ({ request }) => {
+      const url = new URL(request.url);
+      const preapprovalId = url.searchParams.get("preapproval_id");
+      return HttpResponse.json({
+        paging: { total: 2, limit: 30, offset: 0 },
+        results: [
+          {
+            id: "ap_1",
+            preapproval_id: preapprovalId,
+            status: "approved",
+            payment_id: 12345,
+            transaction_amount: 25000,
+            currency_id: "ARS",
+            debit_date: "2026-04-15T00:00:00.000Z",
+            retry_attempt: 0,
+          },
+          {
+            id: "ap_2",
+            preapproval_id: preapprovalId,
+            status: "approved",
+            payment_id: 12346,
+            transaction_amount: 25000,
+            currency_id: "ARS",
+            debit_date: "2026-05-15T00:00:00.000Z",
+            retry_attempt: 0,
+          },
+        ],
+      });
+    }),
+
+    // ── Stores + POS (v0.4) ─────────────────────────────────────────────────
+    http.post(`${MP_BASE}/users/:userId/stores`, async ({ request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      const id = `store_${Math.random().toString(36).slice(2, 10)}`;
+      return HttpResponse.json({
+        id,
+        name: body.name,
+        external_id: body.external_id,
+        date_creation: new Date().toISOString(),
+        location: body.location,
+      });
+    }),
+    http.get(`${MP_BASE}/users/:userId/stores/search`, () => {
+      return HttpResponse.json({
+        paging: { total: 1, limit: 50, offset: 0 },
+        results: [{ id: "store_test", name: "Test Store", external_id: "ext_1" }],
+      });
+    }),
+    http.post(`${MP_BASE}/pos`, async ({ request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      const id = `pos_${Math.random().toString(36).slice(2, 10)}`;
+      return HttpResponse.json({
+        id,
+        name: body.name,
+        external_id: body.external_id,
+        store_id: body.store_id,
+        category: body.category ?? 621102,
+        fixed_amount: body.fixed_amount ?? false,
+      });
+    }),
+    http.get(`${MP_BASE}/pos`, () => {
+      return HttpResponse.json({
+        paging: { total: 1, limit: 50, offset: 0 },
+        results: [{ id: "pos_test", name: "Caja 1", external_id: "checkout_1", store_id: "store_test" }],
+      });
+    }),
+
+    // ── Disputes (v0.4) ─────────────────────────────────────────────────────
+    http.get(`${MP_BASE}/v1/payments/:paymentId/disputes`, ({ params }) => {
+      const paymentId = String(params.paymentId);
+      // Return empty list by default; tests can override per case
+      return HttpResponse.json([
+        {
+          id: "dispute_1",
+          status: "open",
+          resource_id: paymentId,
+          amount: 1500,
+          reason: "Producto no recibido",
+          date_created: "2026-04-30T00:00:00.000Z",
+        },
+      ]);
+    }),
+    http.get(`${MP_BASE}/v1/payments/:paymentId/disputes/:disputeId`, ({ params }) => {
+      return HttpResponse.json({
+        id: String(params.disputeId),
+        status: "open",
+        resource_id: String(params.paymentId),
+        amount: 1500,
+        reason: "Producto no recibido",
+        reason_description: "El cliente afirma que no recibió el producto",
+        date_created: "2026-04-30T00:00:00.000Z",
+      });
+    }),
+
+    // ── Identification Types + Issuers (v0.4) ───────────────────────────────
+    http.get(`${MP_BASE}/v1/identification_types`, () => {
+      return HttpResponse.json([
+        { id: "DNI", name: "DNI", type: "number", min_length: 7, max_length: 8 },
+        { id: "CUIT", name: "CUIT", type: "number", min_length: 11, max_length: 11 },
+        { id: "CUIL", name: "CUIL", type: "number", min_length: 11, max_length: 11 },
+      ]);
+    }),
+    http.get(`${MP_BASE}/v1/payment_methods/card_issuers`, ({ request }) => {
+      const url = new URL(request.url);
+      const pmid = url.searchParams.get("payment_method_id");
+      return HttpResponse.json([
+        { id: 25, name: "Galicia", processing_mode: "aggregator", status: "active" },
+        { id: 26, name: "Santander", processing_mode: "aggregator", status: "active" },
+        { id: 27, name: `Issuer for ${pmid}`, processing_mode: "aggregator", status: "active" },
+      ]);
+    }),
+
+    // ── Webhooks (v0.4) ─────────────────────────────────────────────────────
+    http.get(`${MP_BASE}/v1/webhooks`, () => {
+      return HttpResponse.json([
+        { id: 1, url: "https://app.test/webhook", topic: "payment", status: "active", date_created: new Date().toISOString() },
+      ]);
+    }),
+    http.post(`${MP_BASE}/v1/webhooks`, async ({ request }) => {
+      const body = (await request.json()) as { url: string; topic: string };
+      return HttpResponse.json({
+        id: Math.floor(Math.random() * 100000),
+        url: body.url,
+        topic: body.topic,
+        status: "active",
+        date_created: new Date().toISOString(),
+      });
+    }),
+    http.put(`${MP_BASE}/v1/webhooks/:id`, async ({ params, request }) => {
+      const body = (await request.json()) as { url?: string; topic?: string };
+      return HttpResponse.json({
+        id: Number(params.id),
+        url: body.url ?? "https://app.test/webhook",
+        topic: body.topic ?? "payment",
+        status: "active",
+      });
+    }),
+    http.delete(`${MP_BASE}/v1/webhooks/:id`, () => {
+      return new HttpResponse(null, { status: 200 });
     }),
   ];
 }

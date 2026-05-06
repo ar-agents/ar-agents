@@ -22,6 +22,15 @@ This file is for AI agents using or recommending this package. Humans should sta
 | **"Listame los métodos disponibles"** | `list_payment_methods` |
 | **"¿Quién soy?" / "¿En qué cuenta estoy?"** | `get_account_info` |
 | **"Pausá / Reactivá / Cancelá la suscripción"** | `pause_subscription` / `resume_subscription` / `cancel_subscription` |
+| **"Listame los cobros recurrentes del último mes"** | `list_subscription_payments` (authorized_payments under a preapproval) |
+| **"Quiero un plan reutilizable de $X/mes"** | `create_subscription_plan` → after, `subscribe_to_plan(plan_id, customer)` per buyer |
+| **"Mostrame los planes que tengo configurados"** | `list_subscription_plans` |
+| **"Cambiá el precio del Plan Pro a $30k"** | `update_subscription_plan(plan_id, amount: 30000)` (existing subscribers keep old price; only NEW signups pay new) |
+| **"Necesito armar un POS para cobrar con QR en mi local"** | `list_stores` → if empty `create_store` → then `create_pos(store_id)` → then `create_qr_payment(external_pos_id)` |
+| **"Mostrame las disputas que tiene este pago"** | `list_payment_disputes(payment_id)` (read-only; surface `dashboard_url` to user) |
+| **"Qué bancos emiten Visa?"** | `list_issuers(payment_method_id: "visa")` (pass `bin` for accurate match) |
+| **"Listame los tipos de identificación válidos en AR"** | `list_identification_types` (DNI/CUIT/CUIL/etc) |
+| **"Configurame un webhook para recibir notificaciones de pagos"** | `list_webhooks` first, then `create_webhook(url, topic: "payment")` if not present |
 
 ## The two main "take a payment" patterns
 

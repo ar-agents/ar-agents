@@ -1,5 +1,76 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- v0.4.0 — full toolkit: Subscription Plans + Stores/POS + Disputes + Subscription Payment History + Lookup helpers + Webhooks management
+
+  **41 tools total** (was 24 in v0.3). Adds 17 new tools covering the rest of the agent-relevant MP API surface.
+
+  # New: Subscription Plans (5 tools)
+
+  For SaaS-style billing where you have fixed tiers (Básico/Pro/Enterprise), use plans instead of per-customer preapprovals.
+
+  - `create_subscription_plan` — define reusable plan (price + frequency + optional free trial)
+  - `list_subscription_plans` — list all plans
+  - `update_subscription_plan` — change reason / amount / status / back_url (existing subs keep old amount)
+  - `subscribe_to_plan` — enroll a customer in a plan; returns init_point URL
+  - `list_subscription_payments` — auto-charge attempts (authorized_payments) under a preapproval. Useful for "show me cobros del último mes for this client" or to debug failing recurring charges.
+
+  # New: Stores + POS management (4 tools)
+
+  Self-serve setup for in-store QR payments. Eliminates the previous one-time MP dashboard step.
+
+  - `create_store` — create a store under the seller
+  - `list_stores` — list configured stores
+  - `create_pos` — create a POS under a store (the `external_id` is what `create_qr_payment` uses)
+  - `list_pos` — list POSes (optionally filtered by store_id)
+
+  # New: Disputes / Chargebacks (2 tools, read-only)
+
+  - `list_payment_disputes` — list disputes raised against a payment (surfaces `dashboard_url`)
+  - `get_dispute` — full dispute details (reason, amount, resolution status)
+
+  Resolution remains dashboard-only; the lib surfaces the right URL.
+
+  # New: Lookup helpers (2 tools)
+
+  - `list_identification_types` — AR returns DNI/CI/LE/LC/Otro/Pasaporte/CUIT/CUIL with min/max length
+  - `list_issuers` — banks issuing a card type. Pass `bin` (first 6-8 digits) for precise issuer detection — needed for issuer-specific cuotas promos like Naranja Galicia 6 cuotas sin interés
+
+  # New: Webhooks management (4 tools)
+
+  Programmatically configure webhook subscriptions instead of clicking around the MP dashboard.
+
+  - `list_webhooks` — see what's configured
+  - `create_webhook` — subscribe a URL to a topic (`payment`, `subscription_authorized_payment`, `merchant_order`, `point_integration_wh`, etc.)
+  - `update_webhook` — change URL or topic
+  - `delete_webhook` — unsubscribe
+
+  # Quality
+
+  - 81/81 tests pass (was 61 in v0.3) — added 20 tests for v0.4 endpoints
+  - 21.72 KB ESM brotli'd (under 32 KB budget)
+  - publint + arethetypeswrong all 🟢
+  - Type-safe end-to-end; new types: SubscriptionPlan, Store, Pos, Dispute, IdentificationType, Issuer, WebhookConfig, SubscriptionPayment
+
+  # Cumulative tool inventory (41 total)
+
+  - Subscriptions: 5 (create, get, cancel, pause, resume)
+  - Subscription Plans: 5 (create, list, update, subscribe, list_payments)
+  - Payments: 5 (create, get, search, cancel, capture)
+  - Refunds: 2 (create, list)
+  - Checkout Pro: 2 (create_preference, get_preference)
+  - Customers + Cards: 4 (create, find, list_cards, delete_card)
+  - Saved-card charging: 1 (charge_saved_card)
+  - Methods + Installments: 2 (list_methods, calculate_installments)
+  - Account: 1 (get_account_info)
+  - QR + POS: 6 (create_qr, cancel_qr, create_store, list_stores, create_pos, list_pos)
+  - Disputes: 2 (list, get)
+  - Lookup: 2 (identification_types, issuers)
+  - Webhooks: 4 (list, create, update, delete)
+
 ## 0.3.0
 
 ### Minor Changes

@@ -517,3 +517,216 @@ export const AccountInfoSchema = z.object({
     .optional(),
 }).passthrough();
 export type AccountInfo = z.infer<typeof AccountInfoSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Subscription Plans (preapproval_plan — reusable plan definitions)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A reusable subscription plan. Different from a per-customer subscription:
+ * a plan defines the price + frequency once, then customers subscribe to it
+ * via `subscribe_to_plan` (which creates a preapproval pointing at the plan).
+ *
+ * Use plans for SaaS-style billing where you have a fixed set of tiers
+ * (Básico/Pro/Enterprise) instead of negotiating amounts per customer.
+ */
+export const SubscriptionPlanSchema = z.object({
+  id: z.string(),
+  status: z.string(),
+  reason: z.string(),
+  back_url: z.string().url().optional(),
+  external_reference: z.string().nullable().optional(),
+  date_created: z.string(),
+  last_modified: z.string(),
+  auto_recurring: AutoRecurringSchema,
+}).passthrough();
+export type SubscriptionPlan = z.infer<typeof SubscriptionPlanSchema>;
+
+export interface CreateSubscriptionPlanParams {
+  /** Customer-facing plan name shown at checkout. */
+  reason: string;
+  /** Where MP redirects buyer after first payment. HTTPS only. */
+  backUrl: string;
+  /** Recurrence (e.g., 1 + months = monthly). */
+  frequency: number;
+  frequencyType: FrequencyType;
+  /** Amount per cycle. */
+  amount: number;
+  /** ARS for AR. */
+  currency: CurrencyId;
+  /** Optional plan-level identifier from your system. */
+  externalReference?: string;
+  /** Free trial days before first charge. */
+  freeTrialFrequency?: number;
+  freeTrialFrequencyType?: FrequencyType;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Stores + POS (for QR payments setup)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const StoreSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  name: z.string().optional(),
+  external_id: z.string().optional(),
+  date_creation: z.string().optional(),
+  location: z
+    .object({
+      address_line: z.string().optional(),
+      city_name: z.string().optional(),
+      state_name: z.string().optional(),
+      country_id: z.string().optional(),
+      latitude: z.number().optional(),
+      longitude: z.number().optional(),
+    })
+    .passthrough()
+    .optional(),
+}).passthrough();
+export type Store = z.infer<typeof StoreSchema>;
+
+export interface CreateStoreParams {
+  /** Display name for the store. */
+  name: string;
+  /** Caller-defined identifier (must be unique within the seller's stores). */
+  externalId: string;
+  /** Optional physical location. */
+  location?: {
+    addressLine?: string;
+    cityName?: string;
+    stateName?: string;
+    countryId?: string;
+    latitude?: number;
+    longitude?: number;
+  };
+}
+
+export const PosSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  name: z.string().optional(),
+  external_id: z.string().optional(),
+  store_id: z.union([z.string(), z.number()]).optional(),
+  category: z.number().int().optional(),
+  fixed_amount: z.boolean().optional(),
+  qr: z
+    .object({
+      template_image: z.string().optional(),
+      image: z.string().optional(),
+    })
+    .passthrough()
+    .optional(),
+  date_creation: z.string().optional(),
+}).passthrough();
+export type Pos = z.infer<typeof PosSchema>;
+
+export interface CreatePosParams {
+  /** Display name. */
+  name: string;
+  /** Caller-defined POS id (used in QR endpoints; unique within store). */
+  externalId: string;
+  /** Parent store id (number from createStore). */
+  storeId: string | number;
+  /** MP category code (default 621102 = Other Food and Beverage Services). */
+  category?: number;
+  /** If true, the QR has a fixed amount; if false, dynamic per-order. */
+  fixedAmount?: boolean;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Disputes / Chargebacks (read-only)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const DisputeSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  status: z.string(),
+  resource: z.string().optional(),
+  resource_id: z.union([z.string(), z.number()]).optional(),
+  amount: z.number().optional(),
+  date_created: z.string().optional(),
+  reason: z.string().optional(),
+  resolution: z
+    .object({
+      reason: z.string().optional(),
+      result: z.string().optional(),
+      date: z.string().optional(),
+    })
+    .passthrough()
+    .optional(),
+  /** Documents the buyer / seller submitted as evidence. */
+  documents: z.array(z.unknown()).optional(),
+  /** Buyer's stated complaint. */
+  reason_description: z.string().optional(),
+}).passthrough();
+export type Dispute = z.infer<typeof DisputeSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Subscription Payment History (authorized_payments under a preapproval)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const SubscriptionPaymentSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  preapproval_id: z.string().optional(),
+  status: z.string(),
+  payment_id: z.union([z.string(), z.number()]).nullable().optional(),
+  transaction_amount: z.number().optional(),
+  currency_id: z.string().optional(),
+  date_created: z.string().optional(),
+  debit_date: z.string().optional(),
+  next_retry_date: z.string().nullable().optional(),
+  retry_attempt: z.number().optional(),
+  reason: z.string().optional(),
+}).passthrough();
+export type SubscriptionPayment = z.infer<typeof SubscriptionPaymentSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Identification Types + Issuers (lookup helpers)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const IdentificationTypeSchema = z.object({
+  id: z.string(),
+  name: z.string(),
+  type: z.string(),
+  min_length: z.number().optional(),
+  max_length: z.number().optional(),
+}).passthrough();
+export type IdentificationType = z.infer<typeof IdentificationTypeSchema>;
+
+export const IssuerSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  name: z.string(),
+  secure_thumbnail: z.string().nullable().optional(),
+  thumbnail: z.string().nullable().optional(),
+  processing_mode: z.string().optional(),
+  status: z.string().optional(),
+}).passthrough();
+export type Issuer = z.infer<typeof IssuerSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Webhooks (configure subscriptions to topics)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/** Topics MP can fire webhooks for. Add more as MP exposes them. */
+export const WebhookTopicSchema = z.enum([
+  "payment",
+  "subscription_authorized_payment",
+  "subscription_preapproval",
+  "merchant_order",
+  "point_integration_wh",
+  "stop_delivery_op_wh",
+]);
+export type WebhookTopic = z.infer<typeof WebhookTopicSchema>;
+
+export const WebhookConfigSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  url: z.string().url().optional(),
+  status: z.string().optional(),
+  topic: z.string().optional(),
+  date_created: z.string().optional(),
+  date_modified: z.string().optional(),
+}).passthrough();
+export type WebhookConfig = z.infer<typeof WebhookConfigSchema>;
+
+export interface CreateWebhookParams {
+  url: string;
+  /** Topic to subscribe to. */
+  topic: WebhookTopic | string;
+}

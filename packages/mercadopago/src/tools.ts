@@ -72,7 +72,29 @@ type ToolName =
   | "charge_saved_card"
   // QR in-store (v0.3)
   | "create_qr_payment"
-  | "cancel_qr_payment";
+  | "cancel_qr_payment"
+  // Subscription Plans (v0.4)
+  | "create_subscription_plan"
+  | "list_subscription_plans"
+  | "update_subscription_plan"
+  | "subscribe_to_plan"
+  | "list_subscription_payments"
+  // Stores + POS (v0.4)
+  | "create_store"
+  | "list_stores"
+  | "create_pos"
+  | "list_pos"
+  // Disputes (v0.4)
+  | "list_payment_disputes"
+  | "get_dispute"
+  // Lookup helpers (v0.4)
+  | "list_identification_types"
+  | "list_issuers"
+  // Webhooks (v0.4)
+  | "list_webhooks"
+  | "create_webhook"
+  | "update_webhook"
+  | "delete_webhook";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -137,9 +159,53 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
 
   // ── QR in-store (v0.3) ───────────────────────────────────────────────────
   create_qr_payment:
-    "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS external_id (one-time setup in MP dashboard). Returns the qr_data string + a base64 PNG data URL ready to display. The QR expires in `expires_in_seconds` (default 600). MP fires `point_integration_wh` then `payment` webhooks when scanned.",
+    "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS external_id (use create_pos to set one up first if needed). Returns the qr_data string + a base64 PNG data URL ready to display. The QR expires in `expires_in_seconds` (default 600). MP fires `point_integration_wh` then `payment` webhooks when scanned.",
   cancel_qr_payment:
     "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409.",
+
+  // ── Subscription Plans (v0.4) ────────────────────────────────────────────
+  create_subscription_plan:
+    "Create a REUSABLE subscription plan (preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscribe_to_plan. Use plans for SaaS-style billing (Básico/Pro/Enterprise tiers). For per-customer custom amounts, use create_subscription directly.",
+  list_subscription_plans:
+    "List all subscription plans defined for this MP account. Useful before create_subscription_plan to check if one already exists, or for surfacing options to a customer.",
+  update_subscription_plan:
+    "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated — only NEW subscribers get the new pricing.",
+  subscribe_to_plan:
+    "Subscribe a customer to an existing reusable plan. Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when you have fixed tiers.",
+  list_subscription_payments:
+    "List the auto-charge attempts (authorized_payments) under a subscription. Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge.",
+
+  // ── Stores + POS (v0.4) ──────────────────────────────────────────────────
+  create_store:
+    "Create a store under the seller's MP account. Stores are the parent entity for POSes (which generate QR payments). Required ONE-TIME setup before create_pos. Pass a unique external_id and a display name.",
+  list_stores:
+    "List all stores configured for this MP account. Use this to find an existing store_id before create_pos, or to surface store options to the agent.",
+  create_pos:
+    "Create a POS (Point of Sale) under a store. The POS's external_id is what create_qr_payment uses. Each physical checkout / counter / agent typically has its own POS. Categories are MP-defined (default 621102 = Other Food and Beverage Services).",
+  list_pos:
+    "List all POSes for the seller (or filtered by store_id). Use to find an existing POS before create_qr_payment, or to surface options.",
+
+  // ── Disputes (v0.4 — read-only) ──────────────────────────────────────────
+  list_payment_disputes:
+    "List all disputes / chargebacks raised against a payment. Read-only — resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when they need to respond.",
+  get_dispute:
+    "Get details of a specific dispute including reason, amount, resolution status. Read-only.",
+
+  // ── Lookup helpers (v0.4) ────────────────────────────────────────────────
+  list_identification_types:
+    "List valid identification types for the seller's site. AR returns: DNI, CI, LE, LC, Otro, Pasaporte, CUIT, CUIL with their min/max length. Useful to validate an identification before passing to create_payment.",
+  list_issuers:
+    "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments — issuer-specific promos (e.g., Naranja Galicia 6 cuotas sin interés) only appear when the issuer is identified.",
+
+  // ── Webhooks management (v0.4) ───────────────────────────────────────────
+  list_webhooks:
+    "List all webhook subscriptions configured for this MP application. Use to see what topics + URLs are wired before adding new ones.",
+  create_webhook:
+    "Subscribe a webhook URL to a MP topic (payment, subscription_authorized_payment, subscription_preapproval, merchant_order, point_integration_wh). MP will POST to this URL when events of that topic fire.",
+  update_webhook:
+    "Update a webhook's URL or topic. Useful when you change deployment URLs without resubscribing from scratch.",
+  delete_webhook:
+    "Delete a webhook subscription. MP stops POSTing to it immediately.",
 };
 
 /**
@@ -823,6 +889,416 @@ export function mercadoPagoTools(
         const me = await client.getMe();
         await client.cancelQrPayment(String(me.id), external_pos_id);
         return { external_pos_id, cancelled: true };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Subscription Plans (v0.4)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    create_subscription_plan: tool({
+      description: desc("create_subscription_plan"),
+      inputSchema: z.object({
+        reason: z.string().min(3).max(120).describe("Plan name shown at checkout"),
+        amount_ars: z.number().positive(),
+        frequency_months: z.number().int().min(1).max(12),
+        back_url: z.string().url().describe("HTTPS URL where MP redirects after first payment"),
+        external_reference: z.string().optional(),
+        free_trial_days: z.number().int().min(1).max(60).optional().describe("Free trial period in days before first charge"),
+      }),
+      execute: async (input) => {
+        const plan = await client.createSubscriptionPlan({
+          reason: input.reason,
+          amount: input.amount_ars,
+          currency: "ARS",
+          frequency: input.frequency_months,
+          frequencyType: "months",
+          backUrl: input.back_url,
+          ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
+          ...(input.free_trial_days !== undefined ? { freeTrialFrequency: input.free_trial_days, freeTrialFrequencyType: "days" as const } : {}),
+        });
+        return {
+          plan_id: plan.id,
+          status: plan.status,
+          reason: plan.reason,
+          amount: plan.auto_recurring.transaction_amount,
+          currency: plan.auto_recurring.currency_id,
+          frequency: `${plan.auto_recurring.frequency} ${plan.auto_recurring.frequency_type}`,
+          external_reference: plan.external_reference,
+          next_step: "Use subscribe_to_plan to enroll customers in this plan, or share its ID for them to subscribe via your frontend.",
+        };
+      },
+    }),
+
+    list_subscription_plans: tool({
+      description: desc("list_subscription_plans"),
+      inputSchema: z.object({
+        status: z.string().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+      }),
+      execute: async (input) => {
+        const result = await client.listSubscriptionPlans({
+          ...(input.status !== undefined ? { status: input.status } : {}),
+          ...(input.limit !== undefined ? { limit: input.limit } : {}),
+        });
+        return {
+          total: result.paging.total,
+          plans: result.results.map((p) => ({
+            plan_id: p.id,
+            reason: p.reason,
+            status: p.status,
+            amount: p.auto_recurring.transaction_amount,
+            currency: p.auto_recurring.currency_id,
+            frequency: `${p.auto_recurring.frequency} ${p.auto_recurring.frequency_type}`,
+          })),
+        };
+      },
+    }),
+
+    update_subscription_plan: tool({
+      description: desc("update_subscription_plan"),
+      inputSchema: z.object({
+        plan_id: z.string(),
+        reason: z.string().optional(),
+        amount_ars: z.number().positive().optional(),
+        status: z.enum(["active", "cancelled"]).optional(),
+        back_url: z.string().url().optional(),
+      }),
+      execute: async (input) => {
+        const updated = await client.updateSubscriptionPlan(input.plan_id, {
+          ...(input.reason !== undefined ? { reason: input.reason } : {}),
+          ...(input.amount_ars !== undefined ? { amount: input.amount_ars } : {}),
+          ...(input.status !== undefined ? { status: input.status } : {}),
+          ...(input.back_url !== undefined ? { backUrl: input.back_url } : {}),
+        });
+        return {
+          plan_id: updated.id,
+          status: updated.status,
+          reason: updated.reason,
+          amount: updated.auto_recurring.transaction_amount,
+          message: input.amount_ars !== undefined
+            ? "Updated. Existing subscribers keep their old amount; only NEW subscribers get the new pricing."
+            : "Plan updated.",
+        };
+      },
+    }),
+
+    subscribe_to_plan: tool({
+      description: desc("subscribe_to_plan"),
+      inputSchema: z.object({
+        plan_id: z.string(),
+        customer_email: z.string().email(),
+        external_reference: z.string().optional(),
+      }),
+      execute: async (input) => {
+        const sub = await client.subscribeToPlan({
+          planId: input.plan_id,
+          payerEmail: input.customer_email,
+          ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
+        });
+        return {
+          subscription_id: sub.id,
+          status: sub.status,
+          payer_email: sub.payer_email,
+          init_point_url: sub.init_point,
+          next_step: "Send init_point_url to the customer for first payment with card+CVV.",
+        };
+      },
+    }),
+
+    list_subscription_payments: tool({
+      description: desc("list_subscription_payments"),
+      inputSchema: z.object({
+        subscription_id: z.string(),
+        limit: z.number().int().min(1).max(100).optional(),
+      }),
+      execute: async (input) => {
+        const result = await client.listSubscriptionPayments(input.subscription_id, {
+          ...(input.limit !== undefined ? { limit: input.limit } : {}),
+        });
+        return {
+          subscription_id: input.subscription_id,
+          total: result.paging.total,
+          payments: result.results.map((p) => ({
+            authorized_payment_id: p.id,
+            payment_id: p.payment_id ?? null,
+            status: p.status,
+            amount: p.transaction_amount ?? null,
+            currency: p.currency_id ?? null,
+            debit_date: p.debit_date ?? null,
+            next_retry_date: p.next_retry_date ?? null,
+            retry_attempt: p.retry_attempt ?? 0,
+            reason: p.reason ?? null,
+          })),
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Stores + POS (v0.4)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    create_store: tool({
+      description: desc("create_store"),
+      inputSchema: z.object({
+        name: z.string().min(1).max(80),
+        external_id: z.string().min(1).max(64).describe("Unique within the seller's stores"),
+        address_line: z.string().optional(),
+        city_name: z.string().optional(),
+        state_name: z.string().optional(),
+      }),
+      execute: async (input) => {
+        const me = await client.getMe();
+        const store = await client.createStore(String(me.id), {
+          name: input.name,
+          externalId: input.external_id,
+          ...(input.address_line || input.city_name || input.state_name
+            ? {
+                location: {
+                  ...(input.address_line ? { addressLine: input.address_line } : {}),
+                  ...(input.city_name ? { cityName: input.city_name } : {}),
+                  ...(input.state_name ? { stateName: input.state_name } : {}),
+                  countryId: "AR",
+                },
+              }
+            : {}),
+        });
+        return {
+          store_id: store.id,
+          name: store.name,
+          external_id: store.external_id,
+          next_step: "Use create_pos with this store_id to add a Point of Sale where create_qr_payment can issue QRs.",
+        };
+      },
+    }),
+
+    list_stores: tool({
+      description: desc("list_stores"),
+      inputSchema: z.object({
+        limit: z.number().int().min(1).max(100).optional(),
+      }),
+      execute: async (input) => {
+        const me = await client.getMe();
+        const result = await client.listStores(String(me.id), {
+          ...(input.limit !== undefined ? { limit: input.limit } : {}),
+        });
+        return {
+          total: result.paging.total,
+          stores: result.results.map((s) => ({
+            store_id: s.id,
+            name: s.name ?? null,
+            external_id: s.external_id ?? null,
+          })),
+        };
+      },
+    }),
+
+    create_pos: tool({
+      description: desc("create_pos"),
+      inputSchema: z.object({
+        name: z.string().min(1).max(80),
+        external_id: z.string().min(1).max(64).describe("Unique within the store. This is what create_qr_payment uses."),
+        store_id: z.string().describe("From create_store / list_stores"),
+        category: z.number().int().optional().describe("MP category code, default 621102 (other food/beverage)"),
+        fixed_amount: z.boolean().optional().describe("True for static QR with fixed amount; false (default) for dynamic per-order QR"),
+      }),
+      execute: async (input) => {
+        const pos = await client.createPos({
+          name: input.name,
+          externalId: input.external_id,
+          storeId: input.store_id,
+          ...(input.category !== undefined ? { category: input.category } : {}),
+          ...(input.fixed_amount !== undefined ? { fixedAmount: input.fixed_amount } : {}),
+        });
+        return {
+          pos_id: pos.id,
+          external_id: pos.external_id,
+          store_id: pos.store_id,
+          name: pos.name,
+          next_step: "Use create_qr_payment with this external_id to start issuing dynamic QRs from this POS.",
+        };
+      },
+    }),
+
+    list_pos: tool({
+      description: desc("list_pos"),
+      inputSchema: z.object({
+        store_id: z.string().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+      }),
+      execute: async (input) => {
+        const result = await client.listPos({
+          ...(input.store_id !== undefined ? { storeId: input.store_id } : {}),
+          ...(input.limit !== undefined ? { limit: input.limit } : {}),
+        });
+        return {
+          total: result.paging.total,
+          pos: result.results.map((p) => ({
+            pos_id: p.id,
+            external_id: p.external_id ?? null,
+            store_id: p.store_id ?? null,
+            name: p.name ?? null,
+          })),
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Disputes (v0.4 — read-only)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    list_payment_disputes: tool({
+      description: desc("list_payment_disputes"),
+      inputSchema: z.object({ payment_id: z.string() }),
+      execute: async ({ payment_id }) => {
+        const disputes = await client.listPaymentDisputes(payment_id);
+        return {
+          payment_id,
+          count: disputes.length,
+          disputes: disputes.map((d) => ({
+            dispute_id: d.id,
+            status: d.status,
+            amount: d.amount ?? null,
+            reason: d.reason ?? null,
+            date_created: d.date_created ?? null,
+            dashboard_url: `https://www.mercadopago.com.ar/disputes/${d.id}`,
+          })),
+        };
+      },
+    }),
+
+    get_dispute: tool({
+      description: desc("get_dispute"),
+      inputSchema: z.object({
+        payment_id: z.string(),
+        dispute_id: z.string(),
+      }),
+      execute: async ({ payment_id, dispute_id }) => {
+        const d = await client.getDispute(payment_id, dispute_id);
+        return {
+          dispute_id: d.id,
+          status: d.status,
+          amount: d.amount ?? null,
+          reason: d.reason ?? null,
+          reason_description: d.reason_description ?? null,
+          resolution: d.resolution ?? null,
+          date_created: d.date_created ?? null,
+          dashboard_url: `https://www.mercadopago.com.ar/disputes/${d.id}`,
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Lookup helpers (v0.4)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    list_identification_types: tool({
+      description: desc("list_identification_types"),
+      inputSchema: z.object({}),
+      execute: async () => {
+        const types = await client.listIdentificationTypes();
+        return {
+          count: types.length,
+          types: types.map((t) => ({
+            id: t.id,
+            name: t.name,
+            type: t.type,
+            min_length: t.min_length ?? null,
+            max_length: t.max_length ?? null,
+          })),
+        };
+      },
+    }),
+
+    list_issuers: tool({
+      description: desc("list_issuers"),
+      inputSchema: z.object({
+        payment_method_id: z.string().describe("E.g. 'visa', 'master', 'naranja'"),
+        bin: z.string().min(6).max(8).optional().describe("First 6-8 digits of card for precise issuer detection"),
+      }),
+      execute: async (input) => {
+        const issuers = await client.listIssuers({
+          paymentMethodId: input.payment_method_id,
+          ...(input.bin !== undefined ? { bin: input.bin } : {}),
+        });
+        return {
+          payment_method_id: input.payment_method_id,
+          count: issuers.length,
+          issuers: issuers.map((i) => ({
+            issuer_id: i.id,
+            name: i.name,
+            status: i.status ?? null,
+          })),
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // Webhooks management (v0.4)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    list_webhooks: tool({
+      description: desc("list_webhooks"),
+      inputSchema: z.object({}),
+      execute: async () => {
+        const hooks = await client.listWebhooks();
+        return {
+          count: hooks.length,
+          webhooks: hooks.map((h) => ({
+            webhook_id: h.id,
+            url: h.url ?? null,
+            topic: h.topic ?? null,
+            status: h.status ?? null,
+            date_created: h.date_created ?? null,
+          })),
+        };
+      },
+    }),
+
+    create_webhook: tool({
+      description: desc("create_webhook"),
+      inputSchema: z.object({
+        url: z.string().url(),
+        topic: z.string().describe("E.g. 'payment', 'subscription_authorized_payment', 'subscription_preapproval', 'merchant_order', 'point_integration_wh'"),
+      }),
+      execute: async ({ url, topic }) => {
+        const hook = await client.createWebhook({ url, topic });
+        return {
+          webhook_id: hook.id,
+          url: hook.url ?? url,
+          topic: hook.topic ?? topic,
+          status: hook.status ?? null,
+        };
+      },
+    }),
+
+    update_webhook: tool({
+      description: desc("update_webhook"),
+      inputSchema: z.object({
+        webhook_id: z.string(),
+        url: z.string().url().optional(),
+        topic: z.string().optional(),
+      }),
+      execute: async (input) => {
+        const hook = await client.updateWebhook(input.webhook_id, {
+          ...(input.url !== undefined ? { url: input.url } : {}),
+          ...(input.topic !== undefined ? { topic: input.topic } : {}),
+        });
+        return {
+          webhook_id: hook.id,
+          url: hook.url ?? null,
+          topic: hook.topic ?? null,
+          status: hook.status ?? null,
+        };
+      },
+    }),
+
+    delete_webhook: tool({
+      description: desc("delete_webhook"),
+      inputSchema: z.object({ webhook_id: z.string() }),
+      execute: async ({ webhook_id }) => {
+        await client.deleteWebhook(webhook_id);
+        return { webhook_id, deleted: true };
       },
     }),
   } satisfies ToolSet;

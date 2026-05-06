@@ -16,7 +16,7 @@ function buildSetup() {
 }
 
 describe("mercadoPagoTools", () => {
-  it("exposes the expected v0.3 tool names (subscriptions + payments + checkout + customers + installments + saved-card + QR)", () => {
+  it("exposes the full v0.4 tool surface (41 tools)", () => {
     const { tools } = buildSetup();
     expect(Object.keys(tools).sort()).toEqual([
       "calculate_installments",
@@ -28,21 +28,38 @@ describe("mercadoPagoTools", () => {
       "create_customer",
       "create_payment",
       "create_payment_preference",
+      "create_pos",
       "create_qr_payment",
+      "create_store",
       "create_subscription",
+      "create_subscription_plan",
+      "create_webhook",
       "delete_customer_card",
+      "delete_webhook",
       "find_customer_by_email",
       "get_account_info",
+      "get_dispute",
       "get_payment",
       "get_payment_preference",
       "get_subscription_status",
       "list_customer_cards",
+      "list_identification_types",
+      "list_issuers",
+      "list_payment_disputes",
       "list_payment_methods",
+      "list_pos",
       "list_refunds",
+      "list_stores",
+      "list_subscription_payments",
+      "list_subscription_plans",
+      "list_webhooks",
       "pause_subscription",
       "refund_payment",
       "resume_subscription",
       "search_payments",
+      "subscribe_to_plan",
+      "update_subscription_plan",
+      "update_webhook",
     ]);
   });
 

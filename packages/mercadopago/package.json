@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/mercadopago",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Mercado Pago Subscriptions as drop-in tools for the Vercel AI SDK. Argentine-focused, agent-ready.",
   "keywords": [
     "mercadopago",
@@ -61,7 +61,7 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "22 KB",
+      "limit": "32 KB",
       "ignore": [
         "node:crypto",
         "crypto"
@@ -70,7 +70,7 @@
     {
       "name": "CJS",
       "path": "dist/index.cjs",
-      "limit": "22 KB",
+      "limit": "32 KB",
       "ignore": [
         "node:crypto",
         "crypto"

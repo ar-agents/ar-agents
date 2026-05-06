@@ -5,21 +5,33 @@ import type {
   CreateCardTokenParams,
   CreateCustomerParams,
   CreatePaymentParams,
+  CreatePosParams,
   CreatePreapprovalParams,
   CreatePreferenceParams,
   CreateQrPaymentParams,
   CreateRefundParams,
+  CreateStoreParams,
+  CreateSubscriptionPlanParams,
+  CreateWebhookParams,
   Customer,
   CustomerCard,
+  Dispute,
+  IdentificationType,
   InstallmentOffer,
+  Issuer,
   Payment,
   PaymentMethod,
   PaymentsSearchResult,
+  Pos,
   Preapproval,
   Preference,
   QrOrder,
   Refund,
   SearchPaymentsParams,
+  Store,
+  SubscriptionPayment,
+  SubscriptionPlan,
+  WebhookConfig,
 } from "./types";
 
 const DEFAULT_BASE_URL = "https://api.mercadopago.com";
@@ -743,6 +755,232 @@ export class MercadoPagoClient {
       "DELETE",
       `/instore/orders/qr/seller/collectors/${encodeURIComponent(userId)}/pos/${encodeURIComponent(externalPosId)}/qrs`,
     );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Subscription Plans (preapproval_plan — reusable plans, v0.4)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Create a reusable subscription plan. Customers later subscribe to it via
+   * `subscribeToPlan` (which creates a preapproval pointing at the plan).
+   *
+   * Use this when you have fixed tiers (Básico/Pro/Enterprise). For custom
+   * per-customer amounts, skip plans and use `createPreapproval` directly.
+   */
+  async createSubscriptionPlan(params: CreateSubscriptionPlanParams): Promise<SubscriptionPlan> {
+    const body: Record<string, unknown> = {
+      reason: params.reason,
+      back_url: params.backUrl,
+      auto_recurring: {
+        frequency: params.frequency,
+        frequency_type: params.frequencyType,
+        transaction_amount: params.amount,
+        currency_id: params.currency,
+        ...(params.freeTrialFrequency !== undefined && params.freeTrialFrequencyType !== undefined
+          ? {
+              free_trial: {
+                frequency: params.freeTrialFrequency,
+                frequency_type: params.freeTrialFrequencyType,
+              },
+            }
+          : {}),
+      },
+    };
+    if (params.externalReference) body.external_reference = params.externalReference;
+    return this.request<SubscriptionPlan>("POST", "/preapproval_plan", body);
+  }
+
+  async getSubscriptionPlan(id: string): Promise<SubscriptionPlan> {
+    return this.request<SubscriptionPlan>("GET", `/preapproval_plan/${id}`);
+  }
+
+  async listSubscriptionPlans(params: { limit?: number; offset?: number; status?: string } = {}): Promise<{
+    paging: { total: number; limit: number; offset: number };
+    results: SubscriptionPlan[];
+  }> {
+    const query: Record<string, string | number | undefined> = {
+      limit: params.limit ?? 30,
+      offset: params.offset ?? 0,
+    };
+    if (params.status) query["status"] = params.status;
+    return this.request("GET", "/preapproval_plan/search", undefined, { query });
+  }
+
+  async updateSubscriptionPlan(
+    id: string,
+    patch: { reason?: string; status?: "active" | "cancelled"; amount?: number; backUrl?: string },
+  ): Promise<SubscriptionPlan> {
+    const body: Record<string, unknown> = {};
+    if (patch.reason !== undefined) body.reason = patch.reason;
+    if (patch.status !== undefined) body.status = patch.status;
+    if (patch.backUrl !== undefined) body.back_url = patch.backUrl;
+    if (patch.amount !== undefined) {
+      body.auto_recurring = { transaction_amount: patch.amount };
+    }
+    return this.request<SubscriptionPlan>("PUT", `/preapproval_plan/${id}`, body);
+  }
+
+  /**
+   * Subscribe a customer to an existing plan. Returns a Preapproval with
+   * `init_point` URL where the buyer completes the first payment.
+   */
+  async subscribeToPlan(params: {
+    planId: string;
+    payerEmail: string;
+    cardTokenId?: string;
+    externalReference?: string;
+  }): Promise<Preapproval> {
+    const body: Record<string, unknown> = {
+      preapproval_plan_id: params.planId,
+      payer_email: params.payerEmail,
+    };
+    if (params.cardTokenId) body.card_token_id = params.cardTokenId;
+    if (params.externalReference) body.external_reference = params.externalReference;
+    return this.request<Preapproval>("POST", "/preapproval", body, {
+      classifyContext: { payerEmail: params.payerEmail },
+    });
+  }
+
+  /**
+   * List the auto-charge attempts (authorized_payments) under a preapproval.
+   * Useful for "show me the cobros of the last 6 months for this client".
+   */
+  async listSubscriptionPayments(preapprovalId: string, params: { limit?: number; offset?: number } = {}): Promise<{
+    paging: { total: number; limit: number; offset: number };
+    results: SubscriptionPayment[];
+  }> {
+    const query: Record<string, string | number | undefined> = {
+      preapproval_id: preapprovalId,
+      limit: params.limit ?? 30,
+      offset: params.offset ?? 0,
+    };
+    return this.request(
+      "GET",
+      `/authorized_payments/search`,
+      undefined,
+      { query, classifyContext: { preapprovalId } },
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Stores + POS (for QR payments self-serve setup, v0.4)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /** Create a store for the seller. POSes (for QR) live under stores. */
+  async createStore(userId: string, params: CreateStoreParams): Promise<Store> {
+    const body: Record<string, unknown> = {
+      name: params.name,
+      external_id: params.externalId,
+    };
+    if (params.location) {
+      body.location = {
+        ...(params.location.addressLine ? { address_line: params.location.addressLine } : {}),
+        ...(params.location.cityName ? { city_name: params.location.cityName } : {}),
+        ...(params.location.stateName ? { state_name: params.location.stateName } : {}),
+        ...(params.location.countryId ? { country_id: params.location.countryId } : {}),
+        ...(params.location.latitude !== undefined ? { latitude: params.location.latitude } : {}),
+        ...(params.location.longitude !== undefined ? { longitude: params.location.longitude } : {}),
+      };
+    }
+    return this.request<Store>("POST", `/users/${encodeURIComponent(userId)}/stores`, body);
+  }
+
+  async listStores(userId: string, params: { limit?: number; offset?: number } = {}): Promise<{
+    paging: { total: number; limit: number; offset: number };
+    results: Store[];
+  }> {
+    const query: Record<string, string | number | undefined> = {
+      limit: params.limit ?? 50,
+      offset: params.offset ?? 0,
+    };
+    return this.request("GET", `/users/${encodeURIComponent(userId)}/stores/search`, undefined, { query });
+  }
+
+  /** Create a POS under a store. The POS's `external_id` is what `createQrPayment` uses. */
+  async createPos(params: CreatePosParams): Promise<Pos> {
+    const body: Record<string, unknown> = {
+      name: params.name,
+      external_id: params.externalId,
+      store_id: params.storeId,
+      category: params.category ?? 621102, // "Other Food and Beverage Services" — generic default
+    };
+    if (params.fixedAmount !== undefined) body.fixed_amount = params.fixedAmount;
+    return this.request<Pos>("POST", "/pos", body);
+  }
+
+  async listPos(params: { storeId?: string | number; limit?: number; offset?: number } = {}): Promise<{
+    paging: { total: number; limit: number; offset: number };
+    results: Pos[];
+  }> {
+    const query: Record<string, string | number | undefined> = {
+      limit: params.limit ?? 50,
+      offset: params.offset ?? 0,
+    };
+    if (params.storeId !== undefined) query["store_id"] = String(params.storeId);
+    return this.request("GET", "/pos", undefined, { query });
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Disputes (read-only, v0.4)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  async listPaymentDisputes(paymentId: string): Promise<Dispute[]> {
+    return this.request<Dispute[]>("GET", `/v1/payments/${paymentId}/disputes`, undefined, {
+      classifyContext: { paymentId },
+    });
+  }
+
+  async getDispute(paymentId: string, disputeId: string): Promise<Dispute> {
+    return this.request<Dispute>(
+      "GET",
+      `/v1/payments/${paymentId}/disputes/${disputeId}`,
+      undefined,
+      { classifyContext: { paymentId } },
+    );
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Identification Types + Issuers (lookup helpers, v0.4)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /** List valid identification types for the seller's site. AR returns DNI/CI/LE/LC/Otro/Pasaporte/CUIT/CUIL. */
+  async listIdentificationTypes(): Promise<IdentificationType[]> {
+    return this.request<IdentificationType[]>("GET", "/v1/identification_types");
+  }
+
+  /** List card issuers for a payment method. Useful with `bin` for installments. */
+  async listIssuers(params: { paymentMethodId: string; bin?: string }): Promise<Issuer[]> {
+    const query: Record<string, string | number | undefined> = {
+      payment_method_id: params.paymentMethodId,
+    };
+    if (params.bin) query["bin"] = params.bin;
+    return this.request<Issuer[]>("GET", "/v1/payment_methods/card_issuers", undefined, { query });
+  }
+
+  // ───────────────────────────────────────────────────────────────────────────
+  // Webhooks management (v0.4)
+  // ───────────────────────────────────────────────────────────────────────────
+
+  /** List configured webhook subscriptions. */
+  async listWebhooks(): Promise<WebhookConfig[]> {
+    return this.request<WebhookConfig[]>("GET", "/v1/webhooks");
+  }
+
+  /** Create a webhook subscription for a topic. */
+  async createWebhook(params: CreateWebhookParams): Promise<WebhookConfig> {
+    return this.request<WebhookConfig>("POST", "/v1/webhooks", {
+      url: params.url,
+      topic: params.topic,
+    });
+  }
+
+  async updateWebhook(id: string, patch: { url?: string; topic?: string }): Promise<WebhookConfig> {
+    return this.request<WebhookConfig>("PUT", `/v1/webhooks/${id}`, patch);
+  }
+
+  async deleteWebhook(id: string): Promise<void> {
+    await this.request("DELETE", `/v1/webhooks/${id}`);
   }
 }
 
