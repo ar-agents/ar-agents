@@ -34,6 +34,12 @@ jobs:
       - name: Typecheck packages
         run: pnpm -r --filter "./packages/*" run typecheck
 
+      - name: Verify tools.manifest.json files match src/tools.ts
+        # Stale manifests were a CRITICAL finding from /review — consumers
+        # reading the published manifest as source-of-truth got a 3-version-
+        # stale view. This gate fails the build if any manifest drifts.
+        run: pnpm run check-manifests
+
       - name: Test packages (with coverage)
         run: pnpm -r --filter "./packages/*" run test:coverage
 

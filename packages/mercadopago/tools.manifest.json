@@ -1,156 +1,154 @@
 {
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/mercadopago",
-  "version": "0.11.0",
+  "version": "0.15.0",
   "factory": "mercadoPagoTools",
   "tools": [
     {
-      "name": "create_subscription",
-      "summary": "Create a Mercado Pago recurring subscription. Returns the init_point URL where the customer must complete the FIRST payment with their card and CVV.",
-      "purity": "io",
-      "sideEffects": ["Creates a preapproval on MP", "Writes to SubscriptionStateAdapter"],
-      "constraints": {
-        "envVars": ["MP_ACCESS_TOKEN (TEST- for sandbox, APP_USR- for prod)"],
-        "externalIO": ["MP REST API"],
-        "latencyMs": "200-600",
-        "costPerCall": "$0 (creation is free; merchant pays per-transaction fee on auto-charges)"
-      },
-      "input": {
-        "customer_email": "string (email; cannot equal seller email)",
-        "amount_ars": "number (positive)",
-        "frequency_months": "number (1-12)",
-        "reason": "string (3-120 chars)",
-        "external_reference": "string | undefined"
-      },
-      "output": {
-        "subscription_id": "string",
-        "status": "pending",
-        "init_point_url": "string (URL the buyer must visit to complete first payment)",
-        "next_step": "string (instructions for the agent)"
-      },
-      "whenToUse": ["User asks to subscribe a customer to a recurring plan"],
-      "whenNotToUse": [
-        "User wants a one-off payment — Subscriptions API is recurring-only",
-        "User wants to charge a specific amount that varies per cycle — fix the amount or use a different MP product"
-      ],
-      "errorPatterns": [
-        {
-          "shape": "MercadoPagoBackUrlInvalidError",
-          "meaning": "App passed a non-HTTPS backUrl (e.g., http://localhost). MP rejects all non-HTTPS even in sandbox.",
-          "recovery": "App misconfiguration — surface to user as 'application error', not a user-fixable problem."
-        },
-        {
-          "shape": "MercadoPagoSelfPaymentError",
-          "meaning": "customer_email equals the seller account's email. MP refuses self-payment on subscriptions.",
-          "recovery": "Tell user to use a different buyer email."
-        },
-        {
-          "shape": "MercadoPagoAccountTypeMismatchError",
-          "meaning": "Misleading MP error 'Cannot operate between different countries'. Real cause: seller token is real-account-in-test-mode but buyer email is a test_user_*@testuser.com AFIP test user.",
-          "recovery": "Use a real consumer email as the buyer."
-        }
-      ]
+      "name": "analyze_payment_3ds",
+      "description": "Pure local analyzer for a Payment's 3DS (Strong Customer Authentication) state. Pass a payment_id (string) and the tool fetches the Payment then derives { status: 'not_required'|'frictionless'|'challe"
     },
     {
-      "name": "get_subscription_status",
-      "summary": "Check the current status of a Mercado Pago subscription. Use to confirm the customer completed the first payment or to inspect next charge date.",
-      "purity": "io",
-      "sideEffects": [],
-      "constraints": {
-        "envVars": ["MP_ACCESS_TOKEN"],
-        "externalIO": ["MP REST API"],
-        "latencyMs": "200-500",
-        "costPerCall": "$0"
+      "name": "calculate_installments",
+      "description": "Calculate cuotas (installments) options for a given amount. THE killer Argentine feature — returns options like '12 cuotas sin interés de $X' (recommended_message field) which you should surface VERBA",
+      "input": {
+        "amount_ars": "number positive",
+        "payment_method_id": "string? (e.g. visa, master, naranja)",
+        "bin": "string? 6-8 chars (first digits of card for issuer-specific promos)"
       },
-      "input": { "subscription_id": "string (MP preapproval ID)" },
       "output": {
-        "subscription_id": "string",
-        "status": "pending | authorized | paused | cancelled",
-        "payer_email": "string",
         "amount": "number",
-        "currency": "ARS | USD | ...",
-        "next_payment_date": "ISO date | null",
-        "last_webhook_status": "string | null (cached from latest webhook)",
-        "last_webhook_at": "ISO date | null"
+        "offers": "array of {payment_method_id, payment_type_id, issuer_name, options: [{installments, installment_amount, total_amount, installment_rate, recommended_message}]}"
+      }
+    },
+    {
+      "name": "cancel_order",
+      "description": "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture. **IRREVERSIBLE — confi",
+      "input": {
+        "order_id": "string"
       },
-      "whenToUse": [
-        "User asks if a customer paid",
-        "User asks when the next charge will happen",
-        "Need to verify subscription is still authorized after potential webhook events"
-      ],
-      "whenNotToUse": ["You haven't created a subscription yet — no ID to query"]
+      "output": {
+        "order_id": "string",
+        "status": "string"
+      }
+    },
+    {
+      "name": "cancel_payment",
+      "description": "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE — confi",
+      "input": {
+        "payment_id": "string"
+      },
+      "output": {
+        "payment_id": "string",
+        "status": "cancelled",
+        "message": "string"
+      }
+    },
+    {
+      "name": "cancel_point_payment_intent",
+      "description": "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERS"
+    },
+    {
+      "name": "cancel_qr_payment",
+      "description": "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE — but low-stakes since the QR has not been pai"
     },
     {
       "name": "cancel_subscription",
-      "summary": "Cancel an active Mercado Pago subscription. IRREVERSIBLE — confirm with user before calling.",
-      "purity": "io",
-      "sideEffects": ["Mutates MP preapproval state to 'cancelled'", "Writes to SubscriptionStateAdapter"],
-      "constraints": {
-        "envVars": ["MP_ACCESS_TOKEN"],
-        "externalIO": ["MP REST API"],
-        "latencyMs": "200-500",
-        "costPerCall": "$0"
+      "description": "Cancel an active Mercado Pago subscription. After cancellation, MP will not charge the customer again. This action is irreversible — confirm with the user before calling.",
+      "input": {
+        "subscription_id": "string"
       },
-      "input": { "subscription_id": "string" },
       "output": {
         "subscription_id": "string",
         "status": "cancelled",
         "message": "string"
-      },
-      "whenToUse": ["User explicitly confirms they want to cancel a subscription"],
-      "whenNotToUse": [
-        "User asked to pause temporarily — use pause_subscription instead",
-        "Without explicit user confirmation — this tool's description triggers a confirm-before-call turn in Claude Sonnet 4.6+; honor that"
-      ],
-      "irreversibility": "MP cannot reactivate a cancelled subscription. Create a fresh one to resume billing."
+      }
     },
     {
-      "name": "pause_subscription",
-      "summary": "Pause an authorized subscription. Charges stop until resumed.",
-      "purity": "io",
-      "sideEffects": ["Mutates MP preapproval state to 'paused'", "Writes to SubscriptionStateAdapter"],
-      "constraints": {
-        "envVars": ["MP_ACCESS_TOKEN"],
-        "externalIO": ["MP REST API"],
-        "latencyMs": "200-500",
-        "costPerCall": "$0"
+      "name": "capture_order",
+      "description": "Capture a previously-authorized Order (only for orders created with capture_mode='manual'). Captures up to the originally-authorized amount; pass amount for partial capture. Common use: ride-share mar",
+      "input": {
+        "order_id": "string",
+        "amount": "number?"
       },
-      "input": { "subscription_id": "string" },
-      "output": { "subscription_id": "string", "status": "paused", "message": "string" },
-      "whenToUse": ["User wants to pause billing temporarily but keep the subscription"],
-      "whenNotToUse": [
-        "Subscription is in pending status (not yet authorized) — pause only works on authorized subs"
-      ]
+      "output": {
+        "order_id": "string",
+        "status": "string",
+        "captured_amount": "number"
+      }
     },
     {
-      "name": "resume_subscription",
-      "summary": "Resume a paused subscription. Charges resume on next scheduled date.",
-      "purity": "io",
-      "sideEffects": ["Mutates MP preapproval state to 'authorized'", "Writes to SubscriptionStateAdapter"],
-      "constraints": {
-        "envVars": ["MP_ACCESS_TOKEN"],
-        "externalIO": ["MP REST API"],
-        "latencyMs": "200-500",
-        "costPerCall": "$0"
+      "name": "capture_payment",
+      "description": "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY —",
+      "input": {
+        "payment_id": "string",
+        "amount_ars": "number? (partial capture)"
       },
-      "input": { "subscription_id": "string" },
-      "output": { "subscription_id": "string", "status": "authorized", "message": "string" },
-      "whenToUse": ["User wants to reactivate a previously-paused subscription"],
-      "whenNotToUse": [
-        "Subscription is cancelled — MP doesn't allow resuming cancelled subs (throws MercadoPagoAuthorizeForbiddenError). Create a new subscription instead."
-      ]
+      "output": {
+        "payment_id": "string",
+        "status": "approved",
+        "amount": "number"
+      }
+    },
+    {
+      "name": "charge_saved_card",
+      "description": "Charge a previously-saved card for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Mercado Pago does NOT support CVV-"
+    },
+    {
+      "name": "compute_marketplace_fee",
+      "description": "PURE HELPER (no network) — given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payme"
+    },
+    {
+      "name": "confirm_3ds_challenge",
+      "description": "After the buyer completes a 3DS challenge (redirected back from challengeUrl), call this to poll MP and confirm whether the payment is now resolved. Polls get_payment up to N times with exponential ba"
+    },
+    {
+      "name": "create_customer",
+      "description": "Create a Mercado Pago customer record so the buyer can save cards for future charges. Idempotent on email — if a customer with that email exists, MP returns it instead of creating a duplicate. Use fin",
+      "input": {
+        "email": "string",
+        "first_name": "string?",
+        "last_name": "string?",
+        "identification": "{type: DNI|CUIT|CUIL, number: string}?"
+      },
+      "output": {
+        "customer_id": "string",
+        "email": "string",
+        "first_name": "string|null",
+        "last_name": "string|null",
+        "date_created": "ISO"
+      }
+    },
+    {
+      "name": "create_customer_card",
+      "description": "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform — agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard "
+    },
+    {
+      "name": "create_order",
+      "description": "Create a new Order via MP's modern Order Management API. DIFFERENT from create_payment_preference: Order is a transactional entity with explicit lifecycle (created → processed → captured/canceled), su",
+      "input": {
+        "type": "'online' | 'in_store'",
+        "currency_id": "string? (default ARS)",
+        "external_reference": "string?",
+        "total_amount": "number?",
+        "items": "array?",
+        "payer_email": "string?",
+        "capture_mode": "'automatic' | 'manual'?",
+        "notification_url": "string?",
+        "marketplace": "string?",
+        "marketplace_fee": "number? (ARS)",
+        "collector_id": "string|number? (seller MP user_id)"
+      },
+      "output": {
+        "order_id": "string",
+        "status": "string",
+        "capture_mode": "string",
+        "total_amount": "number"
+      }
     },
     {
       "name": "create_payment",
-      "summary": "Create a one-off payment. Two flows: (a) with `token` from MP frontend SDK for cards, (b) without token for account_money/rapipago/pagofacil.",
-      "purity": "io",
-      "sideEffects": ["Creates a payment on MP", "May charge buyer if account_money/card token"],
-      "constraints": {
-        "envVars": ["MP_ACCESS_TOKEN"],
-        "externalIO": ["MP REST API POST /v1/payments"],
-        "latencyMs": "300-1500 (cards), 200-700 (account_money)",
-        "costPerCall": "$0 (creation); MP charges merchant per-transaction fee on success"
-      },
+      "description": "Create a one-time payment. Two flows: (a) with a card token from MP frontend Cardform — for transparent checkout; (b) without token, for non-card methods like 'account_money', 'rapipago', 'pagofacil'.",
       "input": {
         "amount_ars": "number positive",
         "payment_method_id": "string (visa | master | naranja | account_money | rapipago | ...)",
@@ -164,90 +162,22 @@
         "payment_id": "string",
         "status": "approved | pending | rejected | in_process | cancelled",
         "status_detail": "string (see AGENTS.md for recovery actions per value)",
-        "amount": "number", "currency": "ARS",
-        "installments": "number", "payment_method": "string",
+        "amount": "number",
+        "currency": "ARS",
+        "installments": "number",
+        "payment_method": "string",
         "external_reference": "string | null",
-        "date_created": "ISO date", "date_approved": "ISO date | null"
-      },
-      "whenToUse": [
-        "User wants to charge a specific payer email with account_money / Rapipago / Pago Fácil",
-        "User has a valid card token from MP frontend SDK and wants server-side charge"
-      ],
-      "whenNotToUse": [
-        "User pasted raw card data — REFUSE (PCI scope violation). Use create_payment_preference instead.",
-        "User wants recurring billing — use create_subscription"
-      ]
-    },
-    {
-      "name": "get_payment",
-      "summary": "Fetch a single payment by ID. Use after webhook to confirm status.",
-      "purity": "io",
-      "sideEffects": [],
-      "constraints": { "latencyMs": "100-300", "externalIO": ["MP REST GET /v1/payments/:id"] },
-      "input": { "payment_id": "string" },
-      "output": "Same shape as create_payment output, plus net_received"
-    },
-    {
-      "name": "search_payments",
-      "summary": "Search payments by external_reference / status / date range. Paginated.",
-      "purity": "io",
-      "sideEffects": [],
-      "constraints": { "latencyMs": "200-600", "externalIO": ["MP REST GET /v1/payments/search"] },
-      "input": {
-        "external_reference": "string?", "status": "string?",
-        "payer_email": "string?", "begin_date": "ISO?", "end_date": "ISO?",
-        "limit": "number 1-100, default 30", "offset": "number, default 0"
-      },
-      "output": { "total": "number", "returned": "number", "offset": "number", "payments": "array of {payment_id, status, amount, currency, payer_email, external_reference, date_created}" }
-    },
-    {
-      "name": "cancel_payment",
-      "summary": "Cancel a pending or in_process payment. For approved use refund_payment.",
-      "purity": "io",
-      "sideEffects": ["Mutates payment status to cancelled on MP"],
-      "input": { "payment_id": "string" },
-      "output": { "payment_id": "string", "status": "cancelled", "message": "string" }
-    },
-    {
-      "name": "capture_payment",
-      "summary": "Capture an authorized credit-card payment created with capture=false. Optional partial amount.",
-      "purity": "io",
-      "sideEffects": ["Captures funds; settles to seller per MP rules"],
-      "input": { "payment_id": "string", "amount_ars": "number? (partial capture)" },
-      "output": { "payment_id": "string", "status": "approved", "amount": "number" }
-    },
-    {
-      "name": "refund_payment",
-      "summary": "Refund an approved payment. Partial (with amount) or full (omit). Auto-idempotent on (payment_id, amount).",
-      "purity": "io",
-      "sideEffects": ["Returns funds to buyer; debits seller balance"],
-      "constraints": { "latencyMs": "300-800", "externalIO": ["MP REST POST /v1/payments/:id/refunds"] },
-      "input": { "payment_id": "string", "amount_ars": "number? (omit for full refund)" },
-      "output": { "refund_id": "string", "payment_id": "string", "amount": "number", "status": "approved", "message": "string" },
-      "whenToUse": ["User explicitly requests a refund (full or partial)"],
-      "whenNotToUse": [
-        "Payment is still pending/in_process — use cancel_payment instead",
-        "More than 30 days since payment — MP refund window expired"
-      ],
-      "irreversibility": "Refund is irreversible. Confirm amount and payment_id with user first."
-    },
-    {
-      "name": "list_refunds",
-      "summary": "List all refunds for a given payment.",
-      "purity": "io",
-      "sideEffects": [],
-      "input": { "payment_id": "string" },
-      "output": { "payment_id": "string", "count": "number", "refunds": "array of {refund_id, amount, status, date_created}" }
+        "date_created": "ISO date",
+        "date_approved": "ISO date | null"
+      }
     },
     {
       "name": "create_payment_preference",
-      "summary": "Create a Checkout Pro hosted payment URL. RECOMMENDED for agent flows where you don't have a card token — buyer enters card on MP-hosted form (no PCI scope needed).",
-      "purity": "io",
-      "sideEffects": ["Creates a preference on MP"],
-      "constraints": { "latencyMs": "200-500", "externalIO": ["MP REST POST /checkout/preferences"] },
+      "description": "Create a Mercado Pago Checkout Pro preference and get back a payment URL (init_point) to send to the customer. THIS is the recommended way for an agent to take a payment when you only have a payer ema",
       "input": {
         "items": "array of {title, quantity, unit_price, description?, picture_url?}",
-        "payer_email": "string?", "external_reference": "string?",
+        "payer_email": "string?",
+        "external_reference": "string?",
         "max_installments": "number 1-24?",
         "statement_descriptor": "string max 13 chars?",
         "excluded_payment_types": "array of (credit_card|debit_card|ticket|atm|bank_transfer)?"
@@ -258,158 +188,476 @@
         "sandbox_init_point_url": "string (sandbox — use this if your token is TEST-)",
         "external_reference": "string | null",
         "next_step": "Send init_point_url to the customer..."
-      },
-      "whenToUse": [
-        "User wants to charge a payer over WhatsApp/email/SMS",
-        "User says 'cobrale $X a [email]' and you don't have a card token"
-      ],
-      "whenNotToUse": [
-        "Recurring subscription — use create_subscription",
-        "User pasted raw card data — REFUSE (PCI violation)"
-      ]
+      }
     },
     {
-      "name": "get_payment_preference",
-      "summary": "Fetch a Checkout Pro preference by ID.",
-      "purity": "io", "sideEffects": [],
-      "input": { "preference_id": "string" },
-      "output": "Same as create_payment_preference output, plus items array"
+      "name": "create_point_payment_intent",
+      "description": "Create a payment intent on a physical Point device — the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait f"
     },
     {
-      "name": "create_customer",
-      "summary": "Create or upsert an MP customer for saving cards / repeat charges. Idempotent on email.",
-      "purity": "io",
-      "sideEffects": ["Creates customer record on MP if not exists"],
+      "name": "create_pos",
+      "description": "Create a POS (Point of Sale) under a store. The POS's external_id is what create_qr_payment uses. Each physical checkout / counter / agent typically has its own POS. Categories are MP-defined (default"
+    },
+    {
+      "name": "create_qr_payment",
+      "description": "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS"
+    },
+    {
+      "name": "create_store",
+      "description": "Create a store under the seller's MP account. Stores are the parent entity for POSes (which generate QR payments). Required ONE-TIME setup before create_pos. Pass a unique external_id and a display na"
+    },
+    {
+      "name": "create_subscription",
+      "description": "Create a Mercado Pago recurring subscription. Returns an init_point URL where the customer must complete the FIRST payment with their card and CVV (this is a hard MP requirement; agents cannot bypass ",
       "input": {
-        "email": "string",
-        "first_name": "string?", "last_name": "string?",
-        "identification": "{type: DNI|CUIT|CUIL, number: string}?"
+        "customer_email": "string (email; cannot equal seller email)",
+        "amount_ars": "number (positive)",
+        "frequency_months": "number (1-12)",
+        "reason": "string (3-120 chars)",
+        "external_reference": "string | undefined"
       },
-      "output": { "customer_id": "string", "email": "string", "first_name": "string|null", "last_name": "string|null", "date_created": "ISO" }
+      "output": {
+        "subscription_id": "string",
+        "status": "pending",
+        "init_point_url": "string (URL the buyer must visit to complete first payment)",
+        "next_step": "string (instructions for the agent)"
+      }
     },
     {
-      "name": "find_customer_by_email",
-      "summary": "Find existing customer by email. Returns null if not found.",
-      "purity": "io", "sideEffects": [],
-      "input": { "email": "string" },
-      "output": { "found": "boolean", "customer_id": "string | null", "email": "string?", "first_name": "string?", "last_name": "string?" }
+      "name": "create_subscription_plan",
+      "description": "Create a REUSABLE subscription plan (preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscribe_to_plan. Use plans for S"
     },
     {
-      "name": "list_customer_cards",
-      "summary": "List saved cards for a customer.",
-      "purity": "io", "sideEffects": [],
-      "input": { "customer_id": "string" },
-      "output": { "customer_id": "string", "count": "number", "cards": "array of {card_id, last_four_digits, expiration_month, expiration_year, payment_method, payment_method_name}" }
+      "name": "create_webhook",
+      "description": "Subscribe a webhook URL to a MP topic (payment, subscription_authorized_payment, subscription_preapproval, merchant_order, point_integration_wh). MP will POST to this URL when events of that topic fir"
     },
     {
       "name": "delete_customer_card",
-      "summary": "Delete a saved card. Irreversible.",
-      "purity": "io", "sideEffects": ["Removes card from MP customer"],
-      "input": { "customer_id": "string", "card_id": "string" },
-      "output": { "customer_id": "string", "card_id": "string", "deleted": "true" }
-    },
-    {
-      "name": "list_payment_methods",
-      "summary": "List all payment methods enabled for the seller's MP account (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.).",
-      "purity": "io", "sideEffects": [],
-      "input": {},
-      "output": { "count": "number", "methods": "array of {id, name, payment_type, status, min_amount, max_amount}" }
-    },
-    {
-      "name": "calculate_installments",
-      "summary": "Calculate cuotas options for an amount. THE killer AR feature. Returns recommended_message strings ('12 cuotas sin interés de $X') ready to surface VERBATIM to the user.",
-      "purity": "io", "sideEffects": [],
-      "constraints": { "latencyMs": "100-300" },
+      "description": "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE — confirm with the user before calling. The customer must re-enter card data (PAN + ",
       "input": {
-        "amount_ars": "number positive",
-        "payment_method_id": "string? (e.g. visa, master, naranja)",
-        "bin": "string? 6-8 chars (first digits of card for issuer-specific promos)"
+        "customer_id": "string",
+        "card_id": "string"
       },
       "output": {
-        "amount": "number",
-        "offers": "array of {payment_method_id, payment_type_id, issuer_name, options: [{installments, installment_amount, total_amount, installment_rate, recommended_message}]}"
+        "customer_id": "string",
+        "card_id": "string",
+        "deleted": "true"
+      }
+    },
+    {
+      "name": "delete_pos",
+      "description": "Delete a POS. IRREVERSIBLE. Cancels any pending QR orders attached to it. Confirm with user before calling."
+    },
+    {
+      "name": "delete_store",
+      "description": "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes — delete those first."
+    },
+    {
+      "name": "delete_webhook",
+      "description": "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE — confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subs"
+    },
+    {
+      "name": "explain_payment_status",
+      "description": "PURE HELPER (no network) — given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's crypt"
+    },
+    {
+      "name": "find_applicable_promos",
+      "description": "PURE HELPER (no network, sub-ms) — returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30"
+    },
+    {
+      "name": "find_customer_by_email",
+      "description": "Find an existing customer by email address. Returns the customer object if found, or null. Use before create_customer to avoid duplicate records.",
+      "input": {
+        "email": "string"
       },
-      "whenToUse": [
-        "User asks 'cuántas cuotas tiene esta tarjeta?'",
-        "Before create_payment with installments > 1 to validate available options",
-        "Show options BEFORE the user picks (AR transparency regulation E 51/2017 compliance)"
-      ]
+      "output": {
+        "found": "boolean",
+        "customer_id": "string | null",
+        "email": "string?",
+        "first_name": "string?",
+        "last_name": "string?"
+      }
+    },
+    {
+      "name": "get_account_balance",
+      "description": "Get the seller's current MP wallet balance. Returns { available_balance, unavailable_balance, total_amount, currency_id }. The available balance is what the seller can withdraw or pay with right now; "
     },
     {
       "name": "get_account_info",
-      "summary": "Get info about the MP account that owns the access token (site_id, country, user_type).",
-      "purity": "io", "sideEffects": [],
+      "description": "Get info about the Mercado Pago account that owns the access token: site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the right acc",
       "input": {},
-      "output": { "account_id": "string", "email": "string|null", "nickname": "string|null", "country_id": "string|null (AR for Argentina)", "site_id": "string|null (MLA for Argentina)", "user_type": "string|null" }
+      "output": {
+        "account_id": "string",
+        "email": "string|null",
+        "nickname": "string|null",
+        "country_id": "string|null (AR for Argentina)",
+        "site_id": "string|null (MLA for Argentina)",
+        "user_type": "string|null"
+      }
     },
     {
-      "name": "handle_webhook",
-      "summary": "v0.5 — Verify HMAC + parse + auto-fetch webhook in ONE call. THE recommended way to handle MP webhooks in production.",
-      "purity": "io", "sideEffects": ["Fetches Payment / Preapproval AS the configured client when auto_fetch=true"],
-      "constraints": { "latencyMs": "150-700", "envVars": ["webhookSecret in tools options"] },
-      "input": { "raw_body": "string (raw JSON body — do NOT re-stringify)", "signature_header": "string|null (x-signature)", "request_id_header": "string|null (x-request-id)", "auto_fetch": "boolean? default true" },
-      "output": { "verified": "boolean", "event": "{ topic, dataId, action, raw } | null", "resource": "Payment | Preapproval | null", "resource_error": "string | null", "error": "string | null" },
-      "whenToUse": ["Always in webhook endpoints — REJECT (HTTP 401) when verified=false"]
+      "name": "get_customer",
+      "description": "Get a customer by id. Returns full Customer object: email, first_name, last_name, identification, address, default_card, registered cards. PURE READ. USE WHEN you have the customer_id from a previous "
     },
     {
-      "name": "oauth_authorize_url",
-      "summary": "v0.5 — Build the URL the SELLER visits to authorize your marketplace app. Pure function.",
-      "purity": "pure", "sideEffects": [],
-      "constraints": { "latencyMs": "<1" },
-      "input": { "redirect_uri": "string (must be whitelisted in MP dev panel)", "state": "string (CSRF token, bind to user session)" },
-      "output": { "available": "boolean", "url": "string|null", "next_step": "string" }
+      "name": "get_customer_card",
+      "description": "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ — useful before charge_saved_card to confirm the card is still valid."
     },
     {
-      "name": "oauth_exchange_code",
-      "summary": "v0.5 — Exchange the OAuth code (from redirect) for OAuthToken { access_token, refresh_token, user_id, expires_in }.",
-      "purity": "io", "sideEffects": [],
-      "constraints": { "latencyMs": "200-500", "envVars": ["oauth.clientId + oauth.clientSecret in tools options"] },
-      "input": { "code": "string", "redirect_uri": "string (must EXACTLY match the URL used in oauth_authorize_url)" },
-      "output": { "available": "boolean", "token": "OAuthToken | null", "error": "string | null", "next_step": "string" }
+      "name": "get_dispute",
+      "description": "Get details of a specific dispute including reason, amount, resolution status. Read-only."
     },
     {
-      "name": "oauth_refresh_token",
-      "summary": "v0.5 — Refresh a per-seller access_token. Always persist the new refresh_token (it may rotate).",
-      "purity": "io", "sideEffects": [],
-      "constraints": { "latencyMs": "150-400" },
-      "input": { "refresh_token": "string" },
-      "output": { "available": "boolean", "token": "OAuthToken | null", "error": "string | null" }
-    },
-    {
-      "name": "create_order",
-      "summary": "v0.5 — Create an Order (modern API). Supports manual capture (auth-only) and marketplace splits.",
-      "purity": "io", "sideEffects": ["Creates an Order in MP"],
-      "constraints": { "latencyMs": "200-500" },
-      "input": { "type": "'online' | 'in_store'", "currency_id": "string? (default ARS)", "external_reference": "string?", "total_amount": "number?", "items": "array?", "payer_email": "string?", "capture_mode": "'automatic' | 'manual'?", "notification_url": "string?", "marketplace": "string?", "marketplace_fee": "number? (ARS)", "collector_id": "string|number? (seller MP user_id)" },
-      "output": { "order_id": "string", "status": "string", "capture_mode": "string", "total_amount": "number" }
+      "name": "get_merchant_order",
+      "description": "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference — one Order can have multiple partial Payments (r"
     },
     {
       "name": "get_order",
-      "summary": "v0.5 — Fetch an Order by id.",
-      "purity": "io", "sideEffects": [],
-      "input": { "order_id": "string" },
+      "description": "Fetch an Order by ID. Returns the Order with its lifecycle status and any attached payments/refunds.",
+      "input": {
+        "order_id": "string"
+      },
       "output": "Order"
+    },
+    {
+      "name": "get_payment",
+      "description": "Fetch a single payment by ID. Use to confirm status after webhook arrives, or to inspect details (status_detail explains rejections).",
+      "input": {
+        "payment_id": "string"
+      },
+      "output": "Same shape as create_payment output, plus net_received"
+    },
+    {
+      "name": "get_payment_preference",
+      "description": "Fetch a Checkout Pro preference by ID. Returns the preference config and current init_point URLs. Use to inspect a previously-created link.",
+      "input": {
+        "preference_id": "string"
+      },
+      "output": "Same as create_payment_preference output, plus items array"
+    },
+    {
+      "name": "get_point_payment_intent",
+      "description": "Get the current state of a Point payment intent (OPEN, PROCESSING, FINISHED, CANCELED, ERROR). USE in polling loops if you can't wait for the webhook. When state=FINISHED, the intent.payment.id is the"
+    },
+    {
+      "name": "get_pos",
+      "description": "Fetch a POS by id. Returns: name, store_id, category, external_id, qr_template (if configured). PURE READ. Use when you need to find the external_id for create_qr_payment."
+    },
+    {
+      "name": "get_refund",
+      "description": "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ — useful to verify a refund processed or to reconcile partial-refund history."
+    },
+    {
+      "name": "get_settlement",
+      "description": "Get details of a single settlement: amount, date_scheduled, date_processed, bank_account info (CBU + bank name)."
+    },
+    {
+      "name": "get_store",
+      "description": "Fetch a single store by (user_id, store_id). Returns store details: name, location, business_hours, external_id. PURE READ."
+    },
+    {
+      "name": "get_subscription_plan",
+      "description": "Fetch a subscription plan by id. Returns plan config: amount, frequency, status, init_point. Use to inspect a plan before subscribing customers, or to display plan details to the user."
+    },
+    {
+      "name": "get_subscription_status",
+      "description": "Check the current status of a Mercado Pago subscription. Use this to confirm the customer completed the first payment (status becomes 'authorized') or to inspect the next charge date.",
+      "input": {
+        "subscription_id": "string (MP preapproval ID)"
+      },
+      "output": {
+        "subscription_id": "string",
+        "status": "pending | authorized | paused | cancelled",
+        "payer_email": "string",
+        "amount": "number",
+        "currency": "ARS | USD | ...",
+        "next_payment_date": "ISO date | null",
+        "last_webhook_status": "string | null (cached from latest webhook)",
+        "last_webhook_at": "ISO date | null"
+      }
+    },
+    {
+      "name": "get_test_cards",
+      "description": "Pure helper that returns the official MP test cards for AR (MLA): VISA/Mastercard/Amex credit + debit, with the 'magic' holder names that route the payment to specific status_detail values (APRO=appro"
+    },
+    {
+      "name": "handle_webhook",
+      "description": "Process an incoming MP webhook in ONE call: verify the HMAC-SHA256 signature, parse the event, and (optionally) auto-fetch the underlying resource (Payment, Subscription, Order). Returns the structure",
+      "input": {
+        "raw_body": "string (raw JSON body — do NOT re-stringify)",
+        "signature_header": "string|null (x-signature)",
+        "request_id_header": "string|null (x-request-id)",
+        "auto_fetch": "boolean? default true"
+      },
+      "output": {
+        "verified": "boolean",
+        "event": "{ topic, dataId, action, raw } | null",
+        "resource": "Payment | Preapproval | null",
+        "resource_error": "string | null",
+        "error": "string | null"
+      }
+    },
+    {
+      "name": "list_account_movements",
+      "description": "List wallet movements (incoming payments, transfers, refunds, holdings) for the active MP account. Filter by date range with `from`/`to` (ISO 8601). Useful for monthly conciliation or 'show me what ca"
+    },
+    {
+      "name": "list_bank_accounts",
+      "description": "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array — the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settl"
+    },
+    {
+      "name": "list_customer_cards",
+      "description": "List the saved cards for a customer. Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_payment calls to charge a ",
+      "input": {
+        "customer_id": "string"
+      },
+      "output": {
+        "customer_id": "string",
+        "count": "number",
+        "cards": "array of {card_id, last_four_digits, expiration_month, expiration_year, payment_method, payment_method_name}"
+      }
+    },
+    {
+      "name": "list_identification_types",
+      "description": "List valid identification types for the seller's site. AR returns: DNI, CI, LE, LC, Otro, Pasaporte, CUIT, CUIL with their min/max length. Useful to validate an identification before passing to create"
+    },
+    {
+      "name": "list_issuers",
+      "description": "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments — issuer-specific "
+    },
+    {
+      "name": "list_payment_disputes",
+      "description": "List all disputes / chargebacks raised against a payment. Read-only — resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when th"
+    },
+    {
+      "name": "list_payment_methods",
+      "description": "List all payment methods enabled for the seller's MP account (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.). Use to validate which methods you can offer the custom",
+      "input": {},
+      "output": {
+        "count": "number",
+        "methods": "array of {id, name, payment_type, status, min_amount, max_amount}"
+      }
+    },
+    {
+      "name": "list_point_devices",
+      "description": "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS — these are actual terminals at brick-and-mortar shops. Returns each device's id "
+    },
+    {
+      "name": "list_pos",
+      "description": "List all POSes for the seller (or filtered by store_id). Use to find an existing POS before create_qr_payment, or to surface options."
+    },
+    {
+      "name": "list_refunds",
+      "description": "List all refunds for a given payment. Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
+      "input": {
+        "payment_id": "string"
+      },
+      "output": {
+        "payment_id": "string",
+        "count": "number",
+        "refunds": "array of {refund_id, amount, status, date_created}"
+      }
+    },
+    {
+      "name": "list_settlements",
+      "description": "List settlements (release_money) — i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation repo"
+    },
+    {
+      "name": "list_settlements_all",
+      "description": "Collect ALL settlements matching a filter — auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports."
+    },
+    {
+      "name": "list_stores",
+      "description": "List all stores configured for this MP account. Use this to find an existing store_id before create_pos, or to surface store options to the agent."
+    },
+    {
+      "name": "list_subscription_payments",
+      "description": "List the auto-charge attempts (authorized_payments) under a subscription. Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge."
+    },
+    {
+      "name": "list_subscription_plans",
+      "description": "List all subscription plans defined for this MP account. Useful before create_subscription_plan to check if one already exists, or for surfacing options to a customer."
+    },
+    {
+      "name": "list_webhooks",
+      "description": "List all webhook subscriptions configured for this MP application. Use to see what topics + URLs are wired before adding new ones."
+    },
+    {
+      "name": "mp_health_check",
+      "description": "Liveness probe against MP. Returns { ok, latencyMs, userId, circuit }. USE THIS as the first call in long-running agent workflows to verify (a) network path to MP is up, (b) accessToken is valid, (c) "
+    },
+    {
+      "name": "oauth_authorize_url",
+      "description": "Build the URL the SELLER (third-party MP account) visits to authorize your marketplace app. Pass the seller's redirect uri (must be whitelisted in MP dev panel) and an opaque state token (CSRF protect",
+      "input": {
+        "redirect_uri": "string (must be whitelisted in MP dev panel)",
+        "state": "string (CSRF token, bind to user session)"
+      },
+      "output": {
+        "available": "boolean",
+        "url": "string|null",
+        "next_step": "string"
+      }
+    },
+    {
+      "name": "oauth_exchange_code",
+      "description": "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response** — refresh_token is long-liv",
+      "input": {
+        "code": "string",
+        "redirect_uri": "string (must EXACTLY match the URL used in oauth_authorize_url)"
+      },
+      "output": {
+        "available": "boolean",
+        "token": "OAuthToken | null",
+        "error": "string | null",
+        "next_step": "string"
+      }
+    },
+    {
+      "name": "oauth_refresh_token",
+      "description": "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken — pe",
+      "input": {
+        "refresh_token": "string"
+      },
+      "output": {
+        "available": "boolean",
+        "token": "OAuthToken | null",
+        "error": "string | null"
+      }
+    },
+    {
+      "name": "pause_subscription",
+      "description": "Pause an authorized Mercado Pago subscription. Charges stop until resumed. Only works on subscriptions in 'authorized' status.",
+      "input": {
+        "subscription_id": "string"
+      },
+      "output": {
+        "subscription_id": "string",
+        "status": "paused",
+        "message": "string"
+      }
+    },
+    {
+      "name": "refund_payment",
+      "description": "Refund an approved payment. Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to prevent double-refunds on retries. **IRREVERSIBLE AND M",
+      "input": {
+        "payment_id": "string",
+        "amount_ars": "number? (omit for full refund)"
+      },
+      "output": {
+        "refund_id": "string",
+        "payment_id": "string",
+        "amount": "number",
+        "status": "approved",
+        "message": "string"
+      }
+    },
+    {
+      "name": "register_bank_account",
+      "description": "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance — this endpoint may not work for all accounts. If it fails with 403, redirect the "
+    },
+    {
+      "name": "resume_subscription",
+      "description": "Resume a paused Mercado Pago subscription. Charges resume on the next scheduled date. Only works on subscriptions in 'paused' status.",
+      "input": {
+        "subscription_id": "string"
+      },
+      "output": {
+        "subscription_id": "string",
+        "status": "authorized",
+        "message": "string"
+      }
+    },
+    {
+      "name": "search_merchant_orders",
+      "description": "Search merchant_orders by preference_id, external_reference, or status. Paginated. Returns up to 50 per page. USE WHEN you have a preference_id and want all its derived merchant_orders, or when reconc"
+    },
+    {
+      "name": "search_payments",
+      "description": "Search payments with filters. Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful charges in a date range. Returns",
+      "input": {
+        "external_reference": "string?",
+        "status": "string?",
+        "payer_email": "string?",
+        "begin_date": "ISO?",
+        "end_date": "ISO?",
+        "limit": "number 1-100, default 30",
+        "offset": "number, default 0"
+      },
+      "output": {
+        "total": "number",
+        "returned": "number",
+        "offset": "number",
+        "payments": "array of {payment_id, status, amount, currency, payer_email, external_reference, date_created}"
+      }
+    },
+    {
+      "name": "search_payments_all",
+      "description": "Collect ALL payments matching a filter — auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to ca"
+    },
+    {
+      "name": "search_subscriptions",
+      "description": "Search subscriptions across the seller's account. Filter by status (pending/authorized/paused/cancelled), payer_email, external_reference, or preapproval_plan_id (to find all subscribers of a plan). P"
+    },
+    {
+      "name": "subscribe_to_plan",
+      "description": "Subscribe a customer to an existing reusable plan. Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when you have fixed tiers."
+    },
+    {
+      "name": "update_customer",
+      "description": "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch — fields you don't send remain unchanged. Use to keep customer records in sync (e"
+    },
+    {
+      "name": "update_merchant_order",
+      "description": "Update a merchant_order — typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle."
     },
     {
       "name": "update_order",
-      "summary": "v0.5 — Patch an Order (external_reference, total_amount).",
-      "purity": "io", "sideEffects": ["Mutates Order"],
-      "input": { "order_id": "string", "external_reference": "string?", "total_amount": "number?" },
+      "description": "Patch an existing Order before it's captured/canceled. Common use: update items or external_reference.",
+      "input": {
+        "order_id": "string",
+        "external_reference": "string?",
+        "total_amount": "number?"
+      },
       "output": "Order"
     },
     {
-      "name": "capture_order",
-      "summary": "v0.5 — Capture an authorized Order (capture_mode='manual'). Optional partial-capture amount.",
-      "purity": "io", "sideEffects": ["Captures funds — IRREVERSIBLE"],
-      "input": { "order_id": "string", "amount": "number?" },
-      "output": { "order_id": "string", "status": "string", "captured_amount": "number" }
+      "name": "update_payment_preference",
+      "description": "Update a Checkout Pro preference (notification_url, back_urls, items, payer info, payment_methods exclusion list). Only works on preferences NOT yet paid. Common use: regenerate the link with a new no"
     },
     {
-      "name": "cancel_order",
-      "summary": "v0.5 — Cancel a non-captured Order. Releases auth-holds. For captured orders, use refund_payment.",
-      "purity": "io", "sideEffects": ["Cancels Order"],
-      "input": { "order_id": "string" },
-      "output": { "order_id": "string", "status": "string" }
+      "name": "update_point_device_mode",
+      "description": "Switch a Point device's operating_mode between 'PDV' (bound to a logical POS, takes payments triggered through that POS) and 'STANDALONE' (works independently, accepts any payment). PDV is for cash-re"
+    },
+    {
+      "name": "update_pos",
+      "description": "Update a POS's properties (name, category, external_id). MP merges the patch."
+    },
+    {
+      "name": "update_store",
+      "description": "Update a store's properties (name, location, business_hours, external_id). MP merges the patch."
+    },
+    {
+      "name": "update_subscription",
+      "description": "Update a subscription's amount, status, reason, external_reference, OR card_token_id (to switch payment method when the buyer's card is expired/declined). For card swap: pass card_token_id from a fres"
+    },
+    {
+      "name": "update_subscription_plan",
+      "description": "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated — only NEW subscribers get the new pricing."
+    },
+    {
+      "name": "update_webhook",
+      "description": "Update a webhook's URL or topic. Useful when you change deployment URLs without resubscribing from scratch."
+    },
+    {
+      "name": "validate_tax_id",
+      "description": "PURE HELPER (no network, sub-ms) — validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC struct"
     }
-  ]
+  ],
+  "name": "@ar-agents/mercadopago",
+  "meta": {
+    "generated_at": "2026-05-06T20:54:56.481Z",
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 89
+  }
 }

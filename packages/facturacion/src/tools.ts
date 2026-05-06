@@ -97,21 +97,45 @@ export function facturacionTools(
         ),
         cbteTipo: z
           .union([
+            // A-series (responsables inscriptos, IVA discriminado)
             z.literal(1).describe("Factura A"),
             z.literal(2).describe("Nota de Débito A"),
             z.literal(3).describe("Nota de Crédito A"),
+            z.literal(4).describe("Recibo A"),
+            z.literal(5).describe("Nota de Venta al Contado A"),
+            // B-series (consumidor final / no inscriptos, IVA incluido)
             z.literal(6).describe("Factura B"),
             z.literal(7).describe("Nota de Débito B"),
             z.literal(8).describe("Nota de Crédito B"),
-            z.literal(11).describe("Factura C (monotributo)"),
+            z.literal(9).describe("Recibo B"),
+            z.literal(10).describe("Nota de Venta al Contado B"),
+            // C-series (monotributo)
+            z.literal(11).describe("Factura C"),
             z.literal(12).describe("Nota de Débito C"),
             z.literal(13).describe("Nota de Crédito C"),
-            z.literal(201).describe("Factura de Crédito Electrónica MiPyMEs A"),
-            z.literal(206).describe("Factura de Crédito Electrónica MiPyMEs B"),
-            z.literal(211).describe("Factura de Crédito Electrónica MiPyMEs C"),
+            z.literal(15).describe("Recibo C"),
+            // E-series (exportación)
+            z.literal(19).describe("Factura E (exportación)"),
+            z.literal(20).describe("Nota de Débito E"),
+            z.literal(21).describe("Nota de Crédito E"),
+            // M-series (monotributistas con renta presunta)
+            z.literal(51).describe("Factura M"),
+            z.literal(52).describe("Nota de Débito M"),
+            z.literal(53).describe("Nota de Crédito M"),
+            z.literal(54).describe("Recibo M"),
+            // FCE MiPyMEs (RG 4367/2018)
+            z.literal(201).describe("FCE MiPyMEs Factura A"),
+            z.literal(202).describe("FCE MiPyMEs Nota de Débito A"),
+            z.literal(203).describe("FCE MiPyMEs Nota de Crédito A"),
+            z.literal(206).describe("FCE MiPyMEs Factura B"),
+            z.literal(207).describe("FCE MiPyMEs Nota de Débito B"),
+            z.literal(208).describe("FCE MiPyMEs Nota de Crédito B"),
+            z.literal(211).describe("FCE MiPyMEs Factura C"),
+            z.literal(212).describe("FCE MiPyMEs Nota de Débito C"),
+            z.literal(213).describe("FCE MiPyMEs Nota de Crédito C"),
           ])
           .describe(
-            "Tipo de comprobante (cerrado a la lista AFIP/ARCA). Cualquier otro valor se rechaza antes de tocar AFIP.",
+            "Tipo de comprobante AFIP. Lista cerrada — debe coincidir con CbteTipo en catalogs.ts. Si AFIP agrega nuevos códigos, agregalos a CbteTipo y a este union juntos.",
           ),
         concepto: z
           .union([
@@ -124,12 +148,20 @@ export function facturacionTools(
           .union([
             z.literal(80).describe("CUIT"),
             z.literal(86).describe("CUIL"),
-            z.literal(96).describe("DNI"),
-            z.literal(99).describe("Consumidor Final"),
-            z.literal(94).describe("Pasaporte"),
+            z.literal(87).describe("CDI (Cédula de Identificación)"),
+            z.literal(89).describe("LE (Libreta de Enrolamiento)"),
+            z.literal(90).describe("LC (Libreta Cívica)"),
             z.literal(91).describe("CI Extranjera"),
+            z.literal(92).describe("En Trámite"),
+            z.literal(93).describe("Acta de Nacimiento"),
+            z.literal(94).describe("Pasaporte"),
+            z.literal(95).describe("CI Buenos Aires (RNP)"),
+            z.literal(96).describe("DNI"),
+            z.literal(99).describe("Consumidor Final (DocNro: 0)"),
           ])
-          .describe("Tipo de documento del receptor (lista cerrada AFIP)."),
+          .describe(
+            "Tipo de documento del receptor — lista cerrada AFIP. Debe coincidir con DocTipo en catalogs.ts.",
+          ),
         docNro: z.union([z.string(), z.number()]).describe(
           "Número de documento del receptor. Para Consumidor Final pasá 0.",
         ),

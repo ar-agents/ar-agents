@@ -5,50 +5,46 @@
   "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
   "tools": [
     {
-      "name": "validate_cbu",
-      "kind": "pure",
-      "summary": "Validate AR CBU/CVU + identify bank/PSP",
-      "input": { "cbu": "string" },
-      "output": "CbuParseResult",
-      "latencyP50Ms": 1,
-      "requiresAdapter": false
-    },
-    {
-      "name": "lookup_bank_by_code",
-      "kind": "pure",
-      "summary": "Resolve a 3-digit bank code or 7-digit CVU prefix to its name",
-      "input": { "code": "string" },
-      "output": "{ code, found, entity }",
-      "latencyP50Ms": 1,
-      "requiresAdapter": false
-    },
-    {
       "name": "list_banks",
-      "kind": "pure",
-      "summary": "Enumerate all known AR banks",
+      "description": "Return the full list of known Argentine banks with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a work",
       "input": {},
-      "output": "{ banks: BankInfo[] }",
-      "latencyP50Ms": 1,
-      "requiresAdapter": false
+      "output": "{ banks: BankInfo[] }"
     },
     {
       "name": "list_psps",
-      "kind": "pure",
-      "summary": "Enumerate all known AR PSPs/fintechs",
+      "description": "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers — Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need",
       "input": {},
-      "output": "{ psps: BankInfo[] }",
-      "latencyP50Ms": 1,
-      "requiresAdapter": false
+      "output": "{ psps: BankInfo[] }"
+    },
+    {
+      "name": "lookup_bank_by_code",
+      "description": "Look up the Argentine bank or PSP (payment service provider) by its 3-digit BCRA-assigned entity code. PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal name, sho",
+      "input": {
+        "code": "string"
+      },
+      "output": "{ code, found, entity }"
     },
     {
       "name": "lookup_credit_situation",
-      "kind": "network",
-      "summary": "BCRA Central de Deudores credit-situation lookup for a CUIT",
-      "input": { "cuit": "string" },
-      "output": "BcraDeudaResult & { worstSituationDescription }",
-      "latencyP50Ms": 600,
-      "requiresAdapter": true,
-      "adapter": "BcraDeudaAdapter (default: BcraPublicApiAdapter — public BCRA REST API, no auth)"
+      "description": "Look up the BCRA Central de Deudores credit situation for an Argentine CUIT. Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irr",
+      "input": {
+        "cuit": "string"
+      },
+      "output": "BcraDeudaResult & { worstSituationDescription }"
+    },
+    {
+      "name": "validate_cbu",
+      "description": "Validate an Argentine CBU (Clave Bancaria Uniforme, traditional bank account) or CVU (Clave Virtual Uniforme, fintech wallet account) via the BCRA dual mod-10 check-digit algorithm. PURE FUNCTION: no ",
+      "input": {
+        "cbu": "string"
+      },
+      "output": "CbuParseResult"
     }
-  ]
+  ],
+  "name": "@ar-agents/banking",
+  "meta": {
+    "generated_at": "2026-05-06T20:54:56.485Z",
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 5
+  }
 }

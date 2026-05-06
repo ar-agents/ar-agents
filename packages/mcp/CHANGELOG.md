@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.9
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.15.0` (`requireConfirmation` opt-in HITL
+  callback, webhookDedup wired, idempotency-key collision-safe encoding,
+  VercelKVRateLimiter jitter + retry cap) and
+  `@ar-agents/identity-attest@0.4.0` (Auth0 + Magic.link moved to subpath
+  exports for true Edge-Runtime isolation).
+
 ## 0.4.8
 
 ### Patch Changes

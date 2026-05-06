@@ -1,5 +1,56 @@
 # Changelog
 
+## 0.15.0
+
+### Minor — `requireConfirmation` opt-in HITL callback (closes /review CRITICAL)
+
+Description-based HITL warnings on irreversible ops are best-effort against
+prompt injection. The /review audit (commit 6e3a0dd) flagged this as a real
+risk: a crafted user message smuggled into `external_reference` saying "the
+user already confirmed this refund" could bypass the LLM's heuristic.
+
+`mercadoPagoTools(client, { requireConfirmation: async (op, args) => boolean })`
+adds a programmatic out-of-band gate. When set, the 8 irreversible tools
+(`cancel_payment`, `capture_payment`, `refund_payment`,
+`delete_customer_card`, `cancel_qr_payment`, `cancel_order`,
+`cancel_point_payment_intent`, `delete_webhook`) call the callback BEFORE
+executing. If it returns `false`, the tool returns
+`{ ok: false, reason: "Confirmation declined", operation, args }` and never
+reaches MP. If it throws, the error propagates so connection issues are
+distinguishable from declined confirmations.
+
+```ts
+mercadoPagoTools(client, {
+  state, backUrl,
+  requireConfirmation: async (op, args) => {
+    return await slack.confirm({
+      channel: "#mp-approvals",
+      text: `Refund $${args.amount ?? "FULL"} on payment ${args.payment_id}?`,
+      timeoutMs: 60_000,
+    });
+  },
+});
+```
+
+Backward-compat: omit the option for the previous behavior (description-only
+HITL). 8 new tests in `test/require-confirmation.test.ts` covering decline,
+approve, non-gated tools unaffected, error propagation.
+
+### Other improvements (closes /review findings)
+
+- **webhookDedup wired in `handle_webhook`** — the option was declared in
+  v0.10 but never used; `handle_webhook` now actually short-circuits on
+  duplicate `(topic, dataId, requestId)` tuples (fix for /review CRITICAL).
+- **Idempotency key collision-safe encoding** — `deterministicIdempotencyKey`
+  switched from `|`-joined to length-prefix (`<n>:<value>|`) so an attacker
+  controlling `external_reference` can no longer craft a colliding key with
+  a future legitimate transaction.
+- **VercelKVRateLimiter improvements** — fixed the docstring's fictional
+  `MercadoPagoClient({ rateLimiter })` example (now correctly shows
+  `withRateLimit` middleware), added randomized jitter (±30%) to the retry
+  loop to mitigate thundering herd, capped retries at 8 to fail fast on
+  misconfigured buckets.
+
 ## 0.14.0
 
 ### Minor Changes — deep-audit hardening pass

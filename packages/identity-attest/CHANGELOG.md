@@ -1,5 +1,40 @@
 # Changelog
 
+## 0.4.0
+
+### Minor — Auth0 + Magic.link adapters moved to subpath exports
+
+The Auth0 and Magic.link SDK adapters use `node:crypto` and `@magic-sdk/admin`
+(which transitively imports `node:stream`, `node:http`, etc). Re-exporting
+them from the main barrel made the "main bundle is Edge-Runtime safe" claim
+in v0.3.0 only true under aggressive ESM tree-shaking. CJS consumers and
+naive bundlers pulled the Node-only modules anyway.
+
+```ts
+// BEFORE (v0.3.x — still works, deprecated)
+import { Auth0Adapter, MagicLinkSdkAdapter } from "@ar-agents/identity-attest";
+
+// AFTER (v0.4.x — recommended)
+import { Auth0Adapter } from "@ar-agents/identity-attest/auth0";
+import { MagicLinkSdkAdapter } from "@ar-agents/identity-attest/magic-link-sdk";
+```
+
+The main barrel re-exports are kept for backward compatibility with a
+`@deprecated` JSDoc, scheduled for removal in v1.0.0.
+
+This closes the runtime-claim mismatch flagged by /review (CHANGELOG admitted
+the limitation in fine print but the package-level "Edge Runtime support"
+claim was misleading).
+
+### Test coverage additions
+
+- `test/crypto.test.ts` — golden-vector regression test for `hmacSha256Hex`
+  vs `node:crypto.createHmac`. If the Web Crypto path drifts from the old
+  implementation, all previously-issued attestations would silently fail
+  signature verification — now caught loudly. Includes 5 test vectors
+  (typical, empty, single-char, long, unicode) plus tests for
+  `timingSafeEqualHex` and `randomUuid`.
+
 ## 0.3.0
 
 ### Minor Changes — Edge Runtime support (BREAKING for direct callers of `verifyAttestationSignature`)

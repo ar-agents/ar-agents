@@ -22,15 +22,22 @@ import { parseWebhookEvent, verifyWebhookSignature } from "./webhook";
  * even if the client retries multiple times. Use a hash to keep keys short
  * + opaque (callers can't accidentally extract sensitive data from the key).
  *
+ * **Length-prefix encoding to prevent boundary collisions.** Previously
+ * joined parts with `|` — but `["a", "b|c"]` and `["a|b", "c"]` would
+ * canonicalize to the same string and collide. An attacker controlling
+ * `external_reference` (often passed through to user-supplied fields)
+ * could craft a value that collides with a future legitimate transaction.
+ * Length-prefix (`<len>:<value>` joined by `|`) makes collisions impossible
+ * because the `:` is part of the protocol, not the data.
+ *
  * **Async** — uses Web Crypto so it works in Edge Runtime.
  */
 async function deterministicIdempotencyKey(
   ...parts: Array<string | number | undefined>
 ): Promise<string> {
-  const payload = parts
-    .filter((p) => p !== undefined && p !== null)
-    .map(String)
-    .join("|");
+  const filtered = parts.filter((p) => p !== undefined && p !== null).map(String);
+  // Length-prefix encoding: `<n>:<part0>|<n>:<part1>|...` — boundary-safe.
+  const payload = filtered.map((p) => `${p.length}:${p}`).join("|");
   return (await sha256Hex(payload)).slice(0, 32);
 }
 
@@ -89,7 +96,61 @@ export interface MercadoPagoToolsOptions {
    * retries (which fire on 5xx and can deliver the same event 5+ times).
    */
   webhookDedup?: import("./webhook-dedup").WebhookDedup;
+  /**
+   * v0.15 — Programmatic Human-In-The-Loop gate for irreversible /
+   * money-moving operations. When set, every call to one of the gated
+   * tools (cancel_payment, capture_payment, refund_payment,
+   * delete_customer_card, cancel_qr_payment, cancel_order,
+   * cancel_point_payment_intent, delete_webhook) invokes this callback
+   * BEFORE executing. Return `true` to proceed, `false` to reject the
+   * call (the tool returns `{ ok: false, reason: "Confirmation declined" }`).
+   *
+   * The description-based HITL warnings still apply (they nudge the LLM
+   * to confirm in-conversation), but those depend on the LLM's heuristic
+   * and can be bypassed via prompt injection. This callback is the actual
+   * out-of-band enforcement: wire it to your UI / Slack / email / SMS
+   * confirmation flow so a human approves money-movement explicitly.
+   *
+   * @example
+   * ```ts
+   * mercadoPagoTools(client, {
+   *   state, backUrl,
+   *   requireConfirmation: async (op, args) => {
+   *     // Send a Slack DM to the operator with the operation summary
+   *     // and wait for their button click. Throw or return false to reject.
+   *     return await slack.confirm({
+   *       channel: "#mp-approvals",
+   *       text: `Refund $${args.amount ?? "FULL"} on payment ${args.payment_id}?`,
+   *       timeoutMs: 60_000,
+   *     });
+   *   },
+   * });
+   * ```
+   *
+   * If omitted (default), the description-based HITL is the only line of
+   * defense — fine for trusted/internal agents, NOT recommended for
+   * untrusted-input agents (anything reading from a public webhook).
+   */
+  requireConfirmation?: (
+    operation: GatedOperation,
+    args: Record<string, unknown>,
+  ) => Promise<boolean>;
 }
+
+/**
+ * Tool names that go through `requireConfirmation` when configured.
+ * Adding a new irreversible operation? Add it here AND in the
+ * `applyConfirmationGate` wrapper at the bottom of this file.
+ */
+export type GatedOperation =
+  | "cancel_payment"
+  | "capture_payment"
+  | "refund_payment"
+  | "delete_customer_card"
+  | "cancel_qr_payment"
+  | "cancel_order"
+  | "cancel_point_payment_intent"
+  | "delete_webhook";
 
 type ToolName =
   // Subscriptions (v0.1)
@@ -486,6 +547,19 @@ export function mercadoPagoTools(
   const desc = (name: ToolName): string =>
     options.descriptions?.[name] ?? DEFAULT_DESCRIPTIONS[name];
 
+  const built = buildAllTools(client, options, desc);
+  // Apply the programmatic HITL gate to gated tools when the caller wired
+  // a `requireConfirmation` callback. Default = no-op (description-only HITL).
+  return options.requireConfirmation
+    ? applyConfirmationGate(built, options.requireConfirmation)
+    : built;
+}
+
+function buildAllTools(
+  client: MercadoPagoClient,
+  options: MercadoPagoToolsOptions,
+  desc: (name: ToolName) => string,
+): ToolSet {
   return {
     // ─────────────────────────────────────────────────────────────────────────
     // Subscriptions (v0.1 — kept identical for backward compatibility)
@@ -1713,6 +1787,28 @@ export function mercadoPagoTools(
             resource: null,
           };
         }
+        // Webhook dedup — MP retries the same notification 5+ times on 5xx
+        // responses. Without dedup, every retry re-runs the agent's downstream
+        // side effects (re-charge confirmations, re-emit emails, double-update
+        // state). The WebhookDedup adapter keys on (topic, dataId, requestId)
+        // and returns shouldProcess=false for replays inside the dedup window.
+        if (options.webhookDedup && request_id_header) {
+          const { shouldProcess } = await options.webhookDedup.check({
+            topic: event.topic,
+            dataId: event.dataId,
+            requestId: request_id_header,
+          });
+          if (!shouldProcess) {
+            return {
+              verified: true,
+              deduplicated: true,
+              event,
+              resource: null,
+              resource_error:
+                "Webhook is a duplicate (same topic+dataId+requestId seen recently). Side effects skipped.",
+            };
+          }
+        }
         let resource: unknown = null;
         let resourceError: string | null = null;
         if (auto_fetch) {
@@ -2767,4 +2863,59 @@ export function mercadoPagoTools(
       },
     }),
   } satisfies ToolSet;
+}
+
+/**
+ * Wrap the gated tools with a `requireConfirmation` check. The callback
+ * runs BEFORE the tool's original execute. If it returns false, the tool
+ * returns `{ ok: false, reason: "Confirmation declined", operation, args }`
+ * instead of executing.
+ *
+ * If the callback throws, the error propagates — let the agent handle it
+ * (so connection issues surfacing to the user are distinguishable from
+ * declined confirmations).
+ */
+const GATED_TOOL_NAMES: readonly GatedOperation[] = [
+  "cancel_payment",
+  "capture_payment",
+  "refund_payment",
+  "delete_customer_card",
+  "cancel_qr_payment",
+  "cancel_order",
+  "cancel_point_payment_intent",
+  "delete_webhook",
+];
+
+function applyConfirmationGate(
+  tools: ToolSet,
+  requireConfirmation: NonNullable<MercadoPagoToolsOptions["requireConfirmation"]>,
+): ToolSet {
+  const wrapped: ToolSet = { ...tools };
+  for (const name of GATED_TOOL_NAMES) {
+    const original = tools[name];
+    if (!original) continue;
+    wrapped[name] = {
+      ...original,
+      execute: async (input: unknown, ctx: unknown) => {
+        const args = (input ?? {}) as Record<string, unknown>;
+        const approved = await requireConfirmation(name, args);
+        if (!approved) {
+          return {
+            ok: false,
+            reason: "Confirmation declined by requireConfirmation gate.",
+            operation: name,
+            args,
+          };
+        }
+        // Original execute keeps its own typing; we cast inputs/ctx to any
+        // for the wrapper layer because tool() generics aren't preserved
+        // through the ToolSet container.
+        return await (original.execute as (i: unknown, c: unknown) => Promise<unknown>)(
+          input,
+          ctx,
+        );
+      },
+    } as ToolSet[string];
+  }
+  return wrapped;
 }

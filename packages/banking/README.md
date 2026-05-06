@@ -125,3 +125,14 @@ reference (1=normal, 5=irrecuperable, etc.).
 ## License
 
 MIT © Nazareno Clemente
+
+## Stability
+
+This package is **pre-1.0**. Per [npm convention](https://docs.npmjs.com/about-semantic-versioning), **0.x minor versions may include breaking changes**. We document every breaking change in `CHANGELOG.md` under the corresponding minor bump and flag it explicitly. To avoid surprises:
+
+```bash
+# Pin to exact version (recommended for production):
+pnpm add @ar-agents/<package>@<exact-version>
+```
+
+We commit to **no breaking changes within a patch version**, and we publish `1.0.0` once the public API has stabilized across at least two consecutive minor releases.

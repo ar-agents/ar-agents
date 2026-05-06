@@ -205,24 +205,51 @@ const DEFAULT_RATELIMIT_PREFIX = "mp:rl:";
  * MP rate limiting — the "actual" budget is much higher than what we
  * provision.
  *
- * # Usage
+ * # Usage — wire via `withRateLimit` middleware
+ *
+ * `MercadoPagoClient` does not accept a rate limiter directly. Apply the
+ * limiter at the tool layer using `withRateLimit` from the middleware
+ * module, which works for both the in-memory `TokenBucketRateLimiter` and
+ * this distributed variant.
  *
  * ```ts
- * import { MercadoPagoClient } from "@ar-agents/mercadopago";
+ * import {
+ *   MercadoPagoClient,
+ *   mercadoPagoTools,
+ *   InMemoryStateAdapter,
+ *   applyToAllTools,
+ *   withRateLimit,
+ * } from "@ar-agents/mercadopago";
  * import { VercelKVRateLimiter } from "@ar-agents/mercadopago/vercel-kv";
  *
- * // ONE rate limit shared across all serverless instances of this app:
+ * // ONE distributed bucket shared across all serverless instances of this app:
  * const limiter = new VercelKVRateLimiter({
  *   key: "mp-account-prod",
  *   capacity: 50,
  *   refillPerSecond: 25,
  * });
  *
- * const client = new MercadoPagoClient({
- *   accessToken: process.env.MP_ACCESS_TOKEN!,
- *   rateLimiter: limiter,  // (See client.ts — wired the same as in-memory)
- * });
+ * const client = new MercadoPagoClient({ accessToken: process.env.MP_ACCESS_TOKEN! });
+ * const tools = applyToAllTools(
+ *   mercadoPagoTools(client, { state: new InMemoryStateAdapter(), backUrl: "..." }),
+ *   withRateLimit(limiter),
+ * );
  * ```
+ *
+ * # Concurrency caveats
+ *
+ * Read-modify-write is NOT strictly atomic per `acquire()`. Under heavy
+ * contention a small over-spend window is possible, acceptable for **API
+ * call** rate limiting where the actual MP budget exceeds what we
+ * provision. **Do NOT repurpose this limiter as a money/spend cap** —
+ * the over-spend window means you could exceed a money budget by the
+ * concurrent-instance count × per-call cost. For money budgets, use
+ * Upstash's `EVAL`-based atomic Lua script (or a stricter primitive).
+ *
+ * The `acquire()` retry loop applies randomized jitter (±30%) to spread
+ * concurrent acquirers across multiple refill windows, mitigating the
+ * thundering-herd that would otherwise hit Upstash with N reads + N
+ * writes the instant a bucket refills.
  *
  * # Marketplace setups (per-seller rate limit)
  *
@@ -321,11 +348,17 @@ export class VercelKVRateLimiter {
   /**
    * Acquire a token. Resolves immediately if the distributed bucket has
    * one available; otherwise waits until refilled. Throws if the wait
-   * exceeds `acquireTimeoutMs`.
+   * exceeds `acquireTimeoutMs` or if the retry cap is reached.
+   *
+   * Caps retries at 8 iterations so a misconfigured bucket (capacity too
+   * low for traffic) fails fast for the agent layer to surface, instead
+   * of silently burning serverless compute time.
    */
   async acquire(): Promise<void> {
     const start = Date.now();
-    while (true) {
+    const MAX_RETRIES = 8;
+    let attempt = 0;
+    while (attempt < MAX_RETRIES) {
       const now = Date.now();
       const state = this.refill(await this.readState(), now);
 
@@ -337,7 +370,13 @@ export class VercelKVRateLimiter {
 
       // Compute wait time until next token. Cap at remaining timeout budget.
       const tokensNeeded = 1 - state.tokens;
-      const waitMs = Math.ceil((tokensNeeded / this.refillPerSecond) * 1000);
+      const baseWaitMs = Math.ceil((tokensNeeded / this.refillPerSecond) * 1000);
+      // Randomized jitter (±30%) prevents thundering herd: without it, all
+      // concurrent acquirers compute identical waitMs, sleep identical
+      // duration, and wake at the same wall-clock instant — then all hit
+      // KV simultaneously. Jitter spreads them across the refill window.
+      const jitterFactor = 0.7 + Math.random() * 0.6; // 0.7–1.3
+      const waitMs = Math.ceil(baseWaitMs * jitterFactor);
       const elapsed = now - start;
       if (elapsed + waitMs > this.acquireTimeoutMs) {
         throw new Error(
@@ -345,7 +384,12 @@ export class VercelKVRateLimiter {
         );
       }
       await new Promise((resolve) => setTimeout(resolve, waitMs));
+      attempt += 1;
     }
+    throw new Error(
+      `VercelKVRateLimiter exhausted ${MAX_RETRIES} retries (key=${this.key}). ` +
+        `Bucket likely undersized for traffic — increase capacity or refillPerSecond.`,
+    );
   }
 
   /** Best-effort acquire — returns true if a token was available, false otherwise. */

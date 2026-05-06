@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/mercadopago",
-  "version": "0.14.0",
+  "version": "0.15.0",
   "description": "The most complete Mercado Pago agent toolkit for Vercel AI SDK 6+. 82 tools, Edge Runtime, Vercel KV adapters, circuit breaker + deadline propagation + W3C trace context, HMAC webhook verify with replay protection, OAuth Marketplace, Order Management, Point Devices, marketplace splits, status_detail explainer in Spanish, AR-specific knowledge baked in. Property-tested + integration-tested vs MP sandbox + benchmarked.",
   "keywords": [
     "mercadopago",

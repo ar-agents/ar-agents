@@ -8,7 +8,9 @@
     "test": "pnpm -r --filter './packages/*' run test",
     "lint": "pnpm -r run lint",
     "typecheck": "pnpm -r run typecheck",
-    "dev": "pnpm --filter mp-hello dev"
+    "dev": "pnpm --filter mp-hello dev",
+    "regen-manifests": "node scripts/regen-manifests.mjs",
+    "check-manifests": "node scripts/regen-manifests.mjs && git diff --exit-code packages/*/tools.manifest.json || (echo \"manifests stale — run pnpm regen-manifests\" >&2; exit 1)"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",

@@ -1,59 +1,12 @@
 {
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/identity",
-  "version": "0.1.0",
+  "version": "0.5.0",
   "factory": "identityTools",
   "tools": [
     {
-      "name": "validate_cuit",
-      "summary": "Validate an Argentine CUIT/CUIL via the AFIP modulo-11 check digit algorithm.",
-      "purity": "pure",
-      "sideEffects": [],
-      "constraints": {
-        "envVars": [],
-        "externalIO": [],
-        "latencyMs": "<1",
-        "costPerCall": "$0"
-      },
-      "input": {
-        "cuit": {
-          "type": "string",
-          "required": true,
-          "description": "The CUIT/CUIL to validate. Accepts any format with or without separators (20-X-Y, 20.X.Y, 20 X Y, 20XY)."
-        }
-      },
-      "output": {
-        "valid": "boolean",
-        "normalized": "string (11 digits)",
-        "formatted": "string | null (XX-XXXXXXXX-X)",
-        "prefix": "string | null",
-        "body": "string | null",
-        "checkDigit": "string | null",
-        "personType": "fisica_masculina | fisica_femenina | fisica_extranjera | juridica | juridica_alternativa | desconocida",
-        "personTypeDescription": "string (Spanish description)",
-        "error": "string | null (Spanish actionable error message; surface verbatim to users)"
-      },
-      "whenToUse": [
-        "User pasted a CUIT/CUIL and wants to know if it's valid",
-        "Need to detect typos in a user-supplied CUIT",
-        "Need to infer person type (físcia vs jurídica) from a CUIT prefix",
-        "Need to normalize CUIT formatting before downstream operations"
-      ],
-      "whenNotToUse": [
-        "User wants the taxpayer's name, tax condition, or monotributo category — use lookup_cuit_afip instead"
-      ]
-    },
-    {
       "name": "lookup_cuit_afip",
-      "summary": "Look up an Argentine CUIT against AFIP's padron webservice.",
-      "purity": "io",
-      "sideEffects": [],
-      "constraints": {
-        "envVars": ["AFIP_CERT_PATH (when adapter wired)", "AFIP_KEY_PATH (when adapter wired)"],
-        "externalIO": ["AFIP WSAA + WSCDC SOAP (when configured)"],
-        "latencyMs": "<1 when unconfigured; 200-800 when configured",
-        "costPerCall": "$0"
-      },
+      "description": "Look up an Argentine CUIT/CUIL against AFIP's padron webservice. Returns taxpayer name, tax condition (Monotributo / Responsable Inscripto / etc.), monotributo category if applicable, and registered a",
       "input": {
         "cuit": {
           "type": "string",
@@ -73,24 +26,35 @@
           "domicilioFiscal": "string | null",
           "actividades": "string[]"
         }
-      },
-      "whenToUse": [
-        "User wants the taxpayer's full legal name",
-        "User wants to know the tax condition (Monotributo, Responsable Inscripto, etc.)",
-        "User wants the monotributo category (A through K)",
-        "User wants the registered fiscal address or activities"
-      ],
-      "whenNotToUse": [
-        "Just for format validation — use validate_cuit (cheaper, no I/O)",
-        "When validate_cuit returned valid: false — the AFIP lookup will fail too, save the request"
-      ],
-      "errorPatterns": [
-        {
-          "shape": "{ available: false, error: 'AFIP padron lookup not configured...' }",
-          "meaning": "App hasn't wired an AFIP cert; the adapter is the default UnconfiguredAfipPadronAdapter",
-          "recovery": "Surface the error message verbatim to the user — it contains setup steps. Do not invent taxpayer info."
+      }
+    },
+    {
+      "name": "validate_cuit",
+      "description": "Validate an Argentine CUIT/CUIL via the AFIP modulo-11 check digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency, free. Returns whether the input is mathe",
+      "input": {
+        "cuit": {
+          "type": "string",
+          "required": true,
+          "description": "The CUIT/CUIL to validate. Accepts any format with or without separators (20-X-Y, 20.X.Y, 20 X Y, 20XY)."
         }
-      ]
+      },
+      "output": {
+        "valid": "boolean",
+        "normalized": "string (11 digits)",
+        "formatted": "string | null (XX-XXXXXXXX-X)",
+        "prefix": "string | null",
+        "body": "string | null",
+        "checkDigit": "string | null",
+        "personType": "fisica_masculina | fisica_femenina | fisica_extranjera | juridica | juridica_alternativa | desconocida",
+        "personTypeDescription": "string (Spanish description)",
+        "error": "string | null (Spanish actionable error message; surface verbatim to users)"
+      }
     }
-  ]
+  ],
+  "name": "@ar-agents/identity",
+  "meta": {
+    "generated_at": "2026-05-06T20:54:56.454Z",
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 2
+  }
 }
