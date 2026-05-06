@@ -233,14 +233,75 @@ export function buildHandlers(store: FakeMpStore) {
       });
       return HttpResponse.json(record, { status: 201 });
     }),
+    // v0.7 — search must be tested BEFORE the /:id wildcard
+    http.get(`${MP_BASE}/preapproval/search`, ({ request }) => {
+      const url = new URL(request.url);
+      return HttpResponse.json({
+        paging: {
+          limit: Number(url.searchParams.get("limit") ?? 25),
+          offset: Number(url.searchParams.get("offset") ?? 0),
+          total: 2,
+        },
+        results: [
+          {
+            id: "fake_sub_search_1",
+            status: url.searchParams.get("status") ?? "authorized",
+            payer_email: "buyer1@test.com",
+            init_point: "https://mp.test/sub-1",
+            date_created: "2026-04-01T00:00:00Z",
+            last_modified: "2026-05-01T00:00:00Z",
+            auto_recurring: {
+              frequency: 1,
+              frequency_type: "months",
+              transaction_amount: 1000,
+              currency_id: "ARS",
+            },
+          },
+          {
+            id: "fake_sub_search_2",
+            status: "paused",
+            payer_email: "buyer2@test.com",
+            init_point: "https://mp.test/sub-2",
+            date_created: "2026-04-15T00:00:00Z",
+            last_modified: "2026-05-01T00:00:00Z",
+            auto_recurring: {
+              frequency: 3,
+              frequency_type: "months",
+              transaction_amount: 5000,
+              currency_id: "ARS",
+            },
+          },
+        ],
+      });
+    }),
     http.get(`${MP_BASE}/preapproval/:id`, ({ params }) => {
       const id = String(params.id);
+      if (id === "search") return; // let the search handler above handle it
       const record = store.preapprovals.get(id);
       if (!record) return HttpResponse.json({ message: "not found", status: 404 }, { status: 404 });
       return HttpResponse.json(record);
     }),
     http.put(`${MP_BASE}/preapproval/:id`, async ({ params, request }) => {
       const id = String(params.id);
+      // v0.7 update — accept any patch on a non-store-backed id
+      if (!store.preapprovals.has(id)) {
+        const patch = (await request.json()) as Record<string, unknown>;
+        return HttpResponse.json({
+          id,
+          status: "paused",
+          payer_email: "buyer@test.com",
+          init_point: `https://mp.test/${id}`,
+          date_created: "2026-04-01T00:00:00Z",
+          last_modified: new Date().toISOString(),
+          auto_recurring: {
+            frequency: 1,
+            frequency_type: "months",
+            transaction_amount: 1500,
+            currency_id: "ARS",
+          },
+          ...patch,
+        });
+      }
       const record = store.preapprovals.get(id);
       if (!record) return HttpResponse.json({ message: "not found", status: 404 }, { status: 404 });
       const body = (await request.json()) as { status?: string };
@@ -753,6 +814,200 @@ export function buildHandlers(store: FakeMpStore) {
         bank_account: { cbu: "0070123145678901234564", bank_name: "Banco Galicia" },
       });
     }),
+
+    // ── v0.7 — Customer + Card extensions ──────────────────────────────────
+    http.get(`${MP_BASE}/v1/customers/:id`, ({ params }) => {
+      return HttpResponse.json({
+        id: String(params.id),
+        email: `${params.id}@test.com`,
+        first_name: "Test",
+        last_name: "Customer",
+      });
+    }),
+    http.put(`${MP_BASE}/v1/customers/:id`, async ({ params, request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      return HttpResponse.json({
+        id: String(params.id),
+        email: `${params.id}@test.com`,
+        ...body,
+      });
+    }),
+    http.post(`${MP_BASE}/v1/customers/:id/cards`, async ({ params, request }) => {
+      const body = (await request.json()) as { token: string };
+      return HttpResponse.json({
+        id: `card-${Math.floor(Math.random() * 100000)}`,
+        customer_id: String(params.id),
+        last_four_digits: "1234",
+        expiration_month: 11,
+        expiration_year: 2030,
+        payment_method: { id: "visa", name: "Visa" },
+        token_used: body.token,
+      });
+    }),
+
+    // ── v0.7 — Refund get ─────────────────────────────────────────────────
+    http.get(`${MP_BASE}/v1/payments/:paymentId/refunds/:refundId`, ({ params }) => {
+      return HttpResponse.json({
+        id: String(params.refundId),
+        payment_id: String(params.paymentId),
+        amount: 500,
+        status: "approved",
+        date_created: "2026-05-01T00:00:00Z",
+      });
+    }),
+
+    // ── v0.7 — Merchant Orders (search MUST come before /:id) ─────────────
+    http.get(`${MP_BASE}/merchant_orders/search`, () => {
+      return HttpResponse.json({
+        paging: { limit: 25, offset: 0, total: 1 },
+        elements: [
+          {
+            id: "mo-1",
+            status: "closed",
+            external_reference: "order-ref-1",
+            preference_id: "pref-1",
+            total_amount: 1000,
+            paid_amount: 1000,
+            site_id: "MLA",
+            order_status: "paid",
+          },
+        ],
+      });
+    }),
+    http.get(`${MP_BASE}/merchant_orders/:id`, ({ params }) => {
+      return HttpResponse.json({
+        id: String(params.id),
+        status: "closed",
+        external_reference: "order-ref-1",
+        preference_id: "pref-1",
+        payments: [{ id: 999, status: "approved", transaction_amount: 1000 }],
+        total_amount: 1000,
+        paid_amount: 1000,
+        date_created: "2026-05-01T00:00:00Z",
+        site_id: "MLA",
+        order_status: "paid",
+      });
+    }),
+    http.put(`${MP_BASE}/merchant_orders/:id`, async ({ params, request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      return HttpResponse.json({
+        id: String(params.id),
+        status: "opened",
+        ...body,
+      });
+    }),
+
+    // ── v0.7 — Stores + POS CRUD completion ────────────────────────────────
+    http.get(`${MP_BASE}/users/:userId/stores/:storeId`, ({ params }) => {
+      return HttpResponse.json({
+        id: String(params.storeId),
+        name: "Mock Store",
+        external_id: "ext-store-1",
+      });
+    }),
+    http.put(`${MP_BASE}/users/:userId/stores/:storeId`, async ({ params, request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      return HttpResponse.json({ id: String(params.storeId), ...body });
+    }),
+    http.delete(`${MP_BASE}/users/:userId/stores/:storeId`, () => {
+      return new HttpResponse(null, { status: 200 });
+    }),
+    http.get(`${MP_BASE}/pos/:posId`, ({ params }) => {
+      return HttpResponse.json({
+        id: String(params.posId),
+        name: "Mock POS",
+        external_id: "pos-ext-1",
+        store_id: 1,
+      });
+    }),
+    http.put(`${MP_BASE}/pos/:posId`, async ({ params, request }) => {
+      const body = (await request.json()) as Record<string, unknown>;
+      return HttpResponse.json({ id: String(params.posId), ...body });
+    }),
+    http.delete(`${MP_BASE}/pos/:posId`, () => {
+      return new HttpResponse(null, { status: 200 });
+    }),
+
+    // ── v0.7 — Bank Accounts ───────────────────────────────────────────────
+    http.get(`${MP_BASE}/users/me/bank_accounts`, () => {
+      return HttpResponse.json({
+        results: [
+          {
+            id: "ba-1",
+            cbu: "0070123145678901234564",
+            alias: "naza.galicia.ahorro",
+            bank_name: "Banco Galicia",
+            is_default: true,
+            account_type: "savings",
+            status: "active",
+          },
+        ],
+      });
+    }),
+    http.post(`${MP_BASE}/users/me/bank_accounts`, async ({ request }) => {
+      const body = (await request.json()) as { cbu: string; alias?: string };
+      return HttpResponse.json({
+        id: `ba-${Math.floor(Math.random() * 100000)}`,
+        cbu: body.cbu,
+        alias: body.alias ?? null,
+        is_default: false,
+        status: "pending_verification",
+      });
+    }),
+
+    // ── v0.7 — Point Devices físicos ───────────────────────────────────────
+    http.get(`${MP_BASE}/point/integration-api/devices`, () => {
+      return HttpResponse.json({
+        paging: { total: 1, limit: 50, offset: 0 },
+        devices: [
+          {
+            id: "PAX_A910__SMARTBR1234567890",
+            pos_id: 1,
+            store_id: 1,
+            external_pos_id: "pos-ext-1",
+            operating_mode: "PDV",
+          },
+        ],
+      });
+    }),
+    http.patch(
+      `${MP_BASE}/point/integration-api/devices/:deviceId`,
+      async ({ params, request }) => {
+        const body = (await request.json()) as { operating_mode: string };
+        return HttpResponse.json({
+          id: String(params.deviceId),
+          operating_mode: body.operating_mode,
+        });
+      },
+    ),
+    http.post(
+      `${MP_BASE}/point/integration-api/devices/:deviceId/payment-intents`,
+      async ({ params, request }) => {
+        const body = (await request.json()) as { amount: number };
+        return HttpResponse.json({
+          id: `pi-${Math.floor(Math.random() * 100000)}`,
+          device_id: String(params.deviceId),
+          amount: body.amount,
+          state: "OPEN",
+        });
+      },
+    ),
+    http.get(
+      `${MP_BASE}/point/integration-api/payment-intents/:intentId`,
+      ({ params }) => {
+        return HttpResponse.json({
+          id: String(params.intentId),
+          state: "FINISHED",
+          payment: { id: 12345, type: "credit_card" },
+        });
+      },
+    ),
+    http.delete(
+      `${MP_BASE}/point/integration-api/devices/:deviceId/payment-intents/:intentId`,
+      () => {
+        return new HttpResponse(null, { status: 200 });
+      },
+    ),
 
     // ── v0.5 — OAuth token endpoint ────────────────────────────────────────
     http.post("https://api.mercadopago.com/oauth/token", async ({ request }) => {

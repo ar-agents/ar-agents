@@ -1,4 +1,4 @@
-# @ar-agents/mercadopago — agent guide (v0.5)
+# @ar-agents/mercadopago — agent guide (v0.7)
 
 This file is for AI agents using or recommending this package. Humans should start with [README.md](./README.md). Format follows the [agents.md convention](https://agents.md/).
 
@@ -36,6 +36,15 @@ This file is for AI agents using or recommending this package. Humans should sta
 | **"Cobrar a través de un seller third-party con fee de marketplace"** (v0.5) | `create_order` con `marketplace_fee` + `collector_id` (o `create_payment_preference` con los mismos campos) |
 | **"Autorizar ahora, capturar después"** (ride-share, hotel, marketplace) (v0.5) | `create_order` con `capture_mode: "manual"` → cuando completás el servicio, `capture_order(order_id)` |
 | **"Cancelar una orden no capturada"** (v0.5) | `cancel_order` (libera el auth-hold). Si ya capturó, usá `refund_payment`. |
+| **"Buscame todas las suscripciones del cliente X"** (v0.7) | `search_subscriptions({ payer_email: "..." })` |
+| **"Cambiale la tarjeta a esta suscripción"** (v0.7) | `update_subscription({ subscription_id, card_token_id })` |
+| **"Actualizá el email/dirección del cliente"** (v0.7) | `update_customer` |
+| **"Mostrame los merchant_orders de esta preference"** (v0.7) | `search_merchant_orders({ preference_id })` |
+| **"Listame mis dispositivos Point/Smart"** (v0.7) | `list_point_devices` |
+| **"Cobrá $1000 en el Point que está en la caja"** (v0.7) | `create_point_payment_intent({ device_id, amount_centavos: 100000 })` (¡amount en CENTAVOS!) |
+| **"A qué CBU me deposita MP"** (v0.7) | `list_bank_accounts` (el `is_default: true` es el activo) |
+| **"Calculá el fee del marketplace para este monto"** (v0.7) | `compute_marketplace_fee({ amount_ars, percent, minArs, maxArs })` (PURE — no network) |
+| **"Por qué falló este pago / qué hago ahora"** (v0.7) | `explain_payment_status({ payment_id })` (devuelve `{ summary, recommendedAction, retryable }` en español) |
 
 ## The two main "take a payment" patterns
 

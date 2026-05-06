@@ -998,3 +998,124 @@ export interface ThreeDSInfo {
   description: string;
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.7 — Merchant Orders
+//
+// MerchantOrder is the parent entity for Payments associated with a single
+// Preference. Each Preference can collect multiple Payments (partial
+// installments, retries) — the MerchantOrder aggregates them and reports
+// the final paid_amount, shipping status, etc. Useful for reconciling
+// "which payments belong to which order" at the dashboard level.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const MerchantOrderSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  status: z.string().optional(),
+  external_reference: z.string().nullable().optional(),
+  preference_id: z.union([z.string(), z.number()]).optional(),
+  payments: z.array(z.unknown()).optional(),
+  shipments: z.array(z.unknown()).optional(),
+  payer: z.unknown().optional(),
+  collector: z.unknown().optional(),
+  marketplace: z.string().optional(),
+  total_amount: z.number().optional(),
+  paid_amount: z.number().optional(),
+  refunded_amount: z.number().optional(),
+  shipping_cost: z.number().optional(),
+  date_created: z.string().optional(),
+  last_updated: z.string().optional(),
+  site_id: z.string().optional(),
+  order_status: z.string().optional(),
+}).passthrough();
+export type MerchantOrder = z.infer<typeof MerchantOrderSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.7 — Bank Accounts (the CBUs the seller has registered for payouts)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const BankAccountSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  cbu: z.string().optional(),
+  alias: z.string().nullable().optional(),
+  bank_name: z.string().optional(),
+  account_type: z.string().optional(),
+  status: z.string().optional(),
+  is_default: z.boolean().optional(),
+  date_created: z.string().optional(),
+}).passthrough();
+export type BankAccount = z.infer<typeof BankAccountSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.7 — Point Devices (physical POS hardware: Point Smart, Point Tap to Pay)
+//
+// Distinct from the "Pos" (logical sale point) entity. PointDevices are the
+// physical terminals you use at a brick-and-mortar shop. Use this API to:
+// - List the devices linked to your account
+// - Switch a device between PDV mode (linked to Pos) and STANDALONE mode
+// - Push a payment intent directly to a device (the device prompts the
+//   buyer to tap/insert; no QR involved)
+// ─────────────────────────────────────────────────────────────────────────────
+
+export const PointDeviceSchema = z.object({
+  id: z.string(),
+  pos_id: z.union([z.string(), z.number()]).nullable().optional(),
+  store_id: z.union([z.string(), z.number()]).nullable().optional(),
+  external_pos_id: z.string().nullable().optional(),
+  operating_mode: z.union([z.literal("PDV"), z.literal("STANDALONE"), z.string()]).optional(),
+}).passthrough();
+export type PointDevice = z.infer<typeof PointDeviceSchema>;
+
+export type PointPaymentIntentState =
+  | "OPEN"        // Sent to device, awaiting buyer interaction
+  | "PROCESSING"  // Buyer tapped/inserted, processing
+  | "FINISHED"    // Done (approved or rejected)
+  | "CANCELED"
+  | "ERROR"
+  | string;
+
+export const PointPaymentIntentSchema = z.object({
+  id: z.string(),
+  device_id: z.string().optional(),
+  amount: z.number().optional(),
+  state: z.union([
+    z.literal("OPEN"),
+    z.literal("PROCESSING"),
+    z.literal("FINISHED"),
+    z.literal("CANCELED"),
+    z.literal("ERROR"),
+    z.string(),
+  ]).optional(),
+  payment: z
+    .object({
+      id: z.union([z.string(), z.number()]).optional(),
+      type: z.string().optional(),
+      installments: z.number().optional(),
+      installments_cost: z.string().optional(),
+      print_on_terminal: z.boolean().optional(),
+    })
+    .passthrough()
+    .optional(),
+  additional_info: z.unknown().optional(),
+}).passthrough();
+export type PointPaymentIntent = z.infer<typeof PointPaymentIntentSchema>;
+
+export interface CreatePointPaymentIntentParams {
+  /** Amount in centavos (yes, centavos — Point API differs from Payments API). */
+  amount: number;
+  /** Description shown on the device screen + the buyer's receipt. */
+  description?: string;
+  /** Your-system reference (echoed back in the resulting Payment). */
+  externalReference?: string;
+  /** Number of installments (default 1). */
+  installments?: number;
+  /** "seller" or "buyer" — who pays the installment cost. */
+  installmentsCost?: "seller" | "buyer";
+  /**
+   * Print receipt on the terminal (default true). Some kiosks set false.
+   */
+  printOnTerminal?: boolean;
+  /** Ticket number (your sequential receipt number). */
+  ticketNumber?: string;
+}
+

@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.4.1
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.7.0` — completeness máxima sobre MP. The MCP server now exposes **+25 new MP tools** (81 MP tools total) without any config changes. Highlights:
+  - Customer + Card CRUD completion (4 tools)
+  - Subscription/Plan/Refund/Preference extensions (5 tools)
+  - Merchant Orders category (3 tools)
+  - Stores + POS CRUD completion (6 tools)
+  - Bank Accounts (2 tools)
+  - Point Devices físicos — terminal hardware (5 tools)
+  - Pure helpers: `compute_marketplace_fee`, `explain_payment_status` (2 tools)
+
+  Total tool count across the MCP server jumped from ~95 to **~120 tools** in one install.
+
 ## 0.4.0
 
 ### Minor Changes

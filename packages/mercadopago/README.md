@@ -18,7 +18,7 @@ Compatible with any caller that uses `tool()`.
 
 | What | Value |
 | --- | --- |
-| Tools shipped | **50 tools** — Subscriptions, Payments, Refunds, Checkout Pro, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, Disputes, Lookups, Webhooks management, **handle_webhook combo**, **OAuth Marketplace flow**, **Order Management API** |
+| Tools shipped | **81 tools** — covers the full agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, **Point Devices físicos**, **Merchant Orders**, **Bank Accounts**, Disputes, Lookups, Webhooks management, **handle_webhook combo**, **OAuth Marketplace flow**, **Account/Balance/Settlements**, **3DS analyzer**, **Test cards**, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
 | External dependencies | Mercado Pago access token (TEST or APP_USR), state adapter (Upstash, Redis, Postgres, in-memory, etc.) |
 | Latency | 200–600ms per MP call; <1ms for state ops |
 | Cost | $0 — MP API is free; merchant pays per-transaction fees on auto-charges |

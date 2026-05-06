@@ -7,6 +7,7 @@ import {
   exchangeCodeForToken,
   refreshAccessToken,
 } from "./oauth";
+import { computeMarketplaceFee, explainPaymentStatus } from "./helpers";
 import type { SubscriptionStateAdapter } from "./state";
 import { TEST_CARDS_AR } from "./test-cards";
 import { analyze3DS } from "./three-ds";
@@ -141,7 +142,41 @@ type ToolName =
   // v0.6 — 3DS analyzer (pure)
   | "analyze_payment_3ds"
   // v0.6 — Test cards (pure)
-  | "get_test_cards";
+  | "get_test_cards"
+  // v0.7 — Customer + Card extensions
+  | "get_customer"
+  | "update_customer"
+  | "create_customer_card"
+  | "get_customer_card"
+  // v0.7 — Subscription / Plan / Refund / Preference extensions
+  | "get_subscription_plan"
+  | "update_subscription"
+  | "search_subscriptions"
+  | "get_refund"
+  | "update_payment_preference"
+  // v0.7 — Merchant Orders
+  | "get_merchant_order"
+  | "search_merchant_orders"
+  | "update_merchant_order"
+  // v0.7 — Stores + POS CRUD completion
+  | "get_store"
+  | "update_store"
+  | "delete_store"
+  | "get_pos"
+  | "update_pos"
+  | "delete_pos"
+  // v0.7 — Bank Accounts
+  | "list_bank_accounts"
+  | "register_bank_account"
+  // v0.7 — Point Devices físicos
+  | "list_point_devices"
+  | "update_point_device_mode"
+  | "create_point_payment_intent"
+  | "get_point_payment_intent"
+  | "cancel_point_payment_intent"
+  // v0.7 — Pure helpers
+  | "compute_marketplace_fee"
+  | "explain_payment_status";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -295,6 +330,74 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Test cards (v0.6 — pure) ─────────────────────────────────────────────
   get_test_cards:
     "Pure helper that returns the official MP test cards for AR (MLA): VISA/Mastercard/Amex credit + debit, with the 'magic' holder names that route the payment to specific status_detail values (APRO=approved, OTHE=rejected, CONT=pending, FUND=insufficient_amount, etc.). USE WHEN you need to demo a payment flow without a real card, or to script integration tests. Pure data — no network call.",
+
+  // ── Customer + Card extensions (v0.7) ────────────────────────────────────
+  get_customer:
+    "Get a customer by id. Returns full Customer object: email, first_name, last_name, identification, address, default_card, registered cards. PURE READ. USE WHEN you have the customer_id from a previous create_customer / find_customer_by_email / payment.payer.id and want the full record.",
+  update_customer:
+    "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch — fields you don't send remain unchanged. Use to keep customer records in sync (e.g., shipping address changes) or to set a default card for charge_saved_card.",
+  create_customer_card:
+    "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform — agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard with id usable in charge_saved_card. Persists across charges (no need to re-tokenize each time).",
+  get_customer_card:
+    "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ — useful before charge_saved_card to confirm the card is still valid.",
+
+  // ── Subscription / Plan / Refund / Preference extensions (v0.7) ─────────
+  get_subscription_plan:
+    "Fetch a subscription plan by id. Returns plan config: amount, frequency, status, init_point. Use to inspect a plan before subscribing customers, or to display plan details to the user.",
+  update_subscription:
+    "Update a subscription's amount, status, reason, external_reference, OR card_token_id (to switch payment method when the buyer's card is expired/declined). For card swap: pass card_token_id from a fresh tokenization. CONSTRAINTS: status changes only support 'paused' | 'cancelled' (use authorize via init_point flow to re-activate).",
+  search_subscriptions:
+    "Search subscriptions across the seller's account. Filter by status (pending/authorized/paused/cancelled), payer_email, external_reference, or preapproval_plan_id (to find all subscribers of a plan). Paginated. USE WHEN you need to enumerate active subscribers, audit cancellations, or find a subscription by external reference.",
+  get_refund:
+    "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ — useful to verify a refund processed or to reconcile partial-refund history.",
+  update_payment_preference:
+    "Update a Checkout Pro preference (notification_url, back_urls, items, payer info, payment_methods exclusion list). Only works on preferences NOT yet paid. Common use: regenerate the link with a new notification_url after deployment, or change items if the buyer requested adjustments before paying.",
+
+  // ── Merchant Orders (v0.7) ────────────────────────────────────────────────
+  get_merchant_order:
+    "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference — one Order can have multiple partial Payments (retries, installments). USE THIS in webhooks with topic='merchant_order' to get the aggregate paid_amount, refunded_amount, and shipping status in one call.",
+  search_merchant_orders:
+    "Search merchant_orders by preference_id, external_reference, or status. Paginated. Returns up to 50 per page. USE WHEN you have a preference_id and want all its derived merchant_orders, or when reconciling 'which payments belong to which preference'.",
+  update_merchant_order:
+    "Update a merchant_order — typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle.",
+
+  // ── Stores + POS CRUD completion (v0.7) ──────────────────────────────────
+  get_store:
+    "Fetch a single store by (user_id, store_id). Returns store details: name, location, business_hours, external_id. PURE READ.",
+  update_store:
+    "Update a store's properties (name, location, business_hours, external_id). MP merges the patch.",
+  delete_store:
+    "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes — delete those first.",
+  get_pos:
+    "Fetch a POS by id. Returns: name, store_id, category, external_id, qr_template (if configured). PURE READ. Use when you need to find the external_id for create_qr_payment.",
+  update_pos:
+    "Update a POS's properties (name, category, external_id). MP merges the patch.",
+  delete_pos:
+    "Delete a POS. IRREVERSIBLE. Cancels any pending QR orders attached to it. Confirm with user before calling.",
+
+  // ── Bank Accounts (v0.7) ─────────────────────────────────────────────────
+  list_bank_accounts:
+    "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array — the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settlements when the user asks 'a qué cuenta me deposita MP'.",
+  register_bank_account:
+    "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance — this endpoint may not work for all accounts. If it fails with 403, redirect the user to https://www.mercadopago.com.ar/banking/dashboard.",
+
+  // ── Point Devices físicos (v0.7) ─────────────────────────────────────────
+  list_point_devices:
+    "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS — these are actual terminals at brick-and-mortar shops. Returns each device's id (serial), operating_mode (PDV vs STANDALONE), and pos_id (when bound to a logical POS). Filter by pos_id to find devices for a specific cash register.",
+  update_point_device_mode:
+    "Switch a Point device's operating_mode between 'PDV' (bound to a logical POS, takes payments triggered through that POS) and 'STANDALONE' (works independently, accepts any payment). PDV is for cash-register integrations; STANDALONE is for free-form retail. Affects how payments hit the device.",
+  create_point_payment_intent:
+    "Create a payment intent on a physical Point device — the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait for point_integration_wh webhook. **AMOUNT IS IN CENTAVOS**, NOT pesos (Point API differs from Payments API): 100 = $1, 1000 = $10, 10000 = $100.",
+  get_point_payment_intent:
+    "Get the current state of a Point payment intent (OPEN, PROCESSING, FINISHED, CANCELED, ERROR). USE in polling loops if you can't wait for the webhook. When state=FINISHED, the intent.payment.id is the resulting Payment id usable with get_payment.",
+  cancel_point_payment_intent:
+    "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead.",
+
+  // ── Pure helpers (v0.7) ──────────────────────────────────────────────────
+  compute_marketplace_fee:
+    "PURE HELPER (no network) — given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payment_preference. USE WHEN your platform takes a commission and you need to compute the exact fee per transaction. Examples: { percent: 5, minArs: 50, maxArs: 5000 } for percentage with floor + cap; { flatArs: 200, percent: 2 } for fixed + percentage.",
+  explain_payment_status:
+    "PURE HELPER (no network) — given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's cryptic status_detail codes to plain Spanish + actionable guidance ('reintentar con otra tarjeta' vs 'esperar webhook' vs 'estado final'). USE THIS instead of having to memorize 30+ status_detail codes — surface summary + recommendedAction directly to the user.",
 };
 
 /**
@@ -1868,6 +1971,444 @@ export function mercadoPagoTools(
           cards: TEST_CARDS_AR,
           usage:
             "Pass holderName='APRO' for an approved payment, 'OTHE' for rejected, 'CONT' for pending, 'FUND' for insufficient amount, 'CALL' for call-for-authorize. Use a NEW payer email per call (append a timestamp) to avoid MP idempotency-on-email deduping.",
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.7 — Customer + Card extensions
+    // ─────────────────────────────────────────────────────────────────────────
+
+    get_customer: tool({
+      description: desc("get_customer"),
+      inputSchema: z.object({ customer_id: z.string() }),
+      execute: async ({ customer_id }) => {
+        return client.getCustomer(customer_id);
+      },
+    }),
+
+    update_customer: tool({
+      description: desc("update_customer"),
+      inputSchema: z.object({
+        customer_id: z.string(),
+        first_name: z.string().optional(),
+        last_name: z.string().optional(),
+        phone: z
+          .object({ area_code: z.string().optional(), number: z.string().optional() })
+          .optional(),
+        identification: z
+          .object({ type: z.string(), number: z.string() })
+          .optional(),
+        address: z
+          .object({
+            street_name: z.string().optional(),
+            street_number: z.number().optional(),
+            zip_code: z.string().optional(),
+          })
+          .optional(),
+        description: z.string().optional(),
+        default_card: z.string().optional(),
+      }),
+      execute: async ({ customer_id, ...patch }) => {
+        // Filter out undefined to satisfy exactOptionalPropertyTypes.
+        const cleaned: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(patch)) {
+          if (v !== undefined) cleaned[k] = v;
+        }
+        return client.updateCustomer(customer_id, cleaned as never);
+      },
+    }),
+
+    create_customer_card: tool({
+      description: desc("create_customer_card"),
+      inputSchema: z.object({
+        customer_id: z.string(),
+        card_token: z.string().describe("Card token from MP frontend Cardform OR create_card_token."),
+      }),
+      execute: async ({ customer_id, card_token }) => {
+        return client.createCustomerCard(customer_id, card_token);
+      },
+    }),
+
+    get_customer_card: tool({
+      description: desc("get_customer_card"),
+      inputSchema: z.object({
+        customer_id: z.string(),
+        card_id: z.string(),
+      }),
+      execute: async ({ customer_id, card_id }) => {
+        return client.getCustomerCard(customer_id, card_id);
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.7 — Subscription / Plan / Refund / Preference extensions
+    // ─────────────────────────────────────────────────────────────────────────
+
+    get_subscription_plan: tool({
+      description: desc("get_subscription_plan"),
+      inputSchema: z.object({ plan_id: z.string() }),
+      execute: async ({ plan_id }) => {
+        return client.getSubscriptionPlan(plan_id);
+      },
+    }),
+
+    update_subscription: tool({
+      description: desc("update_subscription"),
+      inputSchema: z.object({
+        subscription_id: z.string(),
+        transaction_amount: z.number().positive().optional(),
+        card_token_id: z.string().optional(),
+        status: z.enum(["authorized", "paused", "cancelled"]).optional(),
+        reason: z.string().optional(),
+        external_reference: z.string().optional(),
+      }),
+      execute: async ({ subscription_id, ...patch }) => {
+        const cleaned: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(patch)) {
+          if (v !== undefined) cleaned[k] = v;
+        }
+        return client.updatePreapproval(subscription_id, cleaned as never);
+      },
+    }),
+
+    search_subscriptions: tool({
+      description: desc("search_subscriptions"),
+      inputSchema: z.object({
+        status: z.string().optional(),
+        payer_email: z.string().email().optional(),
+        external_reference: z.string().optional(),
+        plan_id: z.string().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+        offset: z.number().int().min(0).optional(),
+      }),
+      execute: async ({ status, payer_email, external_reference, plan_id, limit, offset }) => {
+        const params: Parameters<typeof client.searchPreapprovals>[0] = {};
+        if (status !== undefined) params.status = status;
+        if (payer_email !== undefined) params.payerEmail = payer_email;
+        if (external_reference !== undefined) params.externalReference = external_reference;
+        if (plan_id !== undefined) params.preapproval_plan_id = plan_id;
+        if (limit !== undefined) params.limit = limit;
+        if (offset !== undefined) params.offset = offset;
+        return client.searchPreapprovals(params);
+      },
+    }),
+
+    get_refund: tool({
+      description: desc("get_refund"),
+      inputSchema: z.object({
+        payment_id: z.string(),
+        refund_id: z.string(),
+      }),
+      execute: async ({ payment_id, refund_id }) => {
+        return client.getRefund(payment_id, refund_id);
+      },
+    }),
+
+    update_payment_preference: tool({
+      description: desc("update_payment_preference"),
+      inputSchema: z.object({
+        preference_id: z.string(),
+        notification_url: z.string().url().optional(),
+        external_reference: z.string().optional(),
+        statement_descriptor: z.string().optional(),
+      }),
+      execute: async ({ preference_id, ...patch }) => {
+        const cleaned: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(patch)) {
+          if (v !== undefined) cleaned[k] = v;
+        }
+        return client.updatePreference(preference_id, cleaned);
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.7 — Merchant Orders
+    // ─────────────────────────────────────────────────────────────────────────
+
+    get_merchant_order: tool({
+      description: desc("get_merchant_order"),
+      inputSchema: z.object({ merchant_order_id: z.string() }),
+      execute: async ({ merchant_order_id }) => {
+        return client.getMerchantOrder(merchant_order_id);
+      },
+    }),
+
+    search_merchant_orders: tool({
+      description: desc("search_merchant_orders"),
+      inputSchema: z.object({
+        preference_id: z.string().optional(),
+        external_reference: z.string().optional(),
+        status: z.string().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+        offset: z.number().int().min(0).optional(),
+      }),
+      execute: async ({ preference_id, external_reference, status, limit, offset }) => {
+        const params: Parameters<typeof client.searchMerchantOrders>[0] = {};
+        if (preference_id !== undefined) params.preferenceId = preference_id;
+        if (external_reference !== undefined) params.externalReference = external_reference;
+        if (status !== undefined) params.status = status;
+        if (limit !== undefined) params.limit = limit;
+        if (offset !== undefined) params.offset = offset;
+        return client.searchMerchantOrders(params);
+      },
+    }),
+
+    update_merchant_order: tool({
+      description: desc("update_merchant_order"),
+      inputSchema: z.object({
+        merchant_order_id: z.string(),
+        patch: z.record(z.string(), z.unknown()),
+      }),
+      execute: async ({ merchant_order_id, patch }) => {
+        return client.updateMerchantOrder(merchant_order_id, patch);
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.7 — Stores + POS CRUD completion
+    // ─────────────────────────────────────────────────────────────────────────
+
+    get_store: tool({
+      description: desc("get_store"),
+      inputSchema: z.object({
+        user_id: z.string(),
+        store_id: z.string(),
+      }),
+      execute: async ({ user_id, store_id }) => {
+        return client.getStore(user_id, store_id);
+      },
+    }),
+
+    update_store: tool({
+      description: desc("update_store"),
+      inputSchema: z.object({
+        user_id: z.string(),
+        store_id: z.string(),
+        name: z.string().optional(),
+        external_id: z.string().optional(),
+      }),
+      execute: async ({ user_id, store_id, ...patch }) => {
+        const cleaned: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(patch)) {
+          if (v !== undefined) cleaned[k] = v;
+        }
+        return client.updateStore(user_id, store_id, cleaned as never);
+      },
+    }),
+
+    delete_store: tool({
+      description: desc("delete_store"),
+      inputSchema: z.object({
+        user_id: z.string(),
+        store_id: z.string(),
+      }),
+      execute: async ({ user_id, store_id }) => {
+        await client.deleteStore(user_id, store_id);
+        return { user_id, store_id, deleted: true };
+      },
+    }),
+
+    get_pos: tool({
+      description: desc("get_pos"),
+      inputSchema: z.object({ pos_id: z.string() }),
+      execute: async ({ pos_id }) => {
+        return client.getPos(pos_id);
+      },
+    }),
+
+    update_pos: tool({
+      description: desc("update_pos"),
+      inputSchema: z.object({
+        pos_id: z.string(),
+        name: z.string().optional(),
+        external_id: z.string().optional(),
+        category: z.number().optional(),
+      }),
+      execute: async ({ pos_id, ...patch }) => {
+        const cleaned: Record<string, unknown> = {};
+        for (const [k, v] of Object.entries(patch)) {
+          if (v !== undefined) cleaned[k] = v;
+        }
+        return client.updatePos(pos_id, cleaned as never);
+      },
+    }),
+
+    delete_pos: tool({
+      description: desc("delete_pos"),
+      inputSchema: z.object({ pos_id: z.string() }),
+      execute: async ({ pos_id }) => {
+        await client.deletePos(pos_id);
+        return { pos_id, deleted: true };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.7 — Bank Accounts
+    // ─────────────────────────────────────────────────────────────────────────
+
+    list_bank_accounts: tool({
+      description: desc("list_bank_accounts"),
+      inputSchema: z.object({}),
+      execute: async () => {
+        const accounts = await client.listBankAccounts();
+        return { accounts };
+      },
+    }),
+
+    register_bank_account: tool({
+      description: desc("register_bank_account"),
+      inputSchema: z.object({
+        cbu: z.string().regex(/^\d{22}$/),
+        alias: z.string().optional(),
+      }),
+      execute: async (input) => {
+        const params: Parameters<typeof client.registerBankAccount>[0] = {
+          cbu: input.cbu,
+        };
+        if (input.alias !== undefined) params.alias = input.alias;
+        return client.registerBankAccount(params);
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.7 — Point Devices físicos
+    // ─────────────────────────────────────────────────────────────────────────
+
+    list_point_devices: tool({
+      description: desc("list_point_devices"),
+      inputSchema: z.object({
+        pos_id: z.union([z.string(), z.number()]).optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+        offset: z.number().int().min(0).optional(),
+      }),
+      execute: async ({ pos_id, limit, offset }) => {
+        const params: Parameters<typeof client.listPointDevices>[0] = {};
+        if (pos_id !== undefined) params.posId = pos_id;
+        if (limit !== undefined) params.limit = limit;
+        if (offset !== undefined) params.offset = offset;
+        return client.listPointDevices(params);
+      },
+    }),
+
+    update_point_device_mode: tool({
+      description: desc("update_point_device_mode"),
+      inputSchema: z.object({
+        device_id: z.string(),
+        operating_mode: z.enum(["PDV", "STANDALONE"]),
+      }),
+      execute: async ({ device_id, operating_mode }) => {
+        return client.updatePointDeviceOperatingMode(device_id, operating_mode);
+      },
+    }),
+
+    create_point_payment_intent: tool({
+      description: desc("create_point_payment_intent"),
+      inputSchema: z.object({
+        device_id: z.string(),
+        amount_centavos: z
+          .number()
+          .int()
+          .positive()
+          .describe("Amount in CENTAVOS (NOT pesos). 100 = $1, 1000 = $10, 10000 = $100."),
+        description: z.string().optional(),
+        external_reference: z.string().optional(),
+        installments: z.number().int().min(1).max(24).optional(),
+        installments_cost: z.enum(["seller", "buyer"]).optional(),
+        print_on_terminal: z.boolean().optional(),
+        ticket_number: z.string().optional(),
+      }),
+      execute: async (input) => {
+        const params: Parameters<typeof client.createPointPaymentIntent>[1] = {
+          amount: input.amount_centavos,
+        };
+        if (input.description !== undefined) params.description = input.description;
+        if (input.external_reference !== undefined) params.externalReference = input.external_reference;
+        if (input.installments !== undefined) params.installments = input.installments;
+        if (input.installments_cost !== undefined) params.installmentsCost = input.installments_cost;
+        if (input.print_on_terminal !== undefined) params.printOnTerminal = input.print_on_terminal;
+        if (input.ticket_number !== undefined) params.ticketNumber = input.ticket_number;
+        return client.createPointPaymentIntent(input.device_id, params);
+      },
+    }),
+
+    get_point_payment_intent: tool({
+      description: desc("get_point_payment_intent"),
+      inputSchema: z.object({ intent_id: z.string() }),
+      execute: async ({ intent_id }) => {
+        return client.getPointPaymentIntent(intent_id);
+      },
+    }),
+
+    cancel_point_payment_intent: tool({
+      description: desc("cancel_point_payment_intent"),
+      inputSchema: z.object({
+        device_id: z.string(),
+        intent_id: z.string(),
+      }),
+      execute: async ({ device_id, intent_id }) => {
+        return client.cancelPointPaymentIntent(device_id, intent_id);
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.7 — Pure helpers
+    // ─────────────────────────────────────────────────────────────────────────
+
+    compute_marketplace_fee: tool({
+      description: desc("compute_marketplace_fee"),
+      inputSchema: z.object({
+        amount_ars: z.number().positive(),
+        flat_ars: z.number().nonnegative().optional(),
+        percent: z.number().min(0).max(100).optional(),
+        min_ars: z.number().nonnegative().optional(),
+        max_ars: z.number().nonnegative().optional(),
+        round: z.boolean().optional(),
+      }),
+      execute: async (input) => {
+        const rule: Parameters<typeof computeMarketplaceFee>[1] = {};
+        if (input.flat_ars !== undefined) rule.flatArs = input.flat_ars;
+        if (input.percent !== undefined) rule.percent = input.percent;
+        if (input.min_ars !== undefined) rule.minArs = input.min_ars;
+        if (input.max_ars !== undefined) rule.maxArs = input.max_ars;
+        if (input.round !== undefined) rule.round = input.round;
+        const fee = computeMarketplaceFee(input.amount_ars, rule);
+        return {
+          amount_ars: input.amount_ars,
+          marketplace_fee: fee,
+          seller_receives: input.amount_ars - fee,
+          rule_applied: rule,
+        };
+      },
+    }),
+
+    explain_payment_status: tool({
+      description: desc("explain_payment_status"),
+      inputSchema: z.object({
+        payment_id: z.string().optional().describe("If provided, fetches the Payment first."),
+        payment: z
+          .record(z.string(), z.unknown())
+          .optional()
+          .describe("Alternatively, pass a Payment object directly (saves a network round-trip)."),
+      }),
+      execute: async ({ payment_id, payment }) => {
+        let p: import("./types").Payment;
+        if (payment) {
+          p = payment as unknown as import("./types").Payment;
+        } else if (payment_id) {
+          p = await client.getPayment(payment_id);
+        } else {
+          return {
+            ok: false,
+            error: "Pass either payment_id or payment.",
+          };
+        }
+        const explanation = explainPaymentStatus(p);
+        return {
+          ok: true,
+          payment_status: p.status,
+          payment_status_detail: p.status_detail ?? null,
+          ...explanation,
         };
       },
     }),

@@ -45,6 +45,14 @@ export {
 // v0.6 — 3DS analyzer (pure helper)
 export { analyze3DS } from "./three-ds";
 
+// v0.7 — Pure helpers
+export {
+  computeMarketplaceFee,
+  explainPaymentStatus,
+  type MarketplaceFeeRule,
+  type PaymentStatusExplanation,
+} from "./helpers";
+
 export {
   MercadoPagoError,
   MercadoPagoAuthError,
@@ -127,6 +135,13 @@ export type {
   // 3DS (v0.6)
   ThreeDSStatus,
   ThreeDSInfo,
+  // v0.7 — new domains
+  MerchantOrder,
+  BankAccount,
+  PointDevice,
+  PointPaymentIntent,
+  PointPaymentIntentState,
+  CreatePointPaymentIntentParams,
   // Common
   CurrencyId,
   FrequencyType,

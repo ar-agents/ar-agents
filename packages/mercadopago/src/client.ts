@@ -14,7 +14,9 @@ import type {
   CreateSubscriptionPlanParams,
   AccountBalance,
   AccountMovement,
+  BankAccount,
   CreateOrderParams,
+  CreatePointPaymentIntentParams,
   CreateWebhookParams,
   Customer,
   CustomerCard,
@@ -22,8 +24,11 @@ import type {
   IdentificationType,
   InstallmentOffer,
   Issuer,
+  MerchantOrder,
   Order,
   Payment,
+  PointDevice,
+  PointPaymentIntent,
   PaymentMethod,
   PaymentsSearchResult,
   Pos,
@@ -137,7 +142,7 @@ export class MercadoPagoClient {
   }
 
   private async request<T>(
-    method: "GET" | "POST" | "PUT" | "DELETE",
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
     path: string,
     body?: unknown,
     options?: RequestOptions,
@@ -1145,6 +1150,326 @@ export class MercadoPagoClient {
    */
   async getSettlement(id: string): Promise<Settlement> {
     return this.request<Settlement>("GET", `/v1/account/release_money/${id}`);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.7 — Customer + Card extensions (close gaps)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Update a customer's profile (name, last name, address, etc.). MP merges
+   * the patch — fields you don't send remain unchanged.
+   */
+  async updateCustomer(
+    id: string,
+    patch: Partial<{
+      first_name: string;
+      last_name: string;
+      phone: { area_code?: string; number?: string };
+      identification: { type: string; number: string };
+      address: { street_name?: string; street_number?: number; zip_code?: string };
+      description: string;
+      default_card?: string;
+    }>,
+  ): Promise<Customer> {
+    return this.request<Customer>("PUT", `/v1/customers/${id}`, patch);
+  }
+
+  /**
+   * Add a saved card to a customer using a card token (one-time, get from
+   * MP's frontend Cardform). The card is then chargeable with charge_saved_card.
+   */
+  async createCustomerCard(
+    customerId: string,
+    cardToken: string,
+  ): Promise<CustomerCard> {
+    return this.request<CustomerCard>(
+      "POST",
+      `/v1/customers/${customerId}/cards`,
+      { token: cardToken },
+    );
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.7 — Subscription extensions
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Update an existing subscription. Common patches:
+   * - `transaction_amount` to change the recurring amount
+   * - `card_token_id` to switch payment method (e.g., expired card)
+   * - `status: "cancelled" | "paused"` (alternative to dedicated cancel/pause endpoints)
+   * - `reason` to update the description shown to the buyer
+   */
+  async updatePreapproval(
+    id: string,
+    patch: Partial<{
+      transaction_amount: number;
+      card_token_id: string;
+      status: "authorized" | "paused" | "cancelled";
+      reason: string;
+      external_reference: string;
+    }>,
+  ): Promise<Preapproval> {
+    return this.request<Preapproval>("PUT", `/preapproval/${id}`, patch);
+  }
+
+  /**
+   * Search subscriptions across the seller's account. Common filters:
+   * `status` (pending/authorized/paused/cancelled), `payer_email`,
+   * `external_reference`. Paginated.
+   */
+  async searchPreapprovals(
+    params: {
+      status?: string;
+      payerEmail?: string;
+      externalReference?: string;
+      preapproval_plan_id?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<{
+    results: Preapproval[];
+    paging: { limit: number; offset: number; total: number };
+  }> {
+    const query: Record<string, string | number> = {};
+    if (params.status) query.status = params.status;
+    if (params.payerEmail) query.payer_email = params.payerEmail;
+    if (params.externalReference) query.external_reference = params.externalReference;
+    if (params.preapproval_plan_id) query.preapproval_plan_id = params.preapproval_plan_id;
+    if (params.limit !== undefined) query.limit = params.limit;
+    if (params.offset !== undefined) query.offset = params.offset;
+    const result = await this.request<{
+      results?: Preapproval[];
+      paging?: { limit: number; offset: number; total: number };
+    }>("GET", "/preapproval/search", undefined, { query });
+    return {
+      results: result.results ?? [],
+      paging: result.paging ?? { limit: params.limit ?? 25, offset: params.offset ?? 0, total: 0 },
+    };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.7 — Merchant Orders (parent of Payments grouped under a Preference)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Get a merchant_order with all its associated payments + shipments.
+   * Useful for reconciling "which payments belong to which preference"
+   * — typical webhook handler use case.
+   */
+  async getMerchantOrder(id: string): Promise<MerchantOrder> {
+    return this.request<MerchantOrder>("GET", `/merchant_orders/${id}`);
+  }
+
+  /**
+   * Search merchant_orders by external_reference, preference_id, or status.
+   */
+  async searchMerchantOrders(
+    params: {
+      preferenceId?: string;
+      externalReference?: string;
+      status?: string;
+      limit?: number;
+      offset?: number;
+    } = {},
+  ): Promise<{
+    elements: MerchantOrder[];
+    paging: { limit: number; offset: number; total: number };
+  }> {
+    const query: Record<string, string | number> = {};
+    if (params.preferenceId) query.preference_id = params.preferenceId;
+    if (params.externalReference) query.external_reference = params.externalReference;
+    if (params.status) query.status = params.status;
+    if (params.limit !== undefined) query.limit = params.limit;
+    if (params.offset !== undefined) query.offset = params.offset;
+    const result = await this.request<{
+      elements?: MerchantOrder[];
+      paging?: { limit: number; offset: number; total: number };
+    }>("GET", "/merchant_orders/search", undefined, { query });
+    return {
+      elements: result.elements ?? [],
+      paging: result.paging ?? { limit: params.limit ?? 25, offset: params.offset ?? 0, total: 0 },
+    };
+  }
+
+  /**
+   * Update a merchant_order — typically to add items or update shipping.
+   */
+  async updateMerchantOrder(
+    id: string,
+    patch: Record<string, unknown>,
+  ): Promise<MerchantOrder> {
+    return this.request<MerchantOrder>("PUT", `/merchant_orders/${id}`, patch);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.7 — Stores + POS CRUD completion
+  // ──────────────────────────────────────────────────────────────────────────
+
+  async getStore(userId: string, storeId: string): Promise<Store> {
+    return this.request<Store>("GET", `/users/${userId}/stores/${storeId}`);
+  }
+
+  async updateStore(
+    userId: string,
+    storeId: string,
+    patch: Partial<CreateStoreParams>,
+  ): Promise<Store> {
+    return this.request<Store>("PUT", `/users/${userId}/stores/${storeId}`, patch);
+  }
+
+  async deleteStore(userId: string, storeId: string): Promise<void> {
+    await this.request("DELETE", `/users/${userId}/stores/${storeId}`);
+  }
+
+  async getPos(posId: string): Promise<Pos> {
+    return this.request<Pos>("GET", `/pos/${posId}`);
+  }
+
+  async updatePos(
+    posId: string,
+    patch: Partial<CreatePosParams>,
+  ): Promise<Pos> {
+    return this.request<Pos>("PUT", `/pos/${posId}`, patch);
+  }
+
+  async deletePos(posId: string): Promise<void> {
+    await this.request("DELETE", `/pos/${posId}`);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.7 — Bank Accounts (the CBUs the seller has registered for payouts)
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * List bank accounts registered by the seller. The default is the one
+   * that receives `release_money` settlements.
+   */
+  async listBankAccounts(): Promise<BankAccount[]> {
+    const result = await this.request<{ results?: BankAccount[] } | BankAccount[]>(
+      "GET",
+      "/users/me/bank_accounts",
+    );
+    if (Array.isArray(result)) return result;
+    return result.results ?? [];
+  }
+
+  /**
+   * Register a new bank account (CBU) for the seller. Note: MP usually
+   * requires this through the dashboard for compliance — this endpoint may
+   * not work for all sellers.
+   */
+  async registerBankAccount(params: {
+    cbu: string;
+    alias?: string;
+  }): Promise<BankAccount> {
+    return this.request<BankAccount>("POST", "/users/me/bank_accounts", params);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.7 — Point Devices (physical terminal hardware: Smart, Tap to Pay)
+  //
+  // Distinct from the logical `Pos` entity. PointDevices are the actual
+  // physical terminals you have at brick-and-mortar shops.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * List the Point devices linked to the seller's MP account. Each device
+   * has an id (the device serial), an operating_mode (PDV vs STANDALONE),
+   * and an optional pos_id (when bound to a logical POS).
+   */
+  async listPointDevices(
+    params: { posId?: string | number; limit?: number; offset?: number } = {},
+  ): Promise<{ devices: PointDevice[]; paging: { total: number; limit: number; offset: number } }> {
+    const query: Record<string, string | number> = {};
+    if (params.posId !== undefined) query["pos.id"] = params.posId;
+    if (params.limit !== undefined) query.limit = params.limit;
+    if (params.offset !== undefined) query.offset = params.offset;
+    const result = await this.request<{
+      devices?: PointDevice[];
+      paging?: { total: number; limit: number; offset: number };
+    }>("GET", "/point/integration-api/devices", undefined, { query });
+    return {
+      devices: result.devices ?? [],
+      paging: result.paging ?? { total: 0, limit: params.limit ?? 50, offset: params.offset ?? 0 },
+    };
+  }
+
+  /**
+   * Switch a Point device's operating mode:
+   * - "PDV": device is bound to a logical Pos and only takes payments
+   *   triggered through that Pos (typical for cash-register integrations).
+   * - "STANDALONE": device works independently, accepts any payment.
+   */
+  async updatePointDeviceOperatingMode(
+    deviceId: string,
+    operatingMode: "PDV" | "STANDALONE",
+  ): Promise<PointDevice> {
+    return this.request<PointDevice>(
+      "PATCH",
+      `/point/integration-api/devices/${encodeURIComponent(deviceId)}`,
+      { operating_mode: operatingMode },
+    );
+  }
+
+  /**
+   * Create a payment intent on a Point device — the device prompts the buyer
+   * to tap/insert/swipe. Returns immediately with intent id; query state via
+   * `getPointPaymentIntent()` or wait for `point_integration_wh` webhook.
+   *
+   * NOTE: amount is in CENTAVOS (Point API differs from Payments API which
+   * uses pesos). 100 = $1 ARS, 1000 = $10, 10000 = $100, etc.
+   */
+  async createPointPaymentIntent(
+    deviceId: string,
+    params: CreatePointPaymentIntentParams,
+  ): Promise<PointPaymentIntent> {
+    const body: Record<string, unknown> = {
+      amount: params.amount,
+      ...(params.description ? { description: params.description } : {}),
+      ...(params.externalReference
+        ? { additional_info: { external_reference: params.externalReference } }
+        : {}),
+      payment: {
+        installments: params.installments ?? 1,
+        ...(params.installmentsCost
+          ? { installments_cost: params.installmentsCost }
+          : {}),
+        ...(params.printOnTerminal !== undefined
+          ? { print_on_terminal: params.printOnTerminal }
+          : {}),
+        ...(params.ticketNumber ? { ticket_number: params.ticketNumber } : {}),
+      },
+    };
+    return this.request<PointPaymentIntent>(
+      "POST",
+      `/point/integration-api/devices/${encodeURIComponent(deviceId)}/payment-intents`,
+      body,
+    );
+  }
+
+  /** Get the current state of a Point payment intent. */
+  async getPointPaymentIntent(intentId: string): Promise<PointPaymentIntent> {
+    return this.request<PointPaymentIntent>(
+      "GET",
+      `/point/integration-api/payment-intents/${encodeURIComponent(intentId)}`,
+    );
+  }
+
+  /**
+   * Cancel an OPEN payment intent before the buyer interacts with the device.
+   * Only works while state is "OPEN" — once the buyer taps, you can't cancel.
+   */
+  async cancelPointPaymentIntent(
+    deviceId: string,
+    intentId: string,
+  ): Promise<{ id: string; canceled: true }> {
+    await this.request(
+      "DELETE",
+      `/point/integration-api/devices/${encodeURIComponent(deviceId)}/payment-intents/${encodeURIComponent(intentId)}`,
+    );
+    return { id: intentId, canceled: true };
   }
 }
 

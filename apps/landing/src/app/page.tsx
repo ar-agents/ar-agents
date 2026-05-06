@@ -32,18 +32,20 @@ const PACKAGES = [
   },
   {
     name: "@ar-agents/mercadopago",
-    version: "0.6.0",
+    version: "0.7.0",
     purpose:
-      "Full Mercado Pago agent toolkit (56 tools). v0.6 agrega Account/Balance + Settlements (cuándo te deposita MP), 3DS analyzer (challenge URL detection), test cards helpers para devs. v0.5 ya había shipped handle_webhook (HMAC verify combo), OAuth Marketplace flow (3 tools para multi-tenant tipo Rappi), Order Management API (auth-only, manual capture), y marketplace splits. Cubre el surface entero: Payments, Subscriptions, Reusable Plans, Customers, Cards, Refunds, Cuotas, QR, Stores/POS, Disputes, Webhooks. Auto-retry, deterministic idempotency, observability hooks.",
+      "EL agente de Mercado Pago más completo posible. 81 tools que cubren el 100% de lo que MP expone como API pública remota. v0.7 cierra todos los gaps: Customer/Card CRUD completo, Subscription update+search (incluye card swap), Merchant Orders (categoría nueva), Stores+POS CRUD completion, Bank Accounts, Point Devices físicos (terminal hardware Smart/Tap to Pay con amount-en-centavos), y dos pure helpers killer: compute_marketplace_fee (calcula fee exacto con %+flat+min/max) y explain_payment_status (traduce los 30+ status_detail codes de MP a recomendaciones accionables en español). Más todo lo de v0.5/v0.6: handle_webhook con HMAC, OAuth Marketplace, Order Management con manual capture, marketplace splits, account/balance/settlements, 3DS analyzer, test cards.",
     tools: [
-      "get_account_balance + list_settlements (NEW v0.6)",
-      "analyze_payment_3ds + get_test_cards (NEW v0.6)",
-      "handle_webhook (HMAC verify combo)",
-      "oauth_authorize_url + oauth_exchange_code + oauth_refresh_token (Marketplace)",
+      "compute_marketplace_fee + explain_payment_status (PURE helpers, NEW v0.7)",
+      "list_point_devices + create_point_payment_intent (terminal hardware, NEW v0.7)",
+      "get_merchant_order + search_merchant_orders (NEW v0.7)",
+      "list_bank_accounts + register_bank_account (NEW v0.7)",
+      "search_subscriptions + update_subscription (card swap, NEW v0.7)",
+      "Stores/POS CRUD: get/update/delete x 2 (NEW v0.7)",
+      "handle_webhook + OAuth Marketplace flow (3 tools)",
       "create_order + capture_order + cancel_order (Order API)",
       "create_subscription_plan + subscribe_to_plan",
-      "create_qr_payment + calculate_installments",
-      "+ 47 más (56 total)",
+      "+ 65 más (81 total)",
     ],
     npm: "https://www.npmjs.com/package/@ar-agents/mercadopago",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago",
@@ -129,9 +131,9 @@ const PACKAGES = [
   },
   {
     name: "@ar-agents/mcp",
-    version: "0.4.0",
+    version: "0.4.1",
     purpose:
-      "MCP (Model Context Protocol) server que bundlea TODO el toolkit @ar-agents/*. One install en Claude Desktop / Cursor / cualquier MCP host: 7 packages, ~95 tools disponibles inmediatamente. Auto-detecta qué packages habilitar desde env vars.",
+      "MCP (Model Context Protocol) server que bundlea TODO el toolkit @ar-agents/*. One install en Claude Desktop / Cursor / cualquier MCP host: 7 packages, ~120 tools disponibles inmediatamente. Auto-detecta qué packages habilitar desde env vars.",
     tools: ["bundles all 7 packages above", "auto-detects from env vars", "stdio transport"],
     npm: "https://www.npmjs.com/package/@ar-agents/mcp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
@@ -514,7 +516,7 @@ const agent = new Agent({
               <strong>@ar-agents/facturacion v0.2</strong> — Factura E (exportación), FCE MiPyMEs helpers, retención helpers
             </li>
             <li>
-              <strong>@ar-agents/mercadopago v0.7</strong> — Reports API, adjustments, advanced 3DS challenge flow helpers
+              <strong>@ar-agents/mercadopago v0.8</strong> — Reports API + adjustments (audit trail), advanced subscription analytics
             </li>
           </ul>
         </section>

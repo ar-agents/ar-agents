@@ -1,5 +1,47 @@
 # Changelog
 
+## 0.7.0
+
+### Minor Changes
+
+- MP v0.7: completeness máxima — el agente de MP más completo posible. **+25 tools (81 total)**.
+
+  **Cierre de gaps obvios (8 tools)**:
+  - `get_customer`, `update_customer`, `create_customer_card`, `get_customer_card`
+  - `get_subscription_plan`, `update_subscription`, `search_subscriptions`
+  - `get_refund`, `update_payment_preference`
+
+  **Merchant Orders (3 tools — categoría completa nueva)**:
+  - `get_merchant_order`, `search_merchant_orders`, `update_merchant_order`
+  - MerchantOrder agrupa Payments asociados a una Preference — clave para reconciliar webhooks con `topic='merchant_order'`.
+
+  **Stores + POS CRUD completion (6 tools)**:
+  - `get_store`, `update_store`, `delete_store`
+  - `get_pos`, `update_pos`, `delete_pos`
+
+  **Bank Accounts (2 tools)**:
+  - `list_bank_accounts`, `register_bank_account`
+
+  **Point Devices físicos (5 tools — categoría nueva)**:
+  - `list_point_devices` (terminales físicas: Smart, Tap to Pay)
+  - `update_point_device_mode` (PDV vs STANDALONE)
+  - `create_point_payment_intent` (push payment al device — amount en CENTAVOS)
+  - `get_point_payment_intent`, `cancel_point_payment_intent`
+
+  **Pure helpers (2 tools, high-leverage)**:
+  - `compute_marketplace_fee` — given amount + (% o flat ARS, con min/max), returns exact `marketplace_fee`
+  - `explain_payment_status` — dado un Payment, traduce los 30+ status_detail codes a `{ summary, recommendedAction, final, paid, retryable }` en español
+
+  Type exports: `MerchantOrder`, `BankAccount`, `PointDevice`, `PointPaymentIntent`, `PointPaymentIntentState`, `CreatePointPaymentIntentParams`, `MarketplaceFeeRule`, `PaymentStatusExplanation`.
+
+  Helpers exportados: `computeMarketplaceFee`, `explainPaymentStatus`.
+
+  Cliente extendido: `request<T>` ahora soporta PATCH (necesario para Point devices).
+
+  **169 tests pass** (was 132; +37 v0.7 tests). publint clean. attw 🟢. 31.4 KB brotli'd.
+
+  **Cubre el 100% de lo que MP expone como API pública remota.** Operaciones dashboard-only (verificación de identidad, transferencias account-to-account, configuración de notificaciones por email, fraud rules) NO están — tampoco lo están en ningún SDK oficial de MP.
+
 ## 0.6.0
 
 ### Minor Changes
