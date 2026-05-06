@@ -1,0 +1,100 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/facturacion",
+  "version": "0.1.0",
+  "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
+  "tools": [
+    {
+      "name": "emitir_factura",
+      "kind": "network",
+      "summary": "Solicit a CAE for a new comprobante (Factura A/B/C, Notas)",
+      "input": "SolicitarCaeInput",
+      "output": "SolicitarCaeResult & { ok, tipoComprobanteDescripcion }",
+      "latencyP50Ms": 600,
+      "requiresAdapter": true,
+      "adapter": "WsfeClient (X.509 cert authorized for `wsfe` service)",
+      "preflightValidation": true
+    },
+    {
+      "name": "consultar_ultimo_comprobante",
+      "kind": "network",
+      "summary": "Get the last authorized comprobante number for (PtoVta, CbteTipo)",
+      "input": { "ptoVta": "number?", "cbteTipo": "number" },
+      "output": "{ ptoVta, cbteTipo, cbteNro, proximoNumero, tipoComprobanteDescripcion }",
+      "latencyP50Ms": 250,
+      "requiresAdapter": true
+    },
+    {
+      "name": "consultar_factura_emitida",
+      "kind": "network",
+      "summary": "Look up a previously-issued comprobante",
+      "input": { "ptoVta": "number?", "cbteTipo": "number", "cbteNro": "number" },
+      "output": "ConsultarComprobanteResult",
+      "latencyP50Ms": 350,
+      "requiresAdapter": true
+    },
+    {
+      "name": "obtener_tipos_comprobante",
+      "kind": "network",
+      "summary": "Live AFIP catalog of comprobante types",
+      "input": {},
+      "output": "{ items: CatalogItem[] }",
+      "latencyP50Ms": 200,
+      "requiresAdapter": true
+    },
+    {
+      "name": "obtener_tipos_documento",
+      "kind": "network",
+      "summary": "Live AFIP catalog of document types",
+      "input": {},
+      "output": "{ items: CatalogItem[] }",
+      "latencyP50Ms": 200,
+      "requiresAdapter": true
+    },
+    {
+      "name": "obtener_alicuotas_iva",
+      "kind": "network",
+      "summary": "Live AFIP catalog of IVA rates",
+      "input": {},
+      "output": "{ items: CatalogItem[] }",
+      "latencyP50Ms": 200,
+      "requiresAdapter": true
+    },
+    {
+      "name": "obtener_tipos_concepto",
+      "kind": "network",
+      "summary": "Live AFIP catalog of conceptos",
+      "input": {},
+      "output": "{ items: CatalogItem[] }",
+      "latencyP50Ms": 200,
+      "requiresAdapter": true
+    },
+    {
+      "name": "obtener_tipos_moneda",
+      "kind": "network",
+      "summary": "Live AFIP catalog of currencies",
+      "input": {},
+      "output": "{ items: CatalogItem[] }",
+      "latencyP50Ms": 200,
+      "requiresAdapter": true
+    },
+    {
+      "name": "obtener_cotizacion",
+      "kind": "network",
+      "summary": "AFIP exchange rate for a foreign currency vs ARS",
+      "input": { "monId": "string" },
+      "output": "{ monId, cotiz, fchCotiz }",
+      "latencyP50Ms": 200,
+      "requiresAdapter": true
+    },
+    {
+      "name": "health_check_afip",
+      "kind": "network",
+      "summary": "AFIP WSFE app/db/auth status",
+      "input": {},
+      "output": "DummyResult & { ok }",
+      "latencyP50Ms": 150,
+      "requiresAdapter": true
+    }
+  ]
+}

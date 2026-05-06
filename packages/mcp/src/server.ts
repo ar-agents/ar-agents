@@ -6,6 +6,10 @@ import {
 } from "@modelcontextprotocol/sdk/types.js";
 import { combineToolSets } from "./adapter";
 import { buildBankingTools, describeBankingConfig } from "./registries/banking";
+import {
+  buildFacturacionTools,
+  describeFacturacionConfig,
+} from "./registries/facturacion";
 import { buildIdentityTools, describeIdentityConfig } from "./registries/identity";
 import {
   buildIdentityAttestTools,
@@ -18,7 +22,7 @@ import {
 import { buildWhatsAppTools, describeWhatsAppConfig } from "./registries/whatsapp";
 
 const SERVER_NAME = "ar-agents";
-const SERVER_VERSION = "0.2.0";
+const SERVER_VERSION = "0.3.0";
 
 /**
  * Build the @ar-agents/mcp server. Inspects environment variables to decide
@@ -32,6 +36,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     buildWhatsAppTools(),
     buildIdentityAttestTools(),
     buildBankingTools(),
+    buildFacturacionTools(),
   ]);
 
   const summary = [
@@ -41,6 +46,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     `  whatsapp        → ${describeWhatsAppConfig()}`,
     `  identity-attest → ${describeIdentityAttestConfig()}`,
     `  banking         → ${describeBankingConfig()}`,
+    `  facturacion     → ${describeFacturacionConfig()}`,
   ];
 
   const server = new Server(

@@ -92,11 +92,31 @@ const PACKAGES = [
     accent: "#b91c1c",
   },
   {
-    name: "@ar-agents/mcp",
-    version: "0.2.0",
+    name: "@ar-agents/facturacion",
+    version: "0.1.0",
     purpose:
-      "MCP (Model Context Protocol) server that bundles the entire @ar-agents/* toolkit. One install in Claude Desktop / Cursor / any MCP host, all 5 packages and ~60 tools available immediately. Auto-detects which packages to enable from env vars.",
-    tools: ["bundles all 5 packages above", "auto-detects from env vars", "stdio transport"],
+      "AFIP/ARCA factura electrónica (WSFE). Emite Factura A/B/C, Notas de Crédito/Débito, FCE MiPyMEs. Reusa la misma X.509 cert que @ar-agents/identity — solo necesitás autorizar el servicio `wsfe` en ARCA. Pre-flight validator local que evita los 10 motivos de rechazo más comunes (ImpTotal mal sumado, IVA inconsistente, Factura C con IVA, servicios sin fechas, etc.) ANTES del round-trip a AFIP.",
+    tools: [
+      "emitir_factura",
+      "consultar_ultimo_comprobante",
+      "consultar_factura_emitida",
+      "obtener_tipos_comprobante",
+      "obtener_alicuotas_iva",
+      "obtener_cotizacion",
+      "+ 4 más (10 total)",
+    ],
+    npm: "https://www.npmjs.com/package/@ar-agents/facturacion",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/facturacion",
+    demo: null,
+    bg: "#fed7aa",
+    accent: "#c2410c",
+  },
+  {
+    name: "@ar-agents/mcp",
+    version: "0.3.0",
+    purpose:
+      "MCP (Model Context Protocol) server que bundlea TODO el toolkit @ar-agents/*. One install en Claude Desktop / Cursor / cualquier MCP host: 6 packages, ~70 tools disponibles inmediatamente. Auto-detecta qué packages habilitar desde env vars.",
+    tools: ["bundles all 6 packages above", "auto-detects from env vars", "stdio transport"],
     npm: "https://www.npmjs.com/package/@ar-agents/mcp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
     demo: null,
@@ -202,7 +222,7 @@ export default function Home() {
               fontFamily: "var(--font-geist-mono), monospace",
               margin: 0,
             }}
-          >{`pnpm add @ar-agents/identity @ar-agents/identity-attest @ar-agents/mercadopago @ar-agents/whatsapp @ar-agents/banking ai zod
+          >{`pnpm add @ar-agents/identity @ar-agents/identity-attest @ar-agents/mercadopago @ar-agents/whatsapp @ar-agents/banking @ar-agents/facturacion ai zod
 
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
 import { identityTools } from "@ar-agents/identity";
@@ -211,22 +231,25 @@ import { AttestationClient, identityAttestTools, WhatsAppOtpAdapter } from "@ar-
 import { mercadoPagoTools, MercadoPagoClient, InMemoryStateAdapter } from "@ar-agents/mercadopago";
 import { whatsappTools, WhatsAppClient } from "@ar-agents/whatsapp";
 import { bankingTools, BcraPublicApiAdapter } from "@ar-agents/banking";
+import { facturacionTools, WsfeClient } from "@ar-agents/facturacion";
 
 const wa = new WhatsAppClient({...});
 const attestation = new AttestationClient({
   signingSecret: process.env.ATTEST_SIGNING_SECRET!,
   adapters: { whatsapp_otp: new WhatsAppOtpAdapter({ whatsappClient: wa }) },
 });
+const wsfe = new WsfeClient({ certPath: "...", keyPath: "...", cuit: "...", env: "prod" });
 
 const agent = new Agent({
   model: "anthropic/claude-sonnet-4-6",
-  instructions: "Sos el asistente de billing. Para cobros > $20k requerís trust >= 0.5...",
+  instructions: "Sos el asistente de billing. Cobrás (MP), facturás (AFIP), notificás (WhatsApp).",
   tools: {
     ...identityTools({ afip: new WsaaWscdcAfipPadronAdapter({...}) }),
     ...identityAttestTools(attestation),
     ...mercadoPagoTools(new MercadoPagoClient({...}), { state: new InMemoryStateAdapter(), backUrl: "..." }),
     ...whatsappTools(wa),
     ...bankingTools({ bcra: new BcraPublicApiAdapter() }),
+    ...facturacionTools({ wsfe, defaultPtoVta: 1 }),
   },
   stopWhen: stepCountIs(10),
 });`}</pre>
@@ -458,13 +481,13 @@ const agent = new Agent({
               <strong>@ar-agents/identity-attest v0.3</strong> — Cognito + MercadoPago Identity adapters
             </li>
             <li>
-              <strong>@ar-agents/facturacion</strong> — AFIP factura electrónica (WSFE)
-            </li>
-            <li>
               <strong>@ar-agents/shipping</strong> — Andreani / OCA / Correo Argentino
             </li>
             <li>
               <strong>@ar-agents/banking v0.2</strong> — DEBIN/Coelsa adapters, alias CBU lookup
+            </li>
+            <li>
+              <strong>@ar-agents/facturacion v0.2</strong> — Factura E (exportación), FCE MiPyMEs helpers, retención helpers
             </li>
           </ul>
         </section>

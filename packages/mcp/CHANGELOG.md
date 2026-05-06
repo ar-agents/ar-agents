@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes
+
+- MCP v0.3: ships `@ar-agents/facturacion` as 6th tool registry.
+
+  The MCP server now exposes 6 packages:
+
+  - `@ar-agents/identity` (validate_cuit, lookup_cuit_afip)
+  - `@ar-agents/identity-attest` (4 attestation tools)
+  - `@ar-agents/mercadopago` (41 MP API tools)
+  - `@ar-agents/whatsapp` (6 messaging tools)
+  - `@ar-agents/banking` (5 CBU/BCRA tools)
+  - **NEW: `@ar-agents/facturacion`** (10 WSFE tools — emitir factura, consultar último, catálogos)
+
+  Auto-detects facturación from env: `AFIP_CUIT_REPRESENTADO` + `AFIP_CERT_PEM/PATH` + `AFIP_KEY_PEM/PATH` (same vars as identity, but the cert must be authorized for the `wsfe` service in addition).
+
+  Tunables: `WSFE_DEFAULT_PTOVTA`, `WSFE_TIMEOUT_MS`, `WSFE_MAX_RETRIES`.
+
+  Server version bumped to 0.3.0 in the MCP handshake.
+
 ## 0.2.0
 
 ### Minor Changes

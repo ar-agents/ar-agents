@@ -26,3 +26,7 @@ export {
   buildBankingTools,
   describeBankingConfig,
 } from "./registries/banking";
+export {
+  buildFacturacionTools,
+  describeFacturacionConfig,
+} from "./registries/facturacion";
