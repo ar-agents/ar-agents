@@ -5,6 +5,7 @@ import {
   verifyWebhookSubscription,
 } from "@ar-agents/whatsapp";
 import { createWhatsAppHelloAgent } from "@/lib/agent";
+import { bodySizeGuard, withApiHeaders } from "@/lib/security";
 
 export const runtime = "nodejs";
 export const maxDuration = 60;
@@ -30,21 +31,35 @@ export const maxDuration = 60;
  * header (HMAC-SHA256 of raw body with META_APP_SECRET), then dispatch:
  * - text/interactive messages → run the agent, agent decides what to send back
  * - status updates → log only (could persist to DB for analytics)
+ *
+ * Auth model: signature verification IS the auth. Meta is the only legitimate
+ * caller; rate-limiting at the IP layer makes no sense here (Meta calls from
+ * a rotating pool). The signature check rejects everyone else.
  */
 export async function GET(req: NextRequest) {
   const params = Object.fromEntries(new URL(req.url).searchParams);
   const verifyToken = process.env.WA_WEBHOOK_VERIFY_TOKEN;
   if (!verifyToken) {
-    return new NextResponse("WA_WEBHOOK_VERIFY_TOKEN not configured", { status: 500 });
+    // Don't disclose which env var is missing in prod responses.
+    if (process.env.NODE_ENV !== "production") {
+      console.error("[wa-webhook] WA_WEBHOOK_VERIFY_TOKEN not configured");
+    }
+    return withApiHeaders(
+      new NextResponse("Service misconfigured", { status: 500 }),
+    );
   }
   const challenge = verifyWebhookSubscription(params, verifyToken);
   if (challenge !== null) {
-    return new NextResponse(challenge);
+    return withApiHeaders(new NextResponse(challenge));
   }
-  return new NextResponse("Forbidden", { status: 403 });
+  return withApiHeaders(new NextResponse("Forbidden", { status: 403 }));
 }
 
 export async function POST(req: NextRequest) {
+  // Meta payloads are typically <16 KB; 256 KB is generous and bounds DoS risk.
+  const oversized = bodySizeGuard(req, 262_144);
+  if (oversized) return withApiHeaders(oversized);
+
   const appSecret = process.env.META_APP_SECRET;
   const rawBody = await req.text();
 
@@ -56,9 +71,20 @@ export async function POST(req: NextRequest) {
         appSecret,
       );
     } catch {
-      return new NextResponse("Invalid signature", { status: 401 });
+      return withApiHeaders(
+        new NextResponse("Invalid signature", { status: 401 }),
+      );
     }
   } else {
+    // In production, refuse to process unsigned webhooks. In dev/staging
+    // (no secret), proceed but log loudly.
+    if (process.env.NODE_ENV === "production") {
+      return withApiHeaders(
+        new NextResponse("Webhook unsigned and signing not configured", {
+          status: 500,
+        }),
+      );
+    }
     console.warn(
       "[wa-webhook] META_APP_SECRET not set — accepting webhook WITHOUT signature verification (NOT safe for production)",
     );
@@ -68,7 +94,7 @@ export async function POST(req: NextRequest) {
   try {
     payload = JSON.parse(rawBody);
   } catch {
-    return new NextResponse("Invalid JSON", { status: 400 });
+    return withApiHeaders(new NextResponse("Invalid JSON", { status: 400 }));
   }
 
   const event = parseWebhookEvent(payload);
@@ -76,11 +102,11 @@ export async function POST(req: NextRequest) {
   if (event.kind === "status") {
     // Just log status updates for now. Production: persist to DB for analytics.
     console.log("[wa-webhook] status:", event.status, event.messageId);
-    return new NextResponse("OK");
+    return withApiHeaders(new NextResponse("OK"));
   }
 
   if (event.kind !== "message") {
-    return new NextResponse("OK");
+    return withApiHeaders(new NextResponse("OK"));
   }
 
   // Inbound message — dispatch to the agent
@@ -108,5 +134,5 @@ Procesalo según tu workflow. Acordate de marcar como leído (mark_whatsapp_read
       console.error("[wa-webhook] agent error:", err);
     });
 
-  return new NextResponse("OK");
+  return withApiHeaders(new NextResponse("OK"));
 }

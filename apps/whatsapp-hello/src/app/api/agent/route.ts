@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { createWhatsAppHelloAgent } from "@/lib/agent";
 import { MockWhatsAppClient } from "@/lib/mock-whatsapp-client";
+import { bodySizeGuard, rateLimit, withApiHeaders } from "@/lib/security";
 
 export const runtime = "nodejs";
 export const maxDuration = 90;
@@ -26,11 +27,19 @@ interface AgentTurnMessage {
  *  - whatsappSends: messages "sent" via WhatsApp (mock mode only)
  */
 export async function POST(req: NextRequest) {
+  const limited = rateLimit(req);
+  if (limited) return withApiHeaders(limited);
+
+  const oversized = bodySizeGuard(req);
+  if (oversized) return withApiHeaders(oversized);
+
   let body: { message?: string; messages?: AgentTurnMessage[]; from?: string };
   try {
     body = await req.json();
   } catch {
-    return NextResponse.json({ error: "Body must be valid JSON" }, { status: 400 });
+    return withApiHeaders(
+      NextResponse.json({ error: "Body must be valid JSON" }, { status: 400 }),
+    );
   }
 
   const { agent, whatsappMode, whatsappClient } = createWhatsAppHelloAgent();
@@ -67,60 +76,73 @@ Procesalo según tu workflow.`;
         ? whatsappClient.getRecordedSends()
         : [];
 
-    return NextResponse.json({
-      text: result.text,
-      whatsappMode,
-      whatsappSends,
-      steps: result.steps.map((s) => ({
-        text: s.text,
-        toolCalls: s.toolCalls.map((t) => ({
-          name: t.toolName,
-          input: t.input,
+    return withApiHeaders(
+      NextResponse.json({
+        text: result.text,
+        whatsappMode,
+        whatsappSends,
+        steps: result.steps.map((s) => ({
+          text: s.text,
+          toolCalls: s.toolCalls.map((t) => ({
+            name: t.toolName,
+            input: t.input,
+          })),
+          toolResults: s.toolResults.map((t) => ({
+            name: t.toolName,
+            output: t.output,
+          })),
+          finishReason: s.finishReason,
         })),
-        toolResults: s.toolResults.map((t) => ({
-          name: t.toolName,
-          output: t.output,
-        })),
-        finishReason: s.finishReason,
-      })),
-      usage: result.usage,
-      finishReason: result.finishReason,
-    });
+        usage: result.usage,
+        finishReason: result.finishReason,
+      }),
+    );
   } catch (err) {
-    const message = err instanceof Error ? err.message : String(err);
-    return NextResponse.json(
-      { error: message, type: err instanceof Error ? err.name : "Unknown" },
-      { status: 500 },
+    // Never leak stack traces or internal error messages.
+    const isProd = process.env.NODE_ENV === "production";
+    const message =
+      isProd
+        ? "Internal server error"
+        : err instanceof Error
+          ? err.message
+          : String(err);
+    if (!isProd) {
+      console.error("[api/agent] error:", err);
+    }
+    return withApiHeaders(
+      NextResponse.json({ error: message }, { status: 500 }),
     );
   }
 }
 
 export async function GET() {
-  return NextResponse.json({
-    info: "whatsapp-hello — combined demo combining all 5 @ar-agents/* packages: identity (CUIT + AFIP), identity-attest (verification with trust levels), mercadopago (Payments + Subscriptions + Cuotas + Saved cards + QR), whatsapp (Business Cloud API).",
-    usage: {
-      method: "POST",
-      url: "/api/agent",
-      body: {
-        single_turn: { message: "string", from: "5491112345678 (optional)" },
-        multi_turn: { messages: [{ role: "user|assistant", content: "string" }], from: "5491112345678" },
+  return withApiHeaders(
+    NextResponse.json({
+      info: "whatsapp-hello — combined demo combining all 5 @ar-agents/* packages: identity (CUIT + AFIP), identity-attest (verification with trust levels), mercadopago (Payments + Subscriptions + Cuotas + Saved cards + QR), whatsapp (Business Cloud API).",
+      usage: {
+        method: "POST",
+        url: "/api/agent",
+        body: {
+          single_turn: { message: "string", from: "5491112345678 (optional)" },
+          multi_turn: { messages: [{ role: "user|assistant", content: "string" }], from: "5491112345678" },
+        },
+        example: {
+          message: "Hola, quiero contratar el plan Pro mensual ($25.000). Mi CUIT es 20-41758101-5",
+          from: "5491112345678",
+        },
       },
-      example: {
-        message: "Hola, quiero contratar el plan Pro mensual ($25.000). Mi CUIT es 20-41758101-5",
-        from: "5491112345678",
+      trust_gating: {
+        "<5k_ARS": "no verification — direct charge",
+        "5k-50k_ARS": "trust >= 0.3 (whatsapp_otp)",
+        "50k-500k_ARS": "trust >= 0.5 (email_magic_link or mercadopago_identity)",
+        ">500k_ARS": "trust >= 0.7 (auth0 or magic_link_sdk)",
       },
-    },
-    trust_gating: {
-      "<5k_ARS": "no verification — direct charge",
-      "5k-50k_ARS": "trust >= 0.3 (whatsapp_otp)",
-      "50k-500k_ARS": "trust >= 0.5 (email_magic_link or mercadopago_identity)",
-      ">500k_ARS": "trust >= 0.7 (auth0 or magic_link_sdk)",
-    },
-    libs: [
-      "@ar-agents/identity@0.4.0",
-      "@ar-agents/identity-attest@0.2.0",
-      "@ar-agents/mercadopago@0.3.0",
-      "@ar-agents/whatsapp@0.1.0",
-    ],
-  });
+      libs: [
+        "@ar-agents/identity@0.4.0",
+        "@ar-agents/identity-attest@0.2.0",
+        "@ar-agents/mercadopago@0.3.0",
+        "@ar-agents/whatsapp@0.1.0",
+      ],
+    }),
+  );
 }
