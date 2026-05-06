@@ -906,3 +906,95 @@ export interface MarketplaceParams {
   application_fee?: number;
 }
 
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.6 — Account Balance + Movements
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Account balance snapshot. Sum of `available + unavailable` is the seller's
+ * total Mercado Pago balance.
+ *
+ * - `available` — funds the seller can withdraw or pay with right now.
+ * - `unavailable` — funds in retention (typically 14-21 days for new sellers
+ *   or for risk-flagged transactions). Becomes `available` automatically.
+ */
+export const AccountBalanceSchema = z.object({
+  user_id: z.union([z.string(), z.number()]).transform(String).optional(),
+  available_balance: z.number(),
+  unavailable_balance: z.number(),
+  total_amount: z.number(),
+  currency_id: z.string().default("ARS"),
+}).passthrough();
+export type AccountBalance = z.infer<typeof AccountBalanceSchema>;
+
+/**
+ * Account movement (a single line in the seller's MP "movements" log).
+ * Includes incoming payments, outgoing transfers, refunds, holdings, etc.
+ */
+export const AccountMovementSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  type: z.string(),
+  description: z.string().optional(),
+  amount: z.number(),
+  currency_id: z.string().optional(),
+  status: z.string().optional(),
+  date_created: z.string().optional(),
+  date_released: z.string().optional(),
+  reference_id: z.union([z.string(), z.number()]).optional(),
+  payment_id: z.union([z.string(), z.number()]).optional(),
+}).passthrough();
+export type AccountMovement = z.infer<typeof AccountMovementSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.6 — Settlements (release_money)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * A scheduled or completed transfer from the MP account to the seller's
+ * registered bank account (CBU). Settlements are the core of "when do I
+ * actually get paid".
+ */
+export const SettlementSchema = z.object({
+  id: z.union([z.string(), z.number()]).transform(String),
+  status: z.string().optional(),
+  amount: z.number().optional(),
+  currency_id: z.string().optional(),
+  date_created: z.string().optional(),
+  date_scheduled: z.string().optional(),
+  date_processed: z.string().optional(),
+  bank_account: z
+    .object({
+      cbu: z.string().optional(),
+      bank_name: z.string().optional(),
+    })
+    .passthrough()
+    .optional(),
+}).passthrough();
+export type Settlement = z.infer<typeof SettlementSchema>;
+
+// ─────────────────────────────────────────────────────────────────────────────
+// v0.6 — 3DS (Strong Customer Authentication) info derived from a Payment
+// ─────────────────────────────────────────────────────────────────────────────
+
+export type ThreeDSStatus =
+  | "not_required"   // No 3DS challenge issued (low-risk transaction).
+  | "frictionless"   // Issuer approved without challenge.
+  | "challenge_required" // Buyer must complete the issuer's challenge.
+  | "rejected"       // Failed authentication.
+  | "unknown";       // Couldn't determine — surface to ops.
+
+export interface ThreeDSInfo {
+  /** High-level status — the field most agents care about. */
+  status: ThreeDSStatus;
+  /** Raw `three_d_secure_mode` field from the payment, if present. */
+  mode: string | null;
+  /**
+   * URL the buyer must visit to complete the 3DS challenge, if one was
+   * triggered. `null` for frictionless/not_required.
+   */
+  challengeUrl: string | null;
+  /** Human-readable explanation suitable for surfacing to the user. */
+  description: string;
+}
+

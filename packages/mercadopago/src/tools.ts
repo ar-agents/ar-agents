@@ -8,6 +8,8 @@ import {
   refreshAccessToken,
 } from "./oauth";
 import type { SubscriptionStateAdapter } from "./state";
+import { TEST_CARDS_AR } from "./test-cards";
+import { analyze3DS } from "./three-ds";
 import { parseWebhookEvent, verifyWebhookSignature } from "./webhook";
 
 /**
@@ -130,7 +132,16 @@ type ToolName =
   | "get_order"
   | "update_order"
   | "capture_order"
-  | "cancel_order";
+  | "cancel_order"
+  // v0.6 — Account / Balance / Movements / Settlements
+  | "get_account_balance"
+  | "list_account_movements"
+  | "list_settlements"
+  | "get_settlement"
+  // v0.6 — 3DS analyzer (pure)
+  | "analyze_payment_3ds"
+  // v0.6 — Test cards (pure)
+  | "get_test_cards";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -266,6 +277,24 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
     "Capture a previously-authorized Order (only for orders created with capture_mode='manual'). Captures up to the originally-authorized amount; pass amount for partial capture. Common use: ride-share marks ride complete → capture; hotel checks-out guest → capture.",
   cancel_order:
     "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture.",
+
+  // ── Account / Balance / Movements / Settlements (v0.6) ───────────────────
+  get_account_balance:
+    "Get the seller's current MP wallet balance. Returns { available_balance, unavailable_balance, total_amount, currency_id }. The available balance is what the seller can withdraw or pay with right now; unavailable is in retention (typically 14-21 days for new sellers or risk-flagged transactions). For per-seller marketplace setups, instantiate the client AS THE SELLER first.",
+  list_account_movements:
+    "List wallet movements (incoming payments, transfers, refunds, holdings) for the active MP account. Filter by date range with `from`/`to` (ISO 8601). Useful for monthly conciliation or 'show me what came in this month' workflows.",
+  list_settlements:
+    "List settlements (release_money) — i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation reports. Filter by date range and status.",
+  get_settlement:
+    "Get details of a single settlement: amount, date_scheduled, date_processed, bank_account info (CBU + bank name).",
+
+  // ── 3DS analyzer (v0.6 — pure) ───────────────────────────────────────────
+  analyze_payment_3ds:
+    "Pure local analyzer for a Payment's 3DS (Strong Customer Authentication) state. Pass a payment_id (string) and the tool fetches the Payment then derives { status: 'not_required'|'frictionless'|'challenge_required'|'rejected'|'unknown', mode, challengeUrl, description }. USE THIS after every create_payment for credit cards: when challengeUrl !== null, you MUST redirect the buyer there before the payment can complete. Without 3DS, payments stay in 'pending' indefinitely if the issuer demanded a challenge.",
+
+  // ── Test cards (v0.6 — pure) ─────────────────────────────────────────────
+  get_test_cards:
+    "Pure helper that returns the official MP test cards for AR (MLA): VISA/Mastercard/Amex credit + debit, with the 'magic' holder names that route the payment to specific status_detail values (APRO=approved, OTHE=rejected, CONT=pending, FUND=insufficient_amount, etc.). USE WHEN you need to demo a payment flow without a real card, or to script integration tests. Pure data — no network call.",
 };
 
 /**
@@ -1736,6 +1765,109 @@ export function mercadoPagoTools(
         return {
           order_id: order.id,
           status: order.status ?? "canceled",
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.6 — Account / Balance / Movements / Settlements
+    // ─────────────────────────────────────────────────────────────────────────
+
+    get_account_balance: tool({
+      description: desc("get_account_balance"),
+      inputSchema: z.object({}),
+      execute: async () => {
+        const balance = await client.getAccountBalance();
+        return balance;
+      },
+    }),
+
+    list_account_movements: tool({
+      description: desc("list_account_movements"),
+      inputSchema: z.object({
+        from: z
+          .string()
+          .optional()
+          .describe("ISO 8601 start date (e.g. 2026-05-01)"),
+        to: z
+          .string()
+          .optional()
+          .describe("ISO 8601 end date"),
+        limit: z.number().int().min(1).max(100).optional(),
+        offset: z.number().int().min(0).optional(),
+      }),
+      execute: async ({ from, to, limit, offset }) => {
+        const params: Parameters<typeof client.listAccountMovements>[0] = {};
+        if (from !== undefined) params.from = from;
+        if (to !== undefined) params.to = to;
+        if (limit !== undefined) params.limit = limit;
+        if (offset !== undefined) params.offset = offset;
+        return client.listAccountMovements(params);
+      },
+    }),
+
+    list_settlements: tool({
+      description: desc("list_settlements"),
+      inputSchema: z.object({
+        from: z.string().optional(),
+        to: z.string().optional(),
+        status: z.string().optional(),
+        limit: z.number().int().min(1).max(100).optional(),
+        offset: z.number().int().min(0).optional(),
+      }),
+      execute: async ({ from, to, status, limit, offset }) => {
+        const params: Parameters<typeof client.listSettlements>[0] = {};
+        if (from !== undefined) params.from = from;
+        if (to !== undefined) params.to = to;
+        if (status !== undefined) params.status = status;
+        if (limit !== undefined) params.limit = limit;
+        if (offset !== undefined) params.offset = offset;
+        return client.listSettlements(params);
+      },
+    }),
+
+    get_settlement: tool({
+      description: desc("get_settlement"),
+      inputSchema: z.object({ settlement_id: z.string() }),
+      execute: async ({ settlement_id }) => {
+        return client.getSettlement(settlement_id);
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.6 — 3DS analyzer (combined: fetch payment + analyze)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    analyze_payment_3ds: tool({
+      description: desc("analyze_payment_3ds"),
+      inputSchema: z.object({
+        payment_id: z.string().describe("MP payment id"),
+      }),
+      execute: async ({ payment_id }) => {
+        const payment = await client.getPayment(payment_id);
+        const info = analyze3DS(payment);
+        return {
+          payment_id,
+          payment_status: payment.status,
+          payment_status_detail: payment.status_detail ?? null,
+          ...info,
+        };
+      },
+    }),
+
+    // ─────────────────────────────────────────────────────────────────────────
+    // v0.6 — Test cards (pure)
+    // ─────────────────────────────────────────────────────────────────────────
+
+    get_test_cards: tool({
+      description: desc("get_test_cards"),
+      inputSchema: z.object({}),
+      execute: async () => {
+        return {
+          site: "MLA",
+          cards: TEST_CARDS_AR,
+          usage:
+            "Pass holderName='APRO' for an approved payment, 'OTHE' for rejected, 'CONT' for pending, 'FUND' for insufficient amount, 'CALL' for call-for-authorize. Use a NEW payer email per call (append a timestamp) to avoid MP idempotency-on-email deduping.",
         };
       },
     }),

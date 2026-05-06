@@ -1,5 +1,58 @@
 # Changelog
 
+## 0.4.0
+
+### Minor Changes
+
+- MCP v0.4: ships `@ar-agents/shipping` as 7th tool registry.
+
+  The MCP server now exposes 7 packages:
+
+  - `@ar-agents/identity` (validate_cuit, lookup_cuit_afip)
+  - `@ar-agents/identity-attest` (4 attestation tools)
+  - `@ar-agents/mercadopago` (56 MP API tools, includes v0.6 account/balance/settlements/3DS/test-cards)
+  - `@ar-agents/whatsapp` (6 messaging tools)
+  - `@ar-agents/banking` (5 CBU/BCRA tools)
+  - `@ar-agents/facturacion` (10 WSFE tools)
+  - **NEW: `@ar-agents/shipping` (6 tools — Andreani/OCA/Correo)**
+
+  Carriers auto-detect from env vars:
+
+  - Andreani: `ANDREANI_USERNAME` + `ANDREANI_PASSWORD` + `ANDREANI_CLIENT_NUMBER` (+ `ANDREANI_ENV`)
+  - OCA: `OCA_CUIT` + `OCA_OPERATIVA`
+  - Correo Argentino: auto-wired (no creds needed). Set `AR_AGENTS_CORREO_DISABLED=1` to opt out.
+  - `SHIPPING_DEFAULT_CARRIER` for the default when agent doesn't specify.
+
+  Server version bumped to 0.4.0 in the MCP handshake.
+
+## 0.3.2
+
+### Patch Changes
+
+- MP v0.6: account/balance + settlements + 3DS analyzer + test cards. **+6 tools (56 total)**.
+
+  **Account / Balance / Settlements (4 tools)**:
+
+  - `get_account_balance` — current MP wallet `{ available, unavailable, total, currency_id }`. Per-seller in marketplace setups.
+  - `list_account_movements({ from?, to?, limit?, offset? })` — wallet movement log (incoming payments, refunds, holdings, transfers).
+  - `list_settlements({ from?, to?, status? })` — `release_money` transfers from MP wallet → registered CBU.
+  - `get_settlement(id)` — single settlement detail with bank_account info.
+
+  **3DS analyzer (1 tool + 1 helper)**:
+
+  - `analyze_payment_3ds(payment_id)` — fetches the Payment, derives `{ status: 'not_required'|'frictionless'|'challenge_required'|'rejected'|'unknown', mode, challengeUrl, description }`. When `challengeUrl !== null`, MUST redirect the buyer to complete authentication.
+  - `analyze3DS(payment)` exported as a pure helper for callers who already have a Payment object.
+
+  **Test cards (1 tool + helpers)**:
+
+  - `get_test_cards` — returns the official AR (MLA) sandbox cards: VISA/Mastercard/Amex credit + debit. Each has the "magic" holder names that route to specific status_detail (APRO, OTHE, CONT, FUND, CALL, SECU, EXPI, FORM).
+  - `TEST_CARDS_AR`, `TEST_PAYERS_AR`, `buildTestCardScenario(card, scenario, amount)` exported for direct use in test files.
+
+  **132 tests pass** (was 117; +15 v0.6 tests). publint clean. attw 🟢. 24.3 KB brotli'd (within 32 KB budget).
+
+- Updated dependencies []:
+  - @ar-agents/mercadopago@0.6.0
+
 ## 0.3.1
 
 ### Patch Changes

@@ -19,10 +19,11 @@ import {
   buildMercadoPagoTools,
   describeMercadoPagoConfig,
 } from "./registries/mercadopago";
+import { buildShippingTools, describeShippingConfig } from "./registries/shipping";
 import { buildWhatsAppTools, describeWhatsAppConfig } from "./registries/whatsapp";
 
 const SERVER_NAME = "ar-agents";
-const SERVER_VERSION = "0.3.0";
+const SERVER_VERSION = "0.4.0";
 
 /**
  * Build the @ar-agents/mcp server. Inspects environment variables to decide
@@ -37,6 +38,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     buildIdentityAttestTools(),
     buildBankingTools(),
     buildFacturacionTools(),
+    buildShippingTools(),
   ]);
 
   const summary = [
@@ -47,6 +49,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     `  identity-attest → ${describeIdentityAttestConfig()}`,
     `  banking         → ${describeBankingConfig()}`,
     `  facturacion     → ${describeFacturacionConfig()}`,
+    `  shipping        → ${describeShippingConfig()}`,
   ];
 
   const server = new Server(

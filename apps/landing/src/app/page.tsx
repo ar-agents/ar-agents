@@ -32,19 +32,18 @@ const PACKAGES = [
   },
   {
     name: "@ar-agents/mercadopago",
-    version: "0.5.0",
+    version: "0.6.0",
     purpose:
-      "Full Mercado Pago agent toolkit (50 tools). v0.5 agrega lo que bloqueaba producción: handle_webhook (HMAC-SHA256 verify + parse + auto-fetch en una sola call), OAuth Marketplace flow completo (3 tools para vincular cuentas MP de terceros — clave para SaaS multi-tenant tipo Rappi/Tienda Nube), Order Management API (auth-only, captura manual, multi-payment-per-order), y marketplace splits (marketplace_fee + collector_id en Order y Preference). Cubre el surface entero: Payments, Subscriptions, Reusable Plans, Customers, Cards, Refunds, Cuotas, Saved-card, QR, Stores/POS, Disputes, Webhooks management. Auto-retry, deterministic idempotency, observability hooks.",
+      "Full Mercado Pago agent toolkit (56 tools). v0.6 agrega Account/Balance + Settlements (cuándo te deposita MP), 3DS analyzer (challenge URL detection), test cards helpers para devs. v0.5 ya había shipped handle_webhook (HMAC verify combo), OAuth Marketplace flow (3 tools para multi-tenant tipo Rappi), Order Management API (auth-only, manual capture), y marketplace splits. Cubre el surface entero: Payments, Subscriptions, Reusable Plans, Customers, Cards, Refunds, Cuotas, QR, Stores/POS, Disputes, Webhooks. Auto-retry, deterministic idempotency, observability hooks.",
     tools: [
-      "handle_webhook (NEW v0.5 — HMAC verify combo)",
-      "oauth_authorize_url + oauth_exchange_code + oauth_refresh_token (NEW v0.5 — Marketplace)",
-      "create_order + capture_order + cancel_order (NEW v0.5 — Order API)",
-      "marketplace_fee + collector_id en create_payment_preference (NEW v0.5)",
+      "get_account_balance + list_settlements (NEW v0.6)",
+      "analyze_payment_3ds + get_test_cards (NEW v0.6)",
+      "handle_webhook (HMAC verify combo)",
+      "oauth_authorize_url + oauth_exchange_code + oauth_refresh_token (Marketplace)",
+      "create_order + capture_order + cancel_order (Order API)",
       "create_subscription_plan + subscribe_to_plan",
-      "create_qr_payment + create_pos",
-      "calculate_installments",
-      "charge_saved_card",
-      "+ 41 más (50 total)",
+      "create_qr_payment + calculate_installments",
+      "+ 47 más (56 total)",
     ],
     npm: "https://www.npmjs.com/package/@ar-agents/mercadopago",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago",
@@ -110,11 +109,30 @@ const PACKAGES = [
     accent: "#c2410c",
   },
   {
-    name: "@ar-agents/mcp",
-    version: "0.3.1",
+    name: "@ar-agents/shipping",
+    version: "0.1.0",
     purpose:
-      "MCP (Model Context Protocol) server que bundlea TODO el toolkit @ar-agents/*. One install en Claude Desktop / Cursor / cualquier MCP host: 6 packages, ~80 tools disponibles inmediatamente. Auto-detecta qué packages habilitar desde env vars.",
-    tools: ["bundles all 6 packages above", "auto-detects from env vars", "stdio transport"],
+      "Shipping carriers AR (Andreani, OCA, Correo Argentino). 6 tools: cotizar_envio, cotizar_envio_todos (parallel — devuelve cheapest first), crear_envio (con label PDF), trackear_envio (status normalizado cross-carrier), cancelar_envio, listar_sucursales (cerca de un CPA). Pluggable adapter pattern: AndreaniAdapter (cobertura completa REST), OcaAdapter (Tarifador + sucursales — full SOAP en v0.2), CorreoAdapter (cotizar+trackear+sucursales públicos). MockShippingAdapter para dev sin credenciales. Pure helpers: lookupProvincia (24 entries, accent-insensitive) + isValidCPA (legacy + extendido).",
+    tools: [
+      "cotizar_envio + cotizar_envio_todos (parallel)",
+      "crear_envio (con label PDF)",
+      "trackear_envio (status normalizado)",
+      "cancelar_envio + listar_sucursales",
+      "AndreaniAdapter (REST completo)",
+      "OcaAdapter + CorreoAdapter + MockShippingAdapter",
+    ],
+    npm: "https://www.npmjs.com/package/@ar-agents/shipping",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/shipping",
+    demo: null,
+    bg: "#cffafe",
+    accent: "#0e7490",
+  },
+  {
+    name: "@ar-agents/mcp",
+    version: "0.4.0",
+    purpose:
+      "MCP (Model Context Protocol) server que bundlea TODO el toolkit @ar-agents/*. One install en Claude Desktop / Cursor / cualquier MCP host: 7 packages, ~95 tools disponibles inmediatamente. Auto-detecta qué packages habilitar desde env vars.",
+    tools: ["bundles all 7 packages above", "auto-detects from env vars", "stdio transport"],
     npm: "https://www.npmjs.com/package/@ar-agents/mcp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
     demo: null,
@@ -220,7 +238,7 @@ export default function Home() {
               fontFamily: "var(--font-geist-mono), monospace",
               margin: 0,
             }}
-          >{`pnpm add @ar-agents/identity @ar-agents/identity-attest @ar-agents/mercadopago @ar-agents/whatsapp @ar-agents/banking @ar-agents/facturacion ai zod
+          >{`pnpm add @ar-agents/identity @ar-agents/identity-attest @ar-agents/mercadopago @ar-agents/whatsapp @ar-agents/banking @ar-agents/facturacion @ar-agents/shipping ai zod
 
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
 import { identityTools } from "@ar-agents/identity";
@@ -230,6 +248,7 @@ import { mercadoPagoTools, MercadoPagoClient, InMemoryStateAdapter } from "@ar-a
 import { whatsappTools, WhatsAppClient } from "@ar-agents/whatsapp";
 import { bankingTools, BcraPublicApiAdapter } from "@ar-agents/banking";
 import { facturacionTools, WsfeClient } from "@ar-agents/facturacion";
+import { shippingTools, AndreaniAdapter, CorreoAdapter } from "@ar-agents/shipping";
 
 const wa = new WhatsAppClient({...});
 const attestation = new AttestationClient({
@@ -240,14 +259,21 @@ const wsfe = new WsfeClient({ certPath: "...", keyPath: "...", cuit: "...", env:
 
 const agent = new Agent({
   model: "anthropic/claude-sonnet-4-6",
-  instructions: "Sos el asistente de billing. Cobrás (MP), facturás (AFIP), notificás (WhatsApp).",
+  instructions: "Sos el asistente de e-commerce: cobrás (MP), facturás (AFIP), enviás (Andreani/Correo), notificás (WhatsApp).",
   tools: {
     ...identityTools({ afip: new WsaaWscdcAfipPadronAdapter({...}) }),
     ...identityAttestTools(attestation),
-    ...mercadoPagoTools(new MercadoPagoClient({...}), { state: new InMemoryStateAdapter(), backUrl: "..." }),
+    ...mercadoPagoTools(new MercadoPagoClient({...}), { state: new InMemoryStateAdapter(), backUrl: "...", webhookSecret: "...", oauth: { clientId: "...", clientSecret: "..." } }),
     ...whatsappTools(wa),
     ...bankingTools({ bcra: new BcraPublicApiAdapter() }),
     ...facturacionTools({ wsfe, defaultPtoVta: 1 }),
+    ...shippingTools({
+      adapters: {
+        andreani: new AndreaniAdapter({ username: "...", password: "...", clientNumber: "..." }),
+        correo_argentino: new CorreoAdapter(),
+      },
+      defaultCarrier: "andreani",
+    }),
   },
   stopWhen: stepCountIs(10),
 });`}</pre>
@@ -479,13 +505,16 @@ const agent = new Agent({
               <strong>@ar-agents/identity-attest v0.3</strong> — Cognito + MercadoPago Identity adapters
             </li>
             <li>
-              <strong>@ar-agents/shipping</strong> — Andreani / OCA / Correo Argentino
+              <strong>@ar-agents/shipping v0.2</strong> — OCA E-Pak SOAP completo (crear/trackear/cancelar) + Correo Argentino corporate flow
             </li>
             <li>
               <strong>@ar-agents/banking v0.2</strong> — DEBIN/Coelsa adapters, alias CBU lookup
             </li>
             <li>
               <strong>@ar-agents/facturacion v0.2</strong> — Factura E (exportación), FCE MiPyMEs helpers, retención helpers
+            </li>
+            <li>
+              <strong>@ar-agents/mercadopago v0.7</strong> — Reports API, adjustments, advanced 3DS challenge flow helpers
             </li>
           </ul>
         </section>

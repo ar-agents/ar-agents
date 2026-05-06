@@ -1,0 +1,58 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/shipping",
+  "version": "0.1.0",
+  "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",
+  "tools": [
+    {
+      "name": "cotizar_envio",
+      "kind": "network",
+      "summary": "Quote an envío via a specific carrier",
+      "input": { "carrier?": "andreani | oca | correo_argentino", "origin": "Address", "destination": "Address", "packages": "PackageInfo[]", "service?": "standard | express | same_day" },
+      "output": "QuoteOption + { ok, available }",
+      "latencyP50Ms": 400
+    },
+    {
+      "name": "cotizar_envio_todos",
+      "kind": "network",
+      "summary": "Quote in parallel across all configured carriers (cheapest first)",
+      "input": { "origin": "Address", "destination": "Address", "packages": "PackageInfo[]", "service?": "..." },
+      "output": "{ quotes: QuoteOption[], cheapest: QuoteOption, errors: { carrier, error }[] }",
+      "latencyP50Ms": 600
+    },
+    {
+      "name": "crear_envio",
+      "kind": "network",
+      "summary": "Create a real shipment, get trackingNumber + label URL",
+      "input": { "carrier?": "...", "origin": "Address", "destination": "Address", "packages": "PackageInfo[]", "service?": "...", "external_reference?": "string", "product_id?": "string (from cotizar_envio.productId to lock price)" },
+      "output": "ShipmentCreated + { ok, available }",
+      "latencyP50Ms": 800,
+      "sideEffects": ["Registers shipment with carrier — IRREVERSIBLE except via cancelar_envio (when supported)"]
+    },
+    {
+      "name": "trackear_envio",
+      "kind": "network",
+      "summary": "Get current status + event history for a trackingNumber",
+      "input": { "carrier?": "...", "tracking_number": "string" },
+      "output": "TrackingResult + { ok, available }",
+      "latencyP50Ms": 300
+    },
+    {
+      "name": "cancelar_envio",
+      "kind": "network",
+      "summary": "Cancel a non-delivered shipment (when carrier supports)",
+      "input": { "carrier?": "...", "tracking_number": "string" },
+      "output": "CancelResult + { ok, available }",
+      "latencyP50Ms": 500,
+      "sideEffects": ["Cancels shipment with carrier"]
+    },
+    {
+      "name": "listar_sucursales",
+      "kind": "network",
+      "summary": "List drop-off / pickup branches near a CPA",
+      "input": { "carrier?": "...", "postal_code": "string", "limit?": "number" },
+      "output": "{ branches: Branch[], ok, available }",
+      "latencyP50Ms": 250
+    }
+  ]
+}

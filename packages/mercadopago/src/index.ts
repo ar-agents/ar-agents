@@ -34,6 +34,17 @@ export {
   isExpiringSoon,
 } from "./oauth";
 
+// v0.6 — Test cards (pure constants)
+export {
+  TEST_CARDS_AR,
+  TEST_PAYERS_AR,
+  buildTestCardScenario,
+  type TestCard,
+} from "./test-cards";
+
+// v0.6 — 3DS analyzer (pure helper)
+export { analyze3DS } from "./three-ds";
+
 export {
   MercadoPagoError,
   MercadoPagoAuthError,
@@ -109,6 +120,13 @@ export type {
   CreateOrderParams,
   // Marketplace split params (v0.5)
   MarketplaceParams,
+  // Account / Balance / Movements / Settlements (v0.6)
+  AccountBalance,
+  AccountMovement,
+  Settlement,
+  // 3DS (v0.6)
+  ThreeDSStatus,
+  ThreeDSInfo,
   // Common
   CurrencyId,
   FrequencyType,

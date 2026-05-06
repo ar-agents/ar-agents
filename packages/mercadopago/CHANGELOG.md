@@ -1,5 +1,30 @@
 # Changelog
 
+## 0.6.0
+
+### Minor Changes
+
+- MP v0.6: account/balance + settlements + 3DS analyzer + test cards. **+6 tools (56 total)**.
+
+  **Account / Balance / Settlements (4 tools)**:
+
+  - `get_account_balance` — current MP wallet `{ available, unavailable, total, currency_id }`. Per-seller in marketplace setups.
+  - `list_account_movements({ from?, to?, limit?, offset? })` — wallet movement log (incoming payments, refunds, holdings, transfers).
+  - `list_settlements({ from?, to?, status? })` — `release_money` transfers from MP wallet → registered CBU.
+  - `get_settlement(id)` — single settlement detail with bank_account info.
+
+  **3DS analyzer (1 tool + 1 helper)**:
+
+  - `analyze_payment_3ds(payment_id)` — fetches the Payment, derives `{ status: 'not_required'|'frictionless'|'challenge_required'|'rejected'|'unknown', mode, challengeUrl, description }`. When `challengeUrl !== null`, MUST redirect the buyer to complete authentication.
+  - `analyze3DS(payment)` exported as a pure helper for callers who already have a Payment object.
+
+  **Test cards (1 tool + helpers)**:
+
+  - `get_test_cards` — returns the official AR (MLA) sandbox cards: VISA/Mastercard/Amex credit + debit. Each has the "magic" holder names that route to specific status_detail (APRO, OTHE, CONT, FUND, CALL, SECU, EXPI, FORM).
+  - `TEST_CARDS_AR`, `TEST_PAYERS_AR`, `buildTestCardScenario(card, scenario, amount)` exported for direct use in test files.
+
+  **132 tests pass** (was 117; +15 v0.6 tests). publint clean. attw 🟢. 24.3 KB brotli'd (within 32 KB budget).
+
 ## 0.5.0
 
 ### Minor Changes

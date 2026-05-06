@@ -1,23 +1,26 @@
 {
-  "name": "@ar-agents/mercadopago",
-  "version": "0.6.0",
-  "description": "Mercado Pago Subscriptions as drop-in tools for the Vercel AI SDK. Argentine-focused, agent-ready.",
+  "name": "@ar-agents/shipping",
+  "version": "0.1.0",
+  "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for the Vercel AI SDK. Cotizar, crear, trackear, cancelar envíos. Pluggable adapters — ships an UnconfiguredAdapter and a MockAdapter for dev; AndreaniAdapter wired to the real REST API.",
   "keywords": [
-    "mercadopago",
+    "shipping",
+    "envios",
+    "andreani",
+    "oca",
+    "correo-argentino",
+    "argentina",
     "ai-sdk",
     "vercel-ai",
     "agent",
-    "argentina",
-    "subscriptions",
     "agentic"
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@helloastro.co>",
-  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago",
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/shipping",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ar-agents/ar-agents.git",
-    "directory": "packages/mercadopago"
+    "directory": "packages/shipping"
   },
   "bugs": {
     "url": "https://github.com/ar-agents/ar-agents/issues"
@@ -61,20 +64,12 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "32 KB",
-      "ignore": [
-        "node:crypto",
-        "crypto"
-      ]
+      "limit": "12 KB"
     },
     {
       "name": "CJS",
       "path": "dist/index.cjs",
-      "limit": "32 KB",
-      "ignore": [
-        "node:crypto",
-        "crypto"
-      ]
+      "limit": "12 KB"
     }
   ],
   "peerDependencies": {
@@ -83,9 +78,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.19.39",
-    "@types/qrcode": "^1.5.6",
     "ai": "^6.0.175",
-    "msw": "^2.6.0",
     "tsup": "^8.3.5",
     "typescript": "^5.9.3",
     "vitest": "^2.1.8",
@@ -96,8 +89,5 @@
   },
   "engines": {
     "node": ">=20.0.0"
-  },
-  "dependencies": {
-    "qrcode": "^1.5.4"
   }
 }

@@ -30,3 +30,7 @@ export {
   buildFacturacionTools,
   describeFacturacionConfig,
 } from "./registries/facturacion";
+export {
+  buildShippingTools,
+  describeShippingConfig,
+} from "./registries/shipping";

@@ -681,6 +681,79 @@ export function buildHandlers(store: FakeMpStore) {
       });
     }),
 
+    // ── v0.6 — Account Balance + Movements ────────────────────────────────
+    http.get(`${MP_BASE}/users/me/mercadopago_account/balance`, () => {
+      return HttpResponse.json({
+        user_id: 12345,
+        available_balance: 50_000,
+        unavailable_balance: 12_500,
+        total_amount: 62_500,
+        currency_id: "ARS",
+      });
+    }),
+    http.get(
+      `${MP_BASE}/users/me/mercadopago_account/movements/search`,
+      ({ request }) => {
+        const url = new URL(request.url);
+        const limit = Number(url.searchParams.get("limit") ?? 25);
+        const offset = Number(url.searchParams.get("offset") ?? 0);
+        return HttpResponse.json({
+          paging: { limit, offset, total: 2 },
+          results: [
+            {
+              id: "mov_1",
+              type: "payment",
+              amount: 5000,
+              currency_id: "ARS",
+              status: "approved",
+              date_created: "2026-05-01T10:00:00Z",
+              payment_id: 999,
+            },
+            {
+              id: "mov_2",
+              type: "refund",
+              amount: -1000,
+              currency_id: "ARS",
+              status: "approved",
+              date_created: "2026-05-02T11:00:00Z",
+              payment_id: 999,
+            },
+          ],
+        });
+      },
+    ),
+
+    // ── v0.6 — Settlements (release_money) ─────────────────────────────────
+    http.get(`${MP_BASE}/v1/account/release_money/search`, ({ request }) => {
+      const url = new URL(request.url);
+      const limit = Number(url.searchParams.get("limit") ?? 25);
+      const offset = Number(url.searchParams.get("offset") ?? 0);
+      return HttpResponse.json({
+        paging: { limit, offset, total: 1 },
+        results: [
+          {
+            id: "settle_1",
+            status: "processed",
+            amount: 25_000,
+            currency_id: "ARS",
+            date_created: "2026-04-30T08:00:00Z",
+            date_processed: "2026-05-02T08:00:00Z",
+            bank_account: { cbu: "0070123145678901234564", bank_name: "Banco Galicia" },
+          },
+        ],
+      });
+    }),
+    http.get(`${MP_BASE}/v1/account/release_money/:id`, ({ params }) => {
+      return HttpResponse.json({
+        id: params.id,
+        status: "processed",
+        amount: 25_000,
+        currency_id: "ARS",
+        date_processed: "2026-05-02T08:00:00Z",
+        bank_account: { cbu: "0070123145678901234564", bank_name: "Banco Galicia" },
+      });
+    }),
+
     // ── v0.5 — OAuth token endpoint ────────────────────────────────────────
     http.post("https://api.mercadopago.com/oauth/token", async ({ request }) => {
       const body = await request.text();

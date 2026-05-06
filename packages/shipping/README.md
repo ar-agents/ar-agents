@@ -1,0 +1,138 @@
+# @ar-agents/shipping
+
+> Argentine shipping carriers (Andreani, OCA, Correo Argentino) for [Vercel AI SDK 6+](https://sdk.vercel.ai) agents.
+
+[![npm](https://img.shields.io/npm/v/@ar-agents/shipping?color=blue)](https://npm.im/@ar-agents/shipping) ![bundle](https://img.shields.io/badge/brotli-7.9%20KB-success) ![tests](https://img.shields.io/badge/tests-34%20passing-success) ![license](https://img.shields.io/badge/license-MIT-blue)
+
+Built for AR e-commerce agents that need to:
+
+- **Cotizar envíos** comparando Andreani / OCA / Correo en paralelo
+- **Crear envíos** y obtener trackingNumber + label PDF
+- **Trackear** con normalized lifecycle status across carriers
+- **Listar sucursales** cerca de un CPA para dropoff/pickup
+
+Pluggable adapter pattern: el agent no necesita saber con qué carrier está hablando — pasa origen/destino/paquetes y la lib normaliza.
+
+---
+
+## Install
+
+```bash
+pnpm add @ar-agents/shipping
+# peer deps: ai >=6, zod >=3
+```
+
+## Quick start
+
+```ts
+import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import {
+  shippingTools,
+  AndreaniAdapter,
+  OcaAdapter,
+  CorreoAdapter,
+  MockShippingAdapter,
+} from "@ar-agents/shipping";
+
+const agent = new Agent({
+  model: "anthropic/claude-sonnet-4-6",
+  tools: shippingTools({
+    adapters: {
+      andreani: new AndreaniAdapter({
+        username: process.env.ANDREANI_USERNAME!,
+        password: process.env.ANDREANI_PASSWORD!,
+        clientNumber: process.env.ANDREANI_CLIENT_NUMBER!,
+        env: "prod",
+      }),
+      oca: new OcaAdapter({
+        cuit: process.env.OCA_CUIT!,
+        operativa: process.env.OCA_OPERATIVA!,
+      }),
+      correo_argentino: new CorreoAdapter(),
+    },
+    defaultCarrier: "andreani",
+  }),
+  stopWhen: stepCountIs(6),
+});
+
+const { text } = await agent.generate({
+  prompt:
+    "Cuál es el envío más barato de un paquete de 2kg desde CABA a Mendoza? Después creálo.",
+});
+```
+
+The agent will: (1) `cotizar_envio_todos` to compare carriers, (2) `crear_envio` with the cheapest, (3) report tracking number + label URL.
+
+## Without credentials (dev mode)
+
+Use `MockShippingAdapter` for local development:
+
+```ts
+import { shippingTools, MockShippingAdapter } from "@ar-agents/shipping";
+
+const agent = new Agent({
+  tools: shippingTools({
+    adapters: {
+      andreani: new MockShippingAdapter("andreani"),
+    },
+    defaultCarrier: "andreani",
+  }),
+});
+```
+
+The mock returns deterministic responses (cost based on weight, lifecycle based on the last digit of the trackingNumber), perfect for tests + demos.
+
+---
+
+## Tools
+
+| Tool                   | Pure?  | What it does                                              |
+| ---------------------- | ------ | --------------------------------------------------------- |
+| `cotizar_envio`        | —      | Quote an envío via a specific carrier                     |
+| `cotizar_envio_todos`  | —      | Quote in parallel across all configured carriers          |
+| `crear_envio`          | —      | Create a real shipment, get trackingNumber + label PDF    |
+| `trackear_envio`       | —      | Get current status + event history for a trackingNumber   |
+| `cancelar_envio`       | —      | Cancel a non-delivered shipment (when carrier supports)   |
+| `listar_sucursales`    | —      | List drop-off / pickup branches near a CPA                |
+
+See [AGENTS.md](./AGENTS.md) for tool selection guidance, normalized status codes, and per-carrier coverage.
+
+---
+
+## Carrier coverage matrix (v0.1)
+
+| Operation           | Andreani  | OCA       | Correo Argentino |
+| ------------------- | --------- | --------- | ---------------- |
+| `cotizar`           | ✓ REST    | ✓ REST    | ✓ REST           |
+| `crear`             | ✓ REST    | ✗ SOAP\*  | ✗ Portal-only\*  |
+| `trackear`          | ✓ REST    | ✗ SOAP\*  | ✓ REST           |
+| `cancelar`          | ✓ REST    | ✗ SOAP\*  | ✗ Portal-only\*  |
+| `listar_sucursales` | ✓ REST    | ✓ REST    | ✓ REST           |
+
+\* OCA E-Pak SOAP support + Correo Argentino "Mi Correo Empresas" portal flow are coming in v0.2. The unsupported operations throw `ShippingNotSupportedError` with a clear message.
+
+For Andreani — the most common AR e-commerce carrier — every operation is wired.
+
+---
+
+## Provincias + CPA helpers (pure, no setup)
+
+```ts
+import { lookupProvincia, isValidCPA } from "@ar-agents/shipping";
+
+lookupProvincia("CABA")       // → { iso: "C", afipCode: 0, name: "Ciudad..." }
+lookupProvincia("córdoba")    // → Córdoba (accent-insensitive)
+lookupProvincia(8)            // → La Pampa (by AFIP code)
+
+isValidCPA("1842")            // → true
+isValidCPA("B1842ZAB")        // → true (extended CPA)
+isValidCPA("0000")            // → false
+```
+
+The tools auto-validate `postalCode` and `state` on every input — invalid inputs return `{ ok: false, error }` instead of hitting the carrier.
+
+---
+
+## License
+
+MIT © Nazareno Clemente

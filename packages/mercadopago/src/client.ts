@@ -12,6 +12,8 @@ import type {
   CreateRefundParams,
   CreateStoreParams,
   CreateSubscriptionPlanParams,
+  AccountBalance,
+  AccountMovement,
   CreateOrderParams,
   CreateWebhookParams,
   Customer,
@@ -30,6 +32,7 @@ import type {
   QrOrder,
   Refund,
   SearchPaymentsParams,
+  Settlement,
   Store,
   SubscriptionPayment,
   SubscriptionPlan,
@@ -1061,6 +1064,87 @@ export class MercadoPagoClient {
    */
   async cancelOrder(id: string): Promise<Order> {
     return this.request<Order>("POST", `/v1/orders/${id}/cancel`);
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.6 — Account Balance + Movements
+  //
+  // Inspect the seller's MP wallet — what's available to withdraw, what's
+  // in retention (pending release), and the movement log.
+  //
+  // For per-seller marketplace setups, instantiate the client AS THE SELLER
+  // (with their OAuth access_token) before calling these — `getAccountBalance`
+  // returns the balance of WHOEVER's accessToken is active.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Get the seller's current MP wallet balance (available + unavailable).
+   * - `available_balance`: spendable / withdrawable right now.
+   * - `unavailable_balance`: in retention (e.g., 14-21 days for new sellers).
+   * - `total_amount` = sum of both.
+   */
+  async getAccountBalance(): Promise<AccountBalance> {
+    return this.request<AccountBalance>("GET", "/users/me/mercadopago_account/balance");
+  }
+
+  /**
+   * List wallet movements (incoming payments, transfers, refunds, holdings).
+   * Defaults to most-recent-first, paginated. Filter by date range with
+   * `from`/`to` (ISO 8601).
+   */
+  async listAccountMovements(
+    params: { from?: string; to?: string; limit?: number; offset?: number } = {},
+  ): Promise<{ movements: AccountMovement[]; paging: { limit: number; offset: number; total: number } }> {
+    const query: Record<string, string | number> = {};
+    if (params.from) query.begin_date = params.from;
+    if (params.to) query.end_date = params.to;
+    if (params.limit !== undefined) query.limit = params.limit;
+    if (params.offset !== undefined) query.offset = params.offset;
+    const result = await this.request<{
+      results?: AccountMovement[];
+      paging?: { limit: number; offset: number; total: number };
+    }>("GET", "/users/me/mercadopago_account/movements/search", undefined, { query });
+    return {
+      movements: result.results ?? [],
+      paging: result.paging ?? { limit: params.limit ?? 25, offset: params.offset ?? 0, total: 0 },
+    };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.6 — Settlements (release_money)
+  //
+  // When MP transfers funds from your MP wallet to your registered CBU.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * List settlements (transfers from MP wallet to your bank account).
+   * Useful for monthly conciliation reports.
+   */
+  async listSettlements(
+    params: { from?: string; to?: string; status?: string; limit?: number; offset?: number } = {},
+  ): Promise<{ settlements: Settlement[]; paging: { limit: number; offset: number; total: number } }> {
+    const query: Record<string, string | number> = {};
+    if (params.from) query.begin_date = params.from;
+    if (params.to) query.end_date = params.to;
+    if (params.status) query.status = params.status;
+    if (params.limit !== undefined) query.limit = params.limit;
+    if (params.offset !== undefined) query.offset = params.offset;
+    const result = await this.request<{
+      results?: Settlement[];
+      paging?: { limit: number; offset: number; total: number };
+    }>("GET", "/v1/account/release_money/search", undefined, { query });
+    return {
+      settlements: result.results ?? [],
+      paging: result.paging ?? { limit: params.limit ?? 25, offset: params.offset ?? 0, total: 0 },
+    };
+  }
+
+  /**
+   * Get a single settlement by id. Returns the full Settlement object
+   * including bank_account info (CBU, bank name).
+   */
+  async getSettlement(id: string): Promise<Settlement> {
+    return this.request<Settlement>("GET", `/v1/account/release_money/${id}`);
   }
 }
 
