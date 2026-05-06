@@ -1,5 +1,53 @@
 # Changelog
 
+## 0.13.0
+
+### Minor Changes — Distributed rate limiter via Vercel KV
+
+`VercelKVRateLimiter` — drop-in distributed token bucket backed by Vercel
+KV (Upstash Redis). The default `TokenBucketRateLimiter` is per-process,
+which is fine for single-instance deploys but breaks down in serverless:
+each cold start gets its own bucket, so N concurrent instances effectively
+have N×capacity. For multi-region deployments or marketplace setups with
+shared MP rate budget, that's a footgun.
+
+`VercelKVRateLimiter` shares one logical bucket across all instances via
+KV. Same `acquire` / `tryAcquire` / `learnFromHeaders` interface as the
+in-memory version — drop-in replacement.
+
+```ts
+import { MercadoPagoClient } from "@ar-agents/mercadopago";
+import { VercelKVRateLimiter } from "@ar-agents/mercadopago/vercel-kv";
+
+// One global bucket shared across all serverless instances
+const limiter = new VercelKVRateLimiter({
+  key: "mp-account-prod",
+  capacity: 50,
+  refillPerSecond: 25,
+});
+
+// Marketplace: one bucket per seller
+function makeSellerLimiter(sellerUserId: string) {
+  return new VercelKVRateLimiter({
+    key: `mp-seller-${sellerUserId}`,
+    capacity: 10,
+    refillPerSecond: 5,
+  });
+}
+```
+
+Storage: `mp:rl:{key}` → `{ tokens: number, lastRefillMs: number }` with
+1h TTL (idle buckets garbage-collect, capacity rebuilds on next acquire).
+Read-modify-write isn't strictly atomic per call — under heavy contention
+a small over-spend window is possible, acceptable for MP rate limiting
+where the actual budget exceeds what we provision.
+
+### Discoverability
+
+- Expanded `keywords` from 7 → 29 in `package.json` (mp, payments, webhook,
+  fraud-detection, idempotency, circuit-breaker, opentelemetry, etc).
+- Added `funding` field pointing to GitHub Sponsors.
+
 ## 0.12.0
 
 ### Minor Changes — Idempotency-by-default for state-mutating writes

@@ -2,7 +2,24 @@
 
 > Argentine shipping carriers (Andreani, OCA, Correo Argentino) for [Vercel AI SDK 6+](https://sdk.vercel.ai) agents.
 
-[![npm](https://img.shields.io/npm/v/@ar-agents/shipping?color=blue)](https://npm.im/@ar-agents/shipping) ![bundle](https://img.shields.io/badge/brotli-7.9%20KB-success) ![tests](https://img.shields.io/badge/tests-34%20passing-success) ![license](https://img.shields.io/badge/license-MIT-blue)
+[![npm version](https://img.shields.io/npm/v/@ar-agents/shipping.svg)](https://www.npmjs.com/package/@ar-agents/shipping)
+[![npm downloads](https://img.shields.io/npm/dm/@ar-agents/shipping.svg)](https://www.npmjs.com/package/@ar-agents/shipping)
+[![license](https://img.shields.io/npm/l/@ar-agents/shipping.svg)](./LICENSE)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/shipping.svg)](https://bundlephobia.com/package/@ar-agents/shipping)
+
+> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) for carrier comparison rules, normalized status tables, and AR provincia/CPA context.
+
+## At a glance
+
+| What | Value |
+| --- | --- |
+| Tools shipped | 6 — `cotizar_envio`, `crear_envio`, `consultar_tracking`, `cancelar_envio`, `listar_codigos_postales`, `validar_codigo_postal` |
+| Carriers | **Andreani** (full impl), **OCA** (stub — needs corporate API creds), **Correo Argentino** (stub) |
+| Status normalization | Carrier-specific status codes mapped to a single lifecycle: `creado` → `en_transito` → `en_distribucion` → `entregado` (or `devuelto` / `cancelado`) |
+| AR provincia normalizer | `Buenos Aires` → `B`, `CABA` → `C`, `Tucumán` → `T`, etc. — handles every common spelling |
+| Test coverage | 34 unit tests including provincia normalization edge cases |
+| Bundle | 6.9 KB ESM brotli'd |
+| Runtime | Edge Runtime + Node 18+ |
 
 Built for AR e-commerce agents that need to:
 

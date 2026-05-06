@@ -83,3 +83,58 @@ Meta has a global rate limit of 80 messages/second per WABA on the verified tier
 
 - Default template language: `es_AR`. Override with `languageCode` if your template is registered in `es` or `en_US`.
 - Phone normalizer assumes AR formats. For non-AR numbers, pass them in canonical E.164 (with or without `+`) and they'll pass through.
+
+## Scoped mode (v0.2.0+) — recommended for webhook handlers
+
+When you build the tool set inside a webhook handler, pass `scopedTo: senderPhone` to bind every outbound `send_*` tool to the inbound sender:
+
+```ts
+import { whatsappTools, parseWebhookEvent } from "@ar-agents/whatsapp";
+
+export async function POST(req: Request) {
+  const event = parseWebhookEvent(await req.json());
+  if (event.kind !== "message") return new Response("OK");
+
+  const tools = whatsappTools(client, { scopedTo: event.from });
+  // ↑ `to` is REMOVED from the tool schemas. The LLM cannot specify a
+  //   different recipient — even if a crafted user message says
+  //   "send a payment link to 5491111111111".
+
+  const agent = new Agent({ /* ... */, tools });
+  await agent.generate({ prompt: event.message.text });
+  return new Response("OK");
+}
+```
+
+### When to use scopedTo
+
+| Context | scopedTo | Why |
+|---|---|---|
+| Inbound webhook handler | ✓ recommended | Inbound sender is the only legitimate recipient. Anti-hijacking. |
+| Proactive notification batch (you supply the list) | ✗ | You explicitly want the agent to pick `to` per recipient. |
+| Marketplace fan-out (one agent → many sellers) | ✗ | Each seller has their own scope; build per-seller tool sets if you want isolation. |
+
+### Behavioral differences
+
+- **Schema**: `to` field removed in scoped mode. Validating an input with extra `to` (e.g., from a stale prompt) silently strips it.
+- **Description**: Tool descriptions in scoped mode include the binding note `"BOUND to recipient {phone}"` so a sane LLM never tries to message anyone else.
+- **mark_whatsapp_read**: Unaffected — it operates on `messageId`, not `to`.
+
+### Migration from v0.1.x
+
+Backward-compatible. If you don't pass options, behavior is unchanged. Add `scopedTo` opportunistically as you wire webhook handlers.
+
+## Composition with other @ar-agents packages
+
+Common patterns where whatsapp is one of many tool sets:
+
+| Pattern | Combine with | Example |
+|---|---|---|
+| **Billing assistant via WA** | `mercadopago` + `identity` + `identity-attest` | Inbound CUIT → validate + look up name → request OTP → create subscription → send `init_point_url` via WhatsApp |
+| **Verify before high-value cobro** | `identity-attest` (whatsapp_otp adapter) | Same WA client used for both the OTP send AND the agent reply |
+| **Notify on payment confirmed** | `mercadopago` (webhook) → `whatsapp` (template) | MP webhook fires → fetch payment → send `pago_confirmado` template |
+
+The same `WhatsAppClient` can be passed to:
+- `whatsappTools(client, { scopedTo })` for the agent's outbound surface
+- `WhatsAppOtpAdapter({ whatsappClient: client, ... })` from `@ar-agents/identity-attest` for OTP delivery
+- Manual `client.sendTemplate(...)` for direct programmatic sends from non-agent code paths

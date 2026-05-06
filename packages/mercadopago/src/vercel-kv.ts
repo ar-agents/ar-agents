@@ -171,6 +171,229 @@ export class VercelKVOAuthTokenStore implements OAuthTokenStore {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
+// Distributed Token Bucket Rate Limiter (KV-backed)
+// ─────────────────────────────────────────────────────────────────────────────
+
+const DEFAULT_RATELIMIT_PREFIX = "mp:rl:";
+
+/**
+ * Distributed token bucket rate limiter backed by Vercel KV.
+ *
+ * # Why distributed
+ *
+ * The default in-memory `TokenBucketRateLimiter` is per-process. In
+ * serverless (Vercel Functions, Lambda, Cloudflare Workers), each cold
+ * start gets its own bucket — meaning N concurrent instances effectively
+ * have N×capacity. For multi-region deployments or marketplace setups
+ * with shared MP rate budget, that's a footgun.
+ *
+ * This adapter uses a single Vercel KV (Upstash Redis) bucket per `key`,
+ * shared across all instances. Two instances acquiring at the same time
+ * decrement the same counter atomically — the rate limit holds globally.
+ *
+ * # Algorithm
+ *
+ * Standard token bucket with lazy refill: every `acquire()` call:
+ * 1. Reads `{ tokens, lastRefill }` from KV
+ * 2. Computes refill since `lastRefill`
+ * 3. If tokens >= 1: decrements and writes back
+ * 4. Otherwise: computes wait time, sleeps, retries
+ *
+ * The read-modify-write isn't atomic per-call, so under heavy contention
+ * a small over-spend window is possible (worst case: ~N concurrent
+ * acquires can succeed when only 1 token was available). Acceptable for
+ * MP rate limiting — the "actual" budget is much higher than what we
+ * provision.
+ *
+ * # Usage
+ *
+ * ```ts
+ * import { MercadoPagoClient } from "@ar-agents/mercadopago";
+ * import { VercelKVRateLimiter } from "@ar-agents/mercadopago/vercel-kv";
+ *
+ * // ONE rate limit shared across all serverless instances of this app:
+ * const limiter = new VercelKVRateLimiter({
+ *   key: "mp-account-prod",
+ *   capacity: 50,
+ *   refillPerSecond: 25,
+ * });
+ *
+ * const client = new MercadoPagoClient({
+ *   accessToken: process.env.MP_ACCESS_TOKEN!,
+ *   rateLimiter: limiter,  // (See client.ts — wired the same as in-memory)
+ * });
+ * ```
+ *
+ * # Marketplace setups (per-seller rate limit)
+ *
+ * Use the seller's MP user_id as part of the `key`:
+ *
+ * ```ts
+ * function makeLimiter(sellerUserId: string) {
+ *   return new VercelKVRateLimiter({
+ *     key: `mp-seller-${sellerUserId}`,
+ *     capacity: 10,
+ *     refillPerSecond: 5,
+ *   });
+ * }
+ * ```
+ *
+ * Each seller now has their own globally-distributed bucket.
+ */
+export interface VercelKVRateLimiterOptions extends VercelKVAdapterOptions {
+  /**
+   * Unique key for this bucket. Use distinct keys per logical "rate-limit
+   * scope" (per-environment, per-seller, per-region, etc.). Required.
+   */
+  key: string;
+  /** Bucket capacity (max burst). Default 50. */
+  capacity?: number;
+  /** Refill rate in tokens per second. Default 25. */
+  refillPerSecond?: number;
+  /**
+   * Hard cap on how long `acquire()` will wait. If the bucket can't
+   * refill in this time, `acquire()` throws. Default 30s.
+   */
+  acquireTimeoutMs?: number;
+  /**
+   * If true, `learnFromHeaders` syncs the bucket with MP's stated
+   * `x-rate-limit-remaining`. Default true.
+   */
+  adaptive?: boolean;
+}
+
+interface BucketState {
+  tokens: number;
+  lastRefillMs: number;
+}
+
+export class VercelKVRateLimiter {
+  private readonly kv: VercelKV;
+  private readonly prefix: string;
+  private readonly key: string;
+  private readonly capacity: number;
+  private readonly refillPerSecond: number;
+  private readonly acquireTimeoutMs: number;
+  private readonly adaptive: boolean;
+
+  constructor(options: VercelKVRateLimiterOptions) {
+    if (!options.key) {
+      throw new Error(
+        "VercelKVRateLimiter requires a `key` (use distinct keys per rate-limit scope, e.g., per-environment or per-seller).",
+      );
+    }
+    this.kv = options.kv ?? defaultKv;
+    this.prefix = options.prefix ?? DEFAULT_RATELIMIT_PREFIX;
+    this.key = options.key;
+    this.capacity = options.capacity ?? 50;
+    this.refillPerSecond = options.refillPerSecond ?? 25;
+    this.acquireTimeoutMs = options.acquireTimeoutMs ?? 30_000;
+    this.adaptive = options.adaptive ?? true;
+  }
+
+  private fullKey(): string {
+    return `${this.prefix}${this.key}`;
+  }
+
+  private async readState(): Promise<BucketState> {
+    const stored = await this.kv.get<BucketState>(this.fullKey());
+    if (stored && typeof stored.tokens === "number" && typeof stored.lastRefillMs === "number") {
+      return stored;
+    }
+    return { tokens: this.capacity, lastRefillMs: Date.now() };
+  }
+
+  private refill(state: BucketState, nowMs: number): BucketState {
+    const elapsedMs = Math.max(0, nowMs - state.lastRefillMs);
+    const refilled = Math.min(
+      this.capacity,
+      state.tokens + (elapsedMs / 1000) * this.refillPerSecond,
+    );
+    return { tokens: refilled, lastRefillMs: nowMs };
+  }
+
+  private async writeState(state: BucketState): Promise<void> {
+    // TTL = 1h. Long-idle buckets get garbage-collected, capacity rebuilds
+    // from initial state on next acquire (which is fine — at the right rate).
+    await this.kv.set(this.fullKey(), state, { ex: 3600 });
+  }
+
+  /**
+   * Acquire a token. Resolves immediately if the distributed bucket has
+   * one available; otherwise waits until refilled. Throws if the wait
+   * exceeds `acquireTimeoutMs`.
+   */
+  async acquire(): Promise<void> {
+    const start = Date.now();
+    while (true) {
+      const now = Date.now();
+      const state = this.refill(await this.readState(), now);
+
+      if (state.tokens >= 1) {
+        state.tokens -= 1;
+        await this.writeState(state);
+        return;
+      }
+
+      // Compute wait time until next token. Cap at remaining timeout budget.
+      const tokensNeeded = 1 - state.tokens;
+      const waitMs = Math.ceil((tokensNeeded / this.refillPerSecond) * 1000);
+      const elapsed = now - start;
+      if (elapsed + waitMs > this.acquireTimeoutMs) {
+        throw new Error(
+          `VercelKVRateLimiter acquire timed out after ${elapsed + waitMs}ms (key=${this.key}).`,
+        );
+      }
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
+  }
+
+  /** Best-effort acquire — returns true if a token was available, false otherwise. */
+  async tryAcquire(): Promise<boolean> {
+    const state = this.refill(await this.readState(), Date.now());
+    if (state.tokens >= 1) {
+      state.tokens -= 1;
+      await this.writeState(state);
+      return true;
+    }
+    return false;
+  }
+
+  /**
+   * Adaptive learning — call after each MP API response. If MP's stated
+   * `x-rate-limit-remaining` is lower than our local count, trust MP and
+   * drop the bucket to match (prevents over-spending).
+   */
+  async learnFromHeaders(headers: {
+    remaining: number | null;
+    resetSeconds: number | null;
+  }): Promise<void> {
+    if (!this.adaptive) return;
+    if (headers.remaining === null) return;
+    const state = this.refill(await this.readState(), Date.now());
+    if (headers.remaining < state.tokens) {
+      state.tokens = Math.max(0, headers.remaining);
+      await this.writeState(state);
+    }
+  }
+
+  /** Inspect bucket state. */
+  async getStats(): Promise<{ tokens: number; capacity: number; refillPerSecond: number }> {
+    const state = this.refill(await this.readState(), Date.now());
+    return {
+      tokens: state.tokens,
+      capacity: this.capacity,
+      refillPerSecond: this.refillPerSecond,
+    };
+  }
+
+  /** Reset the bucket to full. Use sparingly (e.g., after a known-clean window). */
+  async reset(): Promise<void> {
+    await this.writeState({ tokens: this.capacity, lastRefillMs: Date.now() });
+  }
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
 // IdempotencyCache (KV-backed dedup of agent retries)
 // ─────────────────────────────────────────────────────────────────────────────
 

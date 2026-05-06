@@ -17,6 +17,10 @@
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@helloastro.co>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
   "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/facturacion",
   "repository": {
     "type": "git",
@@ -66,13 +70,29 @@
       "name": "ESM",
       "path": "dist/index.js",
       "limit": "20 KB",
-      "ignore": ["fs", "path", "crypto", "node:fs", "node:path", "node:crypto", "node-forge"]
+      "ignore": [
+        "fs",
+        "path",
+        "crypto",
+        "node:fs",
+        "node:path",
+        "node:crypto",
+        "node-forge"
+      ]
     },
     {
       "name": "CJS",
       "path": "dist/index.cjs",
       "limit": "20 KB",
-      "ignore": ["fs", "path", "crypto", "node:fs", "node:path", "node:crypto", "node-forge"]
+      "ignore": [
+        "fs",
+        "path",
+        "crypto",
+        "node:fs",
+        "node:path",
+        "node:crypto",
+        "node-forge"
+      ]
     }
   ],
   "dependencies": {

@@ -439,6 +439,90 @@ const agent = new Agent({
 
         <section style={{ marginBottom: 48 }}>
           <h2 style={{ fontSize: 24, fontWeight: 600, margin: "0 0 16px" }}>
+            Why this vs alternatives
+          </h2>
+          <div
+            style={{
+              background: "white",
+              border: "1px solid #e4e4e7",
+              borderRadius: 12,
+              padding: 0,
+              overflow: "auto",
+            }}
+          >
+            <table
+              style={{
+                width: "100%",
+                borderCollapse: "collapse",
+                fontSize: 13,
+              }}
+            >
+              <thead style={{ background: "#fafafa" }}>
+                <tr>
+                  <th style={{ textAlign: "left", padding: 12, fontWeight: 600, color: "#3f3f46", borderBottom: "1px solid #e4e4e7" }}>
+                    Feature
+                  </th>
+                  <th style={{ textAlign: "center", padding: 12, fontWeight: 600, color: "#15803d", borderBottom: "1px solid #e4e4e7" }}>
+                    @ar-agents
+                  </th>
+                  <th style={{ textAlign: "center", padding: 12, fontWeight: 600, color: "#52525b", borderBottom: "1px solid #e4e4e7" }}>
+                    mercadopago<br /><span style={{ fontSize: 11, fontWeight: 400 }}>(official SDK)</span>
+                  </th>
+                  <th style={{ textAlign: "center", padding: 12, fontWeight: 600, color: "#52525b", borderBottom: "1px solid #e4e4e7" }}>
+                    Stripe Agent<br /><span style={{ fontSize: 11, fontWeight: 400 }}>Toolkit</span>
+                  </th>
+                  <th style={{ textAlign: "center", padding: 12, fontWeight: 600, color: "#52525b", borderBottom: "1px solid #e4e4e7" }}>
+                    Hand-rolled<br /><span style={{ fontSize: 11, fontWeight: 400 }}>(starting from scratch)</span>
+                  </th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  ["Tools as Vercel AI SDK 6 schemas", "✓", "—", "✓", "build it"],
+                  ["Argentine-specific (AR cuotas, ARCA, WSAA, AR phone normalizer)", "✓", "—", "—", "weeks"],
+                  ["MP tool count", "30 tools", "REST-thin", "n/a", "0"],
+                  ["AGENTS.md per package (LLM-readable docs)", "✓", "—", "—", "—"],
+                  ["Auto-on idempotency for state mutations", "✓", "—", "—", "build it"],
+                  ["Webhook signature verify + replay window", "✓", "client only", "✓", "build it"],
+                  ["Edge Runtime support (Web Crypto)", "✓", "Node-only", "✓", "build it"],
+                  ["Vercel KV adapter via subpath (state/oauth/audit/rate)", "✓", "—", "—", "—"],
+                  ["OpenTelemetry instrumentation + cookbook recipe", "✓", "—", "—", "build it"],
+                  ["Circuit breaker + deadline propagation + retry w/ backoff", "✓", "—", "✓", "build it"],
+                  ["Tool middleware (compose audit/rate/metrics/retry)", "✓", "—", "—", "—"],
+                  ["Cross-LATAM tax-id validators (7 countries)", "✓", "—", "—", "weeks"],
+                  ["Fraud scoring via additional_info (RG 5286/2023)", "✓", "—", "—", "—"],
+                  ["WhatsApp scopedTo mode (anti-hijacking)", "✓", "—", "—", "—"],
+                  ["AFIP/ARCA factura electrónica with pre-flight validator", "✓", "—", "—", "weeks"],
+                  ["Identity verification orchestrator (RENAPER workaround)", "✓", "—", "—", "novel pattern"],
+                  ["MCP server wrapping the whole stack", "✓", "—", "—", "build it"],
+                  ["Fully open source, MIT, audited", "✓", "✓", "✓", "—"],
+                  ["Time-to-first-cobro for an AR SaaS agent", "30 min", "1+ week", "n/a (no AR)", "6-8 weeks"],
+                ].map(([feature, ours, mp, stripe, hand], idx) => (
+                  <tr
+                    key={feature as string}
+                    style={{
+                      borderBottom: idx < 18 ? "1px solid #f4f4f5" : "none",
+                    }}
+                  >
+                    <td style={{ padding: "10px 12px", color: "#27272a", fontWeight: 500 }}>{feature}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#15803d", fontWeight: 600 }}>{ours}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#71717a" }}>{mp}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#71717a" }}>{stripe}</td>
+                    <td style={{ padding: "10px 12px", textAlign: "center", color: "#71717a", fontStyle: "italic" }}>{hand}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p style={{ fontSize: 12, color: "#71717a", margin: "12px 0 0", lineHeight: 1.5 }}>
+            Comparison reflects MP/Stripe SDKs as of May 2026. Both official SDKs are excellent at what they do — generic REST clients
+            for their respective APIs. @ar-agents is opinionated for the agent-operating-an-Argentine-business use case specifically;
+            it composes with mercadopago-official under the hood when needed (see <a href="https://github.com/ar-agents/ar-agents/blob/main/packages/mercadopago/MIGRATION.md" style={{ color: "#1d4ed8" }}>MIGRATION.md</a>).
+          </p>
+        </section>
+
+        <section style={{ marginBottom: 48 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 600, margin: "0 0 16px" }}>
             Live demo — the toolkit working
           </h2>
           <div

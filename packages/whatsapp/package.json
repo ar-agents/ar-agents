@@ -16,6 +16,10 @@
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@helloastro.co>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
   "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/whatsapp",
   "repository": {
     "type": "git",
@@ -65,13 +69,19 @@
       "name": "ESM",
       "path": "dist/index.js",
       "limit": "15 KB",
-      "ignore": ["node:crypto", "crypto"]
+      "ignore": [
+        "node:crypto",
+        "crypto"
+      ]
     },
     {
       "name": "CJS",
       "path": "dist/index.cjs",
       "limit": "15 KB",
-      "ignore": ["node:crypto", "crypto"]
+      "ignore": [
+        "node:crypto",
+        "crypto"
+      ]
     }
   ],
   "peerDependencies": {

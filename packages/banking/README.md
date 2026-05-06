@@ -2,7 +2,24 @@
 
 > Argentine banking primitives for [Vercel AI SDK 6+](https://sdk.vercel.ai) agents — CBU/CVU validation, bank/PSP lookup, and BCRA Central de Deudores.
 
-[![npm](https://img.shields.io/npm/v/@ar-agents/banking?color=blue)](https://npm.im/@ar-agents/banking) ![bundle](https://img.shields.io/badge/brotli-6.2%20KB-success) ![tests](https://img.shields.io/badge/tests-45%20passing-success) ![license](https://img.shields.io/badge/license-MIT-blue)
+[![npm version](https://img.shields.io/npm/v/@ar-agents/banking.svg)](https://www.npmjs.com/package/@ar-agents/banking)
+[![npm downloads](https://img.shields.io/npm/dm/@ar-agents/banking.svg)](https://www.npmjs.com/package/@ar-agents/banking)
+[![license](https://img.shields.io/npm/l/@ar-agents/banking.svg)](./LICENSE)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/banking.svg)](https://bundlephobia.com/package/@ar-agents/banking)
+
+> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) for tool selection rules, result schemas to memorize, error patterns, and AR banking context.
+
+## At a glance
+
+| What | Value |
+| --- | --- |
+| Tools shipped | 5 — `validate_cbu`, `lookup_bank_by_code`, `list_banks`, `list_psps`, `lookup_credit_situation` |
+| Pure-algorithm | `validate_cbu` + `lookup_bank_by_code` + bank/PSP lists work with **zero setup** (no API key) |
+| External adapter | `BcraPublicApiAdapter` (default — public BCRA API, no auth) for credit-situation lookups |
+| Banks + PSPs covered | All 60+ AR banks (Galicia, Nación, BBVA, Santander…) + 20+ PSPs (Mercado Pago, Ualá, Naranja X, Modo, Cuenta DNI…) |
+| Test coverage | 54 unit tests, 90% statements, 100% functions |
+| Bundle | 5.3 KB ESM brotli'd |
+| Runtime | Edge Runtime + Node 18+ (pure compute, no `node:crypto`) |
 
 Built for agents that need to:
 

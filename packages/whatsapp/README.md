@@ -2,8 +2,25 @@
 
 > WhatsApp Business Cloud API as drop-in tools for the [Vercel AI SDK](https://sdk.vercel.ai). Send text/template/media/interactive messages, parse incoming webhooks, mark as read. AR-friendly defaults but works for any WABA.
 
-[![npm](https://img.shields.io/npm/v/@ar-agents/whatsapp.svg)](https://www.npmjs.com/package/@ar-agents/whatsapp)
-[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm version](https://img.shields.io/npm/v/@ar-agents/whatsapp.svg)](https://www.npmjs.com/package/@ar-agents/whatsapp)
+[![npm downloads](https://img.shields.io/npm/dm/@ar-agents/whatsapp.svg)](https://www.npmjs.com/package/@ar-agents/whatsapp)
+[![license](https://img.shields.io/npm/l/@ar-agents/whatsapp.svg)](./LICENSE)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/whatsapp.svg)](https://bundlephobia.com/package/@ar-agents/whatsapp)
+
+> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — tool selection rules, error patterns, latency table, composition with the rest of the @ar-agents stack.
+
+## At a glance
+
+| What | Value |
+| --- | --- |
+| Tools shipped | 6 — `send_whatsapp_text` / `_template` / `_media` / `_buttons` / `_list` + `mark_whatsapp_read` |
+| Webhook helpers | `parseWebhookEvent` / `parseWebhookEvents` (batch) / `verifyWebhookSignature` (HMAC-SHA256 timing-safe) / `verifyWebhookSubscription` (GET handshake) |
+| Anti-hijacking (v0.2) | `whatsappTools(client, { scopedTo: senderPhone })` — removes `to` from tool schemas so the LLM cannot message a different number even via prompt injection. **Recommended for webhook handlers.** |
+| AR phone normalizer | `normalizeArPhone` handles `+54 9 11 ...`, `011 ...`, legacy `15` prefix, etc. Adds the mandatory WhatsApp `9` for AR mobile. |
+| Test coverage | 57 unit tests including 9 dedicated `scopedTo` agent-hijacking tests |
+| Bundle | 5.5 KB ESM brotli'd |
+| Runtime | Node 20+ (uses `node:crypto` for HMAC). Edge Runtime via Web Crypto in v0.3 (planned). |
+| External deps | Meta WhatsApp Business Cloud API access token + phone number ID (Meta Business Suite → WhatsApp → API Setup) |
 
 ## Why this lib
 
@@ -148,9 +165,45 @@ try {
 }
 ```
 
-## Pluggable adapters
+## Scoped mode (v0.2.0+) — anti-hijacking for webhook handlers
 
-Coming in v0.2: a `MediaStorageAdapter` for handling `downloadMedia` outputs (S3, Cloudflare R2, local disk). Today, `downloadMedia` returns the bytes inline.
+When you build the tool set inside a webhook handler, pass `scopedTo: senderPhone` to bind every outbound `send_*` tool to the inbound sender:
+
+```ts
+import { whatsappTools, parseWebhookEvent, verifyWebhookSignature } from "@ar-agents/whatsapp";
+
+export async function POST(req: Request) {
+  const raw = await req.text();
+  verifyWebhookSignature(raw, req.headers.get("x-hub-signature-256") ?? "", appSecret);
+  const event = parseWebhookEvent(JSON.parse(raw));
+  if (event.kind !== "message") return new Response("OK");
+
+  // The `to` parameter is REMOVED from the tool schemas. The LLM cannot
+  // specify a different recipient — even if a crafted user message says
+  // "send a payment link to 5491111111111".
+  const tools = whatsappTools(client, { scopedTo: event.from });
+
+  const agent = new Agent({ model, instructions, tools });
+  await agent.generate({ prompt: event.message.text });
+  return new Response("OK");
+}
+```
+
+Without `scopedTo`, an inbound message could persuade your agent to spam other recipients (LLM agent hijacking via prompt injection). With it, the binding is enforced at schema-time — the LLM doesn't even see a `to` field.
+
+Backward-compatible: omit `options` for the previous behavior, useful for batch / proactive flows where the agent picks `to` per call.
+
+## Composition with the rest of @ar-agents
+
+The same `WhatsAppClient` works as:
+
+| Used by | How |
+|---|---|
+| `whatsappTools(client, { scopedTo })` | Agent's outbound surface |
+| `WhatsAppOtpAdapter` from `@ar-agents/identity-attest` | Send OTPs for trust-level verification |
+| Direct `client.sendTemplate(...)` etc. | Manual sends from cron jobs, billing webhooks, etc. |
+
+See [whatsapp-hello demo](https://github.com/ar-agents/ar-agents/tree/main/apps/whatsapp-hello) for an end-to-end example combining `@ar-agents/whatsapp` + `mercadopago` + `identity` + `identity-attest` in one billing assistant.
 
 ## License
 

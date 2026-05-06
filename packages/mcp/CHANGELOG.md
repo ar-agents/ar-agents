@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.7
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.13.0` (`VercelKVRateLimiter` for
+  distributed rate limiting in serverless).
+
 ## 0.4.6
 
 ### Patch Changes
