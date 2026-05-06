@@ -72,8 +72,8 @@ describe("parseLoginTicketResponse", () => {
     &lt;source&gt;CN=wsaahomo, O=AFIP, C=AR&lt;/source&gt;
     &lt;destination&gt;CN=ar-agents&lt;/destination&gt;
     &lt;uniqueId&gt;1234567890&lt;/uniqueId&gt;
-    &lt;generationTime&gt;2026-05-05T13:00:00.000-03:00&lt;/generationTime&gt;
-    &lt;expirationTime&gt;2026-05-06T01:00:00.000-03:00&lt;/expirationTime&gt;
+    &lt;generationTime&gt;2099-01-01T13:00:00.000-03:00&lt;/generationTime&gt;
+    &lt;expirationTime&gt;2099-01-02T01:00:00.000-03:00&lt;/expirationTime&gt;
   &lt;/header&gt;
   &lt;credentials&gt;
     &lt;token&gt;FAKE_TOKEN_VALUE_HERE&lt;/token&gt;

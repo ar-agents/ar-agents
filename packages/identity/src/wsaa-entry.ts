@@ -20,6 +20,7 @@ export {
   signTra,
   buildSoapEnvelope,
   parseLoginTicketResponse,
+  fetchWithRetry,
   type AccessTicket,
   type AfipEnv,
   type WsaaOptions,

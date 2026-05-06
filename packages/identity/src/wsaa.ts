@@ -337,6 +337,18 @@ export async function loginCms(params: {
   env: AfipEnv;
   endpointOverride?: string;
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 30s. */
+  requestTimeoutMs?: number;
+  /** Retries on 5xx + network errors. Default 1. */
+  maxRetries?: number;
+  /** Observability hook fired after every request. */
+  onCall?: (event: {
+    label: string;
+    durationMs: number;
+    httpStatus: number | null;
+    retried: number;
+    success: boolean;
+  }) => void;
 }): Promise<AccessTicket> {
   const { certPem, keyPem } = resolveCertAndKey(params);
 
@@ -344,23 +356,121 @@ export async function loginCms(params: {
   const cms = signTra(tra, certPem, keyPem);
   const envelope = buildSoapEnvelope(cms);
 
-  const fetchFn = params.fetchImpl ?? globalThis.fetch;
   const url = params.endpointOverride ?? WSAA_URLS[params.env];
-  const res = await fetchFn(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/xml; charset=utf-8",
-      SOAPAction: "",
+  const text = await fetchWithRetry({
+    url,
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "text/xml; charset=utf-8", SOAPAction: "" },
+      body: envelope,
     },
-    body: envelope,
+    label: "wsaa.loginCms",
+    requestTimeoutMs: params.requestTimeoutMs ?? 30_000,
+    maxRetries: params.maxRetries ?? 1,
+    ...(params.fetchImpl !== undefined ? { fetchImpl: params.fetchImpl } : {}),
+    ...(params.onCall !== undefined ? { onCall: params.onCall } : {}),
   });
-  const text = await res.text();
-  if (!res.ok) {
-    throw new Error(
-      `WSAA loginCms failed: HTTP ${res.status}. Body: ${text.slice(0, 500)}`,
-    );
-  }
   return parseLoginTicketResponse(text, params.service);
+}
+
+/**
+ * Internal helper: fetch with timeout + retry on 5xx + observability hook.
+ * Used by both loginCms (WSAA) and getPersona (WSCDC) so AFIP integration
+ * gets the same robustness floor as our other clients.
+ */
+export async function fetchWithRetry(params: {
+  url: string;
+  init: RequestInit;
+  fetchImpl?: typeof fetch;
+  requestTimeoutMs?: number;
+  maxRetries?: number;
+  onCall?: (event: {
+    label: string;
+    durationMs: number;
+    httpStatus: number | null;
+    retried: number;
+    success: boolean;
+  }) => void;
+  label?: string;
+}): Promise<string> {
+  const fetchFn = params.fetchImpl ?? globalThis.fetch;
+  const timeoutMs = params.requestTimeoutMs ?? 30_000;
+  const maxRetries = Math.max(0, params.maxRetries ?? 1);
+  const label = params.label ?? "fetch";
+  const t0 = Date.now();
+  let attempt = 0;
+  let lastStatus: number | null = null;
+
+  while (attempt <= maxRetries) {
+    const controller = new AbortController();
+    const timer = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const res = await fetchFn(params.url, { ...params.init, signal: controller.signal });
+      clearTimeout(timer);
+      lastStatus = res.status;
+      const text = await res.text();
+
+      // SOAP services often return HTTP 500 with a structured Fault body —
+      // those are valid responses, not transport errors. Don't retry them.
+      const isFault = /<.*Fault[\s>]/i.test(text);
+
+      if (res.ok || (res.status >= 400 && res.status < 500) || isFault) {
+        params.onCall?.({
+          label,
+          durationMs: Date.now() - t0,
+          httpStatus: res.status,
+          retried: attempt,
+          success: res.ok,
+        });
+        if (!res.ok && !isFault) {
+          throw new Error(
+            `${label} failed: HTTP ${res.status}. Body: ${text.slice(0, 500)}`,
+          );
+        }
+        return text;
+      }
+
+      // 5xx without Fault → retry if budget remains
+      if (attempt < maxRetries) {
+        attempt++;
+        await new Promise((r) => setTimeout(r, 250 * Math.pow(2, attempt - 1)));
+        continue;
+      }
+      params.onCall?.({
+        label,
+        durationMs: Date.now() - t0,
+        httpStatus: res.status,
+        retried: attempt,
+        success: false,
+      });
+      throw new Error(`${label} failed: HTTP ${res.status} after ${maxRetries} retries`);
+    } catch (err) {
+      clearTimeout(timer);
+      const isAbort = err instanceof Error && err.name === "AbortError";
+      const isHttpError = err instanceof Error && /HTTP \d+/.test(err.message);
+      // If it's an HTTP error we already classified, don't retry — re-throw
+      if (isHttpError) throw err;
+      if (attempt < maxRetries) {
+        attempt++;
+        await new Promise((r) => setTimeout(r, 250 * Math.pow(2, attempt - 1)));
+        continue;
+      }
+      params.onCall?.({
+        label,
+        durationMs: Date.now() - t0,
+        httpStatus: lastStatus,
+        retried: attempt,
+        success: false,
+      });
+      if (isAbort) {
+        throw new Error(
+          `${label} timed out after ${timeoutMs}ms`,
+        );
+      }
+      throw err;
+    }
+  }
+  throw new Error(`${label} failed after ${maxRetries} retries`);
 }
 
 /**
@@ -400,6 +510,18 @@ export class TokenCache {
       refreshLeadMs?: number;
       /** Custom fetch (testing only). */
       fetchImpl?: typeof fetch;
+      /** Per-request timeout. Default 30s. */
+      requestTimeoutMs?: number;
+      /** Retries on 5xx + network errors. Default 1. */
+      maxRetries?: number;
+      /** Observability hook. */
+      onCall?: (event: {
+        label: string;
+        durationMs: number;
+        httpStatus: number | null;
+        retried: number;
+        success: boolean;
+      }) => void;
     },
   ) {
     this.store = options.store ?? new InMemoryTokenStore();
@@ -424,6 +546,9 @@ export class TokenCache {
       ...(this.options.keyPem !== undefined ? { keyPem: this.options.keyPem } : {}),
       ...(this.options.endpointOverride !== undefined ? { endpointOverride: this.options.endpointOverride } : {}),
       ...(this.options.fetchImpl !== undefined ? { fetchImpl: this.options.fetchImpl } : {}),
+      ...(this.options.requestTimeoutMs !== undefined ? { requestTimeoutMs: this.options.requestTimeoutMs } : {}),
+      ...(this.options.maxRetries !== undefined ? { maxRetries: this.options.maxRetries } : {}),
+      ...(this.options.onCall !== undefined ? { onCall: this.options.onCall } : {}),
     });
     await this.store.set(service, fresh);
     return fresh;

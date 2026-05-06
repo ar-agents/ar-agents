@@ -1,28 +1,25 @@
 {
-  "name": "@ar-agents/mcp",
-  "version": "0.2.0",
-  "description": "MCP (Model Context Protocol) server that exposes the entire @ar-agents/* toolkit (identity, identity-attest, mercadopago, whatsapp, banking) to any MCP host (Claude Desktop, Cursor, Codeium, etc.). One install, one config, all AR integrations.",
+  "name": "@ar-agents/banking",
+  "version": "0.1.0",
+  "description": "Argentine banking primitives (CBU/CVU validation + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK. Pure-algorithm out of the box; BCRA lookups via pluggable adapter.",
   "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "claude-desktop",
-    "cursor",
-    "ar-agents",
-    "argentina",
-    "afip",
-    "mercadopago",
-    "whatsapp",
-    "banking",
     "cbu",
-    "bcra"
+    "cvu",
+    "bcra",
+    "argentina",
+    "banking",
+    "ai-sdk",
+    "vercel-ai",
+    "agent",
+    "agentic"
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@helloastro.co>",
-  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/banking",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ar-agents/ar-agents.git",
-    "directory": "packages/mcp"
+    "directory": "packages/banking"
   },
   "bugs": {
     "url": "https://github.com/ar-agents/ar-agents/issues"
@@ -43,16 +40,13 @@
       }
     }
   },
-  "bin": {
-    "ar-agents-mcp": "./bin/ar-agents-mcp.js"
-  },
   "files": [
     "dist",
-    "bin",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
-    "LICENSE"
+    "LICENSE",
+    "tools.manifest.json"
   ],
   "scripts": {
     "build": "tsup",
@@ -69,32 +63,14 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "60 KB",
-      "ignore": [
-        "@modelcontextprotocol/sdk",
-        "node:crypto",
-        "crypto",
-        "node:fs",
-        "fs",
-        "node:path",
-        "path",
-        "node:child_process",
-        "node:url",
-        "node:util",
-        "node:http",
-        "node:https",
-        "node-forge"
-      ]
+      "limit": "10 KB"
+    },
+    {
+      "name": "CJS",
+      "path": "dist/index.cjs",
+      "limit": "10 KB"
     }
   ],
-  "dependencies": {
-    "@ar-agents/banking": "workspace:*",
-    "@ar-agents/identity": "workspace:*",
-    "@ar-agents/identity-attest": "workspace:*",
-    "@ar-agents/mercadopago": "workspace:*",
-    "@ar-agents/whatsapp": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.0.0"
-  },
   "peerDependencies": {
     "ai": ">=6.0.0",
     "zod": ">=3.0.0"

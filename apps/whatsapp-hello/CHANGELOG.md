@@ -1,5 +1,12 @@
 # whatsapp-hello
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/identity@0.5.0
+
 ## 0.1.4
 
 ### Patch Changes

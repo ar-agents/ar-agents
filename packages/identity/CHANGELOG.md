@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.5.0
+
+### Minor Changes
+
+- Identity v0.5: production robustez parity with the rest of the toolkit.
+
+  **WSAA + WSCDC now share a hardened HTTP layer** (`fetchWithRetry`):
+
+  - Per-request timeouts via `AbortSignal` (default 30s, override with `requestTimeoutMs`).
+  - Exponential backoff on 5xx + transient network errors (default 1 retry, override with `maxRetries`).
+  - SOAP-aware: HTTP 500 with a real `<Fault>` body is treated as a parseable response (not retried).
+  - Optional `onCall` observability hook fires after every WSAA + WSCDC request — `{ label, durationMs, httpStatus, retried, success }` — drop-in for OpenTelemetry / Datadog / console.
+
+  **`WsaaWscdcAdapter` accepts the new options** (`requestTimeoutMs`, `maxRetries`, `onCall`) and forwards them to both the TA refresh path and the per-CUIT lookup path.
+
+  **`fetchWithRetry` is exported from `@ar-agents/identity/wsaa`** so multi-step flows (custom AFIP services, A4, A5, etc.) can reuse the same retry/timeout/observability stack.
+
+  No breaking changes — existing 0.4 setups keep working with the previous (no-retry, no-timeout) defaults until you opt in.
+
+  The MCP wrapper bumps to pull in the new identity major.
+
 ## 0.4.0
 
 ### Minor Changes

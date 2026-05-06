@@ -1,4 +1,4 @@
-import type { AccessTicket, AfipEnv } from "./wsaa";
+import { fetchWithRetry, type AccessTicket, type AfipEnv } from "./wsaa";
 import type { AfipPadronData } from "./types";
 
 /**
@@ -361,8 +361,19 @@ export async function getPersona(params: {
   service?: AfipPadronService;
   endpointOverride?: string;
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 30s. */
+  requestTimeoutMs?: number;
+  /** Retries on 5xx (excluding SOAP Faults). Default 1. */
+  maxRetries?: number;
+  /** Observability hook fired after every request. */
+  onCall?: (event: {
+    label: string;
+    durationMs: number;
+    httpStatus: number | null;
+    retried: number;
+    success: boolean;
+  }) => void;
 }): Promise<{ found: boolean; data: AfipPadronData | null; rawError: string | null }> {
-  const fetchFn = params.fetchImpl ?? globalThis.fetch;
   const service = params.service ?? CONSTANCIA_INSCRIPCION_SERVICE_NAME;
   const url = params.endpointOverride ?? SERVICE_URLS[service][params.env];
   const envelope = buildGetPersonaSoap({
@@ -371,24 +382,19 @@ export async function getPersona(params: {
     cuitToQuery: params.cuitToQuery,
     service,
   });
-  const res = await fetchFn(url, {
-    method: "POST",
-    headers: {
-      "Content-Type": "text/xml; charset=utf-8",
-      SOAPAction: "",
+  const text = await fetchWithRetry({
+    url,
+    init: {
+      method: "POST",
+      headers: { "Content-Type": "text/xml; charset=utf-8", SOAPAction: "" },
+      body: envelope,
     },
-    body: envelope,
+    label: `wscdc.getPersona.${service}`,
+    ...(params.fetchImpl !== undefined ? { fetchImpl: params.fetchImpl } : {}),
+    ...(params.requestTimeoutMs !== undefined ? { requestTimeoutMs: params.requestTimeoutMs } : {}),
+    ...(params.maxRetries !== undefined ? { maxRetries: params.maxRetries } : {}),
+    ...(params.onCall !== undefined ? { onCall: params.onCall } : {}),
   });
-  const text = await res.text();
-  // SOAP services return HTTP 500 with a Fault body for "not found" cases —
-  // those are valid structured responses, not transport errors. Pass them
-  // through to the parser, which converts faults into found:false results.
-  // Only throw on responses that aren't SOAP at all (e.g., HTML 503 page).
-  if (!res.ok && !/<.*Fault[\s>]/i.test(text)) {
-    throw new Error(
-      `WSCDC getPersona (${service}) HTTP ${res.status}. Body: ${text.slice(0, 500)}`,
-    );
-  }
   return parseGetPersonaResponse(text);
 }
 

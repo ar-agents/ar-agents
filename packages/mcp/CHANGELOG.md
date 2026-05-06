@@ -1,5 +1,49 @@
 # Changelog
 
+## 0.2.0
+
+### Minor Changes
+
+- MCP v0.2: ships `@ar-agents/banking` as a 5th tool registry.
+
+  The MCP server now exposes:
+
+  - `@ar-agents/identity` (validate_cuit, lookup_cuit_afip)
+  - `@ar-agents/identity-attest` (issue_attestation, verify_attestation)
+  - `@ar-agents/mercadopago` (41 MP API tools)
+  - `@ar-agents/whatsapp` (6 messaging tools)
+  - **NEW: `@ar-agents/banking` (validate_cbu, lookup_bank_by_code, list_banks, list_psps, lookup_credit_situation)**
+
+  Banking tools auto-wire to BCRA's public API via `BcraPublicApiAdapter`
+  (no auth required). To opt out, set `AR_AGENTS_BCRA_DISABLED=1` in env.
+  Tunables: `BCRA_TIMEOUT_MS` (default 30000), `BCRA_MAX_RETRIES` (default 1).
+
+  Server version bumped from 0.1.0 → 0.2.0 in the MCP handshake.
+
+## 0.1.3
+
+### Patch Changes
+
+- Identity v0.5: production robustez parity with the rest of the toolkit.
+
+  **WSAA + WSCDC now share a hardened HTTP layer** (`fetchWithRetry`):
+
+  - Per-request timeouts via `AbortSignal` (default 30s, override with `requestTimeoutMs`).
+  - Exponential backoff on 5xx + transient network errors (default 1 retry, override with `maxRetries`).
+  - SOAP-aware: HTTP 500 with a real `<Fault>` body is treated as a parseable response (not retried).
+  - Optional `onCall` observability hook fires after every WSAA + WSCDC request — `{ label, durationMs, httpStatus, retried, success }` — drop-in for OpenTelemetry / Datadog / console.
+
+  **`WsaaWscdcAdapter` accepts the new options** (`requestTimeoutMs`, `maxRetries`, `onCall`) and forwards them to both the TA refresh path and the per-CUIT lookup path.
+
+  **`fetchWithRetry` is exported from `@ar-agents/identity/wsaa`** so multi-step flows (custom AFIP services, A4, A5, etc.) can reuse the same retry/timeout/observability stack.
+
+  No breaking changes — existing 0.4 setups keep working with the previous (no-retry, no-timeout) defaults until you opt in.
+
+  The MCP wrapper bumps to pull in the new identity major.
+
+- Updated dependencies []:
+  - @ar-agents/identity@0.5.0
+
 ## 0.1.2
 
 ### Patch Changes

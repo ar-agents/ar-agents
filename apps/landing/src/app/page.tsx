@@ -1,9 +1,9 @@
 const PACKAGES = [
   {
     name: "@ar-agents/identity",
-    version: "0.4.0",
+    version: "0.5.0",
     purpose:
-      "AFIP/ARCA CUIT validation + padrón lookup (constancia con monotributo + IVA condition).",
+      "AFIP/ARCA CUIT validation + padrón lookup (constancia con monotributo + IVA condition). v0.5 adds production robustez: per-request timeouts, exponential backoff retries, observability hook (`onCall`), and a shared `fetchWithRetry` exported for custom WSAA flows.",
     tools: ["validate_cuit", "lookup_cuit_afip"],
     npm: "https://www.npmjs.com/package/@ar-agents/identity",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity",
@@ -74,11 +74,29 @@ const PACKAGES = [
     accent: "#1d4ed8",
   },
   {
-    name: "@ar-agents/mcp",
+    name: "@ar-agents/banking",
     version: "0.1.0",
     purpose:
-      "MCP (Model Context Protocol) server that bundles the entire @ar-agents/* toolkit. One install in Claude Desktop / Cursor / any MCP host, up to 34 tools available immediately.",
-    tools: ["bundles all 4 packages above", "auto-detects from env vars", "stdio transport"],
+      "AR banking primitives: CBU/CVU validation with bank/PSP identification (Galicia, Nación, Mercado Pago, Ualá, Naranja X…), bank/PSP enumeration, and BCRA Central de Deudores credit-situation lookup. Ships a default `BcraPublicApiAdapter` (no auth required) — pure-algorithm tools always work.",
+    tools: [
+      "validate_cbu",
+      "lookup_bank_by_code",
+      "list_banks",
+      "list_psps",
+      "lookup_credit_situation (BCRA)",
+    ],
+    npm: "https://www.npmjs.com/package/@ar-agents/banking",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/banking",
+    demo: null,
+    bg: "#fee2e2",
+    accent: "#b91c1c",
+  },
+  {
+    name: "@ar-agents/mcp",
+    version: "0.2.0",
+    purpose:
+      "MCP (Model Context Protocol) server that bundles the entire @ar-agents/* toolkit. One install in Claude Desktop / Cursor / any MCP host, all 5 packages and ~60 tools available immediately. Auto-detects which packages to enable from env vars.",
+    tools: ["bundles all 5 packages above", "auto-detects from env vars", "stdio transport"],
     npm: "https://www.npmjs.com/package/@ar-agents/mcp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
     demo: null,
@@ -184,7 +202,7 @@ export default function Home() {
               fontFamily: "var(--font-geist-mono), monospace",
               margin: 0,
             }}
-          >{`pnpm add @ar-agents/identity @ar-agents/identity-attest @ar-agents/mercadopago @ar-agents/whatsapp ai zod
+          >{`pnpm add @ar-agents/identity @ar-agents/identity-attest @ar-agents/mercadopago @ar-agents/whatsapp @ar-agents/banking ai zod
 
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
 import { identityTools } from "@ar-agents/identity";
@@ -192,6 +210,7 @@ import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
 import { AttestationClient, identityAttestTools, WhatsAppOtpAdapter } from "@ar-agents/identity-attest";
 import { mercadoPagoTools, MercadoPagoClient, InMemoryStateAdapter } from "@ar-agents/mercadopago";
 import { whatsappTools, WhatsAppClient } from "@ar-agents/whatsapp";
+import { bankingTools, BcraPublicApiAdapter } from "@ar-agents/banking";
 
 const wa = new WhatsAppClient({...});
 const attestation = new AttestationClient({
@@ -207,6 +226,7 @@ const agent = new Agent({
     ...identityAttestTools(attestation),
     ...mercadoPagoTools(new MercadoPagoClient({...}), { state: new InMemoryStateAdapter(), backUrl: "..." }),
     ...whatsappTools(wa),
+    ...bankingTools({ bcra: new BcraPublicApiAdapter() }),
   },
   stopWhen: stepCountIs(10),
 });`}</pre>
@@ -435,7 +455,7 @@ const agent = new Agent({
             }}
           >
             <li>
-              <strong>@ar-agents/identity-attest v0.2</strong> — Auth0 + Cognito + MercadoPago Identity adapters
+              <strong>@ar-agents/identity-attest v0.3</strong> — Cognito + MercadoPago Identity adapters
             </li>
             <li>
               <strong>@ar-agents/facturacion</strong> — AFIP factura electrónica (WSFE)
@@ -444,7 +464,7 @@ const agent = new Agent({
               <strong>@ar-agents/shipping</strong> — Andreani / OCA / Correo Argentino
             </li>
             <li>
-              <strong>@ar-agents/banking</strong> — CBU/CVU validation, DEBIN
+              <strong>@ar-agents/banking v0.2</strong> — DEBIN/Coelsa adapters, alias CBU lookup
             </li>
           </ul>
         </section>

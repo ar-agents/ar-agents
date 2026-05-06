@@ -5,6 +5,7 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { combineToolSets } from "./adapter";
+import { buildBankingTools, describeBankingConfig } from "./registries/banking";
 import { buildIdentityTools, describeIdentityConfig } from "./registries/identity";
 import {
   buildIdentityAttestTools,
@@ -17,7 +18,7 @@ import {
 import { buildWhatsAppTools, describeWhatsAppConfig } from "./registries/whatsapp";
 
 const SERVER_NAME = "ar-agents";
-const SERVER_VERSION = "0.1.0";
+const SERVER_VERSION = "0.2.0";
 
 /**
  * Build the @ar-agents/mcp server. Inspects environment variables to decide
@@ -30,14 +31,16 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     buildMercadoPagoTools(),
     buildWhatsAppTools(),
     buildIdentityAttestTools(),
+    buildBankingTools(),
   ]);
 
   const summary = [
     `${SERVER_NAME}@${SERVER_VERSION} starting with ${adapter.tools.length} tools registered:`,
-    `  identity      → ${describeIdentityConfig()}`,
-    `  mercadopago   → ${describeMercadoPagoConfig()}`,
-    `  whatsapp      → ${describeWhatsAppConfig()}`,
+    `  identity        → ${describeIdentityConfig()}`,
+    `  mercadopago     → ${describeMercadoPagoConfig()}`,
+    `  whatsapp        → ${describeWhatsAppConfig()}`,
     `  identity-attest → ${describeIdentityAttestConfig()}`,
+    `  banking         → ${describeBankingConfig()}`,
   ];
 
   const server = new Server(

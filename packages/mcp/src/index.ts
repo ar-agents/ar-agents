@@ -22,3 +22,7 @@ export {
   buildIdentityAttestTools,
   describeIdentityAttestConfig,
 } from "./registries/identity-attest";
+export {
+  buildBankingTools,
+  describeBankingConfig,
+} from "./registries/banking";

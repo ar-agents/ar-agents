@@ -106,6 +106,21 @@ export interface WsaaWscdcAdapterOptions {
   wscdcEndpoint?: string;
   /** Custom fetch (testing). */
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 30s. */
+  requestTimeoutMs?: number;
+  /** Retries on 5xx + network errors. Default 1. */
+  maxRetries?: number;
+  /**
+   * Observability hook fired after every WSAA + WSCDC request. Useful for
+   * logging / metrics / tracing without console-logging from the lib itself.
+   */
+  onCall?: (event: {
+    label: string;
+    durationMs: number;
+    httpStatus: number | null;
+    retried: number;
+    success: boolean;
+  }) => void;
 }
 
 export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
@@ -115,6 +130,9 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
   private readonly service: AfipPadronService;
   private readonly wscdcEndpoint: string | undefined;
   private readonly fetchImpl: typeof fetch | undefined;
+  private readonly requestTimeoutMs: number | undefined;
+  private readonly maxRetries: number | undefined;
+  private readonly onCall: WsaaWscdcAdapterOptions["onCall"];
 
   constructor(options: WsaaWscdcAdapterOptions) {
     const hasPaths = options.certPath && options.keyPath;
@@ -131,12 +149,18 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
       ...(options.tokenStore !== undefined ? { store: options.tokenStore } : {}),
       ...(options.wsaaEndpoint !== undefined ? { endpointOverride: options.wsaaEndpoint } : {}),
       ...(options.fetchImpl !== undefined ? { fetchImpl: options.fetchImpl } : {}),
+      ...(options.requestTimeoutMs !== undefined ? { requestTimeoutMs: options.requestTimeoutMs } : {}),
+      ...(options.maxRetries !== undefined ? { maxRetries: options.maxRetries } : {}),
+      ...(options.onCall !== undefined ? { onCall: options.onCall } : {}),
     });
     this.cuitRepresentado = normalizeCuit(options.cuitRepresentado);
     this.env = options.env;
     this.service = options.service ?? CONSTANCIA_INSCRIPCION_SERVICE_NAME;
     this.wscdcEndpoint = options.wscdcEndpoint;
     this.fetchImpl = options.fetchImpl;
+    this.requestTimeoutMs = options.requestTimeoutMs;
+    this.maxRetries = options.maxRetries;
+    this.onCall = options.onCall;
   }
 
   async lookup(cuit: string): Promise<AfipPadronResult> {
@@ -174,6 +198,9 @@ export class WsaaWscdcAfipPadronAdapter implements AfipPadronAdapter {
         cuitToQuery: normalized,
         ...(this.wscdcEndpoint !== undefined ? { endpointOverride: this.wscdcEndpoint } : {}),
         ...(this.fetchImpl !== undefined ? { fetchImpl: this.fetchImpl } : {}),
+        ...(this.requestTimeoutMs !== undefined ? { requestTimeoutMs: this.requestTimeoutMs } : {}),
+        ...(this.maxRetries !== undefined ? { maxRetries: this.maxRetries } : {}),
+        ...(this.onCall !== undefined ? { onCall: this.onCall } : {}),
       });
     } catch (err) {
       const message =

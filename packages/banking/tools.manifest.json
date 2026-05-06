@@ -1,0 +1,54 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/banking",
+  "version": "0.1.0",
+  "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
+  "tools": [
+    {
+      "name": "validate_cbu",
+      "kind": "pure",
+      "summary": "Validate AR CBU/CVU + identify bank/PSP",
+      "input": { "cbu": "string" },
+      "output": "CbuParseResult",
+      "latencyP50Ms": 1,
+      "requiresAdapter": false
+    },
+    {
+      "name": "lookup_bank_by_code",
+      "kind": "pure",
+      "summary": "Resolve a 3-digit bank code or 7-digit CVU prefix to its name",
+      "input": { "code": "string" },
+      "output": "{ code, found, entity }",
+      "latencyP50Ms": 1,
+      "requiresAdapter": false
+    },
+    {
+      "name": "list_banks",
+      "kind": "pure",
+      "summary": "Enumerate all known AR banks",
+      "input": {},
+      "output": "{ banks: BankInfo[] }",
+      "latencyP50Ms": 1,
+      "requiresAdapter": false
+    },
+    {
+      "name": "list_psps",
+      "kind": "pure",
+      "summary": "Enumerate all known AR PSPs/fintechs",
+      "input": {},
+      "output": "{ psps: BankInfo[] }",
+      "latencyP50Ms": 1,
+      "requiresAdapter": false
+    },
+    {
+      "name": "lookup_credit_situation",
+      "kind": "network",
+      "summary": "BCRA Central de Deudores credit-situation lookup for a CUIT",
+      "input": { "cuit": "string" },
+      "output": "BcraDeudaResult & { worstSituationDescription }",
+      "latencyP50Ms": 600,
+      "requiresAdapter": true,
+      "adapter": "BcraDeudaAdapter (default: BcraPublicApiAdapter — public BCRA REST API, no auth)"
+    }
+  ]
+}
