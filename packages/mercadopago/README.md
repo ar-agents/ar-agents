@@ -18,7 +18,9 @@ Compatible with any caller that uses `tool()`.
 
 | What | Value |
 | --- | --- |
-| Tools shipped | **81 tools** — covers the full agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, **Point Devices físicos**, **Merchant Orders**, **Bank Accounts**, Disputes, Lookups, Webhooks management, **handle_webhook combo**, **OAuth Marketplace flow**, **Account/Balance/Settlements**, **3DS analyzer**, **Test cards**, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
+| Tools shipped | **82 tools** — covers the full agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, **Point Devices físicos**, **Merchant Orders**, **Bank Accounts**, Disputes, Lookups, Webhooks management, **handle_webhook combo**, **OAuth Marketplace flow**, **Account/Balance/Settlements**, **3DS analyzer**, **Test cards**, **mp_health_check**, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
+| Production hardening (v0.9) | **Circuit breaker** with state machine + rolling window, **deadline propagation** via parent AbortSignal, **W3C Trace Context** propagation (OpenTelemetry-compatible without peer dep), **replay-attack protection** on webhook signatures (5-min default tolerance), **health check** endpoint. |
+| Test coverage | **223 unit tests** + **14 property-based tests** (~1400 random scenarios via fast-check) + **11 failure injection tests** (network errors, timeouts, races, malformed responses) + **integration tests vs MP sandbox** (gated by env var) + **benchmarks** (`pnpm bench`). |
 | External dependencies | Mercado Pago access token (TEST or APP_USR), state adapter (Upstash, Redis, Postgres, in-memory, etc.) |
 | Latency | 200–600ms per MP call; <1ms for state ops |
 | Cost | $0 — MP API is free; merchant pays per-transaction fees on auto-charges |
@@ -363,6 +365,102 @@ and `mpResponse` for inspection. Specific subclasses:
 - `MercadoPagoPaymentRejectedError` — see gotchas #10–11; carries `preapprovalId` and `statusDetail`
 - `MercadoPagoAuthorizeForbiddenError` — see gotcha #6
 - `MercadoPagoRateLimitError` — 429 from MP
+
+## Production hardening (v0.9+)
+
+### Circuit breaker
+
+Protect your app from cascading failures when MP is degraded. The breaker
+observes failures over a rolling window — after enough, it OPENS and fails
+fast (no network round-trip) until cooldown elapses.
+
+```ts
+import { CircuitBreaker, MercadoPagoClient, CircuitOpenError } from "@ar-agents/mercadopago";
+
+const breaker = new CircuitBreaker({
+  failureThreshold: 5,
+  resetTimeoutMs: 30_000,
+  // Don't count 4xx user errors toward circuit opening — only upstream failures
+  isFailure: (err) => err instanceof MercadoPagoError && err.status >= 500,
+  onStateChange: (e) => metrics.gauge(`mp.circuit.${e.to}`, 1),
+});
+
+const client = new MercadoPagoClient({
+  accessToken: process.env.MP_ACCESS_TOKEN!,
+  circuitBreaker: breaker,
+});
+
+try {
+  await client.getPayment("123");
+} catch (err) {
+  if (err instanceof CircuitOpenError) {
+    // MP is down, breaker tripped — fast-fail without network
+    return showFallbackUi(err.retryAfterMs);
+  }
+  throw err;
+}
+```
+
+**Multi-tenant marketplace**: pass the same `CircuitBreaker` instance to all
+per-seller `MercadoPagoClient`s — they share backpressure signal.
+
+### Deadline propagation
+
+Pass the agent's `AbortSignal` to chain deadlines through to MP — when the
+agent's budget expires, MP requests cancel cleanly without retrying.
+
+```ts
+const controller = new AbortController();
+setTimeout(() => controller.abort(), 5000); // 5s agent budget
+
+const result = await client.healthCheck(controller.signal);
+// If 5s elapsed, result.ok === false and we didn't hang.
+```
+
+### W3C Trace Context (OpenTelemetry-compatible)
+
+If you're using OpenTelemetry, plug in trace propagation without adding
+`@opentelemetry/api` as a peer dep:
+
+```ts
+import { trace } from "@opentelemetry/api";
+
+const client = new MercadoPagoClient({
+  accessToken: "...",
+  traceContext: () => trace.getActiveSpan()?.spanContext(),
+});
+```
+
+The client automatically injects `traceparent` headers on every MP request
+(MP's logs become correlatable with your distributed traces) and surfaces
+the trace context in `onCall` events.
+
+### Health check
+
+```ts
+// As an agent tool:
+const health = await tools.mp_health_check.execute({ timeout_ms: 2000 }, ctx);
+// → { ok: true, latencyMs: 187, userId: "12345", error: null, circuit: {...} }
+
+// As a direct method:
+const health = await client.healthCheck(controller.signal);
+```
+
+Use as a `/api/health/mp` endpoint for status-page polling, k8s probes, or
+Vercel Cron monitoring loops.
+
+### Benchmarks (Web Crypto on Node 22, MacBook Air M2)
+
+| Operation | Throughput |
+|---|---|
+| `hmacSha256Hex` (typical webhook manifest) | 45,932 ops/sec |
+| `sha256Hex` (40-byte input — idempotency key) | 92,218 ops/sec |
+| `timingSafeEqualHex` (64 chars) | 3,099,551 ops/sec |
+| `computeMarketplaceFee` | 20,662,947 ops/sec |
+| `explainPaymentStatus` | 21,289,436 ops/sec |
+| `InMemoryStateAdapter.set` | 5,752,416 ops/sec |
+
+Run `pnpm bench` to reproduce.
 
 ## Vercel-native (v0.8+)
 

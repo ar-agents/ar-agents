@@ -1,3 +1,4 @@
+import { CircuitBreaker, CircuitOpenError } from "./circuit-breaker";
 import { classifyError, MercadoPagoError, MercadoPagoOverloadedError, MercadoPagoRateLimitError, MercadoPagoTimeoutError } from "./errors";
 import type {
   AccountInfo,
@@ -77,6 +78,10 @@ export interface MercadoPagoClientOptions {
   /**
    * Observability hook fired AFTER every request (success or failure).
    * Useful for logging, metrics, tracing. Synchronous, fire-and-forget.
+   *
+   * The `traceContext` field follows the W3C Trace Context spec — pass
+   * an OpenTelemetry-compatible context propagator and you get full
+   * distributed tracing for free. See `traceContext` option below.
    */
   onCall?: (event: {
     method: string;
@@ -85,7 +90,47 @@ export interface MercadoPagoClientOptions {
     httpStatus: number | null;
     retried: number;
     success: boolean;
+    /** v0.9: MP's `x-request-id` echo. Useful for support tickets. */
+    requestId?: string | null;
+    /** v0.9: MP's rate-limit headers when present. */
+    rateLimit?: {
+      remaining: number | null;
+      resetSeconds: number | null;
+    };
+    /** v0.9: Circuit breaker state at the time of the call. */
+    circuitState?: "CLOSED" | "OPEN" | "HALF_OPEN";
+    /** v0.9: Trace context for OpenTelemetry-style propagation. */
+    traceContext?: { traceId?: string; spanId?: string };
   }) => void;
+  /**
+   * v0.9 — Opt-in circuit breaker. When MP is failing, fail fast instead of
+   * piling up retries against a dead service. Pass a configured instance
+   * (or share one across multiple clients to give them shared backpressure
+   * signal).
+   *
+   * @example
+   * ```ts
+   * const breaker = new CircuitBreaker({
+   *   failureThreshold: 5,
+   *   resetTimeoutMs: 30_000,
+   *   onStateChange: (e) => metrics.gauge("circuit.state", e.to),
+   * });
+   * const client = new MercadoPagoClient({ accessToken: "...", circuitBreaker: breaker });
+   * ```
+   */
+  circuitBreaker?: CircuitBreaker;
+  /**
+   * v0.9 — Optional W3C Trace Context propagator. If provided, the client
+   * extracts traceId/spanId on each request, injects `traceparent` /
+   * `tracestate` headers (MP echoes them back via x-request-id), and surfaces
+   * them in `onCall` events. Compatible with OpenTelemetry without adding
+   * `@opentelemetry/api` as a peer dep.
+   *
+   * If you have OTEL set up, just pass `() => trace.getActiveSpan()?.spanContext()`.
+   */
+  traceContext?: () =>
+    | { traceId?: string; spanId?: string; traceFlags?: number }
+    | undefined;
 }
 
 interface RequestOptions {
@@ -101,6 +146,13 @@ interface RequestOptions {
     payerEmail?: string;
     sellerEmail?: string;
   };
+  /**
+   * v0.9 — Parent AbortSignal for deadline propagation. When the agent
+   * has a fixed budget (e.g., 5s for the whole tool call), pass it here.
+   * The client merges it with its own per-request timeout — whichever
+   * fires first wins.
+   */
+  signal?: AbortSignal;
 }
 
 /**
@@ -116,16 +168,9 @@ export class MercadoPagoClient {
   private readonly fetchImpl: typeof fetch | undefined;
   private readonly requestTimeoutMs: number;
   private readonly maxRetries: number;
-  private readonly onCall:
-    | ((event: {
-        method: string;
-        path: string;
-        durationMs: number;
-        httpStatus: number | null;
-        retried: number;
-        success: boolean;
-      }) => void)
-    | undefined;
+  private readonly onCall: MercadoPagoClientOptions["onCall"];
+  private readonly circuitBreaker: CircuitBreaker | undefined;
+  private readonly traceContext: MercadoPagoClientOptions["traceContext"];
 
   constructor(options: MercadoPagoClientOptions) {
     if (!options.accessToken) {
@@ -139,9 +184,35 @@ export class MercadoPagoClient {
     this.requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
     this.maxRetries = Math.max(0, options.maxRetries ?? 1);
     this.onCall = options.onCall;
+    this.circuitBreaker = options.circuitBreaker;
+    this.traceContext = options.traceContext;
+  }
+
+  /**
+   * v0.9 — Inspect the circuit breaker state (when configured). Returns
+   * `null` when no circuit breaker is wired. Useful for health checks.
+   */
+  getCircuitState(): ReturnType<CircuitBreaker["getStats"]> | null {
+    return this.circuitBreaker?.getStats() ?? null;
   }
 
   private async request<T>(
+    method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
+    path: string,
+    body?: unknown,
+    options?: RequestOptions,
+  ): Promise<T> {
+    // Wrap the entire request loop in the circuit breaker (when configured).
+    // The breaker observes terminal failures (after retries exhausted) and
+    // opens after enough cascading failures.
+    const exec = () => this.requestUnprotected<T>(method, path, body, options);
+    if (this.circuitBreaker) {
+      return this.circuitBreaker.execute(exec);
+    }
+    return exec();
+  }
+
+  private async requestUnprotected<T>(
     method: "GET" | "POST" | "PUT" | "PATCH" | "DELETE",
     path: string,
     body?: unknown,
@@ -153,6 +224,15 @@ export class MercadoPagoClient {
     };
     if (options?.idempotencyKey) {
       headers["X-Idempotency-Key"] = options.idempotencyKey;
+    }
+
+    // v0.9 — W3C Trace Context propagation. If the caller wired traceContext,
+    // inject the standard `traceparent` header so MP's logs can be correlated
+    // with your distributed traces (and any agent middleware downstream).
+    const trace = this.traceContext?.();
+    if (trace?.traceId && trace?.spanId) {
+      const flags = (trace.traceFlags ?? 1).toString(16).padStart(2, "0");
+      headers["traceparent"] = `00-${trace.traceId}-${trace.spanId}-${flags}`;
     }
 
     let url = `${this.baseUrl}${path}`;
@@ -173,9 +253,45 @@ export class MercadoPagoClient {
     let lastError: unknown;
     let lastStatus: number | null = null;
 
+    const fireOnCall = (event: {
+      success: boolean;
+      httpStatus: number | null;
+      retried: number;
+      requestId: string | null;
+      rateLimit: { remaining: number | null; resetSeconds: number | null };
+    }) => {
+      const traceCtx: { traceId?: string; spanId?: string } | undefined =
+        trace?.traceId
+          ? {
+              traceId: trace.traceId,
+              ...(trace.spanId !== undefined ? { spanId: trace.spanId } : {}),
+            }
+          : undefined;
+      this.onCall?.({
+        method,
+        path,
+        durationMs: Date.now() - t0,
+        ...event,
+        ...(this.circuitBreaker ? { circuitState: this.circuitBreaker.getState() } : {}),
+        ...(traceCtx ? { traceContext: traceCtx } : {}),
+      });
+    };
+
     while (attempt <= this.maxRetries) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.requestTimeoutMs);
+
+      // v0.9 — Deadline propagation: if the caller passed a parent signal,
+      // abort the request when EITHER the timeout or the parent fires.
+      const parentSignal = options?.signal;
+      const onParentAbort = () => controller.abort();
+      if (parentSignal) {
+        if (parentSignal.aborted) {
+          clearTimeout(timer);
+          throw new MercadoPagoTimeoutError(path, 0);
+        }
+        parentSignal.addEventListener("abort", onParentAbort, { once: true });
+      }
 
       const init: RequestInit = { method, headers, signal: controller.signal };
       if (body !== undefined) init.body = JSON.stringify(body);
@@ -183,17 +299,25 @@ export class MercadoPagoClient {
       try {
         const res = await fetchFn(url, init);
         clearTimeout(timer);
+        if (parentSignal) parentSignal.removeEventListener("abort", onParentAbort);
         lastStatus = res.status;
+
+        const requestId = res.headers.get("x-request-id");
+        const rlRemaining = res.headers.get("x-rate-limit-remaining");
+        const rlReset = res.headers.get("x-rate-limit-reset");
+        const rateLimit = {
+          remaining: rlRemaining !== null ? Number(rlRemaining) : null,
+          resetSeconds: rlReset !== null ? Number(rlReset) : null,
+        };
 
         if (res.ok) {
           const text = await res.text();
-          this.onCall?.({
-            method,
-            path,
-            durationMs: Date.now() - t0,
+          fireOnCall({
+            success: true,
             httpStatus: res.status,
             retried: attempt,
-            success: true,
+            requestId,
+            rateLimit,
           });
           if (!text) return undefined as T;
           return JSON.parse(text) as T;
@@ -215,13 +339,12 @@ export class MercadoPagoClient {
         // Detect HTML / non-JSON 5xx (MP overloaded)
         const contentType = res.headers.get("content-type") ?? "";
         if (res.status >= 500 && !contentType.includes("application/json")) {
-          this.onCall?.({
-            method,
-            path,
-            durationMs: Date.now() - t0,
+          fireOnCall({
+            success: false,
             httpStatus: res.status,
             retried: attempt,
-            success: false,
+            requestId,
+            rateLimit,
           });
           throw new MercadoPagoOverloadedError(path, res.status);
         }
@@ -230,37 +353,38 @@ export class MercadoPagoClient {
         const text = await res.text();
         try { parsed = JSON.parse(text); } catch { parsed = text; }
         const err = classifyError(res.status, path, parsed, options?.classifyContext);
-        this.onCall?.({
-          method,
-          path,
-          durationMs: Date.now() - t0,
+        fireOnCall({
+          success: false,
           httpStatus: res.status,
           retried: attempt,
-          success: false,
+          requestId,
+          rateLimit,
         });
         throw err;
       } catch (err) {
         clearTimeout(timer);
+        if (parentSignal) parentSignal.removeEventListener("abort", onParentAbort);
         // If err is a MercadoPagoError, the 5xx-final / 4xx branch already
         // fired onCall above — don't double-fire. Just re-throw.
         if (err instanceof MercadoPagoError) throw err;
 
         // Network error / abort / parse error — retry if budget remains
         const isAbort = err instanceof Error && err.name === "AbortError";
+        // If parent signal aborted, don't retry (caller's deadline has expired)
+        const isParentAbort = parentSignal?.aborted ?? false;
         const isNetwork = !lastStatus && !isAbort;
-        if ((isNetwork || isAbort) && attempt < this.maxRetries) {
+        if ((isNetwork || (isAbort && !isParentAbort)) && attempt < this.maxRetries) {
           lastError = err;
           attempt++;
           await sleep(250 * Math.pow(2, attempt - 1));
           continue;
         }
-        this.onCall?.({
-          method,
-          path,
-          durationMs: Date.now() - t0,
+        fireOnCall({
+          success: false,
           httpStatus: lastStatus,
           retried: attempt,
-          success: false,
+          requestId: null,
+          rateLimit: { remaining: null, resetSeconds: null },
         });
         if (isAbort) {
           throw new MercadoPagoTimeoutError(path, this.requestTimeoutMs);
@@ -1470,6 +1594,64 @@ export class MercadoPagoClient {
       `/point/integration-api/devices/${encodeURIComponent(deviceId)}/payment-intents/${encodeURIComponent(intentId)}`,
     );
     return { id: intentId, canceled: true };
+  }
+
+  // ──────────────────────────────────────────────────────────────────────────
+  // v0.9 — Health check
+  //
+  // No dedicated ping endpoint exists in MP's public API. We use `getMe()`
+  // (`/users/me`) as a lightweight liveness probe — it requires only a valid
+  // accessToken, returns ~200 bytes of JSON, and is the same call MP's own
+  // dashboard makes on startup. A successful response proves: (a) network
+  // path to MP is up, (b) accessToken is valid, (c) MP is responding.
+  // ──────────────────────────────────────────────────────────────────────────
+
+  /**
+   * Liveness probe against MP. Returns latency + circuit-breaker state.
+   * Use as a /health endpoint for k8s, Vercel cron, or status-page checks.
+   *
+   * Returns `{ ok: false, ... }` instead of throwing — designed for
+   * monitoring loops that want to keep running.
+   *
+   * @param signal Optional AbortSignal to cap wait time (e.g., 2s for
+   *               status-page polling).
+   */
+  async healthCheck(signal?: AbortSignal): Promise<{
+    ok: boolean;
+    latencyMs: number;
+    /** MP user_id when reachable. */
+    userId: string | null;
+    /** Last error message when not OK. */
+    error: string | null;
+    /** Circuit breaker state when configured. */
+    circuit: ReturnType<CircuitBreaker["getStats"]> | null;
+  }> {
+    const t0 = Date.now();
+    const circuitBefore = this.circuitBreaker?.getStats() ?? null;
+    try {
+      const me = await this.request<AccountInfo>(
+        "GET",
+        "/users/me",
+        undefined,
+        signal ? { signal } : {},
+      );
+      return {
+        ok: true,
+        latencyMs: Date.now() - t0,
+        userId: String(me.id),
+        error: null,
+        circuit: this.circuitBreaker?.getStats() ?? null,
+      };
+    } catch (err) {
+      const message = err instanceof Error ? err.message : String(err);
+      return {
+        ok: false,
+        latencyMs: Date.now() - t0,
+        userId: null,
+        error: message,
+        circuit: this.circuitBreaker?.getStats() ?? circuitBefore,
+      };
+    }
   }
 }
 

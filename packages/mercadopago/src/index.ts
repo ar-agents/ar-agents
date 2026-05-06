@@ -51,6 +51,14 @@ export {
 // v0.6 — 3DS analyzer (pure helper)
 export { analyze3DS } from "./three-ds";
 
+// v0.9 — Circuit breaker
+export {
+  CircuitBreaker,
+  CircuitOpenError,
+  type CircuitBreakerOptions,
+  type CircuitState,
+} from "./circuit-breaker";
+
 // v0.7 — Pure helpers
 export {
   computeMarketplaceFee,

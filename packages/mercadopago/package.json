@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/mercadopago",
-  "version": "0.8.0",
-  "description": "The most complete Mercado Pago agent toolkit for Vercel AI SDK 6+. 81 tools, Edge Runtime ready, Vercel KV state adapters, HMAC webhook verify with replay protection, OAuth Marketplace flow, Order Management, Point Devices, marketplace splits, status_detail explainer in Spanish, AR-specific knowledge baked in.",
+  "version": "0.9.0",
+  "description": "The most complete Mercado Pago agent toolkit for Vercel AI SDK 6+. 82 tools, Edge Runtime, Vercel KV adapters, circuit breaker + deadline propagation + W3C trace context, HMAC webhook verify with replay protection, OAuth Marketplace, Order Management, Point Devices, marketplace splits, status_detail explainer in Spanish, AR-specific knowledge baked in. Property-tested + integration-tested vs MP sandbox + benchmarked.",
   "keywords": [
     "mercadopago",
     "ai-sdk",
@@ -28,7 +28,9 @@
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "vercel-kv": ["./dist/vercel-kv.d.ts"]
+      "vercel-kv": [
+        "./dist/vercel-kv.d.ts"
+      ]
     }
   },
   "exports": {
@@ -64,7 +66,9 @@
   ],
   "scripts": {
     "build": "tsup",
-    "test": "vitest run",
+    "test": "vitest run --exclude='test/integration/**'",
+    "test:integration": "vitest run test/integration/",
+    "bench": "vitest bench --run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "typecheck": "tsc --noEmit",
@@ -104,10 +108,12 @@
     }
   },
   "devDependencies": {
+    "@fast-check/vitest": "^0.4.1",
     "@types/node": "^20.19.39",
     "@types/qrcode": "^1.5.6",
     "@vercel/kv": "^3.0.0",
     "ai": "^6.0.175",
+    "fast-check": "^4.7.0",
     "msw": "^2.6.0",
     "tsup": "^8.3.5",
     "typescript": "^5.9.3",

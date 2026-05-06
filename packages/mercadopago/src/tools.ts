@@ -180,7 +180,9 @@ type ToolName =
   | "cancel_point_payment_intent"
   // v0.7 — Pure helpers
   | "compute_marketplace_fee"
-  | "explain_payment_status";
+  | "explain_payment_status"
+  // v0.9 — Health check + observability
+  | "mp_health_check";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
@@ -402,6 +404,10 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
     "PURE HELPER (no network) — given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payment_preference. USE WHEN your platform takes a commission and you need to compute the exact fee per transaction. Examples: { percent: 5, minArs: 50, maxArs: 5000 } for percentage with floor + cap; { flatArs: 200, percent: 2 } for fixed + percentage.",
   explain_payment_status:
     "PURE HELPER (no network) — given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's cryptic status_detail codes to plain Spanish + actionable guidance ('reintentar con otra tarjeta' vs 'esperar webhook' vs 'estado final'). USE THIS instead of having to memorize 30+ status_detail codes — surface summary + recommendedAction directly to the user.",
+
+  // ── v0.9 — Health check + observability ──────────────────────────────────
+  mp_health_check:
+    "Liveness probe against MP. Returns { ok, latencyMs, userId, circuit }. USE THIS as the first call in long-running agent workflows to verify (a) network path to MP is up, (b) accessToken is valid, (c) MP is responding. Circuit-breaker state included when configured — surface to ops dashboards. Returns ok=false instead of throwing — safe to call in monitoring loops without try/catch.",
 };
 
 /**
@@ -2383,6 +2389,28 @@ export function mercadoPagoTools(
           seller_receives: input.amount_ars - fee,
           rule_applied: rule,
         };
+      },
+    }),
+
+    mp_health_check: tool({
+      description: desc("mp_health_check"),
+      inputSchema: z.object({
+        timeout_ms: z
+          .number()
+          .int()
+          .positive()
+          .max(30_000)
+          .optional()
+          .describe("Cap the wait time (default 5s). Use lower for status-page polling."),
+      }),
+      execute: async ({ timeout_ms }) => {
+        const controller = new AbortController();
+        const t = setTimeout(() => controller.abort(), timeout_ms ?? 5000);
+        try {
+          return await client.healthCheck(controller.signal);
+        } finally {
+          clearTimeout(t);
+        }
       },
     }),
 

@@ -1,5 +1,19 @@
 # Changelog
 
+## 0.4.3
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.9.0` — production hardening pass:
+  - **Circuit breaker** with state machine + rolling window (CLOSED/OPEN/HALF_OPEN)
+  - **Deadline propagation** via parent AbortSignal
+  - **W3C Trace Context** (OpenTelemetry-compatible without peer dep)
+  - **Replay-attack protection** on webhook signatures (5-min default)
+  - **`mp_health_check` tool** for status-page polling
+  - **223 unit tests + 14 property-based tests + 11 failure injection + integration tests vs MP sandbox + benchmarks**
+
+  No surface change at the MCP level. The MCP server inherits all v0.9 hardening automatically. Tool count: 82 (was 81).
+
 ## 0.4.2
 
 ### Patch Changes

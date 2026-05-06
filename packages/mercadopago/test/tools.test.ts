@@ -16,7 +16,7 @@ function buildSetup() {
 }
 
 describe("mercadoPagoTools", () => {
-  it("exposes the full v0.7 tool surface (81 tools)", () => {
+  it("exposes the full v0.9 tool surface (82 tools)", () => {
     const { tools } = buildSetup();
     expect(Object.keys(tools).sort()).toEqual([
       "analyze_payment_3ds",
@@ -81,6 +81,7 @@ describe("mercadoPagoTools", () => {
       "list_subscription_payments",
       "list_subscription_plans",
       "list_webhooks",
+      "mp_health_check",
       "oauth_authorize_url",
       "oauth_exchange_code",
       "oauth_refresh_token",
