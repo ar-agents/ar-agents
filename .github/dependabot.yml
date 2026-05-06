@@ -22,3 +22,16 @@ updates:
     labels:
       - "dependencies"
       - "github-actions"
+    # Major-version bumps need manual review for breaking-change syntax
+    # (e.g., actions/checkout@v6 changed default fetch-depth, removed
+    # `set-output` support, etc.). Dependabot still PRs minor + patch
+    # within the current major so we get security updates fast.
+    ignore:
+      - dependency-name: "actions/checkout"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "actions/setup-node"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "pnpm/action-setup"
+        update-types: ["version-update:semver-major"]
+      - dependency-name: "changesets/action"
+        update-types: ["version-update:semver-major"]
