@@ -1,5 +1,52 @@
 # Changelog
 
+## 0.8.0
+
+### Minor Changes — Edge Runtime + Vercel KV + Cookbook
+
+**Edge Runtime support (was: Node-only)**
+
+- Replaced `node:crypto` with the universal Web Crypto API across all crypto helpers.
+- The toolkit now runs in **Vercel Edge Runtime, Cloudflare Workers, Deno, browsers, and Node 18+** with zero changes.
+- New module `./crypto` exposes `hmacSha256Hex`, `sha256Hex`, `timingSafeEqualHex`.
+
+**Webhook signature verify is now async + replay-attack protected**
+
+- `verifyWebhookSignature(...)` returns `Promise<boolean>` (was `boolean`). All call sites in `handle_webhook` tool already awaited.
+- New default 5-minute replay window: signatures with `ts` more than `replayToleranceSeconds` (default 300) old are rejected as replay attempts.
+- Override the window per-call with the new `replayToleranceSeconds` option.
+- **Breaking**: callers using the exported `verifyWebhookSignature` directly need to add `await`.
+
+**Vercel KV adapters via subpath `@ar-agents/mercadopago/vercel-kv`**
+
+- `VercelKVSubscriptionStateAdapter` — drop-in `SubscriptionStateAdapter` backed by Vercel KV (Upstash Redis).
+- `VercelKVOAuthTokenStore` — persists per-seller OAuth tokens for marketplace flows. Key namespace `mp:oauth:{userId}`.
+- `VercelKVIdempotencyCache` — TTL-aware cache for short-circuiting agent retries.
+- `@vercel/kv` is an **optional** peer dependency — only consumers who use the subpath install it. Main bundle untouched.
+- All three adapters work in Edge Runtime.
+
+**New state adapter interfaces in main package**
+
+- `OAuthTokenStore` + `InMemoryOAuthTokenStore` — token bundle persistence for marketplace OAuth.
+- `IdempotencyCache` + `InMemoryIdempotencyCache` — agent-retry deduplication layer on top of MP's server-side dedup.
+
+**Cookbook (8 recipes)**
+
+- `cookbook/01-checkout-pro-basic.ts` — first-time hosted checkout
+- `cookbook/02-saas-subscription.ts` — reusable plan + first payment + card swap on rejection
+- `cookbook/03-webhook-handler.ts` — production-grade Edge handler with HMAC verify
+- `cookbook/04-marketplace-split.ts` — OAuth seller link → preference with fee → reconciliation
+- `cookbook/05-qr-in-store.ts` — QR generation → buyer scan → WhatsApp notify
+- `cookbook/06-3ds-challenge.ts` — detect → redirect → recover via webhook
+- `cookbook/07-auth-only-order.ts` — Order with manual capture (ride-share / hotel pattern)
+- `cookbook/08-recovery-patterns.ts` — recover stuck-pending, card-swap on rejected sub, idempotent upsert via search, cron-driven monitoring
+
+**Quality**
+
+- 185 tests pass (was 169; +16 for KV adapters + 2 for replay protection).
+- publint clean, attw all 🟢 across both subpaths.
+- Bundle: main 31.9 KB brotli'd; vercel-kv subpath 0.6 KB brotli'd.
+
 ## 0.7.0
 
 ### Minor Changes

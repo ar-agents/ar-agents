@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.4.2
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.8.0` — Edge Runtime support (Web Crypto, no `node:crypto`), Vercel KV adapters subpath (`@ar-agents/mercadopago/vercel-kv`), HMAC webhook verify with replay-attack protection (5 min default tolerance), 8-recipe cookbook shipped in tarball, 185 tests pass.
+
+  No surface change at the MCP level. The MCP server inherits the Edge Runtime compatibility + KV adapters automatically; tool schemas unchanged.
+
 ## 0.4.1
 
 ### Patch Changes

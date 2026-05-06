@@ -1,7 +1,7 @@
-import { createHash } from "node:crypto";
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { MercadoPagoClient } from "./client";
+import { sha256Hex } from "./crypto";
 import {
   buildAuthorizeUrl,
   exchangeCodeForToken,
@@ -18,13 +18,17 @@ import { parseWebhookEvent, verifyWebhookSignature } from "./webhook";
  * the SAME inputs always produce the same key, so MP dedupes on its side
  * even if the client retries multiple times. Use a hash to keep keys short
  * + opaque (callers can't accidentally extract sensitive data from the key).
+ *
+ * **Async** — uses Web Crypto so it works in Edge Runtime.
  */
-function deterministicIdempotencyKey(...parts: Array<string | number | undefined>): string {
+async function deterministicIdempotencyKey(
+  ...parts: Array<string | number | undefined>
+): Promise<string> {
   const payload = parts
     .filter((p) => p !== undefined && p !== null)
     .map(String)
     .join("|");
-  return createHash("sha256").update(payload).digest("hex").slice(0, 32);
+  return (await sha256Hex(payload)).slice(0, 32);
 }
 
 export interface MercadoPagoToolsOptions {
@@ -576,7 +580,7 @@ export function mercadoPagoTools(
           ...(options.notificationUrl !== undefined ? { notificationUrl: options.notificationUrl } : {}),
           // Deterministic idempotency key — safe to retry, same inputs always
           // produce the same key (MP dedupes on its side).
-          idempotencyKey: deterministicIdempotencyKey(
+          idempotencyKey: await deterministicIdempotencyKey(
             "create_payment",
             input.external_reference ?? input.payer_email,
             input.amount_ars,
@@ -705,7 +709,7 @@ export function mercadoPagoTools(
         const refund = await client.createRefund({
           paymentId: payment_id,
           ...(amount_ars !== undefined ? { amount: amount_ars } : {}),
-          idempotencyKey: deterministicIdempotencyKey("refund", payment_id, amount_ars ?? "full"),
+          idempotencyKey: await deterministicIdempotencyKey("refund", payment_id, amount_ars ?? "full"),
         });
         return {
           refund_id: refund.id,
@@ -997,7 +1001,7 @@ export function mercadoPagoTools(
           ...(input.installments !== undefined ? { installments: input.installments } : {}),
           ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
           ...(input.statement_descriptor !== undefined ? { statementDescriptor: input.statement_descriptor } : {}),
-          idempotencyKey: deterministicIdempotencyKey(
+          idempotencyKey: await deterministicIdempotencyKey(
             "charge_saved_card",
             input.card_id,
             input.amount_ars,
@@ -1557,7 +1561,7 @@ export function mercadoPagoTools(
             resource: null,
           };
         }
-        const verified = verifyWebhookSignature({
+        const verified = await verifyWebhookSignature({
           requestId: request_id_header,
           dataId: event.dataId,
           signatureHeader: signature_header,
@@ -1797,7 +1801,7 @@ export function mercadoPagoTools(
         if (input.marketplace_fee !== undefined) params.marketplace_fee = input.marketplace_fee;
         if (input.collector_id !== undefined) params.collector_id = input.collector_id;
         const order = await client.createOrder(params, {
-          idempotencyKey: deterministicIdempotencyKey(
+          idempotencyKey: await deterministicIdempotencyKey(
             "create_order",
             input.external_reference,
             input.total_amount,

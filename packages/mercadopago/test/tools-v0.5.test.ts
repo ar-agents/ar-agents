@@ -39,7 +39,7 @@ describe("handle_webhook tool (v0.5)", () => {
     const { tools } = buildSetup();
     const dataId = "1234567890";
     const requestId = "req-abc-123";
-    const ts = "1700000000";
+    const ts = String(Math.floor(Date.now() / 1000));
     const rawBody = JSON.stringify({
       action: "payment.updated",
       type: "payment",
@@ -80,7 +80,7 @@ describe("handle_webhook tool (v0.5)", () => {
     });
     const dataId = created.id;
     const requestId = "req-fetch-123";
-    const ts = "1700000000";
+    const ts = String(Math.floor(Date.now() / 1000));
     const rawBody = JSON.stringify({ type: "payment", data: { id: dataId } });
     const signatureHeader = signWebhook({ dataId, requestId, ts, secret: SECRET });
 
@@ -162,7 +162,7 @@ describe("handle_webhook tool (v0.5)", () => {
     const { tools } = buildSetup();
     const dataId = "111222333";
     const requestId = "req-xyz";
-    const ts = "1700000000";
+    const ts = String(Math.floor(Date.now() / 1000));
     const result = (await tools.handle_webhook!.execute!(
       {
         raw_body: JSON.stringify({ type: "payment", data: { id: dataId } }),

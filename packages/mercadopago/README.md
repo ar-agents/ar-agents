@@ -25,6 +25,9 @@ Compatible with any caller that uses `tool()`.
 | Side effects | `create_subscription` creates a preapproval. `cancel`/`pause`/`resume` mutate state. `get_status` is read-only. |
 | Agent safety | `cancel_subscription` description triggers confirm-before-call in Claude Sonnet 4.6+ |
 | Sites supported | MLA (Argentina) verified end-to-end. Other LATAM sites should work but aren't exercised by tests. |
+| Runtime | **Edge Runtime + Node 18+** — Web Crypto under the hood, no `node:crypto`. Drops into Vercel Edge Functions, Cloudflare Workers, Deno deploy, or any modern Node. |
+| Vercel-native | First-class adapters for **Vercel KV** (subscription state, OAuth tokens, idempotency cache) via `@ar-agents/mercadopago/vercel-kv` subpath. |
+| Cookbook | 8 production-grade recipes shipped in `cookbook/` — checkout, subscriptions, webhook handler, marketplace OAuth, QR in-store, 3DS challenge, auth-only Order, recovery patterns. |
 
 ## Why this exists
 
@@ -361,11 +364,70 @@ and `mpResponse` for inspection. Specific subclasses:
 - `MercadoPagoAuthorizeForbiddenError` — see gotcha #6
 - `MercadoPagoRateLimitError` — 429 from MP
 
+## Vercel-native (v0.8+)
+
+The toolkit ships first-class adapters for Vercel infrastructure via the
+`@ar-agents/mercadopago/vercel-kv` subpath. `@vercel/kv` is an **optional**
+peer dep — only install it if you use the subpath.
+
+```ts
+import { mercadoPagoTools, MercadoPagoClient } from "@ar-agents/mercadopago";
+import {
+  VercelKVSubscriptionStateAdapter,
+  VercelKVOAuthTokenStore,
+  VercelKVIdempotencyCache,
+} from "@ar-agents/mercadopago/vercel-kv";
+
+const tools = mercadoPagoTools(
+  new MercadoPagoClient({ accessToken: process.env.MP_ACCESS_TOKEN! }),
+  {
+    state: new VercelKVSubscriptionStateAdapter(),
+    backUrl: "https://yourapp.com/done",
+    webhookSecret: process.env.MP_WEBHOOK_SECRET,
+    oauth: {
+      clientId: process.env.MP_CLIENT_ID!,
+      clientSecret: process.env.MP_CLIENT_SECRET!,
+    },
+  },
+);
+```
+
+### Edge Runtime
+
+The toolkit (including HMAC webhook verification) is fully Edge-Runtime
+compatible. Add `export const runtime = "edge"` to any Vercel route handler
+that uses MP tools — sub-100ms global cold starts.
+
+### Vercel Cron + Blob + Functions
+
+See `cookbook/08-recovery-patterns.ts` for a Vercel Cron Job example that
+monitors stuck-pending payments. For label/invoice PDF storage, the
+`crear_envio` tool (in `@ar-agents/shipping`) returns label URLs you can
+mirror to [Vercel Blob](https://vercel.com/docs/storage/vercel-blob).
+
+## Cookbook
+
+Production-grade recipes shipped in [`cookbook/`](./cookbook):
+
+| Recipe | What it shows |
+|---|---|
+| `01-checkout-pro-basic.ts` | First-time hosted checkout sale via the agent |
+| `02-saas-subscription.ts` | Reusable plan + first payment + card swap on rejection |
+| `03-webhook-handler.ts` | Edge Runtime webhook handler with HMAC verify + dispatch |
+| `04-marketplace-split.ts` | OAuth seller link + preference with `marketplace_fee` + reconciliation |
+| `05-qr-in-store.ts` | QR generation → buyer scan → cashier WhatsApp notify |
+| `06-3ds-challenge.ts` | Detect → redirect to challenge → recover via webhook |
+| `07-auth-only-order.ts` | Order with `capture_mode: "manual"` (ride-share / hotel pattern) |
+| `08-recovery-patterns.ts` | Card swap on subscription, stuck-pending recovery, idempotent upsert via search, Vercel Cron monitoring |
+
+Each recipe is copy-pasteable into a Next.js route handler.
+
 ## Compatibility
 
-- Node.js 20+
+- **Node.js 18+** (Web Crypto required) or **Vercel Edge Runtime** / **Cloudflare Workers** / **Deno**
 - Vercel AI SDK 6+
 - Zod 3+
+- Optional: `@vercel/kv >=2` for the `vercel-kv` subpath
 - Pairs cleanly with [Vercel AI Gateway](https://vercel.com/ai-gateway) for model routing.
 
 ## License

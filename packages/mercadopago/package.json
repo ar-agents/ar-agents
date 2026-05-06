@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/mercadopago",
-  "version": "0.7.0",
-  "description": "Mercado Pago Subscriptions as drop-in tools for the Vercel AI SDK. Argentine-focused, agent-ready.",
+  "version": "0.8.0",
+  "description": "The most complete Mercado Pago agent toolkit for Vercel AI SDK 6+. 81 tools, Edge Runtime ready, Vercel KV state adapters, HMAC webhook verify with replay protection, OAuth Marketplace flow, Order Management, Point Devices, marketplace splits, status_detail explainer in Spanish, AR-specific knowledge baked in.",
   "keywords": [
     "mercadopago",
     "ai-sdk",
@@ -26,6 +26,11 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "vercel-kv": ["./dist/vercel-kv.d.ts"]
+    }
+  },
   "exports": {
     ".": {
       "import": {
@@ -36,10 +41,21 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
+    },
+    "./vercel-kv": {
+      "import": {
+        "types": "./dist/vercel-kv.d.ts",
+        "default": "./dist/vercel-kv.js"
+      },
+      "require": {
+        "types": "./dist/vercel-kv.d.cts",
+        "default": "./dist/vercel-kv.cjs"
+      }
     }
   },
   "files": [
     "dist",
+    "cookbook",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
@@ -78,12 +94,19 @@
     }
   ],
   "peerDependencies": {
+    "@vercel/kv": ">=2.0.0",
     "ai": ">=6.0.0",
     "zod": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@vercel/kv": {
+      "optional": true
+    }
   },
   "devDependencies": {
     "@types/node": "^20.19.39",
     "@types/qrcode": "^1.5.6",
+    "@vercel/kv": "^3.0.0",
     "ai": "^6.0.175",
     "msw": "^2.6.0",
     "tsup": "^8.3.5",

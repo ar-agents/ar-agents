@@ -18,6 +18,12 @@ export {
   type SubscriptionStateAdapter,
   type SubscriptionStateRecord,
   InMemoryStateAdapter,
+  // v0.8 — additional state surfaces
+  type OAuthTokenStore,
+  type OAuthTokenRecord,
+  InMemoryOAuthTokenStore,
+  type IdempotencyCache,
+  InMemoryIdempotencyCache,
 } from "./state";
 
 export {
