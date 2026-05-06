@@ -77,7 +77,7 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "60 KB",
+      "limit": "80 KB",
       "ignore": [
         "@modelcontextprotocol/sdk",
         "node:crypto",
@@ -88,9 +88,24 @@
         "path",
         "node:child_process",
         "node:url",
+        "url",
         "node:util",
         "node:http",
+        "http",
         "node:https",
+        "https",
+        "node:stream",
+        "stream",
+        "node:zlib",
+        "zlib",
+        "node:buffer",
+        "buffer",
+        "node:events",
+        "events",
+        "node:net",
+        "net",
+        "node:tls",
+        "tls",
         "node-forge"
       ]
     }

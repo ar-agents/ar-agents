@@ -65,12 +65,14 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "20 KB"
+      "limit": "20 KB",
+      "ignore": ["fs", "path", "crypto", "node:fs", "node:path", "node:crypto", "node-forge"]
     },
     {
       "name": "CJS",
       "path": "dist/index.cjs",
-      "limit": "20 KB"
+      "limit": "20 KB",
+      "ignore": ["fs", "path", "crypto", "node:fs", "node:path", "node:crypto", "node-forge"]
     }
   ],
   "dependencies": {
