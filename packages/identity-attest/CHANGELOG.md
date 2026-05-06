@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes — Edge Runtime support (BREAKING for direct callers of `verifyAttestationSignature`)
+
+**Migrated `AttestationClient` from `node:crypto` to Web Crypto.** The main
+bundle now runs in Vercel Edge Runtime, Cloudflare Workers, Deno, and
+any environment with `globalThis.crypto.subtle`.
+
+**Breaking change:** `AttestationClient.verifyAttestationSignature(att)`
+is now async (`Promise<void>` instead of `void`). All callers inside
+agent tool execute() handlers are already async, so this is zero-cost
+for typical usage. If you call it from sync code, add `await`.
+
+```ts
+// BEFORE
+client.verifyAttestationSignature(att);
+
+// AFTER
+await client.verifyAttestationSignature(att);
+```
+
+The Auth0 + MagicLink adapters still use `node:crypto` for PKCE — they're
+opt-in (you only pull them if you import `Auth0Adapter` / `MagicLinkSdkAdapter`).
+The core `AttestationClient` + `WhatsAppOtpAdapter` + `EmailMagicLinkAdapter`
+are fully Edge-safe.
+
 ## 0.2.0
 
 ### Minor Changes

@@ -1,5 +1,46 @@
 # Changelog
 
+## 0.14.0
+
+### Minor Changes — deep-audit hardening pass
+
+**Critical: Browser-context guard in MercadoPagoClient constructor.**
+Throws if instantiated in a context where `window` is defined — prevents
+the access token from being bundled into a client-side JavaScript bundle.
+Edge Runtime, Node, Workers, and any server context pass through. To
+opt out for jsdom-based tests, pass `__allowBrowser: true`.
+
+**`z.unknown()` schemas replaced with strict Zod.** Two tools previously
+used `z.record(z.string(), z.unknown())`:
+- `update_merchant_order.patch` → narrow object with documented MP fields
+  (`external_reference`, `notification_url`, `additional_info`, `status`),
+  `.strict()` so unknown keys are rejected.
+- `explain_payment_status.payment` → typed shape with `.passthrough()` for
+  ergonomic interop, marked clearly as ADVANCED — LLMs should use
+  `payment_id` instead.
+
+**Stricter validation on `search_payments`:**
+- `payer_email` now requires `.email()` (was bare `z.string()`).
+- `begin_date` / `end_date` now require `.datetime()` ISO 8601.
+
+**Deterministic idempotency on subscription + preference creation.**
+`create_subscription` and `create_payment_preference` now derive their
+idempotency key from input fields (customer_email + amount + frequency
+for subscriptions; items + payer + external_reference for preferences).
+LLM retries with the same inputs return the EXISTING resource instead
+of creating a duplicate.
+
+**Human-in-the-loop warnings on irreversible / money-moving tools.**
+Updated 7 tool descriptions to explicitly tell the LLM to confirm with
+the user before calling: `cancel_payment`, `capture_payment`,
+`refund_payment`, `delete_customer_card`, `cancel_qr_payment`,
+`cancel_order`, `cancel_point_payment_intent`, `delete_webhook`. Each
+description now states what's irreversible, what the user should be
+told before confirmation, and what the post-call state is.
+
+`CreatePreapprovalParams` and `CreatePreferenceParams` now accept an
+optional `idempotencyKey` field for callers that want explicit control.
+
 ## 0.13.0
 
 ### Minor Changes — Distributed rate limiter via Vercel KV

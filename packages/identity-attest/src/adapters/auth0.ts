@@ -1,3 +1,10 @@
+// Auth0 adapter — uses node:crypto for PKCE challenge generation. The
+// `AttestAdapter.generateSecret()` interface is currently sync, while
+// Web Crypto's `subtle.digest` is async. This adapter is therefore
+// **NOT Edge-Runtime compatible** — it requires Node 18+. The main
+// `@ar-agents/identity-attest` bundle (AttestationClient + WhatsApp OTP +
+// Email Magic Link) IS Edge-safe; only this Auth0 + MagicLink adapter
+// pull `node:crypto`. A future v0.3 will move them to subpaths.
 import { createHash, randomBytes } from "node:crypto";
 import { createRemoteJWKSet, jwtVerify } from "jose";
 import type { AttestAdapter } from "./base";

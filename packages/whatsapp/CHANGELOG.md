@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.3.0
+
+### Minor Changes — Browser-context guard
+
+`WhatsAppClient` constructor now throws if instantiated in a browser
+context (where `window` is defined). Prevents the Meta access token
+from being accidentally bundled into client-side JavaScript. Edge
+Runtime, Node, Workers, and any server context pass through unchanged.
+
+For jsdom-based tests, pass `__allowBrowser: true` explicitly.
+
 ## 0.2.0
 
 ### Minor Changes — Agent hijacking prevention (`scopedTo` mode)

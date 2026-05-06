@@ -59,6 +59,17 @@ export class WhatsAppClient {
   private readonly onCall: WhatsAppClientOptions["onCall"];
 
   constructor(options: WhatsAppClientOptions) {
+    // Browser-context guard — same rationale as MercadoPagoClient. The
+    // Meta access token is server-only; bundling this client into a
+    // browser would leak it.
+    const w = (globalThis as { window?: unknown }).window;
+    if (typeof w !== "undefined" && !options.__allowBrowser) {
+      throw new Error(
+        "WhatsAppClient must NEVER be instantiated in a browser context — " +
+          "the Meta access token would be exposed in the JavaScript bundle. " +
+          "Use a Server Component, Route Handler, or Server Action.",
+      );
+    }
     if (!options.accessToken || !options.phoneNumberId) {
       throw new WhatsAppNotConfiguredError();
     }

@@ -221,7 +221,7 @@ describe("Attestation signature verification", () => {
     });
     const code = wa.sends[0]!.text.match(/(\d{6})/)![1]!;
     const attestation = await client.submitOtp(request.requestId, code);
-    expect(() => client.verifyAttestationSignature(attestation)).not.toThrow();
+    await expect(client.verifyAttestationSignature(attestation)).resolves.toBeUndefined();
   });
 
   it("rejects an attestation with tampered subject", async () => {
@@ -237,7 +237,7 @@ describe("Attestation signature verification", () => {
     const code = wa.sends[0]!.text.match(/(\d{6})/)![1]!;
     const attestation = await client.submitOtp(request.requestId, code);
     const tampered = { ...attestation, subject: { type: "phone" as const, value: "5499999999999" } };
-    expect(() => client.verifyAttestationSignature(tampered)).toThrow(/signature/i);
+    await expect(client.verifyAttestationSignature(tampered)).rejects.toThrow(/signature/i);
   });
 });
 

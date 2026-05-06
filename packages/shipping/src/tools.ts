@@ -107,18 +107,26 @@ export function shippingTools(options: ShippingToolsOptions = {}): ToolSet {
   };
 
   const addressSchema = z.object({
-    name: z.string(),
-    company: z.string().optional(),
-    street: z.string(),
-    number: z.string(),
-    unit: z.string().optional(),
-    city: z.string(),
-    state: z.union([z.string(), z.number()]),
-    postalCode: z.string(),
-    country: z.string().optional(),
-    phone: z.string().optional(),
+    name: z.string().min(1).max(120).describe("Recipient or sender full name. Required."),
+    company: z.string().max(120).optional().describe("Company name if delivering to a business."),
+    street: z.string().min(1).max(200).describe("Street name."),
+    number: z.string().min(1).max(20).describe("Street number (string — supports 's/n', '1234A', etc.)."),
+    unit: z.string().max(40).optional().describe("Apt/floor (e.g. '4°B', 'PB')."),
+    city: z.string().min(1).max(120).describe("City / locality."),
+    state: z
+      .string()
+      .min(1)
+      .max(40)
+      .describe("AR provincia. Accepts 'Buenos Aires', 'CABA', single-letter codes ('B', 'C'), etc. Validated against the official enum at runtime."),
+    postalCode: z
+      .string()
+      .min(4)
+      .max(8)
+      .describe("AR postal code (CPA). 4 digits ('1842') or extended ('B1842ZAB'). Validated at runtime."),
+    country: z.string().max(40).optional().describe("Default 'AR'. Required for international."),
+    phone: z.string().max(40).optional().describe("Contact phone for delivery coordination."),
     email: z.string().email().optional(),
-    notes: z.string().optional(),
+    notes: z.string().max(500).optional(),
   });
 
   const packageSchema = z.object({
@@ -271,7 +279,7 @@ export function shippingTools(options: ShippingToolsOptions = {}): ToolSet {
       description: desc("trackear_envio"),
       inputSchema: z.object({
         carrier: carrierSchema,
-        tracking_number: z.string(),
+        tracking_number: z.string().min(1).max(40).describe("Tracking number from crear_envio."),
       }),
       execute: async ({ carrier, tracking_number }) => {
         const adapter = requireAdapter(carrier as Carrier);
@@ -293,7 +301,7 @@ export function shippingTools(options: ShippingToolsOptions = {}): ToolSet {
       description: desc("cancelar_envio"),
       inputSchema: z.object({
         carrier: carrierSchema,
-        tracking_number: z.string(),
+        tracking_number: z.string().min(1).max(40).describe("Tracking number from crear_envio."),
       }),
       execute: async ({ carrier, tracking_number }) => {
         const adapter = requireAdapter(carrier as Carrier);
@@ -315,7 +323,11 @@ export function shippingTools(options: ShippingToolsOptions = {}): ToolSet {
       description: desc("listar_sucursales"),
       inputSchema: z.object({
         carrier: carrierSchema,
-        postal_code: z.string(),
+        postal_code: z
+          .string()
+          .min(4)
+          .max(8)
+          .describe("AR CPA — 4 digits or extended ('B1842ZAB')."),
         limit: z.number().int().min(1).max(50).optional(),
       }),
       execute: async ({ carrier, postal_code, limit }) => {

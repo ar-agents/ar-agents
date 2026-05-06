@@ -87,6 +87,13 @@ export interface WhatsAppClientOptions {
   accessToken: string;
   /** WABA phone number ID (numeric string from Meta dashboard). Required. */
   phoneNumberId: PhoneNumberId;
+  /**
+   * Escape hatch for browser-context tests (e.g., jsdom). MUST NOT be set
+   * in production code — the constructor's browser-context check exists
+   * specifically to prevent the Meta access token from being bundled into
+   * a client-side JavaScript bundle.
+   */
+  __allowBrowser?: boolean;
   /** Graph API version. Default `"v21.0"`. */
   apiVersion?: string;
   /** Override Graph base URL (testing). */

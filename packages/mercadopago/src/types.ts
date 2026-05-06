@@ -79,6 +79,12 @@ export interface CreatePreapprovalParams {
   backUrl: string;
   /** Optional client-side identifier for the subscription. */
   externalReference?: string;
+  /**
+   * Optional explicit idempotency key. If omitted, the client auto-generates
+   * a UUID v4 per call. Pass a deterministic key (e.g., hash of inputs) when
+   * you need cross-retry idempotency from the agent layer.
+   */
+  idempotencyKey?: string;
 }
 
 /**
@@ -431,6 +437,13 @@ export interface CreatePreferenceParams {
   marketplaceFee?: number;
   /** Seller's MP user_id. Funds route here when set. */
   collectorId?: string | number;
+  /**
+   * Optional explicit idempotency key. If omitted, the client auto-generates
+   * a UUID v4 per call. Pass a deterministic key (e.g., hash of items +
+   * external_reference) when you need cross-retry idempotency from the
+   * agent layer.
+   */
+  idempotencyKey?: string;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

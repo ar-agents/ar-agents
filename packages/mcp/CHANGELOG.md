@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.8
+
+### Patch Changes
+
+- Picks up `@ar-agents/mercadopago@0.14.0` (deep-audit hardening:
+  browser-context guard, strict Zod on patch schemas, deterministic
+  idempotency on subscriptions/preferences, HITL warnings on irreversible
+  ops), `@ar-agents/whatsapp@0.3.0` (browser-context guard), and
+  `@ar-agents/identity-attest@0.3.0` (Edge Runtime via Web Crypto).
+
 ## 0.4.7
 
 ### Patch Changes

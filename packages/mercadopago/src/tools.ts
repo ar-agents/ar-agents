@@ -235,13 +235,13 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   search_payments:
     "Search payments with filters. Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful charges in a date range. Returns paginated results.",
   cancel_payment:
-    "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending.",
+    "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE — confirm with the user before calling. Surface the payment_id, amount, payer_email, and current status, ask 'sí, cancelá' (or equivalent), then proceed.**",
   capture_payment:
-    "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount.",
+    "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY — confirm the amount with the user before calling.**",
 
   // ── Refunds ──────────────────────────────────────────────────────────────
   refund_payment:
-    "Refund an approved payment. Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to prevent double-refunds on retries.",
+    "Refund an approved payment. Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to prevent double-refunds on retries. **IRREVERSIBLE AND MOVES MONEY — confirm with the user before calling. Restate the payment_id, the refund amount (full vs partial), and ask explicit confirmation. Mercado Pago does not support 'undo refund' — once issued, the buyer's bank releases the funds.**",
   list_refunds:
     "List all refunds for a given payment. Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
 
@@ -259,7 +259,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   list_customer_cards:
     "List the saved cards for a customer. Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_payment calls to charge a saved card.",
   delete_customer_card:
-    "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. Irreversible.",
+    "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE — confirm with the user before calling. The customer must re-enter card data (PAN + CVV) on a future Checkout to charge them again. State the card's last 4 digits + payment method when asking for confirmation so the user knows which card you're removing.**",
 
   // ── Payment Methods + Installments ───────────────────────────────────────
   list_payment_methods:
@@ -279,7 +279,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   create_qr_payment:
     "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS external_id (use create_pos to set one up first if needed). Returns the qr_data string + a base64 PNG data URL ready to display. The QR expires in `expires_in_seconds` (default 600). MP fires `point_integration_wh` then `payment` webhooks when scanned.",
   cancel_qr_payment:
-    "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409.",
+    "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE — but low-stakes since the QR has not been paid yet. Confirm before calling if the user is mid-flow.**",
 
   // ── Subscription Plans (v0.4) ────────────────────────────────────────────
   create_subscription_plan:
@@ -323,7 +323,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   update_webhook:
     "Update a webhook's URL or topic. Useful when you change deployment URLs without resubscribing from scratch.",
   delete_webhook:
-    "Delete a webhook subscription. MP stops POSTing to it immediately.",
+    "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE — confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subscribing requires a new create_webhook call.**",
 
   // ── Webhook handler combo (v0.5) ─────────────────────────────────────────
   handle_webhook:
@@ -347,7 +347,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   capture_order:
     "Capture a previously-authorized Order (only for orders created with capture_mode='manual'). Captures up to the originally-authorized amount; pass amount for partial capture. Common use: ride-share marks ride complete → capture; hotel checks-out guest → capture.",
   cancel_order:
-    "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture.",
+    "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture. **IRREVERSIBLE — confirm with the user. State the order_id, total_amount, and current status before asking 'sí, cancelá'. The buyer's hold is released to their bank within 24-72h depending on issuer.**",
 
   // ── Account / Balance / Movements / Settlements (v0.6) ───────────────────
   get_account_balance:
@@ -427,7 +427,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   get_point_payment_intent:
     "Get the current state of a Point payment intent (OPEN, PROCESSING, FINISHED, CANCELED, ERROR). USE in polling loops if you can't wait for the webhook. When state=FINISHED, the intent.payment.id is the resulting Payment id usable with get_payment.",
   cancel_point_payment_intent:
-    "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead.",
+    "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERSIBLE — confirm with the cashier/operator before calling. State the device_id and amount.**",
 
   // ── Pure helpers (v0.7) ──────────────────────────────────────────────────
   compute_marketplace_fee:
@@ -501,16 +501,28 @@ export function mercadoPagoTools(
         external_reference: z.string().optional().describe("Optional id from your system to track this subscription"),
       }),
       execute: async ({ customer_email, amount_ars, frequency_months, reason, external_reference }) => {
-        const created = await client.createPreapproval({
-          reason,
-          payerEmail: customer_email,
-          amount: amount_ars,
-          currency: "ARS",
-          frequency: frequency_months,
-          frequencyType: "months",
-          backUrl: options.backUrl,
-          ...(external_reference !== undefined ? { externalReference: external_reference } : {}),
-        });
+        const created = await client.createPreapproval(
+          {
+            reason,
+            payerEmail: customer_email,
+            amount: amount_ars,
+            currency: "ARS",
+            frequency: frequency_months,
+            frequencyType: "months",
+            backUrl: options.backUrl,
+            ...(external_reference !== undefined ? { externalReference: external_reference } : {}),
+            // Deterministic idempotency — if the LLM retries this tool call
+            // with the same inputs (e.g., timeout + retry), MP returns the
+            // EXISTING subscription instead of creating a duplicate.
+            idempotencyKey: await deterministicIdempotencyKey(
+              "create_subscription",
+              customer_email,
+              amount_ars,
+              frequency_months,
+              external_reference,
+            ),
+          },
+        );
         await options.state.set(created.id, {
           status: created.status,
           payerEmail: customer_email,
@@ -747,9 +759,9 @@ export function mercadoPagoTools(
       inputSchema: z.object({
         external_reference: z.string().optional(),
         status: z.string().optional().describe("'approved' | 'pending' | 'rejected' | 'cancelled' | 'refunded' etc."),
-        payer_email: z.string().optional(),
-        begin_date: z.string().optional().describe("ISO 8601, e.g. 2026-01-01T00:00:00Z"),
-        end_date: z.string().optional().describe("ISO 8601"),
+        payer_email: z.string().email().optional().describe("Filter by payer email (exact match)."),
+        begin_date: z.string().datetime().optional().describe("ISO 8601, e.g. 2026-01-01T00:00:00Z"),
+        end_date: z.string().datetime().optional().describe("ISO 8601"),
         limit: z.number().int().min(1).max(100).optional().describe("Default 30, max 100"),
         offset: z.number().int().min(0).optional().describe("Pagination offset (default 0)"),
       }),
@@ -877,32 +889,44 @@ export function mercadoPagoTools(
         excluded_payment_types: z.array(z.enum(["credit_card", "debit_card", "ticket", "atm", "bank_transfer"])).optional().describe("Block payment types — e.g., ['ticket'] to disable Rapipago/Pago Fácil"),
       }),
       execute: async (input) => {
-        const pref = await client.createPreference({
-          items: input.items.map((it) => ({
-            title: it.title,
-            quantity: it.quantity,
-            unit_price: it.unit_price,
-            currency_id: "ARS",
-            ...(it.description !== undefined ? { description: it.description } : {}),
-            ...(it.picture_url !== undefined ? { picture_url: it.picture_url } : {}),
-          })),
-          ...(input.payer_email !== undefined ? { payer: { email: input.payer_email } } : {}),
-          ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
-          ...(input.statement_descriptor !== undefined ? { statementDescriptor: input.statement_descriptor } : {}),
-          backUrls: { success: options.backUrl, failure: options.backUrl, pending: options.backUrl },
-          autoReturn: "approved",
-          ...(options.notificationUrl !== undefined ? { notificationUrl: options.notificationUrl } : {}),
-          ...((input.max_installments !== undefined || input.excluded_payment_types !== undefined)
-            ? {
-                paymentMethods: {
-                  ...(input.max_installments !== undefined ? { installments: input.max_installments } : {}),
-                  ...(input.excluded_payment_types !== undefined
-                    ? { excluded_payment_types: input.excluded_payment_types.map((id) => ({ id })) }
-                    : {}),
-                },
-              }
-            : {}),
-        });
+        // Deterministic idempotency at the request layer: if the LLM
+        // retries this tool with the same items + payer + external_ref,
+        // MP returns the EXISTING preference instead of creating a duplicate
+        // (which would have the same init_point — same buyer, same link).
+        const idemKey = await deterministicIdempotencyKey(
+          "create_payment_preference",
+          input.external_reference ?? input.payer_email ?? "",
+          input.items.map((it) => `${it.title}:${it.quantity}:${it.unit_price}`).join("|"),
+        );
+        const pref = await client.createPreference(
+          {
+            items: input.items.map((it) => ({
+              title: it.title,
+              quantity: it.quantity,
+              unit_price: it.unit_price,
+              currency_id: "ARS",
+              ...(it.description !== undefined ? { description: it.description } : {}),
+              ...(it.picture_url !== undefined ? { picture_url: it.picture_url } : {}),
+            })),
+            ...(input.payer_email !== undefined ? { payer: { email: input.payer_email } } : {}),
+            ...(input.external_reference !== undefined ? { externalReference: input.external_reference } : {}),
+            ...(input.statement_descriptor !== undefined ? { statementDescriptor: input.statement_descriptor } : {}),
+            backUrls: { success: options.backUrl, failure: options.backUrl, pending: options.backUrl },
+            autoReturn: "approved",
+            ...(options.notificationUrl !== undefined ? { notificationUrl: options.notificationUrl } : {}),
+            ...((input.max_installments !== undefined || input.excluded_payment_types !== undefined)
+              ? {
+                  paymentMethods: {
+                    ...(input.max_installments !== undefined ? { installments: input.max_installments } : {}),
+                    ...(input.excluded_payment_types !== undefined
+                      ? { excluded_payment_types: input.excluded_payment_types.map((id) => ({ id })) }
+                      : {}),
+                  },
+                }
+              : {}),
+            idempotencyKey: idemKey,
+          },
+        );
         return {
           preference_id: pref.id,
           init_point_url: pref.init_point ?? null,
@@ -2275,8 +2299,35 @@ export function mercadoPagoTools(
     update_merchant_order: tool({
       description: desc("update_merchant_order"),
       inputSchema: z.object({
-        merchant_order_id: z.string(),
-        patch: z.record(z.string(), z.unknown()),
+        merchant_order_id: z.string().min(1),
+        // Narrow to MP's documented merchant_order PATCH fields. Previously
+        // this was z.record(z.string(), z.unknown()) which let the LLM pass
+        // arbitrary JSON; MP would silently ignore unknown keys, masking
+        // typos. Strict schema = LLM gets a clear validation error instead.
+        patch: z
+          .object({
+            external_reference: z
+              .string()
+              .max(256)
+              .optional()
+              .describe("Your system's id for this order. Updateable while order is open."),
+            notification_url: z
+              .string()
+              .url()
+              .optional()
+              .describe("Where MP sends webhook notifications for this order."),
+            additional_info: z
+              .string()
+              .max(600)
+              .optional()
+              .describe("Free-form metadata stored alongside the order."),
+            status: z
+              .enum(["opened", "closed", "expired"])
+              .optional()
+              .describe("Open orders can be closed (final) or expired (cleanup)."),
+          })
+          .strict()
+          .describe("Subset of merchant_order fields to update. Unknown keys rejected."),
       }),
       execute: async ({ merchant_order_id, patch }) => {
         return client.updateMerchantOrder(merchant_order_id, patch);
@@ -2525,11 +2576,32 @@ export function mercadoPagoTools(
     explain_payment_status: tool({
       description: desc("explain_payment_status"),
       inputSchema: z.object({
-        payment_id: z.string().optional().describe("If provided, fetches the Payment first."),
-        payment: z
-          .record(z.string(), z.unknown())
+        payment_id: z
+          .string()
+          .min(1)
           .optional()
-          .describe("Alternatively, pass a Payment object directly (saves a network round-trip)."),
+          .describe(
+            "If provided, fetches the Payment first. RECOMMENDED PATH for agents — pass the id and let the lib fetch.",
+          ),
+        // Loose object kept for advanced manual callers that have already
+        // fetched a Payment from another path. LLMs should prefer payment_id.
+        // We don't strictly type the Payment shape here because MP's actual
+        // response includes 100+ optional fields; the helper consumes only
+        // status / status_detail / payment_method_id / etc. Exposed loosely
+        // for ergonomic interop, NOT for LLM use.
+        payment: z
+          .object({
+            id: z.union([z.string(), z.number()]).optional(),
+            status: z.string().optional(),
+            status_detail: z.string().optional(),
+            payment_method_id: z.string().optional(),
+            transaction_amount: z.number().optional(),
+          })
+          .passthrough()
+          .optional()
+          .describe(
+            "ADVANCED — pass a pre-fetched Payment object to skip the network call. LLMs: use payment_id instead.",
+          ),
       }),
       execute: async ({ payment_id, payment }) => {
         let p: import("./types").Payment;

@@ -95,6 +95,14 @@ export interface MercadoPagoClientOptions {
   /** Access token. TEST- prefix for sandbox, APP_USR- for production. */
   accessToken: string;
   /**
+   * Escape hatch for browser-context tests (e.g., jsdom). MUST NOT be set
+   * in production code — the constructor's browser-context check exists
+   * specifically to prevent the access token from being bundled into a
+   * client-side JavaScript bundle. The `__` prefix and explicit boolean
+   * are deliberate friction so this never gets typed by accident.
+   */
+  __allowBrowser?: boolean;
+  /**
    * Override the API base URL. Mostly useful for tests against MSW or for
    * pointing at a regional MP host. Defaults to https://api.mercadopago.com.
    */
@@ -213,6 +221,24 @@ export class MercadoPagoClient {
   private readonly traceContext: MercadoPagoClientOptions["traceContext"];
 
   constructor(options: MercadoPagoClientOptions) {
+    // Browser-context guard. The access token is server-only — any code
+    // path that ends up in a browser bundle would leak it via the
+    // generated JS / source maps. We detect a browser context via the
+    // presence of `window` (Edge Runtime + Node + Workers do NOT define
+    // `window`, so they pass through). To skip this check (e.g., for
+    // unit tests in jsdom that legitimately mock the client), pass
+    // `__allowBrowser: true` explicitly — that's a deliberate opt-in
+    // signal, not something a careless dev would type by accident.
+    const w = (globalThis as { window?: unknown }).window;
+    if (typeof w !== "undefined" && !options.__allowBrowser) {
+      throw new Error(
+        "MercadoPagoClient must NEVER be instantiated in a browser context — " +
+          "the access token would be exposed in the JavaScript bundle and visible " +
+          "to anyone in DevTools. Use a Server Component, Route Handler, Server " +
+          "Action, or any server-only execution context. If you're running in " +
+          "jsdom for tests and KNOW this is safe, pass `__allowBrowser: true`.",
+      );
+    }
     if (!options.accessToken) {
       throw new Error(
         "MercadoPagoClient requires an accessToken. Get one from https://www.mercadopago.com.ar/developers/panel/credentials",
@@ -480,7 +506,10 @@ export class MercadoPagoClient {
           currency_id: params.currency,
         },
       },
-      { classifyContext: { payerEmail: params.payerEmail } },
+      {
+        ...(params.idempotencyKey ? { idempotencyKey: params.idempotencyKey } : {}),
+        classifyContext: { payerEmail: params.payerEmail },
+      },
     );
   }
 
@@ -696,7 +725,12 @@ export class MercadoPagoClient {
     if (params.marketplaceFee !== undefined) body.marketplace_fee = params.marketplaceFee;
     if (params.collectorId !== undefined) body.collector_id = params.collectorId;
 
-    return this.request<Preference>("POST", "/checkout/preferences", body);
+    return this.request<Preference>(
+      "POST",
+      "/checkout/preferences",
+      body,
+      params.idempotencyKey ? { idempotencyKey: params.idempotencyKey } : undefined,
+    );
   }
 
   async getPreference(id: string): Promise<Preference> {

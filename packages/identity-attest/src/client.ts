@@ -1,4 +1,4 @@
-import { createHmac, randomUUID, timingSafeEqual } from "node:crypto";
+import { hmacSha256Hex, randomUuid, timingSafeEqualHex } from "./crypto";
 import type { AttestAdapter } from "./adapters/base";
 import {
   IdentityAttestConfigError,
@@ -110,7 +110,7 @@ export class AttestationClient {
         `No adapter registered for method "${params.method}". Available: ${Array.from(this.adapters.keys()).join(", ")}`,
       );
     }
-    const requestId = randomUUID();
+    const requestId = randomUuid();
     const now = new Date();
     const expiresAt = new Date(now.getTime() + this.ttlMs);
     const secret = adapter.generateSecret();
@@ -229,12 +229,16 @@ export class AttestationClient {
     return valid[0] ?? null;
   }
 
-  /** Verify an attestation's HMAC signature. Throws on mismatch. */
-  verifyAttestationSignature(attestation: Attestation): void {
-    const expected = this.signAttestation(attestation);
-    const a = Buffer.from(expected, "utf8");
-    const b = Buffer.from(attestation.signature, "utf8");
-    if (a.length !== b.length || !timingSafeEqual(a, b)) {
+  /**
+   * Verify an attestation's HMAC signature. Throws on mismatch.
+   *
+   * Async because Web Crypto's HMAC computation is Promise-based. Callers
+   * inside agent tool execute() handlers are already async, so this is a
+   * zero-cost upgrade.
+   */
+  async verifyAttestationSignature(attestation: Attestation): Promise<void> {
+    const expected = await this.signAttestation(attestation);
+    if (!timingSafeEqualHex(expected, attestation.signature)) {
       throw new InvalidAttestationSignatureError();
     }
   }
@@ -305,7 +309,7 @@ export class AttestationClient {
       signature: "", // filled below
       externalReference: request.externalReference,
     };
-    attestation.signature = this.signAttestation(attestation);
+    attestation.signature = await this.signAttestation(attestation);
     await this.store.saveAttestation(attestation);
     await this.store.updateRequest(requestId, {
       status: "verified" as VerificationStatus,
@@ -314,8 +318,8 @@ export class AttestationClient {
     return attestation;
   }
 
-  private signAttestation(a: Attestation): string {
+  private async signAttestation(a: Attestation): Promise<string> {
     const payload = `${a.requestId}|${a.verifier}|${a.method}|${a.trustLevel}|${a.subject.type}:${a.subject.value}|${a.verifiedAt}|${a.expiresAt}`;
-    return createHmac("sha256", this.signingSecret).update(payload, "utf8").digest("hex");
+    return await hmacSha256Hex(this.signingSecret, payload);
   }
 }

@@ -95,37 +95,63 @@ export function facturacionTools(
         ptoVta: z.number().int().positive().optional().describe(
           "Punto de venta (1-99999). Omitible si pasaste defaultPtoVta al construir las tools.",
         ),
-        cbteTipo: z.number().int().describe(
-          "Tipo de comprobante. Comunes: 1 (Factura A), 6 (Factura B), 11 (Factura C, monotributo). Para Notas: 2/3 (Débito/Crédito A), 7/8 (B), 12/13 (C).",
-        ),
-        concepto: z.number().int().min(1).max(3).describe(
-          "1 = Productos, 2 = Servicios, 3 = Productos y Servicios.",
-        ),
-        docTipo: z.number().int().describe(
-          "Tipo de documento del receptor: 80 = CUIT, 96 = DNI, 99 = Consumidor Final.",
-        ),
+        cbteTipo: z
+          .union([
+            z.literal(1).describe("Factura A"),
+            z.literal(2).describe("Nota de Débito A"),
+            z.literal(3).describe("Nota de Crédito A"),
+            z.literal(6).describe("Factura B"),
+            z.literal(7).describe("Nota de Débito B"),
+            z.literal(8).describe("Nota de Crédito B"),
+            z.literal(11).describe("Factura C (monotributo)"),
+            z.literal(12).describe("Nota de Débito C"),
+            z.literal(13).describe("Nota de Crédito C"),
+            z.literal(201).describe("Factura de Crédito Electrónica MiPyMEs A"),
+            z.literal(206).describe("Factura de Crédito Electrónica MiPyMEs B"),
+            z.literal(211).describe("Factura de Crédito Electrónica MiPyMEs C"),
+          ])
+          .describe(
+            "Tipo de comprobante (cerrado a la lista AFIP/ARCA). Cualquier otro valor se rechaza antes de tocar AFIP.",
+          ),
+        concepto: z
+          .union([
+            z.literal(1).describe("Productos"),
+            z.literal(2).describe("Servicios"),
+            z.literal(3).describe("Productos y Servicios"),
+          ])
+          .describe("1 = Productos, 2 = Servicios, 3 = Productos y Servicios."),
+        docTipo: z
+          .union([
+            z.literal(80).describe("CUIT"),
+            z.literal(86).describe("CUIL"),
+            z.literal(96).describe("DNI"),
+            z.literal(99).describe("Consumidor Final"),
+            z.literal(94).describe("Pasaporte"),
+            z.literal(91).describe("CI Extranjera"),
+          ])
+          .describe("Tipo de documento del receptor (lista cerrada AFIP)."),
         docNro: z.union([z.string(), z.number()]).describe(
           "Número de documento del receptor. Para Consumidor Final pasá 0.",
         ),
         cbteFch: z.string().regex(/^\d{8}$/).describe(
           'Fecha del comprobante en formato YYYYMMDD (ej: "20260506"). Debe estar dentro de ±5 días de hoy (servicios: ±10).',
         ),
-        impTotal: z.number().describe(
+        impTotal: z.number().nonnegative().finite().describe(
           "Importe total de la factura. Debe ser igual a impNeto + impIVA + impOpEx + impTrib + impTotConc.",
         ),
-        impNeto: z.number().describe(
+        impNeto: z.number().nonnegative().finite().describe(
           "Importe neto gravado (subtotal antes de IVA).",
         ),
-        impIVA: z.number().describe(
+        impIVA: z.number().nonnegative().finite().describe(
           "Importe IVA. Para Factura C debe ser 0. Para A/B = sum(iva[].importe).",
         ),
-        impTotConc: z.number().optional().describe(
+        impTotConc: z.number().nonnegative().finite().optional().describe(
           "Importe neto no gravado. Default 0.",
         ),
-        impOpEx: z.number().optional().describe(
+        impOpEx: z.number().nonnegative().finite().optional().describe(
           "Importe operaciones exentas. Default 0.",
         ),
-        impTrib: z.number().optional().describe(
+        impTrib: z.number().nonnegative().finite().optional().describe(
           "Importe total de tributos (provinciales/municipales). Default 0.",
         ),
         cbteDesde: z.number().int().positive().describe(
@@ -149,9 +175,18 @@ export function facturacionTools(
         iva: z
           .array(
             z.object({
-              id: z.number().describe("Alícuota: 5 (21%), 4 (10.5%), 6 (27%), 3 (0%), 8 (5%), 9 (2.5%)"),
-              baseImp: z.number(),
-              importe: z.number(),
+              id: z
+                .union([
+                  z.literal(3).describe("0%"),
+                  z.literal(4).describe("10.5%"),
+                  z.literal(5).describe("21%"),
+                  z.literal(6).describe("27%"),
+                  z.literal(8).describe("5%"),
+                  z.literal(9).describe("2.5%"),
+                ])
+                .describe("Alícuota IVA (lista cerrada AFIP)."),
+              baseImp: z.number().nonnegative().finite().describe("Importe sobre el que se calcula el IVA."),
+              importe: z.number().nonnegative().finite().describe("Importe del IVA (= baseImp × alícuota)."),
             }),
           )
           .optional()
@@ -159,9 +194,9 @@ export function facturacionTools(
         cbtesAsoc: z
           .array(
             z.object({
-              tipo: z.number(),
-              ptoVta: z.number(),
-              nro: z.number(),
+              tipo: z.number().int().positive().describe("Tipo del comprobante asociado (mismo enum que cbteTipo)."),
+              ptoVta: z.number().int().positive().max(99999).describe("Punto de venta del comprobante asociado."),
+              nro: z.number().int().positive().describe("Número del comprobante asociado."),
               cuit: z.string().optional(),
               fecha: z.string().optional(),
             }),
