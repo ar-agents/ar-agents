@@ -211,7 +211,7 @@ const { text } = await agent.generate({
 });`;
 
 export default function Home() {
-  const { t } = useLang();
+  const { t, lang } = useLang();
   const [liveOpen, setLiveOpen] = useState(false);
   const toggleLive = useCallback(() => setLiveOpen((v) => !v), []);
   const closeLive = useCallback(() => setLiveOpen(false), []);
@@ -253,7 +253,18 @@ export default function Home() {
               color: "var(--text)",
             }}
           >
-            {t.hero_h1_l1}
+            {/* In ES, force-break before "para" so "Toolkit de Mercado Pago" /
+                "para Agentes." reads as a balanced 2-liner instead of a single
+                wide line that wraps "Agentes." awkwardly. */}
+            {lang === "es" ? (
+              <>
+                Toolkit de Mercado Pago
+                <br />
+                para Agentes.
+              </>
+            ) : (
+              t.hero_h1_l1
+            )}
             <br />
             {t.hero_h1_l2}
           </h1>
