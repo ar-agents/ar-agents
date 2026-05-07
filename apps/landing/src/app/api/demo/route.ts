@@ -26,7 +26,7 @@ You can switch to English if the user writes in English.
 
 Behavior:
 - For ANY payment/subscription/checkout/cobro/marketplace/cuotas/refund task, USE THE TOOLS.
-  Do not describe what you would do — actually call them.
+  Do not describe what you would do; actually call them.
 - Stay tight. Keep replies to 2-4 short sentences plus the relevant link or ID.
 - If the user asks something completely unrelated to Mercado Pago payments, decline once,
   briefly, and suggest a payments task they could try instead.
@@ -53,7 +53,7 @@ const tools = {
 
   create_customer: tool({
     description:
-      "Create a Mercado Pago customer. Returns { id, email }. Idempotent on email — safe to call after find_customer_by_email returned found:false.",
+      "Create a Mercado Pago customer. Returns { id, email }. Idempotent on email; safe to call after find_customer_by_email returned found:false.",
     inputSchema: z.object({
       email: z.string().email(),
       first_name: z.string().optional(),

@@ -60,45 +60,132 @@ function renderUserText(text: string) {
   );
 }
 
-function renderAssistantText(text: string) {
-  const URL_RE = /(https?:\/\/[^\s]+)/g;
-  const parts: Array<{ kind: "text" | "url"; value: string }> = [];
+// Inline markdown: **bold**, `code`, [text](url), bare URLs.
+// One regex with alternation so order is left-to-right and earlier
+// patterns win (markdown link beats bare URL inside it).
+const MD_INLINE = /(\[([^\]]+)\]\(([^)]+)\))|(\*\*([^*]+)\*\*)|(`([^`]+)`)|(https?:\/\/[^\s)]+)/g;
+
+function renderInline(text: string): React.ReactNode[] {
+  const out: React.ReactNode[] = [];
   let last = 0;
-  for (const match of text.matchAll(URL_RE)) {
+  let key = 0;
+  for (const match of text.matchAll(MD_INLINE)) {
     if (match.index === undefined) continue;
-    if (match.index > last)
-      parts.push({ kind: "text", value: text.slice(last, match.index) });
-    parts.push({ kind: "url", value: match[0] });
+    if (match.index > last) {
+      out.push(<span key={key++}>{text.slice(last, match.index)}</span>);
+    }
+    if (match[1] && match[2] && match[3]) {
+      // [label](url)
+      out.push(
+        <a
+          key={key++}
+          href={match[3]}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "var(--accent)", textDecoration: "underline" }}
+        >
+          {match[2]}
+        </a>,
+      );
+    } else if (match[4] && match[5]) {
+      // **bold**
+      out.push(
+        <strong key={key++} style={{ fontWeight: 600, color: "var(--text)" }}>
+          {match[5]}
+        </strong>,
+      );
+    } else if (match[6] && match[7]) {
+      // `code`
+      out.push(
+        <code
+          key={key++}
+          style={{
+            fontFamily: FONT_MONO,
+            color: "var(--accent)",
+            fontSize: "0.94em",
+          }}
+        >
+          {match[7]}
+        </code>,
+      );
+    } else if (match[8]) {
+      // bare https URL
+      out.push(
+        <a
+          key={key++}
+          href={match[8]}
+          target="_blank"
+          rel="noopener noreferrer"
+          style={{ color: "var(--accent)", textDecoration: "underline" }}
+        >
+          {match[8]}
+        </a>,
+      );
+    }
     last = match.index + match[0].length;
   }
-  if (last < text.length)
-    parts.push({ kind: "text", value: text.slice(last) });
+  if (last < text.length) {
+    out.push(<span key={key++}>{text.slice(last)}</span>);
+  }
+  return out;
+}
+
+function renderAssistantText(text: string) {
+  // Walk lines, group consecutive `- ` or `* ` lines into a single <ul>.
+  const lines = text.split("\n");
+  const blocks: React.ReactNode[] = [];
+  let listBuffer: string[] = [];
+  let key = 0;
+
+  const flushList = () => {
+    if (listBuffer.length === 0) return;
+    blocks.push(
+      <ul
+        key={key++}
+        style={{
+          paddingLeft: 18,
+          margin: "4px 0",
+          color: "var(--text)",
+        }}
+      >
+        {listBuffer.map((item, i) => (
+          <li key={i} style={{ marginBottom: 2 }}>
+            {renderInline(item)}
+          </li>
+        ))}
+      </ul>,
+    );
+    listBuffer = [];
+  };
+
+  for (const line of lines) {
+    const m = line.match(/^[-*]\s+(.*)$/);
+    if (m) {
+      listBuffer.push(m[1]);
+    } else {
+      flushList();
+      if (line.length === 0) {
+        blocks.push(<div key={key++} style={{ height: "0.5em" }} />);
+      } else {
+        blocks.push(
+          <div key={key++} style={{ color: "var(--text)" }}>
+            {renderInline(line)}
+          </div>,
+        );
+      }
+    }
+  }
+  flushList();
 
   return (
     <div
       style={{
         marginTop: 10,
         marginBottom: 14,
-        color: "var(--text)",
-        whiteSpace: "pre-wrap",
         wordBreak: "break-word",
       }}
     >
-      {parts.map((p, i) =>
-        p.kind === "url" ? (
-          <a
-            key={i}
-            href={p.value}
-            target="_blank"
-            rel="noopener noreferrer"
-            style={{ color: "var(--accent)", textDecoration: "underline" }}
-          >
-            {p.value}
-          </a>
-        ) : (
-          <span key={i}>{p.value}</span>
-        ),
-      )}
+      {blocks}
     </div>
   );
 }
@@ -205,7 +292,7 @@ export function LiveChat() {
             animation: "demo-pulse 2s ease-in-out infinite",
           }}
         />
-        Or write your own prompt — live agent
+        Try it with a live agent
         <span style={{ color: "var(--text-muted)" }}>→</span>
       </button>
     );
@@ -326,7 +413,7 @@ export function LiveChat() {
             }}
           >
             {(error as Error).message?.includes("rate")
-              ? "Rate-limited — esperá un par de minutos y probá de nuevo."
+              ? "Rate-limited. Esperá un par de minutos y probá de nuevo."
               : "Live demo currently unavailable. Recargá o probá los scenarios scripted arriba."}
           </div>
         ) : null}
