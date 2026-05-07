@@ -3,6 +3,7 @@
 // can flip the palette without re-rendering.
 
 import { DemoTerminal } from "./demo-terminal";
+import { LiveChat } from "./live-chat";
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -312,28 +313,9 @@ export default function Home() {
         </header>
 
         {/* LIVE DEMO */}
-        <section style={{ marginBottom: 32 }}>
+        <section style={{ marginBottom: 96 }}>
           <DemoTerminal />
-        </section>
-
-        {/* QUICK START */}
-        <section style={{ marginBottom: 80 }}>
-          <pre
-            style={{
-              background: "var(--code-bg)",
-              color: "var(--code-text)",
-              padding: 24,
-              borderRadius: 8,
-              overflow: "auto",
-              fontSize: 13,
-              lineHeight: 1.6,
-              fontFamily: FONT_MONO,
-              margin: 0,
-              boxShadow: "var(--shadow-border)",
-            }}
-          >
-            {QUICK_START}
-          </pre>
+          <LiveChat />
         </section>
 
         {/* COMPARISON */}
@@ -567,6 +549,38 @@ export default function Home() {
               </div>
             ))}
           </div>
+        </section>
+
+        {/* QUICK START */}
+        <section style={{ marginBottom: 80 }}>
+          <h2
+            style={{
+              fontSize: 32,
+              fontWeight: 600,
+              margin: "0 0 24px",
+              letterSpacing: "-1.28px",
+              lineHeight: 1.2,
+              color: "var(--text)",
+            }}
+          >
+            Quick start
+          </h2>
+          <pre
+            style={{
+              background: "var(--code-bg)",
+              color: "var(--code-text)",
+              padding: 24,
+              borderRadius: 8,
+              overflow: "auto",
+              fontSize: 13,
+              lineHeight: 1.6,
+              fontFamily: FONT_MONO,
+              margin: 0,
+              boxShadow: "var(--shadow-border)",
+            }}
+          >
+            {QUICK_START}
+          </pre>
         </section>
 
         {/* OTHER PRIMITIVES */}

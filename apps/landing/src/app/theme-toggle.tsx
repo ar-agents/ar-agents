@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 type Theme = "dark" | "light";
@@ -11,6 +12,7 @@ function readInitialTheme(): Theme {
 }
 
 export function ThemeToggle() {
+  const pathname = usePathname();
   const [theme, setTheme] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
@@ -28,6 +30,9 @@ export function ThemeToggle() {
   const toggle = useCallback(() => {
     setTheme((t) => (t === "dark" ? "light" : "dark"));
   }, []);
+
+  // /demo route is meant for video recording — hide the toggle.
+  if (pathname === "/demo") return null;
 
   return (
     <button

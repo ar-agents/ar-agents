@@ -1,54 +1,10 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { SCENARIOS, type Event, type Scenario, type ToolEvent } from "./demo-scripts";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
-
-type ToolEvent = {
-  kind: "tool";
-  name: string;
-  args: Record<string, string | number | boolean>;
-  result: Record<string, string | number | boolean>;
-};
-
-type Event =
-  | { kind: "user"; text: string }
-  | ToolEvent
-  | { kind: "assistant"; text: string };
-
-const SCRIPT: ReadonlyArray<Event> = [
-  {
-    kind: "user",
-    text: "Creá una subscription mensual de $1000 ARS para customer@example.com",
-  },
-  {
-    kind: "tool",
-    name: "find_customer_by_email",
-    args: { email: "customer@example.com" },
-    result: { found: false },
-  },
-  {
-    kind: "tool",
-    name: "create_customer",
-    args: { email: "customer@example.com" },
-    result: { id: "1234567890", email: "customer@example.com" },
-  },
-  {
-    kind: "tool",
-    name: "create_subscription",
-    args: { amount: 1000, frequency: "monthly", customer_id: "1234567890" },
-    result: {
-      id: "abc-123",
-      init_point:
-        "https://mercadopago.com.ar/subscriptions/checkout?preapproval_id=abc-123",
-    },
-  },
-  {
-    kind: "assistant",
-    text: "Listo, creé la subscription mensual de $1000 ARS para customer@example.com.\nMandale este link para que pague:\nhttps://mercadopago.com.ar/subscriptions/checkout?preapproval_id=abc-123",
-  },
-];
 
 const TYPE_USER_MS = 24;
 const TYPE_ASSISTANT_MS = 14;
@@ -65,17 +21,17 @@ type Phase =
   | { type: "assistant"; idx: number; chars: number }
   | { type: "done" };
 
-function nextEventPhase(idx: number): Phase {
-  const ev = SCRIPT[idx];
+function nextEventPhase(events: ReadonlyArray<Event>, idx: number): Phase {
+  const ev = events[idx];
   if (!ev) return { type: "done" };
   if (ev.kind === "user") return { type: "user", idx, chars: 0 };
   if (ev.kind === "tool") return { type: "tool-running", idx };
   return { type: "assistant", idx, chars: 0 };
 }
 
-function currentIdx(p: Phase): number {
+function currentIdx(p: Phase, total: number): number {
   if (p.type === "idle") return -1;
-  if (p.type === "done") return SCRIPT.length;
+  if (p.type === "done") return total;
   return p.idx;
 }
 
@@ -99,7 +55,6 @@ function fmtObject(
   obj: Record<string, string | number | boolean>,
 ): React.ReactNode {
   const entries = Object.entries(obj);
-  // Heuristic: if any string value is long, render multiline; else single line.
   const longValue = entries.some(
     ([, v]) => typeof v === "string" && v.length > 36,
   );
@@ -170,8 +125,7 @@ function RunningDots() {
 }
 
 function StatusDot({ phase }: { phase: Phase }) {
-  const active =
-    phase.type !== "idle" && phase.type !== "done";
+  const active = phase.type !== "idle" && phase.type !== "done";
   return (
     <span
       aria-hidden="true"
@@ -214,11 +168,9 @@ function StatusLabel({ phase }: { phase: Phase }) {
 function UserRow({
   text,
   showCursor,
-  fadeIn,
 }: {
   text: string;
   showCursor: boolean;
-  fadeIn: boolean;
 }) {
   return (
     <div
@@ -226,8 +178,6 @@ function UserRow({
         display: "flex",
         gap: 12,
         marginBottom: 16,
-        opacity: fadeIn ? 0 : 1,
-        animation: fadeIn ? "demo-fade-in 200ms ease-out forwards" : "none",
       }}
     >
       <span style={{ color: "var(--text-muted)", userSelect: "none" }}>{">"}</span>
@@ -283,13 +233,10 @@ function ToolRow({
 function AssistantRow({
   text,
   showCursor,
-  fadeIn,
 }: {
   text: string;
   showCursor: boolean;
-  fadeIn: boolean;
 }) {
-  // Detect URLs and render them in accent color while preserving streaming.
   const URL_RE = /(https?:\/\/[^\s]+)/g;
   const parts: Array<{ kind: "text" | "url"; value: string }> = [];
   let last = 0;
@@ -304,13 +251,7 @@ function AssistantRow({
     parts.push({ kind: "text", value: text.slice(last) });
 
   return (
-    <div
-      style={{
-        marginTop: 16,
-        opacity: fadeIn ? 0 : 1,
-        animation: fadeIn ? "demo-fade-in 240ms ease-out forwards" : "none",
-      }}
-    >
+    <div style={{ marginTop: 16 }}>
       <div
         style={{
           color: "var(--text)",
@@ -364,14 +305,13 @@ function CheckBadge() {
   );
 }
 
-function ResultCard({ onReplay }: { onReplay: () => void }) {
-  const fields: ReadonlyArray<readonly [string, string]> = [
-    ["ID", "abc-123"],
-    ["Amount", "$1.000 ARS · monthly"],
-    ["Customer", "customer@example.com"],
-    ["Status", "pending first payment"],
-  ];
-
+function ResultCard({
+  result,
+  onReplay,
+}: {
+  result: Scenario["result"];
+  onReplay: () => void;
+}) {
   return (
     <div
       style={{
@@ -401,13 +341,13 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
             color: "var(--text)",
           }}
         >
-          Subscription created
+          {result.title}
         </span>
         <span style={{ flex: 1 }} />
         <button
           type="button"
           onClick={onReplay}
-          aria-label="Replay demo"
+          aria-label="Replay scenario"
           title="Replay"
           style={{
             display: "inline-flex",
@@ -453,7 +393,7 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
           marginBottom: 22,
         }}
       >
-        {fields.map(([label, value]) => (
+        {result.fields.map(([label, value]) => (
           <span key={label} style={{ display: "contents" }}>
             <span
               style={{
@@ -472,7 +412,7 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
       </div>
 
       <a
-        href="https://mercadopago.com.ar/subscriptions/checkout?preapproval_id=abc-123"
+        href={result.cta.href}
         target="_blank"
         rel="noopener noreferrer"
         style={{
@@ -490,7 +430,7 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
           letterSpacing: "-0.16px",
         }}
       >
-        Open checkout
+        {result.cta.label}
         <svg
           width="12"
           height="12"
@@ -510,10 +450,76 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
   );
 }
 
+function ScenarioTabs({
+  activeId,
+  onChange,
+}: {
+  activeId: string;
+  onChange: (id: string) => void;
+}) {
+  return (
+    <div
+      role="tablist"
+      style={{
+        display: "flex",
+        gap: 4,
+        flexWrap: "wrap",
+        boxShadow: "inset 0 -1px 0 var(--border-color)",
+      }}
+    >
+      {SCENARIOS.map((s) => {
+        const active = s.id === activeId;
+        return (
+          <button
+            key={s.id}
+            type="button"
+            role="tab"
+            aria-selected={active}
+            onClick={() => onChange(s.id)}
+            style={{
+              position: "relative",
+              padding: "10px 14px",
+              background: "transparent",
+              color: active ? "var(--text)" : "var(--text-muted)",
+              fontFamily: FONT_MONO,
+              fontSize: 12,
+              fontWeight: active ? 500 : 400,
+              letterSpacing: "0.02em",
+              border: "none",
+              cursor: "pointer",
+              transition: "color 160ms ease-out",
+              borderRadius: 0,
+            }}
+          >
+            {s.label}
+            {active ? (
+              <span
+                aria-hidden="true"
+                style={{
+                  position: "absolute",
+                  left: 14,
+                  right: 14,
+                  bottom: -1,
+                  height: 1,
+                  background: "var(--accent)",
+                }}
+              />
+            ) : null}
+          </button>
+        );
+      })}
+    </div>
+  );
+}
+
 export function DemoTerminal() {
+  const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
   const [phase, setPhase] = useState<Phase>({ type: "idle" });
   const [hasStarted, setHasStarted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  const scenario = SCENARIOS.find((s) => s.id === scenarioId) ?? SCENARIOS[0];
+  const { events } = scenario;
 
   // Start when scrolled into view.
   useEffect(() => {
@@ -524,14 +530,14 @@ export function DemoTerminal() {
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           setHasStarted(true);
-          setPhase(nextEventPhase(0));
+          setPhase(nextEventPhase(events, 0));
         }
       },
       { threshold: 0.25 },
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [hasStarted]);
+  }, [hasStarted, events]);
 
   // Phase machine.
   useEffect(() => {
@@ -541,7 +547,7 @@ export function DemoTerminal() {
     };
 
     if (phase.type === "user") {
-      const ev = SCRIPT[phase.idx];
+      const ev = events[phase.idx];
       if (ev.kind !== "user") return;
       if (phase.chars < ev.text.length) {
         schedule(
@@ -549,7 +555,10 @@ export function DemoTerminal() {
           TYPE_USER_MS,
         );
       } else {
-        schedule(() => setPhase(nextEventPhase(phase.idx + 1)), PAUSE_AFTER_USER);
+        schedule(
+          () => setPhase(nextEventPhase(events, phase.idx + 1)),
+          PAUSE_AFTER_USER,
+        );
       }
     } else if (phase.type === "tool-running") {
       schedule(
@@ -557,9 +566,12 @@ export function DemoTerminal() {
         TOOL_RUN_MS,
       );
     } else if (phase.type === "tool-done") {
-      schedule(() => setPhase(nextEventPhase(phase.idx + 1)), PAUSE_AFTER_TOOL);
+      schedule(
+        () => setPhase(nextEventPhase(events, phase.idx + 1)),
+        PAUSE_AFTER_TOOL,
+      );
     } else if (phase.type === "assistant") {
-      const ev = SCRIPT[phase.idx];
+      const ev = events[phase.idx];
       if (ev.kind !== "assistant") return;
       if (phase.chars < ev.text.length) {
         schedule(
@@ -577,13 +589,25 @@ export function DemoTerminal() {
     return () => {
       if (timeout) clearTimeout(timeout);
     };
-  }, [phase]);
+  }, [phase, events]);
 
   const replay = useCallback(() => {
-    setPhase(nextEventPhase(0));
-  }, []);
+    setPhase(nextEventPhase(events, 0));
+  }, [events]);
 
-  const idx = currentIdx(phase);
+  const switchScenario = useCallback(
+    (id: string) => {
+      if (id === scenarioId) return;
+      const target = SCENARIOS.find((s) => s.id === id);
+      if (!target) return;
+      setScenarioId(id);
+      // Reset and restart with the new scenario's first event.
+      setPhase(nextEventPhase(target.events, 0));
+    },
+    [scenarioId],
+  );
+
+  const idx = currentIdx(phase, events.length);
 
   return (
     <div ref={containerRef}>
@@ -613,14 +637,13 @@ export function DemoTerminal() {
           overflow: "hidden",
         }}
       >
-        {/* HEADER */}
+        {/* HEADER: status + scenario tabs + package label */}
         <div
           style={{
             display: "flex",
             alignItems: "center",
             justifyContent: "space-between",
-            padding: "12px 16px",
-            boxShadow: "inset 0 -1px 0 var(--border-color)",
+            padding: "10px 14px 0",
             gap: 12,
           }}
         >
@@ -640,8 +663,13 @@ export function DemoTerminal() {
           </span>
         </div>
 
+        <div style={{ padding: "12px 6px 0" }}>
+          <ScenarioTabs activeId={scenarioId} onChange={switchScenario} />
+        </div>
+
         {/* BODY */}
         <div
+          key={scenarioId}
           style={{
             padding: "20px 24px 24px",
             fontFamily: FONT_MONO,
@@ -651,7 +679,7 @@ export function DemoTerminal() {
             minHeight: 380,
           }}
         >
-          {SCRIPT.map((event, i) => {
+          {events.map((event, i) => {
             if (i > idx) return null;
 
             if (event.kind === "user") {
@@ -662,10 +690,9 @@ export function DemoTerminal() {
               const isCurrent = i === idx && phase.type === "user";
               return (
                 <UserRow
-                  key={i}
+                  key={`${scenarioId}-${i}`}
                   text={event.text.slice(0, chars)}
                   showCursor={isCurrent && chars < event.text.length}
-                  fadeIn={chars === 1}
                 />
               );
             }
@@ -674,10 +701,15 @@ export function DemoTerminal() {
               const isCurrent = i === idx;
               const state: "running" | "done" =
                 isCurrent && phase.type === "tool-running" ? "running" : "done";
-              return <ToolRow key={i} event={event} state={state} />;
+              return (
+                <ToolRow
+                  key={`${scenarioId}-${i}`}
+                  event={event}
+                  state={state}
+                />
+              );
             }
 
-            // assistant
             const chars =
               phase.type === "assistant" && phase.idx === i
                 ? phase.chars
@@ -685,15 +717,16 @@ export function DemoTerminal() {
             const isCurrent = i === idx && phase.type === "assistant";
             return (
               <AssistantRow
-                key={i}
+                key={`${scenarioId}-${i}`}
                 text={event.text.slice(0, chars)}
                 showCursor={isCurrent && chars < event.text.length}
-                fadeIn={chars === 1}
               />
             );
           })}
 
-          {phase.type === "done" ? <ResultCard onReplay={replay} /> : null}
+          {phase.type === "done" ? (
+            <ResultCard result={scenario.result} onReplay={replay} />
+          ) : null}
         </div>
       </div>
     </div>
