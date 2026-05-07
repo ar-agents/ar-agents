@@ -245,7 +245,10 @@ export default function Home() {
           </p>
           <h1
             style={{
-              fontSize: "clamp(40px, 9vw, 56px)",
+              // ES "Toolkit de Mercado Pago para Agentes." has 37 chars and
+              // needs to fit on one line at desktop widths (>=640px). Cap at
+              // 50px so it fits inside the 920px container without wrapping.
+              fontSize: "clamp(38px, 8vw, 50px)",
               margin: "16px 0 20px",
               fontWeight: 600,
               lineHeight: 1.12,
