@@ -92,7 +92,12 @@ describe("verifyWebhookSignature (async, Web Crypto)", () => {
 
   it("returns false for a tampered signature", async () => {
     const ts = freshTs();
-    const v1 = sign(ts).replace(/.$/, "0"); // flip last char
+    const original = sign(ts);
+    // Flip last hex char to a guaranteed-different one so the test is
+    // deterministic regardless of what the original last char is.
+    const last = original.slice(-1);
+    const flipped = last === "0" ? "f" : "0";
+    const v1 = original.slice(0, -1) + flipped;
     await expect(
       verifyWebhookSignature({
         requestId,

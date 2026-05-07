@@ -120,3 +120,13 @@ button:focus-visible {
   outline-offset: 2px;
   border-radius: 6px;
 }
+
+/* Mobile-only <br>: visible <640px, suppressed at desktop widths. */
+.br-mobile {
+  display: inline;
+}
+@media (min-width: 640px) {
+  .br-mobile {
+    display: none;
+  }
+}

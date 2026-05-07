@@ -253,17 +253,21 @@ export default function Home() {
               color: "var(--text)",
             }}
           >
-            {/* In ES, force-break before "para" so "Toolkit de Mercado Pago" /
-                "para Agentes." reads as a balanced 2-liner instead of a single
-                wide line that wraps "Agentes." awkwardly. */}
+            {/* Responsive title.
+                ES desktop: "Toolkit de Mercado Pago para Agentes. / Hecho en Vercel." (2 lines)
+                ES mobile:  "Toolkit de / Mercado Pago / para Agentes. / Hecho en Vercel." (4 lines)
+                EN desktop: "Mercado Pago Agent Toolkit. / Built on Vercel." (2 lines)
+                EN mobile:  "Mercado Pago / Agent Toolkit. / Built on Vercel." (3 lines)
+                Mobile-only breaks use `.br-mobile` (display: none ≥640px). */}
             {lang === "es" ? (
               <>
-                Toolkit de Mercado Pago
-                <br />
-                para Agentes.
+                Toolkit de<br className="br-mobile" /> Mercado Pago
+                <br className="br-mobile" /> para Agentes.
               </>
             ) : (
-              t.hero_h1_l1
+              <>
+                Mercado Pago<br className="br-mobile" /> Agent Toolkit.
+              </>
             )}
             <br />
             {t.hero_h1_l2}
