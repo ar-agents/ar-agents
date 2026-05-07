@@ -10,7 +10,7 @@
 
 Validates Argentine taxpayer identifiers in pure-algorithm mode out of the box (no setup, no API call, sub-millisecond), and looks them up against AFIP's padrón webservice through a pluggable adapter when you wire one. Built for the Vercel AI SDK 6 `Experimental_Agent` and any caller of `tool()`.
 
-> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — it's targeted at LLM consumption with explicit tool-selection rules and error patterns.
+> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md): it's targeted at LLM consumption with explicit tool-selection rules and error patterns.
 
 ## At a glance
 
@@ -19,8 +19,8 @@ Validates Argentine taxpayer identifiers in pure-algorithm mode out of the box (
 | Tools shipped | `validate_cuit`, `lookup_cuit_afip` |
 | External dependencies | None for `validate_cuit`. AFIP cert + your `AfipPadronAdapter` impl for `lookup_cuit_afip`. |
 | Latency | <1ms for `validate_cuit`. 200–800ms for `lookup_cuit_afip` (AFIP SOAP). |
-| Cost | $0 — no AFIP API charges, no third-party fees. |
-| Side effects | None — both tools are read-only. |
+| Cost | $0: no AFIP API charges, no third-party fees. |
+| Side effects | None: both tools are read-only. |
 | Sites supported | MLA (Argentina). The CUIT/CUIL algorithm is AR-only by definition. |
 
 ## Install
@@ -41,7 +41,7 @@ import { identityTools } from "@ar-agents/identity";
 
 const agent = new Agent({
   model: "anthropic/claude-sonnet-4-6", // routed via Vercel AI Gateway
-  tools: identityTools(), // both tools — AFIP one returns setup steps
+  tools: identityTools(), // both tools: AFIP one returns setup steps
   stopWhen: stepCountIs(6),
 });
 
@@ -206,7 +206,7 @@ All errors extend `IdentityError` and carry a machine-readable `code`:
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT: see [LICENSE](./LICENSE).
 
 ## Stability
 

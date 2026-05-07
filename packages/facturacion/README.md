@@ -11,7 +11,7 @@ Built for SaaS argentinos that need to:
 - **Verify** previously-issued comprobantes
 - **Pre-validate** locally to catch the 10 most common AFIP rejection reasons before the round-trip
 
-Reuses the WSAA infrastructure from `@ar-agents/identity` — same X.509 cert, same TokenCache, same `fetchWithRetry` helper. If you already have `@ar-agents/identity` wired up, adding `@ar-agents/facturacion` is one cert-authorization step away.
+Reuses the WSAA infrastructure from `@ar-agents/identity`: same X.509 cert, same TokenCache, same `fetchWithRetry` helper. If you already have `@ar-agents/identity` wired up, adding `@ar-agents/facturacion` is one cert-authorization step away.
 
 ---
 
@@ -59,18 +59,18 @@ The agent will: (1) `consultar_ultimo_comprobante` to get the next number, (2) `
 
 | Tool                          | Pure?    | What it does                                           |
 | ----------------------------- | -------- | ------------------------------------------------------ |
-| `emitir_factura`              | —        | Solicit a CAE for a new comprobante                    |
-| `consultar_ultimo_comprobante`| —        | Get the last authorized number for (PtoVta, CbteTipo)  |
-| `consultar_factura_emitida`   | —        | Look up a previously-issued comprobante                |
-| `obtener_tipos_comprobante`   | —        | Live AFIP catalog of comprobante types                 |
-| `obtener_tipos_documento`     | —        | Live AFIP catalog of document types                    |
-| `obtener_alicuotas_iva`       | —        | Live AFIP catalog of IVA rates                         |
-| `obtener_tipos_concepto`      | —        | Live AFIP catalog of conceptos                         |
-| `obtener_tipos_moneda`        | —        | Live AFIP catalog of currencies                        |
-| `obtener_cotizacion`          | —        | AFIP exchange rate for a foreign currency vs ARS       |
-| `health_check_afip`           | —        | AFIP WSFE app/db/auth status                           |
+| `emitir_factura`              |:        | Solicit a CAE for a new comprobante                    |
+| `consultar_ultimo_comprobante`|:        | Get the last authorized number for (PtoVta, CbteTipo)  |
+| `consultar_factura_emitida`   |:        | Look up a previously-issued comprobante                |
+| `obtener_tipos_comprobante`   |:        | Live AFIP catalog of comprobante types                 |
+| `obtener_tipos_documento`     |:        | Live AFIP catalog of document types                    |
+| `obtener_alicuotas_iva`       |:        | Live AFIP catalog of IVA rates                         |
+| `obtener_tipos_concepto`      |:        | Live AFIP catalog of conceptos                         |
+| `obtener_tipos_moneda`        |:        | Live AFIP catalog of currencies                        |
+| `obtener_cotizacion`          |:        | AFIP exchange rate for a foreign currency vs ARS       |
+| `health_check_afip`           |:        | AFIP WSFE app/db/auth status                           |
 
-All 10 tools require a `WsfeClient`. Without one, they return `{ available: false, error: <setup instructions> }` instead of crashing — drop-in safe for stub deployments.
+All 10 tools require a `WsfeClient`. Without one, they return `{ available: false, error: <setup instructions> }` instead of crashing: drop-in safe for stub deployments.
 
 For pure-algorithm catalogs (no network), use the exported constants:
 
@@ -114,7 +114,7 @@ Saves you a network round-trip (and a CloudWatch entry) on every malformed reque
 
 ## Robustez
 
-The `WsfeClient` accepts `requestTimeoutMs`, `maxRetries`, and an `onCall` observability hook — all forwarded to both the WSAA token-refresh path and the per-comprobante WSFE path:
+The `WsfeClient` accepts `requestTimeoutMs`, `maxRetries`, and an `onCall` observability hook: all forwarded to both the WSAA token-refresh path and the per-comprobante WSFE path:
 
 ```ts
 new WsfeClient({

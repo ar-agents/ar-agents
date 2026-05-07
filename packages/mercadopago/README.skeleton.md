@@ -1,5 +1,5 @@
 <!--
-  README skeleton — Vercel-official quality.
+  README skeleton: Vercel-official quality.
   Drop this in as packages/mercadopago/README.md after a final once-over.
   The structure follows the patterns Vercel themselves use on
   https://github.com/vercel/ai-sdk and https://github.com/vercel/next.js
@@ -7,7 +7,7 @@
 
   Hard rules:
   - Lead with what it is and a 3-line install + first call.
-  - Real numbers (latency, bundle size) only — no "fast", "blazing", "robust".
+  - Real numbers (latency, bundle size) only: no "fast", "blazing", "robust".
   - Code blocks runnable as-pasted (no `// ...` placeholders that hide work).
   - One-screen scrolling for the top: header → install → first call → core API.
   - Everything below is reference, not pitch.
@@ -23,7 +23,7 @@
 
 Mercado Pago Agent Toolkit. Built on Vercel. 89 typed tools across the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts) for the [Vercel AI SDK](https://ai-sdk.dev/) 6 `Experimental_Agent`. Edge-Runtime-safe.
 
-> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — decision tree, result schemas to memorize, error patterns, latency table.
+> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md): decision tree, result schemas to memorize, error patterns, latency table.
 
 ## Quick start
 
@@ -57,16 +57,16 @@ That's it. The agent picks `create_subscription`, returns an `init_point_url` yo
 
 | | |
 | --- | --- |
-| **Tools** | 30 — Subscriptions, Payments, Refunds, Checkout Pro, Cuotas, QR in-store, Saved cards, Marketplace OAuth, Order Management, Point devices, 3DS, Webhooks. [Full list](./AGENTS.md#tool-selection). |
+| **Tools** | 30: Subscriptions, Payments, Refunds, Checkout Pro, Cuotas, QR in-store, Saved cards, Marketplace OAuth, Order Management, Point devices, 3DS, Webhooks. [Full list](./AGENTS.md#tool-selection). |
 | **Bundle size** | 41 KB ESM brotli'd ([bundlephobia](https://bundlephobia.com/package/@ar-agents/mercadopago)). Tree-shakable subpath exports for `/vercel-kv` + `/otel`. |
-| **Runtime** | Vercel Edge, Node 18+, Cloudflare Workers, Deno — Web Crypto under the hood. |
+| **Runtime** | Vercel Edge, Node 18+, Cloudflare Workers, Deno: Web Crypto under the hood. |
 | **Tests** | 290 unit + property + failure-injection + benchmark. `pnpm test`, `pnpm bench`. |
 | **TypeScript** | Strict mode, `noUncheckedIndexedAccess`, `exactOptionalPropertyTypes`. publint + arethetypeswrong all 🟢. |
 | **AR-specific knowledge** | Cuotas with regulatory text (RG 5286/2023), AR issuer promo catalog, Subscription replay-protection, MLA-verified, ARS default. |
 
 ## Server-only
 
-This package **MUST** run on the server. The constructor throws if instantiated in a browser context — the access token would be exposed in the JavaScript bundle. Use Server Components, Route Handlers, or Server Actions.
+This package **MUST** run on the server. The constructor throws if instantiated in a browser context: the access token would be exposed in the JavaScript bundle. Use Server Components, Route Handlers, or Server Actions.
 
 ```ts
 // ❌ Never. Throws at runtime AND would leak the token if it didn't.
@@ -89,14 +89,14 @@ Server-side MP API client. Edge-Runtime safe.
 
 | Option | Default | Description |
 | --- | --- | --- |
-| `accessToken` (required) | — | TEST- prefix for sandbox, APP_USR- for production. |
+| `accessToken` (required) | no | TEST- prefix for sandbox, APP_USR- for production. |
 | `baseUrl` | `https://api.mercadopago.com` | Override for tests / regional hosts. |
 | `fetch` | `globalThis.fetch` | Custom fetch (e.g., MSW for tests). |
 | `requestTimeoutMs` | `30_000` | Per-request timeout. |
 | `maxRetries` | `1` | 5xx + network retries. 4xx never retried. |
-| `circuitBreaker` | — | `new CircuitBreaker({ ... })` to fail fast on cascading failures. |
-| `traceContext` | — | OpenTelemetry context propagator (W3C trace headers). |
-| `onCall` | — | Observability hook fired after every request. |
+| `circuitBreaker` | no | `new CircuitBreaker({ ... })` to fail fast on cascading failures. |
+| `traceContext` | no | OpenTelemetry context propagator (W3C trace headers). |
+| `onCall` | no | Observability hook fired after every request. |
 
 ### `mercadoPagoTools(client, options)`
 
@@ -104,7 +104,7 @@ Returns the agent tool set wired to the given client.
 
 | Option | Required | Description |
 | --- | --- | --- |
-| `state` | yes | `SubscriptionStateAdapter` — `InMemoryStateAdapter`, `VercelKVSubscriptionStateAdapter`, or your own. |
+| `state` | yes | `SubscriptionStateAdapter`: `InMemoryStateAdapter`, `VercelKVSubscriptionStateAdapter`, or your own. |
 | `backUrl` | yes | HTTPS URL where MP redirects buyers after first payment. localhost rejected. |
 | `notificationUrl` | no | Webhook URL for new payments / status changes. |
 | `oauth` | no | `{ clientId, clientSecret, redirectUri, tokenStore }` for marketplace OAuth flows. |
@@ -123,7 +123,7 @@ Returns the agent tool set wired to the given client.
 
 ### Idempotency by default
 
-Every `POST` request gets an auto-generated UUID idempotency key — your app survives network blips without double-charging. For LLM-driven retries, `create_payment`, `create_subscription`, `create_payment_preference`, and `refund_payment` use a **deterministic** key derived from the inputs, so a tool retried with the same inputs returns the existing resource instead of creating a duplicate.
+Every `POST` request gets an auto-generated UUID idempotency key: your app survives network blips without double-charging. For LLM-driven retries, `create_payment`, `create_subscription`, `create_payment_preference`, and `refund_payment` use a **deterministic** key derived from the inputs, so a tool retried with the same inputs returns the existing resource instead of creating a duplicate.
 
 ### Webhook verification
 
@@ -164,22 +164,22 @@ const limiter = new VercelKVRateLimiter({
 
 ### Cookbook
 
-9 recipes in [`./cookbook`](./cookbook/) — Checkout Pro, SaaS subscription, webhook handler, marketplace split, QR in-store, 3DS challenge, manual capture, recovery patterns, full OpenTelemetry wiring.
+9 recipes in [`./cookbook`](./cookbook/): Checkout Pro, SaaS subscription, webhook handler, marketplace split, QR in-store, 3DS challenge, manual capture, recovery patterns, full OpenTelemetry wiring.
 
 ## Comparison
 
 | | `@ar-agents/mercadopago` | `mercadopago` (official SDK) | Hand-rolled |
 | --- | --- | --- | --- |
-| Tools as Vercel AI SDK 6 schemas | ✓ | — | build it |
-| AR-specific (cuotas, AR issuer promos, AR phone, MLA-verified) | ✓ | — | weeks |
-| `AGENTS.md` per package (LLM-readable) | ✓ | — | — |
-| Idempotency-by-default for state mutations | ✓ | — | build it |
+| Tools as Vercel AI SDK 6 schemas | ✓ | no | build it |
+| AR-specific (cuotas, AR issuer promos, AR phone, MLA-verified) | ✓ | no | weeks |
+| `AGENTS.md` per package (LLM-readable) | ✓ | no |: |
+| Idempotency-by-default for state mutations | ✓ | no | build it |
 | Webhook signature verify + 5-min replay window | ✓ | client only | build it |
 | Edge Runtime support | ✓ | Node-only | build it |
-| Vercel KV adapters via subpath | ✓ | — | — |
-| OpenTelemetry instrumentation + recipe | ✓ | — | build it |
-| Circuit breaker + deadline propagation | ✓ | — | build it |
-| Tool middleware (compose audit/rate/metrics) | ✓ | — | — |
+| Vercel KV adapters via subpath | ✓ | no |: |
+| OpenTelemetry instrumentation + recipe | ✓ | no | build it |
+| Circuit breaker + deadline propagation | ✓ | no | build it |
+| Tool middleware (compose audit/rate/metrics) | ✓ | no |: |
 | Time to first cobro | 30 min | 1+ week | 6-8 weeks |
 
 See [`MIGRATION.md`](./MIGRATION.md) for a side-by-side `mercadopago` → `@ar-agents/mercadopago` migration guide.

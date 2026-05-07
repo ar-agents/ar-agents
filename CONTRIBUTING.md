@@ -1,6 +1,6 @@
 # Contributing to ar-agents
 
-Thanks for your interest in contributing. This monorepo welcomes PRs that add new tools, fix bugs in existing packages, or improve documentation — especially the agent-targeted docs (`AGENTS.md` files), which are the surface most agents pick up first when deciding whether to use a package.
+Thanks for your interest in contributing. This monorepo welcomes PRs that add new tools, fix bugs in existing packages, or improve documentation, especially the agent-targeted docs (`AGENTS.md` files), which are the surface most agents pick up first when deciding whether to use a package.
 
 ## Quick start
 
@@ -17,9 +17,9 @@ Requires Node 20+ and pnpm 10+.
 
 ## Repo layout
 
-- `packages/*` — publishable npm packages (each is `@ar-agents/<name>`)
-- `apps/*` — Next.js reference apps that dogfood the packages
-- `.changeset/*` — pending version bump descriptors (see "Versioning" below)
+- `packages/*`: publishable npm packages (each is `@ar-agents/<name>`)
+- `apps/*`: Next.js reference apps that dogfood the packages
+- `.changeset/*`: pending version bump descriptors (see "Versioning" below)
 
 ## Adding a new tool to an existing package
 
@@ -71,7 +71,7 @@ Commit the generated `.changeset/*.md` file with your PR. When PRs land on `main
 
 - `README.md` is for human developers evaluating the package.
 - `AGENTS.md` is for LLMs picking tools at runtime AND for agent authors integrating the package. Keep tables short and memorizable.
-- Tool descriptions are the highest-leverage doc surface — write them carefully.
+- Tool descriptions are the highest-leverage doc surface; write them carefully.
 - Error messages should always be actionable: "X failed because Y, do Z to fix" rather than just "X failed".
 
 ## Conventional Commits (recommended, not enforced)
@@ -94,7 +94,7 @@ Open an issue at https://github.com/ar-agents/ar-agents/issues. Include:
 - Minimal repro
 - Expected vs actual behavior
 
-For security issues, see [SECURITY.md](./SECURITY.md) instead — please don't open public issues.
+For security issues, see [SECURITY.md](./SECURITY.md) instead, please don't open public issues.
 
 ## License
 

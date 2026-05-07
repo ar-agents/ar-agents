@@ -1,4 +1,4 @@
-# AGENTS.md — @ar-agents/banking
+# AGENTS.md: @ar-agents/banking
 
 > Runtime guidance for LLM agents that load this toolkit. Convention per [agents.md](https://agents.md/).
 
@@ -11,11 +11,11 @@ Keep it short, deterministic, and oriented toward tool-selection decisions.
 
 Provides 5 Vercel AI SDK tools for Argentine banking operations:
 
-1. **`validate_cbu`** — pure-algorithm CBU/CVU validation
-2. **`lookup_bank_by_code`** — entity-code → bank/PSP name lookup
-3. **`list_banks`** — enumerate known traditional banks
-4. **`list_psps`** — enumerate known fintechs (Mercado Pago, Ualá, etc.)
-5. **`lookup_credit_situation`** — BCRA Central de Deudores (adapter-required)
+1. **`validate_cbu`**: pure-algorithm CBU/CVU validation
+2. **`lookup_bank_by_code`**: entity-code → bank/PSP name lookup
+3. **`list_banks`**: enumerate known traditional banks
+4. **`list_psps`**: enumerate known fintechs (Mercado Pago, Ualá, etc.)
+5. **`lookup_credit_situation`**: BCRA Central de Deudores (adapter-required)
 
 Tools 1–4 are pure functions (no I/O, no setup, sub-millisecond, free).
 Tool 5 hits an external service via a pluggable adapter.
@@ -45,7 +45,7 @@ Tool 5 hits an external service via a pluggable adapter.
   normalized: string,       // 22 bare digits
   formatted: string | null, // "BBBSSSSV-AAAAAAAAAAAAA V" with hyphen
   entityCode: string | null,    // "007", "011", "000", etc.
-  branchCode: string | null,    // "0123" — sucursal
+  branchCode: string | null,    // "0123": sucursal
   accountNumber: string | null, // 13-digit account number
   block1CheckDigit: string | null,
   block2CheckDigit: string | null,
@@ -56,7 +56,7 @@ Tool 5 hits an external service via a pluggable adapter.
 ```
 
 When invalid, `error` explains WHY (typo in block 1 vs block 2, wrong length,
-empty input). Surface this to the user verbatim — it's actionable.
+empty input). Surface this to the user verbatim: it's actionable.
 
 ### `lookup_credit_situation` returns:
 
@@ -102,10 +102,10 @@ empty input). Surface this to the user verbatim — it's actionable.
   An invalid CBU costs you a chargeback or hard rejection downstream.
 
 - For credit checks, **always** call `validate_cuit` (from `@ar-agents/identity`)
-  before `lookup_credit_situation` — BCRA returns 404 for malformed CUITs and
+  before `lookup_credit_situation`: BCRA returns 404 for malformed CUITs and
   you wasted a network round-trip.
 
-- For CVU lookups, the entity code 000 doesn't tell you which fintech — but
+- For CVU lookups, the entity code 000 doesn't tell you which fintech: but
   `validate_cbu` already calls `lookupCvuByPrefix` internally and returns
   `bank.shortName = "Mercado Pago"` (or whichever PSP). Don't call
   `lookup_bank_by_code` separately.
@@ -122,7 +122,7 @@ empty input). Surface this to the user verbatim — it's actionable.
 | `list_psps`                | <1 ms    | <2 ms     | No             |
 | `lookup_credit_situation`  | ~600 ms  | ~2.5 s    | Yes (BCRA)     |
 
-The pure tools are essentially free — call them liberally. The credit lookup
+The pure tools are essentially free: call them liberally. The credit lookup
 is rate-limited by BCRA's public infra; cache results when you can.
 
 ---
@@ -133,7 +133,7 @@ is rate-limited by BCRA's public infra; cache results when you can.
   (Mercado Pago, Ualá, etc.). Format is identical; the entity-code prefix
   distinguishes them. Both can receive transfers from any other CBU/CVU.
 - **Alias CBU**: 6–20 character human-readable aliases (e.g.,
-  `naza.galicia.ahorro`) that map to a CBU. NOT validated by this lib —
+  `naza.galicia.ahorro`) that map to a CBU. NOT validated by this lib;
   alias lookups require a bank-side API and aren't part of v0.1.
 - **BCRA Central de Deudores**: monthly snapshot of every credit obligation
   in the AR financial system. Public, no auth. Updates ~1 month delayed.
@@ -144,10 +144,10 @@ is rate-limited by BCRA's public infra; cache results when you can.
 
 All errors extend `BankingError` with a machine-readable `code`:
 
-- `bcra_not_configured` — adapter wasn't passed to `bankingTools()`
-- `bcra_cuit_not_found` — BCRA has no record (CUIT may be valid but unused)
-- `bcra_service_unavailable` — BCRA endpoint returned 5xx
-- `bcra_rate_limited` — BCRA returned 429
-- `bcra_unknown_error` — fallback
+- `bcra_not_configured`: adapter wasn't passed to `bankingTools()`
+- `bcra_cuit_not_found`: BCRA has no record (CUIT may be valid but unused)
+- `bcra_service_unavailable`: BCRA endpoint returned 5xx
+- `bcra_rate_limited`: BCRA returned 429
+- `bcra_unknown_error`: fallback
 
 Surface the `.message` to end users; switch on `.code` for programmatic flows.

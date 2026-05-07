@@ -1,4 +1,4 @@
-# @ar-agents/whatsapp — agent instructions
+# @ar-agents/whatsapp: agent instructions
 
 This file is for LLMs that load `@ar-agents/whatsapp` at runtime. It explains when to call each tool, what to expect back, and the WhatsApp-specific landmines.
 
@@ -6,19 +6,19 @@ This file is for LLMs that load `@ar-agents/whatsapp` at runtime. It explains wh
 
 | Tool | When to use | When NOT to use |
 |---|---|---|
-| `send_whatsapp_text` | Replying inside the 24-hour customer service window after the user messaged you | Outside the 24h window — Meta will return code 131026 ("outside window"). Use `send_whatsapp_template` instead. |
-| `send_whatsapp_template` | Proactive messages, transactional notifications, marketing, re-engagement (any time, in or out of the 24h window) | Casual conversational replies — templates require pre-approval and feel formal. |
+| `send_whatsapp_text` | Replying inside the 24-hour customer service window after the user messaged you | Outside the 24h window: Meta will return code 131026 ("outside window"). Use `send_whatsapp_template` instead. |
+| `send_whatsapp_template` | Proactive messages, transactional notifications, marketing, re-engagement (any time, in or out of the 24h window) | Casual conversational replies: templates require pre-approval and feel formal. |
 | `send_whatsapp_media` | Sending an image / audio / video / document / sticker | Audio messages from the agent itself unless the agent is generating real audio. |
-| `send_whatsapp_buttons` | Asking the user to pick from 1-3 short options ("Sí / No / Cambiar") | When you have more than 3 options — use `send_whatsapp_list`. |
-| `send_whatsapp_list` | Asking the user to pick from 4-10 options, optionally grouped into sections ("Plan Básico / Pro / Enterprise") | Single yes/no questions — overkill, use buttons. |
-| `mark_whatsapp_read` | Immediately when you process an inbound message — the user sees the read receipt | Bots that don't want to indicate they're "reading" the message. |
+| `send_whatsapp_buttons` | Asking the user to pick from 1-3 short options ("Sí / No / Cambiar") | When you have more than 3 options: use `send_whatsapp_list`. |
+| `send_whatsapp_list` | Asking the user to pick from 4-10 options, optionally grouped into sections ("Plan Básico / Pro / Enterprise") | Single yes/no questions: overkill, use buttons. |
+| `mark_whatsapp_read` | Immediately when you process an inbound message: the user sees the read receipt | Bots that don't want to indicate they're "reading" the message. |
 
 ## Result schemas to memorize
 
 ```ts
 // All send_* tools return:
 type SendResult = {
-  messageId: string;   // wamid.XXXX — use this to thread-reply or correlate webhooks
+  messageId: string;   // wamid.XXXX: use this to thread-reply or correlate webhooks
   recipient: string;   // E.164 no plus, e.g., "5491112345678"
 };
 
@@ -32,12 +32,12 @@ type MarkResult = { ok: true; messageId: string };
 |---|---|---|
 | `WhatsAppRecipientNotOnPlatformError` | Phone not registered on WhatsApp | "Ese número no tiene WhatsApp activo." |
 | `WhatsAppOutsideWindowError` | Tried free-form outside 24h window | Switch to a template. Don't surface raw error. |
-| `WhatsAppApiError` (other) | Generic API error — check `.code` | Surface the message; common codes documented in errors.ts |
+| `WhatsAppApiError` (other) | Generic API error: check `.code` | Surface the message; common codes documented in errors.ts |
 | `WhatsAppWebhookSignatureError` | Webhook came from non-Meta source | Reject with 401. Don't process. |
 
 ## Argentine phone number normalization
 
-The lib auto-normalizes recipient phones — you can pass any of these formats and they all become `5491112345678`:
+The lib auto-normalizes recipient phones: you can pass any of these formats and they all become `5491112345678`:
 
 - `+54 9 11 1234-5678`
 - `54 9 11 1234 5678`
@@ -45,13 +45,13 @@ The lib auto-normalizes recipient phones — you can pass any of these formats a
 - `011 1234-5678` (domestic with trunk 0)
 - `1112345678` (no prefix, assumes AR mobile)
 
-**The WhatsApp `9`** after the country code is mandatory for AR mobile numbers — without it, Meta returns "recipient not on WhatsApp" even when the number IS registered. The lib handles this for you.
+**The WhatsApp `9`** after the country code is mandatory for AR mobile numbers: without it, Meta returns "recipient not on WhatsApp" even when the number IS registered. The lib handles this for you.
 
 ## The 24-hour customer service window
 
 Critical Meta rule: you can ONLY send free-form messages within 24 hours of the user's last message to you. Outside that window, you MUST use an approved template message.
 
-Heuristic for the agent: if the latest webhook event for this conversation is older than ~23 hours, switch to `send_whatsapp_template`. Be conservative — Meta's window starts from THEIR timestamp, not yours.
+Heuristic for the agent: if the latest webhook event for this conversation is older than ~23 hours, switch to `send_whatsapp_template`. Be conservative: Meta's window starts from THEIR timestamp, not yours.
 
 ## Webhook events you'll see
 
@@ -84,7 +84,7 @@ Meta has a global rate limit of 80 messages/second per WABA on the verified tier
 - Default template language: `es_AR`. Override with `languageCode` if your template is registered in `es` or `en_US`.
 - Phone normalizer assumes AR formats. For non-AR numbers, pass them in canonical E.164 (with or without `+`) and they'll pass through.
 
-## Scoped mode (v0.2.0+) — recommended for webhook handlers
+## Scoped mode (v0.2.0+): recommended for webhook handlers
 
 When you build the tool set inside a webhook handler, pass `scopedTo: senderPhone` to bind every outbound `send_*` tool to the inbound sender:
 
@@ -97,7 +97,7 @@ export async function POST(req: Request) {
 
   const tools = whatsappTools(client, { scopedTo: event.from });
   // ↑ `to` is REMOVED from the tool schemas. The LLM cannot specify a
-  //   different recipient — even if a crafted user message says
+  //   different recipient: even if a crafted user message says
   //   "send a payment link to 5491111111111".
 
   const agent = new Agent({ /* ... */, tools });
@@ -118,7 +118,7 @@ export async function POST(req: Request) {
 
 - **Schema**: `to` field removed in scoped mode. Validating an input with extra `to` (e.g., from a stale prompt) silently strips it.
 - **Description**: Tool descriptions in scoped mode include the binding note `"BOUND to recipient {phone}"` so a sane LLM never tries to message anyone else.
-- **mark_whatsapp_read**: Unaffected — it operates on `messageId`, not `to`.
+- **mark_whatsapp_read**: Unaffected: it operates on `messageId`, not `to`.
 
 ### Migration from v0.1.x
 

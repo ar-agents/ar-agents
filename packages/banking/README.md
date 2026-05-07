@@ -1,6 +1,6 @@
 # @ar-agents/banking
 
-> Argentine banking primitives for [Vercel AI SDK 6+](https://sdk.vercel.ai) agents — CBU/CVU validation, bank/PSP lookup, and BCRA Central de Deudores.
+> Argentine banking primitives for [Vercel AI SDK 6+](https://sdk.vercel.ai) agents: CBU/CVU validation, bank/PSP lookup, and BCRA Central de Deudores.
 
 [![npm version](https://img.shields.io/npm/v/@ar-agents/banking.svg)](https://www.npmjs.com/package/@ar-agents/banking)
 [![npm downloads](https://img.shields.io/npm/dm/@ar-agents/banking.svg)](https://www.npmjs.com/package/@ar-agents/banking)
@@ -13,9 +13,9 @@
 
 | What | Value |
 | --- | --- |
-| Tools shipped | 5 — `validate_cbu`, `lookup_bank_by_code`, `list_banks`, `list_psps`, `lookup_credit_situation` |
+| Tools shipped | 5: `validate_cbu`, `lookup_bank_by_code`, `list_banks`, `list_psps`, `lookup_credit_situation` |
 | Pure-algorithm | `validate_cbu` + `lookup_bank_by_code` + bank/PSP lists work with **zero setup** (no API key) |
-| External adapter | `BcraPublicApiAdapter` (default — public BCRA API, no auth) for credit-situation lookups |
+| External adapter | `BcraPublicApiAdapter` (default: public BCRA API, no auth) for credit-situation lookups |
 | Banks + PSPs covered | All 60+ AR banks (Galicia, Nación, BBVA, Santander…) + 20+ PSPs (Mercado Pago, Ualá, Naranja X, Modo, Cuenta DNI…) |
 | Test coverage | 54 unit tests, 90% statements, 100% functions |
 | Bundle | 5.3 KB ESM brotli'd |
@@ -47,7 +47,7 @@ import { bankingTools, BcraPublicApiAdapter } from "@ar-agents/banking";
 const agent = new Agent({
   model: "anthropic/claude-sonnet-4-6",
   tools: bankingTools({
-    bcra: new BcraPublicApiAdapter(), // optional — for credit lookups
+    bcra: new BcraPublicApiAdapter(), // optional: for credit lookups
   }),
   stopWhen: stepCountIs(6),
 });
@@ -71,7 +71,7 @@ Without a BCRA adapter, the credit-lookup tool stays callable but returns
 | `lookup_bank_by_code`      | ✓     | Resolve a 3-digit bank code or 7-digit CVU prefix → name |
 | `list_banks`               | ✓     | Enumerate all known banks (for dropdowns)                |
 | `list_psps`                | ✓     | Enumerate all known PSPs/fintechs (for dropdowns)        |
-| `lookup_credit_situation`  | —     | BCRA Central de Deudores lookup (requires adapter)       |
+| `lookup_credit_situation`  |:     | BCRA Central de Deudores lookup (requires adapter)       |
 
 See [AGENTS.md](./AGENTS.md) for detailed selection guidance and result schemas.
 
@@ -84,8 +84,8 @@ CVU = Clave Virtual Uniforme (PSPs / fintechs / digital wallets).
 
 Both are 22 digits with the BCRA dual mod-10 check-digit algorithm:
 
-- **Block 1 (8 digits)**: `BBB-SSSS-V₁` — entity (3) + branch (4) + check (1)
-- **Block 2 (14 digits)**: `<account-13>-V₂` — account (13) + check (1)
+- **Block 1 (8 digits)**: `BBB-SSSS-V₁`: entity (3) + branch (4) + check (1)
+- **Block 2 (14 digits)**: `<account-13>-V₂`: account (13) + check (1)
 
 The algorithm is implemented in `src/cbu.ts` and exposed via `parseCbu()`,
 `isValidCbu()`, and `computeBlockCheckDigit()`. Pure functions, sub-millisecond,
@@ -110,7 +110,7 @@ const tools = bankingTools({
 ```
 
 The default adapter hits BCRA's public REST endpoint
-(`api.bcra.gob.ar/centraldedeudores/v1.0/Deudas/{cuit}`) — no auth required,
+(`api.bcra.gob.ar/centraldedeudores/v1.0/Deudas/{cuit}`): no auth required,
 respect their rate limits. You can swap in your own adapter for caching, NOSIS,
 Equifax, or a private mirror.
 

@@ -1,4 +1,4 @@
-# @ar-agents/identity-attest — agent guide
+# @ar-agents/identity-attest: agent guide
 
 The "RENAPER workaround" pattern: orchestrate identity verification via providers that ARE accessible to indie devs (WhatsApp OTP, email magic-link, Auth0, MercadoPago Identity), get back a signed attestation with a trust level. The agent then decides if the trust level is enough for the action requested.
 
@@ -6,7 +6,7 @@ The "RENAPER workaround" pattern: orchestrate identity verification via provider
 
 RENAPER (official Argentine DNI verification) is **closed to non-financial institutions** at $60/transaction. There is no public API for indie devs to verify "is this person who they say they are."
 
-This package implements the only viable workaround: **the agent doesn't verify directly — it orchestrates the user proving themselves via a third-party provider, then receives a cryptographically-signed attestation it can trust.**
+This package implements the only viable workaround: **the agent doesn't verify directly: it orchestrates the user proving themselves via a third-party provider, then receives a cryptographically-signed attestation it can trust.**
 
 ## Decision tree
 
@@ -89,9 +89,9 @@ The agent's prompt should include the trust threshold for each action: *"For pay
 }
 ```
 
-If the OTP was wrong: throws `InvalidOtpCodeError(attemptsRemaining)` — the agent should ask the user to try again, mentioning attempts remaining.
+If the OTP was wrong: throws `InvalidOtpCodeError(attemptsRemaining)`: the agent should ask the user to try again, mentioning attempts remaining.
 
-If exhausted: throws `TooManyAttemptsError` — the agent must start a new request.
+If exhausted: throws `TooManyAttemptsError`: the agent must start a new request.
 
 ### `check_verification_status` returns
 
@@ -114,13 +114,13 @@ If exhausted: throws `TooManyAttemptsError` — the agent must start a new reque
 | `InvalidOtpCodeError(attemptsRemaining)` | Wrong code | "El código no coincide. Te quedan N intentos." |
 | `TooManyAttemptsError` | 3 strikes | "Demasiados intentos. Te genero un código nuevo." → call `request_identity_verification` again |
 | `VerificationExpiredError` | TTL past | "El código expiró. Te mando uno nuevo." → new request |
-| `VerificationRequestNotFoundError` | Bad request_id | Internal error — check your call site |
-| `IdentityAttestConfigError` | Misconfiguration | App-level error — surface as "internal error" to user |
+| `VerificationRequestNotFoundError` | Bad request_id | Internal error: check your call site |
+| `IdentityAttestConfigError` | Misconfiguration | App-level error: surface as "internal error" to user |
 | `AttestAdapterError` | Provider failure (WhatsApp send, email send) | "No pude mandar el código, probemos otro método" |
 
 ## The signature on every attestation
 
-Every issued `Attestation` carries an HMAC-SHA256 signature over `(requestId, verifier, method, trustLevel, subject, verifiedAt, expiresAt)`. Persist the full attestation when you take a sensitive action — later you can prove "I had verified this person at this trust level on this date" by re-running `client.verifyAttestationSignature(attestation)`.
+Every issued `Attestation` carries an HMAC-SHA256 signature over `(requestId, verifier, method, trustLevel, subject, verifiedAt, expiresAt)`. Persist the full attestation when you take a sensitive action: later you can prove "I had verified this person at this trust level on this date" by re-running `client.verifyAttestationSignature(attestation)`.
 
 This matters for:
 - Audit logs / regulatory disclosure

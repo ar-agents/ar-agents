@@ -1,4 +1,4 @@
-# AGENTS.md — @ar-agents/facturacion
+# AGENTS.md: @ar-agents/facturacion
 
 > Runtime guidance for LLM agents that load this toolkit. Convention per [agents.md](https://agents.md/).
 
@@ -10,16 +10,16 @@ This file ships in the npm tarball so agents can read it at runtime.
 
 10 Vercel AI SDK tools for AFIP/ARCA factura electrónica (WSFE):
 
-1. **`emitir_factura`** — solicit a CAE for a new comprobante
-2. **`consultar_ultimo_comprobante`** — get the next available number
-3. **`consultar_factura_emitida`** — verify a previously-issued comprobante
-4. **`obtener_tipos_comprobante`** — live AFIP catalog
-5. **`obtener_tipos_documento`** — live AFIP catalog
-6. **`obtener_alicuotas_iva`** — live AFIP catalog
-7. **`obtener_tipos_concepto`** — live AFIP catalog
-8. **`obtener_tipos_moneda`** — live AFIP catalog
-9. **`obtener_cotizacion`** — exchange rate for non-PES currencies
-10. **`health_check_afip`** — WSFE health probe
+1. **`emitir_factura`**: solicit a CAE for a new comprobante
+2. **`consultar_ultimo_comprobante`**: get the next available number
+3. **`consultar_factura_emitida`**: verify a previously-issued comprobante
+4. **`obtener_tipos_comprobante`**: live AFIP catalog
+5. **`obtener_tipos_documento`**: live AFIP catalog
+6. **`obtener_alicuotas_iva`**: live AFIP catalog
+7. **`obtener_tipos_concepto`**: live AFIP catalog
+8. **`obtener_tipos_moneda`**: live AFIP catalog
+9. **`obtener_cotizacion`**: exchange rate for non-PES currencies
+10. **`health_check_afip`**: WSFE health probe
 
 All 10 require a `WsfeClient` configured at app boot. Without one, they return `{ available: false, error: <setup instructions> }`.
 
@@ -54,22 +54,22 @@ For Notas de Crédito/Débito, also include `cbtesAsoc` referencing the original
 
 ---
 
-## emitir_factura — input schema (memorize)
+## emitir_factura: input schema (memorize)
 
 **Required for all comprobantes:**
-- `cbteTipo` — see CbteTipo constants below
-- `concepto` — 1 (Productos), 2 (Servicios), 3 (P+S)
-- `docTipo` — 80 (CUIT), 96 (DNI), 99 (Consumidor Final)
-- `docNro` — receiver's document number (0 for Cons. Final)
-- `cbteFch` — YYYYMMDD, must be ±5 days of today (servicios: ±10)
-- `impTotal`, `impNeto`, `impIVA` — see consistency rules below
-- `cbteDesde` — `consultarUltimoAutorizado() + 1`
+- `cbteTipo`: see CbteTipo constants below
+- `concepto`: 1 (Productos), 2 (Servicios), 3 (P+S)
+- `docTipo`: 80 (CUIT), 96 (DNI), 99 (Consumidor Final)
+- `docNro`: receiver's document number (0 for Cons. Final)
+- `cbteFch`: YYYYMMDD, must be ±5 days of today (servicios: ±10)
+- `impTotal`, `impNeto`, `impIVA`: see consistency rules below
+- `cbteDesde`: `consultarUltimoAutorizado() + 1`
 
 **Required when concepto ∈ {2, 3} (Servicios):**
-- `fchServDesde`, `fchServHasta`, `fchVtoPago` — all YYYYMMDD
+- `fchServDesde`, `fchServHasta`, `fchVtoPago`: all YYYYMMDD
 
 **Required when emitting Factura A/B with IVA:**
-- `iva: [{ id: 5, baseImp: 100, importe: 21 }, ...]` — sum of `importe` MUST equal `impIVA`
+- `iva: [{ id: 5, baseImp: 100, importe: 21 }, ...]`: sum of `importe` MUST equal `impIVA`
 
 **Required when emitting Notas:**
 - `cbtesAsoc: [{ tipo, ptoVta, nro, cuit?, fecha? }]`
@@ -129,7 +129,7 @@ For Notas: same letter as the original. Crédito: 3/8/13. Débito: 2/7/12.
   ptoVta: number,
   cbteTipo: number,
   cbteNro: number,             // 0 if never issued
-  proximoNumero: number,       // cbteNro + 1 — pass this to emitir_factura.cbteDesde
+  proximoNumero: number,       // cbteNro + 1: pass this to emitir_factura.cbteDesde
   tipoComprobanteDescripcion: string,
 }
 ```
@@ -164,7 +164,7 @@ The lib's `validateSolicitarCae()` catches most of these (10048, 10049, 10054, 1
 | `consultar_factura_emitida`   | ~350 ms  | ~1.5 s    | Yes (AFIP)     |
 | `obtener_*` catalogs          | ~200 ms  | ~800 ms   | Yes (AFIP)     |
 
-Cache catalog responses aggressively — they change once or twice a year.
+Cache catalog responses aggressively: they change once or twice a year.
 
 ---
 
@@ -172,11 +172,11 @@ Cache catalog responses aggressively — they change once or twice a year.
 
 All errors extend `FacturacionError` with a machine-readable `code`:
 
-- `wsfe_not_configured` — no `WsfeClient` passed
-- `wsfe_validation_error` — local pre-flight failed (see `validateSolicitarCae`)
-- `wsfe_authentication_failed` — WSAA cert / service authorization issue
-- `wsfe_request_rejected` — AFIP returned `Resultado: R`
-- `wsfe_service_unavailable` — AFIP 5xx or network error
-- `wsfe_unknown_error` — fallback
+- `wsfe_not_configured`: no `WsfeClient` passed
+- `wsfe_validation_error`: local pre-flight failed (see `validateSolicitarCae`)
+- `wsfe_authentication_failed`: WSAA cert / service authorization issue
+- `wsfe_request_rejected`: AFIP returned `Resultado: R`
+- `wsfe_service_unavailable`: AFIP 5xx or network error
+- `wsfe_unknown_error`: fallback
 
 Surface `.message` to end users; switch on `.code` for programmatic flows.

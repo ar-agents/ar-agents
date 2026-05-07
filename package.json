@@ -2,7 +2,7 @@
   "name": "ar-agents",
   "version": "0.0.0",
   "private": true,
-  "description": "AR Tools for Vercel AI SDK — Argentine integrations as agent tools",
+  "description": "Mercado Pago Agent Toolkit for the Vercel AI SDK 6, plus the rest of the Argentine integrations stack as agent tools.",
   "scripts": {
     "build": "pnpm -r --filter './packages/*' run build",
     "test": "pnpm -r --filter './packages/*' run test",
@@ -10,7 +10,7 @@
     "typecheck": "pnpm -r run typecheck",
     "dev": "pnpm --filter mp-hello dev",
     "regen-manifests": "node scripts/regen-manifests.mjs",
-    "check-manifests": "node scripts/regen-manifests.mjs && git diff --exit-code packages/*/tools.manifest.json || (echo \"manifests stale — run pnpm regen-manifests\" >&2; exit 1)"
+    "check-manifests": "node scripts/regen-manifests.mjs && git diff --exit-code packages/*/tools.manifest.json || (echo \"manifests stale, run pnpm regen-manifests\" >&2; exit 1)"
   },
   "devDependencies": {
     "@arethetypeswrong/cli": "^0.18.2",

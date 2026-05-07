@@ -1,17 +1,17 @@
-# @ar-agents/mcp — agent guide
+# @ar-agents/mcp: agent guide
 
 This file is for the LLM running INSIDE Claude Desktop, Cursor, or any MCP host that loaded `@ar-agents/mcp`. It explains what's available and how to chain tools.
 
 ## What you have access to
 
-`@ar-agents/mcp` registers a subset of up to ~34 tools, depending on which env vars the human configured. Always check `list_payment_methods` (if MercadoPago is enabled) or just call any tool — if it's not registered, the host will tell you.
+`@ar-agents/mcp` registers a subset of up to ~34 tools, depending on which env vars the human configured. Always check `list_payment_methods` (if MercadoPago is enabled) or just call any tool: if it's not registered, the host will tell you.
 
 The tools are organized into 4 groups; each ships its own AGENTS.md you can mentally fold in:
 
-1. **`@ar-agents/identity`** — CUIT validation + AFIP/ARCA padron lookup
-2. **`@ar-agents/identity-attest`** — Verification orchestration (WhatsApp OTP, email magic-link), trust-level gating
-3. **`@ar-agents/mercadopago`** — Payments, Subscriptions, Cuotas, Customers, Refunds
-4. **`@ar-agents/whatsapp`** — WhatsApp Cloud API messaging
+1. **`@ar-agents/identity`**: CUIT validation + AFIP/ARCA padron lookup
+2. **`@ar-agents/identity-attest`**: Verification orchestration (WhatsApp OTP, email magic-link), trust-level gating
+3. **`@ar-agents/mercadopago`**: Payments, Subscriptions, Cuotas, Customers, Refunds
+4. **`@ar-agents/whatsapp`**: WhatsApp Cloud API messaging
 
 ## The canonical agent flow (Argentine SaaS billing)
 
@@ -51,7 +51,7 @@ Step 6 → continue with the charge, log the attestation_id alongside the paymen
 ```
 For amount < $5k → no verification needed (just create_payment_preference)
 For amount $5k-$50k → require trust >= 0.5 (email_magic_link)
-For amount > $50k → require trust >= 0.85 (KYC; only available with MercadoPago Identity adapter — planned v0.3)
+For amount > $50k → require trust >= 0.85 (KYC; only available with MercadoPago Identity adapter: planned v0.3)
 ```
 
 The agent checks `check_verification_status` for an existing valid attestation BEFORE kicking off a new one.
@@ -73,18 +73,18 @@ If the host integrates WhatsApp webhooks (your app's HTTP layer, not the MCP ser
 
 - **Mercado Pago payer_email cannot equal seller email** (error 205). Use distinct emails even in sandbox.
 - **WhatsApp 24h customer service window**: free-form text only works within 24h of user's last message. Outside → use `send_whatsapp_template`.
-- **AFIP `condicion: "DESCONOCIDA"`** — use `ws_sr_constancia_inscripcion` (default in identity v0.4+) for monotributo + IVA condition. A13 is "datos generales only".
-- **Cuotas `recommended_message`** — surface VERBATIM, already in compliant Argentine format ("3 cuotas sin interés de $X").
-- **Statement descriptor max 13 chars** — use abbreviations.
+- **AFIP `condicion: "DESCONOCIDA"`**: use `ws_sr_constancia_inscripcion` (default in identity v0.4+) for monotributo + IVA condition. A13 is "datos generales only".
+- **Cuotas `recommended_message`**: surface VERBATIM, already in compliant Argentine format ("3 cuotas sin interés de $X").
+- **Statement descriptor max 13 chars**: use abbreviations.
 - **AR phone normalizer** in `@ar-agents/whatsapp` handles all formats automatically.
 
 ## When things fail
 
-The MCP server returns `{ isError: true, content: [{ text: "Error calling X: ..." }] }` on any tool failure. Surface the error message to the user (it's already actionable: "El número no tiene WhatsApp", "El CUIT es inexistente", "Te quedan 2 intentos del código", etc.). Don't invent fallbacks — the lib's errors-as-docs philosophy means each error is a clear next-step instruction.
+The MCP server returns `{ isError: true, content: [{ text: "Error calling X: ..." }] }` on any tool failure. Surface the error message to the user (it's already actionable: "El número no tiene WhatsApp", "El CUIT es inexistente", "Te quedan 2 intentos del código", etc.). Don't invent fallbacks: the lib's errors-as-docs philosophy means each error is a clear next-step instruction.
 
 ## Composition philosophy
 
-`@ar-agents/mcp` is the meta-package — its purpose is to expose all the lower packages over MCP transport. Read each lower package's AGENTS.md for fuller decision trees:
+`@ar-agents/mcp` is the meta-package: its purpose is to expose all the lower packages over MCP transport. Read each lower package's AGENTS.md for fuller decision trees:
 - [@ar-agents/identity AGENTS.md](https://github.com/ar-agents/ar-agents/blob/main/packages/identity/AGENTS.md)
 - [@ar-agents/identity-attest AGENTS.md](https://github.com/ar-agents/ar-agents/blob/main/packages/identity-attest/AGENTS.md)
 - [@ar-agents/mercadopago AGENTS.md](https://github.com/ar-agents/ar-agents/blob/main/packages/mercadopago/AGENTS.md)

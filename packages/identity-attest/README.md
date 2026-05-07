@@ -7,7 +7,7 @@
 
 ## The problem
 
-RENAPER (the Argentine national identity registry) is closed to indie devs — $60/transaction, requires formal institutional agreement. There is no public API for "is this person who they say they are" in Argentina.
+RENAPER (the Argentine national identity registry) is closed to indie devs: $60/transaction, requires formal institutional agreement. There is no public API for "is this person who they say they are" in Argentina.
 
 ## The pattern
 
@@ -161,8 +161,8 @@ const attestation = new AttestationClient({
 
 ## Adapters provided
 
-- `WhatsAppOtpAdapter` — OTP via WhatsApp Cloud API (uses `@ar-agents/whatsapp`)
-- `EmailMagicLinkAdapter` — magic link via your email provider (Resend / SES / SMTP — pluggable sender)
+- `WhatsAppOtpAdapter`: OTP via WhatsApp Cloud API (uses `@ar-agents/whatsapp`)
+- `EmailMagicLinkAdapter`: magic link via your email provider (Resend / SES / SMTP: pluggable sender)
 
 Building your own adapter is ~50 lines: implement the `AttestAdapter` interface (3 methods).
 
@@ -174,7 +174,7 @@ Building your own adapter is ~50 lines: implement the `AttestAdapter` interface 
 
 ## License
 
-MIT — © Nazareno Clemente
+MIT: © Nazareno Clemente
 
 ## Stability
 

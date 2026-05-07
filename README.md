@@ -24,9 +24,9 @@ pnpm add @ar-agents/mercadopago ai zod
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents&root-directory=apps%2Fmp-hello&env=MP_ACCESS_TOKEN%2CANTHROPIC_API_KEY%2CUPSTASH_REDIS_REST_URL%2CUPSTASH_REDIS_REST_TOKEN&envDescription=Mercado%20Pago%20access%20token%2C%20Anthropic%20API%20key%2C%20and%20Upstash%20Redis%20credentials%20for%20subscription%20state.&envLink=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents%2Ftree%2Fmain%2Fapps%2Fmp-hello%23setup&project-name=mp-hello&repository-name=mp-hello)
 
-Deploys [`apps/mp-hello`](./apps/mp-hello) — a runnable agent on Vercel with
+Deploys [`apps/mp-hello`](./apps/mp-hello), a runnable agent on Vercel with
 Edge Runtime API routes, MP webhook handler, and Upstash-backed subscription
-state. ~2 minutes from click to live.
+state. Around 2 minutes from click to live.
 
 ```ts
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
@@ -62,20 +62,20 @@ migration guide vs the official `mercadopago` SDK live in
 
 |                                                | `@ar-agents/mercadopago` | `mercadopago` (official) | Stripe Agent Toolkit |
 | ---------------------------------------------- | :----------------------: | :----------------------: | :------------------: |
-| Vercel AI SDK 6 tool schemas                   | ✓                        | —                        | ✓ (Stripe)           |
-| Argentine-specific (cuotas, ARCA, AR phone)    | ✓                        | partial                  | —                    |
-| Tool count                                     | 87                       | thin REST client         | 26 (Stripe)          |
+| Vercel AI SDK 6 tool schemas                   | ✓                        | no                       | ✓ (Stripe)           |
+| Argentine-specific (cuotas, ARCA, AR phone)    | ✓                        | partial                  | no                   |
+| Tool count                                     | 89                       | thin REST client         | 26 (Stripe)          |
 | Webhooks: HMAC + dedup + replay window         | ✓                        | client only              | ✓                    |
 | Edge Runtime + Vercel KV adapters              | ✓                        | Node-only                | optional             |
-| OpenTelemetry instrumentation                  | ✓                        | —                        | —                    |
-| Deterministic idempotency by default           | ✓                        | —                        | —                    |
-| Programmatic HITL on irreversible ops          | ✓                        | —                        | —                    |
+| OpenTelemetry instrumentation                  | ✓                        | no                       | no                   |
+| Deterministic idempotency by default           | ✓                        | no                       | no                   |
+| Programmatic HITL on irreversible ops          | ✓                        | no                       | no                   |
 | MercadoPago coverage                           | full                     | full                     | n/a                  |
 
-Both official SDKs are excellent at what they do — generic REST clients for their
-respective APIs. `@ar-agents/mercadopago` is opinionated for the agent-operating-an-
-Argentine-business case, and composes with `mercadopago` under the hood when needed.
-See [`MIGRATION.md`](./packages/mercadopago/MIGRATION.md).
+Both official SDKs are excellent at what they do (generic REST clients for
+their respective APIs). `@ar-agents/mercadopago` is opinionated for the
+agent-operating-an-Argentine-business case, and composes with `mercadopago`
+under the hood when needed. See [`MIGRATION.md`](./packages/mercadopago/MIGRATION.md).
 
 ## Other AR primitives in this monorepo
 
@@ -92,8 +92,8 @@ Same approach, applied to the rest of the stack an Argentine business needs:
 | [`@ar-agents/mcp`](./packages/mcp) | wraps all | Model Context Protocol server. Drop the toolkit into Claude Desktop, Cursor, any MCP host. |
 
 Each package ships a `README.md` for humans and an `AGENTS.md` for LLMs reading
-the docs at runtime ([agents.md](https://agents.md/) format — tool selection
-rules, result schemas, error patterns).
+the docs at runtime, following the [agents.md](https://agents.md/) format
+(tool-selection rules, result schemas, error patterns).
 
 ## Live demos
 
@@ -101,7 +101,7 @@ rules, result schemas, error patterns).
 | --- | --- | --- |
 | Landing | <https://ar-agents.vercel.app> | Toolkit overview |
 | `cuit-hello` | <https://ar-agents-cuit-hello.vercel.app> | CUIT validation + ARCA padrón (real AFIP cert) |
-| `whatsapp-hello` | <https://ar-agents-whatsapp-hello.vercel.app> | Billing assistant — MP composed with identity, identity-attest, whatsapp |
+| `whatsapp-hello` | <https://ar-agents-whatsapp-hello.vercel.app> | Billing assistant: MP composed with identity, identity-attest, whatsapp |
 | `mp-hello` | dev-only | MP Subscriptions full flow (`pnpm dev`, port 3013) |
 
 ## Develop
@@ -114,8 +114,8 @@ pnpm build
 pnpm dev          # mp-hello on http://localhost:3013
 ```
 
-Requires Node 20+ and pnpm 10+. CI runs build → typecheck → coverage →
-manifest-drift → publint + arethetypeswrong → size-limit on every push.
+Requires Node 20+ and pnpm 10+. CI runs build, typecheck, coverage,
+manifest-drift, publint, arethetypeswrong, and size-limit on every push.
 
 ## Repo layout
 
@@ -127,7 +127,7 @@ ar-agents/
 │   ├── whatsapp-hello/          # ar-agents-whatsapp-hello.vercel.app
 │   └── mp-hello/                # dev-only (port 3013)
 ├── packages/
-│   ├── mercadopago/             # 89 tools — subscriptions, payments, OAuth, QR, 3DS, point, ...
+│   ├── mercadopago/             # 89 tools: subscriptions, payments, OAuth, QR, 3DS, point, ...
 │   ├── identity/                # CUIT validate + ARCA padrón
 │   ├── identity-attest/         # verification orchestrator
 │   ├── whatsapp/                # WhatsApp Cloud
@@ -142,9 +142,9 @@ ar-agents/
 
 ## Stability
 
-All packages are pre-1.0. Public API may evolve in 0.x; we follow semver — minor
-bumps may include breaking changes, patch bumps never do. Pinning a minor in
-production is safe.
+All packages are pre-1.0. Public API may evolve in 0.x; we follow semver, so
+minor bumps may include breaking changes and patch bumps never do. Pinning a
+minor in production is safe.
 
 ## License
 

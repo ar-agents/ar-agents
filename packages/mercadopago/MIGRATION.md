@@ -1,9 +1,9 @@
-# Migration guide — `mercadopago` (official SDK) → `@ar-agents/mercadopago`
+# Migration guide: `mercadopago` (official SDK) → `@ar-agents/mercadopago`
 
 If you're already using MP's official Node SDK and want to switch to (or
 add on top of) the agent toolkit, this guide shows the side-by-side mapping.
 
-The agent toolkit is **not** a drop-in replacement — it's a layer ABOVE
+The agent toolkit is **not** a drop-in replacement: it's a layer ABOVE
 the underlying API designed for AI agents. You can use both packages in
 the same project: keep `mercadopago` for traditional server flows, add
 `@ar-agents/mercadopago` for the agent layer.
@@ -47,7 +47,7 @@ const created = await payment.create({
 console.log(created.id, created.status);
 ```
 
-**After (`@ar-agents/mercadopago` — direct client):**
+**After (`@ar-agents/mercadopago`: direct client):**
 
 ```ts
 import { MercadoPagoClient } from "@ar-agents/mercadopago";
@@ -65,7 +65,7 @@ const created = await client.createPayment({
 console.log(created.id, created.status);
 ```
 
-**After (`@ar-agents/mercadopago` — agent tool):**
+**After (`@ar-agents/mercadopago`: agent tool):**
 
 ```ts
 import { MercadoPagoClient, mercadoPagoTools, InMemoryStateAdapter } from "@ar-agents/mercadopago";
@@ -82,7 +82,7 @@ const tools = mercadoPagoTools(client, {
 
 ## Side-by-side: webhook signature verification
 
-**Before (`mercadopago`)**: not provided — you implement HMAC-SHA256 yourself
+**Before (`mercadopago`)**: not provided: you implement HMAC-SHA256 yourself
 from the docs.
 
 **After (`@ar-agents/mercadopago`):**
@@ -139,7 +139,7 @@ new MercadoPagoClient({
 - **Deadline propagation** via parent `AbortSignal`
 - **W3C Trace Context** propagation (OpenTelemetry compat sin peer dep)
 - **Audit logging** with pluggable adapter (`AuditLogger` + `InMemoryAuditLog`)
-- **Webhook idempotency dedup** (`WebhookDedup` — short-circuits MP retries)
+- **Webhook idempotency dedup** (`WebhookDedup`: short-circuits MP retries)
 - **Pagination helpers** (`paginate()` AsyncIterable for 7 endpoints)
 - **Token bucket rate limiter** with adaptive learning from MP headers
 - **AR issuer cuotas catalog** (`AR_ISSUER_PROMOS`, `findApplicablePromos`)
@@ -147,7 +147,7 @@ new MercadoPagoClient({
 - **Tool middleware pattern** (`withAuditLog`, `withRateLimit`, `withMetrics`, `withRetry`)
 - **3DS challenge resolution** (`confirmChallengeAndPoll`)
 - **TaxID validation cross-LATAM** (DNI/CUIT/CPF/CNPJ/RFC/RUT/NIT/RUC)
-- **Status detail explainer** (`explainPaymentStatus` — Spanish actionable guidance)
+- **Status detail explainer** (`explainPaymentStatus`: Spanish actionable guidance)
 - **Marketplace fee calculator** (`computeMarketplaceFee`)
 - **Vercel KV state adapters** (subscription state + OAuth tokens + idempotency cache + audit log)
 - **Cookbook** with 8 cookbook recipes
@@ -173,4 +173,4 @@ new MercadoPagoClient({
 - You want **AR-specific knowledge** (cuotas catalog, status_detail explainer in Spanish, AR landmines documented)
 - You want **OpenTelemetry-native** observability without writing instrumentation glue
 
-You can use BOTH packages in the same project — they don't conflict.
+You can use BOTH packages in the same project: they don't conflict.

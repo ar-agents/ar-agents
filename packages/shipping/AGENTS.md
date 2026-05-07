@@ -1,4 +1,4 @@
-# AGENTS.md — @ar-agents/shipping
+# AGENTS.md: @ar-agents/shipping
 
 > Runtime guidance for LLM agents that load this toolkit.
 
@@ -10,12 +10,12 @@ This file ships in the npm tarball so agents can read it at runtime.
 
 6 Vercel AI SDK tools for AR shipping carriers (Andreani, OCA, Correo Argentino):
 
-1. **`cotizar_envio`** — quote with a specific carrier
-2. **`cotizar_envio_todos`** — parallel quote across all configured carriers (cheapest first)
-3. **`crear_envio`** — create a real shipment, get trackingNumber + label
-4. **`trackear_envio`** — current status + events
-5. **`cancelar_envio`** — cancel pre-delivery (when supported)
-6. **`listar_sucursales`** — branches near a CPA
+1. **`cotizar_envio`**: quote with a specific carrier
+2. **`cotizar_envio_todos`**: parallel quote across all configured carriers (cheapest first)
+3. **`crear_envio`**: create a real shipment, get trackingNumber + label
+4. **`trackear_envio`**: current status + events
+5. **`cancelar_envio`**: cancel pre-delivery (when supported)
+6. **`listar_sucursales`**: branches near a CPA
 
 All require at least one `ShippingAdapter` configured. Without any, tools return `{ available: false, error: <setup instructions> }`.
 
@@ -38,17 +38,17 @@ All require at least one `ShippingAdapter` configured. Without any, tools return
 
 Every adapter maps its native status codes to one of these (use `currentStatus` for quick decisions):
 
-- `label_created` — etiqueta generada, paquete no retirado todavía
-- `in_transit` — el carrier tiene el paquete, en ruta
-- `out_for_delivery` — en el camión para entrega HOY
-- `delivered` — destinatario confirmó recepción (`deliveredAt` se popula)
-- `delivery_failed` — intento fallido (ausente, rechazado)
-- `returned` — devuelto al remitente
-- `canceled` — el remitente lo canceló
-- `exception` — perdido, dañado, en mediación
-- `unknown` — el carrier devolvió algo no mapeable (raro, surface a ops)
+- `label_created`: etiqueta generada, paquete no retirado todavía
+- `in_transit`: el carrier tiene el paquete, en ruta
+- `out_for_delivery`: en el camión para entrega HOY
+- `delivered`: destinatario confirmó recepción (`deliveredAt` se popula)
+- `delivery_failed`: intento fallido (ausente, rechazado)
+- `returned`: devuelto al remitente
+- `canceled`: el remitente lo canceló
+- `exception`: perdido, dañado, en mediación
+- `unknown`: el carrier devolvió algo no mapeable (raro, surface a ops)
 
-Always show the user the full `events[]` array in chronological order — son la traza completa del recorrido.
+Always show the user the full `events[]` array in chronological order: son la traza completa del recorrido.
 
 ---
 
@@ -77,7 +77,7 @@ The tools auto-validate:
 - `postalCode` (origin + destination) → must be a valid CPA (4-digit ≥1000 OR extended `B1842ZAB`)
 - `state` → must resolve via `lookupProvincia` (accent-insensitive name, ISO code, or AFIP code)
 
-When invalid, returns `{ ok: false, error }` — no network call. Saves carrier API quota.
+When invalid, returns `{ ok: false, error }`: no network call. Saves carrier API quota.
 
 ---
 
@@ -91,7 +91,7 @@ When invalid, returns `{ ok: false, error }` — no network call. Saves carrier 
 | cancelar            | ✓         | throws    | throws           |
 | listar_sucursales   | ✓         | ✓         | ✓                |
 
-When a carrier doesn't support an operation, the tool returns `{ ok: false, error: <Spanish msg> }` — surface verbatim.
+When a carrier doesn't support an operation, the tool returns `{ ok: false, error: <Spanish msg> }`: surface verbatim.
 
 ---
 
@@ -113,10 +113,10 @@ When a carrier doesn't support an operation, the tool returns `{ ok: false, erro
 
 All errors extend `ShippingError` with a machine-readable `code`:
 
-- `shipping_not_configured` — adapter for the requested carrier wasn't passed
-- `shipping_invalid_input` — bad CPA or unknown provincia
-- `shipping_carrier_error` — carrier API returned an error (HTTP 4xx/5xx)
-- `shipping_not_supported` — carrier doesn't support this operation in v0.1
-- `shipping_unknown_error` — fallback
+- `shipping_not_configured`: adapter for the requested carrier wasn't passed
+- `shipping_invalid_input`: bad CPA or unknown provincia
+- `shipping_carrier_error`: carrier API returned an error (HTTP 4xx/5xx)
+- `shipping_not_supported`: carrier doesn't support this operation in v0.1
+- `shipping_unknown_error`: fallback
 
 Surface `.message` to end users; switch on `.code` for programmatic flows.

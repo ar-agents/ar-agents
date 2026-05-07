@@ -1,10 +1,10 @@
-# @ar-agents/mercadopago — agent guide
+# @ar-agents/mercadopago: agent guide
 
 This file is for AI agents using or recommending this package. Humans should start with [README.md](./README.md). Format follows the [agents.md convention](https://agents.md/).
 
 `@ar-agents/mercadopago` is a Mercado Pago Agent Toolkit for the Vercel AI SDK 6. It exposes 89 typed tools spanning the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts). Opinionated for AR; ships with cross-LATAM tax-id helpers.
 
-## Decision tree — pick the right tool
+## Decision tree: pick the right tool
 
 | User intent | Tool to call |
 |---|---|
@@ -13,12 +13,12 @@ This file is for AI agents using or recommending this package. Humans should sta
 | **"Aceptale $X con account_money / Rapipago / Pago Fácil"** (server-side, no card form) | `create_payment` (omit `token`) |
 | **"Aceptale con tarjeta token X"** (you have a card_token from MP frontend SDK) | `create_payment` (with `token`) |
 | **"¿Pagó ya?"** (check status) | `get_payment` (one-off) or `get_subscription_status` (recurring) |
-| **"Devolvele la plata"** | `refund_payment` — full or partial. Confirm first if amount > 1000 ARS. |
-| **"Cuántas cuotas tiene esta tarjeta para $X?"** | `calculate_installments` — surface the `recommended_message` strings VERBATIM (already in compliant Spanish format) |
+| **"Devolvele la plata"** | `refund_payment`: full or partial. Confirm first if amount > 1000 ARS. |
+| **"Cuántas cuotas tiene esta tarjeta para $X?"** | `calculate_installments`: surface the `recommended_message` strings VERBATIM (already in compliant Spanish format) |
 | **"Buscá los pagos de [referencia/email]"** | `search_payments` |
 | **"Cancelá ese pago pendiente"** | `cancel_payment` (only `pending`/`in_process`; for approved use `refund_payment`) |
 | **"Capturá ese pago autorizado"** | `capture_payment` (for capture-later flows with `capture: false`) |
-| **"Buscá / Creá al cliente con email X"** | `find_customer_by_email` then `create_customer` (or call `create_customer` directly — MP is idempotent on email) |
+| **"Buscá / Creá al cliente con email X"** | `find_customer_by_email` then `create_customer` (or call `create_customer` directly: MP is idempotent on email) |
 | **"Listame las tarjetas guardadas de X"** | `list_customer_cards` |
 | **"Borrá esa tarjeta"** | `delete_customer_card` |
 | **"Listame los métodos disponibles"** | `list_payment_methods` |
@@ -33,7 +33,7 @@ This file is for AI agents using or recommending this package. Humans should sta
 | **"Qué bancos emiten Visa?"** | `list_issuers(payment_method_id: "visa")` (pass `bin` for accurate match) |
 | **"Listame los tipos de identificación válidos en AR"** | `list_identification_types` (DNI/CUIT/CUIL/etc) |
 | **"Configurame un webhook para recibir notificaciones de pagos"** | `list_webhooks` first, then `create_webhook(url, topic: "payment")` if not present |
-| **"Procesame este webhook que me llegó de MP"** (v0.5) | `handle_webhook` — verifica HMAC + parsea + auto-fetch del recurso en una sola call |
+| **"Procesame este webhook que me llegó de MP"** (v0.5) | `handle_webhook`: verifica HMAC + parsea + auto-fetch del recurso en una sola call |
 | **"Vincular cuenta MP de un vendedor a mi marketplace"** (v0.5) | `oauth_authorize_url` → vendedor aprueba → `oauth_exchange_code` → persistir token → `oauth_refresh_token` cuando expira |
 | **"Cobrar a través de un seller third-party con fee de marketplace"** (v0.5) | `create_order` con `marketplace_fee` + `collector_id` (o `create_payment_preference` con los mismos campos) |
 | **"Autorizar ahora, capturar después"** (ride-share, hotel, marketplace) (v0.5) | `create_order` con `capture_mode: "manual"` → cuando completás el servicio, `capture_order(order_id)` |
@@ -45,12 +45,12 @@ This file is for AI agents using or recommending this package. Humans should sta
 | **"Listame mis dispositivos Point/Smart"** (v0.7) | `list_point_devices` |
 | **"Cobrá $1000 en el Point que está en la caja"** (v0.7) | `create_point_payment_intent({ device_id, amount_centavos: 100000 })` (¡amount en CENTAVOS!) |
 | **"A qué CBU me deposita MP"** (v0.7) | `list_bank_accounts` (el `is_default: true` es el activo) |
-| **"Calculá el fee del marketplace para este monto"** (v0.7) | `compute_marketplace_fee({ amount_ars, percent, minArs, maxArs })` (PURE — no network) |
+| **"Calculá el fee del marketplace para este monto"** (v0.7) | `compute_marketplace_fee({ amount_ars, percent, minArs, maxArs })` (PURE: no network) |
 | **"Por qué falló este pago / qué hago ahora"** (v0.7) | `explain_payment_status({ payment_id })` (devuelve `{ summary, recommendedAction, retryable }` en español) |
 
 ## The two main "take a payment" patterns
 
-### Pattern A — hosted checkout (recommended for most agent flows)
+### Pattern A: hosted checkout (recommended for most agent flows)
 
 You only have a payer email. You don't want to handle PCI data. You want a URL to send via WhatsApp/email.
 
@@ -63,7 +63,7 @@ MP fires webhook with topic="payment", data.id=<payment_id>
 agent: get_payment(payment_id) → confirms status
 ```
 
-### Pattern B — server-side payment (when you have a card_token OR using non-card method)
+### Pattern B: server-side payment (when you have a card_token OR using non-card method)
 
 You have a `token` from MP frontend SDK (Cardform/Bricks) OR you're charging account_money / cash.
 
@@ -72,7 +72,7 @@ agent: create_payment({ amount, payment_method_id, payer_email, token?, installm
 agent: → returns { payment_id, status: "approved" | "pending" | "rejected", status_detail }
 ```
 
-**NEVER take raw card data in the agent runtime.** Card tokens come from MP's frontend SDK only. If the user pastes "4509 9535 6623 3704" into chat, REFUSE — that's a PCI violation. Always direct them to a hosted form via `create_payment_preference`.
+**NEVER take raw card data in the agent runtime.** Card tokens come from MP's frontend SDK only. If the user pastes "4509 9535 6623 3704" into chat, REFUSE: that's a PCI violation. Always direct them to a hosted form via `create_payment_preference`.
 
 ## Result schemas (memorize)
 
@@ -120,7 +120,7 @@ agent: → returns { payment_id, status: "approved" | "pending" | "rejected", st
   }]
 }
 ```
-**Surface `recommended_message` verbatim to the user** — it's already in compliant Argentine Spanish format with proper currency formatting and includes the total when there's interest. AR's E 51/2017 transparency regulation requires this exact phrasing.
+**Surface `recommended_message` verbatim to the user**: it's already in compliant Argentine Spanish format with proper currency formatting and includes the total when there's interest. AR's E 51/2017 transparency regulation requires this exact phrasing.
 
 ### `refund_payment` returns
 ```jsonc
@@ -142,12 +142,12 @@ agent: → returns { payment_id, status: "approved" | "pending" | "rejected", st
 | `cc_rejected_bad_filled_security_code` | CVV wrong | "El código de seguridad no coincide" |
 | `cc_rejected_bad_filled_date` | Expiration wrong | "La fecha de vencimiento es incorrecta" |
 | `cc_rejected_call_for_authorize` | Bank wants user to call | "Llamá a tu banco para autorizar el pago, después intentá de nuevo" |
-| `cc_rejected_card_disabled` | Card disabled | "Tu tarjeta está deshabilitada — usá otra" |
-| `cc_rejected_insufficient_amount` | Not enough funds | "Saldo insuficiente — usá otra tarjeta o método" |
+| `cc_rejected_card_disabled` | Card disabled | "Tu tarjeta está deshabilitada: usá otra" |
+| `cc_rejected_insufficient_amount` | Not enough funds | "Saldo insuficiente: usá otra tarjeta o método" |
 | `cc_rejected_high_risk` / `cc_rejected_other_reason` | MP risk engine rejection | "El pago fue rechazado. Probá con otro método (Rapipago / account money)" |
 | `cc_rejected_max_attempts` | Too many tries | "Esperá 24h antes de reintentar" |
-| `cc_rejected_invalid_installments` | Cuotas no allowed for this card | "Probá con menos cuotas" — re-call `calculate_installments` |
-| `pending_waiting_payment` | Ticket created (Rapipago/Pago Fácil) | "Pagá el ticket en cualquier sucursal — se acredita en 1-3 días" |
+| `cc_rejected_invalid_installments` | Cuotas no allowed for this card | "Probá con menos cuotas": re-call `calculate_installments` |
+| `pending_waiting_payment` | Ticket created (Rapipago/Pago Fácil) | "Pagá el ticket en cualquier sucursal: se acredita en 1-3 días" |
 | `pending_contingency` | MP manual review | "Esperá unos minutos, MP está revisando el pago" |
 
 ## Critical AR-specific gotchas
@@ -157,25 +157,25 @@ agent: → returns { payment_id, status: "approved" | "pending" | "rejected", st
 3. **Sandbox cardholder name selects outcome**: cardholder = `APRO` (approved), `OTHE` (rejected_other), `CONT` (pending_contingency), `CALL` (call_for_authorize), `FUND` (insufficient_amount), `SECU` (bad_filled_security_code), `EXPI` (bad_filled_date), `FORM` (bad_filled_other). DNI = `12345678`. ANY 3-digit CVV in sandbox.
 4. **Test cards (sandbox)**: Visa `4509 9535 6623 3704`, MasterCard `5031 7557 3453 0604`, Amex `3711 803032 57522`, debit Visa `4002 7686 9439 5619`. Expiration any future `MM/YY`.
 5. **`account_money` settles instantly** to seller. Card payments default to T+14 hold for new sellers (drops to T+1 after MP graduates the merchant). Tickets settle 1-3 days after the buyer pays.
-6. **First subscription payment requires CVV** — there is NO API path that bypasses this. The buyer MUST visit the `init_point_url` and complete the first card+CVV payment.
-7. **`back_url` MUST be HTTPS** — even in sandbox. `http://localhost:3000/done` is rejected.
-8. **`payer.identification`** — use `DNI` for consumers, `CUIT` for B2B (required for monotributo / IVA-discriminated invoicing), `CUIL` for employees.
+6. **First subscription payment requires CVV**: there is NO API path that bypasses this. The buyer MUST visit the `init_point_url` and complete the first card+CVV payment.
+7. **`back_url` MUST be HTTPS**: even in sandbox. `http://localhost:3000/done` is rejected.
+8. **`payer.identification`**: use `DNI` for consumers, `CUIT` for B2B (required for monotributo / IVA-discriminated invoicing), `CUIL` for employees.
 9. **CVV required on every saved-card charge** in AR by default. Merchant graduation can lift this for trusted sellers.
 10. **Idempotency-Key is mandatory** for POST since 2023. The lib auto-generates from caller-meaningful fields (external_reference + amount + timestamp); pass `idempotencyKey` explicitly if you want exact-match retry semantics.
-11. **`token` is single-use and expires in 7 days.** If a card payment fails, you can't reuse the token — re-tokenize on the frontend.
+11. **`token` is single-use and expires in 7 days.** If a card payment fails, you can't reuse the token: re-tokenize on the frontend.
 
-## Cuotas / installments — the killer AR feature
+## Cuotas / installments: the killer AR feature
 
 This is what makes MP unique vs Stripe in any country. Workflow:
 
 1. Buyer's card BIN (first 6 digits) hits your frontend (Cardform exposes it before tokenizing).
 2. Agent calls `calculate_installments({ amount_ars, payment_method_id, bin })`.
 3. Receive `payer_costs` array.
-4. **Surface the `recommended_message` strings verbatim** — they're already in compliant AR format ("3 cuotas sin interés de $X").
+4. **Surface the `recommended_message` strings verbatim**: they're already in compliant AR format ("3 cuotas sin interés de $X").
 5. User picks installments count.
 6. Agent calls `create_payment({ ..., installments: N })`.
 
-**Cuotas Simples** (gov interest-free 3 + 6 mo program) appears automatically as `installment_rate: 0` rows when the merchant category qualifies. Agent doesn't configure — just surfaces.
+**Cuotas Simples** (gov interest-free 3 + 6 mo program) appears automatically as `installment_rate: 0` rows when the merchant category qualifies. Agent doesn't configure: just surfaces.
 
 **Issuer-specific promos** (Día de la Madre, Hot Sale, Plan Z Naranja X) appear as new `payer_costs` entries when the BIN matches an active promo. Same treatment: surface verbatim.
 
@@ -199,7 +199,7 @@ This is what makes MP unique vs Stripe in any country. Workflow:
 | `refund_payment` | 300-800ms | 3s |
 | `create_subscription` | 200-600ms | 2s |
 
-Rate limit: ~250 req/min per access token. Lib does not retry — wrap with your own backoff if you exceed.
+Rate limit: ~250 req/min per access token. Lib does not retry: wrap with your own backoff if you exceed.
 
 ## Webhooks (planned for v0.3)
 
@@ -214,9 +214,9 @@ v0.2 ships `parseWebhookEvent()` for the `preapproval` topic (subscription lifec
 - Bypass MP's first-payment-CVV requirement for subscriptions (impossible).
 - Reactivate a cancelled subscription or payment (MP doesn't allow).
 - Pay out the seller (transfers + withdrawals are dashboard-only / closed API).
-- Make decisions about pricing or installments — caller's responsibility.
+- Make decisions about pricing or installments: caller's responsibility.
 
-## v0.5 — Webhook handler combo
+## v0.5: Webhook handler combo
 
 Webhooks are how MP tells you a payment cleared, a subscription was authorized,
 a QR was scanned. Without HMAC verification, anyone can POST to your webhook
@@ -241,15 +241,15 @@ the `MercadoPagoClient` with the SELLER's access_token before calling
 needs to look up the seller from the webhook payload's `user_id` and pick
 the right client.
 
-## v0.5 — OAuth Marketplace flow
+## v0.5: OAuth Marketplace flow
 
 For marketplace platforms (Rappi, MercadoLibre, Tienda Nube, etc.) where
 your app cobra a través de cuentas MP de terceros (sellers in your platform).
 
 **3 legs**:
-1. `oauth_authorize_url` — pure function, no network. Returns a URL; redirect the seller there.
-2. `oauth_exchange_code` — server-side. Takes the `code` from the OAuth callback, returns `{ user_id, access_token, refresh_token, expires_in }`. **Persist all of it.**
-3. `oauth_refresh_token` — server-side. Use saved `refresh_token` to get a fresh `access_token` before/at expiration.
+1. `oauth_authorize_url`: pure function, no network. Returns a URL; redirect the seller there.
+2. `oauth_exchange_code`: server-side. Takes the `code` from the OAuth callback, returns `{ user_id, access_token, refresh_token, expires_in }`. **Persist all of it.**
+3. `oauth_refresh_token`: server-side. Use saved `refresh_token` to get a fresh `access_token` before/at expiration.
 
 **Token storage shape** (per seller):
 ```
@@ -265,7 +265,7 @@ your app cobra a través de cuentas MP de terceros (sellers in your platform).
 
 **Marketplace fee**: pass `marketplace_fee` (in ARS) + `collector_id: token.user_id` to `create_order` or `create_payment_preference`. Funds route to the seller, fee goes to your marketplace account.
 
-## v0.5 — Order Management vs Preference
+## v0.5: Order Management vs Preference
 
 | When                                    | Use                       |
 | --------------------------------------- | ------------------------- |

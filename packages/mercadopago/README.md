@@ -19,24 +19,24 @@ Wraps the Mercado Pago API as a typed tool collection for AI agents. Built for
 the Vercel AI SDK 6 `Experimental_Agent`. Compatible with any caller that uses
 `tool()`.
 
-> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — it's targeted at LLM consumption with explicit tool-selection rules and error-recovery patterns.
+> **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md): it's targeted at LLM consumption with explicit tool-selection rules and error-recovery patterns.
 
 ## At a glance
 
 | What | Value |
 | --- | --- |
-| Tools shipped | **89 tools** — covers the agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, Point Devices físicos, Merchant Orders, Bank Accounts, Disputes, Lookups, Webhooks management, `handle_webhook` combo, OAuth Marketplace flow, Account/Balance/Settlements, 3DS analyzer, Test cards, `mp_health_check`, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
+| Tools shipped | **89 tools**: covers the agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, Point Devices físicos, Merchant Orders, Bank Accounts, Disputes, Lookups, Webhooks management, `handle_webhook` combo, OAuth Marketplace flow, Account/Balance/Settlements, 3DS analyzer, Test cards, `mp_health_check`, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
 | Production hardening | Circuit breaker with state machine + rolling window, deadline propagation via parent AbortSignal, W3C Trace Context propagation (OpenTelemetry-compatible without peer dep), replay-attack protection on webhook signatures (5-min default tolerance), `mp_health_check` endpoint. |
-| Test coverage | **303 tests** — unit + property-based (~1400 random scenarios via fast-check) + failure injection (network errors, timeouts, races, malformed responses) + integration vs MP sandbox (gated by env var) + benchmarks (`pnpm bench`). |
+| Test coverage | **303 tests**: unit + property-based (~1400 random scenarios via fast-check) + failure injection (network errors, timeouts, races, malformed responses) + integration vs MP sandbox (gated by env var) + benchmarks (`pnpm bench`). |
 | External dependencies | Mercado Pago access token (TEST or APP_USR), state adapter (Upstash, Redis, Postgres, in-memory, etc.) |
 | Latency | 200–600ms per MP call; <1ms for state ops |
-| Cost | $0 — MP API is free; merchant pays per-transaction fees on auto-charges |
+| Cost | $0: MP API is free; merchant pays per-transaction fees on auto-charges |
 | Side effects | `create_subscription` creates a preapproval. `cancel`/`pause`/`resume` mutate state. `get_status` is read-only. |
 | Agent safety | `cancel_subscription` description triggers confirm-before-call in Claude Sonnet 4.6+ |
 | Sites supported | MLA (Argentina) verified end-to-end. Other LATAM sites should work but aren't exercised by tests. |
-| Runtime | **Edge Runtime + Node 18+** — Web Crypto under the hood, no `node:crypto`. Drops into Vercel Edge Functions, Cloudflare Workers, Deno deploy, or any modern Node. |
+| Runtime | **Edge Runtime + Node 18+**: Web Crypto under the hood, no `node:crypto`. Drops into Vercel Edge Functions, Cloudflare Workers, Deno deploy, or any modern Node. |
 | Vercel KV adapters | Subpath `@ar-agents/mercadopago/vercel-kv` ships adapters for subscription state, OAuth tokens, idempotency cache, audit log, and rate limiter. |
-| Cookbook | 9 recipes shipped in `cookbook/` — checkout, subscriptions, webhook handler, marketplace OAuth, QR in-store, 3DS challenge, auth-only Order, recovery patterns, full OpenTelemetry wiring. |
+| Cookbook | 9 recipes shipped in `cookbook/`: checkout, subscriptions, webhook handler, marketplace OAuth, QR in-store, 3DS challenge, auth-only Order, recovery patterns, full OpenTelemetry wiring. |
 
 ## Why this exists
 
@@ -51,7 +51,7 @@ the documented gotchas into typed errors with actionable messages.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents&root-directory=apps%2Fmp-hello&env=MP_ACCESS_TOKEN%2CANTHROPIC_API_KEY%2CUPSTASH_REDIS_REST_URL%2CUPSTASH_REDIS_REST_TOKEN&envDescription=Mercado%20Pago%20access%20token%2C%20Anthropic%20API%20key%2C%20and%20Upstash%20Redis%20credentials%20for%20subscription%20state.&envLink=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents%2Ftree%2Fmain%2Fapps%2Fmp-hello%23setup&project-name=mp-hello&repository-name=mp-hello)
 
-`apps/mp-hello` ships as a clonable Vercel template — Edge Runtime API routes,
+`apps/mp-hello` ships as a clonable Vercel template: Edge Runtime API routes,
 MP webhook handler with HMAC verify, Upstash-backed subscription state.
 
 ## Install
@@ -169,7 +169,7 @@ local development, pass a placeholder valid HTTPS URL like
 
 The error message is misleading. The actual cause: the seller account
 (whose access token authenticates the request) and the buyer email (`payerEmail`)
-must be the same MP account "type" — both real accounts, or both test users
+must be the same MP account "type": both real accounts, or both test users
 created via `POST /users/test_user`. Mixing them rejects with this error.
 Throws `MercadoPagoAccountTypeMismatchError`.
 
@@ -253,7 +253,7 @@ has history of normal usage, the engine relaxes.
 ### 11. Failed first payment auto-cancels the entire preapproval
 
 When MP's risk engine rejects the first payment of a preapproval, MP
-automatically marks the WHOLE preapproval as `status: cancelled` — you cannot
+automatically marks the WHOLE preapproval as `status: cancelled`: you cannot
 retry with another card on the same subscription. Create a fresh preapproval
 to retry. Throws `MercadoPagoPaymentRejectedError`, which carries the parent
 `preapprovalId` so the caller knows the parent is dead too.
@@ -293,9 +293,9 @@ selection guidance. Highlights:
 - **In-store QR + POS** (4 tools): create_qr_payment, cancel_qr_payment, create_store, create_pos
 - **Cuotas + lookups** (3 tools): calculate_installments, list_payment_methods, list_issuers
 - **Disputes + Webhooks management** (6 tools): list_payment_disputes, create_webhook, list_webhooks…
-- **v0.5 — Webhook handler combo** (1 tool): `handle_webhook` — verify HMAC + parse + auto-fetch in ONE call
-- **v0.5 — OAuth Marketplace** (3 tools): `oauth_authorize_url`, `oauth_exchange_code`, `oauth_refresh_token` — wire third-party MP accounts to your platform
-- **v0.5 — Order Management API** (5 tools): `create_order`, `get_order`, `update_order`, `capture_order`, `cancel_order` — modern API with auth-only support and marketplace splits
+- **v0.5: Webhook handler combo** (1 tool): `handle_webhook`: verify HMAC + parse + auto-fetch in ONE call
+- **v0.5: OAuth Marketplace** (3 tools): `oauth_authorize_url`, `oauth_exchange_code`, `oauth_refresh_token`: wire third-party MP accounts to your platform
+- **v0.5: Order Management API** (5 tools): `create_order`, `get_order`, `update_order`, `capture_order`, `cancel_order`: modern API with auth-only support and marketplace splits
 
 Options:
 
@@ -309,7 +309,7 @@ mercadoPagoTools(client, {
 });
 ```
 
-### v0.5 — Webhook handler combo
+### v0.5: Webhook handler combo
 
 ```ts
 // In your /api/mercadopago/webhook handler
@@ -324,10 +324,10 @@ if (!result.verified) return new Response("unauthorized", { status: 401 });
 // Use result.event.topic, result.event.dataId, result.resource (Payment | Preapproval | …)
 ```
 
-### v0.5 — OAuth Marketplace flow (3 legs)
+### v0.5: OAuth Marketplace flow (3 legs)
 
 ```ts
-// 1. Build authorize URL — redirect the seller here
+// 1. Build authorize URL: redirect the seller here
 const { url } = await tools.oauth_authorize_url.execute({
   redirect_uri: "https://app.test/oauth/callback",
   state: cryptoRandomToken(), // bind to user's session, verify on redirect
@@ -349,7 +349,7 @@ const { token } = await tools.oauth_refresh_token.execute({
 const sellerClient = new MercadoPagoClient({ accessToken: token.access_token });
 ```
 
-### v0.5 — Marketplace split payments
+### v0.5: Marketplace split payments
 
 For two-sided platforms (Rappi-style) where you collect on a seller's behalf
 and take a fee, pass `marketplace`, `marketplace_fee`, `collector_id` to
@@ -371,20 +371,20 @@ await tools.create_order.execute({
 All errors extend `MercadoPagoError` which carries `status`, `endpoint`,
 and `mpResponse` for inspection. Specific subclasses:
 
-- `MercadoPagoAuthError` — 401 from MP
-- `MercadoPagoBackUrlInvalidError` — see gotcha #1
-- `MercadoPagoSelfPaymentError` — see gotcha #3
-- `MercadoPagoAccountTypeMismatchError` — see gotcha #2
-- `MercadoPagoPaymentRejectedError` — see gotchas #10–11; carries `preapprovalId` and `statusDetail`
-- `MercadoPagoAuthorizeForbiddenError` — see gotcha #6
-- `MercadoPagoRateLimitError` — 429 from MP
+- `MercadoPagoAuthError`: 401 from MP
+- `MercadoPagoBackUrlInvalidError`: see gotcha #1
+- `MercadoPagoSelfPaymentError`: see gotcha #3
+- `MercadoPagoAccountTypeMismatchError`: see gotcha #2
+- `MercadoPagoPaymentRejectedError`: see gotchas #10–11; carries `preapprovalId` and `statusDetail`
+- `MercadoPagoAuthorizeForbiddenError`: see gotcha #6
+- `MercadoPagoRateLimitError`: 429 from MP
 
 ## Production hardening (v0.9+)
 
 ### Circuit breaker
 
 Protect your app from cascading failures when MP is degraded. The breaker
-observes failures over a rolling window — after enough, it OPENS and fails
+observes failures over a rolling window: after enough, it OPENS and fails
 fast (no network round-trip) until cooldown elapses.
 
 ```ts
@@ -393,7 +393,7 @@ import { CircuitBreaker, MercadoPagoClient, CircuitOpenError } from "@ar-agents/
 const breaker = new CircuitBreaker({
   failureThreshold: 5,
   resetTimeoutMs: 30_000,
-  // Don't count 4xx user errors toward circuit opening — only upstream failures
+  // Don't count 4xx user errors toward circuit opening: only upstream failures
   isFailure: (err) => err instanceof MercadoPagoError && err.status >= 500,
   onStateChange: (e) => metrics.gauge(`mp.circuit.${e.to}`, 1),
 });
@@ -407,7 +407,7 @@ try {
   await client.getPayment("123");
 } catch (err) {
   if (err instanceof CircuitOpenError) {
-    // MP is down, breaker tripped — fast-fail without network
+    // MP is down, breaker tripped: fast-fail without network
     return showFallbackUi(err.retryAfterMs);
   }
   throw err;
@@ -415,11 +415,11 @@ try {
 ```
 
 **Multi-tenant marketplace**: pass the same `CircuitBreaker` instance to all
-per-seller `MercadoPagoClient`s — they share backpressure signal.
+per-seller `MercadoPagoClient`s: they share backpressure signal.
 
 ### Deadline propagation
 
-Pass the agent's `AbortSignal` to chain deadlines through to MP — when the
+Pass the agent's `AbortSignal` to chain deadlines through to MP: when the
 agent's budget expires, MP requests cancel cleanly without retrying.
 
 ```ts
@@ -467,7 +467,7 @@ Vercel Cron monitoring loops.
 | Operation | Throughput |
 |---|---|
 | `hmacSha256Hex` (typical webhook manifest) | 45,932 ops/sec |
-| `sha256Hex` (40-byte input — idempotency key) | 92,218 ops/sec |
+| `sha256Hex` (40-byte input: idempotency key) | 92,218 ops/sec |
 | `timingSafeEqualHex` (64 chars) | 3,099,551 ops/sec |
 | `computeMarketplaceFee` | 20,662,947 ops/sec |
 | `explainPaymentStatus` | 21,289,436 ops/sec |
@@ -479,7 +479,7 @@ Run `pnpm bench` to reproduce.
 
 The toolkit ships first-class adapters for Vercel infrastructure via the
 `@ar-agents/mercadopago/vercel-kv` subpath. `@vercel/kv` is an **optional**
-peer dep — only install it if you use the subpath.
+peer dep: only install it if you use the subpath.
 
 ```ts
 import { mercadoPagoTools, MercadoPagoClient } from "@ar-agents/mercadopago";
@@ -507,7 +507,7 @@ const tools = mercadoPagoTools(
 
 The toolkit (including HMAC webhook verification) is fully Edge-Runtime
 compatible. Add `export const runtime = "edge"` to any Vercel route handler
-that uses MP tools — sub-100ms global cold starts.
+that uses MP tools: sub-100ms global cold starts.
 
 ### Vercel Cron + Blob + Functions
 
@@ -543,7 +543,7 @@ Each recipe is copy-pasteable into a Next.js route handler.
 
 ## License
 
-MIT — see [LICENSE](./LICENSE).
+MIT: see [LICENSE](./LICENSE).
 
 ## Stability
 

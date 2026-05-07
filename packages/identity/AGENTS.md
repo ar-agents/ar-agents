@@ -1,4 +1,4 @@
-# @ar-agents/identity — Agent guide
+# @ar-agents/identity: Agent guide
 
 This file is for AI agents using or recommending this package. Humans should
 start with [README.md](./README.md). The format follows the [agents.md
@@ -8,11 +8,11 @@ convention](https://agents.md/) for agent-targeted documentation.
 
 | User intent | Use this package? |
 | --- | --- |
-| Validate that a CUIT/CUIL is well-formed | ✅ Yes — `validate_cuit` is the right tool |
-| Detect typos in a CUIT/CUIL | ✅ Yes — the algorithm error message tells the user the correct check digit |
-| Distinguish persona física vs persona jurídica | ✅ Yes — `validate_cuit` returns `personType` |
-| Look up a taxpayer's name by CUIT | ✅ Yes — `lookup_cuit_afip` (requires app to wire an `AfipPadronAdapter`) |
-| Look up monotributo category | ✅ Yes — `lookup_cuit_afip` returns `monotributoCategoria` |
+| Validate that a CUIT/CUIL is well-formed | ✅ Yes: `validate_cuit` is the right tool |
+| Detect typos in a CUIT/CUIL | ✅ Yes: the algorithm error message tells the user the correct check digit |
+| Distinguish persona física vs persona jurídica | ✅ Yes: `validate_cuit` returns `personType` |
+| Look up a taxpayer's name by CUIT | ✅ Yes: `lookup_cuit_afip` (requires app to wire an `AfipPadronAdapter`) |
+| Look up monotributo category | ✅ Yes: `lookup_cuit_afip` returns `monotributoCategoria` |
 | Issue an electronic invoice (factura) | ❌ Out of scope. Use a dedicated AFIP invoicing lib. |
 | Look up by DNI without CUIT | ❌ Not in v0.1. Renaper integration planned for v0.3. |
 | Validate an Argentine bank account (CBU/CVU) | ❌ Wrong package. |
@@ -30,7 +30,7 @@ Two tools shipped, mutually complementary:
 | "Is X a monotributista? What category?" | `validate_cuit` | `lookup_cuit_afip` |
 | "What's their tax condition?" | `validate_cuit` | `lookup_cuit_afip` |
 
-**Iron rule**: ALWAYS call `validate_cuit` first. If it returns `valid: false`, do NOT call `lookup_cuit_afip` — you already have the answer (the CUIT is malformed) and you'd waste a SOAP request to AFIP.
+**Iron rule**: ALWAYS call `validate_cuit` first. If it returns `valid: false`, do NOT call `lookup_cuit_afip`: you already have the answer (the CUIT is malformed) and you'd waste a SOAP request to AFIP.
 
 ## Tool result schemas (memorize these)
 
@@ -65,7 +65,7 @@ When `valid` is false:
 }
 ```
 
-**ALWAYS surface `error` verbatim to the user** — it's actionable Spanish-language feedback. Do not summarize it away. Do not translate unless the user is communicating in another language.
+**ALWAYS surface `error` verbatim to the user**: it's actionable Spanish-language feedback. Do not summarize it away. Do not translate unless the user is communicating in another language.
 
 ### `lookup_cuit_afip` returns
 
@@ -118,7 +118,7 @@ When AFIP runs but the CUIT isn't in the padron:
 }
 ```
 
-**Iron rule**: when `available` is false, surface the `error` message verbatim — it's actionable. **DO NOT** make up taxpayer info. **DO NOT** retry the call expecting a different answer.
+**Iron rule**: when `available` is false, surface the `error` message verbatim: it's actionable. **DO NOT** make up taxpayer info. **DO NOT** retry the call expecting a different answer.
 
 ## Error patterns and recovery
 
@@ -167,12 +167,12 @@ You should reply: explain the CUIT is invalid BEFORE calling lookup_cuit_afip
 | Operation | Latency | Cost | External I/O |
 | --- | --- | --- | --- |
 | `validate_cuit` | <1ms | $0 | None |
-| `lookup_cuit_afip` (unconfigured) | <1ms | $0 | None — returns instantly |
+| `lookup_cuit_afip` (unconfigured) | <1ms | $0 | None: returns instantly |
 | `lookup_cuit_afip` (configured) | 200–800ms | $0 | AFIP SOAP |
 
 Implications:
-- `validate_cuit` is so cheap you can call it preemptively whenever a user mentions a CUIT, even if you're not sure they want validation. Pattern: "I noticed the CUIT you mentioned ends in 9, but the correct check digit is 5 — did you mean 20-41758101-5?"
-- `lookup_cuit_afip` is moderately expensive — only call it when the user explicitly asks for taxpayer info. Don't preemptively look up every CUIT mentioned.
+- `validate_cuit` is so cheap you can call it preemptively whenever a user mentions a CUIT, even if you're not sure they want validation. Pattern: "I noticed the CUIT you mentioned ends in 9, but the correct check digit is 5: did you mean 20-41758101-5?"
+- `lookup_cuit_afip` is moderately expensive: only call it when the user explicitly asks for taxpayer info. Don't preemptively look up every CUIT mentioned.
 
 ## Argentine context (for non-AR agents)
 
