@@ -512,7 +512,7 @@ function ScenarioTabs({
   );
 }
 
-export function DemoTerminal() {
+export function DemoTerminal({ autoplay = false }: { autoplay?: boolean } = {}) {
   const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
   const [phase, setPhase] = useState<Phase>({ type: "idle" });
   const [hasStarted, setHasStarted] = useState(false);
@@ -595,6 +595,21 @@ export function DemoTerminal() {
     setPhase(nextEventPhase(events, 0));
   }, [events]);
 
+  // Auto-advance to next scenario after each "done", looping forever.
+  // Only enabled on the /demo route (autoplay prop). The main landing
+  // stays manual so the visitor can read each result card.
+  useEffect(() => {
+    if (!autoplay) return;
+    if (phase.type !== "done") return;
+    const t = setTimeout(() => {
+      const currentIdx = SCENARIOS.findIndex((s) => s.id === scenarioId);
+      const next = SCENARIOS[(currentIdx + 1) % SCENARIOS.length];
+      setScenarioId(next.id);
+      setPhase(nextEventPhase(next.events, 0));
+    }, 3500);
+    return () => clearTimeout(t);
+  }, [autoplay, phase, scenarioId]);
+
   const switchScenario = useCallback(
     (id: string) => {
       if (id === scenarioId) return;
@@ -676,7 +691,11 @@ export function DemoTerminal() {
             fontSize: 13,
             lineHeight: 1.65,
             color: "var(--text)",
-            minHeight: 380,
+            // Pre-allocate enough height to fit the longest scenario's
+            // transcript + the ResultCard. Without this the container
+            // grows when the card appears, shifting any video frame
+            // and the rest of the page.
+            minHeight: 640,
           }}
         >
           {events.map((event, i) => {
