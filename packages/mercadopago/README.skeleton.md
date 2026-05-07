@@ -21,7 +21,7 @@
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-Mercado Pago Agent Toolkit. Built on Vercel. 87 typed tools across the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts) for the [Vercel AI SDK](https://ai-sdk.dev/) 6 `Experimental_Agent`. Edge-Runtime-safe.
+Mercado Pago Agent Toolkit. Built on Vercel. 89 typed tools across the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts) for the [Vercel AI SDK](https://ai-sdk.dev/) 6 `Experimental_Agent`. Edge-Runtime-safe.
 
 > **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — decision tree, result schemas to memorize, error patterns, latency table.
 

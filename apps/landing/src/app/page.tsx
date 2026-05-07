@@ -118,7 +118,7 @@ const OTHER_PACKAGES = [
 const COMPARISON_ROWS: ReadonlyArray<readonly [string, string, string, string]> = [
   ["Vercel AI SDK 6 tool schemas", "✓", "—", "✓ (Stripe)"],
   ["Argentine-specific (cuotas, ARCA, AR phone)", "✓", "partial", "—"],
-  ["Tool count", "87", "thin REST", "26 (Stripe)"],
+  ["Tool count", "89", "thin REST", "26 (Stripe)"],
   ["Webhooks: HMAC + dedup + replay window", "✓", "client only", "✓"],
   ["Edge Runtime + Vercel KV adapters", "✓", "Node-only", "optional"],
   ["OpenTelemetry instrumentation", "✓", "—", "—"],

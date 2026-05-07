@@ -60,7 +60,7 @@ export default function OpengraphImage() {
               letterSpacing: "-0.5px",
             }}
           >
-            87 typed tools across the agent-relevant Mercado Pago API surface,
+            89 typed tools across the agent-relevant Mercado Pago API surface,
             for the Vercel AI SDK 6.
           </div>
         </div>

@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.15.2
+
+### Patch — docs: tool-count accuracy (87 → 89)
+
+The 0.15.1 docs pass under-counted the public tool surface as 87 due to a
+grep mismatch on `tools.ts`. The actual exported count is 89 (verified by
+`tools.manifest.json` regeneration and the `tools.test.ts` array assertion).
+This patch updates the count everywhere it appears: package.json description
+(npm tagline), README sub-headline, README "At a glance" row, AGENTS.md,
+landing comparison table, layout meta description, OG image, root README.
+
+No code changes. No new tools — this is purely a counting correction.
+
+The CI manifest-drift gate also caught a stale `tools.manifest.json` version
+field (still pointing at 0.15.0); the regenerated manifest now matches the
+package version.
+
 ## 0.15.1
 
 ### Patch — docs: positioning + scope clarity

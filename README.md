@@ -8,7 +8,7 @@
 
 [`@ar-agents/mercadopago`](./packages/mercadopago) is a Mercado Pago Agent
 Toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6 `Experimental_Agent`.
-87 typed tools across the agent-relevant Mercado Pago API surface:
+89 typed tools across the agent-relevant Mercado Pago API surface:
 
 > Payments · Subscriptions · Checkout Pro · Marketplace OAuth · Order Management ·
 > Customers · Cards · Cuotas · QR · 3DS · Point devices · Stores+POS ·
@@ -127,7 +127,7 @@ ar-agents/
 │   ├── whatsapp-hello/          # ar-agents-whatsapp-hello.vercel.app
 │   └── mp-hello/                # dev-only (port 3013)
 ├── packages/
-│   ├── mercadopago/             # 87 tools — subscriptions, payments, OAuth, QR, 3DS, point, ...
+│   ├── mercadopago/             # 89 tools — subscriptions, payments, OAuth, QR, 3DS, point, ...
 │   ├── identity/                # CUIT validate + ARCA padrón
 │   ├── identity-attest/         # verification orchestrator
 │   ├── whatsapp/                # WhatsApp Cloud

@@ -2,7 +2,7 @@
 
 > Mercado Pago Agent Toolkit. Built on Vercel.
 >
-> 87 typed tools across the agent-relevant Mercado Pago API surface, for the
+> 89 typed tools across the agent-relevant Mercado Pago API surface, for the
 > [Vercel AI SDK](https://ai-sdk.dev/) 6 `Experimental_Agent`.
 >
 > _Payments · Subscriptions · Checkout Pro · Marketplace OAuth · Order Management ·
@@ -25,7 +25,7 @@ the Vercel AI SDK 6 `Experimental_Agent`. Compatible with any caller that uses
 
 | What | Value |
 | --- | --- |
-| Tools shipped | **87 tools** — covers the agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, Point Devices físicos, Merchant Orders, Bank Accounts, Disputes, Lookups, Webhooks management, `handle_webhook` combo, OAuth Marketplace flow, Account/Balance/Settlements, 3DS analyzer, Test cards, `mp_health_check`, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
+| Tools shipped | **89 tools** — covers the agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, Point Devices físicos, Merchant Orders, Bank Accounts, Disputes, Lookups, Webhooks management, `handle_webhook` combo, OAuth Marketplace flow, Account/Balance/Settlements, 3DS analyzer, Test cards, `mp_health_check`, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
 | Production hardening | Circuit breaker with state machine + rolling window, deadline propagation via parent AbortSignal, W3C Trace Context propagation (OpenTelemetry-compatible without peer dep), replay-attack protection on webhook signatures (5-min default tolerance), `mp_health_check` endpoint. |
 | Test coverage | **303 tests** — unit + property-based (~1400 random scenarios via fast-check) + failure injection (network errors, timeouts, races, malformed responses) + integration vs MP sandbox (gated by env var) + benchmarks (`pnpm bench`). |
 | External dependencies | Mercado Pago access token (TEST or APP_USR), state adapter (Upstash, Redis, Postgres, in-memory, etc.) |
