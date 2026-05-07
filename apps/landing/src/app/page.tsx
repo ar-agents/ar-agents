@@ -234,30 +234,14 @@ export default function Home() {
             style={{
               color: TEXT_BODY,
               fontSize: 20,
-              margin: "0 0 16px",
+              margin: 0,
               maxWidth: 720,
               lineHeight: 1.55,
             }}
           >
-            87 typed tools across the agent-relevant Mercado Pago API surface, for
-            the Vercel AI SDK 6{" "}
-            <code style={{ fontFamily: FONT_MONO, fontSize: 18 }}>
-              Experimental_Agent
-            </code>
-            . Edge Runtime, Vercel KV adapters, OpenTelemetry, deterministic
-            idempotency, programmatic HITL on irreversible operations.
-          </p>
-          <p
-            style={{
-              color: TEXT_MUTED,
-              fontSize: 13,
-              margin: 0,
-              maxWidth: 720,
-              lineHeight: 1.7,
-              fontFamily: FONT_MONO,
-            }}
-          >
-            {SURFACE_AREAS.join(" · ")}
+            Drop Mercado Pago into your AI agent. The whole API, plus the
+            production wiring — idempotency, retries, observability, and
+            human-in-the-loop on irreversible ops.
           </p>
           <div
             style={{
