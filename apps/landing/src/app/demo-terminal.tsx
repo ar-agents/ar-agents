@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useEffect, useRef, useState } from "react";
-import { SCENARIOS, type Event, type Scenario, type ToolEvent } from "./demo-scripts";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLang } from "./i18n";
+import { getScenarios, type Event, type Scenario, type ToolEvent } from "./demo-scripts";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
@@ -144,12 +145,13 @@ function StatusDot({ phase }: { phase: Phase }) {
 }
 
 function StatusLabel({ phase }: { phase: Phase }) {
-  let label = "ready";
-  if (phase.type === "user") label = "receiving prompt";
-  if (phase.type === "tool-running") label = "calling tool";
-  if (phase.type === "tool-done") label = "tool ok";
-  if (phase.type === "assistant") label = "responding";
-  if (phase.type === "done") label = "done";
+  const { t } = useLang();
+  let label = t.demo_status_ready;
+  if (phase.type === "user") label = t.demo_status_user;
+  if (phase.type === "tool-running") label = t.demo_status_tool_running;
+  if (phase.type === "tool-done") label = t.demo_status_tool_done;
+  if (phase.type === "assistant") label = t.demo_status_assistant;
+  if (phase.type === "done") label = t.demo_status_done;
   return (
     <span
       style={{
@@ -312,6 +314,7 @@ function ResultCard({
   result: Scenario["result"];
   onReplay: () => void;
 }) {
+  const { t } = useLang();
   return (
     <div
       style={{
@@ -347,8 +350,8 @@ function ResultCard({
         <button
           type="button"
           onClick={onReplay}
-          aria-label="Replay scenario"
-          title="Replay"
+          aria-label={t.demo_replay}
+          title={t.demo_replay}
           style={{
             display: "inline-flex",
             alignItems: "center",
@@ -378,7 +381,7 @@ function ResultCard({
             <path d="M3 12a9 9 0 1 0 3-6.7" />
             <path d="M3 4v5h5" />
           </svg>
-          Replay
+          {t.demo_replay}
         </button>
       </div>
 
@@ -451,9 +454,11 @@ function ResultCard({
 }
 
 function ScenarioTabs({
+  scenarios,
   activeId,
   onChange,
 }: {
+  scenarios: ReadonlyArray<Scenario>;
   activeId: string;
   onChange: (id: string) => void;
 }) {
@@ -467,7 +472,7 @@ function ScenarioTabs({
         boxShadow: "inset 0 -1px 0 var(--border-color)",
       }}
     >
-      {SCENARIOS.map((s) => {
+      {scenarios.map((s) => {
         const active = s.id === activeId;
         return (
           <button
@@ -513,12 +518,14 @@ function ScenarioTabs({
 }
 
 export function DemoTerminal() {
-  const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
+  const { lang, t } = useLang();
+  const scenarios = useMemo(() => getScenarios(lang), [lang]);
+  const [scenarioId, setScenarioId] = useState(scenarios[0].id);
   const [phase, setPhase] = useState<Phase>({ type: "idle" });
   const [hasStarted, setHasStarted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
 
-  const scenario = SCENARIOS.find((s) => s.id === scenarioId) ?? SCENARIOS[0];
+  const scenario = scenarios.find((s) => s.id === scenarioId) ?? scenarios[0];
   const { events } = scenario;
 
   // Start when scrolled into view.
@@ -599,26 +606,26 @@ export function DemoTerminal() {
   // one so the recording has a clean end (no loop back to Subscription).
   useEffect(() => {
     if (phase.type !== "done") return;
-    const currentIdx = SCENARIOS.findIndex((s) => s.id === scenarioId);
-    if (currentIdx === SCENARIOS.length - 1) return;
-    const t = setTimeout(() => {
-      const next = SCENARIOS[currentIdx + 1];
+    const currentIdx = scenarios.findIndex((s) => s.id === scenarioId);
+    if (currentIdx === scenarios.length - 1) return;
+    const timeout = setTimeout(() => {
+      const next = scenarios[currentIdx + 1];
       setScenarioId(next.id);
       setPhase(nextEventPhase(next.events, 0));
     }, 1000);
-    return () => clearTimeout(t);
-  }, [phase, scenarioId]);
+    return () => clearTimeout(timeout);
+  }, [phase, scenarioId, scenarios]);
 
   const switchScenario = useCallback(
     (id: string) => {
       if (id === scenarioId) return;
-      const target = SCENARIOS.find((s) => s.id === id);
+      const target = scenarios.find((s) => s.id === id);
       if (!target) return;
       setScenarioId(id);
       // Reset and restart with the new scenario's first event.
       setPhase(nextEventPhase(target.events, 0));
     },
-    [scenarioId],
+    [scenarioId, scenarios],
   );
 
   const idx = currentIdx(phase, events.length);
@@ -678,7 +685,11 @@ export function DemoTerminal() {
         </div>
 
         <div style={{ padding: "12px 6px 0" }}>
-          <ScenarioTabs activeId={scenarioId} onChange={switchScenario} />
+          <ScenarioTabs
+            scenarios={scenarios}
+            activeId={scenarioId}
+            onChange={switchScenario}
+          />
         </div>
 
         {/* BODY */}

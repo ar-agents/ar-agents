@@ -26,7 +26,7 @@ import { z } from "zod";
 export const runtime = "edge";
 export const maxDuration = 30;
 
-const SYSTEM = `You are a Mercado Pago payments agent built on top of @ar-agents/mercadopago.
+const SYSTEM_BASE = `You are a Mercado Pago payments agent built on top of @ar-agents/mercadopago.
 You operate the Mercado Pago API on behalf of a developer evaluating the toolkit.
 
 THIS IS A SANDBOX DEMO: every tool is mocked and returns plausible synthetic
@@ -36,8 +36,7 @@ isn't already in the prompt. Call the tools with what you have, fill any
 missing optional argument with reasonable defaults, and let the mock respond.
 Treat the prompt as a self-contained scenario.
 
-Voice: Argentine Spanish, conversational, concise. Use vos, not tú. Say "Listo" not "Done".
-You can switch to English if the user writes in English.
+VOICE_PLACEHOLDER
 
 Behavior:
 - For ANY payment/subscription/checkout/cobro/marketplace/cuotas/refund task, USE THE TOOLS.
@@ -243,7 +242,7 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages?: AnyMsg[] };
+  let body: { messages?: AnyMsg[]; lang?: string };
   try {
     body = await req.json();
   } catch {
@@ -252,6 +251,13 @@ export async function POST(req: Request) {
       headers: { "content-type": "application/json" },
     });
   }
+
+  const lang: "en" | "es" = body.lang === "es" ? "es" : "en";
+  const voice =
+    lang === "es"
+      ? `Voice: Argentine Spanish, conversational, concise. Use vos, not tú. Say "Listo" not "Done". Even if the user writes in English, reply in Spanish.`
+      : `Voice: English, conversational, concise. Even if the user writes in Spanish, reply in English. Don't say "Listo", say "Done" or "All set".`;
+  const SYSTEM = SYSTEM_BASE.replace("VOICE_PLACEHOLDER", voice);
 
   const raw = body.messages;
   if (!Array.isArray(raw) || raw.length === 0) {

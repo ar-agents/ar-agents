@@ -1,0 +1,321 @@
+"use client";
+
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+  type ReactNode,
+} from "react";
+
+export type Lang = "en" | "es";
+
+const STORAGE_KEY = "lang";
+
+export type Translations = Record<keyof typeof EN, string>;
+
+type Ctx = {
+  lang: Lang;
+  setLang: (lang: Lang) => void;
+  t: Translations;
+};
+
+const LangCtx = createContext<Ctx | null>(null);
+
+export function useLang(): Ctx {
+  const ctx = useContext(LangCtx);
+  if (!ctx) throw new Error("useLang must be used inside <LangProvider>");
+  return ctx;
+}
+
+function readInitialLang(): Lang {
+  if (typeof window === "undefined") return "en";
+  const stored = window.localStorage.getItem(STORAGE_KEY);
+  return stored === "es" ? "es" : "en";
+}
+
+export function LangProvider({ children }: { children: ReactNode }) {
+  const [lang, setLangState] = useState<Lang>("en");
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => {
+    setLangState(readInitialLang());
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
+    document.documentElement.setAttribute("lang", lang);
+    window.localStorage.setItem(STORAGE_KEY, lang);
+  }, [mounted, lang]);
+
+  const setLang = useCallback((v: Lang) => setLangState(v), []);
+  const t = lang === "es" ? ES : EN;
+
+  const value = useMemo<Ctx>(() => ({ lang, setLang, t }), [lang, setLang, t]);
+
+  return <LangCtx.Provider value={value}>{children}</LangCtx.Provider>;
+}
+
+// ---------------------------------------------------------------------------
+// Dictionary. Keep keys descriptive (page.section.role) so additions are
+// safe and maps never collide. Technical terms stay in English on both
+// sides — "Edge Runtime", "Vercel KV", "OpenTelemetry", "idempotencia",
+// "webhook", "preference" all read natively in AR dev Spanish.
+// ---------------------------------------------------------------------------
+
+export const EN = {
+  // hero
+  hero_h1_l1: "Mercado Pago Agent Toolkit.",
+  hero_h1_l2: "Built on Vercel.",
+  hero_sub:
+    "Drop Mercado Pago into your AI agent. The whole API, with idempotency, retries, observability, and human-in-the-loop guardrails on irreversible operations.",
+  cta_deploy: "Deploy on Vercel",
+  cta_github: "GitHub",
+  cta_npm: "npm",
+  cta_cookbook: "Cookbook",
+  cta_try_live: "Try it with a live agent",
+
+  // comparison
+  compare_h2: "How it compares",
+  compare_col_feature: "Feature",
+  compare_col_official: "(official)",
+  compare_col_stripe: "Toolkit",
+  compare_partial: "partial",
+  compare_no: "no",
+  compare_yes: "yes",
+  compare_full: "full",
+  compare_thin: "thin REST",
+  compare_node_only: "Node-only",
+  compare_optional: "optional",
+  compare_client_only: "client only",
+  compare_row_schemas: "Vercel AI SDK 6 tool schemas",
+  compare_row_ar: "Argentine-specific (cuotas, ARCA, AR phone)",
+  compare_row_tools: "Tool count",
+  compare_row_webhooks: "Webhooks: HMAC + dedup + replay window",
+  compare_row_edge: "Edge Runtime + Vercel KV adapters",
+  compare_row_otel: "OpenTelemetry instrumentation",
+  compare_row_idem: "Deterministic idempotency by default",
+  compare_row_hitl: "Programmatic HITL on irreversible ops",
+  compare_row_coverage: "MercadoPago coverage",
+
+  // what's in the box
+  whats_h2: "What's in the box",
+  whats_payments_t: "Payments",
+  whats_payments_d:
+    "create / capture / refund · OAuth marketplace · Checkout Pro · Order Management",
+  whats_subs_t: "Subscriptions",
+  whats_subs_d: "create / get / pause / resume / cancel · plans · saved cards",
+  whats_cuotas_t: "Cuotas",
+  whats_cuotas_d: "AR issuer-promo catalog · installments · 3DS challenge resolution",
+  whats_qrpoint_t: "QR + Point",
+  whats_qrpoint_d: "in-store QR · physical Point devices · Stores + POS",
+  whats_webhooks_t: "Webhooks",
+  whats_webhooks_d:
+    "HMAC verification · replay window · deduplication · handle_webhook combo",
+  whats_state_t: "State",
+  whats_state_d:
+    "InMemory + Vercel KV adapters out of the box · pluggable interface",
+  whats_obs_t: "Observability",
+  whats_obs_d:
+    "OpenTelemetry traces via subpath · audit log adapter · circuit breaker",
+  whats_safety_t: "Safety",
+  whats_safety_d:
+    "deterministic idempotency by default · programmatic HITL on 8 irreversible ops",
+
+  // other primitives
+  other_h2: "Other AR primitives in this monorepo",
+  other_intro_a: "Same approach, applied to the rest of the stack an Argentine business needs. Each ships independently to npm and composes with",
+  other_intro_b: ".",
+  other_card_npm: "npm",
+  other_card_source: "source",
+  other_card_demo: "live demo →",
+
+  // primitive purposes
+  pp_identity:
+    "CUIT/CUIL validation + AFIP/ARCA padrón lookup (constancia con monotributo + condición IVA). WSAA SOAP via subpath.",
+  pp_identity_attest:
+    "Verification orchestrator (WhatsApp OTP, email magic-link, Auth0, Magic.link, MP Identity). Returns HMAC-signed attestation with a trust level.",
+  pp_whatsapp:
+    "WhatsApp Business Cloud API. Webhook + HMAC verify. AR phone normalizer. scopedTo mode binds outbound tools to a single sender.",
+  pp_facturacion:
+    "AFIP/ARCA factura electrónica (WSFE). Factura A/B/C, NC/ND, FCE MiPyMEs. Local pre-flight validator catches the 10 most common rejection reasons before the round-trip.",
+  pp_banking:
+    "CBU/CVU validation with bank/PSP identification (Galicia, Nación, Mercado Pago, Ualá, Naranja X…). BCRA Central de Deudores lookup.",
+  pp_shipping:
+    "Andreani (full REST), OCA, Correo Argentino. cotizar / crear / trackear / cancelar. Provincia + CPA helpers.",
+  pp_mcp:
+    "MCP server bundling all 7 packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
+
+  // quick start
+  quick_h2: "Quick start",
+
+  // composition
+  comp_h2: "Composition example: billing assistant",
+  comp_intro_a: "shows MP composing with identity, identity-attest, and whatsapp in a single agent. Validates CUIT against ARCA, gates large charges with verification (WhatsApp OTP), creates the MP subscription, replies on WhatsApp.",
+  comp_tier_lt5k: "direct charge, no verification",
+  comp_tier_5k_50k: "requires trust ≥ 0.3 (whatsapp_otp)",
+  comp_tier_50k_500k: "requires trust ≥ 0.5 (email_magic_link / mp_identity)",
+  comp_tier_gt500k: "requires trust ≥ 0.7 (auth0 with MFA → 0.85)",
+
+  // footer
+  footer_by: "MIT ·",
+  footer_report: "report an issue",
+
+  // demo terminal
+  demo_status_ready: "ready",
+  demo_status_user: "receiving prompt",
+  demo_status_tool_running: "calling tool",
+  demo_status_tool_done: "tool ok",
+  demo_status_assistant: "responding",
+  demo_status_done: "done",
+  demo_replay: "Replay",
+
+  // live chat
+  live_status_ready: "live · ready",
+  live_status_streaming: "live · streaming",
+  live_close: "Close live demo",
+  live_empty:
+    "Ask the agent to charge, subscribe, or compute installments. Real Claude Sonnet 4.6 via Vercel AI Gateway + mocked tools (no real accounts charged).",
+  live_input_placeholder: "Try asking it something in English or Spanish…",
+  live_send: "Send",
+  live_err_rate: "Rate-limited. Wait a couple of minutes and try again.",
+  live_err_generic:
+    "Live demo currently unavailable. Reload or try the scripted scenarios above.",
+
+  // suggestions (live chat chips)
+  sug_subscription_l: "Monthly subscription",
+  sug_subscription_p:
+    "Create a monthly $1500 ARS subscription for new@example.com",
+  sug_cuotas_l: "Galicia installments",
+  sug_cuotas_p:
+    "Charge $30,000 ARS to juan@example.com on his Galicia card. Apply the best installment promo available.",
+  sug_marketplace_l: "Marketplace split",
+  sug_marketplace_p:
+    "Generate a $8,000 ARS preference for seller @ferri. My platform takes 12%.",
+} as const;
+
+export const ES: Translations = {
+  hero_h1_l1: "Toolkit de Mercado Pago para Agentes.",
+  hero_h1_l2: "Hecho en Vercel.",
+  hero_sub:
+    "Conectá Mercado Pago a tu agente IA. Toda la API, con idempotencia, retries, observabilidad y human-in-the-loop en operaciones irreversibles.",
+  cta_deploy: "Deployar en Vercel",
+  cta_github: "GitHub",
+  cta_npm: "npm",
+  cta_cookbook: "Recetario",
+  cta_try_live: "Probalo con un agente real",
+
+  compare_h2: "Cómo se compara",
+  compare_col_feature: "Característica",
+  compare_col_official: "(oficial)",
+  compare_col_stripe: "Toolkit",
+  compare_partial: "parcial",
+  compare_no: "no",
+  compare_yes: "sí",
+  compare_full: "completa",
+  compare_thin: "REST básico",
+  compare_node_only: "solo Node",
+  compare_optional: "opcional",
+  compare_client_only: "solo cliente",
+  compare_row_schemas: "Schemas de tools del Vercel AI SDK 6",
+  compare_row_ar: "Argentino-específico (cuotas, ARCA, teléfono AR)",
+  compare_row_tools: "Cantidad de tools",
+  compare_row_webhooks: "Webhooks: HMAC + dedup + replay window",
+  compare_row_edge: "Edge Runtime + adapters de Vercel KV",
+  compare_row_otel: "Instrumentación OpenTelemetry",
+  compare_row_idem: "Idempotencia determinística por default",
+  compare_row_hitl: "HITL programático en ops irreversibles",
+  compare_row_coverage: "Cobertura de MercadoPago",
+
+  whats_h2: "Qué incluye",
+  whats_payments_t: "Pagos",
+  whats_payments_d:
+    "create / capture / refund · OAuth marketplace · Checkout Pro · Order Management",
+  whats_subs_t: "Suscripciones",
+  whats_subs_d:
+    "create / get / pause / resume / cancel · planes · tarjetas guardadas",
+  whats_cuotas_t: "Cuotas",
+  whats_cuotas_d:
+    "Catálogo de promos AR · cuotas · resolución de challenge 3DS",
+  whats_qrpoint_t: "QR + Point",
+  whats_qrpoint_d: "QR en local · dispositivos Point físicos · Stores + POS",
+  whats_webhooks_t: "Webhooks",
+  whats_webhooks_d:
+    "Verificación HMAC · ventana de replay · deduplicación · handle_webhook combo",
+  whats_state_t: "State",
+  whats_state_d:
+    "Adapters InMemory + Vercel KV listos · interfaz pluggable",
+  whats_obs_t: "Observabilidad",
+  whats_obs_d:
+    "Trazas OpenTelemetry vía subpath · adapter de audit log · circuit breaker",
+  whats_safety_t: "Seguridad",
+  whats_safety_d:
+    "idempotencia determinística por default · HITL programático en 8 ops irreversibles",
+
+  other_h2: "Otros primitivos AR en este monorepo",
+  other_intro_a: "El mismo enfoque, aplicado al resto del stack que un negocio argentino necesita. Cada package se publica solo en npm y compone con",
+  other_intro_b: ".",
+  other_card_npm: "npm",
+  other_card_source: "código",
+  other_card_demo: "demo en vivo →",
+
+  pp_identity:
+    "Validación de CUIT/CUIL + lookup en padrón AFIP/ARCA (constancia con monotributo + condición IVA). WSAA SOAP vía subpath.",
+  pp_identity_attest:
+    "Orquestrador de verificación (WhatsApp OTP, email magic-link, Auth0, Magic.link, MP Identity). Devuelve attestation firmada con HMAC y un trust level.",
+  pp_whatsapp:
+    "WhatsApp Business Cloud API. Webhook + verificación HMAC. Normalizador de teléfonos AR. Modo scopedTo: bindea las tools de salida a un solo sender.",
+  pp_facturacion:
+    "Factura electrónica AFIP/ARCA (WSFE). Factura A/B/C, NC/ND, FCE MiPyMEs. Validador local pre-flight que atrapa los 10 motivos de rechazo más comunes antes del round-trip.",
+  pp_banking:
+    "Validación de CBU/CVU con identificación de banco/PSP (Galicia, Nación, Mercado Pago, Ualá, Naranja X…). Lookup en la Central de Deudores del BCRA.",
+  pp_shipping:
+    "Andreani (REST completo), OCA, Correo Argentino. cotizar / crear / trackear / cancelar. Helpers de provincia + CPA.",
+  pp_mcp:
+    "Servidor MCP que bundlea los 7 packages. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
+
+  quick_h2: "Inicio rápido",
+
+  comp_h2: "Ejemplo de composición: asistente de cobros",
+  comp_intro_a:
+    "muestra MP componiéndose con identity, identity-attest y whatsapp en un solo agente. Valida el CUIT contra ARCA, gatea cobros grandes con verificación (WhatsApp OTP), crea la suscripción de MP y responde por WhatsApp.",
+  comp_tier_lt5k: "cobro directo, sin verificación",
+  comp_tier_5k_50k: "requiere trust ≥ 0.3 (whatsapp_otp)",
+  comp_tier_50k_500k: "requiere trust ≥ 0.5 (email_magic_link / mp_identity)",
+  comp_tier_gt500k: "requiere trust ≥ 0.7 (auth0 con MFA → 0.85)",
+
+  footer_by: "MIT ·",
+  footer_report: "reportar un issue",
+
+  demo_status_ready: "listo",
+  demo_status_user: "recibiendo prompt",
+  demo_status_tool_running: "llamando tool",
+  demo_status_tool_done: "tool ok",
+  demo_status_assistant: "respondiendo",
+  demo_status_done: "completado",
+  demo_replay: "Replay",
+
+  live_status_ready: "live · listo",
+  live_status_streaming: "live · streameando",
+  live_close: "Cerrar demo en vivo",
+  live_empty:
+    "Pedile que cobre, suscriba, o calcule cuotas. Real Claude Sonnet 4.6 vía Vercel AI Gateway + tools mockeados (no se cobran cuentas reales).",
+  live_input_placeholder: "Probá pedirle algo en español o inglés…",
+  live_send: "Enviar",
+  live_err_rate: "Rate-limited. Esperá un par de minutos y probá de nuevo.",
+  live_err_generic:
+    "El demo en vivo no está disponible. Recargá o probá los scenarios scripted arriba.",
+
+  sug_subscription_l: "Suscripción mensual",
+  sug_subscription_p:
+    "Creá una subscription mensual de $1500 ARS para nuevo@example.com",
+  sug_cuotas_l: "Cuotas Galicia",
+  sug_cuotas_p:
+    "Cobrale $30.000 ARS a juan@example.com con su tarjeta Galicia, aplicale las mejores cuotas que tenga",
+  sug_marketplace_l: "Marketplace split",
+  sug_marketplace_p:
+    "Generá una preference de $8.000 ARS para el seller @ferri, mi platform se lleva 12%",
+};

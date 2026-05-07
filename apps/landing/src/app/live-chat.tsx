@@ -2,28 +2,11 @@
 
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport, type ToolUIPart } from "ai";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
+import { useLang } from "./i18n";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
-
-const SUGGESTIONS: ReadonlyArray<{ label: string; prompt: string }> = [
-  {
-    label: "Suscripción mensual",
-    prompt:
-      "Creá una subscription mensual de $1500 ARS para nuevo@example.com",
-  },
-  {
-    label: "Cuotas Galicia",
-    prompt:
-      "Cobrale $30.000 ARS a juan@example.com con su tarjeta Galicia, aplicale las mejores cuotas que tenga",
-  },
-  {
-    label: "Marketplace split",
-    prompt:
-      "Generá una preference de $8.000 ARS para el seller @ferri, mi platform se lleva 12%",
-  },
-];
 
 function compactValue(v: unknown): string {
   if (typeof v === "string") return `"${v}"`;
@@ -346,10 +329,25 @@ function renderToolPart(part: ToolUIPart, key: string) {
 }
 
 export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
-  const { messages, sendMessage, status, error } = useChat({
-    transport: new DefaultChatTransport({ api: "/api/demo" }),
-  });
+  const { lang, t } = useLang();
+  const transport = useMemo(
+    () =>
+      new DefaultChatTransport({
+        api: "/api/demo",
+        prepareSendMessagesRequest: ({ messages, body }) => ({
+          body: { ...body, messages, lang },
+        }),
+      }),
+    [lang],
+  );
+  const { messages, sendMessage, status, error } = useChat({ transport });
   const [input, setInput] = useState("");
+
+  const suggestions: ReadonlyArray<{ label: string; prompt: string }> = [
+    { label: t.sug_subscription_l, prompt: t.sug_subscription_p },
+    { label: t.sug_cuotas_l, prompt: t.sug_cuotas_p },
+    { label: t.sug_marketplace_l, prompt: t.sug_marketplace_p },
+  ];
 
   const isStreaming = status === "submitted" || status === "streaming";
 
@@ -409,7 +407,7 @@ export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
               textTransform: "uppercase",
             }}
           >
-            {isStreaming ? "live · streaming" : "live · ready"}
+            {isStreaming ? t.live_status_streaming : t.live_status_ready}
           </span>
         </div>
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
@@ -427,8 +425,8 @@ export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
             <button
               type="button"
               onClick={onClose}
-              aria-label="Close live demo"
-              title="Close"
+              aria-label={t.live_close}
+              title={t.live_close}
               style={{
                 width: 24,
                 height: 24,
@@ -483,9 +481,7 @@ export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
               marginBottom: 14,
             }}
           >
-            Pedile que cobre, suscriba, o calcule cuotas. Real Claude
-            Sonnet 4.6 vía Vercel AI Gateway + tools mockeados (no se
-            cobran cuentas reales).
+            {t.live_empty}
           </div>
         ) : null}
 
@@ -518,8 +514,8 @@ export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
             }}
           >
             {(error as Error).message?.includes("rate")
-              ? "Rate-limited. Esperá un par de minutos y probá de nuevo."
-              : "Live demo currently unavailable. Recargá o probá los scenarios scripted arriba."}
+              ? t.live_err_rate
+              : t.live_err_generic}
           </div>
         ) : null}
       </div>
@@ -533,7 +529,7 @@ export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
             padding: "0 22px 12px",
           }}
         >
-          {SUGGESTIONS.map((s) => (
+          {suggestions.map((s) => (
             <button
               key={s.label}
               type="button"
@@ -574,7 +570,7 @@ export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
           type="text"
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Probá pedirle algo en español o inglés…"
+          placeholder={t.live_input_placeholder}
           disabled={isStreaming}
           style={{
             flex: 1,
@@ -605,7 +601,7 @@ export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
             opacity: isStreaming || !input.trim() ? 0.5 : 1,
           }}
         >
-          Send
+          {t.live_send}
         </button>
       </form>
     </div>

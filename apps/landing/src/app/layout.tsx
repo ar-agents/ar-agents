@@ -1,7 +1,8 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
-import { ThemeToggle } from "./theme-toggle";
+import { LangProvider } from "./i18n";
+import { Toggles } from "./toggles";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -53,8 +54,10 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
       </head>
       <body suppressHydrationWarning>
-        <ThemeToggle />
-        {children}
+        <LangProvider>
+          <Toggles />
+          {children}
+        </LangProvider>
       </body>
     </html>
   );
