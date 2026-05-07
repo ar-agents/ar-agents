@@ -3,7 +3,7 @@ import { parseWebhookEvent, verifyWebhookSignature } from "@ar-agents/mercadopag
 import { getMpClient, getMpState } from "@/lib/agent";
 import { bodySizeGuard, withApiHeaders } from "@/lib/security";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 /**
  * Production MP webhook with HMAC-SHA256 signature verification.

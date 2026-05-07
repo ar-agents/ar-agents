@@ -94,7 +94,7 @@
 
 ### Patch Changes
 
-- Picks up `@ar-agents/mercadopago@0.7.0` — completeness máxima sobre MP. The MCP server now exposes **+25 new MP tools** (81 MP tools total) without any config changes. Highlights:
+- Picks up `@ar-agents/mercadopago@0.7.0`. The MCP server now exposes **+25 new MP tools** (81 MP tools total) without any config changes. Highlights:
   - Customer + Card CRUD completion (4 tools)
   - Subscription/Plan/Refund/Preference extensions (5 tools)
   - Merchant Orders category (3 tools)

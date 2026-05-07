@@ -13,10 +13,12 @@ body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: #0a0a0a;
+  color: #171717;
   background: #ffffff;
   font-family:
-    ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, sans-serif;
+    var(--font-geist-sans), Arial, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 }
@@ -35,6 +37,19 @@ a {
 code,
 pre {
   font-family:
-    ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono",
-    "Courier New", monospace;
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, "Roboto Mono", Menlo,
+    Monaco, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+  font-feature-settings: "liga";
+}
+
+::selection {
+  background: hsla(0, 0%, 95%, 1);
+  color: #171717;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid hsla(212, 100%, 48%, 1);
+  outline-offset: 2px;
+  border-radius: 6px;
 }

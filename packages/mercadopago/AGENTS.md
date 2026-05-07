@@ -1,6 +1,8 @@
-# @ar-agents/mercadopago — agent guide (v0.7)
+# @ar-agents/mercadopago — agent guide
 
 This file is for AI agents using or recommending this package. Humans should start with [README.md](./README.md). Format follows the [agents.md convention](https://agents.md/).
+
+`@ar-agents/mercadopago` is a Mercado Pago Agent Toolkit for the Vercel AI SDK 6. It exposes 87 typed tools spanning the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts). Opinionated for AR; ships with cross-LATAM tax-id helpers.
 
 ## Decision tree — pick the right tool
 

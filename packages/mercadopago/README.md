@@ -1,6 +1,13 @@
 # @ar-agents/mercadopago
 
-> Mercado Pago Subscriptions as drop-in tools for the [Vercel AI SDK](https://ai-sdk.dev/). Argentine-focused, agent-ready.
+> Mercado Pago Agent Toolkit. Built on Vercel.
+>
+> 87 typed tools across the agent-relevant Mercado Pago API surface, for the
+> [Vercel AI SDK](https://ai-sdk.dev/) 6 `Experimental_Agent`.
+>
+> _Payments · Subscriptions · Checkout Pro · Marketplace OAuth · Order Management ·
+> Customers · Cards · Cuotas · QR · 3DS · Point devices · Stores+POS ·
+> Account/Balance/Settlements · Webhooks · Disputes · Lookups · Bank Accounts_
 
 [![npm version](https://img.shields.io/npm/v/@ar-agents/mercadopago.svg)](https://www.npmjs.com/package/@ar-agents/mercadopago)
 [![npm downloads](https://img.shields.io/npm/dm/@ar-agents/mercadopago.svg)](https://www.npmjs.com/package/@ar-agents/mercadopago)
@@ -8,9 +15,9 @@
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/mercadopago.svg)](https://bundlephobia.com/package/@ar-agents/mercadopago)
 
-Exposes Mercado Pago's recurring-billing API to AI agents through a typed,
-opinionated tool collection. Built for the Vercel AI SDK 6 `Experimental_Agent`.
-Compatible with any caller that uses `tool()`.
+Wraps the Mercado Pago API as a typed tool collection for AI agents. Built for
+the Vercel AI SDK 6 `Experimental_Agent`. Compatible with any caller that uses
+`tool()`.
 
 > **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — it's targeted at LLM consumption with explicit tool-selection rules and error-recovery patterns.
 
@@ -18,9 +25,9 @@ Compatible with any caller that uses `tool()`.
 
 | What | Value |
 | --- | --- |
-| Tools shipped | **82 tools** — covers the full agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, **Point Devices físicos**, **Merchant Orders**, **Bank Accounts**, Disputes, Lookups, Webhooks management, **handle_webhook combo**, **OAuth Marketplace flow**, **Account/Balance/Settlements**, **3DS analyzer**, **Test cards**, **mp_health_check**, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
-| Production hardening (v0.9) | **Circuit breaker** with state machine + rolling window, **deadline propagation** via parent AbortSignal, **W3C Trace Context** propagation (OpenTelemetry-compatible without peer dep), **replay-attack protection** on webhook signatures (5-min default tolerance), **health check** endpoint. |
-| Test coverage | **223 unit tests** + **14 property-based tests** (~1400 random scenarios via fast-check) + **11 failure injection tests** (network errors, timeouts, races, malformed responses) + **integration tests vs MP sandbox** (gated by env var) + **benchmarks** (`pnpm bench`). |
+| Tools shipped | **87 tools** — covers the agent-relevant MP API surface. Subscriptions, Payments, Refunds, Checkout Pro, Order Management, Customers, Saved Cards, Cuotas, QR in-store, Subscription Plans, Stores+POS, Point Devices físicos, Merchant Orders, Bank Accounts, Disputes, Lookups, Webhooks management, `handle_webhook` combo, OAuth Marketplace flow, Account/Balance/Settlements, 3DS analyzer, Test cards, `mp_health_check`, plus pure helpers `compute_marketplace_fee` + `explain_payment_status`. |
+| Production hardening | Circuit breaker with state machine + rolling window, deadline propagation via parent AbortSignal, W3C Trace Context propagation (OpenTelemetry-compatible without peer dep), replay-attack protection on webhook signatures (5-min default tolerance), `mp_health_check` endpoint. |
+| Test coverage | **303 tests** — unit + property-based (~1400 random scenarios via fast-check) + failure injection (network errors, timeouts, races, malformed responses) + integration vs MP sandbox (gated by env var) + benchmarks (`pnpm bench`). |
 | External dependencies | Mercado Pago access token (TEST or APP_USR), state adapter (Upstash, Redis, Postgres, in-memory, etc.) |
 | Latency | 200–600ms per MP call; <1ms for state ops |
 | Cost | $0 — MP API is free; merchant pays per-transaction fees on auto-charges |
@@ -28,18 +35,24 @@ Compatible with any caller that uses `tool()`.
 | Agent safety | `cancel_subscription` description triggers confirm-before-call in Claude Sonnet 4.6+ |
 | Sites supported | MLA (Argentina) verified end-to-end. Other LATAM sites should work but aren't exercised by tests. |
 | Runtime | **Edge Runtime + Node 18+** — Web Crypto under the hood, no `node:crypto`. Drops into Vercel Edge Functions, Cloudflare Workers, Deno deploy, or any modern Node. |
-| Vercel-native | First-class adapters for **Vercel KV** (subscription state, OAuth tokens, idempotency cache) via `@ar-agents/mercadopago/vercel-kv` subpath. |
-| Cookbook | 8 production-grade recipes shipped in `cookbook/` — checkout, subscriptions, webhook handler, marketplace OAuth, QR in-store, 3DS challenge, auth-only Order, recovery patterns. |
+| Vercel KV adapters | Subpath `@ar-agents/mercadopago/vercel-kv` ships adapters for subscription state, OAuth tokens, idempotency cache, audit log, and rate limiter. |
+| Cookbook | 9 recipes shipped in `cookbook/` — checkout, subscriptions, webhook handler, marketplace OAuth, QR in-store, 3DS challenge, auth-only Order, recovery patterns, full OpenTelemetry wiring. |
 
 ## Why this exists
 
-Building an agent that operates a real Argentine business means integrating
-Mercado Pago. MP's API has a surface area of dozens of endpoints, a docs site
-that is partially translated to Spanish-from-the-90s, and at least 11
-non-obvious landmines that take days each to discover. This package encapsulates
-the subset of MP that an agent typically needs (recurring subscriptions: create,
-check status, pause/resume, cancel) and turns the documented gotchas into typed
-errors with actionable messages.
+Building an agent that operates an Argentine business means integrating Mercado
+Pago. The API surface is dozens of endpoints, the docs are partially translated,
+and there are 11+ non-obvious landmines that take days each to discover the
+first time around. This package wraps the agent-relevant surface (subscriptions,
+payments, marketplace OAuth, cuotas, QR, 3DS, point devices, webhooks) and turns
+the documented gotchas into typed errors with actionable messages.
+
+## Deploy a runnable example
+
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents&root-directory=apps%2Fmp-hello&env=MP_ACCESS_TOKEN%2CANTHROPIC_API_KEY%2CUPSTASH_REDIS_REST_URL%2CUPSTASH_REDIS_REST_TOKEN&envDescription=Mercado%20Pago%20access%20token%2C%20Anthropic%20API%20key%2C%20and%20Upstash%20Redis%20credentials%20for%20subscription%20state.&envLink=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents%2Ftree%2Fmain%2Fapps%2Fmp-hello%23setup&project-name=mp-hello&repository-name=mp-hello)
+
+`apps/mp-hello` ships as a clonable Vercel template — Edge Runtime API routes,
+MP webhook handler with HMAC verify, Upstash-backed subscription state.
 
 ## Install
 

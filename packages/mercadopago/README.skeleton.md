@@ -21,7 +21,7 @@
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-blue.svg)](./LICENSE)
 
-Mercado Pago Subscriptions, Payments, Checkout Pro, Marketplace, and Point — as drop-in tools for the [Vercel AI SDK](https://ai-sdk.dev/). Argentine-focused, agent-ready, Edge-Runtime-safe.
+Mercado Pago Agent Toolkit. Built on Vercel. 87 typed tools across the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts) for the [Vercel AI SDK](https://ai-sdk.dev/) 6 `Experimental_Agent`. Edge-Runtime-safe.
 
 > **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) — decision tree, result schemas to memorize, error patterns, latency table.
 
@@ -164,7 +164,7 @@ const limiter = new VercelKVRateLimiter({
 
 ### Cookbook
 
-8 production-grade recipes in [`./cookbook`](./cookbook/) — Checkout Pro, SaaS subscription, webhook handler, marketplace split, QR in-store, 3DS challenge, manual capture, recovery patterns, full OpenTelemetry wiring.
+9 recipes in [`./cookbook`](./cookbook/) — Checkout Pro, SaaS subscription, webhook handler, marketplace split, QR in-store, 3DS challenge, manual capture, recovery patterns, full OpenTelemetry wiring.
 
 ## Comparison
 

@@ -1,5 +1,5 @@
 /**
- * Recipe 03 — Production-grade webhook handler.
+ * Recipe 03 — Webhook handler.
  *
  * # The 3-line summary
  *

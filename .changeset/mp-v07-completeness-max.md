@@ -3,7 +3,7 @@
 "@ar-agents/mcp": patch
 ---
 
-MP v0.7: completeness máxima — el agente de MP más completo posible. **+25 tools (81 total).**
+MP v0.7: +25 new tools (81 total).
 
 **Cierre de gaps obvios (8 tools)** — endpoints que ya existían en client.ts pero no expuestos como tools, o métodos típicos faltantes:
 

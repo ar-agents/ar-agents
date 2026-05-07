@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.15.1
+
+### Patch — docs: positioning + scope clarity
+
+- `package.json` description rewritten as the npm-tagline source of truth: "Mercado Pago Agent Toolkit for the Vercel AI SDK 6. 87 typed tools across the agent-relevant Mercado Pago API surface — Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Webhooks, Stores+POS, Account/Balance/Settlements, Disputes, Lookups, Bank Accounts."
+- `README.md` sub-headline now enumerates the 17 categories. Fixes the drift where the npm page implied subscriptions-only scope.
+- `AGENTS.md` heading no longer carries a stale `(v0.7)` tag; opening paragraph spells out the full surface.
+- Cookbook recipe 03 header: "Production-grade webhook handler" → "Webhook handler".
+- "At a glance" table: tool count corrected (82 → 87), test count refreshed (223 → 303), cookbook count corrected (8 → 9), `Vercel-native` row clarified to `Vercel KV adapters`.
+- `MIGRATION.md`: dropped marketing adjectives ("agent ergonomics", "production-grade").
+
+No code changes. No new tools. No API changes.
+
 ## 0.15.0
 
 ### Minor — `requireConfirmation` opt-in HITL callback (closes /review CRITICAL)
@@ -221,8 +234,7 @@ partitions. This makes the safe default: safe.
 
 ### Minor Changes — Production hardening: circuit breaker, deadline propagation, property-based tests, real MP sandbox integration tests, benchmarks
 
-The "100/100, top-1 in the world" upgrade. Architectural production-grade
-features that separate a toolkit-with-tests from a toolkit-deployed-at-scale.
+Architectural features for at-scale deployment.
 
 **Circuit Breaker (NEW)**
 
@@ -329,7 +341,7 @@ features that separate a toolkit-with-tests from a toolkit-deployed-at-scale.
 
 - `cookbook/01-checkout-pro-basic.ts` — first-time hosted checkout
 - `cookbook/02-saas-subscription.ts` — reusable plan + first payment + card swap on rejection
-- `cookbook/03-webhook-handler.ts` — production-grade Edge handler with HMAC verify
+- `cookbook/03-webhook-handler.ts` — Edge handler with HMAC verify
 - `cookbook/04-marketplace-split.ts` — OAuth seller link → preference with fee → reconciliation
 - `cookbook/05-qr-in-store.ts` — QR generation → buyer scan → WhatsApp notify
 - `cookbook/06-3ds-challenge.ts` — detect → redirect → recover via webhook
@@ -346,7 +358,7 @@ features that separate a toolkit-with-tests from a toolkit-deployed-at-scale.
 
 ### Minor Changes
 
-- MP v0.7: completeness máxima — el agente de MP más completo posible. **+25 tools (81 total)**.
+- MP v0.7: +25 new tools (81 total).
 
   **Cierre de gaps obvios (8 tools)**:
   - `get_customer`, `update_customer`, `create_customer_card`, `get_customer_card`

@@ -1,151 +1,151 @@
 # ar-agents
 
-> AR Tools for the Vercel AI SDK — drop-in agent tools for Argentine integrations.
+> **Mercado Pago Agent Toolkit.** Built on Vercel.
 
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![license](https://img.shields.io/github/license/ar-agents/ar-agents.svg)](./LICENSE)
-[![PRs welcome](https://img.shields.io/badge/PRs-welcome-brightgreen.svg)](./CONTRIBUTING.md)
+[![npm](https://img.shields.io/npm/v/@ar-agents/mercadopago?label=%40ar-agents%2Fmercadopago)](https://www.npmjs.com/package/@ar-agents/mercadopago)
 
-A monorepo of TypeScript packages that expose Argentina-specific services
-(Mercado Pago, AFIP, WhatsApp Business Cloud, Meta Ads) as tools the
-[Vercel AI SDK](https://ai-sdk.dev/) `Experimental_Agent` can invoke.
+[`@ar-agents/mercadopago`](./packages/mercadopago) is a Mercado Pago Agent
+Toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6 `Experimental_Agent`.
+87 typed tools across the agent-relevant Mercado Pago API surface:
 
-The thesis: building an AI agent that operates a real Argentine business
-shouldn't take weeks of integration trial-and-error per platform. Each
-package encapsulates the documented + undocumented gotchas as typed errors
-and clean APIs.
+> Payments · Subscriptions · Checkout Pro · Marketplace OAuth · Order Management ·
+> Customers · Cards · Cuotas · QR · 3DS · Point devices · Stores+POS ·
+> Account/Balance/Settlements · Webhooks · Disputes · Lookups · Bank Accounts
 
-> **Reading this as an agent?** Each package ships an `AGENTS.md` alongside
-> its `README.md` — that's the format optimized for LLM consumption (tool
-> selection rules, result schemas you can memorize, error patterns,
-> composition with other packages, latency tables). See the table below for
-> direct links.
+Edge Runtime. Vercel KV adapters for state, OAuth, idempotency, and audit.
+OpenTelemetry instrumentation. Deterministic idempotency by default.
+Programmatic HITL on irreversible operations.
 
-## Architecture
-
-```
-                                 ┌─────────────────────────────┐
-                                 │    Your Agent (Vercel AI    │
-                                 │    SDK 6 Experimental_Agent)│
-                                 └──────────────┬──────────────┘
-                                                │
-                          ┌─────────────────────┴──────────────────────┐
-                          │            Tool dispatch                   │
-                          │            (~70 tools across 8 packages)   │
-                          └──────────────────┬─────────────────────────┘
-                                             │
-   ┌─────────────────┬─────────────────┬─────┴───────┬──────────────────┬─────────────────┐
-   │                 │                 │             │                  │                 │
-   ▼                 ▼                 ▼             ▼                  ▼                 ▼
-identity         identity-attest   mercadopago   whatsapp           facturacion       banking + shipping
-─────────        ───────────────   ────────────   ────────           ────────────      ─────────────────
-CUIT validate    Trust-level       Subscriptions  Send / receive    Factura A/B/C    CBU/CVU validate
-ARCA padrón      attestation       Payments       Templates +       FCE MiPyMEs      Bank lookup
-WSAA cert        adapters: WA      OAuth          interactive       Pre-flight       BCRA Central
-                 OTP, email,       Marketplace    Webhook + HMAC    validator         de Deudores
-                 Auth0, Magic,     QR + Cuotas    Phone normalize                    OCA / Andreani
-                 MP Identity       3DS / fraud                                        / Correo
-                                   Webhook + HMAC
-
-                  All compose. All ship as Vercel AI SDK 6 tools. All Edge-Runtime safe.
-                  Same Argentine X.509 cert reused across identity + facturacion.
-
-   ┌───────────────────────────────────────────────────────────┐
-   │   @ar-agents/mcp — wraps everything as an MCP server      │
-   │   (use the toolkit from Claude Desktop, Cursor, etc.)     │
-   └───────────────────────────────────────────────────────────┘
+```bash
+pnpm add @ar-agents/mercadopago ai zod
 ```
 
-## Packages (8 published to npm)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents&root-directory=apps%2Fmp-hello&env=MP_ACCESS_TOKEN%2CANTHROPIC_API_KEY%2CUPSTASH_REDIS_REST_URL%2CUPSTASH_REDIS_REST_TOKEN&envDescription=Mercado%20Pago%20access%20token%2C%20Anthropic%20API%20key%2C%20and%20Upstash%20Redis%20credentials%20for%20subscription%20state.&envLink=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents%2Ftree%2Fmain%2Fapps%2Fmp-hello%23setup&project-name=mp-hello&repository-name=mp-hello)
 
-| Package | Tools | Description |
-| --- | --- | --- |
-| [`@ar-agents/mercadopago`](./packages/mercadopago) | 30 | Subscriptions, Payments, OAuth marketplace, Cuotas, QR, 3DS, fraud scoring (`additional_info`), webhooks (HMAC + replay protection), idempotency-by-default. Edge Runtime + Vercel KV adapter. Tool middleware (compose). [Cookbook](./packages/mercadopago/cookbook) (8 recipes), [MIGRATION.md](./packages/mercadopago/MIGRATION.md) vs official SDK. |
-| [`@ar-agents/identity`](./packages/identity) | 2 | CUIT/CUIL validation (modulo-11) + AFIP/ARCA padrón lookup. WSAA SOAP cert auth via subpath. Constancia inscripción (monotributo + IVA condition). |
-| [`@ar-agents/identity-attest`](./packages/identity-attest) | 5 | RENAPER workaround pattern. Agent orchestrates verification (WhatsApp OTP, email magic-link, Auth0, Magic.link, MP Identity), gets back HMAC-signed Attestation with `trustLevel: 0..1`. The pattern that didn't exist anywhere. |
-| [`@ar-agents/whatsapp`](./packages/whatsapp) | 6 | WhatsApp Business Cloud API. Send text/template/media/buttons/list. Webhook parser + HMAC verification. AR phone normalizer. **`scopedTo` mode** binds outbound tools to a single sender (prevents agent hijacking). |
-| [`@ar-agents/facturacion`](./packages/facturacion) | 10 | AFIP/ARCA factura electrónica (WSFE). Factura A/B/C, NC/ND, FCE MiPyMEs. Local pre-flight validator (catches the 10 most common rejection reasons before round-trip). Reuses identity's X.509. |
-| [`@ar-agents/banking`](./packages/banking) | 5 | CBU/CVU validation with bank/PSP identification. Bank/PSP enumeration. BCRA Central de Deudores. Public BCRA adapter ships by default. |
-| [`@ar-agents/shipping`](./packages/shipping) | 6 | OCA + Correo Argentino + Andreani rate calculation, label creation, tracking. AR provincia normalizer. |
-| [`@ar-agents/mcp`](./packages/mcp) | wraps all | Model Context Protocol server. Drop the entire toolkit into Claude Desktop, Cursor, any MCP-aware client. |
+Deploys [`apps/mp-hello`](./apps/mp-hello) — a runnable agent on Vercel with
+Edge Runtime API routes, MP webhook handler, and Upstash-backed subscription
+state. ~2 minutes from click to live.
+
+```ts
+import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import {
+  MercadoPagoClient,
+  mercadoPagoTools,
+  InMemoryStateAdapter,
+} from "@ar-agents/mercadopago";
+
+const mp = new MercadoPagoClient({
+  accessToken: process.env.MP_ACCESS_TOKEN!, // TEST- for sandbox, APP_USR- for prod
+});
+
+const agent = new Agent({
+  model: "anthropic/claude-sonnet-4-6",
+  tools: mercadoPagoTools(mp, {
+    state: new InMemoryStateAdapter(), // swap for VercelKVStateAdapter in prod
+    backUrl: "https://yoursite.com/subscription/done",
+  }),
+  stopWhen: stepCountIs(8),
+});
+
+const { text } = await agent.generate({
+  prompt: "Creá una subscription mensual de $1000 ARS para customer@example.com.",
+});
+```
+
+Full reference, cookbook (9 recipes including OpenTelemetry wiring), and
+migration guide vs the official `mercadopago` SDK live in
+[`packages/mercadopago/`](./packages/mercadopago).
+
+## How it compares
+
+|                                                | `@ar-agents/mercadopago` | `mercadopago` (official) | Stripe Agent Toolkit |
+| ---------------------------------------------- | :----------------------: | :----------------------: | :------------------: |
+| Vercel AI SDK 6 tool schemas                   | ✓                        | —                        | ✓ (Stripe)           |
+| Argentine-specific (cuotas, ARCA, AR phone)    | ✓                        | partial                  | —                    |
+| Tool count                                     | 87                       | thin REST client         | 26 (Stripe)          |
+| Webhooks: HMAC + dedup + replay window         | ✓                        | client only              | ✓                    |
+| Edge Runtime + Vercel KV adapters              | ✓                        | Node-only                | optional             |
+| OpenTelemetry instrumentation                  | ✓                        | —                        | —                    |
+| Deterministic idempotency by default           | ✓                        | —                        | —                    |
+| Programmatic HITL on irreversible ops          | ✓                        | —                        | —                    |
+| MercadoPago coverage                           | full                     | full                     | n/a                  |
+
+Both official SDKs are excellent at what they do — generic REST clients for their
+respective APIs. `@ar-agents/mercadopago` is opinionated for the agent-operating-an-
+Argentine-business case, and composes with `mercadopago` under the hood when needed.
+See [`MIGRATION.md`](./packages/mercadopago/MIGRATION.md).
+
+## Other AR primitives in this monorepo
+
+Same approach, applied to the rest of the stack an Argentine business needs:
+
+| Package | Tools | What it does |
+| --- | :---: | --- |
+| [`@ar-agents/identity`](./packages/identity) | 2 | CUIT/CUIL validation + AFIP/ARCA padrón lookup (constancia con monotributo + condición IVA). WSAA SOAP via subpath. |
+| [`@ar-agents/identity-attest`](./packages/identity-attest) | 5 | Verification orchestrator (WhatsApp OTP, email magic-link, Auth0, Magic.link, MP Identity), returns HMAC-signed attestation with `trustLevel`. |
+| [`@ar-agents/whatsapp`](./packages/whatsapp) | 6 | WhatsApp Business Cloud API. Webhook + HMAC. AR phone normalizer. `scopedTo` mode binds outbound tools to a single sender. |
+| [`@ar-agents/facturacion`](./packages/facturacion) | 10 | AFIP/ARCA factura electrónica (WSFE). Factura A/B/C, NC/ND, FCE MiPyMEs. Local pre-flight validator. |
+| [`@ar-agents/banking`](./packages/banking) | 5 | CBU/CVU validation + bank/PSP lookup + BCRA Central de Deudores. |
+| [`@ar-agents/shipping`](./packages/shipping) | 6 | Andreani (full) + OCA + Correo Argentino. Provincia + CPA helpers. |
+| [`@ar-agents/mcp`](./packages/mcp) | wraps all | Model Context Protocol server. Drop the toolkit into Claude Desktop, Cursor, any MCP host. |
+
+Each package ships a `README.md` for humans and an `AGENTS.md` for LLMs reading
+the docs at runtime ([agents.md](https://agents.md/) format — tool selection
+rules, result schemas, error patterns).
 
 ## Live demos
 
-| App | URL | What it shows |
+| App | URL | Shows |
 | --- | --- | --- |
-| [Landing](./apps/landing) | <https://ar-agents.vercel.app> | Toolkit overview |
-| [cuit-hello](./apps/cuit-hello) | <https://ar-agents-cuit-hello.vercel.app> | CUIT validation + ARCA padrón lookup (real AFIP cert) |
-| [whatsapp-hello](./apps/whatsapp-hello) | <https://ar-agents-whatsapp-hello.vercel.app> | Billing assistant combining all 5 packages — the full pattern |
-| [mp-hello](./apps/mp-hello) | dev-only | MP Subscriptions full flow (run locally, port 3013) |
-
-## Documentation philosophy
-
-This repo treats AI agents as first-class consumers of its docs. Inspired by
-[Guillermo Rauch's "agent ergonomics" thesis](https://tech.hub.ms/azure/videos/keynote-interview-vercel-s-guillermo-rauch-on-the-agent-era-azure-cosmos-db-conf-2026)
-("your customer is the agent the developer or non-developer is wielding")
-and the emerging [agents.md convention](https://agents.md/), every package
-ships two doc files:
-
-| File | Audience | Contents |
-| --- | --- | --- |
-| `README.md` | Humans (devs evaluating the package) | Quick start, install, full API reference, examples |
-| `AGENTS.md` | LLMs picking tools at runtime / agent authors | Tool selection rules, result schemas to memorize, error-recovery patterns, latency table, composition with other packages, AR context for non-AR agents |
-
-Concrete principles applied throughout:
-
-1. **Tool descriptions are the #1 surface.** Every tool's description tells
-   the LLM WHEN to use it, WHEN NOT TO, what it returns, side effects, and
-   constraints. This is the string the agent reads to decide.
-2. **Pluggable adapters over global config.** Stateful or environment-dependent
-   pieces (state stores, AFIP cert chains) are interfaces the consumer wires;
-   the lib ships safe defaults that fail gracefully (e.g., `UnconfiguredAfipPadronAdapter`
-   returns `available: false` with setup steps instead of throwing).
-3. **Errors as docs.** Every typed error class carries an actionable message
-   telling the user OR the agent how to recover. No cryptic codes without
-   context.
-4. **Progressive disclosure.** Tool results return just-in-time context
-   (e.g., `next_step` field telling the agent what to do next) instead of
-   bloating system prompts.
-5. **JSDoc on every export.** Agents reading source for context need rich
-   type-level docs, especially for the public API surface.
+| Landing | <https://ar-agents.vercel.app> | Toolkit overview |
+| `cuit-hello` | <https://ar-agents-cuit-hello.vercel.app> | CUIT validation + ARCA padrón (real AFIP cert) |
+| `whatsapp-hello` | <https://ar-agents-whatsapp-hello.vercel.app> | Billing assistant — MP composed with identity, identity-attest, whatsapp |
+| `mp-hello` | dev-only | MP Subscriptions full flow (`pnpm dev`, port 3013) |
 
 ## Develop
 
-Requires Node 20+ and pnpm 10+.
-
 ```bash
 pnpm install
-pnpm test         # run lib tests across packages
-pnpm typecheck    # type-check all packages
-pnpm build        # build all packages (writes dist/)
-pnpm dev          # start the mp-hello demo on http://localhost:3013
+pnpm test         # 719 tests across 8 packages
+pnpm typecheck
+pnpm build
+pnpm dev          # mp-hello on http://localhost:3013
 ```
 
-To run the cuit-hello demo, use `pnpm --filter cuit-hello dev` (port 3014).
+Requires Node 20+ and pnpm 10+. CI runs build → typecheck → coverage →
+manifest-drift → publint + arethetypeswrong → size-limit on every push.
 
 ## Repo layout
 
 ```
 ar-agents/
 ├── apps/
-│   ├── mp-hello/                # Next.js demo for @ar-agents/mercadopago (3013)
-│   └── cuit-hello/              # Next.js demo for @ar-agents/identity (3014)
+│   ├── landing/                 # ar-agents.vercel.app
+│   ├── cuit-hello/              # ar-agents-cuit-hello.vercel.app (port 3014)
+│   ├── whatsapp-hello/          # ar-agents-whatsapp-hello.vercel.app
+│   └── mp-hello/                # dev-only (port 3013)
 ├── packages/
-│   ├── mercadopago/             # @ar-agents/mercadopago
-│   └── identity/                # @ar-agents/identity
-├── .github/workflows/ci.yml     # Typecheck + test + build on every push
+│   ├── mercadopago/             # 87 tools — subscriptions, payments, OAuth, QR, 3DS, point, ...
+│   ├── identity/                # CUIT validate + ARCA padrón
+│   ├── identity-attest/         # verification orchestrator
+│   ├── whatsapp/                # WhatsApp Cloud
+│   ├── facturacion/             # AFIP factura electrónica
+│   ├── banking/                 # CBU/CVU + BCRA
+│   ├── shipping/                # Andreani / OCA / Correo
+│   └── mcp/                     # MCP server wrapping all
+├── .github/workflows/           # ci.yml, release.yml
 ├── package.json                 # workspace root
-├── pnpm-workspace.yaml
-└── tsconfig.base.json           # shared strict TS config
+└── pnpm-workspace.yaml
 ```
 
-## Compatibility
+## Stability
 
-- Node 20+
-- Vercel AI SDK 6+
-- Vercel AI Gateway for LLM routing (recommended; BYOK also works)
-- Each package's peer deps in its own `package.json`
+All packages are pre-1.0. Public API may evolve in 0.x; we follow semver — minor
+bumps may include breaking changes, patch bumps never do. Pinning a minor in
+production is safe.
 
 ## License
 
-MIT.
+MIT. Built by [Nazareno Clemente](https://github.com/naza00000).

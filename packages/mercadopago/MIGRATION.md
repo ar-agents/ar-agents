@@ -150,7 +150,7 @@ new MercadoPagoClient({
 - **Status detail explainer** (`explainPaymentStatus` — Spanish actionable guidance)
 - **Marketplace fee calculator** (`computeMarketplaceFee`)
 - **Vercel KV state adapters** (subscription state + OAuth tokens + idempotency cache + audit log)
-- **Cookbook** with 8 production-grade recipes
+- **Cookbook** with 8 cookbook recipes
 - **Edge Runtime support** (Web Crypto, no `node:crypto`)
 - **Property-based testing** with fast-check (~1500 random scenarios)
 - **Failure injection tests** + integration tests vs MP sandbox
@@ -160,14 +160,14 @@ new MercadoPagoClient({
 
 - Your codebase is already deeply integrated with the official SDK
 - You don't need the agent layer (no Vercel AI SDK)
-- You operate primarily server-side with cron jobs and don't care about
-  agent ergonomics, audit logs, circuit breakers, or status explainers
+- You operate primarily server-side with cron jobs and don't need
+  AI-SDK-shaped tool schemas, audit logs, circuit breakers, or status explainers
 
 ## When to add `@ar-agents/mercadopago`
 
 - You're building anything with an AI agent (Claude, GPT, Gemini)
 - You're deploying to Vercel and want first-class KV adapters
-- You need **production-grade webhook handling** (HMAC + dedup + replay protection)
+- You need **cookbook webhook handling** (HMAC + dedup + replay protection)
 - You operate a **marketplace** with per-seller OAuth flows
 - You need **compliance-grade audit logging** for refunds/payments
 - You want **AR-specific knowledge** (cuotas catalog, status_detail explainer in Spanish, AR landmines documented)
