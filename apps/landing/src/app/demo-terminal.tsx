@@ -3,6 +3,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
+const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 
 type ToolEvent = {
   kind: "tool";
@@ -332,26 +333,19 @@ function AssistantRow({
   );
 }
 
-function ReplayButton({ onClick }: { onClick: () => void }) {
+function CheckBadge() {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <span
+      aria-hidden="true"
       style={{
-        marginTop: 20,
-        padding: "6px 12px",
-        background: "transparent",
-        color: "var(--text-muted)",
-        boxShadow: "var(--shadow-ring-light)",
-        borderRadius: 6,
-        fontSize: 12,
-        fontFamily: FONT_MONO,
-        cursor: "pointer",
-        border: "none",
         display: "inline-flex",
         alignItems: "center",
-        gap: 6,
-        animation: "demo-fade-in 320ms ease-out",
+        justifyContent: "center",
+        width: 20,
+        height: 20,
+        borderRadius: 9999,
+        background: "var(--accent)",
+        flexShrink: 0,
       }}
     >
       <svg
@@ -359,17 +353,160 @@ function ReplayButton({ onClick }: { onClick: () => void }) {
         height="11"
         viewBox="0 0 24 24"
         fill="none"
-        stroke="currentColor"
-        strokeWidth="2"
+        stroke="white"
+        strokeWidth="3"
         strokeLinecap="round"
         strokeLinejoin="round"
-        aria-hidden="true"
       >
-        <path d="M3 12a9 9 0 1 0 3-6.7" />
-        <path d="M3 4v5h5" />
+        <path d="M20 6L9 17l-5-5" />
       </svg>
-      Replay
-    </button>
+    </span>
+  );
+}
+
+function ResultCard({ onReplay }: { onReplay: () => void }) {
+  const fields: ReadonlyArray<readonly [string, string]> = [
+    ["ID", "abc-123"],
+    ["Amount", "$1.000 ARS · monthly"],
+    ["Customer", "customer@example.com"],
+    ["Status", "pending first payment"],
+  ];
+
+  return (
+    <div
+      style={{
+        marginTop: 24,
+        padding: "20px 22px",
+        background: "var(--bg)",
+        borderRadius: 8,
+        boxShadow: "var(--card-shadow)",
+        animation: "demo-fade-in 360ms ease-out",
+        fontFamily: FONT_SANS,
+      }}
+    >
+      <div
+        style={{
+          display: "flex",
+          alignItems: "center",
+          gap: 10,
+          marginBottom: 18,
+        }}
+      >
+        <CheckBadge />
+        <span
+          style={{
+            fontWeight: 500,
+            fontSize: 15,
+            letterSpacing: "-0.16px",
+            color: "var(--text)",
+          }}
+        >
+          Subscription created
+        </span>
+        <span style={{ flex: 1 }} />
+        <button
+          type="button"
+          onClick={onReplay}
+          aria-label="Replay demo"
+          title="Replay"
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            padding: "4px 10px",
+            background: "transparent",
+            color: "var(--text-muted)",
+            border: "none",
+            borderRadius: 6,
+            fontSize: 12,
+            fontFamily: FONT_MONO,
+            cursor: "pointer",
+            boxShadow: "var(--shadow-ring-light)",
+          }}
+        >
+          <svg
+            width="11"
+            height="11"
+            viewBox="0 0 24 24"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="2"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            aria-hidden="true"
+          >
+            <path d="M3 12a9 9 0 1 0 3-6.7" />
+            <path d="M3 4v5h5" />
+          </svg>
+          Replay
+        </button>
+      </div>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "auto 1fr",
+          rowGap: 8,
+          columnGap: 20,
+          fontFamily: FONT_MONO,
+          fontSize: 12.5,
+          marginBottom: 22,
+        }}
+      >
+        {fields.map(([label, value]) => (
+          <span key={label} style={{ display: "contents" }}>
+            <span
+              style={{
+                color: "var(--text-muted)",
+                letterSpacing: "0.04em",
+                textTransform: "uppercase",
+                fontSize: 11,
+                alignSelf: "center",
+              }}
+            >
+              {label}
+            </span>
+            <span style={{ color: "var(--text)" }}>{value}</span>
+          </span>
+        ))}
+      </div>
+
+      <a
+        href="https://mercadopago.com.ar/subscriptions/checkout?preapproval_id=abc-123"
+        target="_blank"
+        rel="noopener noreferrer"
+        style={{
+          display: "inline-flex",
+          alignItems: "center",
+          gap: 8,
+          padding: "8px 16px",
+          background: "var(--primary-bg)",
+          color: "var(--primary-text)",
+          borderRadius: 6,
+          fontFamily: FONT_SANS,
+          fontSize: 14,
+          fontWeight: 500,
+          textDecoration: "none",
+          letterSpacing: "-0.16px",
+        }}
+      >
+        Open checkout
+        <svg
+          width="12"
+          height="12"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          strokeWidth="2"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          aria-hidden="true"
+        >
+          <path d="M7 17 17 7" />
+          <path d="M7 7h10v10" />
+        </svg>
+      </a>
+    </div>
   );
 }
 
@@ -556,7 +693,7 @@ export function DemoTerminal() {
             );
           })}
 
-          {phase.type === "done" ? <ReplayButton onClick={replay} /> : null}
+          {phase.type === "done" ? <ResultCard onReplay={replay} /> : null}
         </div>
       </div>
     </div>

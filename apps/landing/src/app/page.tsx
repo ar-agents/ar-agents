@@ -311,8 +311,13 @@ export default function Home() {
           </div>
         </header>
 
-        {/* QUICK START */}
+        {/* LIVE DEMO */}
         <section style={{ marginBottom: 32 }}>
+          <DemoTerminal />
+        </section>
+
+        {/* QUICK START */}
+        <section style={{ marginBottom: 80 }}>
           <pre
             style={{
               background: "var(--code-bg)",
@@ -329,11 +334,6 @@ export default function Home() {
           >
             {QUICK_START}
           </pre>
-        </section>
-
-        {/* LIVE DEMO */}
-        <section style={{ marginBottom: 80 }}>
-          <DemoTerminal />
         </section>
 
         {/* COMPARISON */}
