@@ -20,9 +20,9 @@ html[data-theme="dark"] {
   --text-body: #a1a1a1;
   --text-muted: #717171;
 
-  --accent: #2f3476;
-  --accent-bg: rgba(47, 52, 118, 0.32);
-  --accent-text: #b9bdf0;
+  --accent: #00bcff;
+  --accent-bg: rgba(0, 188, 255, 0.18);
+  --accent-text: #00bcff;
 
   --border-color: rgba(255, 255, 255, 0.1);
   --border-light: rgba(255, 255, 255, 0.08);
@@ -51,9 +51,9 @@ html[data-theme="light"] {
   --text-body: #4d4d4d;
   --text-muted: #666666;
 
-  --accent: #2f3476;
-  --accent-bg: #ebebf7;
-  --accent-text: #2f3476;
+  --accent: #00bcff;
+  --accent-bg: #e0f4ff;
+  --accent-text: #006b96;
 
   --border-color: rgba(0, 0, 0, 0.08);
   --border-light: rgb(235, 235, 235);
@@ -110,7 +110,7 @@ pre {
 }
 
 ::selection {
-  background: rgba(138, 145, 212, 0.3);
+  background: rgba(0, 188, 255, 0.3);
   color: var(--text);
 }
 
