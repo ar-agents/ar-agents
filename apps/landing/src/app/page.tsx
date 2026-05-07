@@ -7,7 +7,7 @@
 // `use client` is required because the hero "Try it with a live agent"
 // button toggles the LiveChat panel that renders above the scripted demo.
 
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useState } from "react";
 import { DemoTerminal } from "./demo-terminal";
 import { LiveChat } from "./live-chat";
 
@@ -163,18 +163,7 @@ const WHATS_IN: ReadonlyArray<readonly [string, string]> = [
 
 export default function Home() {
   const [liveOpen, setLiveOpen] = useState(false);
-  const liveRef = useRef<HTMLDivElement>(null);
-
-  // Scroll the live panel into view the first time it opens so the user
-  // doesn't have to hunt for it. No-op on subsequent toggles.
-  useEffect(() => {
-    if (!liveOpen) return;
-    const t = setTimeout(() => {
-      liveRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
-    }, 80);
-    return () => clearTimeout(t);
-  }, [liveOpen]);
-
+  const toggleLive = useCallback(() => setLiveOpen((v) => !v), []);
   const closeLive = useCallback(() => setLiveOpen(false), []);
 
   return (
@@ -209,7 +198,7 @@ export default function Home() {
               fontSize: "clamp(40px, 9vw, 56px)",
               margin: "16px 0 20px",
               fontWeight: 600,
-              lineHeight: 1.04,
+              lineHeight: 1.12,
               letterSpacing: "-0.05em",
               color: "var(--text)",
             }}
@@ -332,8 +321,8 @@ export default function Home() {
             </a>
             <button
               type="button"
-              onClick={() => setLiveOpen(true)}
-              disabled={liveOpen}
+              onClick={toggleLive}
+              aria-pressed={liveOpen}
               style={{
                 padding: "8px 16px",
                 background: "var(--bg)",
@@ -344,8 +333,7 @@ export default function Home() {
                 lineHeight: 1.43,
                 boxShadow: "var(--shadow-ring-light)",
                 border: "none",
-                cursor: liveOpen ? "default" : "pointer",
-                opacity: liveOpen ? 0.55 : 1,
+                cursor: "pointer",
                 fontFamily: FONT_SANS,
                 display: "inline-flex",
                 alignItems: "center",
@@ -371,7 +359,6 @@ export default function Home() {
 
         {/* LIVE DEMO */}
         <section style={{ marginBottom: 96 }}>
-          <div ref={liveRef} />
           {liveOpen ? <LiveChat onClose={closeLive} /> : null}
           <DemoTerminal />
         </section>
