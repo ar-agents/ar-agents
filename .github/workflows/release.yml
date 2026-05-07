@@ -52,4 +52,9 @@ jobs:
           version: pnpm exec changeset version
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          NPM_TOKEN: ${{ secrets.NPM_TOKEN }}
+          # setup-node@v4 with `registry-url` writes a .npmrc that reads the
+          # token from NODE_AUTH_TOKEN (NOT NPM_TOKEN — common gotcha).
+          # Without this rename, `npm publish` runs unauthenticated and the
+          # registry returns E404 on PUT (npm uses 404 instead of 401/403 to
+          # avoid leaking which packages exist).
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
