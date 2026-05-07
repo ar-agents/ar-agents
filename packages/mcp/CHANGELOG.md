@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.4.10
+
+### Patch Changes
+
+- [`da49fde`](https://github.com/ar-agents/ar-agents/commit/da49fde136ecea89b4755fe74b3ed91ed9720f46) - Enable [npm provenance attestation](https://docs.npmjs.com/generating-provenance-statements) for all `@ar-agents/*` packages. From this version on, the npm registry includes a verifiable cryptographic record that the package was built from this exact GitHub commit, via the GitHub Actions `release.yml` workflow. Boosts supply-chain audit scores (Socket / Snyk / npm) and lets downstream agents verify package integrity without trusting the publisher.
+
+  No API or runtime changes.
+
+- Updated dependencies [[`da49fde`](https://github.com/ar-agents/ar-agents/commit/da49fde136ecea89b4755fe74b3ed91ed9720f46)]:
+  - @ar-agents/mercadopago@0.15.3
+  - @ar-agents/identity@0.5.1
+  - @ar-agents/identity-attest@0.4.2
+  - @ar-agents/whatsapp@0.3.1
+  - @ar-agents/banking@0.1.1
+  - @ar-agents/facturacion@0.1.1
+  - @ar-agents/shipping@0.1.1
+
 ## 0.4.9
 
 ### Patch Changes
@@ -73,6 +90,7 @@
 ### Patch Changes
 
 - Picks up `@ar-agents/mercadopago@0.9.0` — production hardening pass:
+
   - **Circuit breaker** with state machine + rolling window (CLOSED/OPEN/HALF_OPEN)
   - **Deadline propagation** via parent AbortSignal
   - **W3C Trace Context** (OpenTelemetry-compatible without peer dep)
@@ -95,6 +113,7 @@
 ### Patch Changes
 
 - Picks up `@ar-agents/mercadopago@0.7.0`. The MCP server now exposes **+25 new MP tools** (81 MP tools total) without any config changes. Highlights:
+
   - Customer + Card CRUD completion (4 tools)
   - Subscription/Plan/Refund/Preference extensions (5 tools)
   - Merchant Orders category (3 tools)

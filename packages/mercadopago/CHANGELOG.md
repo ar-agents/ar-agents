@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.15.3
+
+### Patch Changes
+
+- [`da49fde`](https://github.com/ar-agents/ar-agents/commit/da49fde136ecea89b4755fe74b3ed91ed9720f46) - Enable [npm provenance attestation](https://docs.npmjs.com/generating-provenance-statements) for all `@ar-agents/*` packages. From this version on, the npm registry includes a verifiable cryptographic record that the package was built from this exact GitHub commit, via the GitHub Actions `release.yml` workflow. Boosts supply-chain audit scores (Socket / Snyk / npm) and lets downstream agents verify package integrity without trusting the publisher.
+
+  No API or runtime changes.
+
 ## 0.15.2
 
 ### Patch — docs: tool-count accuracy (87 → 89)
@@ -51,7 +59,8 @@ distinguishable from declined confirmations.
 
 ```ts
 mercadoPagoTools(client, {
-  state, backUrl,
+  state,
+  backUrl,
   requireConfirmation: async (op, args) => {
     return await slack.confirm({
       channel: "#mp-approvals",
@@ -93,6 +102,7 @@ opt out for jsdom-based tests, pass `__allowBrowser: true`.
 
 **`z.unknown()` schemas replaced with strict Zod.** Two tools previously
 used `z.record(z.string(), z.unknown())`:
+
 - `update_merchant_order.patch` → narrow object with documented MP fields
   (`external_reference`, `notification_url`, `additional_info`, `status`),
   `.strict()` so unknown keys are rejected.
@@ -101,6 +111,7 @@ used `z.record(z.string(), z.unknown())`:
   `payment_id` instead.
 
 **Stricter validation on `search_payments`:**
+
 - `payer_email` now requires `.email()` (was bare `z.string()`).
 - `begin_date` / `end_date` now require `.datetime()` ISO 8601.
 
@@ -191,6 +202,7 @@ partitions. This makes the safe default: safe.
   pause/resume — already deduped by id).
 
 6 new tests in `idempotency-default.test.ts` verify:
+
 - UUID v4 format on auto-gen
 - Different keys per call
 - Caller-supplied keys honored over auto-gen
@@ -378,28 +390,34 @@ Architectural features for at-scale deployment.
 - MP v0.7: +25 new tools (81 total).
 
   **Cierre de gaps obvios (8 tools)**:
+
   - `get_customer`, `update_customer`, `create_customer_card`, `get_customer_card`
   - `get_subscription_plan`, `update_subscription`, `search_subscriptions`
   - `get_refund`, `update_payment_preference`
 
   **Merchant Orders (3 tools — categoría completa nueva)**:
+
   - `get_merchant_order`, `search_merchant_orders`, `update_merchant_order`
   - MerchantOrder agrupa Payments asociados a una Preference — clave para reconciliar webhooks con `topic='merchant_order'`.
 
   **Stores + POS CRUD completion (6 tools)**:
+
   - `get_store`, `update_store`, `delete_store`
   - `get_pos`, `update_pos`, `delete_pos`
 
   **Bank Accounts (2 tools)**:
+
   - `list_bank_accounts`, `register_bank_account`
 
   **Point Devices físicos (5 tools — categoría nueva)**:
+
   - `list_point_devices` (terminales físicas: Smart, Tap to Pay)
   - `update_point_device_mode` (PDV vs STANDALONE)
   - `create_point_payment_intent` (push payment al device — amount en CENTAVOS)
   - `get_point_payment_intent`, `cancel_point_payment_intent`
 
   **Pure helpers (2 tools, high-leverage)**:
+
   - `compute_marketplace_fee` — given amount + (% o flat ARS, con min/max), returns exact `marketplace_fee`
   - `explain_payment_status` — dado un Payment, traduce los 30+ status_detail codes a `{ summary, recommendedAction, final, paid, retryable }` en español
 

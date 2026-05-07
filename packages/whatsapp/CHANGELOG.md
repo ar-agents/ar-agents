@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.3.1
+
+### Patch Changes
+
+- [`da49fde`](https://github.com/ar-agents/ar-agents/commit/da49fde136ecea89b4755fe74b3ed91ed9720f46) - Enable [npm provenance attestation](https://docs.npmjs.com/generating-provenance-statements) for all `@ar-agents/*` packages. From this version on, the npm registry includes a verifiable cryptographic record that the package was built from this exact GitHub commit, via the GitHub Actions `release.yml` workflow. Boosts supply-chain audit scores (Socket / Snyk / npm) and lets downstream agents verify package integrity without trusting the publisher.
+
+  No API or runtime changes.
+
 ## 0.3.0
 
 ### Minor Changes — Browser-context guard
@@ -42,7 +50,7 @@ For jsdom-based tests, pass `__allowBrowser: true` explicitly.
 
 - 9 new tests in `tools-scoped.test.ts` verifying:
   - `to` is removed from schemas in scoped mode (Zod parse drops it)
-  - All 5 send_* tools route to scoped sender, ignoring any `to` arg
+  - All 5 send\_\* tools route to scoped sender, ignoring any `to` arg
   - Descriptions warn the LLM about the binding
   - Unscoped behavior unchanged
   - `mark_whatsapp_read` works in both modes (it never had `to`)

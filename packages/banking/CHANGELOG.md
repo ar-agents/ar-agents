@@ -1,5 +1,13 @@
 # @ar-agents/banking
 
+## 0.1.1
+
+### Patch Changes
+
+- [`da49fde`](https://github.com/ar-agents/ar-agents/commit/da49fde136ecea89b4755fe74b3ed91ed9720f46) - Enable [npm provenance attestation](https://docs.npmjs.com/generating-provenance-statements) for all `@ar-agents/*` packages. From this version on, the npm registry includes a verifiable cryptographic record that the package was built from this exact GitHub commit, via the GitHub Actions `release.yml` workflow. Boosts supply-chain audit scores (Socket / Snyk / npm) and lets downstream agents verify package integrity without trusting the publisher.
+
+  No API or runtime changes.
+
 ## 0.1.0
 
 ### Minor Changes

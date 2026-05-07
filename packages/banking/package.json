@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/banking",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Argentine banking primitives (CBU/CVU validation + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK. Pure-algorithm out of the box; BCRA lookups via pluggable adapter.",
   "keywords": [
     "cbu",
