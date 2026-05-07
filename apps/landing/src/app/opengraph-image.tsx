@@ -31,7 +31,7 @@ export default function OpengraphImage() {
             fontWeight: 500,
           }}
         >
-          @ar-agents/mercadopago · v0.15.1
+          @ar-agents/mercadopago · v0.15.2
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>

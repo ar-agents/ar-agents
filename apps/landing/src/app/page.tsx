@@ -214,7 +214,7 @@ export default function Home() {
               fontFeatureSettings: '"liga", "tnum"',
             }}
           >
-            @ar-agents/mercadopago · v0.15.1
+            @ar-agents/mercadopago · v0.15.2
           </p>
           <h1
             style={{
