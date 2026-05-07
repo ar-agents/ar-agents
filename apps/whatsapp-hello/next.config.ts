@@ -14,13 +14,14 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'none'",
+  "frame-ancestors 'self' https://ar-agents.vercel.app",
   "upgrade-insecure-requests",
 ].join("; ");
 
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
-  { key: "X-Frame-Options", value: "DENY" },
+  // X-Frame-Options is superseded by CSP `frame-ancestors`. Setting it would
+  // force DENY on browsers that honor both, blocking the landing-page embed.
   { key: "X-Content-Type-Options", value: "nosniff" },
   { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
   {
