@@ -166,7 +166,7 @@ export default function Home() {
     >
       <div style={{ maxWidth: 920, margin: "0 auto" }}>
         {/* HERO */}
-        <header style={{ marginBottom: 80 }}>
+        <header style={{ marginBottom: 48 }}>
           <p
             style={{
               fontSize: 12,
