@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
+import { ThemeToggle } from "./theme-toggle";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -23,14 +24,33 @@ export const metadata: Metadata = {
   },
 };
 
+// FOUC-safe theme init: read localStorage and set data-theme on <html> before paint.
+// Default is dark; only flip to light if explicitly chosen.
+const themeInitScript = `
+(function() {
+  try {
+    var t = localStorage.getItem('theme');
+    document.documentElement.setAttribute('data-theme', t === 'light' ? 'light' : 'dark');
+  } catch (e) {
+    document.documentElement.setAttribute('data-theme', 'dark');
+  }
+})();
+`;
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`}>
-      <body>{children}</body>
+    <html lang="en" className={`${geistSans.variable} ${geistMono.variable}`} data-theme="dark">
+      <head>
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
+      </head>
+      <body>
+        <ThemeToggle />
+        {children}
+      </body>
     </html>
   );
 }

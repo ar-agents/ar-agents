@@ -1,6 +1,5 @@
 html {
   height: 100%;
-  color-scheme: light;
 }
 
 html,
@@ -9,18 +8,86 @@ body {
   overflow-x: hidden;
 }
 
+/* Default = DARK mode. The init script in <head> writes data-theme to <html>
+   before paint, so legitimate dark-mode visitors never see light mode flash. */
+:root,
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #000000;
+  --bg-tint: #0a0a0a;
+  --text: #ededed;
+  --text-body: #a1a1a1;
+  --text-muted: #717171;
+
+  --accent: #8a91d4;
+  --accent-bg: rgba(47, 52, 118, 0.32);
+  --accent-text: #b9bdf0;
+
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.08);
+
+  /* Card shadow stack — dark variant. Inner glow is a faint white ring. */
+  --card-shadow:
+    rgba(255, 255, 255, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.5) 0px 2px 2px,
+    rgba(255, 255, 255, 0.02) 0px 0px 0px 1px inset;
+  --shadow-border: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px;
+  --shadow-ring-light: rgba(255, 255, 255, 0.12) 0px 0px 0px 1px;
+
+  --code-bg: #ededed;
+  --code-text: #0a0a0a;
+
+  --primary-bg: #ededed;
+  --primary-text: #0a0a0a;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-tint: #fafafa;
+  --text: #171717;
+  --text-body: #4d4d4d;
+  --text-muted: #666666;
+
+  --accent: #2f3476;
+  --accent-bg: #ebebf7;
+  --accent-text: #2f3476;
+
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-light: rgb(235, 235, 235);
+
+  --card-shadow:
+    rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.04) 0px 2px 2px,
+    #fafafa 0px 0px 0px 1px inset;
+  --shadow-border: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  --shadow-ring-light: rgb(235, 235, 235) 0px 0px 0px 1px;
+
+  --code-bg: #171717;
+  --code-text: #ffffff;
+
+  --primary-bg: #171717;
+  --primary-text: #ffffff;
+}
+
 body {
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  color: #171717;
-  background: #ffffff;
+  color: var(--text);
+  background: var(--bg);
   font-family:
     var(--font-geist-sans), Arial, "Apple Color Emoji", "Segoe UI Emoji",
     "Segoe UI Symbol", sans-serif;
   font-feature-settings: "liga";
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  /* Smooth out theme transitions, but not on initial paint. */
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
 }
 
 * {
@@ -43,13 +110,13 @@ pre {
 }
 
 ::selection {
-  background: hsla(0, 0%, 95%, 1);
-  color: #171717;
+  background: rgba(138, 145, 212, 0.3);
+  color: var(--text);
 }
 
 a:focus-visible,
 button:focus-visible {
-  outline: 2px solid hsla(212, 100%, 48%, 1);
+  outline: 2px solid var(--accent);
   outline-offset: 2px;
   border-radius: 6px;
 }

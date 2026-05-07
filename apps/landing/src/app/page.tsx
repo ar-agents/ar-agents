@@ -1,48 +1,13 @@
-// Design system: Vercel / Geist.
-// - Background #ffffff. Text #171717 / #4d4d4d / #666666.
-// - Shadow-as-border instead of CSS borders.
-// - Card shadow stack: 0 0 0 1px rgba(0,0,0,0.08), 0 2px 2px rgba(0,0,0,0.04),
-//   inner #fafafa 0 0 0 1px (the inner-glow ring).
-// - Geist Sans with aggressive negative tracking at display sizes.
-// - Three weights only (400/500/600), no 700.
-// - Border radius: 6px buttons, 8px cards, 9999px badges.
-
-const PAGE_BG = "#ffffff";
-const TEXT_HEADING = "#171717";
-const TEXT_BODY = "#4d4d4d";
-const TEXT_MUTED = "#666666";
-const SURFACE_TINT = "#fafafa";
-
-const SHADOW_BORDER = "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px";
-const SHADOW_CARD =
-  "rgba(0, 0, 0, 0.08) 0px 0px 0px 1px, rgba(0, 0, 0, 0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px inset";
-const SHADOW_RING_LIGHT = "rgb(235, 235, 235) 0px 0px 0px 1px";
+// Design system: Vercel / Geist with light + dark CSS-var themes.
+// All colors come from globals.css custom properties so the theme toggle
+// can flip the palette without re-rendering. Accent is #2F3476 (light) /
+// #8a91d4 (dark, lightened for legibility).
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
 const DEPLOY_URL =
   "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents&root-directory=apps%2Fmp-hello&env=MP_ACCESS_TOKEN%2CANTHROPIC_API_KEY%2CUPSTASH_REDIS_REST_URL%2CUPSTASH_REDIS_REST_TOKEN&envDescription=Mercado%20Pago%20access%20token%2C%20Anthropic%20API%20key%2C%20and%20Upstash%20Redis%20credentials.&envLink=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents%2Ftree%2Fmain%2Fapps%2Fmp-hello%23setup&project-name=mp-hello&repository-name=mp-hello";
-
-const SURFACE_AREAS = [
-  "Payments",
-  "Subscriptions",
-  "Checkout Pro",
-  "Marketplace OAuth",
-  "Order Management",
-  "Customers",
-  "Cards",
-  "Cuotas",
-  "QR",
-  "3DS",
-  "Point devices",
-  "Stores+POS",
-  "Account/Balance/Settlements",
-  "Webhooks",
-  "Disputes",
-  "Lookups",
-  "Bank Accounts",
-];
 
 const OTHER_PACKAGES = [
   {
@@ -193,9 +158,9 @@ export default function Home() {
     <main
       style={{
         minHeight: "100vh",
-        background: PAGE_BG,
+        background: "var(--bg)",
         fontFamily: FONT_SANS,
-        color: TEXT_HEADING,
+        color: "var(--text)",
         padding: "80px 24px 120px",
       }}
     >
@@ -207,7 +172,7 @@ export default function Home() {
               fontSize: 12,
               textTransform: "uppercase",
               letterSpacing: "0.12em",
-              color: TEXT_MUTED,
+              color: "var(--text-muted)",
               margin: 0,
               fontFamily: FONT_MONO,
               fontWeight: 500,
@@ -223,7 +188,7 @@ export default function Home() {
               fontWeight: 600,
               lineHeight: 1.04,
               letterSpacing: "-2.88px",
-              color: TEXT_HEADING,
+              color: "var(--text)",
             }}
           >
             Mercado Pago Agent Toolkit.
@@ -232,7 +197,7 @@ export default function Home() {
           </h1>
           <p
             style={{
-              color: TEXT_BODY,
+              color: "var(--text-body)",
               fontSize: 20,
               margin: 0,
               maxWidth: 720,
@@ -255,8 +220,8 @@ export default function Home() {
               href="https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago"
               style={{
                 padding: "8px 16px",
-                background: TEXT_HEADING,
-                color: PAGE_BG,
+                background: "var(--primary-bg)",
+                color: "var(--primary-text)",
                 borderRadius: 6,
                 fontSize: 14,
                 fontWeight: 500,
@@ -270,14 +235,14 @@ export default function Home() {
               href="https://www.npmjs.com/package/@ar-agents/mercadopago"
               style={{
                 padding: "8px 16px",
-                background: PAGE_BG,
-                color: TEXT_HEADING,
+                background: "var(--bg)",
+                color: "var(--text)",
                 borderRadius: 6,
                 fontSize: 14,
                 fontWeight: 500,
                 textDecoration: "none",
                 lineHeight: 1.43,
-                boxShadow: SHADOW_RING_LIGHT,
+                boxShadow: "var(--shadow-ring-light)",
               }}
             >
               npm
@@ -286,14 +251,14 @@ export default function Home() {
               href="https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago/cookbook"
               style={{
                 padding: "8px 16px",
-                background: PAGE_BG,
-                color: TEXT_HEADING,
+                background: "var(--bg)",
+                color: "var(--text)",
                 borderRadius: 6,
                 fontSize: 14,
                 fontWeight: 500,
                 textDecoration: "none",
                 lineHeight: 1.43,
-                boxShadow: SHADOW_RING_LIGHT,
+                boxShadow: "var(--shadow-ring-light)",
               }}
             >
               Cookbook (9 recipes)
@@ -302,8 +267,8 @@ export default function Home() {
               href={DEPLOY_URL}
               style={{
                 padding: "8px 16px",
-                background: TEXT_HEADING,
-                color: PAGE_BG,
+                background: "var(--primary-bg)",
+                color: "var(--primary-text)",
                 borderRadius: 6,
                 fontSize: 14,
                 fontWeight: 500,
@@ -332,8 +297,8 @@ export default function Home() {
         <section style={{ marginBottom: 80 }}>
           <pre
             style={{
-              background: TEXT_HEADING,
-              color: PAGE_BG,
+              background: "var(--code-bg)",
+              color: "var(--code-text)",
               padding: 24,
               borderRadius: 8,
               overflow: "auto",
@@ -341,7 +306,7 @@ export default function Home() {
               lineHeight: 1.6,
               fontFamily: FONT_MONO,
               margin: 0,
-              boxShadow: SHADOW_BORDER,
+              boxShadow: "var(--shadow-border)",
             }}
           >
             {QUICK_START}
@@ -357,18 +322,18 @@ export default function Home() {
               margin: "0 0 24px",
               letterSpacing: "-1.28px",
               lineHeight: 1.2,
-              color: TEXT_HEADING,
+              color: "var(--text)",
             }}
           >
             How it compares
           </h2>
           <div
             style={{
-              background: PAGE_BG,
+              background: "var(--bg)",
               borderRadius: 8,
               padding: 0,
               overflow: "auto",
-              boxShadow: SHADOW_CARD,
+              boxShadow: "var(--card-shadow)",
             }}
           >
             <table
@@ -378,16 +343,16 @@ export default function Home() {
                 fontSize: 13,
               }}
             >
-              <thead style={{ background: SURFACE_TINT }}>
+              <thead style={{ background: "var(--bg-tint)" }}>
                 <tr>
                   <th
                     style={{
                       textAlign: "left",
                       padding: 14,
                       fontWeight: 600,
-                      color: TEXT_HEADING,
+                      color: "var(--text)",
                       letterSpacing: "-0.32px",
-                      boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.08)",
+                      boxShadow: "inset 0 -1px 0 var(--border-color)",
                     }}
                   >
                     Feature
@@ -397,15 +362,21 @@ export default function Home() {
                       textAlign: "center",
                       padding: 14,
                       fontWeight: 600,
-                      color: TEXT_HEADING,
+                      color: "var(--text)",
                       fontFamily: FONT_MONO,
                       fontSize: 12,
-                      boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.08)",
+                      boxShadow: "inset 0 -1px 0 var(--border-color)",
                     }}
                   >
                     @ar-agents
                     <br />
-                    <span style={{ fontSize: 11, fontWeight: 400, color: TEXT_MUTED }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 400,
+                        color: "var(--text-muted)",
+                      }}
+                    >
                       /mercadopago
                     </span>
                   </th>
@@ -414,15 +385,21 @@ export default function Home() {
                       textAlign: "center",
                       padding: 14,
                       fontWeight: 500,
-                      color: TEXT_BODY,
+                      color: "var(--text-body)",
                       fontFamily: FONT_MONO,
                       fontSize: 12,
-                      boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.08)",
+                      boxShadow: "inset 0 -1px 0 var(--border-color)",
                     }}
                   >
                     mercadopago
                     <br />
-                    <span style={{ fontSize: 11, fontWeight: 400, color: TEXT_MUTED }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 400,
+                        color: "var(--text-muted)",
+                      }}
+                    >
                       (official)
                     </span>
                   </th>
@@ -431,15 +408,21 @@ export default function Home() {
                       textAlign: "center",
                       padding: 14,
                       fontWeight: 500,
-                      color: TEXT_BODY,
+                      color: "var(--text-body)",
                       fontFamily: FONT_MONO,
                       fontSize: 12,
-                      boxShadow: "inset 0 -1px 0 rgba(0,0,0,0.08)",
+                      boxShadow: "inset 0 -1px 0 var(--border-color)",
                     }}
                   >
                     Stripe Agent
                     <br />
-                    <span style={{ fontSize: 11, fontWeight: 400, color: TEXT_MUTED }}>
+                    <span
+                      style={{
+                        fontSize: 11,
+                        fontWeight: 400,
+                        color: "var(--text-muted)",
+                      }}
+                    >
                       Toolkit
                     </span>
                   </th>
@@ -452,14 +435,14 @@ export default function Home() {
                     style={{
                       boxShadow:
                         idx < COMPARISON_ROWS.length - 1
-                          ? "inset 0 -1px 0 rgba(0,0,0,0.04)"
+                          ? "inset 0 -1px 0 var(--border-color)"
                           : "none",
                     }}
                   >
                     <td
                       style={{
                         padding: "12px 14px",
-                        color: TEXT_HEADING,
+                        color: "var(--text)",
                         fontWeight: 500,
                       }}
                     >
@@ -469,7 +452,7 @@ export default function Home() {
                       style={{
                         padding: "12px 14px",
                         textAlign: "center",
-                        color: TEXT_HEADING,
+                        color: "var(--text)",
                         fontWeight: 600,
                         fontFamily: FONT_MONO,
                         fontSize: 13,
@@ -481,7 +464,7 @@ export default function Home() {
                       style={{
                         padding: "12px 14px",
                         textAlign: "center",
-                        color: TEXT_MUTED,
+                        color: "var(--text-muted)",
                         fontFamily: FONT_MONO,
                         fontSize: 13,
                       }}
@@ -492,7 +475,7 @@ export default function Home() {
                       style={{
                         padding: "12px 14px",
                         textAlign: "center",
-                        color: TEXT_MUTED,
+                        color: "var(--text-muted)",
                         fontFamily: FONT_MONO,
                         fontSize: 13,
                       }}
@@ -507,25 +490,25 @@ export default function Home() {
           <p
             style={{
               fontSize: 13,
-              color: TEXT_MUTED,
+              color: "var(--text-muted)",
               margin: "16px 0 0",
               lineHeight: 1.6,
             }}
           >
             Both official SDKs are excellent at what they do — generic REST clients
             for their respective APIs.{" "}
-            <code style={{ fontFamily: FONT_MONO, color: TEXT_BODY }}>
+            <code style={{ fontFamily: FONT_MONO, color: "var(--text-body)" }}>
               @ar-agents/mercadopago
             </code>{" "}
             is opinionated for the agent-operating-an-Argentine-business case, and
             composes with{" "}
-            <code style={{ fontFamily: FONT_MONO, color: TEXT_BODY }}>
+            <code style={{ fontFamily: FONT_MONO, color: "var(--text-body)" }}>
               mercadopago
             </code>{" "}
             under the hood when needed. See{" "}
             <a
               href="https://github.com/ar-agents/ar-agents/blob/main/packages/mercadopago/MIGRATION.md"
-              style={{ color: "#0072f5", textDecoration: "underline" }}
+              style={{ color: "var(--accent)", textDecoration: "underline" }}
             >
               MIGRATION.md
             </a>
@@ -542,7 +525,7 @@ export default function Home() {
               margin: "0 0 24px",
               letterSpacing: "-1.28px",
               lineHeight: 1.2,
-              color: TEXT_HEADING,
+              color: "var(--text)",
             }}
           >
             What&apos;s in the box
@@ -558,10 +541,10 @@ export default function Home() {
               <div
                 key={title}
                 style={{
-                  background: PAGE_BG,
+                  background: "var(--bg)",
                   borderRadius: 8,
                   padding: 20,
-                  boxShadow: SHADOW_CARD,
+                  boxShadow: "var(--card-shadow)",
                 }}
               >
                 <h3
@@ -570,7 +553,7 @@ export default function Home() {
                     fontWeight: 600,
                     margin: "0 0 6px",
                     letterSpacing: "-0.32px",
-                    color: TEXT_HEADING,
+                    color: "var(--text)",
                   }}
                 >
                   {title}
@@ -578,7 +561,7 @@ export default function Home() {
                 <p
                   style={{
                     fontSize: 14,
-                    color: TEXT_BODY,
+                    color: "var(--text-body)",
                     margin: 0,
                     lineHeight: 1.5,
                   }}
@@ -599,14 +582,14 @@ export default function Home() {
               margin: "0 0 8px",
               letterSpacing: "-1.28px",
               lineHeight: 1.2,
-              color: TEXT_HEADING,
+              color: "var(--text)",
             }}
           >
             Other AR primitives in this monorepo
           </h2>
           <p
             style={{
-              color: TEXT_BODY,
+              color: "var(--text-body)",
               fontSize: 16,
               margin: "0 0 32px",
               lineHeight: 1.6,
@@ -615,7 +598,7 @@ export default function Home() {
           >
             Same approach, applied to the rest of the stack an Argentine business
             needs. Each ships independently to npm and composes with{" "}
-            <code style={{ fontFamily: FONT_MONO, color: TEXT_HEADING }}>
+            <code style={{ fontFamily: FONT_MONO, color: "var(--text)" }}>
               @ar-agents/mercadopago
             </code>
             .
@@ -625,10 +608,10 @@ export default function Home() {
               <article
                 key={pkg.name}
                 style={{
-                  background: PAGE_BG,
+                  background: "var(--bg)",
                   borderRadius: 8,
                   padding: 20,
-                  boxShadow: SHADOW_CARD,
+                  boxShadow: "var(--card-shadow)",
                 }}
               >
                 <div
@@ -648,15 +631,15 @@ export default function Home() {
                       margin: 0,
                       fontFamily: FONT_MONO,
                       letterSpacing: 0,
-                      color: TEXT_HEADING,
+                      color: "var(--text)",
                     }}
                   >
                     {pkg.name}
                   </h3>
                   <span
                     style={{
-                      background: "#ebf5ff",
-                      color: "#0068d6",
+                      background: "var(--accent-bg)",
+                      color: "var(--accent-text)",
                       padding: "0 10px",
                       borderRadius: 9999,
                       fontSize: 12,
@@ -670,7 +653,7 @@ export default function Home() {
                 </div>
                 <p
                   style={{
-                    color: TEXT_BODY,
+                    color: "var(--text-body)",
                     margin: "0 0 12px",
                     fontSize: 14,
                     lineHeight: 1.6,
@@ -681,20 +664,29 @@ export default function Home() {
                 <div style={{ display: "flex", gap: 14, fontSize: 13 }}>
                   <a
                     href={pkg.npm}
-                    style={{ color: TEXT_HEADING, textDecoration: "underline" }}
+                    style={{
+                      color: "var(--text)",
+                      textDecoration: "underline",
+                    }}
                   >
                     npm
                   </a>
                   <a
                     href={pkg.github}
-                    style={{ color: TEXT_HEADING, textDecoration: "underline" }}
+                    style={{
+                      color: "var(--text)",
+                      textDecoration: "underline",
+                    }}
                   >
                     source
                   </a>
                   {pkg.demo && (
                     <a
                       href={pkg.demo}
-                      style={{ color: "#0072f5", textDecoration: "underline" }}
+                      style={{
+                        color: "var(--accent)",
+                        textDecoration: "underline",
+                      }}
                     >
                       live demo →
                     </a>
@@ -714,30 +706,34 @@ export default function Home() {
               margin: "0 0 24px",
               letterSpacing: "-1.28px",
               lineHeight: 1.2,
-              color: TEXT_HEADING,
+              color: "var(--text)",
             }}
           >
             Composition example — billing assistant
           </h2>
           <div
             style={{
-              background: PAGE_BG,
+              background: "var(--bg)",
               borderRadius: 8,
               padding: 24,
-              boxShadow: SHADOW_CARD,
+              boxShadow: "var(--card-shadow)",
             }}
           >
             <p
               style={{
                 fontSize: 15,
-                color: TEXT_BODY,
+                color: "var(--text-body)",
                 margin: "0 0 16px",
                 lineHeight: 1.6,
               }}
             >
               <a
                 href="https://ar-agents-whatsapp-hello.vercel.app"
-                style={{ color: "#0072f5", fontWeight: 500, textDecoration: "underline" }}
+                style={{
+                  color: "var(--accent)",
+                  fontWeight: 500,
+                  textDecoration: "underline",
+                }}
               >
                 ar-agents-whatsapp-hello.vercel.app
               </a>{" "}
@@ -753,20 +749,20 @@ export default function Home() {
                 gap: "8px 16px",
                 fontSize: 13,
                 fontFamily: FONT_MONO,
-                background: SURFACE_TINT,
+                background: "var(--bg-tint)",
                 padding: 16,
                 borderRadius: 6,
-                color: TEXT_BODY,
-                boxShadow: SHADOW_BORDER,
+                color: "var(--text-body)",
+                boxShadow: "var(--shadow-border)",
               }}
             >
-              <span style={{ color: TEXT_MUTED }}>{"<"} $5k</span>
+              <span style={{ color: "var(--text-muted)" }}>{"<"} $5k</span>
               <span>direct charge, no verification</span>
-              <span style={{ color: TEXT_MUTED }}>$5k–$50k</span>
+              <span style={{ color: "var(--text-muted)" }}>$5k–$50k</span>
               <span>requires trust ≥ 0.3 (whatsapp_otp)</span>
-              <span style={{ color: TEXT_MUTED }}>$50k–$500k</span>
+              <span style={{ color: "var(--text-muted)" }}>$50k–$500k</span>
               <span>requires trust ≥ 0.5 (email_magic_link / mp_identity)</span>
-              <span style={{ color: TEXT_MUTED }}>{"> "}$500k</span>
+              <span style={{ color: "var(--text-muted)" }}>{"> "}$500k</span>
               <span>requires trust ≥ 0.7 (auth0 with MFA → 0.85)</span>
             </div>
           </div>
@@ -776,20 +772,23 @@ export default function Home() {
         <footer
           style={{
             paddingTop: 40,
-            color: TEXT_MUTED,
+            color: "var(--text-muted)",
             fontSize: 13,
             display: "flex",
             justifyContent: "space-between",
             flexWrap: "wrap",
             gap: 8,
-            boxShadow: "inset 0 1px 0 rgba(0,0,0,0.08)",
+            boxShadow: "inset 0 1px 0 var(--border-color)",
           }}
         >
           <span>
             MIT — by{" "}
             <a
               href="https://github.com/naza00000"
-              style={{ color: TEXT_BODY, textDecoration: "underline" }}
+              style={{
+                color: "var(--text-body)",
+                textDecoration: "underline",
+              }}
             >
               Nazareno Clemente
             </a>
@@ -797,7 +796,10 @@ export default function Home() {
           <span>
             <a
               href="https://github.com/ar-agents/ar-agents/issues"
-              style={{ color: TEXT_BODY, textDecoration: "underline" }}
+              style={{
+                color: "var(--text-body)",
+                textDecoration: "underline",
+              }}
             >
               report an issue
             </a>
