@@ -143,8 +143,8 @@ function ThemeSwitch() {
       value={theme}
       onChange={setTheme}
       options={[
-        { value: "light", label: sunIcon, ariaLabel: "Light mode" },
         { value: "dark", label: moonIcon, ariaLabel: "Dark mode" },
+        { value: "light", label: sunIcon, ariaLabel: "Light mode" },
       ]}
     />
   );
