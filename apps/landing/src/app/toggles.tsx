@@ -2,7 +2,7 @@
 
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { useLang } from "./i18n";
+import { useLang, type Lang } from "./i18n";
 
 type Theme = "dark" | "light";
 
@@ -14,48 +14,75 @@ function readInitialTheme(): Theme {
   return stored === "light" ? "light" : "dark";
 }
 
-function ToggleShell({
-  onClick,
-  ariaLabel,
-  title,
-  children,
-}: {
-  onClick: () => void;
+type Option<T extends string> = {
+  value: T;
+  label: React.ReactNode;
   ariaLabel: string;
-  title: string;
-  children: React.ReactNode;
+};
+
+function Segmented<T extends string>({
+  options,
+  value,
+  onChange,
+  ariaLabel,
+}: {
+  options: ReadonlyArray<Option<T>>;
+  value: T;
+  onChange: (v: T) => void;
+  ariaLabel: string;
 }) {
   return (
-    <button
-      type="button"
-      onClick={onClick}
+    <div
+      role="group"
       aria-label={ariaLabel}
-      title={title}
       style={{
-        width: 36,
-        height: 36,
         display: "inline-flex",
-        alignItems: "center",
-        justifyContent: "center",
-        borderRadius: 9999,
         background: "var(--bg-tint)",
-        color: "var(--text)",
+        borderRadius: 9999,
+        padding: 3,
         boxShadow: "var(--shadow-ring-light)",
-        cursor: "pointer",
-        border: "none",
-        padding: 0,
-        fontFamily: FONT_MONO,
-        fontSize: 11,
-        fontWeight: 500,
-        letterSpacing: "0.04em",
+        gap: 0,
       }}
     >
-      {children}
-    </button>
+      {options.map((opt) => {
+        const active = value === opt.value;
+        return (
+          <button
+            key={opt.value}
+            type="button"
+            aria-pressed={active}
+            aria-label={opt.ariaLabel}
+            title={opt.ariaLabel}
+            onClick={() => onChange(opt.value)}
+            style={{
+              padding: "0 10px",
+              minWidth: 30,
+              height: 24,
+              background: active ? "var(--primary-bg)" : "transparent",
+              color: active ? "var(--primary-text)" : "var(--text-muted)",
+              border: "none",
+              borderRadius: 9999,
+              fontSize: 11,
+              fontFamily: FONT_MONO,
+              fontWeight: 500,
+              letterSpacing: "0.04em",
+              cursor: active ? "default" : "pointer",
+              display: "inline-flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition:
+                "background 160ms ease-out, color 160ms ease-out",
+            }}
+          >
+            {opt.label}
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-function ThemeButton() {
+function ThemeSwitch() {
   const [theme, setTheme] = useState<Theme>("dark");
   const [mounted, setMounted] = useState(false);
 
@@ -70,71 +97,71 @@ function ThemeButton() {
     window.localStorage.setItem("theme", theme);
   }, [mounted, theme]);
 
-  const toggle = useCallback(() => {
-    setTheme((t) => (t === "dark" ? "light" : "dark"));
-  }, []);
+  const sunIcon = (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <circle cx="12" cy="12" r="4" />
+      <path d="M12 2v2" />
+      <path d="M12 20v2" />
+      <path d="m4.93 4.93 1.41 1.41" />
+      <path d="m17.66 17.66 1.41 1.41" />
+      <path d="M2 12h2" />
+      <path d="M20 12h2" />
+      <path d="m6.34 17.66-1.41 1.41" />
+      <path d="m19.07 4.93-1.41 1.41" />
+    </svg>
+  );
 
-  const next = theme === "dark" ? "light" : "dark";
+  const moonIcon = (
+    <svg
+      width="13"
+      height="13"
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke="currentColor"
+      strokeWidth="2"
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      aria-hidden="true"
+    >
+      <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
+    </svg>
+  );
 
   return (
-    <ToggleShell
-      onClick={toggle}
-      ariaLabel={`Switch to ${next} mode`}
-      title={`Switch to ${next} mode`}
-    >
-      {theme === "dark" ? (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <circle cx="12" cy="12" r="4" />
-          <path d="M12 2v2" />
-          <path d="M12 20v2" />
-          <path d="m4.93 4.93 1.41 1.41" />
-          <path d="m17.66 17.66 1.41 1.41" />
-          <path d="M2 12h2" />
-          <path d="M20 12h2" />
-          <path d="m6.34 17.66-1.41 1.41" />
-          <path d="m19.07 4.93-1.41 1.41" />
-        </svg>
-      ) : (
-        <svg
-          width="16"
-          height="16"
-          viewBox="0 0 24 24"
-          fill="none"
-          stroke="currentColor"
-          strokeWidth="2"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-          aria-hidden="true"
-        >
-          <path d="M12 3a6 6 0 0 0 9 9 9 9 0 1 1-9-9Z" />
-        </svg>
-      )}
-    </ToggleShell>
+    <Segmented<Theme>
+      ariaLabel="Theme"
+      value={theme}
+      onChange={setTheme}
+      options={[
+        { value: "light", label: sunIcon, ariaLabel: "Light mode" },
+        { value: "dark", label: moonIcon, ariaLabel: "Dark mode" },
+      ]}
+    />
   );
 }
 
-function LangButton() {
+function LangSwitch() {
   const { lang, setLang } = useLang();
-  const next = lang === "en" ? "es" : "en";
-  const label = lang.toUpperCase();
   return (
-    <ToggleShell
-      onClick={() => setLang(next)}
-      ariaLabel={`Switch language to ${next.toUpperCase()}`}
-      title={`Switch to ${next.toUpperCase()}`}
-    >
-      <span style={{ display: "inline-block", lineHeight: 1 }}>{label}</span>
-    </ToggleShell>
+    <Segmented<Lang>
+      ariaLabel="Language"
+      value={lang}
+      onChange={setLang}
+      options={[
+        { value: "en", label: "EN", ariaLabel: "English" },
+        { value: "es", label: "ES", ariaLabel: "Español" },
+      ]}
+    />
   );
 }
 
@@ -152,10 +179,11 @@ export function Toggles() {
         display: "flex",
         flexDirection: "column",
         gap: 8,
+        alignItems: "flex-end",
       }}
     >
-      <ThemeButton />
-      <LangButton />
+      <ThemeSwitch />
+      <LangSwitch />
     </div>
   );
 }
