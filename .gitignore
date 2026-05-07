@@ -44,3 +44,4 @@ coverage/
 
 # gstack local artifacts (security reports, learnings, checkpoints)
 .gstack/
+.claude/
