@@ -81,14 +81,14 @@ const OTHER_PACKAGES = [
 ];
 
 const COMPARISON_ROWS: ReadonlyArray<readonly [string, string, string, string]> = [
-  ["Vercel AI SDK 6 tool schemas", "✓", "—", "✓ (Stripe)"],
-  ["Argentine-specific (cuotas, ARCA, AR phone)", "✓", "partial", "—"],
+  ["Vercel AI SDK 6 tool schemas", "✓", "no", "✓ (Stripe)"],
+  ["Argentine-specific (cuotas, ARCA, AR phone)", "✓", "partial", "no"],
   ["Tool count", "89", "thin REST", "26 (Stripe)"],
   ["Webhooks: HMAC + dedup + replay window", "✓", "client only", "✓"],
   ["Edge Runtime + Vercel KV adapters", "✓", "Node-only", "optional"],
-  ["OpenTelemetry instrumentation", "✓", "—", "—"],
-  ["Deterministic idempotency by default", "✓", "—", "—"],
-  ["Programmatic HITL on irreversible ops", "✓", "—", "—"],
+  ["OpenTelemetry instrumentation", "✓", "no", "no"],
+  ["Deterministic idempotency by default", "✓", "no", "no"],
+  ["Programmatic HITL on irreversible ops", "✓", "no", "no"],
   ["MercadoPago coverage", "full", "full", "n/a"],
 ];
 
@@ -120,12 +120,12 @@ const { text } = await agent.generate({
 
 const WHATS_IN: ReadonlyArray<readonly [string, string]> = [
   [
-    "Subscriptions",
-    "create / get / pause / resume / cancel · plans · saved cards",
-  ],
-  [
     "Payments",
     "create / capture / refund · OAuth marketplace · Checkout Pro · Order Management",
+  ],
+  [
+    "Subscriptions",
+    "create / get / pause / resume / cancel · plans · saved cards",
   ],
   [
     "Cuotas",
@@ -204,9 +204,9 @@ export default function Home() {
               lineHeight: 1.55,
             }}
           >
-            Drop Mercado Pago into your AI agent. The whole API, plus the
-            production wiring — idempotency, retries, observability, and
-            human-in-the-loop on irreversible ops.
+            Drop Mercado Pago into your AI agent. The whole API, with
+            idempotency, retries, observability, and human-in-the-loop
+            guardrails on irreversible operations.
           </p>
           <div
             style={{
@@ -504,33 +504,6 @@ export default function Home() {
               </tbody>
             </table>
           </div>
-          <p
-            style={{
-              fontSize: 13,
-              color: "var(--text-muted)",
-              margin: "16px 0 0",
-              lineHeight: 1.6,
-            }}
-          >
-            Both official SDKs are excellent at what they do — generic REST clients
-            for their respective APIs.{" "}
-            <code style={{ fontFamily: FONT_MONO, color: "var(--text-body)" }}>
-              @ar-agents/mercadopago
-            </code>{" "}
-            is opinionated for the agent-operating-an-Argentine-business case, and
-            composes with{" "}
-            <code style={{ fontFamily: FONT_MONO, color: "var(--text-body)" }}>
-              mercadopago
-            </code>{" "}
-            under the hood when needed. See{" "}
-            <a
-              href="https://github.com/ar-agents/ar-agents/blob/main/packages/mercadopago/MIGRATION.md"
-              style={{ color: "var(--accent)", textDecoration: "underline" }}
-            >
-              MIGRATION.md
-            </a>
-            .
-          </p>
         </section>
 
         {/* WHAT'S IN THE BOX */}
@@ -726,7 +699,7 @@ export default function Home() {
               color: "var(--text)",
             }}
           >
-            Composition example — billing assistant
+            Composition example: billing assistant
           </h2>
           <div
             style={{
@@ -799,7 +772,7 @@ export default function Home() {
           }}
         >
           <span>
-            MIT — by{" "}
+            MIT ·{" "}
             <a
               href="https://github.com/naza00000"
               style={{

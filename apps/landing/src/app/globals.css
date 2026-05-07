@@ -27,7 +27,7 @@ html[data-theme="dark"] {
   --border-color: rgba(255, 255, 255, 0.1);
   --border-light: rgba(255, 255, 255, 0.08);
 
-  /* Card shadow stack — dark variant. Inner glow is a faint white ring. */
+  /* Card shadow stack, dark variant. Inner glow is a faint white ring. */
   --card-shadow:
     rgba(255, 255, 255, 0.1) 0px 0px 0px 1px,
     rgba(0, 0, 0, 0.5) 0px 2px 2px,
