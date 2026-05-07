@@ -130,12 +130,94 @@ function renderInline(text: string): React.ReactNode[] {
   return out;
 }
 
+// Markdown table helpers.
+const tableRowRe = /^\s*\|(.*)\|\s*$/;
+const tableSepRe = /^\s*\|(\s*:?-+:?\s*\|)+\s*$/;
+function parseTableRow(line: string): string[] {
+  const m = line.match(tableRowRe);
+  if (!m) return [];
+  return m[1].split("|").map((c) => c.trim());
+}
+
+function renderTable(
+  header: string[],
+  rows: string[][],
+  key: number,
+): React.ReactNode {
+  return (
+    <div
+      key={key}
+      style={{
+        margin: "6px 0",
+        borderRadius: 6,
+        boxShadow: "var(--shadow-border)",
+        overflow: "hidden",
+        background: "var(--bg)",
+      }}
+    >
+      <table
+        style={{
+          width: "100%",
+          borderCollapse: "collapse",
+          fontFamily: FONT_MONO,
+          fontSize: 12.5,
+        }}
+      >
+        <thead>
+          <tr>
+            {header.map((cell, i) => (
+              <th
+                key={i}
+                style={{
+                  textAlign: "left",
+                  padding: "8px 12px",
+                  color: "var(--text-muted)",
+                  fontWeight: 500,
+                  fontSize: 11,
+                  letterSpacing: "0.04em",
+                  textTransform: "uppercase",
+                  boxShadow: "inset 0 -1px 0 var(--border-color)",
+                }}
+              >
+                {renderInline(cell)}
+              </th>
+            ))}
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((row, ri) => (
+            <tr key={ri}>
+              {row.map((cell, ci) => (
+                <td
+                  key={ci}
+                  style={{
+                    padding: "8px 12px",
+                    color: "var(--text)",
+                    boxShadow:
+                      ri < rows.length - 1
+                        ? "inset 0 -1px 0 var(--border-color)"
+                        : "none",
+                  }}
+                >
+                  {renderInline(cell)}
+                </td>
+              ))}
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}
+
 function renderAssistantText(text: string) {
-  // Walk lines, group consecutive `- ` or `* ` lines into a single <ul>.
+  // Walk lines once. Recognized block types: tables, bulleted lists,
+  // empty lines (spacer), and plain paragraphs.
   const lines = text.split("\n");
   const blocks: React.ReactNode[] = [];
   let listBuffer: string[] = [];
   let key = 0;
+  let i = 0;
 
   const flushList = () => {
     if (listBuffer.length === 0) return;
@@ -148,8 +230,8 @@ function renderAssistantText(text: string) {
           color: "var(--text)",
         }}
       >
-        {listBuffer.map((item, i) => (
-          <li key={i} style={{ marginBottom: 2 }}>
+        {listBuffer.map((item, idx) => (
+          <li key={idx} style={{ marginBottom: 2 }}>
             {renderInline(item)}
           </li>
         ))}
@@ -158,22 +240,47 @@ function renderAssistantText(text: string) {
     listBuffer = [];
   };
 
-  for (const line of lines) {
-    const m = line.match(/^[-*]\s+(.*)$/);
-    if (m) {
-      listBuffer.push(m[1]);
-    } else {
+  while (i < lines.length) {
+    const line = lines[i];
+
+    // Table: header row + separator + ≥0 data rows.
+    if (
+      tableRowRe.test(line) &&
+      i + 1 < lines.length &&
+      tableSepRe.test(lines[i + 1])
+    ) {
       flushList();
-      if (line.length === 0) {
-        blocks.push(<div key={key++} style={{ height: "0.5em" }} />);
-      } else {
-        blocks.push(
-          <div key={key++} style={{ color: "var(--text)" }}>
-            {renderInline(line)}
-          </div>,
-        );
+      const header = parseTableRow(line);
+      i += 2; // skip header + separator
+      const rows: string[][] = [];
+      while (i < lines.length && tableRowRe.test(lines[i])) {
+        rows.push(parseTableRow(lines[i]));
+        i++;
       }
+      blocks.push(renderTable(header, rows, key++));
+      continue;
     }
+
+    // Bullet
+    const bullet = line.match(/^[-*]\s+(.*)$/);
+    if (bullet) {
+      listBuffer.push(bullet[1]);
+      i++;
+      continue;
+    }
+
+    flushList();
+
+    if (line.length === 0) {
+      blocks.push(<div key={key++} style={{ height: "0.5em" }} />);
+    } else {
+      blocks.push(
+        <div key={key++} style={{ color: "var(--text)" }}>
+          {renderInline(line)}
+        </div>,
+      );
+    }
+    i++;
   }
   flushList();
 
