@@ -16,12 +16,12 @@ const SUGGESTIONS: ReadonlyArray<{ label: string; prompt: string }> = [
   {
     label: "Cuotas Galicia",
     prompt:
-      "Cobrale $30.000 a Juan con su tarjeta Galicia, ofrecele cuotas",
+      "Cobrale $30.000 ARS a juan@example.com con su tarjeta Galicia, aplicale las mejores cuotas que tenga",
   },
   {
     label: "Marketplace split",
     prompt:
-      "El seller @ferri quiere cobrar $8.000, mi platform se lleva 12%",
+      "Generá una preference de $8.000 ARS para el seller @ferri, mi platform se lleva 12%",
   },
 ];
 

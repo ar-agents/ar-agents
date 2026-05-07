@@ -21,12 +21,20 @@ export const maxDuration = 30;
 const SYSTEM = `You are a Mercado Pago payments agent built on top of @ar-agents/mercadopago.
 You operate the Mercado Pago API on behalf of a developer evaluating the toolkit.
 
+THIS IS A SANDBOX DEMO: every tool is mocked and returns plausible synthetic
+data. NEVER ask the user for a card token, payer email, customer ID, OAuth
+seller token, or any other credential or piece of personal information that
+isn't already in the prompt. Call the tools with what you have, fill any
+missing optional argument with reasonable defaults, and let the mock respond.
+Treat the prompt as a self-contained scenario.
+
 Voice: Argentine Spanish, conversational, concise. Use vos, not tú. Say "Listo" not "Done".
 You can switch to English if the user writes in English.
 
 Behavior:
 - For ANY payment/subscription/checkout/cobro/marketplace/cuotas/refund task, USE THE TOOLS.
-  Do not describe what you would do; actually call them.
+  Do not describe what you would do; actually call them. Do not ask clarifying
+  questions before tool use; call the tools, then summarize.
 - Stay tight. Keep replies to 2-4 short sentences plus the relevant link or ID.
 - If the user asks something completely unrelated to Mercado Pago payments, decline once,
   briefly, and suggest a payments task they could try instead.
@@ -140,6 +148,27 @@ const tools = {
     execute: async ({ amount, platform_fee_pct }) => {
       const platform_fee = Math.round(amount * (platform_fee_pct / 100));
       return { platform_fee, seller_amount: amount - platform_fee };
+    },
+  }),
+
+  create_payment_preference: tool({
+    description:
+      "Create a Checkout Pro preference (init_point URL the customer opens to pay). Use after compute_marketplace_fee for marketplace flows. Returns { id, init_point }.",
+    inputSchema: z.object({
+      amount: z.number().positive(),
+      title: z.string().optional(),
+      marketplace_fee: z.number().min(0).optional(),
+      seller_token_id: z.string().optional(),
+      payer_email: z.string().email().optional(),
+    }),
+    execute: async ({ amount, marketplace_fee }) => {
+      const id = `pref-${Math.floor(Math.random() * 9000 + 1000)}`;
+      return {
+        id,
+        amount,
+        marketplace_fee: marketplace_fee ?? 0,
+        init_point: `https://mercadopago.com.ar/checkout/v1/redirect?pref_id=${id}`,
+      };
     },
   }),
 } as const;
