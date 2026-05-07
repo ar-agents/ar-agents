@@ -512,7 +512,7 @@ function ScenarioTabs({
   );
 }
 
-export function DemoTerminal({ autoplay = false }: { autoplay?: boolean } = {}) {
+export function DemoTerminal() {
   const [scenarioId, setScenarioId] = useState(SCENARIOS[0].id);
   const [phase, setPhase] = useState<Phase>({ type: "idle" });
   const [hasStarted, setHasStarted] = useState(false);
@@ -596,19 +596,17 @@ export function DemoTerminal({ autoplay = false }: { autoplay?: boolean } = {}) 
   }, [events]);
 
   // Auto-advance to next scenario after each "done", looping forever.
-  // Only enabled on the /demo route (autoplay prop). The main landing
-  // stays manual so the visitor can read each result card.
+  // Same behavior on the landing and on /demo so both record/look the same.
   useEffect(() => {
-    if (!autoplay) return;
     if (phase.type !== "done") return;
     const t = setTimeout(() => {
       const currentIdx = SCENARIOS.findIndex((s) => s.id === scenarioId);
       const next = SCENARIOS[(currentIdx + 1) % SCENARIOS.length];
       setScenarioId(next.id);
       setPhase(nextEventPhase(next.events, 0));
-    }, 3500);
+    }, 1000);
     return () => clearTimeout(t);
-  }, [autoplay, phase, scenarioId]);
+  }, [phase, scenarioId]);
 
   const switchScenario = useCallback(
     (id: string) => {

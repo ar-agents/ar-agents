@@ -26,7 +26,7 @@ export default function DemoPage() {
       }}
     >
       <div style={{ width: "100%", maxWidth: 920 }}>
-        <DemoTerminal autoplay />
+        <DemoTerminal />
       </div>
     </main>
   );
