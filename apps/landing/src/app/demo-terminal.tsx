@@ -595,13 +595,14 @@ export function DemoTerminal() {
     setPhase(nextEventPhase(events, 0));
   }, [events]);
 
-  // Auto-advance to next scenario after each "done", looping forever.
-  // Same behavior on the landing and on /demo so both record/look the same.
+  // Auto-advance to next scenario after each "done", stopping at the last
+  // one so the recording has a clean end (no loop back to Subscription).
   useEffect(() => {
     if (phase.type !== "done") return;
+    const currentIdx = SCENARIOS.findIndex((s) => s.id === scenarioId);
+    if (currentIdx === SCENARIOS.length - 1) return;
     const t = setTimeout(() => {
-      const currentIdx = SCENARIOS.findIndex((s) => s.id === scenarioId);
-      const next = SCENARIOS[(currentIdx + 1) % SCENARIOS.length];
+      const next = SCENARIOS[currentIdx + 1];
       setScenarioId(next.id);
       setPhase(nextEventPhase(next.events, 0));
     }, 1000);
@@ -689,11 +690,11 @@ export function DemoTerminal() {
             fontSize: 13,
             lineHeight: 1.65,
             color: "var(--text)",
-            // Pre-allocate enough height to fit the longest scenario's
-            // transcript + the ResultCard. Without this the container
-            // grows when the card appears, shifting any video frame
-            // and the rest of the page.
-            minHeight: 640,
+            // Pre-allocate enough height for the tallest scenario's
+            // transcript + ResultCard so the container never grows.
+            // Recovery (5 events + multiline result card) is the cap.
+            height: 780,
+            overflow: "hidden",
           }}
         >
           {events.map((event, i) => {
