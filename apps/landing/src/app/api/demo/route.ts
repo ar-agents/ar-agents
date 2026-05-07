@@ -1,11 +1,17 @@
-// Live demo endpoint: real Claude streaming via Anthropic, real Vercel AI
-// SDK tool calls with mocked execute functions. No real Mercado Pago calls
-// (the demo is for the LLM behavior, not for charging cards on the landing).
+// Live demo endpoint: real Claude streaming via Vercel AI Gateway, real
+// Vercel AI SDK tool calls with mocked execute functions. No real Mercado
+// Pago calls (the demo is for the LLM behavior, not for charging cards on
+// the landing).
 //
-// Rate limiting: 1 chat per IP per 5 minutes — keeps Anthropic spend bounded
-// and prevents abuse without making the demo feel gated.
+// Routing: model string "anthropic/claude-sonnet-4-6" goes through Vercel
+// AI Gateway. On a Vercel deployment that has the gateway enabled this just
+// works — no provider package needed, no ANTHROPIC_API_KEY to manage. The
+// gateway also gives us per-route observability and a single billing line
+// in the Vercel dashboard.
+//
+// Rate limiting: 1 chat per IP per 5 minutes — keeps spend bounded and
+// prevents abuse without making the demo feel gated.
 
-import { anthropic } from "@ai-sdk/anthropic";
 import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
 import { z } from "zod";
 
@@ -163,17 +169,6 @@ function rateLimit(req: Request): { ok: true } | { ok: false; retryAfter: number
 }
 
 export async function POST(req: Request) {
-  if (!process.env.ANTHROPIC_API_KEY) {
-    return new Response(
-      JSON.stringify({
-        error: "not_configured",
-        message:
-          "Live demo not configured. Set ANTHROPIC_API_KEY in this Vercel project.",
-      }),
-      { status: 503, headers: { "content-type": "application/json" } },
-    );
-  }
-
   const limit = rateLimit(req);
   if (!limit.ok) {
     return new Response(
@@ -211,14 +206,27 @@ export async function POST(req: Request) {
 
   const modelMessages = await convertToModelMessages(trimmed);
 
-  const result = streamText({
-    model: anthropic("claude-haiku-4-5"),
-    system: SYSTEM,
-    messages: modelMessages,
-    tools,
-    stopWhen: ({ steps }) => steps.length >= 6,
-    temperature: 0.4,
-  });
+  try {
+    const result = streamText({
+      model: "anthropic/claude-sonnet-4-6",
+      system: SYSTEM,
+      messages: modelMessages,
+      tools,
+      stopWhen: ({ steps }) => steps.length >= 6,
+      temperature: 0.4,
+    });
 
-  return result.toUIMessageStreamResponse();
+    return result.toUIMessageStreamResponse();
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : "unknown";
+    return new Response(
+      JSON.stringify({
+        error: "gateway_failed",
+        message: msg.toLowerCase().includes("auth")
+          ? "Live demo not configured. Set AI_GATEWAY_API_KEY (or link the project to a Vercel AI Gateway-enabled team) on this Vercel project."
+          : "Live demo unavailable. Try again in a moment.",
+      }),
+      { status: 503, headers: { "content-type": "application/json" } },
+    );
+  }
 }

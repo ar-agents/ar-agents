@@ -267,7 +267,7 @@ export function LiveChat() {
             letterSpacing: "0.06em",
           }}
         >
-          claude-haiku-4-5
+          anthropic/claude-sonnet-4-6 · vercel ai gateway
         </span>
       </div>
 
@@ -292,7 +292,8 @@ export function LiveChat() {
             }}
           >
             Pedile que cobre, suscriba, o calcule cuotas. Real Claude
-            haiku-4-5 + tools mockeados (no se cobran cuentas reales).
+            Sonnet 4.6 vía Vercel AI Gateway + tools mockeados (no se
+            cobran cuentas reales).
           </div>
         ) : null}
 
