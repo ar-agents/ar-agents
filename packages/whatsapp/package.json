@@ -98,7 +98,8 @@
     "zod": "^4.4.3"
   },
   "publishConfig": {
-    "access": "public"
+    "access": "public",
+    "provenance": true
   },
   "engines": {
     "node": ">=20.0.0"
