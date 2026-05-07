@@ -185,11 +185,11 @@ export default function Home() {
           </p>
           <h1
             style={{
-              fontSize: 56,
+              fontSize: "clamp(40px, 9vw, 56px)",
               margin: "16px 0 20px",
               fontWeight: 600,
               lineHeight: 1.04,
-              letterSpacing: "-2.88px",
+              letterSpacing: "-0.05em",
               color: "var(--text)",
             }}
           >
@@ -200,7 +200,7 @@ export default function Home() {
           <p
             style={{
               color: "var(--text-body)",
-              fontSize: 20,
+              fontSize: "clamp(16px, 3.6vw, 20px)",
               margin: 0,
               maxWidth: 720,
               lineHeight: 1.55,
@@ -322,10 +322,10 @@ export default function Home() {
         <section style={{ marginBottom: 80 }}>
           <h2
             style={{
-              fontSize: 32,
+              fontSize: "clamp(24px, 5vw, 32px)",
               fontWeight: 600,
               margin: "0 0 24px",
-              letterSpacing: "-1.28px",
+              letterSpacing: "-0.04em",
               lineHeight: 1.2,
               color: "var(--text)",
             }}
@@ -498,10 +498,10 @@ export default function Home() {
         <section style={{ marginBottom: 80 }}>
           <h2
             style={{
-              fontSize: 32,
+              fontSize: "clamp(24px, 5vw, 32px)",
               fontWeight: 600,
               margin: "0 0 24px",
-              letterSpacing: "-1.28px",
+              letterSpacing: "-0.04em",
               lineHeight: 1.2,
               color: "var(--text)",
             }}
@@ -555,10 +555,10 @@ export default function Home() {
         <section style={{ marginBottom: 80 }}>
           <h2
             style={{
-              fontSize: 32,
+              fontSize: "clamp(24px, 5vw, 32px)",
               fontWeight: 600,
               margin: "0 0 24px",
-              letterSpacing: "-1.28px",
+              letterSpacing: "-0.04em",
               lineHeight: 1.2,
               color: "var(--text)",
             }}
@@ -587,10 +587,10 @@ export default function Home() {
         <section style={{ marginBottom: 80 }}>
           <h2
             style={{
-              fontSize: 32,
+              fontSize: "clamp(24px, 5vw, 32px)",
               fontWeight: 600,
               margin: "0 0 8px",
-              letterSpacing: "-1.28px",
+              letterSpacing: "-0.04em",
               lineHeight: 1.2,
               color: "var(--text)",
             }}
@@ -711,10 +711,10 @@ export default function Home() {
         <section style={{ marginBottom: 80 }}>
           <h2
             style={{
-              fontSize: 32,
+              fontSize: "clamp(24px, 5vw, 32px)",
               fontWeight: 600,
               margin: "0 0 24px",
-              letterSpacing: "-1.28px",
+              letterSpacing: "-0.04em",
               lineHeight: 1.2,
               color: "var(--text)",
             }}
