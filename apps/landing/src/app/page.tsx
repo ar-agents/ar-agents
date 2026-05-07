@@ -1,7 +1,8 @@
 // Design system: Vercel / Geist with light + dark CSS-var themes.
 // All colors come from globals.css custom properties so the theme toggle
-// can flip the palette without re-rendering. Accent is #2F3476 (light) /
-// #8a91d4 (dark, lightened for legibility).
+// can flip the palette without re-rendering.
+
+import { DemoTerminal } from "./demo-terminal";
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -332,66 +333,7 @@ export default function Home() {
 
         {/* LIVE DEMO */}
         <section style={{ marginBottom: 80 }}>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "baseline",
-              justifyContent: "space-between",
-              marginBottom: 12,
-              flexWrap: "wrap",
-              gap: 8,
-            }}
-          >
-            <h2
-              style={{
-                fontSize: 14,
-                fontWeight: 500,
-                margin: 0,
-                color: "var(--text-muted)",
-                letterSpacing: "0.08em",
-                textTransform: "uppercase",
-                fontFamily: FONT_MONO,
-              }}
-            >
-              Live demo
-            </h2>
-            <a
-              href="https://ar-agents-whatsapp-hello.vercel.app"
-              target="_blank"
-              rel="noopener"
-              style={{
-                fontSize: 13,
-                color: "var(--accent)",
-                fontFamily: FONT_MONO,
-                textDecoration: "none",
-              }}
-            >
-              ar-agents-whatsapp-hello.vercel.app ↗
-            </a>
-          </div>
-          <div
-            style={{
-              borderRadius: 8,
-              overflow: "hidden",
-              boxShadow: "var(--card-shadow)",
-              background: "var(--bg-tint)",
-              aspectRatio: "4 / 3",
-            }}
-          >
-            <iframe
-              src="https://ar-agents-whatsapp-hello.vercel.app"
-              title="ar-agents/mercadopago billing assistant — live demo"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-              style={{
-                width: "100%",
-                height: "100%",
-                border: "none",
-                display: "block",
-                background: "var(--bg)",
-              }}
-            />
-          </div>
+          <DemoTerminal />
         </section>
 
         {/* COMPARISON */}
