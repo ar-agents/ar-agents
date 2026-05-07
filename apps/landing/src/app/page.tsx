@@ -1,7 +1,13 @@
+"use client";
+
 // Design system: Vercel / Geist with light + dark CSS-var themes.
 // All colors come from globals.css custom properties so the theme toggle
 // can flip the palette without re-rendering.
+//
+// `use client` is required because the hero "Try it with a live agent"
+// button toggles the LiveChat panel that renders above the scripted demo.
 
+import { useCallback, useEffect, useRef, useState } from "react";
 import { DemoTerminal } from "./demo-terminal";
 import { LiveChat } from "./live-chat";
 
@@ -156,6 +162,21 @@ const WHATS_IN: ReadonlyArray<readonly [string, string]> = [
 ];
 
 export default function Home() {
+  const [liveOpen, setLiveOpen] = useState(false);
+  const liveRef = useRef<HTMLDivElement>(null);
+
+  // Scroll the live panel into view the first time it opens so the user
+  // doesn't have to hunt for it. No-op on subsequent toggles.
+  useEffect(() => {
+    if (!liveOpen) return;
+    const t = setTimeout(() => {
+      liveRef.current?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => clearTimeout(t);
+  }, [liveOpen]);
+
+  const closeLive = useCallback(() => setLiveOpen(false), []);
+
   return (
     <main
       style={{
@@ -307,15 +328,52 @@ export default function Home() {
                 boxShadow: "var(--shadow-ring-light)",
               }}
             >
-              Cookbook (9 recipes)
+              Cookbook
             </a>
+            <button
+              type="button"
+              onClick={() => setLiveOpen(true)}
+              disabled={liveOpen}
+              style={{
+                padding: "8px 16px",
+                background: "var(--bg)",
+                color: "var(--text)",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                lineHeight: 1.43,
+                boxShadow: "var(--shadow-ring-light)",
+                border: "none",
+                cursor: liveOpen ? "default" : "pointer",
+                opacity: liveOpen ? 0.55 : 1,
+                fontFamily: FONT_SANS,
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <span
+                aria-hidden="true"
+                style={{
+                  display: "inline-block",
+                  width: 8,
+                  height: 8,
+                  borderRadius: 9999,
+                  background: "var(--accent)",
+                  boxShadow: "0 0 0 4px rgba(0, 188, 255, 0.12)",
+                  animation: "demo-pulse 2s ease-in-out infinite",
+                }}
+              />
+              Try it with a live agent
+            </button>
           </div>
         </header>
 
         {/* LIVE DEMO */}
         <section style={{ marginBottom: 96 }}>
+          <div ref={liveRef} />
+          {liveOpen ? <LiveChat onClose={closeLive} /> : null}
           <DemoTerminal />
-          <LiveChat />
         </section>
 
         {/* COMPARISON */}

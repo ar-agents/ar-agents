@@ -345,9 +345,7 @@ function renderToolPart(part: ToolUIPart, key: string) {
   );
 }
 
-export function LiveChat() {
-  const [open, setOpen] = useState(false);
-
+export function LiveChat({ onClose }: { onClose?: () => void } = {}) {
   const { messages, sendMessage, status, error } = useChat({
     transport: new DefaultChatTransport({ api: "/api/demo" }),
   });
@@ -365,54 +363,15 @@ export function LiveChat() {
     [isStreaming, sendMessage],
   );
 
-  if (!open) {
-    return (
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        style={{
-          marginTop: 24,
-          padding: "10px 16px",
-          background: "var(--bg-tint)",
-          color: "var(--text)",
-          border: "none",
-          borderRadius: 8,
-          fontSize: 13,
-          fontFamily: FONT_SANS,
-          fontWeight: 500,
-          cursor: "pointer",
-          boxShadow: "var(--shadow-ring-light)",
-          display: "inline-flex",
-          alignItems: "center",
-          gap: 8,
-        }}
-      >
-        <span
-          aria-hidden="true"
-          style={{
-            display: "inline-block",
-            width: 8,
-            height: 8,
-            borderRadius: 9999,
-            background: "var(--accent)",
-            boxShadow: "0 0 0 4px rgba(0, 188, 255, 0.12)",
-            animation: "demo-pulse 2s ease-in-out infinite",
-          }}
-        />
-        Try it with a live agent
-        <span style={{ color: "var(--text-muted)" }}>→</span>
-      </button>
-    );
-  }
-
   return (
     <div
       style={{
-        marginTop: 24,
+        marginBottom: 32,
         background: "var(--bg-tint)",
         borderRadius: 8,
         boxShadow: "var(--card-shadow)",
         overflow: "hidden",
+        animation: "demo-fade-in 240ms ease-out",
       }}
     >
       <div
@@ -453,16 +412,55 @@ export function LiveChat() {
             {isStreaming ? "live · streaming" : "live · ready"}
           </span>
         </div>
-        <span
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 11,
-            color: "var(--text-muted)",
-            letterSpacing: "0.06em",
-          }}
-        >
-          anthropic/claude-sonnet-4-6 · vercel ai gateway
-        </span>
+        <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+          <span
+            style={{
+              fontFamily: FONT_MONO,
+              fontSize: 11,
+              color: "var(--text-muted)",
+              letterSpacing: "0.06em",
+            }}
+          >
+            anthropic/claude-sonnet-4-6 · vercel ai gateway
+          </span>
+          {onClose ? (
+            <button
+              type="button"
+              onClick={onClose}
+              aria-label="Close live demo"
+              title="Close"
+              style={{
+                width: 24,
+                height: 24,
+                display: "inline-flex",
+                alignItems: "center",
+                justifyContent: "center",
+                borderRadius: 9999,
+                background: "transparent",
+                color: "var(--text-muted)",
+                border: "none",
+                cursor: "pointer",
+                padding: 0,
+                boxShadow: "var(--shadow-ring-light)",
+              }}
+            >
+              <svg
+                width="11"
+                height="11"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M18 6L6 18" />
+                <path d="M6 6l12 12" />
+              </svg>
+            </button>
+          ) : null}
+        </div>
       </div>
 
       <div
