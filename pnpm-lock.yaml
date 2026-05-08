@@ -45,6 +45,9 @@ importers:
       '@ar-agents/ap2':
         specifier: workspace:*
         version: link:../../packages/ap2
+      '@ar-agents/mercadolibre':
+        specifier: workspace:*
+        version: link:../../packages/mercadolibre
       next:
         specifier: 16.2.4
         version: 16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
@@ -72,7 +75,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -155,7 +158,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -408,6 +411,27 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
+  packages/gde-tad:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.39
+        version: 20.19.39
+      ai:
+        specifier: ^6.0.175
+        version: 6.0.175(zod@4.4.3)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.14)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3))
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
   packages/identity:
     dependencies:
       node-forge:
@@ -502,6 +526,9 @@ importers:
       '@ar-agents/firma-digital':
         specifier: workspace:*
         version: link:../firma-digital
+      '@ar-agents/gde-tad':
+        specifier: workspace:*
+        version: link:../gde-tad
       '@ar-agents/identity':
         specifier: workspace:*
         version: link:../identity
@@ -511,6 +538,9 @@ importers:
       '@ar-agents/igj':
         specifier: workspace:*
         version: link:../igj
+      '@ar-agents/mercadolibre':
+        specifier: workspace:*
+        version: link:../mercadolibre
       '@ar-agents/mercadopago':
         specifier: workspace:*
         version: link:../mercadopago
@@ -533,6 +563,36 @@ importers:
       ai:
         specifier: ^6.0.175
         version: 6.0.175(zod@4.4.3)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.14)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3))
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
+  packages/mercadolibre:
+    devDependencies:
+      '@fast-check/vitest':
+        specifier: ^0.2.1
+        version: 0.2.4(vitest@2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3)))
+      '@types/node':
+        specifier: ^20.19.39
+        version: 20.19.39
+      ai:
+        specifier: ^6.0.175
+        version: 6.0.175(zod@4.4.3)
+      fast-check:
+        specifier: ^4.7.0
+        version: 4.7.0
+      msw:
+        specifier: ^2.6.0
+        version: 2.14.3(@types/node@20.19.39)(typescript@5.9.3)
       tsup:
         specifier: ^8.3.5
         version: 8.5.1(postcss@8.5.14)(typescript@5.9.3)
@@ -1357,6 +1417,11 @@ packages:
   '@eslint/plugin-kit@0.4.1':
     resolution: {integrity: sha512-43/qtrDUokr7LJqoF2c3+RInu/t4zfrpYdoSDfYyhg52rwLV6TnOvdG4fXm7IkSB3wErkcmJS9iEhjVtOSEjjA==}
     engines: {node: ^18.18.0 || ^20.9.0 || >=21.1.0}
+
+  '@fast-check/vitest@0.2.4':
+    resolution: {integrity: sha512-Ilcr+JAIPhb1s6FRm4qoglQYSGXXrS+zAupZeNuWAA3qHVGDA1d1Gb84Hb/+otL3GzVZjFJESg5/1SfIvrgssA==}
+    peerDependencies:
+      vitest: ^1 || ^2 || ^3 || ^4
 
   '@fast-check/vitest@0.4.1':
     resolution: {integrity: sha512-OX6TecB+ZzRfPc49jcPChcV1cf5aDu77CdDU8liecWVam7eD7mPvJNP50b9bBSTxVoGN5wzxrX9PIcCnqgC8bg==}
@@ -5532,6 +5597,11 @@ snapshots:
     dependencies:
       '@eslint/core': 0.17.0
       levn: 0.4.1
+
+  '@fast-check/vitest@0.2.4(vitest@2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3)))':
+    dependencies:
+      fast-check: 4.7.0
+      vitest: 2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3))
 
   '@fast-check/vitest@0.4.1(vitest@2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3)))':
     dependencies:

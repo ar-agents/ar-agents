@@ -19,6 +19,7 @@ const PKGS_WITH_TOOLS = [
   "banking",
   "facturacion",
   "shipping",
+  "gde-tad",
 ];
 
 // On Vercel monorepo deploys the landing root is uploaded with the workspace

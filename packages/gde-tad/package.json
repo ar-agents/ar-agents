@@ -1,0 +1,119 @@
+{
+  "name": "@ar-agents/gde-tad",
+  "version": "0.1.0",
+  "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) as drop-in tools for the Vercel AI SDK. Notification ingestion via Domicilio Electrónico, trámite tracking, IGJ inscription pre-flight. The 4th pieza for sociedades-IA — RFC-001 § 3.4.",
+  "keywords": [
+    "tad",
+    "tramites-a-distancia",
+    "gde",
+    "argentina",
+    "gobierno",
+    "domicilio-electronico",
+    "igj",
+    "afip",
+    "ai-sdk",
+    "vercel-ai",
+    "agent",
+    "agentic",
+    "sociedades-ia"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/gde-tad",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/gde-tad"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "testing": [
+        "./dist/testing.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
+      }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "tools.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured yet'",
+    "validate": "publint && attw --pack .",
+    "size": "size-limit",
+    "clean": "rm -rf dist"
+  },
+  "size-limit": [
+    {
+      "name": "ESM",
+      "path": "dist/index.js",
+      "limit": "12 KB"
+    },
+    {
+      "name": "CJS",
+      "path": "dist/index.cjs",
+      "limit": "12 KB"
+    }
+  ],
+  "peerDependencies": {
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "ai": "^6.0.175",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

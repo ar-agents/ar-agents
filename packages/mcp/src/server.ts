@@ -18,12 +18,20 @@ import {
   buildFirmaDigitalTools,
   describeFirmaDigitalConfig,
 } from "./registries/firma-digital";
+import {
+  buildGdeTadTools,
+  describeGdeTadConfig,
+} from "./registries/gde-tad";
 import { buildIdentityTools, describeIdentityConfig } from "./registries/identity";
 import {
   buildIdentityAttestTools,
   describeIdentityAttestConfig,
 } from "./registries/identity-attest";
 import { buildIgjTools, describeIgjConfig } from "./registries/igj";
+import {
+  buildMercadoLibreTools,
+  describeMercadoLibreConfig,
+} from "./registries/mercadolibre";
 import {
   buildMercadoPagoTools,
   describeMercadoPagoConfig,
@@ -48,6 +56,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     buildIdentityTools(),
     buildMiArgentinaTools(),
     buildMercadoPagoTools(),
+    buildMercadoLibreTools(),
     buildWhatsAppTools(),
     buildIdentityAttestTools(),
     buildBankingTools(),
@@ -56,6 +65,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     buildBoletinOficialTools(),
     buildIgjTools(),
     buildFirmaDigitalTools(),
+    buildGdeTadTools(),
   ]);
 
   const summary = [
@@ -63,6 +73,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     `  identity        → ${describeIdentityConfig()}`,
     `  mi-argentina    → ${describeMiArgentinaConfig()}`,
     `  mercadopago     → ${describeMercadoPagoConfig()}`,
+    `  mercadolibre    → ${describeMercadoLibreConfig()}`,
     `  whatsapp        → ${describeWhatsAppConfig()}`,
     `  identity-attest → ${describeIdentityAttestConfig()}`,
     `  banking         → ${describeBankingConfig()}`,
@@ -71,6 +82,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     `  boletin-oficial → ${describeBoletinOficialConfig()}`,
     `  igj             → ${describeIgjConfig()}`,
     `  firma-digital   → ${describeFirmaDigitalConfig()}`,
+    `  gde-tad         → ${describeGdeTadConfig()}`,
   ];
 
   const server = new Server(

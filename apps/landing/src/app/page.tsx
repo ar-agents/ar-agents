@@ -345,6 +345,24 @@ export default function Home() {
               cookbook
             </a>
             <a
+              href="/templates"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              templates
+            </a>
+            <a
+              href="/incorporar"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              incorporar
+            </a>
+            <a
+              href="/playbook"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              playbook
+            </a>
+            <a
               href="/marketplace"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >

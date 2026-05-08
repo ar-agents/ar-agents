@@ -1,0 +1,29 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/gde-tad",
+  "version": "0.1.0",
+  "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
+  "tools": [
+    {
+      "name": "get_critical_notifications",
+      "description": "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana."
+    },
+    {
+      "name": "list_domicilio_inbox",
+      "description": "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona, con severidad calculada (critical/important/info) por organismo + asunto + deadline."
+    },
+    {
+      "name": "list_mis_tramites",
+      "description": "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Read-only."
+    },
+    {
+      "name": "validate_igj_inscription",
+      "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+    }
+  ],
+  "name": "@ar-agents/gde-tad",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 4
+  }
+}

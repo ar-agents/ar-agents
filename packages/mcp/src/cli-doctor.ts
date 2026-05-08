@@ -152,6 +152,13 @@ export async function runDoctor(): Promise<number> {
       ],
       toolCount: 6,
     }),
+    // gde-tad: validate_igj_inscription is always-on (algorithm).
+    evalSubpackage({
+      name: "@ar-agents/gde-tad",
+      required: ["TAD_DOMICILIO_ADAPTER", "TAD_TRAMITES_ADAPTER"],
+      alwaysOn: ["validate_igj_inscription"],
+      toolCount: 4,
+    }),
   ];
 
   for (const sub of subpackages) {
@@ -169,7 +176,7 @@ export async function runDoctor(): Promise<number> {
 
   lines.push(c("bold", "Summary"));
   lines.push(`  ${c("green", `enabled: ${enabled}`)} · ${c("yellow", `partial: ${partial}`)} · ${c("dim", `disabled: ${disabled}`)}`);
-  lines.push(`  exposed tools: ${c("magenta", String(totalTools))}/123 (with current env)`);
+  lines.push(`  exposed tools: ${c("magenta", String(totalTools))}/133 (with current env)`);
   lines.push("");
 
   // Suggest the canonical Claude Desktop / Cursor config snippet
@@ -186,7 +193,7 @@ export async function runDoctor(): Promise<number> {
     lines.push(
       c(
         "yellow",
-        "Partial coverage. The full @ar-agents/* surface is 123 tools — wire the " +
+        "Partial coverage. The full @ar-agents/* surface is 133 tools — wire the " +
           "remaining subpackages for an end-to-end AR ops layer.",
       ),
     );

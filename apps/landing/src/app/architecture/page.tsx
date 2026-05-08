@@ -66,6 +66,7 @@ const PACKAGE_GRAPH = `flowchart LR
         FAC["@ar-agents/facturacion<br/>10 tools"]:::fiscal
         IGJ["@ar-agents/igj<br/>6 tools"]:::fiscal
         BO["@ar-agents/boletin-oficial<br/>6 tools"]:::fiscal
+        GDE["@ar-agents/gde-tad<br/>4 tools"]:::fiscal
     end
     WA["@ar-agents/whatsapp<br/>6 tools"]:::comms
     SH["@ar-agents/shipping<br/>6 tools"]:::logistics
@@ -86,6 +87,7 @@ const PACKAGE_GRAPH = `flowchart LR
     AGENT --> FAC
     AGENT --> IGJ
     AGENT --> BO
+    AGENT --> GDE
     AGENT --> WA
     AGENT --> SH
     BR -. ACP facilitator .-> MP
@@ -104,7 +106,7 @@ const PACKAGE_GRAPH = `flowchart LR
 export const metadata: Metadata = {
   title: "Architecture",
   description:
-    "Canonical reference for the @ar-agents/* stack: 14 packages, 142 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
+    "Canonical reference for the @ar-agents/* stack: 15 packages, 133 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
   alternates: { canonical: "https://ar-agents.vercel.app/architecture" },
 };
 
@@ -151,6 +153,15 @@ const PACKAGES: PackageRow[] = [
     category: "identity",
     external: "AC-Raíz / ONTI cert authorities",
     notes: "PKCS#7/CMS verify with AR trust-anchor heuristic + fingerprint pinning.",
+  },
+  {
+    name: "@ar-agents/gde-tad",
+    version: "0.1.0",
+    tools: 4,
+    category: "fiscal",
+    external: "TAD / GDE / Domicilio Electrónico",
+    notes:
+      "DEC inbox polling + Mis Trámites + IGJ pre-flight validator. The 4th pieza for sociedades-IA — RFC-001 § 3.4.",
   },
   {
     name: "@ar-agents/mercadopago",
@@ -279,7 +290,7 @@ export default function ArchitecturePage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>The 14 packages</DocH2>
+      <DocH2>The 15 packages</DocH2>
 
       <MermaidDiagram
         chart={PACKAGE_GRAPH}
