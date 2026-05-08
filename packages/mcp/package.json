@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/mcp",
-  "version": "0.5.1",
-  "description": "MCP (Model Context Protocol) server that exposes the entire @ar-agents/* toolkit (identity, mi-argentina, identity-attest, mercadopago, whatsapp, banking, facturacion, shipping, boletin-oficial) to any MCP host (Claude Desktop, Cursor, Codeium, etc.). One install, one config, all AR integrations.",
+  "version": "0.6.0",
+  "description": "MCP (Model Context Protocol) server that exposes the entire @ar-agents/* toolkit (identity, mi-argentina, identity-attest, mercadopago, whatsapp, banking, facturacion, shipping, boletin-oficial, igj, firma-digital) to any MCP host (Claude Desktop, Cursor, Codeium, etc.). One install, one config, all AR integrations.",
   "keywords": [
     "mcp",
     "model-context-protocol",
@@ -118,8 +118,10 @@
     "@ar-agents/banking": "workspace:*",
     "@ar-agents/boletin-oficial": "workspace:*",
     "@ar-agents/facturacion": "workspace:*",
+    "@ar-agents/firma-digital": "workspace:*",
     "@ar-agents/identity": "workspace:*",
     "@ar-agents/identity-attest": "workspace:*",
+    "@ar-agents/igj": "workspace:*",
     "@ar-agents/mercadopago": "workspace:*",
     "@ar-agents/mi-argentina": "workspace:*",
     "@ar-agents/shipping": "workspace:*",

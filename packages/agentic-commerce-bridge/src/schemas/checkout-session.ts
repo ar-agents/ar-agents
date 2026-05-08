@@ -6,28 +6,28 @@ import {
   Locale,
   Metadata,
   Timezone,
-} from "./common.js";
-import { Buyer } from "./buyer.js";
-import { LineItem, LineItemCreateInput } from "./line-item.js";
+} from "./common";
+import { Buyer } from "./buyer";
+import { LineItem, LineItemCreateInput } from "./line-item";
 import {
   FulfillmentDetails,
   FulfillmentGroup,
   FulfillmentOption,
   SelectedFulfillmentOption,
-} from "./fulfillment.js";
-import { Total } from "./totals.js";
-import { Message, Link } from "./messages.js";
+} from "./fulfillment";
+import { Total } from "./totals";
+import { Message, Link } from "./messages";
 import {
   CapabilitiesRequest,
   CapabilitiesResponse,
-} from "./capabilities.js";
-import { DiscountsRequest, DiscountsResponse } from "./discount.js";
+} from "./capabilities";
+import { DiscountsRequest, DiscountsResponse } from "./discount";
 import {
   AuthenticationResult,
   MarketingConsent,
   PaymentData,
-} from "./payment.js";
-import { Order } from "./order.js";
+} from "./payment";
+import { Order } from "./order";
 
 // ACP `CheckoutSession.status` — closed enum on the merchant-facilitator
 // side, but extensions may add states; we permit unknowns.

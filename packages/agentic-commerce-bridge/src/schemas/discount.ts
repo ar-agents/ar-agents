@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Amount, Currency } from "./common.js";
+import { Amount, Currency } from "./common";
 
 // ACP `Coupon` — `percent_off` and `amount_off` are mutually exclusive.
 export const Coupon = z

@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { ISODateTime } from "./common.js";
-import { Address } from "./address.js";
-import { Total } from "./totals.js";
+import { ISODateTime } from "./common";
+import { Address } from "./address";
+import { Total } from "./totals";
 
 // ACP `FulfillmentDetails` — buyer-side delivery / contact. Used to compute
 // fulfillment options. Note `address` is optional because digital goods don't

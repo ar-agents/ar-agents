@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { Amount, ISODateTime } from "./common.js";
-import { Disclosure } from "./messages.js";
-import { Total } from "./totals.js";
+import { Amount, ISODateTime } from "./common";
+import { Disclosure } from "./messages";
+import { Total } from "./totals";
 
 // ACP `Item` — minimal product reference. The merchant resolves this against
 // its catalog. `unit_amount` is the canonical price-at-the-time-of-quote.

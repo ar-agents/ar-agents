@@ -1,6 +1,61 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
+const AGENT_FLOW = `// Mock transcript: una sociedad-IA "ACME-AI SAS" se incorpora,
+// cobra clientes, y opera en Argentina end-to-end.
+
+▶ user: Necesito constituir una sociedad-IA, conseguir CUIT, abrir cuenta
+        MP, emitir mi primera factura y mandar WhatsApp al cliente.
+
+  → @ar-agents/igj
+    igj_search_entities({ query: "ACME-AI", tipos: ["sas"] })
+      ← results: []
+      ← coverageNote: "Dataset es muestreo, no real-time..."
+    Entidad disponible. Procedo con la constitución.
+
+  → @ar-agents/firma-digital
+    firma_inspect_cert({ cert_pem: "<oficial-digital>" })
+      ← cuit: "20417581015", isOntiIssued: true, commonName: "Naza Clemente"
+    Oficial digital validado.
+
+  → @ar-agents/identity
+    validate_cuit({ cuit: "30-12345678-9" })
+      ← valid: true, personType: "juridica"
+    lookup_cuit_afip({ cuit: "30123456789" })
+      ← name: "ACME-AI SAS", taxCondition: "monotributo_a"
+
+  → @ar-agents/banking
+    list_psps()
+      ← Mercado Pago, Ualá, Naranja X...
+    get_usd_oficial({ lookback_days: 7 })
+      ← latest: { fecha: "2026-05-08", valor: 1250.50 }
+
+  → @ar-agents/mercadopago
+    create_customer({ email: "cliente@example.com" })
+      ← id: "cust_abc123"
+    create_subscription({ amount: 50000, frequency: "monthly", ... })
+      ← id: "sub_xyz789"
+      ← init_point: "https://mercadopago.com.ar/subscriptions/..."
+
+  → @ar-agents/facturacion
+    emitir_factura({ tipo: "C", monto: 50000, cuit_cliente: "20..." })
+      ← cae: "67891234567890", numero: "0001-00000001"
+
+  → @ar-agents/whatsapp
+    send_template({ to: "+5491123456789", template: "factura_lista" })
+      ← message_id: "wamid.xxx"
+
+  → @ar-agents/boletin-oficial
+    bo_subscribe({ owner_id: "acme-ai", cuit: "30123456789" })
+      ← id: "sub_bo_1", match: { cuit: "30123456789" }
+    Suscrito a notificaciones BO sobre el CUIT propio.
+
+✓ assistant: Listo. Sociedad-IA operando: CUIT registrado, MP cobrando,
+            factura electrónica emitida, cliente notificado por WhatsApp,
+            BO monitoreado. Tu sociedad-IA está en producción.
+
+  Tiempo total: ~12 segundos (12 llamadas a tools, 8 packages /arg).`;
+
 export const metadata: Metadata = {
   title: "Sociedades de IA",
   description:
@@ -53,23 +108,24 @@ export default function SociedadesIAPage() {
       <DocBlock>
         {`PASO                          REQUIERE                    COBERTURA /arg
 ─────────────────────────────────────────────────────────────────────────
-1. Constitución               IGJ + escritura digital     ❌ pendiente IGJ API
-2. Obtención de CUIT          ARCA padrón                 ✅ @ar-agents/identity
-3. Validación CUIT vs gob     AFIP WSCDC                  ✅ @ar-agents/identity
-4. Apertura cuenta bancaria   CBU + Modo / MP             ✅ @ar-agents/banking
+1. Constitución (datos abiertos) IGJ datos.jus.gob.ar     ✅ @ar-agents/igj
+2. Constitución (acta inscripta) IGJ portal directo       🟡 parcial (TAD)
+3. Obtención de CUIT          ARCA padrón                 ✅ @ar-agents/identity
+4. Validación CUIT vs gob     AFIP WSCDC                  ✅ @ar-agents/identity
+5. Apertura cuenta bancaria   CBU + Modo / MP             ✅ @ar-agents/banking
                                                             + @ar-agents/mercadopago
-5. Inscripción monotributo    AFIP WSFE setup             ✅ @ar-agents/facturacion
-6. Identidad firmante         OIDC gov                    ✅ @ar-agents/mi-argentina
-7. Facturación electrónica    AFIP WSFE                   ✅ @ar-agents/facturacion
-8. Cobro suscripciones        MP Subscriptions            ✅ @ar-agents/mercadopago
-9. Atención al cliente        WhatsApp Business           ✅ @ar-agents/whatsapp
-10. Verificación KYC contrap. RENAPER + bypass            ✅ @ar-agents/identity-attest
-11. Riesgo crediticio terceros BCRA Central de Deudores   ✅ @ar-agents/banking
-12. Logística                 Andreani / OCA / Correo     ✅ @ar-agents/shipping
-13. Notificaciones legales    Boletín Oficial monitoring  ✅ @ar-agents/boletin-oficial
-14. Variables macro (USD/CER) BCRA Principales Variables  ✅ @ar-agents/banking
-15. Domicilio legal digital   GDE / TAD                   ❌ pendiente
-16. Designación de oficial    Mi Argentina + firma        🟡 parcial`}
+6. Inscripción monotributo    AFIP WSFE setup             ✅ @ar-agents/facturacion
+7. Identidad firmante         OIDC gov                    ✅ @ar-agents/mi-argentina
+8. Firma de actas societarios Cert ONTI / AC-Raíz         ✅ @ar-agents/firma-digital
+9. Facturación electrónica    AFIP WSFE                   ✅ @ar-agents/facturacion
+10. Cobro suscripciones       MP Subscriptions            ✅ @ar-agents/mercadopago
+11. Atención al cliente       WhatsApp Business           ✅ @ar-agents/whatsapp
+12. Verificación KYC contrap. RENAPER + bypass            ✅ @ar-agents/identity-attest
+13. Riesgo crediticio terceros BCRA Central de Deudores   ✅ @ar-agents/banking
+14. Logística                 Andreani / OCA / Correo     ✅ @ar-agents/shipping
+15. Notificaciones legales    Boletín Oficial monitoring  ✅ @ar-agents/boletin-oficial
+16. Variables macro (USD/CER) BCRA Principales Variables  ✅ @ar-agents/banking
+17. Domicilio legal digital   GDE / TAD                   ❌ pendiente`}
       </DocBlock>
 
       <DocH2>Por qué importa que esto sea OSS</DocH2>
@@ -86,14 +142,23 @@ export default function SociedadesIAPage() {
         Boletín Oficial.
       </DocP>
 
-      <DocH2>Demo + repro pendiente</DocH2>
+      <DocH2>Demo: una sociedad-IA en producción</DocH2>
+      <DocP>
+        Transcripción de un agente Claude usando el toolkit{" "}
+        <DocCode>/arg</DocCode> para incorporar y operar una sociedad-IA
+        ficticia (&ldquo;ACME-AI SAS&rdquo;). Las llamadas son reales — los
+        datos son mock para evitar pegarle a producción.
+      </DocP>
+      <DocBlock>{AGENT_FLOW}</DocBlock>
+
+      <DocH2>Demo deployable + repro pendiente</DocH2>
       <DocP>
         Próximo hito: un app deployable a Vercel que monta una{" "}
         <em>sociedad IA mock</em> end-to-end —{" "}
         <DocCode>npx create-arg-sociedad mi-empresa-ia</DocCode> — y
-        ejercita las 14 piezas de /arg que ya están listas, dejando los 2
-        gaps (IGJ + GDE) marcados explícitamente. Si querés contribuir,
-        hay un issue abierto:{" "}
+        ejercita las 16 piezas de /arg que ya están listas (la única que
+        queda es GDE/TAD, sin API documentada). Si querés contribuir, hay
+        un issue abierto:{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/issues"
           style={{ color: "inherit", textDecoration: "underline" }}

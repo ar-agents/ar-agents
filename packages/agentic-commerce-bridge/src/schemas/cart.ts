@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { Currency, ISODateTime, Metadata } from "./common.js";
-import { LineItem, LineItemCreateInput } from "./line-item.js";
-import { Total } from "./totals.js";
+import { Currency, ISODateTime, Metadata } from "./common";
+import { LineItem, LineItemCreateInput } from "./line-item";
+import { Total } from "./totals";
 
 // ACP `Cart` — the optional pre-checkout primitive (the "cart" surface,
 // distinct from `CheckoutSession`). Carts have no payment, no buyer, no

@@ -1,6 +1,6 @@
 import { z } from "zod";
-import { ISODateTime } from "./common.js";
-import { Order } from "./order.js";
+import { ISODateTime } from "./common";
+import { Order } from "./order";
 
 // ACP webhook events — merchant emits these to the agent's subscribed URL.
 // `type` is currently `order_create` | `order_update`; the spec hints more

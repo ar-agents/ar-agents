@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ISODateTime } from "./common.js";
+import { ISODateTime } from "./common";
 
 // ACP carries no first-class CUIT/CPF/RFC slot. For LATAM tax IDs, use the
 // generic `company.tax_id` (untyped string) for B2B and stash buyer-side IDs

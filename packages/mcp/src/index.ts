@@ -42,3 +42,11 @@ export {
   buildBoletinOficialTools,
   describeBoletinOficialConfig,
 } from "./registries/boletin-oficial";
+export {
+  buildIgjTools,
+  describeIgjConfig,
+} from "./registries/igj";
+export {
+  buildFirmaDigitalTools,
+  describeFirmaDigitalConfig,
+} from "./registries/firma-digital";
