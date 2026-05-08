@@ -339,6 +339,12 @@ export default function Home() {
               security
             </a>
             <a
+              href="/examples"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              cookbook
+            </a>
+            <a
               href="/marketplace"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >

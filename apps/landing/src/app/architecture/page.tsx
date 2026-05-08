@@ -1,5 +1,105 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
+import { MermaidDiagram } from "./mermaid-diagram";
+
+const COMPOSITION_FLOW = `sequenceDiagram
+    autonumber
+    participant U as User
+    participant A as Agent (Sonnet 4.6)
+    participant ID as identity
+    participant BK as banking
+    participant ATT as identity-attest
+    participant MP as mercadopago
+    participant WA as whatsapp
+    participant FAC as facturacion
+    participant AFIP as AFIP/ARCA
+    participant BCRA as BCRA
+    participant META as Meta Cloud API
+    U->>A: "Cobrale $75k a Acme SRL"
+    A->>ID: validate_cuit(30-...)
+    ID-->>A: ok
+    A->>ID: lookup_cuit_afip(30-...)
+    ID->>AFIP: WSAA + ws_sr_constancia
+    AFIP-->>ID: Acme SRL, RESP. INSCRIPTO
+    ID-->>A: razón social + cat. fiscal
+    A->>BK: lookup_credit_situation(30-...)
+    BK->>BCRA: Central de Deudores
+    BCRA-->>BK: worstSituation 1 (al día)
+    BK-->>A: ok
+    A->>ATT: request_attestation (>$50k)
+    ATT->>WA: send_whatsapp_text (OTP)
+    WA->>META: graph send
+    META-->>WA: 200
+    Note over U,META: Buyer enters OTP, attestation HMAC-signed
+    A->>MP: create_subscription
+    MP-->>A: init_point_url
+    A->>WA: send_whatsapp_text(buyer, init_point_url)
+    WA->>META: graph send
+    Note over MP,META: Buyer pays · MP webhook → bridge → facturacionHook
+    MP->>FAC: crear_factura A
+    FAC->>AFIP: WSAA + WSFE solicitarCAE
+    AFIP-->>FAC: CAE 75123...12, PDF
+    FAC->>WA: send_whatsapp_media(buyer, pdfUrl)
+    WA->>META: graph send
+`;
+
+const PACKAGE_GRAPH = `flowchart LR
+    classDef identity fill:#a855f7,stroke:#7e22ce,color:#fff
+    classDef payments fill:#22c55e,stroke:#15803d,color:#fff
+    classDef fiscal fill:#eab308,stroke:#a16207,color:#0f172a
+    classDef comms fill:#06b6d4,stroke:#0e7490,color:#fff
+    classDef logistics fill:#f97316,stroke:#c2410c,color:#fff
+    classDef infra fill:#64748b,stroke:#334155,color:#fff,stroke-dasharray:4 3
+    classDef external fill:#0f172a,stroke:#475569,color:#cbd5e1,stroke-dasharray:2 2
+    AGENT([Vercel AI SDK 6<br/>Experimental_Agent])
+    subgraph identity_g[identity]
+        ID["@ar-agents/identity<br/>2 tools"]:::identity
+        ATT["@ar-agents/identity-attest<br/>5 tools"]:::identity
+        MA["@ar-agents/mi-argentina<br/>4 tools"]:::identity
+        FD["@ar-agents/firma-digital<br/>4 tools"]:::identity
+    end
+    subgraph payments_g[payments]
+        MP["@ar-agents/mercadopago<br/>89 tools"]:::payments
+        BK["@ar-agents/banking<br/>11 tools"]:::payments
+    end
+    subgraph fiscal_g[fiscal]
+        FAC["@ar-agents/facturacion<br/>10 tools"]:::fiscal
+        IGJ["@ar-agents/igj<br/>6 tools"]:::fiscal
+        BO["@ar-agents/boletin-oficial<br/>6 tools"]:::fiscal
+    end
+    WA["@ar-agents/whatsapp<br/>6 tools"]:::comms
+    SH["@ar-agents/shipping<br/>6 tools"]:::logistics
+    BR["@ar-agents/agentic-commerce-bridge"]:::infra
+    AP2["@ar-agents/ap2"]:::infra
+    MCP["@ar-agents/mcp"]:::infra
+    AFIP[(AFIP/ARCA)]:::external
+    BCRA[(BCRA)]:::external
+    MERC[(Mercado Pago)]:::external
+    META[(Meta Cloud API)]:::external
+    CARR[(Andreani / OCA / Correo)]:::external
+    AGENT --> ID
+    AGENT --> ATT
+    AGENT --> MA
+    AGENT --> FD
+    AGENT --> MP
+    AGENT --> BK
+    AGENT --> FAC
+    AGENT --> IGJ
+    AGENT --> BO
+    AGENT --> WA
+    AGENT --> SH
+    BR -. ACP facilitator .-> MP
+    BR -. auto-factura .-> FAC
+    AP2 -. mandate verify .-> AGENT
+    MCP -. bundles all .-> AGENT
+    ID --> AFIP
+    FAC --> AFIP
+    BK --> BCRA
+    MP --> MERC
+    WA --> META
+    ATT --> WA
+    SH --> CARR
+`;
 
 export const metadata: Metadata = {
   title: "Architecture",
@@ -181,6 +281,11 @@ export default function ArchitecturePage() {
 
       <DocH2>The 14 packages</DocH2>
 
+      <MermaidDiagram
+        chart={PACKAGE_GRAPH}
+        caption="The agent talks to packages; packages talk to external systems. Bridges (dashed) compose the others."
+      />
+
       <div
         style={{
           display: "grid",
@@ -265,53 +370,18 @@ export default function ArchitecturePage() {
 
       <DocH2>Composition flow</DocH2>
       <DocP>
-        How a single agent.generate() call traverses the stack when an
-        Argentine SaaS bills a B2B customer:
+        How a single <DocCode>agent.generate()</DocCode> call traverses the
+        stack when an Argentine SaaS bills a B2B customer. Sequence diagram
+        below — each arrow is a real tool invocation or HTTP round-trip.
+        The audit log records every step with HMAC-signed timestamps; what
+        the diagram hides is that all of those arrows return through{" "}
+        <DocCode>AuditLogger.wrap()</DocCode> on the way back.
       </DocP>
 
-      <pre
-        style={{
-          background: "var(--bg-tint)",
-          padding: "20px 16px",
-          borderRadius: 8,
-          fontSize: 12,
-          lineHeight: 1.55,
-          fontFamily: FONT_MONO,
-          color: "var(--text-body)",
-          overflow: "auto",
-          boxShadow: "var(--shadow-border)",
-        }}
-      >
-{`  user prompt: "Cobrale $75.000 a Acme SRL (CUIT 30-...), email contacto@acme.com"
-       │
-       ▼
-  ┌─────────────────────────────────────────────────────────────┐
-  │  Vercel AI SDK 6 · Experimental_Agent · Sonnet 4.6          │
-  │  (model decides which tools to call, in which order)        │
-  └─────────────────────────────────────────────────────────────┘
-       │
-       │ 1. validate_cuit(30-...)              identity (algorithm, free)
-       │ 2. lookup_cuit_afip(30-...)           identity → AFIP WSAA
-       │      → "Acme SRL, RESPONSABLE_INSCRIPTO"
-       │ 3. lookup_credit_situation(30-...)    banking → BCRA
-       │      → "worstSituation: 1 (al día)"
-       │ 4. amount > $50k → request_attestation
-       │      identity-attest → @ar-agents/whatsapp OTP
-       │ 5. (after OTP) create_subscription    mercadopago → MP API
-       │      → init_point_url
-       │ 6. send_whatsapp_text(buyer, init_point_url)  whatsapp → Meta
-       │
-       ▼
-  buyer pays
-       │
-       ▼ (MP webhook → bridge → facturacionHook fires)
-  7. crear_factura("A", $75.000, ...)    facturacion → AFIP WSFE
-       → CAE 75123456789012, PDF
-  8. send_whatsapp_media(buyer, pdfUrl)  whatsapp → Meta
-       │
-       ▼
-  done. audit log records every step with HMAC-signed timestamps.`}
-      </pre>
+      <MermaidDiagram
+        chart={COMPOSITION_FLOW}
+        caption="One prompt → 8 tool calls across 6 packages → CAE issued, PDF delivered. Compose without coupling."
+      />
 
       <DocH2>The Edge-Runtime contract</DocH2>
       <DocP>
