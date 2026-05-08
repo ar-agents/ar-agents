@@ -20,7 +20,7 @@ import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-const packages = ["identity", "identity-attest", "whatsapp", "mercadopago", "facturacion", "banking", "shipping"];
+const packages = ["identity", "identity-attest", "whatsapp", "mercadopago", "facturacion", "banking", "shipping", "gde-tad"];
 
 let regenerated = 0;
 let skipped = 0;
