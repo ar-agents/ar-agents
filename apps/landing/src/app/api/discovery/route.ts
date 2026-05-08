@@ -12,15 +12,11 @@
  * releases, and confirm no surface change happened without a public release.
  */
 
-// Read each manifest from the monorepo at module-init time (nodejs runtime).
-// At build time Next bundles the contents into the function; at request
-// time there are no fs reads. Edge would also work, but nodejs lets us
-// resolve the paths via require.resolve — more robust than relative
-// traversal across the monorepo.
-
-import { readFileSync } from "node:fs";
-import { dirname, join } from "node:path";
-import { fileURLToPath } from "node:url";
+// Manifests are pre-baked at build time by `scripts/gen-discovery-manifests.mjs`
+// so the route doesn't need fs access at runtime — Edge-friendly even though
+// we currently run on nodejs (in case we want to flip later for cold-start
+// latency).
+import { MANIFESTS as RAW_MANIFESTS } from "./manifests.generated";
 
 type Tool = {
   name: string;
@@ -36,25 +32,7 @@ type Manifest = {
   tools: Tool[];
 };
 
-const __dirname = dirname(fileURLToPath(import.meta.url));
-// apps/landing/src/app/api/discovery → ../../../../../packages/<name>/tools.manifest.json
-const MONOREPO_PACKAGES = join(__dirname, "../../../../../../packages");
-
-function readManifest(pkgDirName: string): Manifest {
-  return JSON.parse(
-    readFileSync(join(MONOREPO_PACKAGES, pkgDirName, "tools.manifest.json"), "utf-8"),
-  ) as Manifest;
-}
-
-const MANIFESTS: Manifest[] = [
-  readManifest("identity"),
-  readManifest("identity-attest"),
-  readManifest("mercadopago"),
-  readManifest("whatsapp"),
-  readManifest("banking"),
-  readManifest("facturacion"),
-  readManifest("shipping"),
-];
+const MANIFESTS: Manifest[] = RAW_MANIFESTS as unknown as Manifest[];
 
 const REPO_URL = "https://github.com/ar-agents/ar-agents";
 const SITE_URL = "https://ar-agents.vercel.app";
@@ -167,9 +145,8 @@ function buildOpenApiDoc() {
 // Route handler
 // ─────────────────────────────────────────────────────────────────────────────
 
-// nodejs runtime so we can use node:fs at module-init. The fs reads happen
-// once when the function cold-starts; subsequent requests serve from memory.
-export const runtime = "nodejs";
+// Edge-safe — manifests are pre-baked into the bundle at build time.
+export const runtime = "edge";
 
 export async function GET(req: Request) {
   const url = new URL(req.url);
