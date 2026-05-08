@@ -17,6 +17,9 @@ deploy on Vercel as-is.
 | 07  | `07-auth-only-order.ts`           | `Order` with manual capture → capture later when service completes      |
 | 08  | `08-recovery-patterns.ts`         | Retry expired subscriptions, recover stuck-pending payments, etc.       |
 | 09  | `09-otel-wired.ts`                | Full OpenTelemetry wiring — spans + metrics for every MP call + tool    |
+| 10  | `10-cross-package-billing.ts`     | One agent loop, 5 packages: identity + attest + MP + facturacion + WhatsApp |
+| 11  | `11-dunning-sequence.ts`          | Failed-payment recovery loop with multi-step dunning + cancel-with-retention |
+| 12  | `12-reconciliation-pipeline.ts`   | Daily MP↔internal-DB reconciliation cron with discrepancy report        |
 
 ## Conventions
 
