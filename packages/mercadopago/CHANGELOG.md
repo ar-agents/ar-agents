@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.16.0
+
+### Minor Changes
+
+- Add `@ar-agents/mercadopago/testing` subpath: factories + a mock client for tests.
+
+  What ships:
+
+  - **Factories**: `mockPayment`, `mockPreapproval`, `mockSubscriptionPayment`, `mockPreference`, `mockRefund`, `mockCustomer`. Each takes a partial overrides object so test setup is one line.
+  - **`MockMercadoPagoClient`**: in-memory client with the most-common create/get/cancel/refund paths. Read-only methods that don't fit a clean store model throw `MockNotImplementedError` to nudge users toward MSW or a real sandbox token rather than silently growing the mock.
+  - **`mockSignedWebhook`**: produces a `{ headers, searchParams, body }` triple whose `x-signature` header is a real HMAC-SHA256 against the secret you pass. Drops directly into `verifyWebhookSignature` — test the full webhook stack without hand-rolling the signature manifest.
+
+  Subpath was chosen over the main entry to keep the production bundle clean (the testing helpers are dev-only).
+
+  ```ts
+  import {
+    MockMercadoPagoClient,
+    mockPayment,
+    mockSignedWebhook,
+  } from "@ar-agents/mercadopago/testing";
+  ```
+
+  15 new unit tests (testing-subpath.test.ts), still 100% passing.
+
 ## 0.15.3
 
 ### Patch Changes
