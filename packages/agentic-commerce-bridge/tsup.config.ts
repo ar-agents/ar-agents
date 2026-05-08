@@ -2,7 +2,7 @@ import { defineConfig } from "tsup";
 
 export default defineConfig({
   entry: ["src/index.ts", "src/vercel-kv.ts"],
-  external: ["@vercel/kv", "@ar-agents/mercadopago", "@ar-agents/facturacion", "@ar-agents/identity", "ai", "zod"],
+  external: ["@vercel/kv", "@ar-agents/mercadopago", "@ar-agents/facturacion", "@ar-agents/identity", "@ar-agents/ap2", "ai", "zod"],
   format: ["esm", "cjs"],
   dts: true,
   sourcemap: true,
