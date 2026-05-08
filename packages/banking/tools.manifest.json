@@ -1,14 +1,38 @@
 {
   "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/banking",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
   "tools": [
+    {
+      "name": "get_bcra_variable",
+      "description": "Fetch the time series for a specific BCRA Principales Variables indicator by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional "
+    },
+    {
+      "name": "get_cer",
+      "description": "Convenience: fetch the latest CER (Coeficiente de Estabilización de Referencia, BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. US"
+    },
+    {
+      "name": "get_reservas_bcra",
+      "description": "Convenience: fetch the latest BCRA international reserves (Reservas Internacionales, variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the lates"
+    },
+    {
+      "name": "get_usd_oficial",
+      "description": "Convenience: fetch the latest USD oficial cotización (Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks"
+    },
+    {
+      "name": "get_uva",
+      "description": "Convenience: fetch the latest UVA (Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the use"
+    },
     {
       "name": "list_banks",
       "description": "Return the full list of known Argentine banks with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a work",
       "input": {},
       "output": "{ banks: BankInfo[] }"
+    },
+    {
+      "name": "list_bcra_variables",
+      "description": "List all BCRA Principales Variables (monetary indicators) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorist"
     },
     {
       "name": "list_psps",
@@ -44,6 +68,6 @@
   "name": "@ar-agents/banking",
   "meta": {
     "generated_by": "scripts/regen-manifests.mjs",
-    "tool_count": 5
+    "tool_count": 11
   }
 }

@@ -34,3 +34,11 @@ export {
   buildShippingTools,
   describeShippingConfig,
 } from "./registries/shipping";
+export {
+  buildMiArgentinaTools,
+  describeMiArgentinaConfig,
+} from "./registries/mi-argentina";
+export {
+  buildBoletinOficialTools,
+  describeBoletinOficialConfig,
+} from "./registries/boletin-oficial";

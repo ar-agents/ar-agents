@@ -1,7 +1,13 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/vercel-kv.ts", "src/otel.ts", "src/testing.ts"],
+  entry: [
+    "src/index.ts",
+    "src/vercel-kv.ts",
+    "src/otel.ts",
+    "src/testing.ts",
+    "src/cli.ts",
+  ],
   external: ["@vercel/kv", "@opentelemetry/api"],
   format: ["esm", "cjs"],
   dts: true,

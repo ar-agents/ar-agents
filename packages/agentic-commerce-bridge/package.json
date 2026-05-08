@@ -1,0 +1,179 @@
+{
+  "name": "@ar-agents/agentic-commerce-bridge",
+  "version": "1.0.0",
+  "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP) bridging ChatGPT, Claude, Gemini, and other agentic-commerce clients to MercadoLibre and MercadoPago. ACP-compliant checkout sessions, signed webhooks, /.well-known/acp.json discovery, pluggable state adapters, and AR-fiscal compliance (auto-issued AFIP/ARCA Factura A/B/C). First LATAM agentic-commerce bridge.",
+  "keywords": [
+    "agentic-commerce",
+    "agentic-commerce-protocol",
+    "acp",
+    "ucp",
+    "universal-commerce-protocol",
+    "ap2",
+    "agent-payments",
+    "openai-instant-checkout",
+    "chatgpt-shopping",
+    "claude-shopping",
+    "facilitator",
+    "ai-sdk",
+    "vercel-ai",
+    "vercel-ai-sdk",
+    "agent",
+    "agents",
+    "mcp",
+    "mercadolibre",
+    "mercadopago",
+    "argentina",
+    "argentine",
+    "latam",
+    "afip",
+    "arca",
+    "factura-electronica",
+    "edge-runtime",
+    "webhook",
+    "idempotency",
+    "openapi"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/agentic-commerce-bridge",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/agentic-commerce-bridge"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "vercel-kv": [
+        "./dist/vercel-kv.d.ts"
+      ],
+      "testing": [
+        "./dist/testing.d.ts"
+      ]
+    }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./vercel-kv": {
+      "import": {
+        "types": "./dist/vercel-kv.d.ts",
+        "default": "./dist/vercel-kv.js"
+      },
+      "require": {
+        "types": "./dist/vercel-kv.d.cts",
+        "default": "./dist/vercel-kv.cjs"
+      }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "cookbook",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "tools.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run --exclude='test/integration/**'",
+    "test:integration": "vitest run test/integration/",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured yet'",
+    "validate": "publint && attw --pack .",
+    "size": "size-limit",
+    "clean": "rm -rf dist"
+  },
+  "size-limit": [
+    {
+      "name": "ESM",
+      "path": "dist/index.js",
+      "limit": "30 KB",
+      "ignore": [
+        "node:crypto",
+        "crypto"
+      ]
+    },
+    {
+      "name": "CJS",
+      "path": "dist/index.cjs",
+      "limit": "30 KB",
+      "ignore": [
+        "node:crypto",
+        "crypto"
+      ]
+    }
+  ],
+  "peerDependencies": {
+    "@ar-agents/facturacion": ">=0.1.0",
+    "@ar-agents/identity": ">=0.4.0",
+    "@ar-agents/mercadopago": ">=0.17.0",
+    "@vercel/kv": ">=2.0.0",
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "@ar-agents/facturacion": {
+      "optional": true
+    },
+    "@ar-agents/identity": {
+      "optional": true
+    },
+    "@ar-agents/mercadopago": {
+      "optional": true
+    },
+    "@vercel/kv": {
+      "optional": true
+    },
+    "ai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "@vercel/kv": "^3.0.0",
+    "ai": "^6.0.175",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

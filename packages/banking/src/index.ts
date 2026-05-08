@@ -34,6 +34,19 @@ export {
   BcraPublicApiAdapter,
 } from "./bcra";
 
+// BCRA Principales Variables — open REST. Tipo de cambio, CER, UVA, etc.
+export {
+  type BcraVarsAdapter,
+  type BcraVariable,
+  type BcraVariableDatapoint,
+  type BcraVarsResult,
+  type BcraVarsPublicApiAdapterOptions,
+  type BcraVariableId,
+  BCRA_VARIABLE_IDS,
+  UnconfiguredBcraVarsAdapter,
+  BcraVarsPublicApiAdapter,
+} from "./bcra-vars";
+
 // Result types.
 export {
   describeSituation,
@@ -54,5 +67,6 @@ export {
 export {
   BankingError,
   BcraNotConfiguredError,
+  BcraVarsNotConfiguredError,
   type BankingErrorCode,
 } from "./errors";

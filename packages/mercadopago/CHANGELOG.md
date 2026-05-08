@@ -1,5 +1,39 @@
 # Changelog
 
+## 0.17.0
+
+### Minor Changes
+
+- Add `mercadopago doctor` CLI for environment diagnosis.
+
+  ```bash
+  npx @ar-agents/mercadopago doctor
+  pnpm exec mercadopago doctor
+  ```
+
+  Reports:
+
+  - Node version (must be ≥ 20)
+  - `MP_ACCESS_TOKEN` presence + format + sandbox/prod prefix detection
+  - Live token validation against `GET /users/me` (free, no charge)
+  - `NEXT_PUBLIC_BACK_URL` presence + HTTPS check (MP rejects localhost server-side)
+  - `MP_WEBHOOK_SECRET` presence + length sanity
+  - Peer-dependency installation: `ai`, `zod`, `@vercel/kv`, `@opentelemetry/api`
+  - Tool count grouped by inferred category (auto-derived from `tools.manifest.json`)
+  - The 8 irreversible ops gated by `requireConfirmation()`
+
+  Pass `--probe` to additionally dry-call `validate_tax_id` against your sandbox token (also free):
+
+  ```bash
+  npx @ar-agents/mercadopago doctor --probe
+  ```
+
+  Exit codes follow the convention: `0` = ok or warn-only, `1` = at least one fail. CI scripts can `npx @ar-agents/mercadopago doctor` to gate deploys on having credentials wired up.
+
+  Also exposes `mercadopago help` and `mercadopago version`. Output respects `NO_COLOR`.
+
+  10 new subprocess tests (test/cli.test.ts), 328 tests total.
+
 ## 0.16.0
 
 ### Minor Changes

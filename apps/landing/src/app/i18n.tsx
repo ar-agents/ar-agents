@@ -67,11 +67,18 @@ export function LangProvider({ children }: { children: ReactNode }) {
 // ---------------------------------------------------------------------------
 
 export const EN = {
+  // /arg banner
+  arg_banner_eyebrow: "Part of /arg",
+  arg_banner_title: "Open infrastructure for Argentina's AI agent jurisdiction.",
+  arg_banner_link_manifesto: "Manifesto",
+  arg_banner_link_sociedades: "Sociedades de IA",
+  arg_banner_link_rfcs: "RFC-001",
+
   // hero
   hero_h1_l1: "Mercado Pago Agent Toolkit.",
   hero_h1_l2: "Built on Vercel.",
   hero_sub:
-    "Drop Mercado Pago into your AI agent. The whole API, with idempotency, retries, observability, and human-in-the-loop guardrails on irreversible operations.",
+    "Drop Mercado Pago into your AI agent. The whole API, with idempotency, retries, observability, and human-in-the-loop guardrails on irreversible operations. The flagship package of the /arg toolkit.",
   cta_deploy: "Deploy on Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -143,11 +150,15 @@ export const EN = {
   pp_facturacion:
     "AFIP/ARCA factura electrónica (WSFE). Factura A/B/C, NC/ND, FCE MiPyMEs. Local pre-flight validator catches the 10 most common rejection reasons before the round-trip.",
   pp_banking:
-    "CBU/CVU validation with bank/PSP identification (Galicia, Nación, Mercado Pago, Ualá, Naranja X…). BCRA Central de Deudores lookup.",
+    "CBU/CVU validation with bank/PSP identification + BCRA Central de Deudores + BCRA Principales Variables (USD oficial, CER, UVA, reservas, BADLAR, inflación). 11 tools total.",
   pp_shipping:
     "Andreani (full REST), OCA, Correo Argentino. cotizar / crear / trackear / cancelar. Provincia + CPA helpers.",
+  pp_mi_argentina:
+    "Mi Argentina OIDC (login with the AR government identity). PKCE, RS256 ID-token verification, JWKS caching, refresh, end-session. Web Crypto only — runs on Edge.",
+  pp_boletin_oficial:
+    "Boletín Oficial as a structured firehose: search, filter by sección, get norma by id, subscribe to keywords/CUITs/organismos. The 'Vercel for legal monitoring' that the AR ecosystem was missing.",
   pp_mcp:
-    "MCP server bundling all 7 packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
+    "MCP server bundling all 9 packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
 
   // quick start
   quick_h2: "Quick start",
@@ -222,10 +233,17 @@ export const EN = {
 } as const;
 
 export const ES: Translations = {
+  arg_banner_eyebrow: "Parte de /arg",
+  arg_banner_title:
+    "La infraestructura abierta para la jurisdicción de agentes argentina.",
+  arg_banner_link_manifesto: "Manifiesto",
+  arg_banner_link_sociedades: "Sociedades de IA",
+  arg_banner_link_rfcs: "RFC-001",
+
   hero_h1_l1: "Toolkit de Mercado Pago para Agentes.",
   hero_h1_l2: "Hecho en Vercel.",
   hero_sub:
-    "Conectá Mercado Pago a tu agente IA. Toda la API, con idempotencia, retries, observabilidad y human-in-the-loop en operaciones irreversibles.",
+    "Conectá Mercado Pago a tu agente IA. Toda la API, con idempotencia, retries, observabilidad y human-in-the-loop en operaciones irreversibles. El package insignia del toolkit /arg.",
   cta_deploy: "Deployar en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -295,11 +313,15 @@ export const ES: Translations = {
   pp_facturacion:
     "Factura electrónica AFIP/ARCA (WSFE). Factura A/B/C, NC/ND, FCE MiPyMEs. Validador local pre-flight que atrapa los 10 motivos de rechazo más comunes antes del round-trip.",
   pp_banking:
-    "Validación de CBU/CVU con identificación de banco/PSP (Galicia, Nación, Mercado Pago, Ualá, Naranja X…). Lookup en la Central de Deudores del BCRA.",
+    "Validación de CBU/CVU con identificación de banco/PSP + Central de Deudores BCRA + Principales Variables BCRA (USD oficial, CER, UVA, reservas, BADLAR, inflación). 11 tools en total.",
   pp_shipping:
     "Andreani (REST completo), OCA, Correo Argentino. cotizar / crear / trackear / cancelar. Helpers de provincia + CPA.",
+  pp_mi_argentina:
+    "OIDC de Mi Argentina (login con la identidad del gobierno argentino). PKCE, verificación RS256 del ID token, JWKS cacheado, refresh, end-session. Solo Web Crypto — corre en Edge.",
+  pp_boletin_oficial:
+    "Boletín Oficial como firehose estructurado: búsqueda, filtro por sección, obtener norma por id, suscripciones por keyword/CUIT/organismo. El 'Vercel for legal monitoring' que faltaba en el ecosistema AR.",
   pp_mcp:
-    "Servidor MCP que bundlea los 7 packages. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
+    "Servidor MCP que bundlea los 9 packages. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
 
   quick_h2: "Inicio rápido",
 
