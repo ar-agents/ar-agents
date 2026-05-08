@@ -1,0 +1,36 @@
+# Vulnerability disclosure policy for the @ar-agents/* toolkit + landing.
+# Conforms to RFC 9116 (https://www.rfc-editor.org/rfc/rfc9116).
+
+Contact: mailto:naza@helloastro.co
+Contact: https://github.com/ar-agents/ar-agents/security/advisories/new
+Expires: 2027-05-09T00:00:00.000Z
+Preferred-Languages: en, es
+Canonical: https://ar-agents.vercel.app/.well-known/security.txt
+Policy: https://ar-agents.vercel.app/security
+Acknowledgments: https://github.com/ar-agents/ar-agents/blob/main/SECURITY.md
+
+# What's in scope
+#
+# - Every package under @ar-agents/* on npm.
+# - Code in https://github.com/ar-agents/ar-agents.
+# - The landing at https://ar-agents.vercel.app and its API routes
+#   (/api/discovery, /api/demo, etc.).
+#
+# Out of scope:
+# - Findings against AFIP/ARCA, BCRA, Mercado Pago, Meta, Andreani, OCA, or
+#   Correo Argentino directly. Report those to the respective vendor.
+# - Fraud detection on Mercado Pago's anti-fraud surface — the toolkit
+#   surfaces MP's verdict, it does not run the detection.
+#
+# What we want
+#
+# - A specific reproducer (PoC, sample input, environment).
+# - Affected package + version (or commit SHA).
+# - Impact assessment (data exposure, auth bypass, RCE, signature forgery, etc.).
+#
+# What you can expect
+#
+# - First response within 48 hours.
+# - Public CVE + acknowledgment in the release notes when fixed (with your
+#   permission).
+# - Coordinated disclosure window per the GitHub Security Advisory flow.
