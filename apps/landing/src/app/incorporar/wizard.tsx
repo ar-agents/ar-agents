@@ -2,13 +2,14 @@
 
 /**
  * Client-side wizard for /incorporar. Generates a customised repo +
- * env-var manifest + deploy URL based on the user's answers.
+ * env-var manifest based on the user's answers, runs the IGJ pre-flight
+ * validator live, and exposes per-file download + clipboard-copy actions.
  *
- * Pure client work — no server roundtrip. The output is deterministic
- * derived from the input, so reload-safe and shareable.
+ * Pure client work — no server roundtrip, no fabricated stats. The
+ * generated files are reload-safe and shareable.
  */
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
@@ -42,6 +43,12 @@ const PIEZAS = [
     label: "Mercado Pago (subs + payments + marketplace)",
     pkg: "@ar-agents/mercadopago",
     required: true,
+  },
+  {
+    id: "mercadolibre",
+    label: "Mercado Libre (items + orders + claims + reputation)",
+    pkg: "@ar-agents/mercadolibre",
+    required: false,
   },
   {
     id: "banking",
@@ -120,9 +127,132 @@ interface FormState {
 
 const REQUIRED_PIEZAS = PIEZAS.filter((p) => p.required).map((p) => p.id);
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Live IGJ pre-flight validator (mirrors @ar-agents/gde-tad/igj-preflight.ts).
+// Inlined here so the wizard runs without bundling the workspace package.
+// ─────────────────────────────────────────────────────────────────────────────
+
+type Finding = {
+  code: string;
+  severity: "error" | "warning";
+  field: string;
+  message: string;
+};
+
+const DENOMINACION_FORBIDDEN: RegExp[] = [
+  /\bnacional\b/i,
+  /\bestatal\b/i,
+  /\bgobierno\b/i,
+  /\bestado\b/i,
+  /\boficial\b/i,
+];
+
+const MIN_CAPITAL_BY_TYPE: Record<string, number> = {
+  SAS: 100_000,
+  "SOCIEDAD-IA": 1,
+};
+
+const normalizeCuit = (raw: string) => String(raw ?? "").replace(/[^\d]/g, "");
+
+function validateLive(s: FormState): { valid: boolean; findings: Finding[] } {
+  const findings: Finding[] = [];
+
+  // Denominación
+  if (!s.denominacion || s.denominacion.trim().length < 3) {
+    findings.push({
+      code: "denominacion_too_short",
+      severity: "error",
+      field: "denominacion",
+      message: "La denominación debe tener al menos 3 caracteres.",
+    });
+  } else {
+    for (const rx of DENOMINACION_FORBIDDEN) {
+      if (rx.test(s.denominacion)) {
+        findings.push({
+          code: "denominacion_reserved_word",
+          severity: "error",
+          field: "denominacion",
+          message: `La denominación contiene una palabra reservada por IGJ ("${rx.source}").`,
+        });
+        break;
+      }
+    }
+  }
+
+  // Capital
+  const cap = Number(s.capital);
+  if (!Number.isFinite(cap) || cap <= 0) {
+    findings.push({
+      code: "capital_invalid",
+      severity: "error",
+      field: "capital",
+      message: "El capital social debe ser un número mayor a 0.",
+    });
+  } else {
+    const min = MIN_CAPITAL_BY_TYPE[s.tipo] ?? 100_000;
+    if (cap < min) {
+      findings.push({
+        code: "capital_below_minimum",
+        severity: "error",
+        field: "capital",
+        message: `Capital ($${cap.toLocaleString("es-AR")}) por debajo del mínimo para ${s.tipo} ($${min.toLocaleString("es-AR")}).`,
+      });
+    }
+  }
+
+  // Objeto
+  if (!s.objeto || s.objeto.trim().length < 20) {
+    findings.push({
+      code: "objeto_too_short",
+      severity: "error",
+      field: "objeto",
+      message: "El objeto social debe describir las actividades en al menos 20 caracteres. IGJ rechaza objetos genéricos.",
+    });
+  }
+
+  // CUIT representante (warning, not error — the field is optional pre-launch)
+  if (s.cuitRepresentante.trim()) {
+    const norm = normalizeCuit(s.cuitRepresentante);
+    if (!/^\d{11}$/.test(norm)) {
+      findings.push({
+        code: "cuit_representante_invalid",
+        severity: "error",
+        field: "cuitRepresentante",
+        message: "El CUIT del representante no es válido (deben ser 11 dígitos).",
+      });
+    }
+  }
+
+  // Email (warning, not blocking)
+  if (s.email.trim() && !s.email.includes("@")) {
+    findings.push({
+      code: "email_invalid",
+      severity: "error",
+      field: "email",
+      message: "Email inválido.",
+    });
+  }
+
+  // SOCIEDAD-IA flag warning
+  if (s.tipo === "SOCIEDAD-IA") {
+    findings.push({
+      code: "sociedad_ia_pending_law",
+      severity: "warning",
+      field: "tipo",
+      message: "El régimen sociedad-IA aún no está sancionado (estimado H1 2027). Mientras tanto el repo generado opera bajo SAS estándar.",
+    });
+  }
+
+  return { valid: !findings.some((f) => f.severity === "error"), findings };
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Generators
+// ─────────────────────────────────────────────────────────────────────────────
+
 function envVarsFor(selected: Set<string>): Array<{ name: string; description: string }> {
   const vars: Array<{ name: string; description: string }> = [
-    { name: "OPENAI_API_KEY or ANTHROPIC_API_KEY", description: "LLM provider for the agent loop." },
+    { name: "ANTHROPIC_API_KEY", description: "LLM provider for the agent loop. OPENAI_API_KEY also works." },
   ];
   if (selected.has("identity")) {
     vars.push(
@@ -162,7 +292,7 @@ function envVarsFor(selected: Set<string>): Array<{ name: string; description: s
   if (selected.has("banking")) {
     vars.push({
       name: "BCRA_DEUDORES_URL",
-      description: "Optional BCRA Central de Deudores adapter URL. Read-only public endpoints work without this.",
+      description: "Optional BCRA Central de Deudores adapter URL. Public BCRA endpoints work without this.",
     });
   }
   if (selected.has("shipping")) {
@@ -186,6 +316,16 @@ function envVarsFor(selected: Set<string>): Array<{ name: string; description: s
   return vars;
 }
 
+function slugFor(state: FormState): string {
+  return (
+    (state.denominacion || "acme-ai")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-+|-+$)/g, "")
+      .slice(0, 40) || "sociedad-ia"
+  );
+}
+
 function generatePackageJson(state: FormState): string {
   const deps: Record<string, string> = {
     ai: "^6.0.0",
@@ -198,8 +338,9 @@ function generatePackageJson(state: FormState): string {
     identity: "^0.7.0",
     "mi-argentina": "^0.1.0",
     "firma-digital": "^0.1.0",
-    "gde-tad": "^0.1.0",
+    "gde-tad": "^0.2.0",
     mercadopago: "^0.17.0",
+    mercadolibre: "^0.1.0",
     banking: "^0.4.0",
     facturacion: "^0.3.0",
     igj: "^0.1.0",
@@ -209,19 +350,14 @@ function generatePackageJson(state: FormState): string {
     shipping: "^0.2.0",
     "agentic-commerce-bridge": "^5.0.0",
     ap2: "^0.2.0",
-    mcp: "^0.7.0",
+    mcp: "^0.9.0",
   };
   for (const id of state.selected) {
     deps[`@ar-agents/${id}`] = PIEZA_TO_VERSION[id] ?? "*";
   }
-  const slug = (state.denominacion || "acme-ai")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/(^-+|-+$)/g, "")
-    .slice(0, 40) || "sociedad-ia";
   return JSON.stringify(
     {
-      name: slug,
+      name: slugFor(state),
       version: "0.1.0",
       private: true,
       description: `${state.denominacion || "ACME-AI SAS"} — operated by an LLM agent on top of @ar-agents/*. Generated by https://ar-agents.vercel.app/incorporar.`,
@@ -243,14 +379,17 @@ function generatePackageJson(state: FormState): string {
 function generateAgentTs(state: FormState): string {
   const imports: string[] = [];
   const toolSpread: string[] = [];
-  for (const id of state.selected) {
+  for (const id of Array.from(state.selected).sort()) {
+    if (id === "ap2" || id === "agentic-commerce-bridge" || id === "mcp") continue; // infra packages, not tool collections
     const camelName = id.replace(/-([a-z])/g, (_, c) => c.toUpperCase());
     imports.push(`import { ${camelName}Tools } from "@ar-agents/${id}";`);
     toolSpread.push(`    ...${camelName}Tools(),`);
   }
+  const denominacion = state.denominacion || "ACME-AI SAS";
   return `// Generated by https://ar-agents.vercel.app/incorporar
-// Sociedad: ${state.denominacion || "ACME-AI SAS"}
+// Sociedad: ${denominacion}
 // Tipo: ${state.tipo}
+// Generado: ${new Date().toISOString().slice(0, 10)}
 
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
 ${imports.join("\n")}
@@ -260,7 +399,7 @@ export function buildAgent() {
     model: "anthropic/claude-sonnet-4.5",
     stopWhen: stepCountIs(20),
     system:
-      "Sos el agente operador de ${state.denominacion || "ACME-AI SAS"}. Operás bajo " +
+      "Sos el agente operador de ${denominacion}. Operás bajo " +
       "RFC-001 (https://ar-agents.vercel.app/rfcs/001). Toda decisión irreversible " +
       "(refunds, cancellations, transferencias) pasa por requireConfirmation. Audit " +
       "log HMAC-firmado en cada tool call.",
@@ -272,22 +411,81 @@ ${toolSpread.join("\n")}
 `;
 }
 
+function generateEnvExample(envVars: Array<{ name: string; description: string }>): string {
+  const lines = [
+    "# Generado por https://ar-agents.vercel.app/incorporar",
+    "# Copialo a .env.local y completá los valores reales antes de deploy.",
+    "",
+  ];
+  for (const v of envVars) {
+    lines.push(`# ${v.description}`);
+    lines.push(`${v.name}=`);
+    lines.push("");
+  }
+  return lines.join("\n");
+}
+
+function generateReadme(state: FormState): string {
+  const denominacion = state.denominacion || "ACME-AI SAS";
+  return `# ${denominacion}
+
+Operated by an LLM agent on top of [@ar-agents/*](https://ar-agents.vercel.app).
+Generated by [/incorporar](https://ar-agents.vercel.app/incorporar) — RFC-001 governance.
+
+## Pre-launch quickstart
+
+\`\`\`bash
+pnpm install
+cp .env.example .env.local
+$EDITOR .env.local
+pnpm dev
+\`\`\`
+
+The agent is at \`lib/agent.ts\`. Wire it into your route handlers / cron jobs as needed.
+
+## Tipo de sociedad
+
+**${state.tipo}** — ${state.tipo === "SAS" ? "estándar, disponible hoy" : "pendiente sanción del régimen sociedad-IA (estimado H1 2027). Mientras tanto el código corre bajo SAS estándar."}
+
+## RFC-001 governance
+
+Toda decisión irreversible (refunds, cancellations, transferencias) pasa por
+\`requireConfirmation\`. Cada tool call queda en el audit log con timestamp
+HMAC-firmado.
+
+Lectura completa: https://ar-agents.vercel.app/rfcs/001
+
+## Trust + audit
+
+- npm provenance attestations en cada dependencia \`@ar-agents/*\`
+- OpenSSF Scorecard auditando la cadena de suministro
+- Reportá vulnerabilidades vía \`SECURITY.md\` upstream
+
+## Soporte
+
+- Cookbook: https://ar-agents.vercel.app/examples
+- Architecture: https://ar-agents.vercel.app/architecture
+- Threat model: https://ar-agents.vercel.app/security
+- Discord / GitHub Discussions: https://github.com/ar-agents/ar-agents/discussions
+`;
+}
+
 function generateChecklist(state: FormState): string[] {
   const out = [
-    "1. (5 min) Crear repositorio Git desde el código generado abajo. `npx degit ar-agents/templates/sociedad-ia-starter <slug>` o pegar manualmente.",
-    "2. (5 min) Importar el repo a Vercel. Config: Framework=Next.js, Root=./.",
-    "3. (10 min) Pegar los env vars de la lista en Vercel → Settings → Environment Variables.",
-    "4. (1-3 días) Si vas a emitir factura electrónica: solicitar cert X.509 en ARCA → Clave Fiscal → 'Administrador de Relaciones' → 'Asociar Servicio Web'. Subir el cert + key al .env.",
-    "5. (1 día) Si querés usar Mercado Pago real: crear app en developers.mercadopago.com → Credenciales de Producción → pegar en MERCADOPAGO_ACCESS_TOKEN.",
+    "1. (5 min) Crear el repo: descargá los archivos generados abajo, agregalos a un nuevo repo Git (`mkdir`, `cp`, `git init`, `git commit`).",
+    "2. (5 min) Importar el repo a Vercel via vercel.com/new. Framework=Next.js, Root=./.",
+    "3. (10 min) Pegar los env vars de `.env.example` en Vercel → Settings → Environment Variables.",
+    "4. (1-3 días) Si vas a emitir factura electrónica: solicitar cert X.509 en ARCA → Clave Fiscal → 'Administrador de Relaciones' → 'Asociar Servicio Web' (servicios `wsfe` y `ws_sr_constancia_inscripcion`). Subir cert + key al .env.",
+    "5. (1 día) Si querés usar Mercado Pago real: crear app en developers.mercadopago.com → Credenciales de Producción → pegar en `MERCADOPAGO_ACCESS_TOKEN`.",
     "6. (10-15 días) Si vas a usar WhatsApp: Meta Business Manager → Verificación de Empresa. Sin esto el cap es 5 destinatarios.",
   ];
   if (state.tipo === "SOCIEDAD-IA") {
     out.push(
-      "7. (espera regulatoria) Sociedad-IA propiamente dicha — anuncio Sturzenegger 28-abril-2026, ley estimada H1 2027. Mientras tanto operás como SAS con representante humano por RFC-001 § 3.1 (responsabilidad por capas).",
+      "7. (espera regulatoria) Sociedad-IA propiamente dicha — anuncio Sturzenegger 28-abril-2026, ley estimada H1 2027. Mientras tanto el código corre bajo SAS estándar con representante humano por RFC-001 § 3.1 (responsabilidad por capas).",
     );
   } else {
     out.push(
-      "7. (5-10 días hábiles) Inscripción IGJ vía TAD. Usá el tool `validate_igj_inscription` en el repo generado para evitar el ~30% de rechazos mecánicos.",
+      "7. (5-10 días hábiles) Inscripción IGJ vía TAD. Usá el tool `validate_igj_inscription` que viene cableado en el repo para evitar el ~30% de rechazos mecánicos antes de mandar el trámite.",
     );
   }
   out.push(
@@ -295,6 +493,10 @@ function generateChecklist(state: FormState): string[] {
   );
   return out;
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// UI helpers
+// ─────────────────────────────────────────────────────────────────────────────
 
 const baseInputStyle: React.CSSProperties = {
   background: "var(--bg-tint)",
@@ -306,6 +508,52 @@ const baseInputStyle: React.CSSProperties = {
   fontFamily: FONT_MONO,
   width: "100%",
 };
+
+function downloadAs(filename: string, content: string, mime = "text/plain") {
+  const blob = new Blob([content], { type: mime });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = filename;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(() => URL.revokeObjectURL(url), 1000);
+}
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1200);
+        } catch {
+          // ignore — older browsers
+        }
+      }}
+      style={{
+        background: "var(--bg-tint)",
+        color: "var(--text)",
+        border: 0,
+        borderRadius: 4,
+        padding: "4px 10px",
+        fontSize: 11,
+        fontFamily: FONT_MONO,
+        cursor: "pointer",
+      }}
+    >
+      {copied ? "Copiado ✓" : "Copiar"}
+    </button>
+  );
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Main wizard
+// ─────────────────────────────────────────────────────────────────────────────
 
 export function IncorporarWizard() {
   const [state, setState] = useState<FormState>(() => ({
@@ -321,9 +569,10 @@ export function IncorporarWizard() {
   const [output, setOutput] = useState<null | {
     pkgJson: string;
     agentTs: string;
+    envExample: string;
+    readme: string;
     envVars: Array<{ name: string; description: string }>;
     checklist: string[];
-    deployUrl: string;
   }>(null);
 
   const togglePieza = (id: string) => {
@@ -335,40 +584,32 @@ export function IncorporarWizard() {
     });
   };
 
-  const isReady = useMemo(
-    () =>
-      state.denominacion.trim().length > 2 &&
-      state.email.includes("@") &&
-      state.objeto.trim().length > 19,
-    [state],
-  );
+  // Live validation as the user types — same rules as @ar-agents/gde-tad's
+  // `validate_igj_inscription` tool (RFC-001 § 3.4).
+  const validation = useMemo(() => validateLive(state), [state]);
+  const errors = validation.findings.filter((f) => f.severity === "error");
+  const warnings = validation.findings.filter((f) => f.severity === "warning");
 
-  const handleGenerate = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!isReady) return;
-    const repo = "ar-agents/templates";
-    const deployUrl = `https://vercel.com/new/clone?repository-url=${encodeURIComponent(
-      `https://github.com/${repo}/tree/main/sociedad-ia-starter`,
-    )}&project-name=${encodeURIComponent(
-      state.denominacion.toLowerCase().replace(/[^a-z0-9]+/g, "-"),
-    )}&env=${encodeURIComponent(
-      envVarsFor(state.selected)
-        .map((v) => v.name.split(" or ")[0])
-        .join(","),
-    )}`;
+  // Re-generate output whenever inputs change AND validation is clean.
+  useEffect(() => {
+    if (!validation.valid) {
+      setOutput(null);
+      return;
+    }
     setOutput({
       pkgJson: generatePackageJson(state),
       agentTs: generateAgentTs(state),
+      envExample: generateEnvExample(envVarsFor(state.selected)),
+      readme: generateReadme(state),
       envVars: envVarsFor(state.selected),
       checklist: generateChecklist(state),
-      deployUrl,
     });
-  };
+  }, [state, validation.valid]);
 
   return (
     <div style={{ marginBottom: 32 }}>
       <form
-        onSubmit={handleGenerate}
+        onSubmit={(e) => e.preventDefault()}
         style={{
           display: "grid",
           gap: 16,
@@ -458,7 +699,7 @@ export function IncorporarWizard() {
 
         <div style={{ display: "grid", gap: 4 }}>
           <label style={{ fontSize: 13, fontFamily: FONT_MONO, color: "var(--text-muted)" }}>
-            Objeto social (qué hace la sociedad — mínimo 20 caracteres)
+            Objeto social (mínimo 20 caracteres — IGJ rechaza objetos genéricos)
           </label>
           <textarea
             value={state.objeto}
@@ -536,27 +777,72 @@ export function IncorporarWizard() {
             })}
           </div>
         </div>
+      </form>
 
-        <button
-          type="submit"
-          disabled={!isReady}
+      {/* Validation panel */}
+      <div style={{ marginTop: 16 }}>
+        <h3
           style={{
-            background: isReady ? "var(--accent)" : "var(--text-muted)",
-            color: "white",
-            border: 0,
-            borderRadius: 6,
-            padding: "12px 20px",
-            fontSize: 14,
+            fontSize: 13,
             fontFamily: FONT_MONO,
-            fontWeight: 600,
-            cursor: isReady ? "pointer" : "not-allowed",
+            color: "var(--text-muted)",
             textTransform: "uppercase",
-            letterSpacing: "0.05em",
+            letterSpacing: "0.06em",
+            margin: "0 0 8px",
           }}
         >
-          Generar config →
-        </button>
-      </form>
+          Pre-flight (en vivo · @ar-agents/gde-tad → validate_igj_inscription)
+        </h3>
+        {errors.length === 0 && warnings.length === 0 ? (
+          <div
+            style={{
+              background: "var(--bg)",
+              padding: 14,
+              borderRadius: 6,
+              boxShadow: "var(--card-shadow)",
+              fontSize: 13,
+              color: "#22c55e",
+              fontFamily: FONT_MONO,
+            }}
+          >
+            ✓ Sin findings. La inscripción cumple las reglas IGJ que conocemos.
+          </div>
+        ) : (
+          <div style={{ display: "grid", gap: 6 }}>
+            {[...errors, ...warnings].map((f) => (
+              <div
+                key={f.code}
+                style={{
+                  background: "var(--bg)",
+                  padding: "10px 14px",
+                  borderRadius: 6,
+                  boxShadow: "var(--card-shadow)",
+                  borderLeft: `3px solid ${f.severity === "error" ? "#ef4444" : "#eab308"}`,
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 11,
+                    fontFamily: FONT_MONO,
+                    color: f.severity === "error" ? "#ef4444" : "#eab308",
+                    textTransform: "uppercase",
+                    letterSpacing: "0.04em",
+                    marginBottom: 2,
+                  }}
+                >
+                  {f.severity} · {f.code}
+                </div>
+                <div style={{ fontSize: 13, color: "var(--text-body)", lineHeight: 1.4 }}>
+                  <code style={{ fontFamily: FONT_MONO, color: "var(--text-muted)" }}>
+                    {f.field}
+                  </code>{" "}
+                  — {f.message}
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
 
       {output && (
         <div style={{ marginTop: 24, display: "grid", gap: 24 }}>
@@ -571,57 +857,79 @@ export function IncorporarWizard() {
                 margin: "0 0 8px",
               }}
             >
-              1. Deploy
+              1. Descargá los archivos
             </h3>
-            <a
-              href={output.deployUrl}
-              target="_blank"
-              rel="noreferrer"
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              <button
+                type="button"
+                onClick={() => downloadAs("package.json", output.pkgJson, "application/json")}
+                style={btnPrimary}
+              >
+                ⬇ package.json
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadAs("agent.ts", output.agentTs, "text/typescript")}
+                style={btnPrimary}
+              >
+                ⬇ agent.ts
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadAs(".env.example", output.envExample, "text/plain")}
+                style={btnPrimary}
+              >
+                ⬇ .env.example
+              </button>
+              <button
+                type="button"
+                onClick={() => downloadAs("README.md", output.readme, "text/markdown")}
+                style={btnPrimary}
+              >
+                ⬇ README.md
+              </button>
+              <a
+                href={`https://vercel.com/new/clone?repository-url=${encodeURIComponent(
+                  "https://github.com/ar-agents/ar-agents/tree/main/apps/cuit-hello",
+                )}&project-name=${encodeURIComponent(slugFor(state))}&env=${encodeURIComponent(
+                  output.envVars.map((v) => v.name).join(","),
+                )}`}
+                target="_blank"
+                rel="noreferrer"
+                style={{ ...btnSecondary, textDecoration: "none" }}
+              >
+                ▲ Empezar en Vercel (cuit-hello como base)
+              </a>
+            </div>
+            <div
               style={{
-                display: "inline-block",
-                background: "#000",
-                color: "#fff",
-                textDecoration: "none",
-                padding: "10px 16px",
-                borderRadius: 6,
-                fontSize: 13,
-                fontFamily: FONT_MONO,
-                fontWeight: 600,
-              }}
-            >
-              ▲ Deploy to Vercel
-            </a>
-          </section>
-
-          <section>
-            <h3
-              style={{
-                fontSize: 14,
-                fontFamily: FONT_MONO,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                margin: "0 0 8px",
-              }}
-            >
-              2. package.json
-            </h3>
-            <pre
-              style={{
-                background: "var(--bg-tint)",
-                padding: 16,
-                borderRadius: 8,
+                marginTop: 8,
                 fontSize: 12,
+                color: "var(--text-muted)",
                 fontFamily: FONT_MONO,
-                color: "var(--text-body)",
-                overflow: "auto",
-                boxShadow: "var(--shadow-border)",
-                maxHeight: 320,
+                lineHeight: 1.5,
               }}
             >
-              {output.pkgJson}
-            </pre>
+              Crear un repo nuevo, copiar los 4 archivos descargados, conectarlo a Vercel, y pegar las variables de entorno.
+            </div>
           </section>
+
+          <FilePreview
+            label="package.json"
+            content={output.pkgJson}
+          />
+          <FilePreview
+            label="lib/agent.ts"
+            content={output.agentTs}
+          />
+          <FilePreview
+            label=".env.example"
+            content={output.envExample}
+          />
+          <FilePreview
+            label="README.md"
+            content={output.readme}
+          />
 
           <section>
             <h3
@@ -634,37 +942,7 @@ export function IncorporarWizard() {
                 margin: "0 0 8px",
               }}
             >
-              3. agent.ts
-            </h3>
-            <pre
-              style={{
-                background: "var(--bg-tint)",
-                padding: 16,
-                borderRadius: 8,
-                fontSize: 12,
-                fontFamily: FONT_MONO,
-                color: "var(--text-body)",
-                overflow: "auto",
-                boxShadow: "var(--shadow-border)",
-                maxHeight: 320,
-              }}
-            >
-              {output.agentTs}
-            </pre>
-          </section>
-
-          <section>
-            <h3
-              style={{
-                fontSize: 14,
-                fontFamily: FONT_MONO,
-                color: "var(--text-muted)",
-                textTransform: "uppercase",
-                letterSpacing: "0.06em",
-                margin: "0 0 8px",
-              }}
-            >
-              4. Variables de entorno
+              2. Variables de entorno (también en .env.example)
             </h3>
             <div style={{ display: "grid", gap: 6 }}>
               {output.envVars.map((v) => (
@@ -699,7 +977,7 @@ export function IncorporarWizard() {
                 margin: "0 0 8px",
               }}
             >
-              5. Checklist legal + operativo
+              3. Checklist legal + operativo
             </h3>
             <ol style={{ display: "grid", gap: 8, paddingLeft: 20, fontSize: 14, color: "var(--text-body)" }}>
               {output.checklist.map((step) => (
@@ -710,5 +988,74 @@ export function IncorporarWizard() {
         </div>
       )}
     </div>
+  );
+}
+
+const btnPrimary: React.CSSProperties = {
+  background: "var(--accent)",
+  color: "#fff",
+  border: 0,
+  borderRadius: 6,
+  padding: "10px 14px",
+  fontSize: 12,
+  fontFamily: FONT_MONO,
+  fontWeight: 600,
+  cursor: "pointer",
+};
+
+const btnSecondary: React.CSSProperties = {
+  background: "#000",
+  color: "#fff",
+  border: 0,
+  borderRadius: 6,
+  padding: "10px 14px",
+  fontSize: 12,
+  fontFamily: FONT_MONO,
+  fontWeight: 600,
+  cursor: "pointer",
+  display: "inline-flex",
+  alignItems: "center",
+};
+
+function FilePreview({ label, content }: { label: string; content: string }) {
+  return (
+    <section>
+      <div
+        style={{
+          display: "flex",
+          alignItems: "baseline",
+          gap: 12,
+          marginBottom: 6,
+        }}
+      >
+        <h4
+          style={{
+            fontSize: 13,
+            fontFamily: FONT_MONO,
+            color: "var(--text)",
+            margin: 0,
+          }}
+        >
+          {label}
+        </h4>
+        <CopyButton text={content} />
+      </div>
+      <pre
+        style={{
+          background: "var(--bg-tint)",
+          padding: 16,
+          borderRadius: 8,
+          fontSize: 12,
+          fontFamily: FONT_MONO,
+          color: "var(--text-body)",
+          overflow: "auto",
+          boxShadow: "var(--shadow-border)",
+          maxHeight: 280,
+          whiteSpace: "pre",
+        }}
+      >
+        {content}
+      </pre>
+    </section>
   );
 }

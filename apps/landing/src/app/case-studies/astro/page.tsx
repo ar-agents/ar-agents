@@ -204,14 +204,28 @@ export default function AstroCaseStudyPage() {
         <DocCode>buildCommand: &quot;cd ../.. &amp;&amp; pnpm --filter X build &amp;&amp; pnpm --filter Y build&quot;</DocCode>.
       </DocP>
 
-      <DocH2>The numbers</DocH2>
+      <DocH2>What we measure (when we have the numbers)</DocH2>
       <DocP>
-        15 packages used (not the full 15 — agent surfaces only need a
-        subset). 92% of all Astro&apos;s backend tool calls run through the
-        toolkit. 97 idempotency keys produced this month with zero MP-side
-        duplicates. 0 webhook spoofs accepted. 0 unsigned-mandate ACP
-        requests accepted. 100% of factura emissions audit-logged with
-        HMAC-signed timestamps.
+        Astro Chat is the only surface in production today (since
+        2025-12). Astro Bots and Astro Clips are in build, blocked on
+        Meta business verification (5-recipient WhatsApp dev cap) and
+        marketplace OAuth setup respectively. We&apos;ll publish hard
+        production numbers — invoice volume, idempotency-key dedup
+        rate, webhook signature failures, audit-log size — once the
+        WhatsApp surface clears Meta verification and we have ≥30 days
+        of post-launch data. The discipline is to not publish
+        speculative numbers in the meantime.
+      </DocP>
+      <DocP>
+        What we can verify today: every <DocCode>@ar-agents/*</DocCode>
+        package Astro depends on ships SLSA v1 npm provenance
+        attestations, the ACP webhook surface rejects unsigned mandates
+        (verified via the bridge integration tests), and every tool call
+        on the agent loop flows through{" "}
+        <DocCode>AuditLogger.wrap()</DocCode> with HMAC-signed
+        timestamps (verified by the audit-log subpath tests). When we
+        have measured production telemetry to publish, this section
+        will be replaced with concrete numbers and a methodology link.
       </DocP>
 
       <DocH2>What this case study is for</DocH2>

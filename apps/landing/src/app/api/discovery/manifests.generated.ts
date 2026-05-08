@@ -145,6 +145,87 @@ export const MANIFESTS = [
     }
   },
   {
+    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/mi-argentina",
+    "version": "0.1.0",
+    "description": "Mi Argentina (gov OIDC) as drop-in tools for the Vercel AI SDK. PKCE login, ID-token JWT verification with JWKS caching, userinfo, refresh.",
+    "tools": [
+      {
+        "name": "mi_argentina_start_login",
+        "description": "Start an OIDC login flow against Mi Argentina. Returns the authorize URL + state/nonce for replay protection."
+      },
+      {
+        "name": "mi_argentina_complete_login",
+        "description": "Exchange the OIDC code for an ID token + access token. Verifies the JWT signature against the cached JWKS."
+      },
+      {
+        "name": "mi_argentina_get_user_profile",
+        "description": "Fetch the authenticated user's profile (DNI, name, contact info) from the Mi Argentina userinfo endpoint."
+      },
+      {
+        "name": "mi_argentina_verify_id_token",
+        "description": "Verify an ID token JWT against Mi Argentina's published JWKS. Use to validate identity claims from upstream services."
+      },
+      {
+        "name": "mi_argentina_refresh_token",
+        "description": "Refresh an expired access token using a refresh token. Maintains long-lived sessions without forcing re-login."
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/firma-digital",
+    "version": "0.1.0",
+    "description": "AR digital signature primitives — PKCS#7/CMS verification with AC-Raíz/ONTI trust-anchor heuristic and certificate fingerprint pinning.",
+    "tools": [
+      {
+        "name": "firma_inspect_cert",
+        "description": "Inspect an X.509 certificate (subject, issuer, validity, fingerprint, AKI/SKI, key usage). Use before trusting any cert in a verification chain."
+      },
+      {
+        "name": "firma_verify_chain",
+        "description": "Verify an X.509 chain of trust against a configurable AR trust anchor (defaults to AC-Raíz / ONTI heuristic). Returns the chain depth + the trust-anchor identity."
+      },
+      {
+        "name": "firma_is_onti_issued",
+        "description": "Predicate: does this certificate ultimately chain to an ONTI-issued AC-Raíz root? Use to gate operations that require state-issued PKI identity."
+      },
+      {
+        "name": "firma_verify_cms_signature",
+        "description": "Verify a PKCS#7/CMS detached or attached signature against a payload. Returns the signer chain + claim of authenticity."
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/gde-tad",
+    "version": "0.2.0",
+    "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
+    "tools": [
+      {
+        "name": "get_critical_notifications",
+        "description": "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana."
+      },
+      {
+        "name": "list_domicilio_inbox",
+        "description": "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona, con severidad calculada (critical/important/info) por organismo + asunto + deadline."
+      },
+      {
+        "name": "list_mis_tramites",
+        "description": "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Read-only."
+      },
+      {
+        "name": "validate_igj_inscription",
+        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+      }
+    ],
+    "name": "@ar-agents/gde-tad",
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 4
+    }
+  },
+  {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/mercadopago",
     "version": "0.17.2",
@@ -807,6 +888,343 @@ export const MANIFESTS = [
     }
   },
   {
+    "$schema": "https://ar-agents.vercel.app/schema/tools-manifest.json",
+    "package": "@ar-agents/mercadolibre",
+    "version": "0.1.0",
+    "description": "Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",
+    "site_ids": [
+      "MLA",
+      "MLB",
+      "MLM",
+      "MLC",
+      "MCO",
+      "MPE",
+      "MLU"
+    ],
+    "tools": [
+      {
+        "name": "list_my_items",
+        "summary": "List the configured seller's listings (active, paused, or closed).",
+        "input": {
+          "status": {
+            "type": "enum",
+            "values": [
+              "active",
+              "paused",
+              "closed",
+              "all"
+            ],
+            "optional": true
+          },
+          "search": {
+            "type": "string",
+            "optional": true,
+            "description": "Free-text filter applied to title."
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50,
+            "max": 100
+          }
+        },
+        "output": {
+          "items": {
+            "type": "array",
+            "of": "ItemSummary"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "get_item",
+        "summary": "Fetch a single listing by id.",
+        "input": {
+          "itemId": {
+            "type": "string",
+            "description": "Site-prefixed item id, e.g. MLA1402155766."
+          }
+        },
+        "output": "Item",
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "create_item",
+        "summary": "Create a new listing.",
+        "input": "ItemCreateRequest",
+        "output": {
+          "id": "string",
+          "status": "string",
+          "permalink": "string"
+        },
+        "side_effects": "creates a real listing on MELI",
+        "rate_limit_class": "write",
+        "preconditions": [
+          "category_id must exist for the configured site",
+          "listing_type_id must be valid for the seller's reputation level"
+        ]
+      },
+      {
+        "name": "update_item_price_or_stock",
+        "summary": "Update price and/or available_quantity on an existing listing.",
+        "input": {
+          "itemId": "string",
+          "price": {
+            "type": "number",
+            "optional": true
+          },
+          "available_quantity": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": "ItemSummary",
+        "side_effects": "modifies the listing",
+        "rate_limit_class": "write",
+        "idempotent": true,
+        "notes": "available_quantity = 0 auto-pauses the listing."
+      },
+      {
+        "name": "categorize_listing_and_plan_attributes",
+        "summary": "Predict the category for a free-text title and return the required attributes.",
+        "input": {
+          "title": "string",
+          "siteId": {
+            "type": "string",
+            "optional": true,
+            "description": "Defaults to the toolkit's configured site."
+          }
+        },
+        "output": {
+          "predicted": {
+            "category_id": "string",
+            "name": "string",
+            "path": "array<string>"
+          },
+          "requiredAttributeIds": "array<string>",
+          "technicalSpecs": "TechnicalSpecResponse"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "list_unanswered_questions",
+        "summary": "List questions on the seller's listings that haven't been answered.",
+        "input": {
+          "itemId": {
+            "type": "string",
+            "optional": true
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50
+          }
+        },
+        "output": {
+          "questions": "array<Question>",
+          "total": "number"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "answer_question",
+        "summary": "Post an answer to a question.",
+        "input": {
+          "questionId": "number",
+          "text": {
+            "type": "string",
+            "max_length": 2000
+          }
+        },
+        "output": {
+          "id": "number",
+          "text": "string",
+          "status": "string"
+        },
+        "side_effects": "writes a public answer visible on the listing",
+        "rate_limit_class": "write"
+      },
+      {
+        "name": "classify_question_spam",
+        "summary": "Heuristic spam classifier — labels a question as spam, borderline, or ham.",
+        "input": {
+          "questionText": "string",
+          "askerProfile": {
+            "account_age_days": {
+              "type": "number",
+              "optional": true
+            },
+            "answered_questions": {
+              "type": "number",
+              "optional": true
+            }
+          },
+          "recentQuestionsByThisAsker": {
+            "type": "array<string>",
+            "optional": true
+          }
+        },
+        "output": {
+          "label": {
+            "type": "enum",
+            "values": [
+              "spam",
+              "borderline",
+              "ham"
+            ]
+          },
+          "score": {
+            "type": "number",
+            "range": "0..1"
+          },
+          "features": "QuestionSpamFeatures"
+        },
+        "side_effects": "none — pure local function, no MELI call",
+        "rate_limit_class": "none"
+      },
+      {
+        "name": "list_recent_orders",
+        "summary": "List the seller's recent orders.",
+        "input": {
+          "status": {
+            "type": "enum",
+            "values": [
+              "paid",
+              "confirmed",
+              "cancelled",
+              "invalid",
+              "all"
+            ],
+            "optional": true
+          },
+          "dateFrom": {
+            "type": "ISO8601",
+            "optional": true
+          },
+          "dateTo": {
+            "type": "ISO8601",
+            "optional": true
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50
+          }
+        },
+        "output": {
+          "orders": "array<OrderSummary>",
+          "total": "number"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "defaults": "if no status, returns paid + confirmed; if no dateFrom, returns last 24h"
+      },
+      {
+        "name": "get_order",
+        "summary": "Fetch a single order with full detail (items, payments, buyer billing).",
+        "input": {
+          "orderId": "number"
+        },
+        "output": "Order",
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "list_open_claims",
+        "summary": "List open claims/disputes/mediations for the seller, sorted by due_date ASC.",
+        "input": {
+          "stage": {
+            "type": "enum",
+            "values": [
+              "claim",
+              "dispute",
+              "mediation"
+            ],
+            "optional": true
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50
+          }
+        },
+        "output": {
+          "claims": "array<Claim>",
+          "total": "number"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "defend_claim",
+        "summary": "Defend a claim — uploads N evidences in parallel + optional message.",
+        "input": {
+          "claimId": "number",
+          "evidences": "array<{ evidence_type, text?, file_id? }>",
+          "message": {
+            "type": "string",
+            "optional": true
+          }
+        },
+        "output": {
+          "claim": "Claim",
+          "uploadedEvidences": "array<{ type: EvidenceType }>",
+          "messagePosted": "{ message: string } | null"
+        },
+        "side_effects": "uploads evidences + posts a message visible to the buyer + MELI mediator",
+        "rate_limit_class": "write"
+      },
+      {
+        "name": "get_seller_reputation",
+        "summary": "Read the seller's reputation (thermometer + metrics + pre-evaluated alerts).",
+        "input": {
+          "sellerId": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": {
+          "level_id": {
+            "type": "enum",
+            "values": [
+              "5_green",
+              "4_light_green",
+              "3_yellow",
+              "2_orange",
+              "1_red"
+            ]
+          },
+          "metrics": "SellerReputationMetrics",
+          "alerts": "array<ReputationAlert>"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "list_promotion_candidates",
+        "summary": "List items eligible for current MELI promotions (discount % suggested by MELI).",
+        "input": {
+          "sellerId": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": {
+          "candidates": "array<PromotionCandidate>"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      }
+    ]
+  },
+  {
     "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/whatsapp",
     "version": "0.4.0",
@@ -1104,31 +1522,87 @@ export const MANIFESTS = [
   },
   {
     "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/gde-tad",
-    "version": "0.2.0",
-    "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
+    "package": "@ar-agents/igj",
+    "version": "0.1.0",
+    "description": "Inspección General de Justicia (IGJ) public registry primitives — search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",
     "tools": [
       {
-        "name": "get_critical_notifications",
-        "description": "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana."
+        "name": "igj_search_entities",
+        "description": "Full-text search the IGJ corporate registry by name. Returns a paginated list with denominación, CUIT, tipo societario, status."
       },
       {
-        "name": "list_domicilio_inbox",
-        "description": "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona, con severidad calculada (critical/important/info) por organismo + asunto + deadline."
+        "name": "igj_get_entity",
+        "description": "Fetch a single IGJ-registered entity by CUIT or registry number. Includes inscripción/baja status, last update."
       },
       {
-        "name": "list_mis_tramites",
-        "description": "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Read-only."
+        "name": "igj_get_domicilios",
+        "description": "List the registered domicilios (legal/real/fiscal) for an IGJ entity. Useful for verifying counterparties before contracting."
       },
       {
-        "name": "validate_igj_inscription",
-        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+        "name": "igj_get_autoridades",
+        "description": "Fetch the registered authorities (directorio, sindicatura, gerencia) for an entity, with start/end dates of their mandate."
+      },
+      {
+        "name": "igj_get_balances",
+        "description": "List filed balance-sheet metadata for an entity. Includes filing date and the period covered (the actual balance-sheet PDFs are not yet exposed via the public CKAN)."
+      },
+      {
+        "name": "igj_get_asambleas",
+        "description": "List filed shareholder/partner asambleas for an entity (date, type, registered minutes ID)."
       }
-    ],
-    "name": "@ar-agents/gde-tad",
-    "meta": {
-      "generated_by": "scripts/regen-manifests.mjs",
-      "tool_count": 4
-    }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/boletin-oficial",
+    "version": "0.1.0",
+    "description": "Boletín Oficial de la República Argentina — search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",
+    "tools": [
+      {
+        "name": "bo_search",
+        "description": "Full-text search the Boletín Oficial archive. Filter by organismo, fecha range, keyword. Returns ranked normas with summary + publication date."
+      },
+      {
+        "name": "bo_get_norma",
+        "description": "Fetch a single norma by its BO id. Returns the full body + metadata (issuing organism, date, sumario)."
+      },
+      {
+        "name": "bo_today",
+        "description": "Fetch all normas published in today's Boletín Oficial. Useful for the morning operating loop on a sociedad-IA."
+      },
+      {
+        "name": "bo_subscribe",
+        "description": "Subscribe to BO updates by CUIT, organismo, or keyword. Notifications are dispatched via the configured webhook."
+      },
+      {
+        "name": "bo_list_subscriptions",
+        "description": "List all active BO subscriptions for the current tenant."
+      },
+      {
+        "name": "bo_unsubscribe",
+        "description": "Cancel a BO subscription by id. Used by the agent to retire stale watch criteria."
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/ap2",
+    "version": "0.2.0",
+    "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
+    "tools": []
+  },
+  {
+    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/agentic-commerce-bridge",
+    "version": "5.0.0",
+    "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP). LLM-buyer-facing checkout sessions, signed webhooks, /.well-known/acp.json discovery, AR-fiscal compliance (auto-issued AFIP/ARCA factura). Infrastructure package — no LLM tool surface.",
+    "tools": []
+  },
+  {
+    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/mcp",
+    "version": "0.9.0",
+    "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package — exposes the underlying tool surface via stdio transport.",
+    "tools": []
   }
 ] as const;

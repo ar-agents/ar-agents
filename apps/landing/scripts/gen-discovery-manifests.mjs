@@ -14,12 +14,20 @@ const MONO_ROOT = resolve(APP_ROOT, "..", "..");                 // ar-agents
 const PKGS_WITH_TOOLS = [
   "identity",
   "identity-attest",
+  "mi-argentina",
+  "firma-digital",
+  "gde-tad",
   "mercadopago",
+  "mercadolibre",
   "whatsapp",
   "banking",
   "facturacion",
   "shipping",
-  "gde-tad",
+  "igj",
+  "boletin-oficial",
+  "ap2",
+  "agentic-commerce-bridge",
+  "mcp",
 ];
 
 // On Vercel monorepo deploys the landing root is uploaded with the workspace

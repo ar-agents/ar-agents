@@ -106,7 +106,7 @@ const PACKAGE_GRAPH = `flowchart LR
 export const metadata: Metadata = {
   title: "Architecture",
   description:
-    "Canonical reference for the @ar-agents/* stack: 15 packages, 133 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
+    "Canonical reference for the @ar-agents/* stack: 16 packages, 168 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
   alternates: { canonical: "https://ar-agents.vercel.app/architecture" },
 };
 
@@ -170,6 +170,14 @@ const PACKAGES: PackageRow[] = [
     category: "payments",
     external: "api.mercadopago.com",
     notes: "Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Cuotas, QR, 3DS, Point.",
+  },
+  {
+    name: "@ar-agents/mercadolibre",
+    version: "0.1.0",
+    tools: 15,
+    category: "payments",
+    external: "api.mercadolibre.com",
+    notes: "First faithful TS SDK since the official one was archived in 2022. Items + catalog + questions/messages + claims + shipments + reputation + promotions + webhooks with /missed_feeds replay.",
   },
   {
     name: "@ar-agents/banking",
@@ -290,7 +298,7 @@ export default function ArchitecturePage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>The 15 packages</DocH2>
+      <DocH2>The 16 packages</DocH2>
 
       <MermaidDiagram
         chart={PACKAGE_GRAPH}
