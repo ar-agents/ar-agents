@@ -1,5 +1,20 @@
 # @ar-agents/agentic-commerce-bridge
 
+## 2.1.0
+
+### Minor Changes
+
+- [`9b8e83c`](https://github.com/ar-agents/ar-agents/commit/9b8e83ce6f291a24e00101830a49afceb0102920) - Expose the `/vercel-kv` subpath in `package.json` exports.
+
+  The dist already shipped `vercel-kv.{js,cjs,d.ts}` from the previous release, but `exports` only declared the root entry — making `import { VercelKVStateAdapter } from "@ar-agents/agentic-commerce-bridge/vercel-kv"` resolve to a path-not-exported error.
+
+  Fixes that. `typesVersions` updated for legacy resolvers.
+
+### Patch Changes
+
+- Updated dependencies [[`9b8e83c`](https://github.com/ar-agents/ar-agents/commit/9b8e83ce6f291a24e00101830a49afceb0102920)]:
+  - @ar-agents/mercadopago@0.17.2
+
 ## 2.0.0
 
 ### Patch Changes
