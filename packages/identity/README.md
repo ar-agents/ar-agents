@@ -6,6 +6,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/@ar-agents/identity.svg)](https://www.npmjs.com/package/@ar-agents/identity)
 [![license](https://img.shields.io/npm/l/@ar-agents/identity.svg)](./LICENSE)
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
+[![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/identity.svg)](https://bundlephobia.com/package/@ar-agents/identity)
 
 Validates Argentine taxpayer identifiers in pure-algorithm mode out of the box (no setup, no API call, sub-millisecond), and looks them up against AFIP's padrón webservice through a pluggable adapter when you wire one. Built for the Vercel AI SDK 6 `Experimental_Agent` and any caller of `tool()`.
