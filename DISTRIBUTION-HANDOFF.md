@@ -1,6 +1,6 @@
 # ar-agents distribution handoff
 
-State as of 2026-05-07. What's already shipped vs. what needs your hands.
+State as of 2026-05-08 (Friday morning Argentina). Updated after the autonomous push pass.
 
 ---
 
@@ -9,11 +9,18 @@ State as of 2026-05-07. What's already shipped vs. what needs your hands.
 | Surface | Status | URL |
 |---|---|---|
 | /llms.txt for LLM crawlers | live | https://ar-agents.vercel.app/llms.txt |
+| Schema.org JSON-LD on landing | live (SoftwareApplication + Org + Person) | https://ar-agents.vercel.app |
 | Glama MCP registry | listed + badge | https://glama.ai/mcp/servers/ar-agents/ar-agents |
 | punkpeye/awesome-mcp-servers PR | open with badge | https://github.com/punkpeye/awesome-mcp-servers/pull/6016 |
+| **TensorBlock/awesome-mcp-servers PR** | **open** | **https://github.com/TensorBlock/awesome-mcp-servers/pull/512** |
+| **YuzeHao2023/Awesome-MCP-Servers PR** | **open** | **https://github.com/YuzeHao2023/Awesome-MCP-Servers/pull/228** |
 | vercel/examples PR | open, mergeable | https://github.com/vercel/examples/pull/1477 |
 | vercel/ai tools-registry PR | open, awaiting review | https://github.com/vercel/ai/pull/15099 |
 | npm provenance attestations | 8 packages, SLSA v1 | https://registry.npmjs.org/-/npm/v1/attestations/@ar-agents%2fmercadopago@0.15.3 |
+| **OpenSSF Scorecard workflow** | **shipped (runs weekly + on push)** | https://github.com/ar-agents/ar-agents/actions/workflows/scorecard.yml |
+| **README badges** | **CI + Scorecard + npm version + downloads + bundle + types + Glama** | https://github.com/ar-agents/ar-agents |
+| **@ar-agents/mcp@0.4.11** | **published with `mcpName: "io.github.ar-agents/mcp"` + provenance** | https://www.npmjs.com/package/@ar-agents/mcp |
+| `packages/mcp/server.json` | committed; ready for `mcp-publisher publish` | — |
 | GitHub topics for Glama discovery | mcp, mcp-server, model-context-protocol added | https://github.com/ar-agents/ar-agents |
 | Dependabot PR #4 (pnpm/action-setup 4.4.0) | merged | — |
 
@@ -21,9 +28,34 @@ State as of 2026-05-07. What's already shipped vs. what needs your hands.
 
 ## Needs your hands (in order of leverage)
 
-### 1. Open the appcypher/awesome-mcp-servers PR via web UI
+### 1. Publish to the official MCP Registry — **highest leverage** (5 min)
 
-GitHub soft-rate-limited my account from creating new PRs after I opened 4 in a day. The branch + commit are ready; you just click through the web UI.
+The official registry at `registry.modelcontextprotocol.io` is the App Store of MCP. We've prepared everything: `mcpName` in `package.json`, `server.json` in `packages/mcp/`, and the package is published to npm with provenance.
+
+You only need 3 commands:
+
+```bash
+# 1. Install the publisher CLI
+brew install mcp-publisher
+
+# 2. Authenticate via GitHub device flow (interactive, one-time)
+cd packages/mcp
+mcp-publisher login github
+
+# 3. Publish
+mcp-publisher publish
+```
+
+Verify with:
+```bash
+curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp"
+```
+
+The registry name is `io.github.ar-agents/mcp` — works because you're admin of the `ar-agents` GitHub org.
+
+### 2. Open the appcypher/awesome-mcp-servers PR via web UI (1 min)
+
+GitHub blocks my account from creating new PRs to `appcypher` specifically. The branch is ready:
 
 **One-click compare URL:**
 https://github.com/appcypher/awesome-mcp-servers/compare/main...naza00000:awesome-mcp-servers-1:add-ar-agents
@@ -46,13 +78,11 @@ Adds ar-agents/mcp to the Finance section. Bundles 7 packages:
 
 Glama listing: https://glama.ai/mcp/servers/ar-agents/ar-agents
 Live demos: https://ar-agents.vercel.app
-
-All packages ship `AGENTS.md` per the agents.md convention plus machine-readable `tools.manifest.json` so MCP hosts can introspect tool schemas.
 ```
 
-### 2. Sign in to Smithery + publish
+### 3. Sign in to Smithery + publish (5 min)
 
-Smithery is the second-largest MCP registry (after Glama). Submission requires sign-in (free, GitHub OAuth).
+Smithery is the second-largest MCP registry (after Glama).
 
 1. Go to https://smithery.ai/new
 2. Sign in with GitHub
@@ -61,11 +91,11 @@ Smithery is the second-largest MCP registry (after Glama). Submission requires s
    - **Directory:** `packages/mcp`
    - **Name:** `ar-agents`
    - **Description:** copy from `apps/landing/public/llms.txt`
-4. Submit. Smithery auto-builds from the Dockerfile we shipped at `packages/mcp/Dockerfile`.
+4. Submit. Smithery auto-builds from `packages/mcp/Dockerfile`.
 
-### 3. Hacker News — Show HN
+### 4. Hacker News — Show HN (5 min)
 
-Post via your account around 9-10am EST on a weekday for max front-page exposure.
+Post via your account around 10am EDT (= 11am ART today, since we're in EDT not EST).
 
 **Title:** `Show HN: Mercado Pago Agent Toolkit – 89 typed tools for the Vercel AI SDK 6`
 (80 chars exactly — HN limit)
@@ -89,7 +119,8 @@ returns the existing resource instead of double-charging).
 
 The npm package ships AGENTS.md per agents.md convention, machine-readable
 tools.manifest.json, and 9 production cookbook recipes. Edge-runtime support
-ships via Web Crypto with no node:crypto.
+ships via Web Crypto with no node:crypto. Every tarball is signed with npm
+provenance attestations (SLSA v1).
 
 The landing has a "Try it with a live agent" button that runs Claude Sonnet
 4.6 via Vercel AI Gateway against mocked MP tools, no signup needed.
@@ -102,55 +133,13 @@ Sidecar packages (each shippable on its own):
 - @ar-agents/shipping (Andreani/OCA/Correo Argentino)
 - @ar-agents/mcp (MCP server bundling all 7 for Claude Desktop / Cursor)
 
-License: MIT. Open to feedback on the agent ergonomics — what would make this
-easier to drop in?
+License: MIT. Listed on Glama and the official MCP Registry. Open to feedback
+on the agent ergonomics — what would make this easier to drop in?
 ```
 
-### 4. DMs to Vercel/Anthropic-adjacent creators
+### 5. Vercel Community Discord — #show-and-tell (2 min)
 
-Each one is a separate cold DM. Don't batch — feels spammy. One per day max.
-
-#### 4a. Lee Robinson (@leerob)
-```
-Hey Lee — built this on top of Vercel AI SDK 6: 89 typed Mercado Pago tools
-(Subscriptions, Payments, Cuotas, 3DS, Marketplace OAuth) wired up as Edge-
-Runtime-safe primitives with idempotency-by-default and webhook HMAC
-verification. Uses AI Gateway for the model routing.
-
-ar-agents.vercel.app — there's a "Try it with a live agent" button that runs
-Sonnet 4.6 against mocked MP tools, no signup.
-
-Would love your eyes on it from an agent-ergonomics POV.
-```
-
-#### 4b. Theo (@t3dotgg)
-```
-Hey Theo — Argentine dev here. I built a Vercel AI SDK toolkit for Mercado
-Pago (the Stripe of LATAM). 89 typed tools with HITL on irreversible ops,
-idempotency-by-default, npm provenance, edge-runtime safe.
-
-Live demo with mocked MP tools running Sonnet 4.6 via AI Gateway:
-ar-agents.vercel.app
-
-Curious if you'd cover this — the LATAM payments stack hasn't really had its
-agent moment yet.
-```
-
-#### 4c. swyx (@swyx)
-```
-Hey swyx — building agent-ergonomics around the LATAM payment stack. Open-
-source toolkit for Mercado Pago (89 typed tools for Vercel AI SDK 6) plus
-sidecar packages for AFIP, WhatsApp, AR banking, shipping. Each ships
-AGENTS.md per the agents.md convention.
-
-ar-agents.vercel.app
-
-Let me know if it'd fit your "Latent Space" coverage of agent infra.
-```
-
-### 5. Vercel Community Discord — #show-and-tell
-
-Server: https://vercel.com/discord  Channel: `#show-and-tell`
+https://vercel.com/discord → `#show-and-tell`:
 
 ```
 Just shipped ar-agents — Mercado Pago Agent Toolkit for Vercel AI SDK 6 🇦🇷
@@ -167,17 +156,53 @@ Live demo runs Sonnet 4.6 via AI Gateway: ar-agents.vercel.app
 Open source, MIT.
 ```
 
-### 6. Anthropic Discord — #show-and-tell
+### 6. Anthropic Discord — #show-and-tell (2 min)
 
-Server: https://discord.com/invite/anthropic  Channel: `#show-and-tell` or `#projects`
+https://discord.com/invite/anthropic → `#show-and-tell` or `#projects`. Same copy as Vercel.
 
-(Same copy as Vercel, but emphasize Sonnet 4.6 via Gateway and the AGENTS.md convention.)
+### 7. DMs to Vercel/Anthropic creators (one per day)
 
-### 7. Reddit — r/MercadoPago + r/programacion + r/typescript
+#### swyx (@swyx) — recommended first, most receptive to indie devs
+```
+Hey swyx — building agent-ergonomics around the LATAM payment stack. Open-
+source toolkit for Mercado Pago (89 typed tools for Vercel AI SDK 6) plus
+sidecar packages for AFIP, WhatsApp, AR banking, shipping. Each ships
+AGENTS.md per the agents.md convention.
 
-Post once per subreddit, spaced 24h apart. Each subreddit has different vibes.
+ar-agents.vercel.app
 
-**r/MercadoPago** (small but high signal — they care):
+Let me know if it'd fit your "Latent Space" coverage of agent infra.
+```
+
+#### Theo (@t3dotgg)
+```
+Hey Theo — Argentine dev here. I built a Vercel AI SDK toolkit for Mercado
+Pago (the Stripe of LATAM). 89 typed tools with HITL on irreversible ops,
+idempotency-by-default, npm provenance, edge-runtime safe.
+
+Live demo with mocked MP tools running Sonnet 4.6 via AI Gateway:
+ar-agents.vercel.app
+
+Curious if you'd cover this — the LATAM payments stack hasn't really had its
+agent moment yet.
+```
+
+#### Lee Robinson (@leerob)
+```
+Hey Lee — built this on top of Vercel AI SDK 6: 89 typed Mercado Pago tools
+(Subscriptions, Payments, Cuotas, 3DS, Marketplace OAuth) wired up as Edge-
+Runtime-safe primitives with idempotency-by-default and webhook HMAC
+verification. Uses AI Gateway for the model routing.
+
+ar-agents.vercel.app — there's a "Try it with a live agent" button that runs
+Sonnet 4.6 against mocked MP tools, no signup.
+
+Would love your eyes on it from an agent-ergonomics POV.
+```
+
+### 8. Reddit posts (one subreddit per day)
+
+**r/MercadoPago** (small but high signal):
 ```
 Title: Toolkit open source para usar Mercado Pago desde un agente IA (Vercel AI SDK 6)
 
@@ -195,7 +220,7 @@ Demo en vivo (Sonnet 4.6 via Vercel AI Gateway, MP mockeado): ar-agents.vercel.a
 Feedback bienvenido.
 ```
 
-**r/typescript** (focus on agent ergonomics, not LATAM specifics):
+**r/typescript**:
 ```
 Title: Mercado Pago Agent Toolkit for Vercel AI SDK 6 — 89 typed tools, Edge Runtime, idempotency by default
 
@@ -214,18 +239,24 @@ Live demo runs Claude Sonnet 4.6 via Vercel AI Gateway against mocked MP tools: 
 Open to feedback on the API shape.
 ```
 
-**r/programacion** (Spanish AR dev community):
+**r/programacion** (Spanish AR dev community): same body as r/MercadoPago.
+
+### 9. Glama Discord — nudge crawler indexing (optional, 2 min)
+
+Glama listing has `tools: []` because their crawler hasn't built our Dockerfile yet. The `awesome-mcp-servers` bot wants a quality score before the maintainer merges. Speed it up:
+
+https://glama.ai/discord → `#mcp-servers` or `#support`:
 ```
-Title: ar-agents — toolkit open source para que tu agente LLM use Mercado Pago, AFIP, WhatsApp, BCRA, Andreani
-
-(same body as r/MercadoPago)
+Hi! Submitted my open-source MCP server `ar-agents/ar-agents` (Argentine
+business toolkit, 7 packages bundled) yesterday — listing is approved with
+`tools: []`. Could someone trigger the introspection crawler? The Dockerfile
+is at `packages/mcp/Dockerfile`. Need the quality score for an awesome-mcp-
+servers PR (#6016). Thanks!
 ```
 
-### 8. Vercel newsletter submission
+### 10. Vercel newsletter submission (2 min)
 
-Form: https://vercel.com/blog/submit (or via DM to @vercel team on Discord)
-
-The newsletter goes to ~100k devs. Worth submitting.
+Form: https://vercel.com/blog/submit (or DM @vercel team in Discord).
 
 ```
 Project: ar-agents — Mercado Pago Agent Toolkit for Vercel AI SDK 6
@@ -243,9 +274,19 @@ banking (CBU/BCRA), and shipping (Andreani/OCA/Correo Argentino). MIT.
 
 ## Worth waiting on (don't action yet)
 
-- **mcp.so submit form is broken** (JS exception `__name is not defined`). Try again in a day.
-- **modelcontextprotocol/servers** has only "Reference Servers" + "Frameworks" sections. No community section, so they don't accept third-party PRs.
-- **wong2/awesome-mcp-servers** has only "Official" and "Community" sections, no Finance category. Could submit but the entry would feel buried.
+- **mcp.so submit form is broken** (JS exception `__name is not defined`). Try in a day.
+- **modelcontextprotocol/servers** has only "Reference Servers" + "Frameworks" sections. No third-party PRs.
+- **wong2/awesome-mcp-servers** has no Finance category, would feel buried.
+- **chatmcp/mcpso** is just the source code for mcp.so; their server list lives in a Supabase DB, not in the repo.
+
+---
+
+## What's improving in the background
+
+- **Glama quality score**: their crawler will build `packages/mcp/Dockerfile`, run introspection, and assign a score. Then the awesome-mcp-servers bot will OK PR #6016.
+- **Socket Security re-score**: now that `@ar-agents/mercadopago@0.15.3` ships with provenance attestation, Socket should re-rate the Supply Chain score above the previous 79. Will refresh on any PR that adds the package as a dependency (vercel/examples PR will trigger it).
+- **OpenSSF Scorecard**: first run will publish to https://api.scorecard.dev/projects/github.com/ar-agents/ar-agents. The badge in the README will go live once the workflow runs (next push or Monday 08:00 UTC).
+- **Schema.org JSON-LD**: Google AI Overviews, Bing, Perplexity will index the structured data on next crawl. SEO benefit accrues over weeks.
 
 ---
 
@@ -254,9 +295,9 @@ banking (CBU/BCRA), and shipping (Andreani/OCA/Correo Argentino). MIT.
 - Re-attempt mcp.so submit (their site might be fixed)
 - DMs to Theo / Lee / swyx (one per day, max)
 - Reddit posts (one subreddit per day)
-- Track Glama quality score (currently `tools: []`, will populate when their crawler builds the Dockerfile and introspects the server)
-- Keep an eye on Socket Security re-scoring `@ar-agents/mercadopago@0.15.3` with provenance — should bump Supply Chain from 79 → 90+
+- Track Glama indexing
+- Watch OpenSSF Scorecard score on first run
 
 ---
 
-Nothing else is blocking. Foundation is solid (CI green, security clean, provenance live, Glama listed). Just distribution from here on out.
+Foundation: solid. Distribution: 80% mine, 20% yours from here. The high-leverage move today is the official MCP Registry publish (3 commands).
