@@ -1,0 +1,278 @@
+# ar-agents — full reference for LLM crawlers
+
+> Mercado Pago Agent Toolkit for the Vercel AI SDK 6. 89 typed tools across the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts). Plus sidecar packages for AFIP/ARCA, WhatsApp Business, banking (CBU/BCRA), shipping (Andreani/OCA/Correo Argentino), and identity attestation. Open source, MIT, npm provenance, Edge-Runtime safe.
+
+This file is `llms-full.txt`, an extension of [`llms.txt`](/llms.txt) per the [llmstxt.org](https://llmstxt.org) spec. Where `llms.txt` is a short index, `llms-full.txt` carries the deep content an LLM needs to answer questions about the project without re-crawling.
+
+## TL;DR
+
+- **What it is**: Drop Mercado Pago into your AI agent. 89 typed Vercel AI SDK 6 tools.
+- **Author**: [Nazareno Clemente](https://github.com/naza00000), independent Argentine developer.
+- **License**: MIT.
+- **Install**: `pnpm add @ar-agents/mercadopago ai zod`
+- **Demo (no signup)**: <https://ar-agents.vercel.app>
+- **Source**: <https://github.com/ar-agents/ar-agents>
+- **Listed on**: [Glama](https://glama.ai/mcp/servers/ar-agents/ar-agents), [official MCP Registry](https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp).
+
+## Why this exists
+
+Every Argentine SaaS dev has had to hand-roll Mercado Pago integration:
+
+- Idempotency keys that an LLM retry won't break.
+- Webhook HMAC verification with the 5-minute replay window MP requires.
+- The cuotas (installment) catalog, with per-issuer promo rules and the RG 5286/2023 disclosure text.
+- The 30+ `status_detail` codes that explain why a payment was rejected.
+- The marketplace OAuth dance.
+- The 3DS challenge resolution flow.
+- Manual capture, partial captures, refunds, disputes.
+
+The official `mercadopago` SDK is a thin REST client. Useful for a server-rendered checkout. Useless when you want an LLM agent to drive the billing flow.
+
+`ar-agents` solves that.
+
+## Architecture
+
+```
+Your Next.js / Edge / Workers app
+  └── Vercel AI SDK 6 Experimental_Agent
+        ├── @ar-agents/mercadopago      → api.mercadopago.com (89 tools)
+        ├── @ar-agents/identity         → AFIP/ARCA WSAA + ws_sr_constancia_inscripcion (CUIT, padron)
+        ├── @ar-agents/facturacion      → AFIP/ARCA WSFE (factura electronica)
+        ├── @ar-agents/whatsapp         → Meta WhatsApp Cloud API
+        ├── @ar-agents/banking          → CBU local + BCRA Central de Deudores
+        ├── @ar-agents/shipping         → Andreani / OCA / Correo Argentino
+        └── @ar-agents/identity-attest  → HMAC-signed verification orchestrator
+
+Pluggable state adapters (subpath imports):
+  @ar-agents/mercadopago/vercel-kv  → state · OAuth · idempotency · audit · ratelimit
+  @ar-agents/mercadopago/otel       → OpenTelemetry instrumentation
+
+Packaged for MCP hosts:
+  @ar-agents/mcp                    → bundles all 7 over Model Context Protocol
+                                      (Claude Desktop, Cursor, Continue, Cline, etc.)
+```
+
+The agent picks tools from natural-language prompts. Each package is an independent npm release; there are no cross-package runtime dependencies beyond the optional adapter subpaths.
+
+## Quick start
+
+```ts
+import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import {
+  MercadoPagoClient,
+  mercadoPagoTools,
+  InMemoryStateAdapter,
+} from "@ar-agents/mercadopago";
+
+const mp = new MercadoPagoClient({
+  accessToken: process.env.MP_ACCESS_TOKEN!, // TEST- for sandbox, APP_USR- for prod
+});
+
+const agent = new Agent({
+  model: "anthropic/claude-sonnet-4-6",
+  instructions: "Sos un asistente de billing para una SaaS argentina.",
+  tools: mercadoPagoTools(mp, {
+    state: new InMemoryStateAdapter(),
+    backUrl: "https://yoursite.com/done",
+  }),
+  stopWhen: stepCountIs(8),
+});
+
+const { text } = await agent.generate({
+  prompt: "Cobrale $25.000 mensual a juan@example.com con razón Plan Pro.",
+});
+```
+
+The agent picks `create_subscription`, returns an `init_point_url` you send to the customer, and the rest of the flow (first payment confirmation, recurring charges, webhooks) just works.
+
+## What's in @ar-agents/mercadopago (89 tools across 17 areas)
+
+| Area | Tools | Notes |
+| --- | :---: | --- |
+| Subscriptions (Pre-approval) | 7 | `create_subscription`, `get_subscription`, `update_subscription`, `cancel_subscription`, `pause_subscription`, `resume_subscription`, `search_subscriptions` |
+| Subscription plans (Pre-approval plans) | 4 | `create_subscription_plan`, `get_subscription_plan`, `update_subscription_plan`, `list_subscription_plans` |
+| Payments | 6 | `create_payment`, `get_payment`, `search_payments`, `capture_payment`, `cancel_payment`, `update_payment` |
+| Refunds | 2 | `refund_payment` (HITL), `get_refund` |
+| Checkout Pro (Preferences) | 4 | `create_payment_preference`, `get_payment_preference`, `update_payment_preference`, `search_preferences` |
+| Marketplace OAuth | 4 | `start_marketplace_oauth`, `complete_marketplace_oauth`, `refresh_marketplace_token`, `revoke_marketplace_token` |
+| Order Management (Merchant Orders) | 3 | `get_merchant_order`, `search_merchant_orders`, `update_merchant_order` |
+| Customers | 4 | `create_customer`, `get_customer`, `update_customer`, `search_customers` |
+| Saved cards | 5 | `create_customer_card`, `get_customer_card`, `list_customer_cards`, `delete_customer_card` (HITL), `tokenize_card` |
+| Cuotas (Installments) | 3 | `find_applicable_promos` (per-issuer catalog with RG 5286/2023), `compute_installments_disclosure`, `get_installment_options` |
+| QR in-store | 5 | `create_qr_static`, `create_qr_dynamic`, `update_qr_dynamic`, `delete_qr_dynamic` (HITL), `get_qr_static_payments` |
+| 3DS | 2 | `confirm_3ds_challenge`, `poll_3ds_status` |
+| Point devices (physical retail) | 5 | `list_point_devices`, `update_point_device_mode`, `create_point_payment_intent`, `get_point_payment_intent`, `cancel_point_payment_intent` |
+| Stores + POS | 6 | `create_store`, `get_store`, `update_store`, `delete_store` (HITL), `create_pos`, `update_pos` |
+| Account / Balance / Settlements | 6 | `get_account_balance`, `list_settlements`, `get_settlement_detail`, `list_disputes`, `get_dispute_detail`, `respond_to_dispute` |
+| Lookups | 11 | `lookup_payment_methods`, `lookup_currencies`, `lookup_bank_codes`, `lookup_taxes`, `lookup_id_types`, `lookup_card_issuers`, `validate_tax_id`, `explain_payment_status`, `compute_marketplace_fee`, `get_idempotency_status`, `pagination_helper` |
+| Bank Accounts | 2 | `list_bank_accounts`, `register_bank_account` |
+| Webhooks | 10 | `verify_webhook_signature`, `parse_webhook_event`, `dedupe_webhook_id`, `register_webhook_subscription`, etc. |
+
+8 tools are gated behind a programmatic `requireConfirmation` callback (refund, cancel, delete operations).
+
+## Sidecar packages
+
+### @ar-agents/identity (2 tools)
+
+- `validate_cuit` — pure-algorithm CUIT/CUIL validation.
+- `lookup_padron` — AFIP/ARCA `ws_sr_constancia_inscripcion` (returns nombre, monotributo categoría, condición IVA, impuestos, domicilio fiscal). Default service. Falls back to `ws_sr_padron_a13` if you pass `service: "ws_sr_padron_a13"`.
+
+PEM-string mode for serverless (cert + key as env vars). Edge-Runtime safe.
+
+### @ar-agents/facturacion (10 tools)
+
+AFIP/ARCA factura electrónica via WSFE.
+
+- `crear_factura` — Factura A/B/C, monotributo C.
+- `crear_nota_credito` — NC.
+- `crear_nota_debito` — ND.
+- `crear_factura_credito` — FCE MiPyMEs (Factura de Crédito Electrónica).
+- `consultar_cae` — CAE lookup with 10-most-common rejection-reason validator that runs locally before the round trip.
+- `consultar_comprobante`, `ultimo_autorizado`, `puntos_de_venta`, `tipos_comprobante`, `condiciones_iva_receptor`.
+
+### @ar-agents/whatsapp (6 tools)
+
+Meta WhatsApp Business Cloud API.
+
+- `send_text` / `send_template` / `send_media` / `send_buttons` / `send_list` / `mark_whatsapp_read`.
+- AR phone normalizer (handles +54 9 11..., 011..., legacy 15 prefix).
+- Webhook + HMAC-SHA256 verify.
+- `scopedTo` mode binds outbound tools to a single sender.
+
+### @ar-agents/banking (5 tools)
+
+- `validate_cbu` — pure-algorithm CBU/CVU validation, returns bank/PSP inline.
+- `lookup_bank_by_code`, `list_banks`, `list_psps`.
+- `lookup_credit_situation` — BCRA Central de Deudores (worstSituation 0-6 + per-entity breakdown).
+
+### @ar-agents/shipping (6 tools)
+
+Andreani (full REST), OCA (cotizar + sucursales), Correo Argentino (cotizar + trackear + sucursales).
+
+- `cotizar_envio`, `cotizar_envio_todos`, `crear_envio`, `trackear_envio`, `cancelar_envio`, `listar_sucursales`.
+- Provincia + CPA helpers, address pre-validation.
+
+### @ar-agents/identity-attest (5 tools)
+
+Verification orchestrator. Methods: WhatsApp OTP, email magic-link, Auth0, Magic.link, MP Identity. Returns HMAC-signed attestation with `trustLevel` (0.0–1.0).
+
+### @ar-agents/mcp (1 server bundling all 7)
+
+Model Context Protocol server. One install in Claude Desktop, Cursor, Codeium, Continue, Cline, or any MCP host. Auto-detects which packages to enable from environment variables.
+
+```json
+{
+  "mcpServers": {
+    "ar-agents": {
+      "command": "npx",
+      "args": ["-y", "@ar-agents/mcp"],
+      "env": {
+        "MP_ACCESS_TOKEN": "TEST-...",
+        "AFIP_CERT_PEM": "-----BEGIN CERTIFICATE-----...",
+        "WHATSAPP_ACCESS_TOKEN": "EAAB..."
+      }
+    }
+  }
+}
+```
+
+Listed on https://glama.ai/mcp/servers/ar-agents/ar-agents and https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp.
+
+## Production patterns
+
+### Idempotency by default
+
+Every `POST` request gets an auto-generated UUID idempotency key. For LLM-driven retries, four mutating tools (`create_payment`, `create_subscription`, `create_payment_preference`, `refund_payment`) use a deterministic key derived from a SHA-256 hash of the meaningful inputs. Same input → same key → MP dedupes server-side.
+
+### Webhook verification
+
+```ts
+import { verifyWebhookSignature, parseWebhookEvent } from "@ar-agents/mercadopago";
+
+export async function POST(req: Request) {
+  const url = new URL(req.url);
+  const rawBody = await req.text();
+  const event = parseWebhookEvent(JSON.parse(rawBody), url.searchParams);
+
+  const ok = await verifyWebhookSignature({
+    requestId: req.headers.get("x-request-id"),
+    dataId: event!.dataId,
+    signatureHeader: req.headers.get("x-signature"),
+    secret: process.env.MP_WEBHOOK_SECRET!,
+  });
+  if (!ok) return new Response("Invalid signature", { status: 401 });
+  // process event…
+}
+```
+
+5-minute replay window built in. Constant-time HMAC comparison. The `WebhookDedup` helper short-circuits MP's own at-least-once retries.
+
+### Programmatic HITL
+
+```ts
+mercadoPagoTools(mp, {
+  state: new InMemoryStateAdapter(),
+  backUrl: "https://yoursite.com/done",
+  requireConfirmation: async (toolName, params) => {
+    return await askUserUI(toolName, params); // your UI
+  },
+});
+```
+
+The 8 irreversible tools won't execute until your callback returns `true`.
+
+### Distributed rate limiting
+
+```ts
+import { VercelKVRateLimiter } from "@ar-agents/mercadopago/vercel-kv";
+
+const limiter = new VercelKVRateLimiter({
+  key: "mp-account-prod",
+  capacity: 50,
+  refillPerSecond: 25,
+});
+```
+
+### OpenTelemetry
+
+```ts
+import { instrumentMercadoPagoClient } from "@ar-agents/mercadopago/otel";
+
+const mp = instrumentMercadoPagoClient(
+  new MercadoPagoClient({ accessToken: process.env.MP_ACCESS_TOKEN! })
+);
+```
+
+W3C Trace Context propagation via the `traceContext` option.
+
+## How it compares
+
+|                                              | `@ar-agents/mercadopago` | `mercadopago` (official) | Stripe Agent Toolkit |
+| -------------------------------------------- | :----------------------: | :----------------------: | :------------------: |
+| Vercel AI SDK 6 tool schemas                 | ✓                        | no                       | ✓ (Stripe)           |
+| Argentine-specific (cuotas, ARCA, AR phone)  | ✓                        | partial                  | no                   |
+| Tool count                                   | 89                       | thin REST client         | 26 (Stripe)          |
+| Webhooks: HMAC + dedup + replay window       | ✓                        | client only              | ✓                    |
+| Edge Runtime + Vercel KV adapters            | ✓                        | Node-only                | optional             |
+| OpenTelemetry instrumentation                | ✓                        | no                       | no                   |
+| Deterministic idempotency by default         | ✓                        | no                       | no                   |
+| Programmatic HITL on irreversible ops        | ✓                        | no                       | no                   |
+| MercadoPago coverage                         | full                     | full                     | n/a                  |
+
+## Distribution surfaces
+
+- npm: <https://www.npmjs.com/org/ar-agents>
+- Glama MCP registry: <https://glama.ai/mcp/servers/ar-agents/ar-agents>
+- Official MCP Registry: <https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp>
+- GitHub: <https://github.com/ar-agents/ar-agents>
+- Cookbook (9 production recipes): <https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago/cookbook>
+- AGENTS.md per package (LLM-readable): every `packages/*/AGENTS.md`
+- Machine-readable tool manifests: every `packages/*/tools.manifest.json`
+
+## Author
+
+[Nazareno Clemente](https://github.com/naza00000) (`@naza-ar` on npm). Independent developer based in Buenos Aires, Argentina. Previously building agentic infrastructure for Argentine SMBs.
+
+## License
+
+MIT. Every published package ships SLSA v1 npm provenance attestation, signed at build time by the GitHub Actions runner.
