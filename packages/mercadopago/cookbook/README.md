@@ -23,6 +23,8 @@ deploy on Vercel as-is.
 | 13  | `13-anti-fraud-middleware.ts`     | Pre-charge heuristics (CUIT, payer history, velocity, promo abuse)      |
 | 14  | `14-marketplace-onboarding.ts`    | End-to-end seller-onboarding: CUIT → AFIP → OAuth → test charge → fee   |
 | 15  | `15-prorated-pause-resume.ts`     | Pause with prorated refund, resume with adjusted next-billing date      |
+| 16  | `16-acp-checkout-with-factura.ts` | Agentic Commerce Protocol checkout that auto-emits AFIP/ARCA Factura A/B/C/E |
+| 17  | `17-usa-llc-companion.ts`         | USA-LLC agent (ClawBank/doola/MIDAO) consuming AR ops via @ar-agents/mcp     |
 
 ## Conventions
 
