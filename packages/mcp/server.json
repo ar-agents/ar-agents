@@ -1,7 +1,7 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
   "name": "io.github.ar-agents/mcp",
-  "description": "Argentine business automation MCP server. Bundles 7 ar-agents packages: Mercado Pago (89 tools across Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Cuotas, QR, 3DS, Point devices), AFIP/ARCA (CUIT validation + padron lookup + factura electronica WSFE), WhatsApp Business Cloud, banking (CBU/CVU + BCRA Central de Deudores), shipping (Andreani/OCA/Correo Argentino), and identity-attest (HMAC-signed verification orchestrator).",
+  "description": "Argentine business automation: Mercado Pago, AFIP/ARCA, WhatsApp, banking, shipping (7 packages).",
   "repository": {
     "url": "https://github.com/ar-agents/ar-agents",
     "source": "github",
