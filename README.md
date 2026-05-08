@@ -3,8 +3,13 @@
 > **Mercado Pago Agent Toolkit.** Built on Vercel.
 
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ar-agents/ar-agents/badge)](https://scorecard.dev/viewer/?uri=github.com/ar-agents/ar-agents)
 [![license](https://img.shields.io/github/license/ar-agents/ar-agents.svg)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/@ar-agents/mercadopago?label=%40ar-agents%2Fmercadopago)](https://www.npmjs.com/package/@ar-agents/mercadopago)
+[![npm downloads](https://img.shields.io/npm/dm/@ar-agents/mercadopago.svg?label=npm%20downloads)](https://www.npmjs.com/package/@ar-agents/mercadopago)
+[![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/mercadopago.svg?label=bundle)](https://bundlephobia.com/package/@ar-agents/mercadopago)
+[![types](https://img.shields.io/npm/types/@ar-agents/mercadopago.svg)](https://arethetypeswrong.github.io/?p=@ar-agents/mercadopago)
+[![ar-agents on Glama](https://glama.ai/mcp/servers/ar-agents/ar-agents/badges/score.svg)](https://glama.ai/mcp/servers/ar-agents/ar-agents)
 
 [`@ar-agents/mercadopago`](./packages/mercadopago) is a Mercado Pago Agent
 Toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6 `Experimental_Agent`.

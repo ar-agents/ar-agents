@@ -1,5 +1,15 @@
 # Changelog
 
+## 0.4.11
+
+### Patch Changes
+
+- Add `mcpName: "io.github.ar-agents/mcp"` to `package.json` and ship `server.json` for the official MCP Registry. The `mcpName` field is the ownership-verification marker required by the registry's npm package validation. `server.json` is the registry metadata file consumed by `mcp-publisher publish`.
+
+  This is the prerequisite for listing on https://registry.modelcontextprotocol.io. Authentication and the `mcp-publisher publish` invocation are still manual (interactive GitHub device auth), but everything else is in place: the package metadata, the registry server descriptor, and the MIT license + GitHub `repository.url` that the registry verifier expects.
+
+  No API or runtime changes.
+
 ## 0.4.10
 
 ### Patch Changes
