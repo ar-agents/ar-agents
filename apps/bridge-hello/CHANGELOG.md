@@ -1,5 +1,12 @@
 # bridge-hello
 
+## 0.1.2
+
+### Patch Changes
+
+- Updated dependencies [[`7b6bb8c`](https://github.com/ar-agents/ar-agents/commit/7b6bb8c550ee827fa3aa57e837b7948b81449b40)]:
+  - @ar-agents/agentic-commerce-bridge@3.0.0
+
 ## 0.1.1
 
 ### Patch Changes
