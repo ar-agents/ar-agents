@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Address } from "./address.js";
+import { Address } from "./address";
 
 // ACP `PaymentData` — provided by the agent on `complete`. The protocol is
 // open about credential families — `spt` (Stripe Shared Payment Token),

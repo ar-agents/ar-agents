@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/identity",
   "version": "0.5.1",
-  "description": "Argentine identity validation (CUIT/CUIL) + AFIP padrón lookup as drop-in tools for the Vercel AI SDK. Algorithm-only out of the box; AFIP webservice via pluggable adapter when a cert is wired.",
+  "description": "Argentine identity validation (CUIT/CUIL) + AFIP padr\u00f3n lookup as drop-in tools for the Vercel AI SDK. Algorithm-only out of the box; AFIP webservice via pluggable adapter when a cert is wired.",
   "keywords": [
     "afip",
     "cuit",
@@ -64,6 +64,7 @@
   },
   "files": [
     "dist",
+    "bin",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
@@ -115,5 +116,8 @@
   },
   "dependencies": {
     "node-forge": "^1.4.0"
+  },
+  "bin": {
+    "identity": "./bin/identity.js"
   }
 }

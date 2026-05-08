@@ -14,11 +14,16 @@ import {
   buildFacturacionTools,
   describeFacturacionConfig,
 } from "./registries/facturacion";
+import {
+  buildFirmaDigitalTools,
+  describeFirmaDigitalConfig,
+} from "./registries/firma-digital";
 import { buildIdentityTools, describeIdentityConfig } from "./registries/identity";
 import {
   buildIdentityAttestTools,
   describeIdentityAttestConfig,
 } from "./registries/identity-attest";
+import { buildIgjTools, describeIgjConfig } from "./registries/igj";
 import {
   buildMercadoPagoTools,
   describeMercadoPagoConfig,
@@ -31,7 +36,7 @@ import { buildShippingTools, describeShippingConfig } from "./registries/shippin
 import { buildWhatsAppTools, describeWhatsAppConfig } from "./registries/whatsapp";
 
 const SERVER_NAME = "ar-agents";
-const SERVER_VERSION = "0.5.0";
+const SERVER_VERSION = "0.6.0";
 
 /**
  * Build the @ar-agents/mcp server. Inspects environment variables to decide
@@ -49,6 +54,8 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     buildFacturacionTools(),
     buildShippingTools(),
     buildBoletinOficialTools(),
+    buildIgjTools(),
+    buildFirmaDigitalTools(),
   ]);
 
   const summary = [
@@ -62,6 +69,8 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     `  facturacion     → ${describeFacturacionConfig()}`,
     `  shipping        → ${describeShippingConfig()}`,
     `  boletin-oficial → ${describeBoletinOficialConfig()}`,
+    `  igj             → ${describeIgjConfig()}`,
+    `  firma-digital   → ${describeFirmaDigitalConfig()}`,
   ];
 
   const server = new Server(

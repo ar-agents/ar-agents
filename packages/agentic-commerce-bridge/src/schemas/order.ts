@@ -1,7 +1,7 @@
 import { z } from "zod";
-import { Amount, Currency, ISODateTime, Metadata } from "./common.js";
-import { Address } from "./address.js";
-import { Total } from "./totals.js";
+import { Amount, Currency, ISODateTime, Metadata } from "./common";
+import { Address } from "./address";
+import { Total } from "./totals";
 
 // ACP `Order` — returned on `complete`, also wire format for the
 // order-events webhook. The `status` enum is OPEN — implementations MUST

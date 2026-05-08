@@ -157,8 +157,12 @@ export const EN = {
     "Mi Argentina OIDC (login with the AR government identity). PKCE, RS256 ID-token verification, JWKS caching, refresh, end-session. Web Crypto only — runs on Edge.",
   pp_boletin_oficial:
     "Boletín Oficial as a structured firehose: search, filter by sección, get norma by id, subscribe to keywords/CUITs/organismos. The 'Vercel for legal monitoring' that the AR ecosystem was missing.",
+  pp_igj:
+    "Inspección General de Justicia (IGJ) open data: search entities, fetch domicilios / autoridades / balances / asambleas. Wraps the public CKAN at datos.jus.gob.ar. Sample dataset (not real-time) — `coverageNote` surfaces every result.",
+  pp_firma_digital:
+    "Argentine Firma Digital (Ley 25.506 / ONTI) verification: parse X.509 certs, verify chains anchored at AC-Raíz Argentina, verify CMS / PKCS#7 detached signatures, extract CUIT from signer subject. Verification only — signing requires hardware tokens.",
   pp_mcp:
-    "MCP server bundling all 9 packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
+    "MCP server bundling all 11 packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
 
   // quick start
   quick_h2: "Quick start",
@@ -320,8 +324,12 @@ export const ES: Translations = {
     "OIDC de Mi Argentina (login con la identidad del gobierno argentino). PKCE, verificación RS256 del ID token, JWKS cacheado, refresh, end-session. Solo Web Crypto — corre en Edge.",
   pp_boletin_oficial:
     "Boletín Oficial como firehose estructurado: búsqueda, filtro por sección, obtener norma por id, suscripciones por keyword/CUIT/organismo. El 'Vercel for legal monitoring' que faltaba en el ecosistema AR.",
+  pp_igj:
+    "Inspección General de Justicia (IGJ) datos abiertos: búsqueda de entidades, domicilios / autoridades / balances / asambleas. Wrappea el CKAN público en datos.jus.gob.ar. Dataset es muestreo (no real-time) — `coverageNote` viaja con cada resultado.",
+  pp_firma_digital:
+    "Firma Digital argentina (Ley 25.506 / ONTI): parsea certs X.509, verifica cadenas ancladas en AC-Raíz Argentina, verifica firmas CMS / PKCS#7 desligadas, extrae CUIT del subject del firmante. Sólo verificación — la firma real requiere token físico.",
   pp_mcp:
-    "Servidor MCP que bundlea los 9 packages. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
+    "Servidor MCP que bundlea los 11 packages. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
 
   quick_h2: "Inicio rápido",
 

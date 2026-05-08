@@ -20,6 +20,9 @@ deploy on Vercel as-is.
 | 10  | `10-cross-package-billing.ts`     | One agent loop, 5 packages: identity + attest + MP + facturacion + WhatsApp |
 | 11  | `11-dunning-sequence.ts`          | Failed-payment recovery loop with multi-step dunning + cancel-with-retention |
 | 12  | `12-reconciliation-pipeline.ts`   | Daily MP↔internal-DB reconciliation cron with discrepancy report        |
+| 13  | `13-anti-fraud-middleware.ts`     | Pre-charge heuristics (CUIT, payer history, velocity, promo abuse)      |
+| 14  | `14-marketplace-onboarding.ts`    | End-to-end seller-onboarding: CUIT → AFIP → OAuth → test charge → fee   |
+| 15  | `15-prorated-pause-resume.ts`     | Pause with prorated refund, resume with adjusted next-billing date      |
 
 ## Conventions
 

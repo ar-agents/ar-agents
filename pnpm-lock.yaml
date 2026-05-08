@@ -309,6 +309,34 @@ importers:
         specifier: ^4.4.3
         version: 4.4.3
 
+  packages/firma-digital:
+    dependencies:
+      node-forge:
+        specifier: ^1.4.0
+        version: 1.4.0
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.39
+        version: 20.19.39
+      '@types/node-forge':
+        specifier: ^1.3.14
+        version: 1.3.14
+      ai:
+        specifier: ^6.0.175
+        version: 6.0.175(zod@4.4.3)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.14)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3))
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
   packages/identity:
     dependencies:
       node-forge:
@@ -400,12 +428,18 @@ importers:
       '@ar-agents/facturacion':
         specifier: workspace:*
         version: link:../facturacion
+      '@ar-agents/firma-digital':
+        specifier: workspace:*
+        version: link:../firma-digital
       '@ar-agents/identity':
         specifier: workspace:*
         version: link:../identity
       '@ar-agents/identity-attest':
         specifier: workspace:*
         version: link:../identity-attest
+      '@ar-agents/igj':
+        specifier: workspace:*
+        version: link:../igj
       '@ar-agents/mercadopago':
         specifier: workspace:*
         version: link:../mercadopago

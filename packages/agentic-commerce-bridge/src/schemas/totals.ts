@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { Amount } from "./common.js";
+import { Amount } from "./common";
 
 // ACP `Total` — appears on line items, fulfillment options, and order-level.
 // Same shape everywhere.

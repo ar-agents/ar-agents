@@ -71,6 +71,8 @@ export default function ManifiestoPage() {
 @ar-agents/shipping         Andreani / OCA / Correo Argentino
 @ar-agents/mi-argentina     OIDC del gobierno argentino — login con CUIL
 @ar-agents/boletin-oficial  Firehose estructurado del BO con suscripciones
+@ar-agents/igj              IGJ datos abiertos — sociedades, autoridades, balances
+@ar-agents/firma-digital    Verificación Ley 25.506 / ONTI — certs y CMS
 @ar-agents/mcp              MCP server unificado para todos los anteriores`}
       </DocBlock>
 

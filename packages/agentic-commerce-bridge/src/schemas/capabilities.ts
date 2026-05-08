@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { ApiVersion, Currency, Locale } from "./common.js";
+import { ApiVersion, Currency, Locale } from "./common";
 
 // ACP §3 capability negotiation. Three sub-objects: `payment`, `interventions`,
 // `extensions`. The agent declares its capabilities on the create-session

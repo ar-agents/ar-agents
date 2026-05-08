@@ -85,6 +85,22 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
     demo: null,
   },
   {
+    name: "@ar-agents/igj",
+    version: "0.1.0",
+    purposeKey: "pp_igj",
+    npm: "https://www.npmjs.com/package/@ar-agents/igj",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/igj",
+    demo: null,
+  },
+  {
+    name: "@ar-agents/firma-digital",
+    version: "0.1.0",
+    purposeKey: "pp_firma_digital",
+    npm: "https://www.npmjs.com/package/@ar-agents/firma-digital",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/firma-digital",
+    demo: null,
+  },
+  {
     name: "@ar-agents/shipping",
     version: "0.1.1",
     purposeKey: "pp_shipping",
@@ -94,7 +110,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/mcp",
-    version: "0.5.0",
+    version: "0.6.0",
     purposeKey: "pp_mcp",
     npm: "https://www.npmjs.com/package/@ar-agents/mcp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
