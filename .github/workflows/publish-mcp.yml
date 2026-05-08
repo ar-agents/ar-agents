@@ -1,0 +1,54 @@
+# Publish @ar-agents/mcp to the official MCP Registry
+# (https://registry.modelcontextprotocol.io).
+#
+# Authentication uses GitHub Actions OIDC — no PAT, no interactive login.
+# The registry's `/v0/auth/github-oidc` endpoint exchanges the workflow's
+# id-token for a short-lived publishing token, scoped to the
+# `io.github.ar-agents/` namespace (matched against the workflow's
+# `repository_owner` claim).
+#
+# Triggered:
+#   - manually via `gh workflow run publish-mcp.yml`
+#   - automatically on tags matching `@ar-agents/mcp@*`
+#     (changesets/action publishes those when the release pipeline runs)
+name: Publish to MCP Registry
+
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - "@ar-agents/mcp@*"
+
+jobs:
+  publish:
+    runs-on: ubuntu-latest
+    permissions:
+      # OIDC exchange with the MCP Registry.
+      id-token: write
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+
+      - name: Install mcp-publisher
+        run: |
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/latest/download/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" \
+            | tar xz mcp-publisher
+          chmod +x mcp-publisher
+
+      - name: Authenticate to MCP Registry (GitHub Actions OIDC)
+        run: ./mcp-publisher login github-oidc
+        working-directory: packages/mcp
+
+      - name: Publish server.json to MCP Registry
+        run: ../../mcp-publisher publish
+        working-directory: packages/mcp
+
+      - name: Verify listing
+        run: |
+          # Allow registry indexing to settle.
+          sleep 5
+          curl -fsS "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp" \
+            | head -c 4000
+          echo
