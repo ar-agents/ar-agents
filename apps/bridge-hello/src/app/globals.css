@@ -170,3 +170,311 @@ footer {
   color: var(--muted);
   font-size: 13px;
 }
+
+/* ============================================================================ */
+/* AP2 verifier section                                                        */
+/* ============================================================================ */
+
+.ap2-section {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 107, 53, 0.04) 0%,
+    transparent 100%
+  );
+  margin-top: 36px;
+  padding: 28px 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.tag-secondary {
+  color: var(--accent-2);
+}
+
+.tag-live {
+  background: rgba(34, 197, 94, 0.12);
+  color: rgb(34, 197, 94);
+  margin-right: 6px;
+}
+
+.tag-demo {
+  background: rgba(250, 204, 21, 0.12);
+  color: rgb(202, 138, 4);
+  margin-right: 6px;
+}
+
+.meli-section {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 232, 0, 0.05) 0%,
+    transparent 100%
+  );
+  margin-top: 36px;
+  padding: 28px 24px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+}
+
+.meli-section .endpoint-list .method {
+  width: 110px;
+  margin-right: 8px;
+}
+
+.ap2 {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin: 16px 0;
+}
+
+.ap2-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.btn {
+  font-family: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  padding: 9px 16px;
+  border-radius: 6px;
+  border: 1px solid var(--border);
+  cursor: pointer;
+  background: var(--card);
+  color: var(--fg);
+  transition: all 0.12s ease;
+}
+
+.btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: rgba(0, 212, 255, 0.05);
+}
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.btn-primary {
+  background: var(--accent);
+  color: #000;
+  border-color: var(--accent);
+}
+
+.btn-primary:hover:not(:disabled) {
+  background: #00b8e0;
+  border-color: #00b8e0;
+}
+
+.btn-secondary {
+  border-color: var(--accent-2);
+  color: var(--accent-2);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: rgba(255, 107, 53, 0.08);
+}
+
+.ap2-textarea {
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 12px;
+  background: var(--code-bg);
+  color: var(--fg);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 12px 14px;
+  resize: vertical;
+  min-height: 120px;
+  width: 100%;
+  line-height: 1.45;
+}
+
+.ap2-textarea:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
+.ap2-result {
+  margin-top: 8px;
+  padding: 16px 18px;
+  border-radius: 8px;
+  border: 1px solid var(--border);
+  background: var(--card);
+}
+
+.ap2-result.ap2-ok {
+  border-color: var(--good);
+  border-left-width: 3px;
+}
+
+.ap2-result.ap2-fail {
+  border-color: #ef4444;
+  border-left-width: 3px;
+}
+
+.ap2-result-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.ap2-status-pill {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+}
+
+.ap2-ok .ap2-status-pill {
+  background: rgba(74, 222, 128, 0.12);
+  color: var(--good);
+  border: 1px solid var(--good);
+}
+
+.ap2-fail .ap2-status-pill {
+  background: rgba(239, 68, 68, 0.12);
+  color: #ef4444;
+  border: 1px solid #ef4444;
+}
+
+.ap2-sd-hash {
+  font-size: 11.5px;
+  color: var(--muted);
+}
+
+.ap2-sd-hash code {
+  font-size: inherit;
+  word-break: break-all;
+}
+
+.ap2-reason {
+  font-size: 13px;
+  color: #ef4444;
+  background: rgba(239, 68, 68, 0.06);
+  padding: 8px 12px;
+  border-radius: 4px;
+  border-left: 2px solid #ef4444;
+  margin-bottom: 14px;
+}
+
+.ap2-steps {
+  margin-top: 4px;
+}
+
+.ap2-steps h3 {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 10px;
+}
+
+.ap2-steps ol {
+  list-style: none;
+  display: grid;
+  gap: 6px;
+}
+
+.ap2-steps li {
+  display: grid;
+  grid-template-columns: 22px 1fr;
+  gap: 8px;
+  padding: 8px 10px;
+  background: var(--code-bg);
+  border-radius: 4px;
+  font-size: 12.5px;
+  border: 1px solid transparent;
+}
+
+.ap2-steps li.step-ok {
+  border-color: rgba(74, 222, 128, 0.3);
+}
+
+.ap2-steps li.step-fail {
+  border-color: rgba(239, 68, 68, 0.3);
+}
+
+.ap2-steps .step-marker {
+  font-weight: 700;
+  text-align: center;
+  align-self: center;
+}
+
+.ap2-steps .step-ok .step-marker {
+  color: var(--good);
+}
+
+.ap2-steps .step-fail .step-marker {
+  color: #ef4444;
+}
+
+.ap2-steps .step-label {
+  font-weight: 600;
+  align-self: center;
+}
+
+.ap2-steps .step-detail {
+  grid-column: 2;
+  color: var(--muted);
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: 11.5px;
+  margin-top: 2px;
+  word-break: break-all;
+}
+
+.ap2-inner,
+.ap2-header {
+  margin-top: 14px;
+}
+
+.ap2-inner h3,
+.ap2-header h3 {
+  font-size: 12px;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--muted);
+  margin-bottom: 6px;
+}
+
+.ap2-inner pre,
+.ap2-header pre {
+  font-size: 11.5px;
+  margin: 0;
+}
+
+.ap2-details {
+  margin-top: 14px;
+  padding: 10px 14px;
+  background: var(--card);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 13px;
+}
+
+.ap2-details summary {
+  cursor: pointer;
+  user-select: none;
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.ap2-details summary:hover {
+  color: var(--accent-2);
+}
+
+.ap2-details ol {
+  margin-top: 12px;
+  padding-left: 20px;
+  display: grid;
+  gap: 6px;
+  color: var(--muted);
+}
+
+.ap2-details li code {
+  font-size: 11.5px;
+}

@@ -1,0 +1,183 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schema/tools-manifest.json",
+  "package": "@ar-agents/mercadolibre",
+  "version": "0.1.0",
+  "description": "Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",
+  "site_ids": ["MLA", "MLB", "MLM", "MLC", "MCO", "MPE", "MLU"],
+  "tools": [
+    {
+      "name": "list_my_items",
+      "summary": "List the configured seller's listings (active, paused, or closed).",
+      "input": {
+        "status": { "type": "enum", "values": ["active", "paused", "closed", "all"], "optional": true },
+        "search": { "type": "string", "optional": true, "description": "Free-text filter applied to title." },
+        "limit": { "type": "number", "optional": true, "default": 50, "max": 100 }
+      },
+      "output": {
+        "items": { "type": "array", "of": "ItemSummary" },
+        "total": { "type": "number" }
+      },
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    },
+    {
+      "name": "get_item",
+      "summary": "Fetch a single listing by id.",
+      "input": { "itemId": { "type": "string", "description": "Site-prefixed item id, e.g. MLA1402155766." } },
+      "output": "Item",
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    },
+    {
+      "name": "create_item",
+      "summary": "Create a new listing.",
+      "input": "ItemCreateRequest",
+      "output": { "id": "string", "status": "string", "permalink": "string" },
+      "side_effects": "creates a real listing on MELI",
+      "rate_limit_class": "write",
+      "preconditions": [
+        "category_id must exist for the configured site",
+        "listing_type_id must be valid for the seller's reputation level"
+      ]
+    },
+    {
+      "name": "update_item_price_or_stock",
+      "summary": "Update price and/or available_quantity on an existing listing.",
+      "input": {
+        "itemId": "string",
+        "price": { "type": "number", "optional": true },
+        "available_quantity": { "type": "number", "optional": true }
+      },
+      "output": "ItemSummary",
+      "side_effects": "modifies the listing",
+      "rate_limit_class": "write",
+      "idempotent": true,
+      "notes": "available_quantity = 0 auto-pauses the listing."
+    },
+    {
+      "name": "categorize_listing_and_plan_attributes",
+      "summary": "Predict the category for a free-text title and return the required attributes.",
+      "input": {
+        "title": "string",
+        "siteId": { "type": "string", "optional": true, "description": "Defaults to the toolkit's configured site." }
+      },
+      "output": {
+        "predicted": { "category_id": "string", "name": "string", "path": "array<string>" },
+        "requiredAttributeIds": "array<string>",
+        "technicalSpecs": "TechnicalSpecResponse"
+      },
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    },
+    {
+      "name": "list_unanswered_questions",
+      "summary": "List questions on the seller's listings that haven't been answered.",
+      "input": {
+        "itemId": { "type": "string", "optional": true },
+        "limit": { "type": "number", "optional": true, "default": 50 }
+      },
+      "output": { "questions": "array<Question>", "total": "number" },
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    },
+    {
+      "name": "answer_question",
+      "summary": "Post an answer to a question.",
+      "input": {
+        "questionId": "number",
+        "text": { "type": "string", "max_length": 2000 }
+      },
+      "output": { "id": "number", "text": "string", "status": "string" },
+      "side_effects": "writes a public answer visible on the listing",
+      "rate_limit_class": "write"
+    },
+    {
+      "name": "classify_question_spam",
+      "summary": "Heuristic spam classifier — labels a question as spam, borderline, or ham.",
+      "input": {
+        "questionText": "string",
+        "askerProfile": {
+          "account_age_days": { "type": "number", "optional": true },
+          "answered_questions": { "type": "number", "optional": true }
+        },
+        "recentQuestionsByThisAsker": { "type": "array<string>", "optional": true }
+      },
+      "output": {
+        "label": { "type": "enum", "values": ["spam", "borderline", "ham"] },
+        "score": { "type": "number", "range": "0..1" },
+        "features": "QuestionSpamFeatures"
+      },
+      "side_effects": "none — pure local function, no MELI call",
+      "rate_limit_class": "none"
+    },
+    {
+      "name": "list_recent_orders",
+      "summary": "List the seller's recent orders.",
+      "input": {
+        "status": { "type": "enum", "values": ["paid", "confirmed", "cancelled", "invalid", "all"], "optional": true },
+        "dateFrom": { "type": "ISO8601", "optional": true },
+        "dateTo": { "type": "ISO8601", "optional": true },
+        "limit": { "type": "number", "optional": true, "default": 50 }
+      },
+      "output": { "orders": "array<OrderSummary>", "total": "number" },
+      "side_effects": "none",
+      "rate_limit_class": "read",
+      "defaults": "if no status, returns paid + confirmed; if no dateFrom, returns last 24h"
+    },
+    {
+      "name": "get_order",
+      "summary": "Fetch a single order with full detail (items, payments, buyer billing).",
+      "input": { "orderId": "number" },
+      "output": "Order",
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    },
+    {
+      "name": "list_open_claims",
+      "summary": "List open claims/disputes/mediations for the seller, sorted by due_date ASC.",
+      "input": {
+        "stage": { "type": "enum", "values": ["claim", "dispute", "mediation"], "optional": true },
+        "limit": { "type": "number", "optional": true, "default": 50 }
+      },
+      "output": { "claims": "array<Claim>", "total": "number" },
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    },
+    {
+      "name": "defend_claim",
+      "summary": "Defend a claim — uploads N evidences in parallel + optional message.",
+      "input": {
+        "claimId": "number",
+        "evidences": "array<{ evidence_type, text?, file_id? }>",
+        "message": { "type": "string", "optional": true }
+      },
+      "output": {
+        "claim": "Claim",
+        "uploadedEvidences": "array<{ type: EvidenceType }>",
+        "messagePosted": "{ message: string } | null"
+      },
+      "side_effects": "uploads evidences + posts a message visible to the buyer + MELI mediator",
+      "rate_limit_class": "write"
+    },
+    {
+      "name": "get_seller_reputation",
+      "summary": "Read the seller's reputation (thermometer + metrics + pre-evaluated alerts).",
+      "input": { "sellerId": { "type": "number", "optional": true } },
+      "output": {
+        "level_id": { "type": "enum", "values": ["5_green", "4_light_green", "3_yellow", "2_orange", "1_red"] },
+        "metrics": "SellerReputationMetrics",
+        "alerts": "array<ReputationAlert>"
+      },
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    },
+    {
+      "name": "list_promotion_candidates",
+      "summary": "List items eligible for current MELI promotions (discount % suggested by MELI).",
+      "input": { "sellerId": { "type": "number", "optional": true } },
+      "output": { "candidates": "array<PromotionCandidate>" },
+      "side_effects": "none",
+      "rate_limit_class": "read"
+    }
+  ]
+}

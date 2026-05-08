@@ -1,0 +1,152 @@
+{
+  "name": "@ar-agents/mercadolibre",
+  "version": "0.1.0",
+  "description": "Production-grade Mercado Libre Agent Toolkit for the Vercel AI SDK 6. Wraps the agent-relevant MELI API surface — items + catalog (category predictor + domain technical specs), questions/messages, orders + packs, claims/mediation evidence, Mercado Envíos shipments, seller reputation monitor, promotions/candidates, webhooks with /missed_feeds replay. The first faithful TypeScript SDK since the official `mercadolibre/nodejs-sdk` was archived in February 2022.",
+  "keywords": [
+    "mercadolibre",
+    "meli",
+    "mla",
+    "mlb",
+    "mlm",
+    "ai-sdk",
+    "vercel-ai",
+    "vercel-ai-sdk",
+    "agent",
+    "agents",
+    "agentic",
+    "argentina",
+    "argentine",
+    "ar",
+    "latam",
+    "ecommerce",
+    "marketplace",
+    "category-predictor",
+    "items",
+    "questions",
+    "claims",
+    "mediation",
+    "mercado-envios",
+    "reputation",
+    "promotions",
+    "webhooks",
+    "missed-feeds",
+    "edge-runtime",
+    "oauth",
+    "mcp"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/mercadolibre",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/mercadolibre"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "typesVersions": {
+    "*": {
+      "ai-sdk": ["./dist/ai-sdk.d.ts"],
+      "testing": ["./dist/testing.d.ts"]
+    }
+  },
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./ai-sdk": {
+      "import": {
+        "types": "./dist/ai-sdk.d.ts",
+        "default": "./dist/ai-sdk.js"
+      },
+      "require": {
+        "types": "./dist/ai-sdk.d.cts",
+        "default": "./dist/ai-sdk.cjs"
+      }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "cookbook",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "SECURITY.md",
+    "tools.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run --exclude='test/integration/**' --exclude='test/bench/**'",
+    "test:integration": "vitest run test/integration/",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "bench": "vitest bench --run test/bench/",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured yet'",
+    "validate": "publint && attw --pack .",
+    "size": "size-limit",
+    "clean": "rm -rf dist"
+  },
+  "size-limit": [
+    {
+      "name": "ESM",
+      "path": "dist/index.js",
+      "limit": "60 KB",
+      "ignore": ["node:crypto", "crypto"]
+    }
+  ],
+  "peerDependencies": {
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ai": {
+      "optional": true
+    }
+  },
+  "devDependencies": {
+    "@fast-check/vitest": "^0.2.1",
+    "@types/node": "^20.19.39",
+    "ai": "^6.0.175",
+    "fast-check": "^4.7.0",
+    "msw": "^2.6.0",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

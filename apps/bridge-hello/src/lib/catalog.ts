@@ -1,9 +1,15 @@
-// Mock catalog. 5 demo products. Returned by `CatalogProvider.resolveItem`.
-//
-// In production, replace with `createMeliCatalogProvider({ getItem })`
-// from `@ar-agents/agentic-commerce-bridge` wired against MELI's REST API.
+// Hybrid catalog: live MELI when `MELI_ACCESS_TOKEN` is configured, otherwise
+// the 5-product demo set so the public bridge-hello deploy stays explorable
+// without credentials. Wires `@ar-agents/mercadolibre` (the MELI agent toolkit)
+// into `createMeliCatalogProvider` from `@ar-agents/agentic-commerce-bridge`.
 
-import type { ResolvedItem } from "@ar-agents/agentic-commerce-bridge";
+import {
+  createMeliCatalogProvider,
+  type CatalogProvider,
+  type MeliItem,
+  type ResolvedItem,
+} from "@ar-agents/agentic-commerce-bridge";
+import { MeliClient, getItem as meliGetItem } from "@ar-agents/mercadolibre";
 
 const PRODUCTS: Record<string, ResolvedItem> = {
   yerba_amanda: {
@@ -59,13 +65,60 @@ const PRODUCTS: Record<string, ResolvedItem> = {
 };
 
 /**
- * `CatalogProvider` factory. Suitable for `createFacilitator({ catalog })`.
+ * Mock catalog (the 5 demo products). Used when no `MELI_ACCESS_TOKEN`
+ * is configured.
  */
-export const demoCatalog = {
+const mockCatalog: CatalogProvider = {
   async resolveItem(id: string): Promise<ResolvedItem | null> {
     return PRODUCTS[id] ?? null;
   },
 };
+
+/**
+ * Real MELI-backed catalog, only built when MELI_ACCESS_TOKEN is set. Falls
+ * back to the mock catalog for non-`MLA…` ids so the demo storefront keeps
+ * working alongside live items.
+ */
+function buildMeliBackedCatalog(accessToken: string): CatalogProvider {
+  const client = new MeliClient({
+    auth: { kind: "bearer", accessToken },
+  });
+  const meliCatalog = createMeliCatalogProvider({
+    getItem: async (id: string) => {
+      try {
+        const item = await meliGetItem(client, id);
+        // Cast to the bridge's duck-typed MeliItem. The strict mercadolibre
+        // schema is a structural superset (allows null values in optional
+        // fields, has `name?: string` on attributes); the bridge tolerates
+        // both via `[k: string]: unknown` index access where needed.
+        return item as unknown as MeliItem;
+      } catch {
+        return null;
+      }
+    },
+    acceptedCurrencies: ["ars"],
+  });
+  return {
+    async resolveItem(id: string): Promise<ResolvedItem | null> {
+      if (id.startsWith("MLA") || id.startsWith("MLB") || id.startsWith("MLM")) {
+        return meliCatalog.resolveItem(id);
+      }
+      return mockCatalog.resolveItem(id);
+    },
+  };
+}
+
+export const meliCatalogStatus = (() => {
+  const token = process.env["MELI_ACCESS_TOKEN"];
+  if (token && token.length > 0) {
+    return { connected: true as const };
+  }
+  return { connected: false as const };
+})();
+
+export const demoCatalog: CatalogProvider = meliCatalogStatus.connected
+  ? buildMeliBackedCatalog(process.env["MELI_ACCESS_TOKEN"]!)
+  : mockCatalog;
 
 export const PRODUCT_IDS = Object.keys(PRODUCTS);
 export const PRODUCT_LIST = Object.values(PRODUCTS);

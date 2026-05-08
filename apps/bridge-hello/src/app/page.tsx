@@ -1,5 +1,6 @@
-import { PRODUCT_LIST } from "@/lib/catalog";
+import { PRODUCT_LIST, meliCatalogStatus } from "@/lib/catalog";
 import { facilitator } from "@/lib/facilitator";
+import { AP2Verifier } from "./components/AP2Verifier";
 
 export default async function HomePage() {
   const discovery = facilitator.discoveryPayload();
@@ -79,9 +80,29 @@ export default async function HomePage() {
       <section>
         <h2>Catalog</h2>
         <p>
-          Five demo products, all priced in ARS. Replace
-          <code> demoCatalog</code> in <code>src/lib/catalog.ts</code> with
-          <code> createMeliCatalogProvider({"{getItem}"})</code> in production.
+          {meliCatalogStatus.connected ? (
+            <>
+              <span className="tag tag-live">MELI live</span> Catalog is wired
+              against the live MELI REST API via{" "}
+              <a href="https://www.npmjs.com/package/@ar-agents/mercadolibre">
+                @ar-agents/mercadolibre
+              </a>
+              . Item ids that start with <code>MLA…</code> resolve in real
+              time; the demo ids below are still served from the local mock so
+              the storefront stays explorable.
+            </>
+          ) : (
+            <>
+              <span className="tag tag-demo">Demo mode</span> Five mock products
+              priced in ARS. Set <code>MELI_ACCESS_TOKEN</code> in your env
+              and the catalog auto-switches to live MELI lookups via{" "}
+              <a href="https://www.npmjs.com/package/@ar-agents/mercadolibre">
+                @ar-agents/mercadolibre
+              </a>{" "}
+              — one of the round-out toolbox packages shipped alongside the
+              bridge.
+            </>
+          )}
         </p>
         <div className="product-grid">
           {PRODUCT_LIST.map((p) => (
@@ -95,6 +116,69 @@ export default async function HomePage() {
             </div>
           ))}
         </div>
+      </section>
+
+      <section className="meli-section">
+        <span className="tag tag-secondary">Mercado Libre Agent Toolkit</span>
+        <h2>@ar-agents/mercadolibre — the SDK MELI stopped shipping</h2>
+        <p>
+          The official <code>mercadolibre/nodejs-sdk</code> was archived in
+          February 2022.{" "}
+          <a href="https://www.npmjs.com/package/@ar-agents/mercadolibre">
+            @ar-agents/mercadolibre
+          </a>{" "}
+          is the typed, AI-SDK-native replacement: 14 agent tools, 75 tests,
+          OAuth single-use refresh-token coalescing, <code>/myfeeds</code>{" "}
+          two-day replay, claim-defense pattern, reputation thermometer, and a
+          margin-guarded promo opt-in helper.
+        </p>
+        <ul className="endpoint-list">
+          <li>
+            <span className="method">items</span>get / multi-get / create /
+            update / pause / close / relist / search / scroll-iterate
+          </li>
+          <li>
+            <span className="method">categories</span>predict + technical-spec
+            planning in one call
+          </li>
+          <li>
+            <span className="method">questions</span>list / answer / blacklist
+            + heuristic spam classifier
+          </li>
+          <li>
+            <span className="method">orders</span>search / get / billing-info /
+            packs (cart vs single)
+          </li>
+          <li>
+            <span className="method">claims</span>search / evidences /
+            messages + the 2-day SLA <code>defendClaim</code> helper
+          </li>
+          <li>
+            <span className="method">shipments</span>history + label blob (ZPL
+            / PDF) + shipping options
+          </li>
+          <li>
+            <span className="method">reputation</span>thermometer alerts +
+            async-iterator monitor
+          </li>
+          <li>
+            <span className="method">promotions</span>candidates + auto-opt-in
+            with margin floor
+          </li>
+          <li>
+            <span className="method">webhooks</span>parse + 2-day{" "}
+            <code>/myfeeds</code> replay
+          </li>
+          <li>
+            <span className="method">/ai-sdk</span>14 Vercel AI SDK 6 tools
+            ready for <code>Experimental_Agent</code>
+          </li>
+          <li>
+            <span className="method">/testing</span>
+            <code>mockFetch()</code> builder + <code>makeMeliClient()</code>{" "}
+            factory
+          </li>
+        </ul>
       </section>
 
       <section>
@@ -149,6 +233,38 @@ export default async function HomePage() {
       }
     }
   }'`}</pre>
+      </section>
+
+      <section className="ap2-section">
+        <span className="tag tag-secondary">AP2 v0.2 mandate verifier</span>
+        <h2>Live AP2 mandate playground</h2>
+        <p>
+          Powered by{" "}
+          <a href="https://www.npmjs.com/package/@ar-agents/ap2">
+            @ar-agents/ap2
+          </a>
+          {" — "}
+          first faithful TypeScript implementation of the FIDO Alliance Agent
+          Payments Protocol v0.2 (single-hop + multi-hop dSD-JWT chains).
+          Click <strong>Issue a demo mandate</strong> to mint a fresh
+          ES256-signed Closed Checkout Mandate, then <strong>Verify</strong>{" "}
+          to walk the full canonical verification trail (parse → resolve
+          disclosures → compute sd_hash → verify signatures → confirm
+          checkout_hash).
+        </p>
+        <AP2Verifier />
+        <details className="ap2-details">
+          <summary>What does &quot;verify&quot; check?</summary>
+          <ol>
+            <li>SD-JWT VC compact serialization parses cleanly (RFC 9901).</li>
+            <li>Issuer JWS signature (ES256, P-256) matches the agent&apos;s public JWK.</li>
+            <li>Selective disclosures resolve to the issuer payload; <code>_sd</code> digests match.</li>
+            <li><code>sd_hash</code> = base64url(sha-256(presentation up to last <code>~</code>)).</li>
+            <li>For Closed Checkout Mandates: <code>checkout_hash</code> = base64url(sha-256(<code>checkout_jwt</code>)).</li>
+            <li>Inner <code>checkout_jwt</code> signature matches the merchant&apos;s public JWK and is signed with a non-deterministic algorithm (ECDSA family) — Ed25519 is forbidden per spec to defeat rainbow-table attacks.</li>
+            <li>For multi-hop chains: each hop&apos;s signature verifies under the previous hop&apos;s <code>cnf.jwk</code>; <code>aud</code> + <code>nonce</code> bound to terminal hop only.</li>
+          </ol>
+        </details>
       </section>
 
       <footer>
