@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/whatsapp",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "WhatsApp Business Cloud API as drop-in tools for the Vercel AI SDK. Send text/template/media messages, parse incoming webhooks, mark as read. AR-friendly defaults but works for any WABA.",
   "keywords": [
     "whatsapp",
