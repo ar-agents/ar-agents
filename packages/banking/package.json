@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/banking",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Argentine banking primitives (CBU/CVU validation + bank lookup) plus BCRA Central de Deudores AND BCRA Principales Variables (USD, CER, UVA, reservas, BADLAR, inflación) as drop-in tools for the Vercel AI SDK. Pure-algorithm out of the box; BCRA lookups via pluggable adapters.",
   "keywords": [
     "cbu",

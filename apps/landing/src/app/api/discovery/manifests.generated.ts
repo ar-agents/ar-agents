@@ -872,7 +872,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/banking",
-    "version": "0.3.0",
+    "version": "0.4.0",
     "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
     "tools": [
       {
@@ -945,7 +945,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/facturacion",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
     "tools": [
       {

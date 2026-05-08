@@ -1,5 +1,11 @@
 # @ar-agents/facturacion
 
+## 0.3.0
+
+### Minor Changes
+
+- [`4aaaecc`](https://github.com/ar-agents/ar-agents/commit/4aaaecc4bab0429f61bd034b60c0c77607562b20) - Add `@ar-agents/facturacion/testing` subpath with `MockWsfeClient` (public-method-compatible stand-in for `WsfeClient`) and result factories (`mockSolicitarCaeApproved`, `mockSolicitarCaeRejected`, `mockUltimoComprobante`, `mockConsultarComprobante`, `mockDummyOk`, `mockDummyDown`). Lets agent loops and recipes test factura-emission flows without a live AFIP/ARCA WSAA + WSFE round-trip.
+
 ## 0.2.0
 
 ### Minor Changes
