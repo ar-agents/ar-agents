@@ -885,6 +885,72 @@ export default function Home() {
           </div>
         </section>
 
+        {/* FAQ — visible Q&A so the same content lives in the DOM that the
+            FAQPage JSON-LD references. Search engines (and LLMs that don't
+            execute scripts) prefer the rendered text. <details> elements
+            collapse so it's not a wall of text on first paint. */}
+        <section
+          aria-labelledby="faq-heading"
+          style={{ marginBottom: 80 }}
+        >
+          <h2
+            id="faq-heading"
+            style={{
+              fontSize: "clamp(24px, 5vw, 32px)",
+              fontWeight: 600,
+              margin: "0 0 24px",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.2,
+              color: "var(--text)",
+            }}
+          >
+            {t.faq_h2}
+          </h2>
+          <div style={{ display: "grid", gap: 8 }}>
+            {[
+              { q: t.faq_q1, a: t.faq_a1 },
+              { q: t.faq_q2, a: t.faq_a2 },
+              { q: t.faq_q3, a: t.faq_a3 },
+              { q: t.faq_q4, a: t.faq_a4 },
+              { q: t.faq_q5, a: t.faq_a5 },
+              { q: t.faq_q6, a: t.faq_a6 },
+              { q: t.faq_q7, a: t.faq_a7 },
+            ].map(({ q, a }, i) => (
+              <details
+                key={i}
+                style={{
+                  background: "var(--bg)",
+                  borderRadius: 8,
+                  padding: "16px 20px",
+                  boxShadow: "var(--card-shadow)",
+                }}
+              >
+                <summary
+                  style={{
+                    cursor: "pointer",
+                    fontSize: 15,
+                    fontWeight: 500,
+                    color: "var(--text)",
+                    listStyle: "none",
+                  }}
+                >
+                  {q}
+                </summary>
+                <p
+                  style={{
+                    color: "var(--text-body)",
+                    fontSize: 14,
+                    lineHeight: 1.65,
+                    margin: "12px 0 0",
+                  }}
+                >
+                  {a}
+                </p>
+              </details>
+            ))}
+          </div>
+        </section>
+
         {/* FOOTER */}
         <footer
           style={{

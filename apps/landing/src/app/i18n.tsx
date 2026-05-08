@@ -160,6 +160,30 @@ export const EN = {
   comp_tier_50k_500k: "requires trust ≥ 0.5 (email_magic_link / mp_identity)",
   comp_tier_gt500k: "requires trust ≥ 0.7 (auth0 with MFA → 0.85)",
 
+  // faq
+  faq_h2: "Frequently asked questions",
+  faq_q1: "How is this different from the official mercadopago SDK?",
+  faq_a1:
+    "The official mercadopago SDK is a thin REST client. ar-agents adds Vercel AI SDK 6 tool schemas, deterministic idempotency keys (LLM-retry-safe), webhook HMAC verification with 5-minute replay window, programmatic HITL on 8 irreversible operations, Edge-Runtime support via Web Crypto, Vercel KV adapters, and OpenTelemetry instrumentation. You can use both packages in the same project.",
+  faq_q2: "Does it run on Edge Runtime?",
+  faq_a2:
+    "Yes. The whole package is Web Crypto-based with no node:crypto dependency. Runs on Vercel Edge, Cloudflare Workers, Deno, and any V8-isolate runtime. Webhook signature verification, HMAC, and idempotency keys all use the Web Crypto API.",
+  faq_q3: "What is HITL on irreversible operations?",
+  faq_a3:
+    "Eight tools mutate state irreversibly (refund_payment, cancel_subscription, delete_customer_card, etc.). The toolkit accepts a requireConfirmation callback that blocks execution until your code returns true. This is a programmatic gate, not just LLM instructions.",
+  faq_q4: "How does the deterministic idempotency work?",
+  faq_a4:
+    "Four mutating tools (create_payment, create_subscription, create_payment_preference, refund_payment) derive their idempotency key from a SHA-256 hash of the meaningful inputs. Same inputs → same key → MP dedupes server-side. An LLM retrying a tool call returns the existing resource instead of double-charging.",
+  faq_q5: "Is it free?",
+  faq_a5:
+    "Yes. MIT license. No paid tier, no telemetry, no usage caps. Every published tarball ships SLSA v1 npm provenance attestation.",
+  faq_q6: "What about AFIP, WhatsApp, banking, shipping?",
+  faq_a6:
+    "Sidecar packages cover the rest of the Argentine business stack. @ar-agents/identity (CUIT + AFIP/ARCA padron with monotributo + IVA), @ar-agents/facturacion (factura electronica WSFE), @ar-agents/whatsapp (Business Cloud API), @ar-agents/banking (CBU/CVU + BCRA Central de Deudores), @ar-agents/shipping (Andreani/OCA/Correo Argentino), @ar-agents/identity-attest (HMAC-signed verification orchestrator). Each ships independently.",
+  faq_q7: "Is there an MCP server?",
+  faq_a7:
+    "Yes. @ar-agents/mcp bundles all 7 packages into one MCP server compatible with Claude Desktop, Cursor, Codeium, Continue, Cline. Listed on Glama and the official MCP Registry as io.github.ar-agents/mcp.",
+
   // footer
   footer_by: "MIT ·",
   footer_report: "report an issue",
@@ -286,6 +310,30 @@ export const ES: Translations = {
   comp_tier_5k_50k: "requiere trust ≥ 0.3 (whatsapp_otp)",
   comp_tier_50k_500k: "requiere trust ≥ 0.5 (email_magic_link / mp_identity)",
   comp_tier_gt500k: "requiere trust ≥ 0.7 (auth0 con MFA → 0.85)",
+
+  // faq (ES)
+  faq_h2: "Preguntas frecuentes",
+  faq_q1: "¿En qué se diferencia del SDK oficial mercadopago?",
+  faq_a1:
+    "El SDK oficial mercadopago es un cliente REST básico. ar-agents agrega tool schemas del Vercel AI SDK 6, idempotency keys determinísticas (resistentes a retry de LLM), verificación de webhook HMAC con ventana de replay de 5 minutos, HITL programático en 8 operaciones irreversibles, soporte Edge Runtime via Web Crypto, adapters de Vercel KV, e instrumentación OpenTelemetry. Podés usar ambos packages en el mismo proyecto.",
+  faq_q2: "¿Corre en Edge Runtime?",
+  faq_a2:
+    "Sí. Todo el package usa Web Crypto, sin dependencia de node:crypto. Corre en Vercel Edge, Cloudflare Workers, Deno, y cualquier runtime V8-isolate. Verificación de webhooks, HMAC, e idempotency keys usan la Web Crypto API.",
+  faq_q3: "¿Qué es HITL en operaciones irreversibles?",
+  faq_a3:
+    "8 tools modifican estado irreversiblemente (refund_payment, cancel_subscription, delete_customer_card, etc). El toolkit acepta un callback requireConfirmation que bloquea la ejecución hasta que tu código devuelva true. Es un gate programático, no solo instrucciones al LLM.",
+  faq_q4: "¿Cómo funciona la idempotency determinística?",
+  faq_a4:
+    "Cuatro tools (create_payment, create_subscription, create_payment_preference, refund_payment) derivan la idempotency key de un hash SHA-256 de los inputs relevantes. Mismos inputs → misma key → MP deduplica server-side. Un LLM que reintenta un tool devuelve el recurso existente en vez de cobrar dos veces.",
+  faq_q5: "¿Es gratis?",
+  faq_a5:
+    "Sí. Licencia MIT. Sin tier pago, sin telemetría, sin límites de uso. Todos los tarballs publicados llevan attestation de provenance npm SLSA v1.",
+  faq_q6: "¿Qué hay de AFIP, WhatsApp, banking, shipping?",
+  faq_a6:
+    "Packages sidecar cubren el resto del stack argentino: @ar-agents/identity (CUIT + padrón AFIP/ARCA con monotributo + IVA), @ar-agents/facturacion (factura electrónica WSFE), @ar-agents/whatsapp (Business Cloud API), @ar-agents/banking (CBU/CVU + BCRA Central de Deudores), @ar-agents/shipping (Andreani/OCA/Correo Argentino), @ar-agents/identity-attest (orquestador de verificación HMAC). Cada uno se publica independiente.",
+  faq_q7: "¿Hay servidor MCP?",
+  faq_a7:
+    "Sí. @ar-agents/mcp bundlea los 7 packages en un único servidor MCP compatible con Claude Desktop, Cursor, Codeium, Continue, Cline. Listado en Glama y en el MCP Registry oficial como io.github.ar-agents/mcp.",
 
   footer_by: "MIT ·",
   footer_report: "reportar un issue",
