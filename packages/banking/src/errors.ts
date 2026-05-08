@@ -11,7 +11,9 @@ export type BankingErrorCode =
   | "bcra_cuit_not_found"
   | "bcra_service_unavailable"
   | "bcra_rate_limited"
-  | "bcra_unknown_error";
+  | "bcra_unknown_error"
+  | "bcra_vars_not_configured"
+  | "bcra_vars_unavailable";
 
 export class BankingError extends Error {
   constructor(
@@ -35,5 +37,19 @@ export class BcraNotConfiguredError extends BankingError {
       "BCRA Central de Deudores lookup is not configured. To enable, pass a `BcraDeudaAdapter` to `bankingTools()`. The default `BcraPublicApiAdapter` hits BCRA's public REST endpoint with no auth required: `bankingTools({ bcra: new BcraPublicApiAdapter() })`.",
     );
     this.name = "BcraNotConfiguredError";
+  }
+}
+
+/**
+ * Thrown when BCRA Principales Variables lookup is requested but no
+ * adapter is configured. Surface the message verbatim.
+ */
+export class BcraVarsNotConfiguredError extends BankingError {
+  constructor() {
+    super(
+      "bcra_vars_not_configured",
+      "BCRA Principales Variables lookup is not configured. To enable, pass a `BcraVarsAdapter` to `bankingTools()`. The default `BcraVarsPublicApiAdapter` hits BCRA's public REST API (no auth required): `bankingTools({ bcraVars: new BcraVarsPublicApiAdapter() })`.",
+    );
+    this.name = "BcraVarsNotConfiguredError";
   }
 }

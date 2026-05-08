@@ -7,6 +7,10 @@ import {
 import { combineToolSets } from "./adapter";
 import { buildBankingTools, describeBankingConfig } from "./registries/banking";
 import {
+  buildBoletinOficialTools,
+  describeBoletinOficialConfig,
+} from "./registries/boletin-oficial";
+import {
   buildFacturacionTools,
   describeFacturacionConfig,
 } from "./registries/facturacion";
@@ -19,11 +23,15 @@ import {
   buildMercadoPagoTools,
   describeMercadoPagoConfig,
 } from "./registries/mercadopago";
+import {
+  buildMiArgentinaTools,
+  describeMiArgentinaConfig,
+} from "./registries/mi-argentina";
 import { buildShippingTools, describeShippingConfig } from "./registries/shipping";
 import { buildWhatsAppTools, describeWhatsAppConfig } from "./registries/whatsapp";
 
 const SERVER_NAME = "ar-agents";
-const SERVER_VERSION = "0.4.0";
+const SERVER_VERSION = "0.5.0";
 
 /**
  * Build the @ar-agents/mcp server. Inspects environment variables to decide
@@ -33,23 +41,27 @@ const SERVER_VERSION = "0.4.0";
 export async function createServer(): Promise<{ server: Server; summary: string[] }> {
   const adapter = combineToolSets([
     buildIdentityTools(),
+    buildMiArgentinaTools(),
     buildMercadoPagoTools(),
     buildWhatsAppTools(),
     buildIdentityAttestTools(),
     buildBankingTools(),
     buildFacturacionTools(),
     buildShippingTools(),
+    buildBoletinOficialTools(),
   ]);
 
   const summary = [
     `${SERVER_NAME}@${SERVER_VERSION} starting with ${adapter.tools.length} tools registered:`,
     `  identity        → ${describeIdentityConfig()}`,
+    `  mi-argentina    → ${describeMiArgentinaConfig()}`,
     `  mercadopago     → ${describeMercadoPagoConfig()}`,
     `  whatsapp        → ${describeWhatsAppConfig()}`,
     `  identity-attest → ${describeIdentityAttestConfig()}`,
     `  banking         → ${describeBankingConfig()}`,
     `  facturacion     → ${describeFacturacionConfig()}`,
     `  shipping        → ${describeShippingConfig()}`,
+    `  boletin-oficial → ${describeBoletinOficialConfig()}`,
   ];
 
   const server = new Server(

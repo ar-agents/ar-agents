@@ -30,15 +30,23 @@ type Pkg = {
 const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   {
     name: "@ar-agents/identity",
-    version: "0.5.0",
+    version: "0.5.1",
     purposeKey: "pp_identity",
     npm: "https://www.npmjs.com/package/@ar-agents/identity",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity",
     demo: "https://ar-agents-cuit-hello.vercel.app",
   },
   {
+    name: "@ar-agents/mi-argentina",
+    version: "0.1.0",
+    purposeKey: "pp_mi_argentina",
+    npm: "https://www.npmjs.com/package/@ar-agents/mi-argentina",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mi-argentina",
+    demo: null,
+  },
+  {
     name: "@ar-agents/identity-attest",
-    version: "0.4.1",
+    version: "0.4.2",
     purposeKey: "pp_identity_attest",
     npm: "https://www.npmjs.com/package/@ar-agents/identity-attest",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity-attest",
@@ -54,7 +62,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/facturacion",
-    version: "0.1.0",
+    version: "0.1.1",
     purposeKey: "pp_facturacion",
     npm: "https://www.npmjs.com/package/@ar-agents/facturacion",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/facturacion",
@@ -62,15 +70,23 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/banking",
-    version: "0.1.0",
+    version: "0.2.0",
     purposeKey: "pp_banking",
     npm: "https://www.npmjs.com/package/@ar-agents/banking",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/banking",
     demo: null,
   },
   {
-    name: "@ar-agents/shipping",
+    name: "@ar-agents/boletin-oficial",
     version: "0.1.0",
+    purposeKey: "pp_boletin_oficial",
+    npm: "https://www.npmjs.com/package/@ar-agents/boletin-oficial",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/boletin-oficial",
+    demo: null,
+  },
+  {
+    name: "@ar-agents/shipping",
+    version: "0.1.1",
     purposeKey: "pp_shipping",
     npm: "https://www.npmjs.com/package/@ar-agents/shipping",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/shipping",
@@ -78,7 +94,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/mcp",
-    version: "0.4.9",
+    version: "0.5.0",
     purposeKey: "pp_mcp",
     npm: "https://www.npmjs.com/package/@ar-agents/mcp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
@@ -227,6 +243,76 @@ export default function Home() {
       }}
     >
       <div style={{ maxWidth: 920, margin: "0 auto" }}>
+        {/* /ARG BANNER — the umbrella brand. The MP toolkit below is the
+            flagship; manifesto / sociedades-ia / rfc-001 link to the
+            broader narrative pages. */}
+        <section
+          aria-label={t.arg_banner_eyebrow}
+          style={{
+            marginBottom: 32,
+            padding: "16px 20px",
+            borderRadius: 8,
+            background: "var(--bg-tint)",
+            boxShadow: "var(--shadow-border)",
+            display: "flex",
+            flexWrap: "wrap",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 12,
+          }}
+        >
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <span
+              style={{
+                fontSize: 11,
+                fontFamily: FONT_MONO,
+                textTransform: "uppercase",
+                letterSpacing: "0.16em",
+                color: "var(--accent)",
+                fontWeight: 600,
+              }}
+            >
+              {t.arg_banner_eyebrow}
+            </span>
+            <span
+              style={{
+                fontSize: 14,
+                color: "var(--text-body)",
+                lineHeight: 1.5,
+              }}
+            >
+              {t.arg_banner_title}
+            </span>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              gap: 14,
+              fontSize: 13,
+              fontFamily: FONT_MONO,
+            }}
+          >
+            <a
+              href="/manifiesto"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              {t.arg_banner_link_manifesto}
+            </a>
+            <a
+              href="/sociedades-ia"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              {t.arg_banner_link_sociedades}
+            </a>
+            <a
+              href="/rfcs/001"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              {t.arg_banner_link_rfcs}
+            </a>
+          </div>
+        </section>
+
         {/* HERO */}
         <header style={{ marginBottom: 48 }}>
           <p

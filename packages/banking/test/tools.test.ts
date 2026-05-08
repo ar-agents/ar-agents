@@ -3,10 +3,16 @@ import { bankingTools } from "../src/tools";
 import { VALID_GALICIA_CBU } from "./fixtures/cbus";
 
 describe("bankingTools", () => {
-  it("exposes 5 tools by default", () => {
+  it("exposes 11 tools by default (5 banking + 6 bcra-vars)", () => {
     const tools = bankingTools();
     expect(Object.keys(tools).sort()).toEqual([
+      "get_bcra_variable",
+      "get_cer",
+      "get_reservas_bcra",
+      "get_usd_oficial",
+      "get_uva",
       "list_banks",
+      "list_bcra_variables",
       "list_psps",
       "lookup_bank_by_code",
       "lookup_credit_situation",

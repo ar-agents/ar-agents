@@ -5,6 +5,11 @@ import {
   type BcraDeudaAdapter,
   UnconfiguredBcraAdapter,
 } from "./bcra";
+import {
+  type BcraVarsAdapter,
+  BCRA_VARIABLE_IDS,
+  UnconfiguredBcraVarsAdapter,
+} from "./bcra-vars";
 import { describeSituation } from "./types";
 import { listBanks, listPsps, lookupBankByCode, lookupCvuByPrefix } from "./banks";
 
@@ -25,6 +30,13 @@ export interface BankingToolsOptions {
    */
   bcra?: BcraDeudaAdapter;
   /**
+   * BCRA Principales Variables backend (tipo de cambio, CER, UVA,
+   * reservas, etc.). When omitted, returns "not configured" via
+   * `UnconfiguredBcraVarsAdapter`. Pass `new BcraVarsPublicApiAdapter()`
+   * to enable — no auth required.
+   */
+  bcraVars?: BcraVarsAdapter;
+  /**
    * Override the agent-facing tool descriptions. Pass an object with keys
    * matching tool names; values replace the default description. Useful
    * when the agent's primary language isn't English/Spanish.
@@ -37,7 +49,13 @@ export type BankingToolName =
   | "lookup_bank_by_code"
   | "list_banks"
   | "list_psps"
-  | "lookup_credit_situation";
+  | "lookup_credit_situation"
+  | "list_bcra_variables"
+  | "get_bcra_variable"
+  | "get_usd_oficial"
+  | "get_uva"
+  | "get_cer"
+  | "get_reservas_bcra";
 
 /**
  * Default tool descriptions. These are the strings agents read when picking
@@ -59,6 +77,24 @@ const DEFAULT_DESCRIPTIONS: Record<BankingToolName, string> = {
 
   lookup_credit_situation:
     "Look up the BCRA Central de Deudores credit situation for an Argentine CUIT. Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irrecoverable, 6=irrecoverable by admin disposition), total outstanding debt across all entities, and per-entity breakdown. USE THIS WHEN: the user is assessing counterparty risk before extending credit, factoring invoices, or onboarding a B2B supplier. DO NOT USE for routine billing decisions — Mercado Pago handles credit risk on the SaaS's behalf for normal subscription flows. REQUIRES: a `BcraDeudaAdapter` configured at app boot. The default `BcraPublicApiAdapter` hits BCRA's public REST API (no auth required). When NOT configured, returns `{ available: false, error: <setup instructions> }` instead of crashing — surface the error verbatim. ALWAYS call `validate_cuit` (from @ar-agents/identity) first to confirm format before hitting BCRA.",
+
+  list_bcra_variables:
+    "List all BCRA Principales Variables (monetary indicators) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorista USD, Tasa de Política Monetaria, BADLAR, CER día, UVA día, Inflación mensual / interanual. USE THIS WHEN: the user wants to discover what indicators are available, or asks 'qué variables publica el BCRA'. Returns array of `{ idVariable, descripcion, valor, fecha, cadencia }`.",
+
+  get_bcra_variable:
+    "Fetch the time series for a specific BCRA Principales Variables indicator by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional `from`/`to` ISO dates filter the range. Returns `{ idVariable, datapoints: [{ fecha, valor }, ...] }`. PREFER the convenience tools (`get_usd_oficial`, `get_uva`, `get_cer`, `get_reservas_bcra`) when the user asks for one of those specifically — they pre-fill the id.",
+
+  get_usd_oficial:
+    "Convenience: fetch the latest USD oficial cotización (Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks 'a cuánto está el dólar oficial', 'cotización USD', 'tipo de cambio'. Pass `lookback_days` to control the time window (default 30).",
+
+  get_uva:
+    "Convenience: fetch the latest UVA (Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the user asks about UVA value, mortgage adjustments, or inflation-linked instruments. Returns the latest value + date + recent datapoints.",
+
+  get_cer:
+    "Convenience: fetch the latest CER (Coeficiente de Estabilización de Referencia, BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. USE THIS WHEN: the user asks about CER, contract adjustments, or 'ajuste por inflación'.",
+
+  get_reservas_bcra:
+    "Convenience: fetch the latest BCRA international reserves (Reservas Internacionales, variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the latest value + date + recent datapoints. Reservas are reported in millions of USD.",
 };
 
 /**
@@ -91,8 +127,26 @@ const DEFAULT_DESCRIPTIONS: Record<BankingToolName, string> = {
  */
 export function bankingTools(options: BankingToolsOptions = {}): ToolSet {
   const bcra = options.bcra ?? new UnconfiguredBcraAdapter();
+  const bcraVars = options.bcraVars ?? new UnconfiguredBcraVarsAdapter();
   const desc = (name: BankingToolName): string =>
     options.descriptions?.[name] ?? DEFAULT_DESCRIPTIONS[name];
+
+  async function fetchSeriesWithLookback(
+    idVariable: number,
+    lookbackDays: number,
+  ): Promise<{
+    idVariable: number;
+    latest: { fecha: string; valor: number } | null;
+    datapoints: Array<{ fecha: string; valor: number }>;
+  }> {
+    const to = new Date().toISOString().slice(0, 10);
+    const fromDate = new Date();
+    fromDate.setDate(fromDate.getDate() - lookbackDays);
+    const from = fromDate.toISOString().slice(0, 10);
+    const datapoints = await bcraVars.getVariable(idVariable, { from, to });
+    const latest = datapoints.length > 0 ? datapoints[datapoints.length - 1]! : null;
+    return { idVariable, latest, datapoints };
+  }
 
   return {
     validate_cbu: tool({
@@ -166,6 +220,83 @@ export function bankingTools(options: BankingToolsOptions = {}): ToolSet {
             : null,
         };
       },
+    }),
+
+    list_bcra_variables: tool({
+      description: desc("list_bcra_variables"),
+      inputSchema: z.object({}),
+      execute: async () => {
+        const variables = await bcraVars.listVariables();
+        return { variables };
+      },
+    }),
+
+    get_bcra_variable: tool({
+      description: desc("get_bcra_variable"),
+      inputSchema: z.object({
+        id_variable: z.number().int().min(1).describe("BCRA variable id (e.g., 4 for USD oficial)."),
+        from: z.string().optional().describe("ISO date YYYY-MM-DD lower bound (inclusive)."),
+        to: z.string().optional().describe("ISO date YYYY-MM-DD upper bound (inclusive)."),
+      }),
+      execute: async (input) => {
+        const range: { from?: string; to?: string } = {};
+        if (input.from !== undefined) range.from = input.from;
+        if (input.to !== undefined) range.to = input.to;
+        const datapoints = await bcraVars.getVariable(input.id_variable, range);
+        return {
+          idVariable: input.id_variable,
+          datapoints,
+          latest: datapoints.length > 0 ? datapoints[datapoints.length - 1] : null,
+        };
+      },
+    }),
+
+    get_usd_oficial: tool({
+      description: desc("get_usd_oficial"),
+      inputSchema: z.object({
+        lookback_days: z
+          .number()
+          .int()
+          .min(1)
+          .max(365)
+          .optional()
+          .describe("How many days back to fetch. Default 30."),
+      }),
+      execute: async (input) =>
+        fetchSeriesWithLookback(
+          BCRA_VARIABLE_IDS.TIPO_CAMBIO_MINORISTA_USD,
+          input.lookback_days ?? 30,
+        ),
+    }),
+
+    get_uva: tool({
+      description: desc("get_uva"),
+      inputSchema: z.object({
+        lookback_days: z.number().int().min(1).max(365).optional(),
+      }),
+      execute: async (input) =>
+        fetchSeriesWithLookback(BCRA_VARIABLE_IDS.UVA_DIA, input.lookback_days ?? 30),
+    }),
+
+    get_cer: tool({
+      description: desc("get_cer"),
+      inputSchema: z.object({
+        lookback_days: z.number().int().min(1).max(365).optional(),
+      }),
+      execute: async (input) =>
+        fetchSeriesWithLookback(BCRA_VARIABLE_IDS.CER_DIA, input.lookback_days ?? 30),
+    }),
+
+    get_reservas_bcra: tool({
+      description: desc("get_reservas_bcra"),
+      inputSchema: z.object({
+        lookback_days: z.number().int().min(1).max(365).optional(),
+      }),
+      execute: async (input) =>
+        fetchSeriesWithLookback(
+          BCRA_VARIABLE_IDS.RESERVAS_INTERNACIONALES,
+          input.lookback_days ?? 30,
+        ),
     }),
   } satisfies ToolSet;
 }

@@ -95,6 +95,14 @@ console.log(result.text);
 //    https://www.mercadopago.com.ar/subscriptions/checkout?preapproval_id=..."
 ```
 
+## Diagnose your setup
+
+```bash
+npx @ar-agents/mercadopago doctor
+```
+
+Validates `MP_ACCESS_TOKEN` against the live API, checks peer deps, lists all 89 tools, surfaces the 8 irreversible operations gated by `requireConfirmation`, and warns on common misconfigurations (missing `NEXT_PUBLIC_BACK_URL`, non-HTTPS back URL, suspiciously short webhook secret, trailing-newline tokens). Pass `--probe` to also dry-call `validate_tax_id` against your sandbox. CI-friendly exit codes (`0` ok, `1` fail).
+
 ## Webhooks
 
 MP notifies your endpoint whenever a subscription's status changes. The
