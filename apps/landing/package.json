@@ -9,7 +9,7 @@
     "start": "next start",
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
-    "prebuild": "node ../../scripts/gen-discovery-manifests.mjs"
+    "prebuild": "node scripts/gen-discovery-manifests.mjs"
   },
   "dependencies": {
     "@ai-sdk/react": "^3.0.0",
