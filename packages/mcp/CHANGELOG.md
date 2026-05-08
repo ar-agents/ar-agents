@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/mercadopago@0.16.0
+
 ## 0.4.11
 
 ### Patch Changes
