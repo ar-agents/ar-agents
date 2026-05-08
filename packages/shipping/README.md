@@ -6,6 +6,7 @@
 [![npm downloads](https://img.shields.io/npm/dm/@ar-agents/shipping.svg)](https://www.npmjs.com/package/@ar-agents/shipping)
 [![license](https://img.shields.io/npm/l/@ar-agents/shipping.svg)](./LICENSE)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/shipping.svg)](https://bundlephobia.com/package/@ar-agents/shipping)
+[![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 
 > **Reading this as an agent?** Skip to [AGENTS.md](./AGENTS.md) for carrier comparison rules, normalized status tables, and AR provincia/CPA context.
 

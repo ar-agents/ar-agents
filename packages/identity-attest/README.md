@@ -4,6 +4,7 @@
 
 [![npm](https://img.shields.io/npm/v/@ar-agents/identity-attest.svg)](https://www.npmjs.com/package/@ar-agents/identity-attest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+[![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 
 ## The problem
 

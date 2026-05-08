@@ -2,7 +2,7 @@
 
 > AFIP/ARCA factura electrónica (WSFE) for [Vercel AI SDK 6+](https://sdk.vercel.ai) agents.
 
-[![npm](https://img.shields.io/npm/v/@ar-agents/facturacion?color=blue)](https://npm.im/@ar-agents/facturacion) ![bundle](https://img.shields.io/badge/brotli-9%20KB-success) ![tests](https://img.shields.io/badge/tests-51%20passing-success) ![license](https://img.shields.io/badge/license-MIT-blue)
+[![npm](https://img.shields.io/npm/v/@ar-agents/facturacion?color=blue)](https://npm.im/@ar-agents/facturacion) ![bundle](https://img.shields.io/badge/brotli-9%20KB-success) ![tests](https://img.shields.io/badge/tests-51%20passing-success) ![license](https://img.shields.io/badge/license-MIT-blue) [![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 
 Built for SaaS argentinos that need to:
 
