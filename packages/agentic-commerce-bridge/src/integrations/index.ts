@@ -47,3 +47,14 @@ export {
   type ArcaPadronLookupResult,
   type FacturacionHookOptions,
 } from "./facturacion";
+
+// AP2 mandate integration (opt-in, requires `@ar-agents/ap2` peer dep).
+export {
+  verifyAp2CheckoutCredential,
+  signAp2CheckoutReceipt,
+  signAp2PaymentReceipt,
+  type VerifyAp2CredentialOptions,
+  type Ap2VerifyOutcome,
+  type SignAp2CheckoutReceiptOptions,
+  type SignAp2PaymentReceiptOptions,
+} from "./ap2";
