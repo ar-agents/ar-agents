@@ -1,5 +1,13 @@
 # @ar-agents/agentic-commerce-bridge
 
+## 4.0.0
+
+### Patch Changes
+
+- Updated dependencies [[`e067a4a`](https://github.com/ar-agents/ar-agents/commit/e067a4a4f37e882b32fd0cbf6dfdb872f31d0e6e), [`e067a4a`](https://github.com/ar-agents/ar-agents/commit/e067a4a4f37e882b32fd0cbf6dfdb872f31d0e6e)]:
+  - @ar-agents/identity@0.7.0
+  - @ar-agents/facturacion@0.2.0
+
 ## 3.0.0
 
 ### Minor Changes
