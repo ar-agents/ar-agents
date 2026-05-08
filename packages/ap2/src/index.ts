@@ -128,3 +128,29 @@ export {
   type BuildPaymentReceiptOptions,
   type VerifyReceiptOptions,
 } from "./receipts";
+
+// Multi-hop dSD-JWT chains (Phase 2.2)
+export {
+  CHAIN_SEPARATOR,
+  parseDsdJwtChain,
+  serializeDsdJwtChain,
+  verifyDsdJwtChain,
+  type DsdJwtChain,
+  type ChainVerifyOptions,
+  type ChainHopVerification,
+  type ChainVerificationOutcome,
+  type AnyOpenMandate,
+  type AnyClosedMandate,
+} from "./chain";
+
+// Stateful budget tracker (Phase 2.2)
+export {
+  InMemoryBudgetTracker,
+  evaluateBudgetWithRecurrence,
+  isWithinRecurrenceWindow,
+  type BudgetTracker as BudgetTrackerInterface,
+  type TrackerSnapshot,
+  type RecordPresentationArgs,
+  type BudgetEvaluationInput,
+  type BudgetEvaluationResult,
+} from "./budget-tracker";

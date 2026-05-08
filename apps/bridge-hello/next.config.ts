@@ -39,7 +39,7 @@ const nextConfig: NextConfig = {
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
-  transpilePackages: ["@ar-agents/agentic-commerce-bridge"],
+  transpilePackages: ["@ar-agents/agentic-commerce-bridge", "@ar-agents/ap2"],
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },
