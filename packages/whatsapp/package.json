@@ -53,7 +53,8 @@
         "types": "./dist/testing.d.cts",
         "default": "./dist/testing.cjs"
       }
-    }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
   },
   "files": [
     "dist",

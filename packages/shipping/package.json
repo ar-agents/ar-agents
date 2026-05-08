@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/shipping",
   "version": "0.1.1",
-  "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for the Vercel AI SDK. Cotizar, crear, trackear, cancelar envíos. Pluggable adapters — ships an UnconfiguredAdapter and a MockAdapter for dev; AndreaniAdapter wired to the real REST API.",
+  "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for the Vercel AI SDK. Cotizar, crear, trackear, cancelar env\u00edos. Pluggable adapters \u2014 ships an UnconfiguredAdapter and a MockAdapter for dev; AndreaniAdapter wired to the real REST API.",
   "keywords": [
     "shipping",
     "envios",
@@ -43,10 +43,12 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
   },
   "files": [
     "dist",
+    "bin",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
@@ -94,5 +96,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "bin": {
+    "shipping": "./bin/shipping.js"
   }
 }

@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/identity",
   "version": "0.6.0",
-  "description": "Argentine identity validation (CUIT/CUIL) + AFIP padrón lookup as drop-in tools for the Vercel AI SDK. Algorithm-only out of the box; AFIP webservice via pluggable adapter when a cert is wired.",
+  "description": "Argentine identity validation (CUIT/CUIL) + AFIP padr\u00f3n lookup as drop-in tools for the Vercel AI SDK. Algorithm-only out of the box; AFIP webservice via pluggable adapter when a cert is wired.",
   "keywords": [
     "afip",
     "cuit",
@@ -37,6 +37,9 @@
     "*": {
       "wsaa": [
         "./dist/wsaa-entry.d.ts"
+      ],
+      "testing": [
+        "./dist/testing.d.ts"
       ]
     }
   },
@@ -60,7 +63,18 @@
         "types": "./dist/wsaa-entry.d.cts",
         "default": "./dist/wsaa-entry.cjs"
       }
-    }
+    },
+    "./testing": {
+      "import": {
+        "types": "./dist/testing.d.ts",
+        "default": "./dist/testing.js"
+      },
+      "require": {
+        "types": "./dist/testing.d.cts",
+        "default": "./dist/testing.cjs"
+      }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
   },
   "files": [
     "dist",
