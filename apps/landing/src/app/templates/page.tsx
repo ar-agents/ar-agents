@@ -9,7 +9,6 @@ export const metadata: Metadata = {
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
-const REPO = "https://github.com/ar-agents/ar-agents";
 
 type Tier = "starter" | "production" | "infra";
 
@@ -22,9 +21,16 @@ type Template = {
   envVars: string[];
   /** Cookbook recipe number this template is built from. */
   recipe?: number;
+  /** Where the canonical source lives (GitHub URL — must resolve). */
+  source: string;
   /** Status of the published template repo. */
   status: "live" | "alpha" | "soon";
 };
+
+const REPO = "https://github.com/ar-agents/ar-agents";
+const RECIPE_BASE = `${REPO}/blob/main/packages/mercadopago/cookbook`;
+const APPS_BASE = `${REPO}/tree/main/apps`;
+const PKG_BASE = `${REPO}/tree/main/packages`;
 
 const TEMPLATES: Template[] = [
   {
@@ -32,7 +38,7 @@ const TEMPLATES: Template[] = [
     title: "Sociedad-IA starter",
     tier: "starter",
     description:
-      "The flagship template. Wires the 7 required @ar-agents/* packages (identity, gde-tad, mercadopago, banking, facturacion, igj, boletin-oficial) into a single Next.js app with morning-cron operating loop, WhatsApp inbound, and AFIP factura emission. Output of the /incorporar wizard.",
+      "The flagship template. Wires the 8 most-common @ar-agents/* packages (identity, gde-tad, mercadopago, banking, facturacion, igj, boletin-oficial, whatsapp) into a single Next.js app with: agent endpoint, MP webhook receiver, morning-cron operating loop, status page. Configurable via env vars only — degrades gracefully if any client is missing.",
     packages: [
       "identity",
       "gde-tad",
@@ -41,20 +47,22 @@ const TEMPLATES: Template[] = [
       "facturacion",
       "igj",
       "boletin-oficial",
+      "whatsapp",
     ],
     envVars: ["AFIP_CERT_PEM", "AFIP_KEY_PEM", "AFIP_CUIT", "MERCADOPAGO_ACCESS_TOKEN"],
-    recipe: 10,
-    status: "alpha",
+    source: `${APPS_BASE}/sociedad-ia-starter`,
+    status: "live",
   },
   {
     id: "saas-billing",
     title: "SaaS billing on Mercado Pago",
     tier: "production",
     description:
-      "Reusable Plan + per-customer subscribe_to_plan + recurring auto-charge + card swap on expiration. The closest you can get to Stripe-billing-on-Argentine-rails. Includes webhook handler with HMAC verify + replay defense + dunning sequence.",
+      "Reusable Plan + per-customer subscribe_to_plan + recurring auto-charge + card swap on expiration. The closest you can get to Stripe-billing-on-Argentine-rails. Includes webhook handler with HMAC verify + replay defense + dunning sequence. Source: cookbook recipe R02 (single-file, lift into a Next.js app of your choice).",
     packages: ["mercadopago", "facturacion", "whatsapp"],
     envVars: ["MERCADOPAGO_ACCESS_TOKEN", "MERCADOPAGO_WEBHOOK_SECRET", "AFIP_CERT_PEM"],
     recipe: 2,
+    source: `${RECIPE_BASE}/02-saas-subscription.ts`,
     status: "alpha",
   },
   {
@@ -62,10 +70,11 @@ const TEMPLATES: Template[] = [
     title: "Marketplace · seller OAuth + split",
     tier: "production",
     description:
-      "Rappi / Tienda Nube pattern. Seller OAuth onboarding, marketplace fee split, AFIP padron validation on each new seller, monotributo-category-aware tier rules. VercelKVOAuthTokenStore for token persistence.",
+      "Rappi / Tienda Nube pattern. Seller OAuth onboarding, marketplace fee split, AFIP padron validation on each new seller, monotributo-category-aware tier rules. VercelKVOAuthTokenStore for token persistence. Source: cookbook recipe R04.",
     packages: ["mercadopago", "identity", "whatsapp"],
     envVars: ["MERCADOPAGO_ACCESS_TOKEN", "MERCADOPAGO_OAUTH_CLIENT_ID"],
     recipe: 4,
+    source: `${RECIPE_BASE}/04-marketplace-split.ts`,
     status: "alpha",
   },
   {
@@ -73,21 +82,23 @@ const TEMPLATES: Template[] = [
     title: "ACP checkout · LLM-buyer storefront",
     tier: "infra",
     description:
-      "Stripe-style hosted checkout where the buyer is an LLM agent (ChatGPT Instant Checkout / Claude tool calls / Gemini extensions). Server auto-emits AFIP/ARCA factura A/B/C/E on payment confirmation. /.well-known/acp.json discovery built in.",
+      "Stripe-style hosted checkout where the buyer is an LLM agent (ChatGPT Instant Checkout / Claude tool calls / Gemini extensions). Server auto-emits AFIP/ARCA factura A/B/C/E on payment confirmation. /.well-known/acp.json discovery built in. Reference impl in apps/bridge-hello + cookbook recipe R16.",
     packages: ["agentic-commerce-bridge", "mercadopago", "facturacion"],
     envVars: ["MERCADOPAGO_ACCESS_TOKEN", "ACP_SHARED_SECRET", "AFIP_CERT_PEM"],
     recipe: 16,
-    status: "alpha",
+    source: `${APPS_BASE}/bridge-hello`,
+    status: "live",
   },
   {
     id: "mcp-host",
     title: "MCP host · Claude Desktop / Cursor / Continue",
     tier: "infra",
     description:
-      "Bundles the full @ar-agents/mcp toolkit as a stdio MCP server you can drop into any MCP client. Configure with the same env vars as the underlying packages; the doctor CLI tells you which surfaces are wired. Use this when you want every AR ops capability available from inside an existing host.",
+      "Bundles the full @ar-agents/mcp toolkit as a stdio MCP server you can drop into any MCP client. Configure with the same env vars as the underlying packages; the doctor CLI (ar-agents-mcp doctor) tells you which surfaces are wired. Use this when you want every AR ops capability available from inside an existing host.",
     packages: ["mcp"],
     envVars: ["AFIP_CERT_PEM", "AFIP_KEY_PEM", "AFIP_CUIT", "MERCADOPAGO_ACCESS_TOKEN"],
-    status: "alpha",
+    source: `${PKG_BASE}/mcp`,
+    status: "live",
   },
 ];
 
@@ -165,8 +176,7 @@ export default function TemplatesPage() {
 
           <div style={{ display: "grid", gap: 12 }}>
             {items.map((t) => {
-              const cloneRepo = `https://github.com/ar-agents/templates/tree/main/${t.id}`;
-              const deployUrl = `https://vercel.com/new/clone?repository-url=${encodeURIComponent(cloneRepo)}&project-name=${encodeURIComponent(t.id)}&env=${encodeURIComponent(t.envVars.join(","))}`;
+              const deployUrl = `https://vercel.com/new/clone?repository-url=${encodeURIComponent(t.source)}&project-name=${encodeURIComponent(t.id)}&env=${encodeURIComponent(t.envVars.join(","))}`;
               return (
                 <article
                   key={t.id}
@@ -275,7 +285,7 @@ export default function TemplatesPage() {
                       ▲ Deploy
                     </a>
                     <a
-                      href={cloneRepo}
+                      href={t.source}
                       target="_blank"
                       rel="noreferrer"
                       style={{

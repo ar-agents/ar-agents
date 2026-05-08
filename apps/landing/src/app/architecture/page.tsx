@@ -60,6 +60,7 @@ const PACKAGE_GRAPH = `flowchart LR
     end
     subgraph payments_g[payments]
         MP["@ar-agents/mercadopago<br/>89 tools"]:::payments
+        ML["@ar-agents/mercadolibre<br/>15 tools"]:::payments
         BK["@ar-agents/banking<br/>11 tools"]:::payments
     end
     subgraph fiscal_g[fiscal]
@@ -76,6 +77,7 @@ const PACKAGE_GRAPH = `flowchart LR
     AFIP[(AFIP/ARCA)]:::external
     BCRA[(BCRA)]:::external
     MERC[(Mercado Pago)]:::external
+    MELI[(Mercado Libre)]:::external
     META[(Meta Cloud API)]:::external
     CARR[(Andreani / OCA / Correo)]:::external
     AGENT --> ID
@@ -83,6 +85,7 @@ const PACKAGE_GRAPH = `flowchart LR
     AGENT --> MA
     AGENT --> FD
     AGENT --> MP
+    AGENT --> ML
     AGENT --> BK
     AGENT --> FAC
     AGENT --> IGJ
@@ -98,6 +101,7 @@ const PACKAGE_GRAPH = `flowchart LR
     FAC --> AFIP
     BK --> BCRA
     MP --> MERC
+    ML --> MELI
     WA --> META
     ATT --> WA
     SH --> CARR
