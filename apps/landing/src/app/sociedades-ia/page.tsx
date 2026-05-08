@@ -54,7 +54,7 @@ const AGENT_FLOW = `// Mock transcript: una sociedad-IA "ACME-AI SAS" se incorpo
             factura electrónica emitida, cliente notificado por WhatsApp,
             BO monitoreado. Tu sociedad-IA está en producción.
 
-  Tiempo total: ~12 segundos (12 llamadas a tools, 8 packages /arg).`;
+  Tiempo total: ~12 segundos (12 llamadas a tools, 9 packages /arg de los 16 disponibles).`;
 
 export const metadata: Metadata = {
   title: "Sociedades de IA",
@@ -125,7 +125,9 @@ export default function SociedadesIAPage() {
 14. Logística                 Andreani / OCA / Correo     ✅ @ar-agents/shipping
 15. Notificaciones legales    Boletín Oficial monitoring  ✅ @ar-agents/boletin-oficial
 16. Variables macro (USD/CER) BCRA Principales Variables  ✅ @ar-agents/banking
-17. Domicilio legal digital   GDE / TAD                   ❌ pendiente`}
+17. Domicilio legal digital   GDE / TAD                   🟡 lectura @ar-agents/gde-tad
+                                                            (DEC inbox + IGJ pre-flight;
+                                                            escritura tras RFC-001 § 3.4)`}
       </DocBlock>
 
       <DocH2>Por qué importa que esto sea OSS</DocH2>
@@ -151,19 +153,22 @@ export default function SociedadesIAPage() {
       </DocP>
       <DocBlock>{AGENT_FLOW}</DocBlock>
 
-      <DocH2>Demo deployable + repro pendiente</DocH2>
+      <DocH2>Wizard de incorporación + demo deployable</DocH2>
       <DocP>
-        Próximo hito: un app deployable a Vercel que monta una{" "}
-        <em>sociedad IA mock</em> end-to-end —{" "}
-        <DocCode>npx create-arg-sociedad mi-empresa-ia</DocCode> — y
-        ejercita las 16 piezas de /arg que ya están listas (la única que
-        queda es GDE/TAD, sin API documentada). Si querés contribuir, hay
-        un issue abierto:{" "}
+        El wizard live en{" "}
+        <a href="/incorporar" style={{ color: "inherit", textDecoration: "underline" }}>
+          /incorporar
+        </a>{" "}
+        genera la configuración de un repo Next.js con las 16 piezas
+        cableadas, corre el pre-flight de IGJ en vivo (mismas reglas que el
+        tool <DocCode>validate_igj_inscription</DocCode>), y emite el bundle
+        listo para deployar a Vercel. Para los devs que prefieren ir
+        directo al template, el código vive en{" "}
         <a
-          href="https://github.com/ar-agents/ar-agents/issues"
+          href="https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter"
           style={{ color: "inherit", textDecoration: "underline" }}
         >
-          github.com/ar-agents/ar-agents/issues
+          apps/sociedad-ia-starter
         </a>
         .
       </DocP>

@@ -290,6 +290,7 @@ export default function ExamplesPage() {
           <div style={{ display: "grid", gap: 12 }}>
             {items.map((r) => (
               <article
+                id={String(r.num).padStart(2, "0")}
                 key={r.id}
                 style={{
                   background: "var(--bg)",
