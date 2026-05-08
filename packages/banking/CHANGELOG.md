@@ -1,5 +1,11 @@
 # @ar-agents/banking
 
+## 0.4.0
+
+### Minor Changes
+
+- [`4aaaecc`](https://github.com/ar-agents/ar-agents/commit/4aaaecc4bab0429f61bd034b60c0c77607562b20) - Add `@ar-agents/banking/testing` subpath with `MockBcraDeudaAdapter` + `MockBcraVarsAdapter` and result factories (`mockBcraDeudaClean`, `mockBcraDeudaRiesgo`, `mockBcraDeudaUnavailable`, `mockUsdOficialSeries`, `mockCerSeries`). Lets cookbook recipes and downstream apps test BCRA-dependent flows without a live BCRA round-trip.
+
 ## 0.3.0
 
 ### Minor Changes
