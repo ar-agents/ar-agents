@@ -1105,7 +1105,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/gde-tad",
-    "version": "0.1.0",
+    "version": "0.2.0",
     "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
     "tools": [
       {
