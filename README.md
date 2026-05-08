@@ -4,11 +4,13 @@
 
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ar-agents/ar-agents/badge)](https://scorecard.dev/viewer/?uri=github.com/ar-agents/ar-agents)
+[![Socket Security](https://socket.dev/api/badge/npm/package/@ar-agents/mercadopago)](https://socket.dev/npm/package/@ar-agents/mercadopago)
 [![license](https://img.shields.io/github/license/ar-agents/ar-agents.svg)](./LICENSE)
 [![npm](https://img.shields.io/npm/v/@ar-agents/mercadopago?label=%40ar-agents%2Fmercadopago)](https://www.npmjs.com/package/@ar-agents/mercadopago)
 [![npm downloads](https://img.shields.io/npm/dm/@ar-agents/mercadopago.svg?label=npm%20downloads)](https://www.npmjs.com/package/@ar-agents/mercadopago)
 [![bundle size](https://img.shields.io/bundlephobia/minzip/@ar-agents/mercadopago.svg?label=bundle)](https://bundlephobia.com/package/@ar-agents/mercadopago)
 [![types](https://img.shields.io/npm/types/@ar-agents/mercadopago.svg)](https://arethetypeswrong.github.io/?p=@ar-agents/mercadopago)
+[![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 [![ar-agents on Glama](https://glama.ai/mcp/servers/ar-agents/ar-agents/badges/score.svg)](https://glama.ai/mcp/servers/ar-agents/ar-agents)
 
 [`@ar-agents/mercadopago`](./packages/mercadopago) is a Mercado Pago Agent
@@ -81,6 +83,57 @@ Both official SDKs are excellent at what they do (generic REST clients for
 their respective APIs). `@ar-agents/mercadopago` is opinionated for the
 agent-operating-an-Argentine-business case, and composes with `mercadopago`
 under the hood when needed. See [`MIGRATION.md`](./packages/mercadopago/MIGRATION.md).
+
+## Architecture
+
+```mermaid
+flowchart LR
+  subgraph user_app["Your Next.js / Edge / Workers app"]
+    direction TB
+    agent["Vercel AI SDK 6<br/>Experimental_Agent"]
+  end
+
+  subgraph ar_agents["@ar-agents/* (this monorepo)"]
+    direction TB
+    mp["mercadopago<br/>89 tools"]
+    id["identity<br/>CUIT + AFIP padrón"]
+    fac["facturacion<br/>factura electrónica"]
+    wa["whatsapp<br/>Business Cloud"]
+    bk["banking<br/>CBU + BCRA"]
+    sh["shipping<br/>Andreani / OCA / Correo"]
+    att["identity-attest<br/>HMAC-signed orchestrator"]
+    mcp["mcp<br/>bundles all 7 over MCP"]
+  end
+
+  subgraph adapters["Pluggable state (subpath)"]
+    direction TB
+    kv["@ar-agents/mercadopago/vercel-kv<br/>state · OAuth · idempotency · audit · ratelimit"]
+    otel["@ar-agents/mercadopago/otel<br/>OpenTelemetry instrumentation"]
+  end
+
+  subgraph external["External APIs"]
+    direction TB
+    mpapi["api.mercadopago.com"]
+    afip["AFIP/ARCA WSAA + WSFE"]
+    meta["Meta WhatsApp Cloud API"]
+    bcra["BCRA Central de Deudores"]
+    carriers["Andreani · OCA · Correo Argentino"]
+  end
+
+  agent -- tool calls --> mp & id & fac & wa & bk & sh & att
+  mp -.subpath.-> kv & otel
+  mp --> mpapi
+  id --> afip
+  fac --> afip
+  wa --> meta
+  bk --> bcra
+  sh --> carriers
+  mcp -.bundles.-> mp & id & fac & wa & bk & sh & att
+```
+
+The agent picks tools from natural-language prompts. Each package is an
+independent npm release; there are no cross-package runtime dependencies
+beyond the optional adapter subpaths, so you only ship the surface you use.
 
 ## Other AR primitives in this monorepo
 
