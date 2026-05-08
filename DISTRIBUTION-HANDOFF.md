@@ -20,7 +20,13 @@ State as of 2026-05-08 (Friday morning Argentina). Updated after the autonomous 
 | **OpenSSF Scorecard workflow** | **shipped (runs weekly + on push)** | https://github.com/ar-agents/ar-agents/actions/workflows/scorecard.yml |
 | **README badges** | **CI + Scorecard + npm version + downloads + bundle + types + Glama** | https://github.com/ar-agents/ar-agents |
 | **@ar-agents/mcp@0.4.11** | **published with `mcpName: "io.github.ar-agents/mcp"` + provenance** | https://www.npmjs.com/package/@ar-agents/mcp |
-| `packages/mcp/server.json` | committed; ready for `mcp-publisher publish` | — |
+| **Official MCP Registry** | **published autonomously via OIDC workflow** | https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp |
+| **TensorBlock/awesome-mcp-servers PR** | open | https://github.com/TensorBlock/awesome-mcp-servers/pull/512 |
+| **YuzeHao2023/Awesome-MCP-Servers PR** | open | https://github.com/YuzeHao2023/Awesome-MCP-Servers/pull/228 |
+| **MobinX/awesome-mcp-list PR** | open | https://github.com/MobinX/awesome-mcp-list/pull/257 |
+| **yzfly/Awesome-MCP-ZH PR (Chinese)** | open | https://github.com/yzfly/Awesome-MCP-ZH/pull/216 |
+| `.github/workflows/publish-mcp.yml` | re-publishes on every `@ar-agents/mcp@*` tag | — |
+| `BLOG-POST-DRAFT.md` | dev.to / Hashnode-ready draft | — |
 | GitHub topics for Glama discovery | mcp, mcp-server, model-context-protocol added | https://github.com/ar-agents/ar-agents |
 | Dependabot PR #4 (pnpm/action-setup 4.4.0) | merged | — |
 
@@ -28,32 +34,7 @@ State as of 2026-05-08 (Friday morning Argentina). Updated after the autonomous 
 
 ## Needs your hands (in order of leverage)
 
-### 1. Publish to the official MCP Registry — **highest leverage** (5 min)
-
-The official registry at `registry.modelcontextprotocol.io` is the App Store of MCP. We've prepared everything: `mcpName` in `package.json`, `server.json` in `packages/mcp/`, and the package is published to npm with provenance.
-
-You only need 3 commands:
-
-```bash
-# 1. Install the publisher CLI
-brew install mcp-publisher
-
-# 2. Authenticate via GitHub device flow (interactive, one-time)
-cd packages/mcp
-mcp-publisher login github
-
-# 3. Publish
-mcp-publisher publish
-```
-
-Verify with:
-```bash
-curl "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp"
-```
-
-The registry name is `io.github.ar-agents/mcp` — works because you're admin of the `ar-agents` GitHub org.
-
-### 2. Open the appcypher/awesome-mcp-servers PR via web UI (1 min)
+### 1. Open the appcypher/awesome-mcp-servers PR via web UI (1 min)
 
 GitHub blocks my account from creating new PRs to `appcypher` specifically. The branch is ready:
 
