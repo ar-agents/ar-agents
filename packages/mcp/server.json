@@ -1,0 +1,65 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ar-agents/mcp",
+  "description": "Argentine business automation MCP server. Bundles 7 ar-agents packages: Mercado Pago (89 tools across Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Cuotas, QR, 3DS, Point devices), AFIP/ARCA (CUIT validation + padron lookup + factura electronica WSFE), WhatsApp Business Cloud, banking (CBU/CVU + BCRA Central de Deudores), shipping (Andreani/OCA/Correo Argentino), and identity-attest (HMAC-signed verification orchestrator).",
+  "repository": {
+    "url": "https://github.com/ar-agents/ar-agents",
+    "source": "github",
+    "subfolder": "packages/mcp"
+  },
+  "version": "0.4.11",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@ar-agents/mcp",
+      "version": "0.4.11",
+      "transport": {
+        "type": "stdio"
+      },
+      "environmentVariables": [
+        {
+          "name": "MP_ACCESS_TOKEN",
+          "description": "Mercado Pago access token (TEST- prefix for sandbox, APP_USR- for production). Enables MP tools.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "AFIP_CERT_PEM",
+          "description": "AFIP/ARCA X.509 certificate (PEM string) for WSAA authentication. Enables CUIT padron + factura electronica tools.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "AFIP_KEY_PEM",
+          "description": "AFIP/ARCA private key (PEM string) for WSAA authentication. Required if AFIP_CERT_PEM is set.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "AFIP_CUIT",
+          "description": "Issuer CUIT (Argentine tax ID) registered with the AFIP cert. Format: 20-XXXXXXXX-X.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        },
+        {
+          "name": "WHATSAPP_ACCESS_TOKEN",
+          "description": "Meta WhatsApp Business Cloud API token. Enables WhatsApp tools.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": true
+        },
+        {
+          "name": "WHATSAPP_PHONE_NUMBER_ID",
+          "description": "Meta WhatsApp Business phone-number ID. Required if WHATSAPP_ACCESS_TOKEN is set.",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}
