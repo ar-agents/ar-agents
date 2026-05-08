@@ -1,0 +1,24 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/firma-digital",
+  "version": "0.1.0",
+  "description": "AR digital signature primitives — PKCS#7/CMS verification with AC-Raíz/ONTI trust-anchor heuristic and certificate fingerprint pinning.",
+  "tools": [
+    {
+      "name": "firma_inspect_cert",
+      "description": "Inspect an X.509 certificate (subject, issuer, validity, fingerprint, AKI/SKI, key usage). Use before trusting any cert in a verification chain."
+    },
+    {
+      "name": "firma_verify_chain",
+      "description": "Verify an X.509 chain of trust against a configurable AR trust anchor (defaults to AC-Raíz / ONTI heuristic). Returns the chain depth + the trust-anchor identity."
+    },
+    {
+      "name": "firma_is_onti_issued",
+      "description": "Predicate: does this certificate ultimately chain to an ONTI-issued AC-Raíz root? Use to gate operations that require state-issued PKI identity."
+    },
+    {
+      "name": "firma_verify_cms_signature",
+      "description": "Verify a PKCS#7/CMS detached or attached signature against a payload. Returns the signer chain + claim of authenticity."
+    }
+  ]
+}

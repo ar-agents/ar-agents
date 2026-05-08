@@ -1,0 +1,28 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/mi-argentina",
+  "version": "0.1.0",
+  "description": "Mi Argentina (gov OIDC) as drop-in tools for the Vercel AI SDK. PKCE login, ID-token JWT verification with JWKS caching, userinfo, refresh.",
+  "tools": [
+    {
+      "name": "mi_argentina_start_login",
+      "description": "Start an OIDC login flow against Mi Argentina. Returns the authorize URL + state/nonce for replay protection."
+    },
+    {
+      "name": "mi_argentina_complete_login",
+      "description": "Exchange the OIDC code for an ID token + access token. Verifies the JWT signature against the cached JWKS."
+    },
+    {
+      "name": "mi_argentina_get_user_profile",
+      "description": "Fetch the authenticated user's profile (DNI, name, contact info) from the Mi Argentina userinfo endpoint."
+    },
+    {
+      "name": "mi_argentina_verify_id_token",
+      "description": "Verify an ID token JWT against Mi Argentina's published JWKS. Use to validate identity claims from upstream services."
+    },
+    {
+      "name": "mi_argentina_refresh_token",
+      "description": "Refresh an expired access token using a refresh token. Maintains long-lived sessions without forcing re-login."
+    }
+  ]
+}

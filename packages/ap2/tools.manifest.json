@@ -1,0 +1,7 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/ap2",
+  "version": "0.2.0",
+  "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
+  "tools": []
+}

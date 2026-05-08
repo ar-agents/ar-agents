@@ -1,0 +1,32 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/igj",
+  "version": "0.1.0",
+  "description": "Inspección General de Justicia (IGJ) public registry primitives — search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",
+  "tools": [
+    {
+      "name": "igj_search_entities",
+      "description": "Full-text search the IGJ corporate registry by name. Returns a paginated list with denominación, CUIT, tipo societario, status."
+    },
+    {
+      "name": "igj_get_entity",
+      "description": "Fetch a single IGJ-registered entity by CUIT or registry number. Includes inscripción/baja status, last update."
+    },
+    {
+      "name": "igj_get_domicilios",
+      "description": "List the registered domicilios (legal/real/fiscal) for an IGJ entity. Useful for verifying counterparties before contracting."
+    },
+    {
+      "name": "igj_get_autoridades",
+      "description": "Fetch the registered authorities (directorio, sindicatura, gerencia) for an entity, with start/end dates of their mandate."
+    },
+    {
+      "name": "igj_get_balances",
+      "description": "List filed balance-sheet metadata for an entity. Includes filing date and the period covered (the actual balance-sheet PDFs are not yet exposed via the public CKAN)."
+    },
+    {
+      "name": "igj_get_asambleas",
+      "description": "List filed shareholder/partner asambleas for an entity (date, type, registered minutes ID)."
+    }
+  ]
+}

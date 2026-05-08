@@ -1,0 +1,32 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/boletin-oficial",
+  "version": "0.1.0",
+  "description": "Boletín Oficial de la República Argentina — search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",
+  "tools": [
+    {
+      "name": "bo_search",
+      "description": "Full-text search the Boletín Oficial archive. Filter by organismo, fecha range, keyword. Returns ranked normas with summary + publication date."
+    },
+    {
+      "name": "bo_get_norma",
+      "description": "Fetch a single norma by its BO id. Returns the full body + metadata (issuing organism, date, sumario)."
+    },
+    {
+      "name": "bo_today",
+      "description": "Fetch all normas published in today's Boletín Oficial. Useful for the morning operating loop on a sociedad-IA."
+    },
+    {
+      "name": "bo_subscribe",
+      "description": "Subscribe to BO updates by CUIT, organismo, or keyword. Notifications are dispatched via the configured webhook."
+    },
+    {
+      "name": "bo_list_subscriptions",
+      "description": "List all active BO subscriptions for the current tenant."
+    },
+    {
+      "name": "bo_unsubscribe",
+      "description": "Cancel a BO subscription by id. Used by the agent to retire stale watch criteria."
+    }
+  ]
+}

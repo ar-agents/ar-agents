@@ -363,11 +363,66 @@ export default function Home() {
               playbook
             </a>
             <a
+              href="/vs"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              vs
+            </a>
+            <a
               href="/marketplace"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
               benchmark
             </a>
+            <a
+              href="/press-kit"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              press kit
+            </a>
+          </div>
+        </section>
+
+        {/* REGULATOR / POLICY ENTRYPOINT */}
+        <section
+          style={{
+            background: "var(--bg-tint)",
+            border: "1px solid var(--text-muted)",
+            borderRadius: 8,
+            padding: "16px 18px",
+            marginBottom: 32,
+            display: "grid",
+            gap: 8,
+          }}
+        >
+          <div
+            style={{
+              fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+              fontSize: 11,
+              color: "var(--text-muted)",
+              textTransform: "uppercase",
+              letterSpacing: "0.06em",
+              fontWeight: 600,
+            }}
+          >
+            ¿Sos regulador, asesor de gobierno, periodista o reviewer?
+          </div>
+          <div style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.55 }}>
+            Tres puntos de entrada cortos:{" "}
+            <a href="/es/playbook" style={{ color: "var(--accent)" }}>
+              /es/playbook
+            </a>{" "}
+            (narrativa completa, español),{" "}
+            <a href="/rfcs/001" style={{ color: "var(--accent)" }}>
+              /rfcs/001
+            </a>{" "}
+            (marco de responsabilidad de tres capas para sociedades-IA),{" "}
+            <a href="/press-kit" style={{ color: "var(--accent)" }}>
+              /press-kit
+            </a>{" "}
+            (datos verificables + frases citables + contacto). Para una
+            reunión: <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>naza@helloastro.co</a>{" "}
+            — primera respuesta en &lt;48hs.
           </div>
         </section>
 
