@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.9.0
+
+### Minor Changes
+
+- [`dbc2332`](https://github.com/ar-agents/ar-agents/commit/dbc23325fffe9b47954ae28ba48a723083d0a884) - Add `@ar-agents/gde-tad` to the MCP bundle. The 4 gde-tad tools (`validate_igj_inscription`, `list_domicilio_inbox`, `list_mis_tramites`, `get_critical_notifications`) are exposed to every MCP host (Claude Desktop, Cursor, Continue, Cline) alongside the 11 existing subpackages. Total exposed surface: 133 tools across 12 subpackages. The doctor CLI now reports gde-tad config + always-on tools.
+
+### Patch Changes
+
+- Updated dependencies [[`dbc2332`](https://github.com/ar-agents/ar-agents/commit/dbc23325fffe9b47954ae28ba48a723083d0a884)]:
+  - @ar-agents/gde-tad@0.2.0
+
 ## 0.7.1
 
 ### Patch Changes
