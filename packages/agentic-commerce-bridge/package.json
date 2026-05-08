@@ -52,16 +52,6 @@
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
   "types": "./dist/index.d.ts",
-  "typesVersions": {
-    "*": {
-      "vercel-kv": [
-        "./dist/vercel-kv.d.ts"
-      ],
-      "testing": [
-        "./dist/testing.d.ts"
-      ]
-    }
-  },
   "exports": {
     ".": {
       "import": {
@@ -71,26 +61,6 @@
       "require": {
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
-      }
-    },
-    "./vercel-kv": {
-      "import": {
-        "types": "./dist/vercel-kv.d.ts",
-        "default": "./dist/vercel-kv.js"
-      },
-      "require": {
-        "types": "./dist/vercel-kv.d.cts",
-        "default": "./dist/vercel-kv.cjs"
-      }
-    },
-    "./testing": {
-      "import": {
-        "types": "./dist/testing.d.ts",
-        "default": "./dist/testing.js"
-      },
-      "require": {
-        "types": "./dist/testing.d.cts",
-        "default": "./dist/testing.cjs"
       }
     }
   },
