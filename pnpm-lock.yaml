@@ -42,6 +42,9 @@ importers:
       '@ar-agents/agentic-commerce-bridge':
         specifier: workspace:*
         version: link:../../packages/agentic-commerce-bridge
+      '@ar-agents/ap2':
+        specifier: workspace:*
+        version: link:../../packages/ap2
       next:
         specifier: 16.2.4
         version: 16.2.4(@babel/core@7.29.0)(@opentelemetry/api@1.9.1)(react-dom@19.2.4(react@19.2.4))(react@19.2.4)
