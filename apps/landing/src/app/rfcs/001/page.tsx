@@ -180,6 +180,118 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
         societarios bajo Ley 25.506.
       </DocP>
 
+      <DocH2>8. Implementación de referencia</DocH2>
+      <DocP>
+        Este RFC no es teoría — el toolkit{" "}
+        <DocCode>@ar-agents/*</DocCode> ya implementa 16 de los 17 pasos
+        técnicos del régimen propuesto. La lista cruzada de qué pieza
+        técnica resuelve cada problema:
+      </DocP>
+      <DocP>
+        <strong>(a) Identidad</strong>:{" "}
+        <DocCode>@ar-agents/identity</DocCode> (CUIT + ARCA padrón) +{" "}
+        <DocCode>@ar-agents/mi-argentina</DocCode> (OIDC) +{" "}
+        <DocCode>@ar-agents/identity-attest</DocCode> (HMAC-signed
+        attestation con trustLevel) +{" "}
+        <DocCode>@ar-agents/igj</DocCode> (constitución y registro
+        societario).
+        <br />
+        <strong>(b) Firma</strong>:{" "}
+        <DocCode>@ar-agents/firma-digital</DocCode> (CMS/PKCS#7 +
+        AC-Raíz/ONTI heuristic + fingerprint pinning) + el cert WSAA
+        existente en <DocCode>@ar-agents/identity</DocCode> y{" "}
+        <DocCode>@ar-agents/facturacion</DocCode>.
+        <br />
+        <strong>(c) Notificación</strong>:{" "}
+        <DocCode>@ar-agents/boletin-oficial</DocCode> (subscribe por CUIT
+        / organismo / keyword) + el endpoint webhook propuesto en 4.3.
+        <br />
+        <strong>(d) Pago</strong>:{" "}
+        <DocCode>@ar-agents/banking</DocCode> (CBU/CVU + BCRA Central de
+        Deudores + transfers) +{" "}
+        <DocCode>@ar-agents/mercadopago</DocCode> (MP API completo) +{" "}
+        <DocCode>@ar-agents/facturacion</DocCode> (factura electrónica
+        WSFE) +{" "}
+        <DocCode>@ar-agents/agentic-commerce-bridge</DocCode> (ACP
+        facilitator con auto-emisión).
+      </DocP>
+      <DocP>
+        El paso 17 — domicilio legal digital via TAD/GDE — sigue
+        siendo el bloqueante: requiere autorización gubernamental para
+        alta de aplicación cliente, no scrapeable cleanly. El RFC
+        propone que el régimen exponga el endpoint webhook (4.3) como
+        sustituto operativo hasta que TAD ofrezca API.
+      </DocP>
+
+      <DocH2>9. Marco de responsabilidad</DocH2>
+      <DocP>
+        El backlash central al plan Sturzenegger es{" "}
+        <em>&ldquo;¿quién responde si una sociedad-IA defrauda?&rdquo;</em>{" "}
+        El RFC propone tres capas de responsabilidad concatenadas:
+      </DocP>
+      <DocP>
+        <strong>9.1 Responsabilidad operativa</strong>: el oficial
+        digital (humano físico nombrado en IGJ) responde por toda
+        acción ejecutada con el cert X.509. Es el equivalente del
+        director suplente en una SA.
+      </DocP>
+      <DocP>
+        <strong>9.2 Responsabilidad de auditoría</strong>: cada tool
+        call que la sociedad-IA ejecuta queda registrado en un audit
+        log con HMAC-signed timestamps (el patrón{" "}
+        <DocCode>AuditLogger</DocCode> ya implementado en{" "}
+        <DocCode>@ar-agents/mercadopago</DocCode>). El log es prueba
+        legal de qué hizo el agente, cuándo, contra qué tool.
+      </DocP>
+      <DocP>
+        <strong>9.3 Responsabilidad de operador (operator-of-record)</strong>:
+        cuando la sociedad-IA opera bajo el cert de un facade
+        AR-residente (escribano, contador, plataforma SaaS), el operador
+        comparte responsabilidad civil. Esto es lo que hoy se conoce
+        como &ldquo;intermediario calificado&rdquo; en otros ordenamientos.
+      </DocP>
+      <DocP>
+        Las tres capas no son alternativas — son acumulativas. Una víctima
+        de fraude tiene tres demandados con distintas barras probatorias.
+      </DocP>
+
+      <DocH2>10. Prior art y citations</DocH2>
+      <DocP>
+        <strong>Marshall Islands DAO LLC</strong> (2022) — el primer
+        régimen jurisdiccional reconociendo persona jurídica programática.
+        MIDAO cubre <em>(a)</em> y <em>(d)</em> para DAOs cripto pero no
+        tiene equivalente AR de <em>(b)</em> (firma estatal) ni{" "}
+        <em>(c)</em> (notificación oficial).
+      </DocP>
+      <DocP>
+        <strong>Wyoming DAO LLC</strong> (Wyo. Stat. §17-31, 2021) —
+        precedente USA con la misma laguna en notificación. ClawBank.co
+        construye sobre este régimen.
+      </DocP>
+      <DocP>
+        <strong>EU AI Act Art. 50 + 52</strong> (vigor 2026-08) — exige
+        marcado verificable de outputs generados por IA y trazabilidad
+        de decisiones. Compatible con la sección 9 de este RFC.
+      </DocP>
+      <DocP>
+        <strong>Mastercard Verifiable Intent</strong> +{" "}
+        <strong>Google AP2 Mandates</strong> — patrones cripto-firmados
+        para autorización de pagos por agentes. El RFC proposes adoptar
+        AP2 como el formato estándar para órdenes de pago grandes
+        (sección 5.2).
+      </DocP>
+      <DocP>
+        <strong>IETF draft-sharif-agent-audit-trail</strong> — propuesta
+        de estándar para audit-trail de tool calls en agentes. La
+        sección 9.2 de este RFC se alinea con esa propuesta.
+      </DocP>
+      <DocP>
+        <strong>Plan Sturzenegger</strong> — anuncio en Expo EFI
+        2026-04-28. Sin texto público todavía. Este RFC asume el
+        contorno descripto en la conferencia y se va a actualizar
+        cuando llegue el proyecto a Diputados.
+      </DocP>
+
       <DocH2>Comentarios</DocH2>
       <DocP>
         Este RFC es un primer borrador. Se va a iterar contra: lectura del
