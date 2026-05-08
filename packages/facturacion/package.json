@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/facturacion",
   "version": "0.1.2",
-  "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Emit Facturas A/B/C, query last authorized, validate authorized invoices. Reuses the WSAA infrastructure from @ar-agents/identity.",
+  "description": "AFIP/ARCA factura electr\u00f3nica (WSFE) as drop-in tools for the Vercel AI SDK. Emit Facturas A/B/C, query last authorized, validate authorized invoices. Reuses the WSAA infrastructure from @ar-agents/identity.",
   "keywords": [
     "afip",
     "arca",
@@ -44,10 +44,12 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
   },
   "files": [
     "dist",
+    "bin",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
@@ -116,5 +118,8 @@
   },
   "engines": {
     "node": ">=20.0.0"
+  },
+  "bin": {
+    "facturacion": "./bin/facturacion.js"
   }
 }

@@ -326,6 +326,24 @@ export default function Home() {
             >
               {t.arg_banner_link_rfcs}
             </a>
+            <a
+              href="/architecture"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              architecture
+            </a>
+            <a
+              href="/security"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              security
+            </a>
+            <a
+              href="/marketplace"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              benchmark
+            </a>
           </div>
         </section>
 
