@@ -81,8 +81,27 @@ export function PlayClient() {
 
   const [input, setInput] = useState("");
   const [audit, setAudit] = useState<AuditEntry[]>([]);
+  const [backend, setBackend] = useState<"vercel-kv" | "in-memory" | null>(null);
   const messagesRef = useRef<HTMLDivElement>(null);
   const auditRef = useRef<HTMLDivElement>(null);
+
+  // Probe the audit endpoint to learn which backend is wired (vercel-kv
+  // vs in-memory). Doesn't gate the demo, but surfacing the state lets a
+  // regulator know they're seeing the production path or the fallback.
+  useEffect(() => {
+    let alive = true;
+    fetch(`/api/play/audit/${sessionId}`, { cache: "no-store" })
+      .then((r) => r.json())
+      .then((j: { backend?: "vercel-kv" | "in-memory" }) => {
+        if (alive && j.backend) setBackend(j.backend);
+      })
+      .catch(() => {
+        // ignore
+      });
+    return () => {
+      alive = false;
+    };
+  }, [sessionId]);
 
   // Build the audit log from message tool parts. Each tool-call goes through
   // the AI SDK 6 part lifecycle: input-available → output-available.
@@ -384,6 +403,14 @@ export function PlayClient() {
             >
               ver firmado ↗
             </a>
+            {backend && (
+              <Pill
+                color={backend === "vercel-kv" ? "#0a72ef" : "#666"}
+                bg={backend === "vercel-kv" ? "#ebf5ff" : "#f5f5f5"}
+              >
+                {backend}
+              </Pill>
+            )}
             <span
               style={{
                 marginLeft: "auto",
