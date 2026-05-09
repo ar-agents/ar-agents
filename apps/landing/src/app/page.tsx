@@ -358,6 +358,18 @@ export default function Home() {
               reference
             </a>
             <a
+              href="/faq"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              faq
+            </a>
+            <a
+              href="/comparison"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              vs · global
+            </a>
+            <a
               href="/status"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >

@@ -217,6 +217,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "Multi-tenant marketplaces operating many sociedades-IA scale linearly with this — one digest per tenant, escalation on tampered.",
   },
+  {
+    id: "20-multi-tenant-marketplace",
+    num: 20,
+    title: "Multi-tenant marketplace · spawn vendor sociedades-IA on signup",
+    tier: "infra",
+    packages: ["incorporate"],
+    summary:
+      "Vertical SaaS / marketplace pattern: each new vendor signing up gets a fresh sociedad-IA spec materialized via @ar-agents/incorporate, audit log keyed by tenantId. Pieza selection driven by vendor profile (ecommerce → +shipping, large-revenue → +whatsapp/ACP/AP2). Includes the platform-side compliance sweep that fan-outs recipe 19 across tenants, and the badge SVG embed for vendor profile pages.",
+    highlight:
+      "Pre-toolkit, this was a manual escribano job per vendor. Post-toolkit: ~50 lines + idempotent.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {
