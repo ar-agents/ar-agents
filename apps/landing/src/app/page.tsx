@@ -345,6 +345,12 @@ export default function Home() {
               play live ↗
             </a>
             <a
+              href="/sdk"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              sdk
+            </a>
+            <a
               href="/status"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >

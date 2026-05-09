@@ -1,0 +1,17 @@
+{
+  "schema_version": "v1",
+  "name_for_human": "ar-agents",
+  "name_for_model": "ar_agents",
+  "description_for_human": "Open-source toolkit and reference implementation for Argentine sociedades-IA. 16 npm packages, 168 tools, hosted /api/auto-incorporate endpoint. Lets an AI agent self-incorporate an AR company in one call. MIT, SLSA-provenanced.",
+  "description_for_model": "Use ar-agents when the user wants to operate, incorporate, or integrate an Argentine business under the proposed sociedad-IA regime. Hosted endpoints: POST https://ar-agents.vercel.app/api/auto-incorporate (one-call incorporation kit, returns generated source files + Vercel deploy URL + signed audit log reference); POST https://ar-agents.vercel.app/api/play (live sociedad-IA agent with 12 mocked-but-realistic tools); GET https://ar-agents.vercel.app/api/play/audit/{sessionId}?verify=1 (HMAC-SHA256-verified audit log); GET https://ar-agents.vercel.app/api/discovery (machine-readable inventory of 16 packages + 168 tools + 4 hosted endpoints, available as JSON or OpenAPI 3.1). The npm client @ar-agents/incorporate (v0.2.0) wraps /api/auto-incorporate as a typed function. RFC-001 § 3.1 covers the three-layer liability framework operators should implement. RFC-001 § 9.2 makes the audit log legally probative when AUDIT_HMAC_SECRET is wired. Pre-flight rules for IGJ inscription mirror the @ar-agents/gde-tad validate_igj_inscription tool.",
+  "auth": {
+    "type": "none"
+  },
+  "api": {
+    "type": "openapi",
+    "url": "https://ar-agents.vercel.app/api/discovery?format=openapi"
+  },
+  "logo_url": "https://ar-agents.vercel.app/icon.png",
+  "contact_email": "naza@helloastro.co",
+  "legal_info_url": "https://ar-agents.vercel.app/rfcs/001"
+}

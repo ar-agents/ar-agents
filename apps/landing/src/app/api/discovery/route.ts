@@ -109,6 +109,13 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       description:
         "Read-only tampering demonstration. Returns an original signed entry + a mutated version + verification results for both. Educational — does not modify any real audit log.",
     },
+    {
+      name: "audit_badge",
+      url: `${SITE_URL}/api/badge/{sessionId}`,
+      method: "GET",
+      description:
+        "Returns a 24px SVG verification badge for embeds. Color + label updates live based on the audit log's verification state (verified / tampered / no-hmac / no entries). 60s cache.",
+    },
   ];
   return {
     $schema: `${SITE_URL}/schemas/discovery.v1.json`,
