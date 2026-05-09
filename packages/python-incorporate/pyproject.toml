@@ -1,0 +1,73 @@
+[build-system]
+requires = ["hatchling>=1.27.0"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ar-agents-incorporate"
+version = "0.1.0"
+description = "Zero-dependency Python client for the ar-agents.vercel.app/api/auto-incorporate endpoint. Lets an external agent (USA-LLC, Claude, GPT, custom orchestrator) self-incorporate an Argentine sociedad-IA in one call."
+readme = "README.md"
+license = { text = "MIT" }
+authors = [
+    { name = "Nazareno Clemente", email = "naza@helloastro.co" },
+]
+maintainers = [
+    { name = "Nazareno Clemente", email = "naza@helloastro.co" },
+]
+requires-python = ">=3.10"
+keywords = [
+    "ar-agents",
+    "argentina",
+    "sociedad-ia",
+    "sociedades-de-ia",
+    "incorporate",
+    "auto-incorporate",
+    "agentic",
+    "ai-agent",
+    "rfc-001",
+    "audit-log",
+    "hmac",
+]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Libraries",
+    "Typing :: Typed",
+]
+dependencies = [
+    "httpx>=0.27.0",
+]
+
+[project.urls]
+Homepage = "https://ar-agents.vercel.app/sdk"
+Documentation = "https://ar-agents.vercel.app/sdk"
+Repository = "https://github.com/ar-agents/ar-agents"
+"Bug Tracker" = "https://github.com/ar-agents/ar-agents/issues"
+"npm equivalent" = "https://www.npmjs.com/package/@ar-agents/incorporate"
+
+[project.optional-dependencies]
+test = [
+    "pytest>=8.0",
+    "pytest-asyncio>=0.24",
+    "pytest-cov>=5.0",
+    "respx>=0.21",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/ar_agents_incorporate"]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+addopts = "-q --strict-markers"
+
+[tool.coverage.run]
+source = ["src/ar_agents_incorporate"]
+branch = true
