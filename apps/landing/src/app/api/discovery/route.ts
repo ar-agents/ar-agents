@@ -116,6 +116,13 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       description:
         "Returns a 24px SVG verification badge for embeds. Color + label updates live based on the audit log's verification state (verified / tampered / no-hmac / no entries). 60s cache.",
     },
+    {
+      name: "audit_stream",
+      url: `${SITE_URL}/api/play/audit-stream/{sessionId}`,
+      method: "GET",
+      description:
+        "Server-Sent Events live-stream of audit entries for a session. Initial snapshot + delta-emit on a 2s tick + 15s keep-alive ping + 5min uptime cap (clients reconnect via EventSource).",
+    },
   ];
   return {
     $schema: `${SITE_URL}/schemas/discovery.v1.json`,
