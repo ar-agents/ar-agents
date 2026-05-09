@@ -16,25 +16,27 @@ export default function AstroCaseStudyPage() {
   return (
     <DocShell
       eyebrow="/arg · case study · astro.ar"
-      title="Astro runs on @ar-agents/* end-to-end."
-      subtitle="The reference customer for the toolkit. Three product surfaces (Astro chat, Astro bots, Astro clips), one Argentine-context backend. Written by the same maintainer who ships the toolkit — full disclosure on every claim."
+      title="Astro · planned reference customer for @ar-agents/*."
+      subtitle="The maintainer's own AR-context products are mid-cutover from raw SDKs to the @ar-agents/* tool surface. This page is the honest-as-it-is record of the migration — what runs on the toolkit today, what doesn't yet, and which production numbers we'll publish once the cutover lands."
     >
       <DocBlock>
         <DocP>
           <strong>Disclosure.</strong> Astro and{" "}
           <DocCode>@ar-agents/*</DocCode> are owned by the same person
           (Nazareno Clemente). Astro is the financial floor that keeps the
-          toolkit&apos;s author employed; the toolkit is what makes Astro
-          feasible for one founder to operate. Treat this as a
-          <em>self-portrait</em> of the operating model, not a third-party
+          toolkit&apos;s author employed; the toolkit is the operating
+          system the maintainer wants Astro to run on. Treat this as a{" "}
+          <em>migration log</em> from a single founder, not a third-party
           customer testimonial. Other case studies will follow as the user
           base grows.
         </DocP>
         <DocP>
-          The point of publishing this is that it forces the maintainer to
-          eat the cookbook. Every recipe in the cookbook works because Astro
-          uses it; recipes that didn&apos;t survive contact with production
-          got rewritten. <em>The maintainer is the first integration test.</em>
+          The discipline of publishing this is precisely that it prevents
+          fabricated claims. The maintainer&apos;s own product runs on raw
+          SDKs today; the migration to <DocCode>@ar-agents/*</DocCode> is
+          the next visible cutover. When it lands, this page replaces
+          aspirational copy with measured numbers — invoice volume,
+          dedup rate, audit-log size, webhook-signature reject count.
         </DocP>
       </DocBlock>
 
@@ -206,26 +208,39 @@ export default function AstroCaseStudyPage() {
 
       <DocH2>What we measure (when we have the numbers)</DocH2>
       <DocP>
-        Astro Chat is the only surface in production today (since
-        2025-12). Astro Bots and Astro Clips are in build, blocked on
-        Meta business verification (5-recipient WhatsApp dev cap) and
-        marketplace OAuth setup respectively. We&apos;ll publish hard
-        production numbers — invoice volume, idempotency-key dedup
-        rate, webhook signature failures, audit-log size — once the
-        WhatsApp surface clears Meta verification and we have ≥30 days
-        of post-launch data. The discipline is to not publish
-        speculative numbers in the meantime.
+        <strong>Honest status:</strong> Astro Chat is in production
+        (since 2025-12) but currently runs on the raw{" "}
+        <DocCode>@anthropic-ai/sdk</DocCode> with its own AFIP / Mercado
+        Pago integrations — not yet on the Vercel AI SDK 6 +{" "}
+        <DocCode>@ar-agents/*</DocCode> tool surface. Astro Bots and
+        Astro Clips are in build, blocked on Meta business verification
+        (5-recipient WhatsApp dev cap) and marketplace OAuth setup
+        respectively. The migration to <DocCode>@ar-agents/*</DocCode>{" "}
+        is a deliberate cutover the maintainer hasn&apos;t done yet —
+        the libraries shipped in Q2 2026, Astro pre-dates them. We won&apos;t
+        publish made-up production numbers in the meantime.
       </DocP>
       <DocP>
-        What we can verify today: every <DocCode>@ar-agents/*</DocCode>
-        package Astro depends on ships SLSA v1 npm provenance
-        attestations, the ACP webhook surface rejects unsigned mandates
-        (verified via the bridge integration tests), and every tool call
-        on the agent loop flows through{" "}
-        <DocCode>AuditLogger.wrap()</DocCode> with HMAC-signed
-        timestamps (verified by the audit-log subpath tests). When we
-        have measured production telemetry to publish, this section
-        will be replaced with concrete numbers and a methodology link.
+        <strong>What is verifiable today:</strong> every{" "}
+        <DocCode>@ar-agents/*</DocCode> package ships SLSA v1 npm
+        provenance attestations (
+        <DocCode>npm view @ar-agents/identity dist.attestations</DocCode>
+        ), the ACP webhook surface rejects unsigned mandates (
+        <DocCode>packages/agentic-commerce-bridge/test/*</DocCode>
+        ), the bundled <DocCode>@ar-agents/mcp</DocCode> server passes its
+        doctor CLI on a stock dev machine (
+        <DocCode>npx ar-agents-mcp doctor</DocCode>), and the live{" "}
+        <a href="/play" style={{ color: "var(--accent)" }}>/play</a>{" "}
+        endpoint generates HMAC-signed audit entries on every tool call —
+        click any session URL like{" "}
+        <DocCode>/dashboard/{`{sessionId}`}</DocCode> for a forensic
+        timeline. Those are the assertions a regulator can challenge
+        today.
+      </DocP>
+      <DocP>
+        When the Astro Chat → <DocCode>@ar-agents/*</DocCode> cutover
+        ships, this section gets replaced with concrete production
+        numbers and a methodology link.
       </DocP>
 
       <DocH2>What this case study is for</DocH2>

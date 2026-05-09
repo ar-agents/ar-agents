@@ -390,7 +390,7 @@ export function PlayClient() {
               audit log · RFC-001 § 9
             </span>
             <a
-              href={`/api/play/audit/${sessionId}?verify=1`}
+              href={`/dashboard/${sessionId}`}
               target="_blank"
               rel="noreferrer"
               style={{
@@ -399,9 +399,10 @@ export function PlayClient() {
                 color: "#0072f5",
                 textDecoration: "none",
                 marginLeft: 4,
+                fontWeight: 500,
               }}
             >
-              ver firmado ↗
+              ver dashboard ↗
             </a>
             {backend && (
               <Pill
@@ -809,7 +810,7 @@ function FooterNotes({ sessionId }: { sessionId: string }) {
       <div>
         <strong style={{ color: "#171717" }}>Audit log de esta sesión:</strong>{" "}
         <a
-          href={`/api/play/audit/${sessionId}?verify=1`}
+          href={`/dashboard/${sessionId}`}
           target="_blank"
           rel="noreferrer"
           style={{
@@ -818,11 +819,19 @@ function FooterNotes({ sessionId }: { sessionId: string }) {
             fontSize: 12,
           }}
         >
+          /dashboard/{sessionId.slice(0, 8)}…
+        </a>
+        {" — "}timeline forense con cada tool call HMAC-SHA256-firmado server-
+        side. JSON crudo en{" "}
+        <a
+          href={`/api/play/audit/${sessionId}?verify=1`}
+          target="_blank"
+          rel="noreferrer"
+          style={{ color: "#0072f5", fontFamily: FONT_MONO, fontSize: 12 }}
+        >
           /api/play/audit/{sessionId.slice(0, 8)}…?verify=1
         </a>
-        {" — "}cada tool call queda HMAC-SHA256-firmado server-side; el query
-        param <code style={{ fontFamily: FONT_MONO }}>?verify=1</code> hace que
-        el servidor verifique todas las entradas y reporte tampering.
+        .
       </div>
       <div>
         <strong style={{ color: "#171717" }}>Auto-incorporación machine-readable:</strong>{" "}
