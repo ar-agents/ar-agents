@@ -239,6 +239,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "5 verification gates + idempotency + audit-log-as-evidence in ~250 lines. Wyoming DAO LLC plugs into AR jurisdiction without refactoring its agent.",
   },
+  {
+    id: "22-mp-webhook-afip-reconciliation",
+    num: 22,
+    title: "Nightly MP ↔ AFIP reconciliation · drift detection + auto-correction",
+    tier: "production",
+    packages: ["facturacion", "mercadopago", "incorporate"],
+    summary:
+      "Daily cron that cross-references MP payments against AFIP-issued CAEs against the audit log. Surfaces 3 drift classes (MP paid + no factura, factura + no MP payment, duplicate MP payments + one factura), auto-corrects the safe ones (re-emit factura on MP-paid orphans), and renders a contador-friendly Spanish digest for monthly compliance. The pattern that catches every silent failure in the AFIP/MP bridge.",
+    highlight:
+      "AFIP fails ~30% of mechanical CAE requests. WSFE silent failures + MP retries make drift inevitable. Recipe 22 is the floor.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {

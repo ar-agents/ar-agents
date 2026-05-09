@@ -376,6 +376,12 @@ export default function Home() {
               getting-started
             </a>
             <a
+              href="/changelog"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              changelog
+            </a>
+            <a
               href="/status"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
