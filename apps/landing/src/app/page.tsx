@@ -339,6 +339,12 @@ export default function Home() {
               security
             </a>
             <a
+              href="/play"
+              style={{ color: "var(--text)", textDecoration: "underline", fontWeight: 600 }}
+            >
+              play live ↗
+            </a>
+            <a
               href="/examples"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
@@ -408,7 +414,11 @@ export default function Home() {
             ¿Sos regulador, asesor de gobierno, periodista o reviewer?
           </div>
           <div style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.55 }}>
-            Tres puntos de entrada cortos:{" "}
+            Cuatro puntos de entrada cortos:{" "}
+            <a href="/play" style={{ color: "var(--accent)" }}>
+              /play
+            </a>{" "}
+            (sociedad-IA en vivo, 30 segundos, sin setup),{" "}
             <a href="/es/playbook" style={{ color: "var(--accent)" }}>
               /es/playbook
             </a>{" "}
@@ -416,13 +426,15 @@ export default function Home() {
             <a href="/rfcs/001" style={{ color: "var(--accent)" }}>
               /rfcs/001
             </a>{" "}
-            (marco de responsabilidad de tres capas para sociedades-IA),{" "}
+            (marco de responsabilidad),{" "}
             <a href="/press-kit" style={{ color: "var(--accent)" }}>
               /press-kit
             </a>{" "}
-            (datos verificables + frases citables + contacto). Para una
-            reunión: <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>naza@helloastro.co</a>{" "}
-            — primera respuesta en &lt;48hs.
+            (datos verificables + contacto). Reunión:{" "}
+            <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>
+              naza@helloastro.co
+            </a>{" "}
+            — respuesta &lt;48hs.
           </div>
         </section>
 
