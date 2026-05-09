@@ -31,6 +31,19 @@ const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
 const SHADOW_CARD =
   "rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px";
 
+// WCAG-friendly screen-reader-only style for off-screen labels.
+const visuallyHidden: React.CSSProperties = {
+  position: "absolute",
+  width: 1,
+  height: 1,
+  padding: 0,
+  margin: -1,
+  overflow: "hidden",
+  clip: "rect(0,0,0,0)",
+  whiteSpace: "nowrap",
+  border: 0,
+};
+
 interface AuditEntry {
   id: string;
   toolName: string;
@@ -246,6 +259,9 @@ export function PlayClient() {
 
           <div
             ref={messagesRef}
+            role="log"
+            aria-live="polite"
+            aria-label="Conversación con el agente"
             style={{
               flex: 1,
               padding: 20,
@@ -309,13 +325,23 @@ export function PlayClient() {
               display: "flex",
               gap: 8,
             }}
+            aria-label="Enviar prompt al agente"
           >
+            <label htmlFor="play-prompt" style={visuallyHidden}>
+              Prompt para el agente
+            </label>
             <input
+              id="play-prompt"
+              name="prompt"
+              type="text"
               value={input}
               onChange={(e) => setInput(e.target.value)}
               disabled={isStreaming}
               placeholder='Probá: "Cobrale $75.000 a Acme SRL CUIT 30-12345678-9"'
               autoFocus
+              autoComplete="off"
+              aria-describedby="play-prompt-hint"
+              maxLength={2000}
               style={{
                 flex: 1,
                 background: "#ffffff",
@@ -329,17 +355,24 @@ export function PlayClient() {
                 outline: "none",
               }}
               onFocus={(e) => {
-                e.currentTarget.style.boxShadow = "hsla(212, 100%, 48%, 1) 0px 0px 0px 2px";
+                e.currentTarget.style.boxShadow =
+                  "hsla(212, 100%, 48%, 1) 0px 0px 0px 2px";
               }}
               onBlur={(e) => {
-                e.currentTarget.style.boxShadow = "rgb(235,235,235) 0px 0px 0px 1px";
+                e.currentTarget.style.boxShadow =
+                  "rgb(235,235,235) 0px 0px 0px 1px";
               }}
             />
+            <span id="play-prompt-hint" style={visuallyHidden}>
+              Máximo 2000 caracteres. Enter para enviar.
+            </span>
             <button
               type="submit"
               disabled={isStreaming || !input.trim()}
+              aria-busy={isStreaming}
               style={{
-                background: isStreaming || !input.trim() ? "#ebebeb" : "#171717",
+                background:
+                  isStreaming || !input.trim() ? "#ebebeb" : "#171717",
                 color: isStreaming || !input.trim() ? "#666" : "#ffffff",
                 border: 0,
                 borderRadius: 6,
@@ -426,6 +459,9 @@ export function PlayClient() {
 
           <div
             ref={auditRef}
+            role="log"
+            aria-live="polite"
+            aria-label="Audit log RFC-001"
             style={{
               flex: 1,
               padding: 12,

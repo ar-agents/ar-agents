@@ -1,0 +1,264 @@
+/**
+ * Unit tests for /api/auto-incorporate's pure logic.
+ */
+
+import { describe, expect, it } from "vitest";
+import {
+  Body,
+  envVarsFor,
+  generateAgentTs,
+  generateChecklist,
+  generateEnvExample,
+  generatePackageJson,
+  generateReadme,
+  normalizeCuit,
+  REQUIRED_PIEZAS,
+  resolvePiezas,
+  slugFor,
+  validate,
+} from "../src/lib/incorporate";
+
+const baseInput = {
+  denominacion: "ACME-AI SAS",
+  tipo: "SAS" as const,
+  capitalSocial: 200_000,
+  objeto: "Desarrollo y comercialización de software propio para empresas argentinas.",
+  piezas: [...REQUIRED_PIEZAS],
+};
+
+describe("Body schema", () => {
+  it("accepts a clean SAS input", () => {
+    const r = Body.safeParse(baseInput);
+    expect(r.success).toBe(true);
+  });
+  it("rejects empty denominacion", () => {
+    const r = Body.safeParse({ ...baseInput, denominacion: "AC" });
+    expect(r.success).toBe(false);
+  });
+  it("rejects negative capital", () => {
+    const r = Body.safeParse({ ...baseInput, capitalSocial: -100 });
+    expect(r.success).toBe(false);
+  });
+  it("rejects unknown tipo", () => {
+    const r = Body.safeParse({ ...baseInput, tipo: "FAKE" });
+    expect(r.success).toBe(false);
+  });
+  it("rejects too-short objeto", () => {
+    const r = Body.safeParse({ ...baseInput, objeto: "muy corto" });
+    expect(r.success).toBe(false);
+  });
+  it("accepts SOCIEDAD-IA tipo", () => {
+    const r = Body.safeParse({ ...baseInput, tipo: "SOCIEDAD-IA", capitalSocial: 1 });
+    expect(r.success).toBe(true);
+  });
+});
+
+describe("validate()", () => {
+  it("passes a clean SAS", () => {
+    const r = validate(Body.parse(baseInput));
+    expect(r.valid).toBe(true);
+    expect(r.findings).toHaveLength(0);
+  });
+
+  it("flags reserved word in denominación", () => {
+    const r = validate(
+      Body.parse({ ...baseInput, denominacion: "ACME Nacional SAS" }),
+    );
+    expect(r.valid).toBe(false);
+    expect(r.findings.some((f) => f.code === "denominacion_reserved_word")).toBe(true);
+  });
+
+  it("flags capital below SAS minimum", () => {
+    const r = validate(Body.parse({ ...baseInput, capitalSocial: 50_000 }));
+    expect(r.valid).toBe(false);
+    expect(r.findings.some((f) => f.code === "capital_below_minimum")).toBe(true);
+  });
+
+  it("warns (but does not fail) on SOCIEDAD-IA", () => {
+    const r = validate(
+      Body.parse({ ...baseInput, tipo: "SOCIEDAD-IA", capitalSocial: 1 }),
+    );
+    expect(r.valid).toBe(true);
+    expect(r.findings.some((f) => f.code === "sociedad_ia_pending_law")).toBe(true);
+    expect(r.findings.some((f) => f.severity === "error")).toBe(false);
+  });
+
+  it("rejects malformed CUIT in representante", () => {
+    const r = validate(
+      Body.parse({
+        ...baseInput,
+        representante: { nombre: "Foo", cuit: "not-a-cuit" },
+      }),
+    );
+    expect(r.valid).toBe(false);
+    expect(r.findings.some((f) => f.code === "cuit_representante_invalid")).toBe(true);
+  });
+
+  it("accepts valid CUIT in representante", () => {
+    const r = validate(
+      Body.parse({
+        ...baseInput,
+        representante: { nombre: "Foo", cuit: "20-12345678-9" },
+      }),
+    );
+    expect(r.valid).toBe(true);
+  });
+});
+
+describe("normalizeCuit()", () => {
+  it("strips non-digits", () => {
+    expect(normalizeCuit("20-12345678-9")).toBe("20123456789");
+    expect(normalizeCuit("20.12345678-9")).toBe("20123456789");
+    expect(normalizeCuit("20 1234 5678 9")).toBe("20123456789");
+  });
+  it("handles empty / null", () => {
+    expect(normalizeCuit("")).toBe("");
+    expect(normalizeCuit(null as unknown as string)).toBe("");
+    expect(normalizeCuit(undefined as unknown as string)).toBe("");
+  });
+});
+
+describe("slugFor()", () => {
+  it("lowercases + dedupes dashes + trims length", () => {
+    expect(slugFor("ACME-AI SAS")).toBe("acme-ai-sas");
+    expect(slugFor("Café & Restaurante La Esquina")).toBe("caf-restaurante-la-esquina");
+    expect(slugFor("a".repeat(100))).toBe("a".repeat(40));
+  });
+  it("falls back to default", () => {
+    expect(slugFor("")).toBe("sociedad-ia");
+    expect(slugFor("@@@")).toBe("sociedad-ia");
+  });
+});
+
+describe("resolvePiezas()", () => {
+  it("always includes required piezas", () => {
+    const r = resolvePiezas(["whatsapp"]);
+    for (const req of REQUIRED_PIEZAS) {
+      expect(r).toContain(req);
+    }
+    expect(r).toContain("whatsapp");
+  });
+  it("dedupes", () => {
+    const r = resolvePiezas(["identity", "identity", "identity"]);
+    expect(r.filter((p) => p === "identity")).toHaveLength(1);
+  });
+});
+
+describe("envVarsFor()", () => {
+  it("always includes ANTHROPIC_API_KEY + AUDIT_HMAC_SECRET", () => {
+    const v = envVarsFor(["identity"]).map((x) => x.name);
+    expect(v).toContain("ANTHROPIC_API_KEY");
+    expect(v).toContain("AUDIT_HMAC_SECRET");
+  });
+  it("includes AFIP_CERT_PEM when identity is present", () => {
+    const v = envVarsFor(["identity"]).map((x) => x.name);
+    expect(v).toContain("AFIP_CERT_PEM");
+  });
+  it("includes MERCADOPAGO_ACCESS_TOKEN when mercadopago is present", () => {
+    const v = envVarsFor(["mercadopago"]).map((x) => x.name);
+    expect(v).toContain("MERCADOPAGO_ACCESS_TOKEN");
+  });
+  it("includes WHATSAPP_ACCESS_TOKEN when whatsapp is present", () => {
+    const v = envVarsFor(["whatsapp"]).map((x) => x.name);
+    expect(v).toContain("WHATSAPP_ACCESS_TOKEN");
+  });
+  it("does not include WhatsApp env vars when whatsapp is absent", () => {
+    const v = envVarsFor(["identity"]).map((x) => x.name);
+    expect(v).not.toContain("WHATSAPP_ACCESS_TOKEN");
+  });
+});
+
+describe("generatePackageJson()", () => {
+  it("produces valid JSON with selected ar-agents deps", () => {
+    const json = generatePackageJson(Body.parse(baseInput), ["identity", "banking"]);
+    const parsed = JSON.parse(json);
+    expect(parsed.name).toBe("acme-ai-sas");
+    expect(parsed.private).toBe(true);
+    expect(parsed.dependencies["@ar-agents/identity"]).toBeDefined();
+    expect(parsed.dependencies["@ar-agents/banking"]).toBeDefined();
+    expect(parsed.dependencies["next"]).toBeDefined();
+  });
+  it("sorts dependencies alphabetically", () => {
+    const json = generatePackageJson(Body.parse(baseInput), [
+      "identity",
+      "banking",
+      "facturacion",
+    ]);
+    const parsed = JSON.parse(json);
+    const keys = Object.keys(parsed.dependencies);
+    const sorted = [...keys].sort();
+    expect(keys).toEqual(sorted);
+  });
+});
+
+describe("generateAgentTs()", () => {
+  it("produces TypeScript with the right tool function names", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), [
+      "identity",
+      "banking",
+      "facturacion",
+      "mercadopago",
+    ]);
+    expect(ts).toContain('import { identityTools } from "@ar-agents/identity"');
+    expect(ts).toContain('import { bankingTools } from "@ar-agents/banking"');
+    expect(ts).toContain('import { mercadoPagoTools } from "@ar-agents/mercadopago"');
+    expect(ts).toContain("identityTools({ afip })");
+    expect(ts).toContain("(mp ? mercadoPagoTools(mp) : {})");
+  });
+  it("uses meliTools for mercadolibre (not mercadolibreTools)", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity", "mercadolibre"]);
+    expect(ts).toContain("meliTools");
+    expect(ts).not.toContain("mercadolibreTools");
+  });
+  it("skips infra packages (ap2, agentic-commerce-bridge, mcp)", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity", "ap2", "mcp"]);
+    expect(ts).not.toContain("@ar-agents/ap2");
+    expect(ts).not.toContain("@ar-agents/mcp");
+  });
+  it("references lib/clients.ts for client construction", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity"]);
+    expect(ts).toContain("from \"./clients\"");
+    expect(ts).toContain("getMpClient");
+    expect(ts).toContain("getAfipPadronAdapter");
+  });
+});
+
+describe("generateEnvExample()", () => {
+  it("produces a .env-style file with comments", () => {
+    const text = generateEnvExample(envVarsFor(["identity"]));
+    expect(text).toContain("AFIP_CERT_PEM=");
+    expect(text).toContain("# X.509 cert");
+    expect(text.split("\n").filter((l) => l.startsWith("#")).length).toBeGreaterThan(3);
+  });
+});
+
+describe("generateReadme()", () => {
+  it("includes denominación + tipo + RFC-001 link", () => {
+    const md = generateReadme(Body.parse(baseInput));
+    expect(md).toContain("ACME-AI SAS");
+    expect(md).toContain("**SAS**");
+    expect(md).toContain("rfcs/001");
+  });
+  it("differentiates SOCIEDAD-IA copy", () => {
+    const md = generateReadme(
+      Body.parse({ ...baseInput, tipo: "SOCIEDAD-IA", capitalSocial: 1 }),
+    );
+    expect(md).toContain("pendiente sanción");
+  });
+});
+
+describe("generateChecklist()", () => {
+  it("returns 8 ordered steps", () => {
+    const steps = generateChecklist(Body.parse(baseInput));
+    expect(steps).toHaveLength(8);
+    // Step 1 references the slug (acme-ai-sas), not the denominación.
+    expect(steps[0]).toContain("acme-ai-sas");
+    expect(steps[0]).toContain("npx degit");
+  });
+  it("differentiates SOCIEDAD-IA legal step", () => {
+    const steps = generateChecklist(
+      Body.parse({ ...baseInput, tipo: "SOCIEDAD-IA", capitalSocial: 1 }),
+    );
+    expect(steps.some((s) => s.includes("aún no fue sancionado"))).toBe(true);
+  });
+});
