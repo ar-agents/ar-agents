@@ -194,6 +194,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "Wired to RFC-001's three-layer liability framework.",
   },
+  {
+    id: "18-usa-llc-self-incorporates-ar",
+    num: 18,
+    title: "USA-LLC self-incorporates AR sociedad-IA · one-call programmatic flow",
+    tier: "infra",
+    packages: ["incorporate", "ap2", "agentic-commerce-bridge"],
+    summary:
+      "USA-LLC agent calls @ar-agents/incorporate's `incorporate({...})` to spin up an AR sociedad-IA's deploy spec in one call. Receives generated package.json + agent.ts + .env.example + README.md + Vercel deploy URL + signed audit-log reference. Chains incorporation + ongoing operations under a single forensic timeline.",
+    highlight:
+      "The headline claim of /sociedades-ia made fully programmatic. `pnpm add @ar-agents/incorporate` + 1 await.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {

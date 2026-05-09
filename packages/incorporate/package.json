@@ -1,0 +1,95 @@
+{
+  "name": "@ar-agents/incorporate",
+  "version": "0.1.0",
+  "description": "Zero-dependency TypeScript client for the ar-agents.vercel.app/api/auto-incorporate endpoint. Lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
+  "keywords": [
+    "ar-agents",
+    "argentina",
+    "sociedad-ia",
+    "sociedades-de-ia",
+    "incorporate",
+    "auto-incorporate",
+    "agentic",
+    "ai-agent",
+    "vercel-ai-sdk",
+    "rfc-001",
+    "audit-log",
+    "hmac",
+    "client",
+    "sdk"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://ar-agents.vercel.app/api/auto-incorporate",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/incorporate"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "lint": "echo 'no lint configured yet'",
+    "validate": "publint && attw --pack .",
+    "size": "size-limit",
+    "clean": "rm -rf dist"
+  },
+  "size-limit": [
+    {
+      "name": "ESM",
+      "path": "dist/index.js",
+      "limit": "4 KB"
+    },
+    {
+      "name": "CJS",
+      "path": "dist/index.cjs",
+      "limit": "4 KB"
+    }
+  ],
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

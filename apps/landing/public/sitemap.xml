@@ -11,6 +11,16 @@
     <priority>1.0</priority>
   </url>
   <url>
+    <loc>https://ar-agents.vercel.app/status</loc>
+    <changefreq>daily</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ar-agents.vercel.app/verify</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
     <loc>https://ar-agents.vercel.app/architecture</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>

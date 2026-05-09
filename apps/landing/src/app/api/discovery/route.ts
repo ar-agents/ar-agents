@@ -102,6 +102,13 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       description:
         "Public audit log for a /play session. Each entry is HMAC-SHA256-signed at write time; pass ?verify=1 to ask the server to confirm tamper-free state.",
     },
+    {
+      name: "play_tamper_demo",
+      url: `${SITE_URL}/api/play/tamper-demo`,
+      method: "POST",
+      description:
+        "Read-only tampering demonstration. Returns an original signed entry + a mutated version + verification results for both. Educational — does not modify any real audit log.",
+    },
   ];
   return {
     $schema: `${SITE_URL}/schemas/discovery.v1.json`,
