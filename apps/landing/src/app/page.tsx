@@ -370,6 +370,12 @@ export default function Home() {
               vs · global
             </a>
             <a
+              href="/getting-started"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              getting-started
+            </a>
+            <a
               href="/status"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >

@@ -29,6 +29,7 @@
  */
 
 import { isSessionIdValid, readAudit, type AuditEntry } from "@/lib/audit";
+import { sseLine } from "@/lib/sse";
 
 export const runtime = "nodejs";
 export const maxDuration = 300; // 5 minutes — see cap below.
@@ -36,10 +37,6 @@ export const maxDuration = 300; // 5 minutes — see cap below.
 const TICK_INTERVAL_MS = 2_000;
 const KEEPALIVE_INTERVAL_MS = 15_000;
 const MAX_UPTIME_MS = 5 * 60 * 1000; // 5 minutes; clients reconnect.
-
-function sseLine(event: string, data: unknown): string {
-  return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
-}
 
 export async function GET(
   _req: Request,

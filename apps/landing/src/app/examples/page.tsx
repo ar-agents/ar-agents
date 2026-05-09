@@ -228,6 +228,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "Pre-toolkit, this was a manual escribano job per vendor. Post-toolkit: ~50 lines + idempotent.",
   },
+  {
+    id: "21-cross-jurisdictional-ap2",
+    num: 21,
+    title: "Cross-jurisdictional commerce · USA-LLC + AR sociedad + AP2 mandate",
+    tier: "infra",
+    packages: ["incorporate", "ap2", "facturacion", "identity", "banking"],
+    summary:
+      "USA-LLC sells to AR consumer; AR sociedad-IA verifies AP2 mandate (ES256/JWS), enforces per-op + monthly + idempotent caps, runs CUIT validity + BCRA credit checks, then emits factura A/B/C under its own CUIT. Each refusal lands as an audit entry that's challengeable later. The reference implementation of RFC-001 § 7's cross-jurisdictional contract surface.",
+    highlight:
+      "5 verification gates + idempotency + audit-log-as-evidence in ~250 lines. Wyoming DAO LLC plugs into AR jurisdiction without refactoring its agent.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {
