@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
+import { SecurityJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
   title: "Security threat model",
@@ -285,6 +286,7 @@ export default function SecurityPage() {
         regulated workloads (banking, healthcare, government), commission
         a third-party review before production deployment.
       </DocP>
+      <SecurityJsonLd />
     </DocShell>
   );
 }

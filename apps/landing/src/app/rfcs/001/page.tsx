@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
+import { RfcJsonLd } from "../../json-ld";
 
 export const metadata: Metadata = {
   title: "RFC-001: Identidad y firma de agentes en Argentina",
@@ -305,6 +306,12 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
         </a>{" "}
         bienvenidos.
       </DocP>
+      <RfcJsonLd
+        id="001"
+        title="RFC-001: Identidad y firma de agentes en Argentina"
+        abstract="Cómo una sociedad de IA argentina prueba quién es, firma transacciones, recibe notificaciones, y deposita impuestos. Marco de responsabilidad de tres capas (operador, proveedor del modelo, autor de la librería)."
+        datePublished="2026-05-01"
+      />
     </DocShell>
   );
 }

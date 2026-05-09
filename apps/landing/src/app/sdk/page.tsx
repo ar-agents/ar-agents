@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
+import { SdkJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
   title: "/sdk · @ar-agents/incorporate",
@@ -371,6 +372,7 @@ export default function SdkPage() {
         </code>
         .
       </DocP>
+      <SdkJsonLd />
     </DocShell>
   );
 }
