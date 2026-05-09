@@ -54,6 +54,18 @@ type DiscoveryDoc = {
     tools: Array<{ name: string; description?: string }>;
   }>;
   totalTools: number;
+  /**
+   * Hosted endpoints an autonomous agent can invoke directly without
+   * pulling any package — useful for cross-jurisdiction agent commerce
+   * (a USA-LLC agent self-incorporating an AR sociedad-IA).
+   */
+  endpoints: Array<{
+    name: string;
+    url: string;
+    method: "GET" | "POST";
+    description: string;
+    schema?: string;
+  }>;
 };
 
 function buildDiscoveryDoc(): DiscoveryDoc {
@@ -67,11 +79,36 @@ function buildDiscoveryDoc(): DiscoveryDoc {
     tools: m.tools.map((t) => ({ name: t.name, description: t.description })),
   }));
   const totalTools = packages.reduce((acc, p) => acc + p.toolCount, 0);
+  const endpoints: DiscoveryDoc["endpoints"] = [
+    {
+      name: "auto_incorporate",
+      url: `${SITE_URL}/api/auto-incorporate`,
+      method: "POST",
+      description:
+        "Self-incorporate an Argentine sociedad-IA in a single call. Returns generated package.json + agent.ts + .env.example + README.md, the env-var manifest, the legal+operational checklist, a Vercel one-click deploy URL, and a signed audit-log reference. Suitable for a USA-LLC agent (or any external orchestrator) to call directly.",
+      schema: `${SITE_URL}/api/auto-incorporate`,
+    },
+    {
+      name: "play_agent",
+      url: `${SITE_URL}/api/play`,
+      method: "POST",
+      description:
+        "Live sociedad-IA agent demo (12 tools, mocked-but-realistic). Edge Runtime + Vercel AI Gateway streaming. Audit-logged to KV under x-play-session header.",
+    },
+    {
+      name: "play_audit",
+      url: `${SITE_URL}/api/play/audit/{sessionId}`,
+      method: "GET",
+      description:
+        "Public audit log for a /play session. Each entry is HMAC-SHA256-signed at write time; pass ?verify=1 to ask the server to confirm tamper-free state.",
+    },
+  ];
   return {
     $schema: `${SITE_URL}/schemas/discovery.v1.json`,
     generatedAt: new Date().toISOString().slice(0, 10),
     packages,
     totalTools,
+    endpoints,
   };
 }
 
@@ -120,19 +157,72 @@ function buildOpenApiDoc() {
     }
   }
 
+  // Extend with the live hosted endpoints — these run on this server, not
+  // in the host's runtime. An external agent can call them directly.
+  paths["/api/auto-incorporate"] = {
+    post: {
+      operationId: "auto_incorporate",
+      summary:
+        "Self-incorporate an Argentine sociedad-IA programmatically. Returns generated source files + Vercel deploy URL + legal checklist + signed audit reference.",
+      "x-runtime": "edge",
+      "x-rate-limited": false,
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["denominacion", "tipo", "capitalSocial", "objeto"],
+              properties: {
+                denominacion: { type: "string", minLength: 3, maxLength: 200 },
+                tipo: { type: "string", enum: ["SAS", "SRL", "SA", "SOCIEDAD-IA"] },
+                capitalSocial: { type: "number", exclusiveMinimum: 0 },
+                objeto: { type: "string", minLength: 20, maxLength: 2000 },
+              },
+            },
+          },
+        },
+      },
+      responses: {
+        "200": {
+          description:
+            "Incorporation kit. JSON includes config files, env vars, deploy URL, checklist, audit reference.",
+          content: { "application/json": { schema: {} } },
+        },
+        "422": {
+          description: "Validation findings. JSON has validation.findings[] with codes + messages.",
+        },
+      },
+    },
+  };
+  paths["/api/play"] = {
+    post: {
+      operationId: "play_agent",
+      summary: "Live sociedad-IA agent (12 tools, mocked) over Vercel AI Gateway streaming.",
+      "x-runtime": "edge",
+    },
+  };
+  paths["/api/play/audit/{sessionId}"] = {
+    get: {
+      operationId: "play_audit",
+      summary: "Read the HMAC-signed audit log for a /play session.",
+      parameters: [
+        { name: "sessionId", in: "path", required: true, schema: { type: "string" } },
+        { name: "verify", in: "query", required: false, schema: { type: "string", enum: ["1"] } },
+      ],
+    },
+  };
+
   return {
     openapi: "3.1.0",
     info: {
-      title: "ar-agents — aggregated tool surface",
+      title: "ar-agents — aggregated tool + endpoint surface",
       version: "1.0.0",
       description:
-        "Machine-readable inventory of every tool the @ar-agents/* stack exposes. Generated from per-package tools.manifest.json files.",
+        "Machine-readable inventory of every tool the @ar-agents/* stack exposes, plus the hosted endpoints (auto-incorporate, play, audit) that run on this server.",
       license: { name: "MIT", identifier: "MIT" },
       contact: { name: "Nazareno Clemente", url: "https://github.com/naza00000" },
     },
-    servers: [
-      { url: SITE_URL, description: "Catalog only — actual tools execute in the host's runtime." },
-    ],
+    servers: [{ url: SITE_URL, description: "Hosted ar-agents.vercel.app" }],
     "x-toolkit": {
       repository: REPO_URL,
       packages: MANIFESTS.map((m) => ({ name: m.package, version: m.version })),

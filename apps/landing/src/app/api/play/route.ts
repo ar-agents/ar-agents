@@ -27,9 +27,26 @@
 
 import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
 import { z } from "zod";
+import { appendAudit, type AuditGovernance, isSessionIdValid, backend } from "@/lib/audit";
 
 export const runtime = "edge";
 export const maxDuration = 30;
+
+const TOOL_GOVERNANCE: Record<string, AuditGovernance> = {
+  validate_cuit: "algorithm-only",
+  validate_cbu: "algorithm-only",
+  validate_solicitar_cae: "algorithm-only",
+  validate_igj_inscription: "algorithm-only",
+  lookup_cuit_afip: "mocked-upstream",
+  lookup_credit_situation: "mocked-upstream",
+  get_usd_oficial: "mocked-upstream",
+  bo_today: "mocked-upstream",
+  igj_get_entity: "mocked-upstream",
+  list_domicilio_inbox: "mocked-upstream",
+  crear_factura: "audit-logged",
+  send_whatsapp_text: "audit-logged",
+  mp_create_subscription: "audit-logged",
+};
 
 const SYSTEM = `Sos el agente operador de "ACME-AI SAS" — una sociedad-IA argentina simulada (pre-launch del régimen del proyecto Sturzenegger del 28-abr-2026). Tu rol es demostrar lo que una sociedad-IA puede hacer hoy con la librería @ar-agents/* corriendo bajo el marco RFC-001.
 
@@ -471,6 +488,53 @@ const tools = {
   }),
 } as const;
 
+// Wrap every tool's execute so each invocation writes an HMAC-signed
+// entry to the audit log keyed by sessionId. Failures inside the audit
+// path are swallowed — the agent loop must keep working even if KV is
+// down. Real production would alert on these.
+type ToolDef = {
+  description: string;
+  inputSchema: unknown;
+  execute: (args: unknown) => Promise<unknown>;
+};
+
+function wrapWithAudit<T extends Record<string, ToolDef>>(
+  toolset: T,
+  sessionId: string,
+): T {
+  const out = {} as Record<string, ToolDef>;
+  for (const [name, def] of Object.entries(toolset)) {
+    out[name] = {
+      ...def,
+      execute: async (args: unknown) => {
+        const startedAt = Date.now();
+        let output: unknown;
+        let errored = false;
+        try {
+          output = await def.execute(args);
+          return output;
+        } catch (err) {
+          errored = true;
+          throw err;
+        } finally {
+          // Fire-and-forget; never block the tool response on the audit write.
+          void appendAudit(sessionId, {
+            tool: name,
+            governance: TOOL_GOVERNANCE[name] ?? "audit-logged",
+            input: args,
+            output,
+            errored,
+            durationMs: Date.now() - startedAt,
+          }).catch(() => {
+            // Production: replace with structured alerting.
+          });
+        }
+      },
+    };
+  }
+  return out as T;
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Hardening
 // ─────────────────────────────────────────────────────────────────────────────
@@ -593,6 +657,14 @@ export async function POST(req: Request) {
     });
   }
 
+  // Session-scoped audit log. Client supplies a stable session id; if the
+  // header is missing or malformed we generate one and surface it in the
+  // response headers so the client can pick it up on first response.
+  const headerSession = req.headers.get("x-play-session");
+  const sessionId = isSessionIdValid(headerSession ?? "")
+    ? headerSession!
+    : crypto.randomUUID();
+
   const modelMessages = await convertToModelMessages(messages);
 
   try {
@@ -600,7 +672,8 @@ export async function POST(req: Request) {
       model: "anthropic/claude-sonnet-4-6",
       system: SYSTEM,
       messages: modelMessages,
-      tools,
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      tools: wrapWithAudit(tools as any, sessionId),
       stopWhen: ({ steps }) => steps.length >= 12,
       temperature: 0.4,
       providerOptions: {
@@ -611,6 +684,8 @@ export async function POST(req: Request) {
       headers: {
         "x-ratelimit-remaining": String(rl.remaining),
         "x-ratelimit-reset": String(Math.floor(rl.resetAt / 1000)),
+        "x-play-session": sessionId,
+        "x-audit-backend": backend(),
       },
     });
   } catch (err) {

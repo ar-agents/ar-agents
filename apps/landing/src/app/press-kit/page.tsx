@@ -184,6 +184,51 @@ export default function PressKitPage() {
         ))}
       </div>
 
+      <DocH2>Endpoints públicos (machine-readable)</DocH2>
+      <DocP>
+        Tres surfaces hosted que un agente externo puede invocar
+        directamente — sin instalar ningún paquete, sin ningún wrapper:
+      </DocP>
+      <ul
+        style={{
+          paddingLeft: 20,
+          fontSize: 14,
+          lineHeight: 1.7,
+          color: "var(--text-body)",
+        }}
+      >
+        <li>
+          <code style={{ fontFamily: FONT_MONO }}>POST /api/auto-incorporate</code>{" "}
+          — auto-incorporación de una sociedad-IA en una sola llamada.
+          Devuelve <code style={{ fontFamily: FONT_MONO }}>package.json</code>,{" "}
+          <code style={{ fontFamily: FONT_MONO }}>agent.ts</code>,{" "}
+          <code style={{ fontFamily: FONT_MONO }}>.env.example</code>,{" "}
+          <code style={{ fontFamily: FONT_MONO }}>README.md</code>, una URL de
+          deploy de Vercel one-click, checklist legal, y referencia firmada
+          al audit log. Pensado para que un agente USA-LLC self-incorporate
+          programáticamente.
+        </li>
+        <li>
+          <code style={{ fontFamily: FONT_MONO }}>POST /api/play</code> — agent
+          loop en vivo con 12 tools mockeados pero realistas. Streaming via
+          Vercel AI Gateway. Cada tool call queda HMAC-firmado en el audit
+          log keyed por <code style={{ fontFamily: FONT_MONO }}>x-play-session</code>.
+        </li>
+        <li>
+          <code style={{ fontFamily: FONT_MONO }}>GET /api/play/audit/&#123;sessionId&#125;?verify=1</code>{" "}
+          — público y verificable. Devuelve las entradas del audit log con su
+          firma HMAC-SHA256; el query param hace que el server reverifique y
+          reporte si alguna entrada fue tampered.
+        </li>
+        <li>
+          <code style={{ fontFamily: FONT_MONO }}>GET /api/discovery</code> +{" "}
+          <code style={{ fontFamily: FONT_MONO }}>?format=openapi</code> —
+          inventario de los 16 paquetes + las 168 tools + estos 3 endpoints
+          como OpenAPI 3.1 stub. Un agente que crawlea el toolkit lo lee y
+          decide qué llamar.
+        </li>
+      </ul>
+
       <DocH2>Cómo verificar</DocH2>
       <DocP>
         Todo lo de arriba es chequeable sin pedir nada al autor:
