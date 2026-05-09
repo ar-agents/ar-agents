@@ -8,6 +8,7 @@ import {
   verifySession,
 } from "@/lib/audit";
 import { GOVERNANCE_COLOR, GOVERNANCE_LABEL } from "@/app/play/scenarios";
+import { TamperDemo } from "./tamper-demo";
 
 // Server-rendered Node.js runtime (vs. Edge) because @vercel/kv + its
 // transitive deps push the function over the 1MB Edge cap. Cold start is
@@ -87,6 +88,8 @@ export default async function DashboardPage({
         ) : (
           <Timeline entries={entries} hmacWired={verification.hmacWired} />
         )}
+
+        <TamperDemo />
 
         <ShareBar sessionId={sessionId} />
         <Footer />
