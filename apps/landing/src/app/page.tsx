@@ -11,6 +11,7 @@ import { useCallback, useState } from "react";
 import { DemoTerminal } from "./demo-terminal";
 import { useLang, type Translations } from "./i18n";
 import { LiveChat } from "./live-chat";
+import { HomeJsonLd } from "./json-ld";
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -349,6 +350,12 @@ export default function Home() {
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
               sdk
+            </a>
+            <a
+              href="/reference"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              reference
             </a>
             <a
               href="/status"
@@ -1218,6 +1225,7 @@ export default function Home() {
           </span>
         </footer>
       </div>
+      <HomeJsonLd />
     </main>
   );
 }

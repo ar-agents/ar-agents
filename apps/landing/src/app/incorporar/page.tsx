@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 import { IncorporarWizard } from "./wizard";
+import { IncorporarJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
   title: "Incorporar una sociedad-IA · 10 minutos",
@@ -70,6 +71,7 @@ export default function IncorporarPage() {
         empiecen ese día van a perder 3-6 meses. Esto te pone en el primer
         grupo.
       </DocP>
+      <IncorporarJsonLd />
     </DocShell>
   );
 }

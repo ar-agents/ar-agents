@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
+import { ExamplesJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
   title: "Cookbook · 17 production patterns",
@@ -204,6 +205,17 @@ const RECIPES: Recipe[] = [
       "USA-LLC agent calls @ar-agents/incorporate's `incorporate({...})` to spin up an AR sociedad-IA's deploy spec in one call. Receives generated package.json + agent.ts + .env.example + README.md + Vercel deploy URL + signed audit-log reference. Chains incorporation + ongoing operations under a single forensic timeline.",
     highlight:
       "The headline claim of /sociedades-ia made fully programmatic. `pnpm add @ar-agents/incorporate` + 1 await.",
+  },
+  {
+    id: "19-forensic-compliance-dashboard",
+    num: 19,
+    title: "Forensic compliance dashboard · scheduled audit-log ingest + alerting",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Daily cron-driven Node.js script that ingests audit entries via fetchAudit(sessionId, { verify: true }), buckets by tool / governance / latency, surfaces anomalies (tampering, error-rate spikes, p95 regressions), and renders a contador-friendly Spanish summary for monthly compliance reports. The pattern that turns RFC-001 § 9.2's 'legally probative' into actually monitored.",
+    highlight:
+      "Multi-tenant marketplaces operating many sociedades-IA scale linearly with this — one digest per tenant, escalation on tampered.",
   },
 ];
 
@@ -439,6 +451,14 @@ pnpm tsx packages/mercadopago/cookbook/10-cross-package-billing.ts`}
         with the use case and the API surface you wish existed — most new
         recipes start as a one-paragraph issue.
       </DocP>
+      <ExamplesJsonLd
+        recipes={RECIPES.map((r) => ({
+          id: r.id,
+          num: r.num,
+          title: r.title,
+          summary: r.summary,
+        }))}
+      />
     </DocShell>
   );
 }

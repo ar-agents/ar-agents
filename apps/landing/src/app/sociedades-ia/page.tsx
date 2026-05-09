@@ -1,5 +1,6 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
+import { SociedadesIaJsonLd } from "../json-ld";
 
 const AGENT_FLOW = `// Mock transcript: una sociedad-IA "ACME-AI SAS" se incorpora,
 // cobra clientes, y opera en Argentina end-to-end.
@@ -187,6 +188,7 @@ export default function SociedadesIAPage() {
         infraestructura civil-comercial-OSS, escrita por afuera y para que
         la use cualquiera.
       </DocP>
+      <SociedadesIaJsonLd />
     </DocShell>
   );
 }
