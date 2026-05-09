@@ -250,6 +250,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "AFIP fails ~30% of mechanical CAE requests. WSFE silent failures + MP retries make drift inevitable. Recipe 22 is the floor.",
   },
+  {
+    id: "23-astro-arg-reference-customer",
+    num: 23,
+    title: "Astro Chat /arg · the additive-migration cutover pattern",
+    tier: "production",
+    packages: ["identity", "banking", "gde-tad", "whatsapp"],
+    summary:
+      "Production chat (Astro Chat at astro.ar) cutting over from raw @anthropic-ai/sdk to @ar-agents/* via an additive route (/api/arg) instead of rewriting the legacy /api/chat. Risk-asymmetric, reversible, observable. The exact pattern any production-already-shipped operator should follow when adopting the toolkit without a stop-the-world rewrite.",
+    highlight:
+      "Live on naza00000/astro/feat/ar-agents-cutover. Full merge readiness review in docs/launch/astro-cutover-merge-readiness.md.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {

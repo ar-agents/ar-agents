@@ -382,6 +382,18 @@ export default function Home() {
               changelog
             </a>
             <a
+              href="/walkthrough"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              walkthrough
+            </a>
+            <a
+              href="/embed"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              embed
+            </a>
+            <a
               href="/status"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
