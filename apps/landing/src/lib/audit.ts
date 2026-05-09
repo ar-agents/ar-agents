@@ -67,7 +67,11 @@ function canonical(value: unknown): string {
 export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string | null> {
   const key = await getHmacKey();
   if (!key) return null;
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(canonical(entry)));
+  // Strip any `hmac` field if present at runtime — verify() does the same,
+  // so sign + verify must agree on the input space. (TypeScript's Omit is
+  // a compile-time hint; the runtime can still pass in {hmac: null}.)
+  const { hmac: _ignored, ...payload } = entry as AuditEntry;
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(canonical(payload)));
   return `sha256:${bytesToHex(sig)}`;
 }
 

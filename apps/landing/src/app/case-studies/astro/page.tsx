@@ -208,17 +208,24 @@ export default function AstroCaseStudyPage() {
 
       <DocH2>What we measure (when we have the numbers)</DocH2>
       <DocP>
-        <strong>Honest status:</strong> Astro Chat is in production
-        (since 2025-12) but currently runs on the raw{" "}
-        <DocCode>@anthropic-ai/sdk</DocCode> with its own AFIP / Mercado
-        Pago integrations — not yet on the Vercel AI SDK 6 +{" "}
-        <DocCode>@ar-agents/*</DocCode> tool surface. Astro Bots and
-        Astro Clips are in build, blocked on Meta business verification
-        (5-recipient WhatsApp dev cap) and marketplace OAuth setup
-        respectively. The migration to <DocCode>@ar-agents/*</DocCode>{" "}
-        is a deliberate cutover the maintainer hasn&apos;t done yet —
-        the libraries shipped in Q2 2026, Astro pre-dates them. We won&apos;t
-        publish made-up production numbers in the meantime.
+        <strong>Honest status (2026-05-09):</strong> Astro Chat&apos;s main{" "}
+        <DocCode>/api/chat</DocCode> route is in production (since 2025-12)
+        on the raw <DocCode>@anthropic-ai/sdk</DocCode>. The first slice of
+        the cutover landed on a feature branch:{" "}
+        <a
+          href="https://github.com/naza00000/astro/tree/feat/ar-agents-cutover"
+          style={{ color: "var(--accent)" }}
+        >
+          feat/ar-agents-cutover
+        </a>{" "}
+        ships a new, additive <DocCode>/api/arg</DocCode> route + a{" "}
+        <DocCode>/arg</DocCode> visitor page running entirely on Vercel AI
+        SDK 6 + <DocCode>@ar-agents/identity</DocCode> +{" "}
+        <DocCode>@ar-agents/banking</DocCode> +{" "}
+        <DocCode>@ar-agents/gde-tad</DocCode>. The legacy chat path is
+        untouched. Once /arg has a week of production behavior visible,
+        the next slices migrate /api/chat&apos;s AFIP/MP integrations to
+        the matching @ar-agents packages.
       </DocP>
       <DocP>
         <strong>What is verifiable today:</strong> every{" "}
