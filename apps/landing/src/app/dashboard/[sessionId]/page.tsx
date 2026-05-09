@@ -7,7 +7,7 @@ import {
   readAudit,
   verifySession,
 } from "@/lib/audit";
-import { GOVERNANCE_COLOR, GOVERNANCE_LABEL } from "@/app/play/scenarios";
+import { LiveTimeline } from "./live-timeline";
 import { TamperDemo } from "./tamper-demo";
 
 // Server-rendered Node.js runtime (vs. Edge) because @vercel/kv + its
@@ -83,11 +83,11 @@ export default async function DashboardPage({
           Timeline
         </h2>
 
-        {entries.length === 0 ? (
-          <EmptyTimeline sessionId={sessionId} />
-        ) : (
-          <Timeline entries={entries} hmacWired={verification.hmacWired} />
-        )}
+        <LiveTimeline
+          sessionId={sessionId}
+          initialEntries={entries}
+          hmacWired={verification.hmacWired}
+        />
 
         <TamperDemo />
 
@@ -337,216 +337,6 @@ function Metric({
         {value}
       </div>
     </div>
-  );
-}
-
-function EmptyTimeline({ sessionId }: { sessionId: string }) {
-  return (
-    <div
-      style={{
-        background: "#ffffff",
-        padding: 32,
-        borderRadius: 8,
-        boxShadow: SHADOW_CARD,
-        textAlign: "center",
-        color: "#4d4d4d",
-        fontSize: 14,
-        lineHeight: 1.6,
-      }}
-    >
-      <p style={{ margin: 0, color: "#171717", fontWeight: 500 }}>
-        Esta sesión no tiene entradas aún.
-      </p>
-      <p style={{ margin: "8px 0 0" }}>
-        Probá un escenario en{" "}
-        <a href={`/play`} style={{ color: "#0072f5" }}>
-          /play
-        </a>{" "}
-        o llamá{" "}
-        <code style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
-          POST /api/auto-incorporate
-        </code>{" "}
-        con{" "}
-        <code style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
-          {`"sessionId": "${sessionId}"`}
-        </code>{" "}
-        para que las entradas aparezcan acá.
-      </p>
-    </div>
-  );
-}
-
-function Timeline({ entries, hmacWired }: { entries: AuditEntry[]; hmacWired: boolean }) {
-  // Sort newest-first for skim; most operators read top-down looking for
-  // recent changes.
-  const sorted = entries
-    .slice()
-    .sort((a, b) => Date.parse(b.ts) - Date.parse(a.ts));
-  return (
-    <div style={{ display: "grid", gap: 10 }}>
-      {sorted.map((e) => (
-        <TimelineEntry key={e.id} entry={e} hmacWired={hmacWired} />
-      ))}
-    </div>
-  );
-}
-
-function TimelineEntry({
-  entry,
-  hmacWired,
-}: {
-  entry: AuditEntry;
-  hmacWired: boolean;
-}) {
-  const govColor =
-    GOVERNANCE_COLOR[entry.governance] ?? { fg: "#666", bg: "#f5f5f5" };
-  const govLabel = GOVERNANCE_LABEL[entry.governance] ?? entry.governance;
-  const date = new Date(entry.ts);
-  const ts = `${date.toISOString().slice(11, 19)}Z`;
-  const ymd = date.toISOString().slice(0, 10);
-  return (
-    <article
-      style={{
-        background: "#ffffff",
-        padding: 14,
-        borderRadius: 8,
-        boxShadow: SHADOW_CARD,
-        display: "grid",
-        gridTemplateColumns: "120px 1fr",
-        gap: 14,
-      }}
-    >
-      <div
-        style={{
-          fontFamily: FONT_MONO,
-          fontSize: 12,
-          color: "#666",
-          letterSpacing: "0.04em",
-        }}
-      >
-        <div style={{ color: "#171717", fontWeight: 500 }}>{ts}</div>
-        <div style={{ marginTop: 2 }}>{ymd}</div>
-        {typeof entry.durationMs === "number" && (
-          <div style={{ marginTop: 6 }}>{entry.durationMs}ms</div>
-        )}
-      </div>
-
-      <div>
-        <div
-          style={{
-            display: "flex",
-            alignItems: "baseline",
-            gap: 8,
-            marginBottom: 6,
-            flexWrap: "wrap",
-          }}
-        >
-          <code
-            style={{
-              fontFamily: FONT_MONO,
-              fontSize: 14,
-              color: "#171717",
-              fontWeight: 600,
-            }}
-          >
-            {entry.tool}
-          </code>
-          <Pill color={govColor.fg} bg={govColor.bg}>
-            {govLabel}
-          </Pill>
-          {entry.errored && (
-            <Pill color="#ff5b4f" bg="#fff1f0">
-              ERRORED
-            </Pill>
-          )}
-        </div>
-
-        <details style={{ marginTop: 4 }}>
-          <summary
-            style={{
-              fontSize: 11,
-              fontFamily: FONT_MONO,
-              color: "#666",
-              cursor: "pointer",
-              textTransform: "uppercase",
-              letterSpacing: "0.05em",
-            }}
-          >
-            input / output
-          </summary>
-          <pre
-            style={{
-              background: "#fafafa",
-              padding: 10,
-              borderRadius: 4,
-              fontSize: 11,
-              fontFamily: FONT_MONO,
-              color: "#4d4d4d",
-              margin: "6px 0 0",
-              overflowX: "auto",
-              boxShadow: "rgb(235,235,235) 0px 0px 0px 1px",
-              whiteSpace: "pre-wrap",
-              wordBreak: "break-word",
-              maxHeight: 280,
-              overflowY: "auto",
-            }}
-          >
-{JSON.stringify({ input: entry.input, output: entry.output }, null, 2)}
-          </pre>
-        </details>
-
-        {hmacWired && entry.hmac && (
-          <code
-            style={{
-              display: "inline-block",
-              marginTop: 8,
-              fontFamily: FONT_MONO,
-              fontSize: 10,
-              color: "#7928ca",
-              background: "#f5edfd",
-              padding: "2px 8px",
-              borderRadius: 4,
-              maxWidth: "100%",
-              overflow: "hidden",
-              textOverflow: "ellipsis",
-              whiteSpace: "nowrap",
-            }}
-            title={entry.hmac}
-          >
-            {entry.hmac.slice(0, 26)}…
-          </code>
-        )}
-      </div>
-    </article>
-  );
-}
-
-function Pill({
-  children,
-  color,
-  bg,
-}: {
-  children: React.ReactNode;
-  color: string;
-  bg: string;
-}) {
-  return (
-    <span
-      style={{
-        display: "inline-block",
-        background: bg,
-        color,
-        borderRadius: 9999,
-        padding: "1px 10px",
-        fontSize: 11,
-        fontFamily: FONT_MONO,
-        fontWeight: 500,
-        letterSpacing: "0.02em",
-        whiteSpace: "nowrap",
-      }}
-    >
-      {children}
-    </span>
   );
 }
 
