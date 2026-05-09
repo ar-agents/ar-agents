@@ -15,12 +15,13 @@ export const contentType = "image/png";
 export default async function Image({
   params,
 }: {
-  params: { sessionId: string };
+  params: Promise<{ sessionId: string }>;
 }) {
+  const { sessionId } = await params;
   // Fetch + verify in parallel via the lib (same primitives the page uses).
   const [entries, verification] = await Promise.all([
-    readAudit(params.sessionId).catch(() => []),
-    verifySession(params.sessionId).catch(() => ({
+    readAudit(sessionId).catch(() => []),
+    verifySession(sessionId).catch(() => ({
       total: 0,
       verified: 0,
       tampered: 0,
@@ -126,7 +127,7 @@ export default async function Image({
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/dashboard/{params.sessionId.slice(0, 8)}…</span>
+          <span>ar-agents.vercel.app/dashboard/{sessionId.slice(0, 8)}…</span>
           <span style={{ fontSize: 14, color: "#999" }}>RFC-001 § 9.2</span>
         </div>
       </div>
