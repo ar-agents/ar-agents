@@ -54,10 +54,26 @@ type ChatPart =
       [k: string]: unknown;
     };
 
+function generateSessionId(): string {
+  // 22-char base64 → meets isSessionIdValid regex on the server.
+  if (typeof crypto !== "undefined" && "randomUUID" in crypto) {
+    return crypto.randomUUID().replace(/-/g, "");
+  }
+  return Math.random().toString(36).slice(2, 14) + Date.now().toString(36);
+}
+
 export function PlayClient() {
+  // One stable session id per page-load. Pass via custom header so the
+  // server writes audit entries under it; render the URL in the UI so the
+  // user (or the journalist they emailed it to) can fetch the signed log.
+  const sessionId = useMemo(generateSessionId, []);
   const transport = useMemo(
-    () => new DefaultChatTransport({ api: "/api/play" }),
-    [],
+    () =>
+      new DefaultChatTransport({
+        api: "/api/play",
+        headers: { "x-play-session": sessionId },
+      }),
+    [sessionId],
   );
   const { messages, sendMessage, status, error, setMessages } = useChat({
     transport,
@@ -339,6 +355,7 @@ export function PlayClient() {
               display: "flex",
               alignItems: "center",
               gap: 8,
+              flexWrap: "wrap",
             }}
           >
             <span
@@ -353,6 +370,20 @@ export function PlayClient() {
             >
               audit log · RFC-001 § 9
             </span>
+            <a
+              href={`/api/play/audit/${sessionId}?verify=1`}
+              target="_blank"
+              rel="noreferrer"
+              style={{
+                fontSize: 10,
+                fontFamily: FONT_MONO,
+                color: "#0072f5",
+                textDecoration: "none",
+                marginLeft: 4,
+              }}
+            >
+              ver firmado ↗
+            </a>
             <span
               style={{
                 marginLeft: "auto",
@@ -459,7 +490,7 @@ export function PlayClient() {
         </div>
       </section>
 
-      <FooterNotes />
+      <FooterNotes sessionId={sessionId} />
 
       <style jsx global>{`
         @keyframes pulse {
@@ -720,7 +751,7 @@ function Pill({
   );
 }
 
-function FooterNotes() {
+function FooterNotes({ sessionId }: { sessionId: string }) {
   return (
     <footer
       style={{
@@ -747,6 +778,41 @@ function FooterNotes() {
         </a>{" "}
         →{" "}
         <code style={{ fontFamily: FONT_MONO }}>apps/sociedad-ia-starter</code>.
+      </div>
+      <div>
+        <strong style={{ color: "#171717" }}>Audit log de esta sesión:</strong>{" "}
+        <a
+          href={`/api/play/audit/${sessionId}?verify=1`}
+          target="_blank"
+          rel="noreferrer"
+          style={{
+            color: "#0072f5",
+            fontFamily: FONT_MONO,
+            fontSize: 12,
+          }}
+        >
+          /api/play/audit/{sessionId.slice(0, 8)}…?verify=1
+        </a>
+        {" — "}cada tool call queda HMAC-SHA256-firmado server-side; el query
+        param <code style={{ fontFamily: FONT_MONO }}>?verify=1</code> hace que
+        el servidor verifique todas las entradas y reporte tampering.
+      </div>
+      <div>
+        <strong style={{ color: "#171717" }}>Auto-incorporación machine-readable:</strong>{" "}
+        <code style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
+          POST /api/auto-incorporate
+        </code>{" "}
+        — un agente externo (USA-LLC, ChatGPT, Claude) puede self-incorporar
+        una sociedad-IA argentina en una sola llamada. Ver{" "}
+        <a
+          href="/api/auto-incorporate"
+          target="_blank"
+          rel="noreferrer"
+          style={{ color: "#0072f5" }}
+        >
+          schema
+        </a>
+        .
       </div>
       <div>
         <strong style={{ color: "#171717" }}>Más:</strong>{" "}
