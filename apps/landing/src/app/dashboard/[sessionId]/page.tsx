@@ -9,7 +9,11 @@ import {
 } from "@/lib/audit";
 import { GOVERNANCE_COLOR, GOVERNANCE_LABEL } from "@/app/play/scenarios";
 
-export const runtime = "edge";
+// Server-rendered Node.js runtime (vs. Edge) because @vercel/kv + its
+// transitive deps push the function over the 1MB Edge cap. Cold start is
+// ~100-200ms heavier but still acceptable for a page that's hit once
+// per session-share. Switch to Edge if you ever drop the KV adapter.
+export const runtime = "nodejs";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
