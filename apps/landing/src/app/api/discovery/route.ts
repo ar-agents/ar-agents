@@ -123,6 +123,13 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       description:
         "Server-Sent Events live-stream of audit entries for a session. Initial snapshot + delta-emit on a 2s tick + 15s keep-alive ping + 5min uptime cap (clients reconnect via EventSource).",
     },
+    {
+      name: "audit_csv",
+      url: `${SITE_URL}/api/play/audit/{sessionId}/csv`,
+      method: "GET",
+      description:
+        "RFC 4180 CSV export of the session's audit log. UTF-8 BOM for Excel compatibility. Columns: ts, tool, governance, durationMs, errored, hmac, input, output. content-disposition attachment with filename ar-agents-audit-{prefix}-{YYYYMMDD}.csv. 60s cache.",
+    },
   ];
   return {
     $schema: `${SITE_URL}/schemas/discovery.v1.json`,
