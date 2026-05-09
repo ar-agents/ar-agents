@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/incorporate",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Zero-dependency TypeScript client for the ar-agents.vercel.app/api/auto-incorporate endpoint. Lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
   "keywords": [
     "ar-agents",

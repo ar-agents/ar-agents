@@ -1,1 +1,7 @@
 # @ar-agents/incorporate
+
+## 0.2.0
+
+### Minor Changes
+
+- [`d7ea25d`](https://github.com/ar-agents/ar-agents/commit/d7ea25d1e9eb25770311937665b9c236e8e7d4e7) - Initial release. Zero-dependency TypeScript client for `/api/auto-incorporate`. One async `incorporate({...})` call returns the full incorporation kit (4 generated files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference). Plus `incorporateOrThrow`, `describe`, `fetchAudit` helpers. Works in Node 20+, Edge Runtime, Cloudflare Workers, Deno, browsers. 12 unit tests, publint + attw 🟢 across node10/node16/bundler. SLSA v1 provenance on publish.
