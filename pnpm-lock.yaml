@@ -75,7 +75,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -125,6 +125,9 @@ importers:
       '@ai-sdk/react':
         specifier: ^3.0.0
         version: 3.0.177(react@19.2.4)(zod@4.4.3)
+      '@vercel/kv':
+        specifier: ^3.0.0
+        version: 3.0.0
       ai:
         specifier: ^6.0.175
         version: 6.0.175(zod@4.4.3)
@@ -158,10 +161,13 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
+      vitest:
+        specifier: ^2.1.9
+        version: 2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3))
 
   apps/mercadolibre-landing:
     dependencies:
