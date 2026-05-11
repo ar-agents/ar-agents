@@ -87,14 +87,15 @@ interface Stats {
   };
 }
 
-async function fetchOk(url: string, init?: RequestInit): Promise<Response | null> {
+async function fetchOk(url: string, init?: RequestInit & { timeoutMs?: number }): Promise<Response | null> {
+  const { timeoutMs, ...rest } = (init ?? {}) as RequestInit & { timeoutMs?: number };
   try {
     const r = await fetch(url, {
-      ...init,
-      signal: AbortSignal.timeout(5000),
+      ...rest,
+      signal: AbortSignal.timeout(timeoutMs ?? 5000),
       headers: {
         "user-agent": "ar-agents-api-stats",
-        ...(init?.headers ?? {}),
+        ...(rest.headers ?? {}),
       },
     });
     return r.ok ? r : null;
@@ -192,13 +193,19 @@ async function artifactCounts(): Promise<Stats["artifacts"]> {
 }
 
 async function conformanceStats(): Promise<Stats["conformance"]> {
-  // Self-score
-  const selfR = await fetchOk(`${SITE}/api/certifier?url=${encodeURIComponent(SITE)}`);
+  // Self-score. The certifier itself makes ~11 sub-fetches with 8s each,
+  // so give it a generous timeout here.
+  const selfR = await fetchOk(`${SITE}/api/certifier?url=${encodeURIComponent(SITE)}`, {
+    timeoutMs: 15000,
+  });
   const self = selfR ? ((await selfR.json()) as { score?: number; rating?: string }) : null;
   // Other sociedades — count those at 100.
   const others = await Promise.all(
     REGISTRY_URLS.filter((u) => u !== SITE).map(async (url) => {
-      const r = await fetchOk(`${SITE}/api/certifier?url=${encodeURIComponent(url)}`);
+      const r = await fetchOk(
+        `${SITE}/api/certifier?url=${encodeURIComponent(url)}`,
+        { timeoutMs: 15000 },
+      );
       if (!r) return 0;
       const d = (await r.json()) as { score?: number };
       return typeof d.score === "number" ? d.score : 0;
