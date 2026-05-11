@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+  <title>ar-agents · /arg</title>
+  <subtitle>Open-source infrastructure for Argentine sociedades-IA</subtitle>
+  <link href="https://ar-agents.vercel.app/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="https://ar-agents.vercel.app/" rel="alternate" type="text/html"/>
+  <id>https://ar-agents.vercel.app/</id>
+  <updated>2026-05-11T16:00:00Z</updated>
+  <author>
+    <name>Nazareno Clemente</name>
+    <email>naza@helloastro.co</email>
+    <uri>https://ar-agents.vercel.app/</uri>
+  </author>
+  <icon>https://ar-agents.vercel.app/icon.png</icon>
+  <logo>https://ar-agents.vercel.app/icon.png</logo>
+  <rights>MIT (code) · CC-BY-4.0 (specs)</rights>
+
+  <entry>
+    <title>Conformance badge SVG + JSON schemas + custom OG images</title>
+    <id>https://ar-agents.vercel.app/feed/round-6</id>
+    <link href="https://ar-agents.vercel.app/api/cert-badge?url=https://ar-agents.vercel.app" rel="alternate"/>
+    <updated>2026-05-11T15:30:00Z</updated>
+    <published>2026-05-11T15:30:00Z</published>
+    <summary type="html">
+      Round 6: live shields.io-style SVG badge at &lt;code&gt;/api/cert-badge?url=...&lt;/code&gt; showing
+      the live RFC-002 + RFC-004 conformance score of any target URL. Plus 4 published JSON schemas
+      (operational-log-entry, agents, certification, cross-jurisdiction-audit). Plus custom OG images
+      for /auditor, /legislacion, /certifier.
+    </summary>
+  </entry>
+
+  <entry>
+    <title>/certifier — verify any sociedad-IA in seconds (reference impl: 100/100)</title>
+    <id>https://ar-agents.vercel.app/feed/round-5</id>
+    <link href="https://ar-agents.vercel.app/certifier" rel="alternate"/>
+    <updated>2026-05-11T14:30:00Z</updated>
+    <published>2026-05-11T14:30:00Z</published>
+    <summary type="html">
+      Round 5: paste any URL, get a 0-100 RFC conformance score in seconds. UI at /certifier,
+      programmatic at /api/certifier, library at cookbook recipe 26. Reference implementation
+      self-certifies at 100/100 Rating A. GitHub Actions workflow template for downstream sociedades.
+      llms.txt updated to expose all new endpoints.
+    </summary>
+  </entry>
+
+  <entry>
+    <title>RFC-004 conformance vectors + /legislación + /registro + OpenAPI 3.1</title>
+    <id>https://ar-agents.vercel.app/feed/round-4</id>
+    <link href="https://ar-agents.vercel.app/rfcs/004" rel="alternate"/>
+    <updated>2026-05-11T13:00:00Z</updated>
+    <published>2026-05-11T13:00:00Z</published>
+    <summary type="html">
+      Round 4: 7 frozen RFC-004 conformance vectors with hex-exact HMAC values
+      (/test-vectors/rfc-004-v1.json). /legislación — Spanish synthesis with suggested
+      cite-by-reference legislative text. /registro — public list of known implementations.
+      OpenAPI 3.1 schema at /api/openapi. 11 new vitest tests (96 total).
+    </summary>
+  </entry>
+
+  <entry>
+    <title>RFC-004 (operational-log spec) + /auditor + cookbook recipe 25</title>
+    <id>https://ar-agents.vercel.app/feed/round-3</id>
+    <link href="https://ar-agents.vercel.app/rfcs/004" rel="alternate"/>
+    <updated>2026-05-11T11:00:00Z</updated>
+    <published>2026-05-11T11:00:00Z</published>
+    <summary type="html">
+      Round 3: RFC-004 normative operational-log specification. /auditor — Spanish-first
+      1-page regulator-facing brief. Cookbook recipe 25 — quarterly compliance report
+      generator. The documents legislation can cite + the function ops teams can run.
+    </summary>
+  </entry>
+
+  <entry>
+    <title>/data-room + /codegen + /architecture/security + RFC-003 + recipe 24</title>
+    <id>https://ar-agents.vercel.app/feed/round-2</id>
+    <link href="https://ar-agents.vercel.app/data-room" rel="alternate"/>
+    <updated>2026-05-10T22:00:00Z</updated>
+    <published>2026-05-10T22:00:00Z</published>
+    <summary type="html">
+      Round 2: /data-room with live npm + GitHub numbers. /codegen multi-language snippets.
+      /architecture/security code-level threat walkthrough. RFC-003 cross-jurisdictional
+      reciprocity envelope. Cookbook recipe 24 sociedad-IA disaster recovery.
+    </summary>
+  </entry>
+
+  <entry>
+    <title>/architecture/audit-log + /walkthrough + /embed + CSV export + recipe 23</title>
+    <id>https://ar-agents.vercel.app/feed/round-1</id>
+    <link href="https://ar-agents.vercel.app/architecture/audit-log" rel="alternate"/>
+    <updated>2026-05-10T20:00:00Z</updated>
+    <published>2026-05-10T20:00:00Z</published>
+    <summary type="html">
+      Round 1: 11-section /architecture/audit-log deep-dive. /walkthrough annotated demo.
+      /embed playground for badge embedding. CSV export endpoint. Cookbook recipe 23.
+      Astro merge readiness review.
+    </summary>
+  </entry>
+
+  <entry>
+    <title>17 npm packages live + landing site with RFC-001 + RFC-002</title>
+    <id>https://ar-agents.vercel.app/feed/launch</id>
+    <link href="https://ar-agents.vercel.app/" rel="alternate"/>
+    <updated>2026-05-05T00:00:00Z</updated>
+    <published>2026-05-05T00:00:00Z</published>
+    <summary type="html">
+      Initial launch: 17 published npm packages covering MercadoPago, AFIP/ARCA identity,
+      banking, WhatsApp, facturación, shipping, GDE/TAD, BCRA, IGJ, BoletínOficial,
+      MercadoLibre, AP2, ACP, MCP. RFC-001 three-layer liability framework. RFC-002
+      agent-discovery convention. Live demos at ar-agents-{mp,cuit,whatsapp,bridge}-hello.vercel.app.
+    </summary>
+  </entry>
+</feed>
