@@ -101,6 +101,26 @@
     <priority>0.9</priority>
   </url>
   <url>
+    <loc>https://ar-agents.vercel.app/legislacion</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ar-agents.vercel.app/registro</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.85</priority>
+  </url>
+  <url>
+    <loc>https://ar-agents.vercel.app/test-vectors</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.8</priority>
+  </url>
+  <url>
+    <loc>https://ar-agents.vercel.app/api/openapi</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://ar-agents.vercel.app/architecture</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>

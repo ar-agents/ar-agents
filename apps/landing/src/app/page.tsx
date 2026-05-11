@@ -386,6 +386,13 @@ export default function Home() {
               play live ↗
             </a>
             <a
+              href="/video"
+              style={{ color: "var(--accent)", textDecoration: "underline", fontWeight: 600 }}
+              title="Video demo de una sociedad-IA en producción"
+            >
+              video ▶
+            </a>
+            <a
               href="/al-ministro"
               style={{ color: "var(--accent)", textDecoration: "underline", fontWeight: 600 }}
               title="Carta abierta al Ministro Sturzenegger"
@@ -457,6 +464,24 @@ export default function Home() {
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
               auditor
+            </a>
+            <a
+              href="/legislacion"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              legislación
+            </a>
+            <a
+              href="/registro"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              registro
+            </a>
+            <a
+              href="/test-vectors"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              test-vectors
             </a>
             <a
               href="/status"
