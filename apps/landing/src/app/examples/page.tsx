@@ -305,6 +305,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "Conformance isn't a snapshot — it's a horizon. Recipe 27 turns the certifier into a continuous monitor with drift detection + alerting. Companion to recipe 25 (compliance report) + the /audit-explorer page.",
   },
+  {
+    id: "28-operator-onboarding-checklist",
+    num: 28,
+    title: "Operator onboarding checklist · pre-launch readiness verifier",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Pure function `checkOperatorReadiness(baseUrl)` that walks 10 pre-launch items (discovery manifest, audit endpoints, CSV export, RFC-005 keys, OpenAPI spec, HSTS headers, sitemap, /llms.txt) and returns a per-item pass/fail/skip with remediation links. Reads as the readiness report the operator's pre-launch sign-off. Aggregate readiness rating: ready / almost / blocked. CLI mode exits non-zero on blocked.",
+    highlight:
+      "Different from recipe 26 (RFC conformance, public) — recipe 28 is operator-internal pre-launch sign-off. Used by /api/auto-incorporate to validate freshly-deployed sociedades before adding to /registro.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {

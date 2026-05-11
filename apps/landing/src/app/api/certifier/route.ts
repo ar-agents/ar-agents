@@ -395,6 +395,47 @@ async function runChecks(
     });
   }
 
+  // ── Check 7a: RFC-005 keys endpoint (asymmetric upgrade path) ─────────────
+  const keysUrl = `${base}/.well-known/sociedad-ia/keys`;
+  try {
+    const r = await fetchWithTimeout(keysUrl);
+    if (r.ok) {
+      const data = (await r.json()) as Record<string, unknown>;
+      const keys = data.keys as unknown[] | undefined;
+      const hasKeys = Array.isArray(keys) && keys.length > 0;
+      checks.push({
+        id: "rfc-005-keys-endpoint",
+        label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+        weight: 5,
+        status: hasKeys ? "pass" : "warn",
+        detail: hasKeys
+          ? `${keys.length} key(s) advertised (asymmetric upgrade path ready).`
+          : "Endpoint responds but no keys advertised.",
+        source: keysUrl,
+        httpStatus: r.status,
+      });
+    } else {
+      checks.push({
+        id: "rfc-005-keys-endpoint",
+        label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+        weight: 5,
+        status: "skip",
+        detail: `Not advertised (HTTP ${r.status}). v1 HMAC-only is OK; v2 asymmetric is the migration path per RFC-005.`,
+        source: keysUrl,
+        httpStatus: r.status,
+      });
+    }
+  } catch (e) {
+    checks.push({
+      id: "rfc-005-keys-endpoint",
+      label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+      weight: 5,
+      status: "skip",
+      detail: `Not advertised: ${(e as Error).message}.`,
+      source: keysUrl,
+    });
+  }
+
   // ── Check 7: Discovery endpoint (RFC-002 alt path) ──────────────────────
   const discoveryUrl = `${base}/api/discovery`;
   try {
