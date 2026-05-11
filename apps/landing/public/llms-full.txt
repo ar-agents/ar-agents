@@ -1,8 +1,37 @@
 # ar-agents — full reference for LLM crawlers
 
-> Mercado Pago Agent Toolkit for the Vercel AI SDK 6. 89 typed tools across the agent-relevant Mercado Pago API surface (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts). Plus sidecar packages for AFIP/ARCA, WhatsApp Business, banking (CBU/BCRA), shipping (Andreani/OCA/Correo Argentino), and identity attestation. Open source, MIT, npm provenance, Edge-Runtime safe.
+> Mercado Pago Agent Toolkit for the Vercel AI SDK 6 **plus** open-source infrastructure for Argentine sociedades-IA (AI-only companies, regime announced 28-abr-2026). 5 RFCs (001-005) with frozen test vectors + public certifier + RFC-005 dual-signing live in production. 17 npm packages, 30 cookbook recipes, 107 vitest tests, 5 sociedades on /registro all scoring 100/100 Rating A.
 
 This file is `llms-full.txt`, an extension of [`llms.txt`](/llms.txt) per the [llmstxt.org](https://llmstxt.org) spec. Where `llms.txt` is a short index, `llms-full.txt` carries the deep content an LLM needs to answer questions about the project without re-crawling.
+
+## Sociedades-IA governance layer (added 2026-05-11)
+
+The original /arg shipped as a Mercado Pago + Argentine business toolkit. After Sturzenegger announced the sociedad-IA regime, a 26-round shipping series added a full governance scaffolding (the rest of the original MercadoPago-deep-reference below is still accurate — the sociedad-IA layer is additive):
+
+- **5 RFCs (all working live in production)**:
+  - [RFC-001](https://ar-agents.vercel.app/rfcs/001): Three-layer civil liability (operator / sociedad-IA / model provider)
+  - [RFC-002](https://ar-agents.vercel.app/rfcs/002): Agent-discovery-by-default convention (`/.well-known/agents.json`)
+  - [RFC-003](https://ar-agents.vercel.app/rfcs/003): Cross-jurisdictional audit-log reciprocity envelope (AR ↔ Wyoming DAO LLC ↔ MIDAO ↔ Estonia OÜ)
+  - [RFC-004](https://ar-agents.vercel.app/rfcs/004): Normative operational-log wire format with 7 frozen hex-exact test vectors at `/test-vectors/rfc-004-v1.json`
+  - [RFC-005](https://ar-agents.vercel.app/rfcs/005): Ed25519 asymmetric upgrade. **SHIPPED + VERIFIED LIVE** — production `appendAudit()` writes both `hmac` and `signature` fields when env vars are set. 3 frozen test vectors at `/test-vectors/rfc-005-v1.json`. Live confirmation: 3/3 HMAC + 3/3 Ed25519 verified on the reference deployment.
+
+- **Public certifier** at `/certifier` — paste any URL, get 0-100 conformance score in seconds. ~11 checks. Honors `rfcConformance` claims (SKIPs unclaimed RFCs vs FAILing).
+
+- **Public registry** at `/registro` — 5 live implementations, all scoring 100/100 A. Each entry shows live cert-badge + 30-day sparkline of conformance history.
+
+- **15 HTTP APIs** documented in OpenAPI 3.1 at `/api/openapi` (also YAML at `/api/openapi.yaml`). Major additions: `/api/certifier`, `/api/cert-badge` (live SVG), `/api/conformance-history` (KV time-series), `/api/auto-monitor` (daily Vercel cron), `/api/audit-summary`, `/api/rfc-003-envelope`, `/api/stats`.
+
+- **3 well-known endpoints**: `/.well-known/agents.json` (RFC-002), `/.well-known/sociedad-ia/verify-key?challenge=` (RFC-004 § 5 challenge-response), `/.well-known/sociedad-ia/keys` (RFC-005 § 4 Ed25519 public keys).
+
+- **Bilingual narrative**: `/legislacion` (Spanish, for AR legislators) + `/en/legislation` (English, for international press / scholars). Both with suggested cite-by-reference legislative text.
+
+- **Regulator-facing**: `/auditor` (Spanish 1-page brief, print-friendly), `/glossary` (21 alphabetized terms), `/refs` (BibTeX/APA/Chicago citations), `CITATION.cff` at the repo root.
+
+- **Operator-facing**: `/incorporar` (wizard), `/operator-quickstart` (15-min walkthrough zero-to-listed), `/examples` (30 cookbook recipes). Recipes 25-30 cover the full lifecycle: quarterly compliance, certify-by-fetch, live monitoring, operator readiness, publish keys, submit to registry.
+
+- **For anyone arriving cold**: `/highlights` (90-second single-URL summary with live cert-badge embed). `/timeline` (chronology). `/notes/2026-05-11-shipping-spree` (long-form recap).
+
+---
 
 ## TL;DR
 
