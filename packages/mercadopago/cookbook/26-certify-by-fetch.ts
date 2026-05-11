@@ -202,20 +202,21 @@ export async function certifySociedad(
   // ── 2. Manifest required fields ───────────────────────────────────────────
   if (manifest) {
     const issuer = manifest.issuer as Record<string, unknown> | undefined;
-    const endpoints = manifest.endpoints as Record<string, unknown> | undefined;
-    const ok =
-      issuer &&
-      typeof issuer.jurisdiction === "string" &&
-      endpoints &&
-      typeof endpoints.auditRead === "string";
+    const endpoints = manifest.endpoints as Record<string, unknown> | unknown[] | undefined;
+    const auditEndpoints = manifest.auditEndpoints as Record<string, unknown> | undefined;
+    const hasIssuerJurisdiction = issuer && typeof issuer.jurisdiction === "string";
+    const hasAuditRead =
+      (endpoints && !Array.isArray(endpoints) && typeof (endpoints as Record<string, unknown>).auditRead === "string") ||
+      (auditEndpoints && typeof auditEndpoints.auditRead === "string");
+    const ok = hasIssuerJurisdiction && hasAuditRead;
     checks.push({
       id: "rfc-002-manifest-required-fields",
-      label: "RFC-002 · Manifest has issuer.jurisdiction + endpoints.auditRead",
+      label: "RFC-002 · Manifest has issuer.jurisdiction + auditRead endpoint",
       weight: 10,
       status: ok ? "pass" : "fail",
       detail: ok
         ? `jurisdiction=${issuer!.jurisdiction}; auditRead present.`
-        : "Missing required fields.",
+        : "Missing issuer.jurisdiction or auditRead endpoint.",
     });
 
     const rfcConformance = manifest.rfcConformance;
@@ -247,9 +248,15 @@ export async function certifySociedad(
 
   // ── 3. Audit-read endpoint ────────────────────────────────────────────────
   let auditUrl: string;
-  const endpoints = manifest?.endpoints as Record<string, unknown> | undefined;
-  if (endpoints && typeof endpoints.auditRead === "string") {
-    auditUrl = (endpoints.auditRead as string).replace(
+  const endpointsForRead = manifest?.endpoints as Record<string, unknown> | unknown[] | undefined;
+  const auditEndpointsForRead = manifest?.auditEndpoints as Record<string, unknown> | undefined;
+  const readTemplate =
+    (endpointsForRead && !Array.isArray(endpointsForRead)
+      ? (endpointsForRead as Record<string, unknown>).auditRead
+      : undefined) ??
+    auditEndpointsForRead?.auditRead;
+  if (typeof readTemplate === "string") {
+    auditUrl = readTemplate.replace(
       "{sessionId}",
       encodeURIComponent(targetSession),
     );
@@ -297,14 +304,15 @@ export async function certifySociedad(
     const r = await fetchWithTimeout(verifyUrl, undefined, timeoutMs, fetchImpl);
     if (r.ok) {
       const data = (await r.json()) as Record<string, unknown>;
+      const verificationBlock = (data.verification ?? data) as Record<string, unknown>;
       const hasCounts =
-        typeof data.verified === "number" &&
-        typeof data.tampered === "number" &&
-        typeof data.hmacWired === "boolean";
+        typeof verificationBlock.verified === "number" &&
+        typeof verificationBlock.tampered === "number" &&
+        typeof verificationBlock.hmacWired === "boolean";
       if (hasCounts) {
-        const tampered = data.tampered as number;
-        const verified = data.verified as number;
-        const hmacWired = data.hmacWired as boolean;
+        const tampered = verificationBlock.tampered as number;
+        const verified = verificationBlock.verified as number;
+        const hmacWired = verificationBlock.hmacWired as boolean;
         const total = verified + tampered;
         checks.push({
           id: "rfc-004-audit-verify",

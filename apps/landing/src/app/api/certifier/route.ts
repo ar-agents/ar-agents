@@ -139,16 +139,19 @@ async function runChecks(
 
   // ── Check 2: manifest has required RFC-002 fields ────────────────────────
   if (manifest) {
-    const requiredFields = ["issuer", "endpoints"];
-    const missing = requiredFields.filter((f) => !(f in manifest));
     const issuer = manifest.issuer as Record<string, unknown> | undefined;
     const hasIssuerJurisdiction = issuer && typeof issuer.jurisdiction === "string";
-    const endpoints = manifest.endpoints as Record<string, unknown> | undefined;
-    const hasAuditRead = endpoints && typeof endpoints.auditRead === "string";
-    if (missing.length === 0 && hasIssuerJurisdiction && hasAuditRead) {
+    // Support both `endpoints.auditRead` (RFC-002 v1 strict map shape)
+    // AND `auditEndpoints.auditRead` (companion-with-agents.md-v1 shape).
+    const endpoints = manifest.endpoints as Record<string, unknown> | unknown[] | undefined;
+    const auditEndpoints = manifest.auditEndpoints as Record<string, unknown> | undefined;
+    const hasAuditReadMap =
+      (endpoints && !Array.isArray(endpoints) && typeof (endpoints as Record<string, unknown>).auditRead === "string") ||
+      (auditEndpoints && typeof auditEndpoints.auditRead === "string");
+    if (hasIssuerJurisdiction && hasAuditReadMap) {
       checks.push({
         id: "rfc-002-manifest-required-fields",
-        label: "RFC-002 · Manifest has issuer.jurisdiction + endpoints.auditRead",
+        label: "RFC-002 · Manifest has issuer.jurisdiction + auditRead endpoint",
         weight: 10,
         status: "pass",
         detail: `jurisdiction=${issuer!.jurisdiction}; auditRead present.`,
@@ -156,12 +159,12 @@ async function runChecks(
     } else {
       checks.push({
         id: "rfc-002-manifest-required-fields",
-        label: "RFC-002 · Manifest has issuer.jurisdiction + endpoints.auditRead",
+        label: "RFC-002 · Manifest has issuer.jurisdiction + auditRead endpoint",
         weight: 10,
-        status: missing.length > 0 ? "fail" : "warn",
-        detail: missing.length > 0
-          ? `Missing top-level fields: ${missing.join(", ")}.`
-          : `Top-level fields present but issuer.jurisdiction or endpoints.auditRead missing.`,
+        status: "fail",
+        detail: !hasIssuerJurisdiction
+          ? "Missing issuer.jurisdiction."
+          : "Missing endpoints.auditRead or auditEndpoints.auditRead.",
       });
     }
 
@@ -203,10 +206,17 @@ async function runChecks(
   // ── Check 3: audit endpoint responds for the sample sessionId ────────────
   const targetSession = sessionId ?? SAMPLE_SESSION_ID_FOR_VERIFY;
   // Prefer manifest-advertised URL; fall back to default /api/play/audit/{id}.
+  // Accept either endpoints.auditRead (RFC-002 v1 map) or auditEndpoints.auditRead.
   let auditUrl: string;
-  const endpoints = manifest?.endpoints as Record<string, unknown> | undefined;
-  if (endpoints && typeof endpoints.auditRead === "string") {
-    auditUrl = endpoints.auditRead.replace("{sessionId}", encodeURIComponent(targetSession));
+  const endpointsForRead = manifest?.endpoints as Record<string, unknown> | unknown[] | undefined;
+  const auditEndpointsForRead = manifest?.auditEndpoints as Record<string, unknown> | undefined;
+  const auditReadTemplate =
+    (endpointsForRead && !Array.isArray(endpointsForRead)
+      ? (endpointsForRead as Record<string, unknown>).auditRead
+      : undefined) ??
+    auditEndpointsForRead?.auditRead;
+  if (typeof auditReadTemplate === "string") {
+    auditUrl = auditReadTemplate.replace("{sessionId}", encodeURIComponent(targetSession));
   } else {
     auditUrl = `${base}/api/play/audit/${encodeURIComponent(targetSession)}`;
   }
@@ -251,16 +261,18 @@ async function runChecks(
   try {
     const r = await fetchWithTimeout(verifyUrl);
     if (r.ok) {
-      const data = await r.json() as Record<string, unknown>;
+      const data = (await r.json()) as Record<string, unknown>;
+      // Counts may be at top level OR nested under `verification`.
+      const verificationBlock = (data.verification ?? data) as Record<string, unknown>;
       const hasCounts =
-        typeof data.verified === "number" &&
-        typeof data.tampered === "number" &&
-        typeof data.hmacWired === "boolean";
+        typeof verificationBlock.verified === "number" &&
+        typeof verificationBlock.tampered === "number" &&
+        typeof verificationBlock.hmacWired === "boolean";
       if (hasCounts) {
-        const tampered = data.tampered as number;
-        const verified = data.verified as number;
-        const hmacWired = data.hmacWired as boolean;
-        const total = (verified + tampered) || 0;
+        const tampered = verificationBlock.tampered as number;
+        const verified = verificationBlock.verified as number;
+        const hmacWired = verificationBlock.hmacWired as boolean;
+        const total = verified + tampered || 0;
         checks.push({
           id: "rfc-004-audit-verify",
           label: "RFC-004 · Audit-verify endpoint returns verification counts",
