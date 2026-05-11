@@ -262,6 +262,63 @@ export default function TestVectorsPage() {
         </section>
 
         <section style={sectionStyle}>
+          <h2 style={h2Style}>RFC-005 v1 · Ed25519 asymmetric extension</h2>
+          <p style={{ marginBottom: 12 }}>
+            <strong>Spec:</strong>{" "}
+            <Link href="/rfcs/005" style={linkStyle}>
+              /rfcs/005
+            </Link>{" "}
+            · <strong>Status:</strong> draft · <strong>Published:</strong> 2026-05-11 ·{" "}
+            <strong>Vectors:</strong> 3
+          </p>
+
+          <div
+            style={{
+              padding: 16,
+              background: "var(--bg-tint)",
+              borderRadius: 8,
+              boxShadow: "var(--card-shadow)",
+              marginBottom: 16,
+              fontSize: 14,
+            }}
+          >
+            <p style={{ marginBottom: 8, fontWeight: 500 }}>Download</p>
+            <p>
+              <a
+                href="/test-vectors/rfc-005-v1.json"
+                style={{
+                  ...linkStyle,
+                  fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+                }}
+              >
+                /test-vectors/rfc-005-v1.json
+              </a>
+            </p>
+            <p style={{ marginTop: 8, color: "var(--text-muted)", fontSize: 13 }}>
+              Application/json · CC-BY-4.0 · includes a demo Ed25519 keypair
+              (DO NOT use in prod)
+            </p>
+          </div>
+
+          <p style={{ marginBottom: 12, color: "var(--text-muted)", fontSize: 13.5 }}>
+            3 deterministic vectors with base64url-exact Ed25519 signatures.
+            Cross-validated against Node&apos;s native{" "}
+            <code style={codeInlineStyle}>crypto.sign(null, msg, privateKey)</code>.
+            Conformance proof at{" "}
+            <code style={codeInlineStyle}>
+              apps/landing/test/rfc-005-vectors.test.ts
+            </code>{" "}
+            (7 vitest tests, all passing).
+          </p>
+
+          <p style={{ fontSize: 13.5 }}>
+            The same keypair is published in production at{" "}
+            <code style={codeInlineStyle}>/.well-known/sociedad-ia/keys</code>{" "}
+            (public key only). RFC-005 § 4 specifies the publication format.
+          </p>
+        </section>
+
+        <section style={sectionStyle}>
           <h2 style={h2Style}>Versioning policy</h2>
           <ul style={{ paddingLeft: 24, marginBottom: 16 }}>
             <li style={{ marginBottom: 6 }}>
