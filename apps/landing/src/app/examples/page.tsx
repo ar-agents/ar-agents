@@ -261,6 +261,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "Live on naza00000/astro/feat/ar-agents-cutover. Full merge readiness review in docs/launch/astro-cutover-merge-readiness.md.",
   },
+  {
+    id: "24-sociedad-ia-disaster-recovery",
+    num: 24,
+    title: "Sociedad-IA disaster recovery · export + restore preserving the audit timeline",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Nightly export of a sociedad's configuration to portable JSON (no secrets — those stay in your secrets manager). When disaster hits (Vercel project deleted, repo locked, laptop dies), feed the export to a fresh /api/auto-incorporate call with the SAME sessionId — the forensic audit timeline continues unbroken across the disaster. Regulators see one chain of events, not two.",
+    highlight:
+      "sessionId continuity is the load-bearing piece. The export references env-var names (not values), so recovery is config-portable without secret leakage.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {
