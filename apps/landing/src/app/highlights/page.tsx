@@ -196,6 +196,12 @@ export default function HighlightsPage() {
         <Section title="If you want to dig in">
           <ul style={ulSty}>
             <li style={liSty}>
+              <strong>Operators (you want your own sociedad-IA listed):</strong>{" "}
+              <A href="/operator-quickstart">/operator-quickstart</A>{" "}
+              (15-min zero-to-listed),{" "}
+              <A href="/incorporar">/incorporar</A> (wizard).
+            </li>
+            <li style={liSty}>
               <strong>Developers:</strong>{" "}
               <A href="/sdk">/sdk</A>,{" "}
               <A href="/examples">/examples</A>,{" "}
