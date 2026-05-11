@@ -1,0 +1,104 @@
+{
+  "$schema": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.schema.json",
+  "spec": "https://ar-agents.vercel.app/rfcs/004",
+  "version": "rfc-004-v1-draft",
+  "publishedAt": "2026-05-11",
+  "notes": "Conformance vectors for RFC-004 v1 (draft). A library claiming RFC-004 v1 conformance MUST produce these exact outputs given these exact inputs and the shared secret below. The HMAC values are hex-encoded SHA-256 outputs prefixed with 'sha256:'. Vectors are deterministic + reproducible — re-run the reference impl against this file and every assertion holds. License: CC-BY-4.0.",
+  "secret": "rfc-004-conformance-secret",
+  "vectors": [
+    {
+      "id": "vector-1-canonical-keys-sorted",
+      "description": "canonical-JSON serializes objects with keys sorted lexicographically at every level. JSON.stringify on its own is NOT canonical in JavaScript — key order follows insertion order, which differs across runtimes + reconstructions.",
+      "input": { "b": 1, "a": 2 },
+      "expectedCanonical": "{\"a\":2,\"b\":1}"
+    },
+    {
+      "id": "vector-2-canonical-nested",
+      "description": "canonical-JSON recurses through nested objects + arrays. Arrays preserve order (positional); objects inside arrays are still key-sorted.",
+      "input": { "a": [{ "z": 1, "y": 2 }, 3] },
+      "expectedCanonical": "{\"a\":[{\"y\":2,\"z\":1},3]}"
+    },
+    {
+      "id": "vector-3-hmac-base-entry",
+      "description": "HMAC-SHA256 of the canonical-JSON of an entry, with the hmac field stripped before signing. Verify must operate on the same field set.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-deadbeef",
+        "sessionId": "test-session",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "algorithm-only",
+        "input": { "ping": 1 },
+        "output": { "pong": 1 }
+      },
+      "expectedHmac": "sha256:11d71ccf47bdc98ba3119ee9daf49e2f979b78f0b665d7be105d34fea33cdf49"
+    },
+    {
+      "id": "vector-4-mutated-output-differs",
+      "description": "Mutating any field (here: output.pong from 1 to 2) produces a different HMAC. This is the integrity guarantee of the chain.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-deadbeef",
+        "sessionId": "test-session",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "algorithm-only",
+        "input": { "ping": 1 },
+        "output": { "pong": 2 }
+      },
+      "expectedHmac": "sha256:e62c683f67d118cd65dcffe9093e1894b92c85e346c6cd4bd0055bf1eab4fda9",
+      "mustDifferFrom": "vector-3-hmac-base-entry"
+    },
+    {
+      "id": "vector-5-sign-is-idempotent",
+      "description": "Re-signing the same entry with the same secret produces the same HMAC. Determinism check.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-deadbeef",
+        "sessionId": "test-session",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "algorithm-only",
+        "input": { "ping": 1 },
+        "output": { "pong": 1 }
+      },
+      "expectedHmac": "sha256:11d71ccf47bdc98ba3119ee9daf49e2f979b78f0b665d7be105d34fea33cdf49",
+      "mustEqual": "vector-3-hmac-base-entry"
+    },
+    {
+      "id": "vector-6-nested-input-base",
+      "description": "Entry with deeply-nested input. Used to validate that recursive canonicalization works inside arrays of objects.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-feedface",
+        "sessionId": "test-session-2",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "audit-logged",
+        "input": { "batch": [{ "amount": 100 }, { "amount": 200 }] }
+      },
+      "expectedHmac": "sha256:3178ab7c5fb550718c96f6fdc661ac2e7cd40d0b2f3e77cc398d772a055b903b"
+    },
+    {
+      "id": "vector-6-mutated-nested",
+      "description": "Same entry as vector-6 but with batch[1].amount changed from 200 to 201. The deeply-nested mutation MUST produce a different HMAC.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-feedface",
+        "sessionId": "test-session-2",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "audit-logged",
+        "input": { "batch": [{ "amount": 100 }, { "amount": 201 }] }
+      },
+      "expectedHmac": "sha256:5607bf053481bd5b351a6667fcb9558c7ac7f3bfc33cc1dbf25faf4183e80780",
+      "mustDifferFrom": "vector-6-nested-input-base"
+    }
+  ],
+  "conformance": {
+    "passingLibrariesRequiredToPass": "all",
+    "vectorsCount": 7,
+    "referenceImplementation": {
+      "language": "TypeScript",
+      "file": "apps/landing/src/lib/audit.ts",
+      "testFile": "apps/landing/src/lib/audit.test.ts",
+      "repo": "https://github.com/ar-agents/ar-agents"
+    },
+    "howToClaimConformance": "Run all 7 vectors against your library. Every expectedCanonical must match exactly (string-equal). Every expectedHmac must match exactly (string-equal, lowercase hex). mustDifferFrom + mustEqual cross-checks must also hold. Then open a PR adding your library to /test-vectors/conformance-registry.md with a link to your test suite."
+  }
+}
