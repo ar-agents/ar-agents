@@ -436,6 +436,47 @@ export async function certifySociedad(
     });
   }
 
+  // ── 7. RFC-005 keys endpoint (asymmetric upgrade path) ──────────────────
+  const keysUrl = `${base}/.well-known/sociedad-ia/keys`;
+  try {
+    const r = await fetchWithTimeout(keysUrl, undefined, timeoutMs, fetchImpl);
+    if (r.ok) {
+      const data = (await r.json()) as Record<string, unknown>;
+      const keys = data.keys as unknown[] | undefined;
+      const hasKeys = Array.isArray(keys) && keys.length > 0;
+      checks.push({
+        id: "rfc-005-keys-endpoint",
+        label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+        weight: 5,
+        status: hasKeys ? "pass" : "warn",
+        detail: hasKeys
+          ? `${keys.length} key(s) advertised.`
+          : "Endpoint responds but no keys advertised.",
+        source: keysUrl,
+        httpStatus: r.status,
+      });
+    } else {
+      checks.push({
+        id: "rfc-005-keys-endpoint",
+        label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+        weight: 5,
+        status: "skip",
+        detail: `Not advertised (HTTP ${r.status}).`,
+        source: keysUrl,
+        httpStatus: r.status,
+      });
+    }
+  } catch {
+    checks.push({
+      id: "rfc-005-keys-endpoint",
+      label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+      weight: 5,
+      status: "skip",
+      detail: "Not advertised.",
+      source: keysUrl,
+    });
+  }
+
   // Score + finalize.
   let earned = 0;
   let possible = 0;
