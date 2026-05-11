@@ -31,7 +31,7 @@ type Pkg = {
 const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   {
     name: "@ar-agents/identity",
-    version: "0.5.1",
+    version: "0.7.0",
     purposeKey: "pp_identity",
     npm: "https://www.npmjs.com/package/@ar-agents/identity",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity",
@@ -55,7 +55,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/whatsapp",
-    version: "0.3.0",
+    version: "0.4.0",
     purposeKey: "pp_whatsapp",
     npm: "https://www.npmjs.com/package/@ar-agents/whatsapp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/whatsapp",
@@ -63,7 +63,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/facturacion",
-    version: "0.1.1",
+    version: "0.3.0",
     purposeKey: "pp_facturacion",
     npm: "https://www.npmjs.com/package/@ar-agents/facturacion",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/facturacion",
@@ -71,7 +71,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/banking",
-    version: "0.2.0",
+    version: "0.4.0",
     purposeKey: "pp_banking",
     npm: "https://www.npmjs.com/package/@ar-agents/banking",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/banking",
@@ -103,15 +103,55 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
   },
   {
     name: "@ar-agents/shipping",
-    version: "0.1.1",
+    version: "0.2.0",
     purposeKey: "pp_shipping",
     npm: "https://www.npmjs.com/package/@ar-agents/shipping",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/shipping",
     demo: null,
   },
   {
+    name: "@ar-agents/gde-tad",
+    version: "0.2.0",
+    purposeKey: "pp_gde_tad",
+    npm: "https://www.npmjs.com/package/@ar-agents/gde-tad",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/gde-tad",
+    demo: null,
+  },
+  {
+    name: "@ar-agents/mercadolibre",
+    version: "0.4.3",
+    purposeKey: "pp_mercadolibre",
+    npm: "https://www.npmjs.com/package/@ar-agents/mercadolibre",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mercadolibre",
+    demo: null,
+  },
+  {
+    name: "@ar-agents/agentic-commerce-bridge",
+    version: "5.0.0",
+    purposeKey: "pp_agentic_commerce_bridge",
+    npm: "https://www.npmjs.com/package/@ar-agents/agentic-commerce-bridge",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/agentic-commerce-bridge",
+    demo: "https://ar-agents-bridge-hello.vercel.app",
+  },
+  {
+    name: "@ar-agents/ap2",
+    version: "0.2.0",
+    purposeKey: "pp_ap2",
+    npm: "https://www.npmjs.com/package/@ar-agents/ap2",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/ap2",
+    demo: null,
+  },
+  {
+    name: "@ar-agents/incorporate",
+    version: "0.2.0",
+    purposeKey: "pp_incorporate",
+    npm: "https://www.npmjs.com/package/@ar-agents/incorporate",
+    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/incorporate",
+    demo: "https://ar-agents.vercel.app/incorporar",
+  },
+  {
     name: "@ar-agents/mcp",
-    version: "0.6.0",
+    version: "0.10.0",
     purposeKey: "pp_mcp",
     npm: "https://www.npmjs.com/package/@ar-agents/mcp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
@@ -346,6 +386,13 @@ export default function Home() {
               play live ↗
             </a>
             <a
+              href="/al-ministro"
+              style={{ color: "var(--accent)", textDecoration: "underline", fontWeight: 600 }}
+              title="Carta abierta al Ministro Sturzenegger"
+            >
+              al ministro ✉
+            </a>
+            <a
               href="/sdk"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
@@ -392,6 +439,18 @@ export default function Home() {
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
               embed
+            </a>
+            <a
+              href="/codegen"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              codegen
+            </a>
+            <a
+              href="/data-room"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              data room
             </a>
             <a
               href="/status"
