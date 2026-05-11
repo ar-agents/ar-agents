@@ -1,0 +1,66 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ar-agents.vercel.app/schemas/cross-jurisdiction-audit.v1.json",
+  "title": "RFC-003 cross-jurisdictional audit envelope v1",
+  "description": "Portable interchange format for sociedad-IA audit logs crossing jurisdictional boundaries. See https://ar-agents.vercel.app/rfcs/003 for the full specification.",
+  "type": "object",
+  "required": ["$schema", "issuer", "sessionId", "entries", "issuedAt", "expiresAt"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "issuer": {
+      "type": "object",
+      "required": ["jurisdiction", "entityId"],
+      "properties": {
+        "jurisdiction": {
+          "type": "string",
+          "examples": ["AR", "US-WY", "MH", "EE", "US-DE"]
+        },
+        "entityId": {
+          "type": "string",
+          "description": "Stable identifier of the entity in its home jurisdiction. Examples: 'ar-sociedad:30123456789', 'wyoming-dao-llc:claw-bank'."
+        },
+        "publicKey": {
+          "type": "object",
+          "description": "JWK for verifying the entries' signatures."
+        },
+        "evidenceCustodyUrl": {
+          "type": "string",
+          "format": "uri",
+          "description": "Live URL where the issuer serves the audit log under their RFC-002 discovery."
+        }
+      }
+    },
+    "sessionId": { "type": "string" },
+    "entries": {
+      "type": "array",
+      "description": "Audit entries per RFC-004 v1.",
+      "items": {
+        "$ref": "https://ar-agents.vercel.app/schemas/operational-log-entry.v1.json"
+      }
+    },
+    "externalReferences": {
+      "type": "array",
+      "description": "Links from this envelope to the counterpart's evidence on the other jurisdiction.",
+      "items": {
+        "type": "object",
+        "required": ["counterpartEntityId", "counterpartSessionId"],
+        "properties": {
+          "counterpartEntityId": { "type": "string" },
+          "counterpartSessionId": { "type": "string" },
+          "counterpartEvidenceUrl": { "type": "string", "format": "uri" },
+          "linkType": {
+            "type": "string",
+            "enum": ["ap2-mandate", "acp-checkout", "mcp", "manual"]
+          },
+          "linkId": { "type": "string" }
+        }
+      }
+    },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": {
+      "type": "string",
+      "format": "date-time",
+      "description": "30 days from issuedAt by default. Counterpart should re-fetch before this."
+    }
+  }
+}

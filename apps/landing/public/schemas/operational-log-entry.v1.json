@@ -1,0 +1,68 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ar-agents.vercel.app/schemas/operational-log-entry.v1.json",
+  "title": "RFC-004 v1 operational-log entry",
+  "description": "Normative shape of a single entry in a sociedad-IA's operational log. See https://ar-agents.vercel.app/rfcs/004 for the full specification.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["id", "sessionId", "ts", "tool", "governance", "input", "hmac"],
+  "properties": {
+    "id": {
+      "type": "string",
+      "description": "Stable identifier. Format: ISO-8601 UTC timestamp + '-' + 8-hex-char nonce.",
+      "examples": ["2026-05-11T14:23:01.512Z-a1b2c3d4"],
+      "pattern": "^[0-9TZ.:-]+-[0-9a-f]{8}$"
+    },
+    "sessionId": {
+      "type": "string",
+      "description": "Session this entry belongs to. A session is a coherent series of tool-calls sharing a single governance context.",
+      "pattern": "^[A-Za-z0-9_-]{8,64}$"
+    },
+    "ts": {
+      "type": "string",
+      "description": "ISO-8601 UTC timestamp at write time. Server-clock, not request-clock.",
+      "format": "date-time"
+    },
+    "tool": {
+      "type": "string",
+      "description": "Tool / endpoint / model / external-API that produced the side effect. Lowercase, dot-separated.",
+      "examples": [
+        "mercadopago.preapproval.create",
+        "afip.padron.consultar",
+        "anthropic.messages.create",
+        "internal.policy.gate"
+      ],
+      "pattern": "^[a-z0-9._-]{1,128}$"
+    },
+    "governance": {
+      "type": "string",
+      "enum": [
+        "algorithm-only",
+        "audit-logged",
+        "mocked-upstream",
+        "requires-confirmation"
+      ],
+      "description": "RFC-001 § 4 governance class. Determines liability layer."
+    },
+    "input": {
+      "description": "Canonical-JSON-serializable input to the tool. MUST NOT contain raw secrets."
+    },
+    "output": {
+      "description": "Canonical-JSON-serializable output. MAY be omitted on error. MUST NOT contain raw secrets."
+    },
+    "errored": {
+      "type": "boolean",
+      "description": "Truthy if the tool errored. Error reason SHOULD be in `output`."
+    },
+    "durationMs": {
+      "type": "integer",
+      "description": "Wall-clock duration in milliseconds. Useful for SLA + anomaly detection.",
+      "minimum": 0
+    },
+    "hmac": {
+      "type": ["string", "null"],
+      "description": "HMAC-SHA256 of canonical-JSON(entry minus hmac). Format: 'sha256:' + 64-hex-char. MAY be null in dev; production MUST have a value.",
+      "pattern": "^(sha256:[0-9a-f]{64})$"
+    }
+  }
+}
