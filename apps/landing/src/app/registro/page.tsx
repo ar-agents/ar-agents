@@ -400,7 +400,7 @@ function Entry({ entry }: { entry: RegistryEntry }) {
         {entry.disclosure}
       </p>
 
-      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: 12, color: "var(--text-muted)" }}>
+      <div style={{ display: "flex", flexWrap: "wrap", gap: 8, fontSize: 12, color: "var(--text-muted)", alignItems: "center" }}>
         {entry.publicUrl !== "—" && (
           <a href={entry.publicUrl} style={linkStyle}>
             {entry.publicUrl}
@@ -412,6 +412,23 @@ function Entry({ entry }: { entry: RegistryEntry }) {
           </span>
         )}
         {entry.listedSince !== "—" && <span>· listed since {entry.listedSince}</span>}
+        {entry.publicUrl !== "—" && entry.status === "live" && (
+          <a
+            href={`/certifier?url=${encodeURIComponent(entry.publicUrl)}`}
+            style={{ marginLeft: "auto", display: "flex", alignItems: "center", textDecoration: "none" }}
+            aria-label={`Live RFC-002+004 conformance badge for ${entry.name}`}
+            title="Click to run live certification"
+          >
+            <img
+              src={`/api/cert-badge?url=${encodeURIComponent(entry.publicUrl)}`}
+              alt={`Conformance score for ${entry.name}`}
+              width="180"
+              height="22"
+              loading="lazy"
+              style={{ display: "block", borderRadius: 4 }}
+            />
+          </a>
+        )}
       </div>
     </li>
   );
