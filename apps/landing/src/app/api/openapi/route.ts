@@ -252,6 +252,151 @@ const spec = {
         },
       },
     },
+    "/api/audit-summary/{sessionId}": {
+      get: {
+        operationId: "auditSummary",
+        summary: "Aggregated stats for a session (governance, latency quantiles, anomalies)",
+        description:
+          "Lightweight live computation of recipe-25 aggregates over a single session: governance breakdown, tool usage, latency quantiles per-tool, anomaly flags (clock-skew, governance-shift, llm-error-without-fallback, missing-hmac), HMAC verification counts.",
+        tags: ["audit"],
+        parameters: [
+          {
+            name: "sessionId",
+            in: "path",
+            required: true,
+            schema: { type: "string", pattern: "^[A-Za-z0-9_-]{8,64}$" },
+          },
+        ],
+        responses: { "200": { description: "Summary JSON", content: { "application/json": { schema: { type: "object" } } } } },
+      },
+    },
+    "/api/cert-badge": {
+      get: {
+        operationId: "certBadge",
+        summary: "Live shields.io-style SVG badge with RFC-002+004 score for any URL",
+        description:
+          "Returns an embeddable SVG badge showing the live conformance score + rating for the target URL. Calls /api/certifier under the hood. Cached 60s.",
+        tags: ["badge"],
+        parameters: [
+          { name: "url", in: "query", required: true, schema: { type: "string", format: "uri" } },
+          { name: "sessionId", in: "query", required: false, schema: { type: "string" } },
+        ],
+        responses: { "200": { description: "SVG", content: { "image/svg+xml": { schema: { type: "string" } } } } },
+      },
+    },
+    "/api/openapi.yaml": {
+      get: {
+        operationId: "openApiYaml",
+        summary: "YAML mirror of the OpenAPI 3.1 schema",
+        description: "Same content as /api/openapi but serialized as YAML. For codegen / Swagger UI / Postman.",
+        tags: ["discovery"],
+        responses: { "200": { description: "YAML", content: { "application/yaml": { schema: { type: "string" } } } } },
+      },
+    },
+    "/api/certifier": {
+      get: {
+        operationId: "certifyUrl",
+        summary: "Score a URL 0-100 against RFC-002 + RFC-004 + RFC-005 (~11 checks)",
+        description:
+          "Runs HTTP fetches against the target's /.well-known/agents.json, audit endpoints, OpenAPI, etc. Honors rfcConformance claims (skip vs fail). Returns a Certification JSON with per-check breakdown.",
+        tags: ["discovery"],
+        parameters: [
+          { name: "url", in: "query", required: true, schema: { type: "string", format: "uri" } },
+          { name: "sessionId", in: "query", required: false, schema: { type: "string" } },
+        ],
+        responses: { "200": { description: "Certification JSON", content: { "application/json": { schema: { type: "object" } } } } },
+      },
+    },
+    "/api/conformance-history": {
+      get: {
+        operationId: "conformanceHistoryRead",
+        summary: "KV-backed time-series of cert scores for a URL",
+        description:
+          "Returns the 365-entry capped history per URL. Pass ?refresh=1 to run the certifier first + append a new point. 90-day TTL.",
+        tags: ["discovery"],
+        parameters: [
+          { name: "url", in: "query", required: true, schema: { type: "string", format: "uri" } },
+          { name: "refresh", in: "query", required: false, schema: { type: "string", enum: ["1"] } },
+        ],
+        responses: { "200": { description: "History JSON", content: { "application/json": { schema: { type: "object" } } } } },
+      },
+      post: {
+        operationId: "conformanceHistoryAppend",
+        summary: "Run the certifier + append a new point to the URL's history",
+        tags: ["discovery"],
+        parameters: [
+          { name: "url", in: "query", required: false, schema: { type: "string", format: "uri" } },
+        ],
+        responses: { "200": { description: "Updated history JSON" } },
+      },
+    },
+    "/api/auto-monitor": {
+      get: {
+        operationId: "autoMonitor",
+        summary: "Daily Vercel cron — poll all /registro entries + populate conformance-history",
+        description:
+          "Runs the certifier against each live /registro URL + appends each result to its conformance-history. Optional CRON_SECRET auth.",
+        tags: ["discovery"],
+        responses: { "200": { description: "Run summary JSON" } },
+      },
+    },
+    "/api/rfc-003-envelope": {
+      get: {
+        operationId: "rfc003Envelope",
+        summary: "Generate the RFC-003 cross-jurisdictional audit envelope for a session",
+        description:
+          "Wraps the session's RFC-004 entries with RFC-003 issuer metadata + optional externalReferences to a counterpart. 30-day expiry.",
+        tags: ["audit"],
+        parameters: [
+          { name: "sessionId", in: "query", required: false, schema: { type: "string" } },
+          { name: "counterpart", in: "query", required: false, schema: { type: "string" } },
+          { name: "counterpartSession", in: "query", required: false, schema: { type: "string" } },
+          { name: "linkType", in: "query", required: false, schema: { type: "string", enum: ["ap2-mandate", "acp-checkout", "mcp", "manual"] } },
+        ],
+        responses: { "200": { description: "Envelope JSON" } },
+      },
+    },
+    "/api/stats": {
+      get: {
+        operationId: "stats",
+        summary: "Aggregate live stats (npm, GitHub, artifact counts, conformance)",
+        description:
+          "Single JSON with npm download counts, GitHub stars/forks, RFC + schema + test-vectors + recipe + test-file counts, plus live cert score and count of sociedades at 100/100. Cached 6h.",
+        tags: ["discovery"],
+        responses: { "200": { description: "Stats JSON" } },
+      },
+    },
+    "/.well-known/agents.json": {
+      get: {
+        operationId: "agentsManifest",
+        summary: "RFC-002 v1 discovery manifest",
+        description: "issuer + endpoints + rfcConformance + auditEndpoints, agents.md-v1 compatible.",
+        tags: ["discovery"],
+        responses: { "200": { description: "Manifest JSON" } },
+      },
+    },
+    "/.well-known/sociedad-ia/verify-key": {
+      get: {
+        operationId: "verifyKey",
+        summary: "RFC-004 § 5 challenge-response HMAC key-possession proof",
+        description:
+          "Send a 16-128 hex challenge; server returns HMAC-SHA256(secret, challenge) as response + a stable keyFingerprint. Proves the server holds the AUDIT_HMAC_SECRET without revealing it.",
+        tags: ["audit"],
+        parameters: [
+          { name: "challenge", in: "query", required: true, schema: { type: "string", pattern: "^[0-9a-fA-F]{16,128}$" } },
+        ],
+        responses: { "200": { description: "Challenge-response JSON" } },
+      },
+    },
+    "/.well-known/sociedad-ia/keys": {
+      get: {
+        operationId: "keys",
+        summary: "RFC-005 § 4 Ed25519 public-keys publication",
+        description: "Returns the sociedad-IA's Ed25519 public keys (SPKI base64url + raw hex) with keyId + validFrom/validUntil.",
+        tags: ["audit"],
+        responses: { "200": { description: "Keys JSON" } },
+      },
+    },
   },
   components: {
     schemas: {
