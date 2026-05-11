@@ -19,13 +19,9 @@
   },
   "rfcConformance": [
     "rfc-001-v1",
-    "rfc-002-v1",
-    "rfc-004-draft"
+    "rfc-002-v1"
   ],
-  "auditEndpoints": {
-    "auditRead": "https://ar-agents-mp-hello.vercel.app/api/play/audit/{sessionId}",
-    "auditVerify": "https://ar-agents-mp-hello.vercel.app/api/play/audit/{sessionId}?verify=1"
-  },
+  "note": "Single-library demo. Does NOT claim RFC-004 conformance — no audit-log endpoints (no /api/play/audit). Cite-by-reference to the reference implementation at ar-agents.vercel.app for the full RFC-004 surface.",
   "discovery": {
     "canonicalSpec": "https://ar-agents.vercel.app/rfcs/002",
     "testVectors": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json"
