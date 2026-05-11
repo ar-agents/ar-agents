@@ -1,0 +1,80 @@
+{
+  "$schema": "https://ar-agents.vercel.app/test-vectors/rfc-005-v1.schema.json",
+  "spec": "https://ar-agents.vercel.app/rfcs/005",
+  "version": "rfc-005-v1-draft",
+  "publishedAt": "2026-05-11",
+  "notes": "Conformance vectors for RFC-005 v1 (Ed25519 asymmetric upgrade for the operational log). The keypair is published in full for testing — DO NOT use this exact key in production. License: CC-BY-4.0. RFC-005 v1 finalization will lock these vectors.",
+  "keypair": {
+    "keyId": "ar-agents-ref-2026-05",
+    "alg": "ed25519",
+    "publicKey": "MCowBQYDK2VwAyEAEt29qtbtds8OzafRASPKZHztjC7hRDDx_2cz6NXzAVc",
+    "publicKeyRaw": "12ddbdaad6ed76cf0ecda7d10123ca647ced8c2ee14430f1ff6733e8d5f30157",
+    "privateKey": "MC4CAQAwBQYDK2VwBCIEIPEc_pc1x185UGirt43fbE3MkzLpR4l_hyOSnvzysbPD"
+  },
+  "vectors": [
+    {
+      "id": "vector-1-base-entry",
+      "description": "Sign canonical-JSON of a base entry. Verifier strips hmac + signature before re-canonicalizing.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-deadbeef",
+        "sessionId": "rfc-005-test-session",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "algorithm-only",
+        "input": { "ping": 1 },
+        "output": { "pong": 1 }
+      },
+      "expectedSignature": {
+        "keyId": "ar-agents-ref-2026-05",
+        "alg": "ed25519",
+        "value": "ViHYhJFiaZRO0wz6rsVd58hZtM6CfnLveC3UI4kYeizoIkrFtv2HLFTkLpS6iit5Rpx0V0vdBzOElezCo1JlDg"
+      }
+    },
+    {
+      "id": "vector-2-nested-input",
+      "description": "Sign an entry with deeply-nested input. Recursive canonicalization applies.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-deadbeef",
+        "sessionId": "rfc-005-test-session",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "algorithm-only",
+        "input": { "batch": [{ "amount": 100 }, { "amount": 200 }] }
+      },
+      "expectedSignature": {
+        "keyId": "ar-agents-ref-2026-05",
+        "alg": "ed25519",
+        "value": "uSSscHRnKhi8wG5Q2afYIM2Kctq-24_uZTYnPTrfRVwUuxPujrG7zmvLQGcGe63tH_M9P-Hbc8IulRVZW9xpAA"
+      }
+    },
+    {
+      "id": "vector-3-mutated-must-differ",
+      "description": "Same as vector-1 but with output.pong changed from 1 to 2. Signature MUST differ.",
+      "entry": {
+        "id": "2026-05-11T00:00:00.000Z-deadbeef",
+        "sessionId": "rfc-005-test-session",
+        "ts": "2026-05-11T00:00:00.000Z",
+        "tool": "test.echo",
+        "governance": "algorithm-only",
+        "input": { "ping": 1 },
+        "output": { "pong": 2 }
+      },
+      "expectedSignature": {
+        "keyId": "ar-agents-ref-2026-05",
+        "alg": "ed25519",
+        "value": "zVtHP5TeAY0EVUbxbJL65H3AP35tzk0wfdIrnfxIY0sB5pVAKcWDIGCJc7uwPf2F8kU-IGKCUJi0Qm8nVTxsBw"
+      },
+      "mustDifferFrom": "vector-1-base-entry"
+    }
+  ],
+  "conformance": {
+    "vectorsCount": 3,
+    "referenceImplementation": {
+      "language": "TypeScript",
+      "file": "apps/landing/src/lib/ed25519.ts",
+      "testFile": "apps/landing/test/rfc-005-vectors.test.ts",
+      "repo": "https://github.com/ar-agents/ar-agents"
+    },
+    "howToClaimConformance": "Use the keypair above. Sign each vector's entry with Ed25519 (Web Crypto's 'Ed25519' algorithm; libsodium ed25519_sign_detached; etc.) using the canonical-JSON of the entry with hmac + signature fields stripped. Compare base64url-encoded signature byte-for-byte against expectedSignature.value. Re-verify with the public key. Pass = all 3 vectors match exactly."
+  }
+}
