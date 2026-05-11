@@ -67,11 +67,13 @@ function canonical(value: unknown): string {
 export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string | null> {
   const key = await getHmacKey();
   if (!key) return null;
-  // Strip any `hmac` field if present at runtime — verify() does the same,
-  // so sign + verify must agree on the input space. (TypeScript's Omit is
-  // a compile-time hint; the runtime can still pass in {hmac: null}.)
-  const { hmac: _ignored, ...payload } = entry as AuditEntry;
-  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(canonical(payload)));
+  // Strip BOTH `hmac` and `signature` (RFC-005) fields before signing.
+  // verify() does the same, so sign + verify operate on the same input
+  // space regardless of whether asymmetric upgrade is wired.
+  const stripped = { ...entry } as Record<string, unknown>;
+  delete stripped.hmac;
+  delete stripped.signature;
+  const sig = await crypto.subtle.sign("HMAC", key, enc.encode(canonical(stripped)));
   return `sha256:${bytesToHex(sig)}`;
 }
 
@@ -85,12 +87,15 @@ export async function verifyEntry(entry: AuditEntry): Promise<boolean> {
   for (let i = 0; i < sigBytes.length; i++) {
     sigBytes[i] = parseInt(hex.substr(i * 2, 2), 16);
   }
-  const { hmac: _ignored, ...payload } = entry;
+  // Symmetric strip: same as signEntry's strip.
+  const stripped = { ...entry } as Record<string, unknown>;
+  delete stripped.hmac;
+  delete stripped.signature;
   return crypto.subtle.verify(
     "HMAC",
     key,
     sigBytes,
-    enc.encode(canonical(payload)),
+    enc.encode(canonical(stripped)),
   );
 }
 
