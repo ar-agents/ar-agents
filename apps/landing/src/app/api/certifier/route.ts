@@ -148,13 +148,23 @@ async function runChecks(
     const hasAuditReadMap =
       (endpoints && !Array.isArray(endpoints) && typeof (endpoints as Record<string, unknown>).auditRead === "string") ||
       (auditEndpoints && typeof auditEndpoints.auditRead === "string");
-    if (hasIssuerJurisdiction && hasAuditReadMap) {
+    // The auditRead endpoint is only REQUIRED when the manifest claims
+    // RFC-004 conformance. A single-library demo that only conforms to
+    // RFC-001 + RFC-002 has no audit-log surface to advertise.
+    const conformanceArr =
+      (manifest.rfcConformance as unknown[] | undefined) ?? [];
+    const claimsAuditPath = conformanceArr.some(
+      (x) => typeof x === "string" && x.startsWith("rfc-004"),
+    );
+    if (hasIssuerJurisdiction && (hasAuditReadMap || !claimsAuditPath)) {
       checks.push({
         id: "rfc-002-manifest-required-fields",
         label: "RFC-002 · Manifest has issuer.jurisdiction + auditRead endpoint",
         weight: 10,
         status: "pass",
-        detail: `jurisdiction=${issuer!.jurisdiction}; auditRead present.`,
+        detail: hasAuditReadMap
+          ? `jurisdiction=${issuer!.jurisdiction}; auditRead present.`
+          : `jurisdiction=${issuer!.jurisdiction}; auditRead omitted (manifest doesn't claim RFC-004, so endpoint is optional).`,
       });
     } else {
       checks.push({
@@ -164,7 +174,7 @@ async function runChecks(
         status: "fail",
         detail: !hasIssuerJurisdiction
           ? "Missing issuer.jurisdiction."
-          : "Missing endpoints.auditRead or auditEndpoints.auditRead.",
+          : "Missing endpoints.auditRead or auditEndpoints.auditRead (manifest claims RFC-004, so this is required).",
       });
     }
 
