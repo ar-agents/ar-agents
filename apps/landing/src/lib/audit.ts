@@ -104,6 +104,14 @@ export type AuditGovernance =
   | "mocked-upstream"
   | "requires-confirmation";
 
+/** RFC-005 v1 Ed25519 signature on an entry. Additive to `hmac`. */
+export interface Ed25519Signature {
+  keyId: string;
+  alg: "ed25519";
+  /** base64url-encoded 64-byte signature */
+  value: string;
+}
+
 export interface AuditEntry {
   /** Stable across reads. ISO date + monotonic random suffix. */
   id: string;
@@ -125,6 +133,12 @@ export interface AuditEntry {
   durationMs?: number;
   /** HMAC-SHA256 over the canonical-JSON of all other fields. */
   hmac: string | null;
+  /**
+   * RFC-005 v1 Ed25519 signature. Computed alongside `hmac` when
+   * AUDIT_ED25519_PRIVATE_KEY is set. Verifiable offline against the
+   * public key published at /.well-known/sociedad-ia/keys.
+   */
+  signature?: Ed25519Signature;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -159,6 +173,21 @@ export async function appendAudit(
     hmac: null,
   };
   entry.hmac = await signEntry(entry);
+  // RFC-005 v1: also compute Ed25519 signature if AUDIT_ED25519_PRIVATE_KEY
+  // is set. The signature is verifiable offline by anyone holding the
+  // public key from /.well-known/sociedad-ia/keys (RFC-005 § 4). Dynamic
+  // import avoids paying the Web Crypto Ed25519 cost on cold paths that
+  // never use the asymmetric upgrade.
+  if (process.env.AUDIT_ED25519_PRIVATE_KEY?.trim()) {
+    try {
+      const { signEntryAsymmetric } = await import("./ed25519");
+      const keyId = process.env.AUDIT_ED25519_KEY_ID?.trim() || "ar-agents-ref-2026-05";
+      const sig = await signEntryAsymmetric(entry, keyId);
+      if (sig) entry.signature = sig;
+    } catch {
+      // Ed25519 failure must not break the v1 HMAC path.
+    }
+  }
   if (isKvWired()) {
     try {
       await kv.rpush(key(sessionId), entry);
@@ -195,18 +224,49 @@ export function isSessionIdValid(s: string): boolean {
 
 /**
  * Verify every entry in a session. Returns aggregate stats for an
- * external auditor — count of entries, count tampered.
+ * external auditor — count of entries, count tampered, plus RFC-005
+ * asymmetric verification counts when entries carry `signature` fields.
  */
 export async function verifySession(sessionId: string): Promise<{
   total: number;
   verified: number;
   tampered: number;
   hmacWired: boolean;
+  /** Number of entries carrying an Ed25519 signature (RFC-005 § 3). */
+  signedAsymmetric: number;
+  /** Number of those signatures that verified successfully. */
+  signedAsymmetricVerified: number;
 }> {
   const entries = await readAudit(sessionId);
   const hmacWired = Boolean(process.env.AUDIT_HMAC_SECRET?.trim());
+
+  // Asymmetric verification stats are computed regardless of HMAC config —
+  // the two checks are independent.
+  let signedAsymmetric = 0;
+  let signedAsymmetricVerified = 0;
+  const publicKey = process.env.AUDIT_ED25519_PUBLIC_KEY?.trim();
+  if (publicKey) {
+    try {
+      const { verifyEntryAsymmetric } = await import("./ed25519");
+      for (const e of entries) {
+        if (!e.signature) continue;
+        signedAsymmetric++;
+        if (await verifyEntryAsymmetric(e, publicKey)) signedAsymmetricVerified++;
+      }
+    } catch {
+      // verify lib failure → leave counts at 0.
+    }
+  }
+
   if (!hmacWired) {
-    return { total: entries.length, verified: 0, tampered: 0, hmacWired: false };
+    return {
+      total: entries.length,
+      verified: 0,
+      tampered: 0,
+      hmacWired: false,
+      signedAsymmetric,
+      signedAsymmetricVerified,
+    };
   }
   let verified = 0;
   let tampered = 0;
@@ -214,7 +274,14 @@ export async function verifySession(sessionId: string): Promise<{
     if (await verifyEntry(e)) verified++;
     else tampered++;
   }
-  return { total: entries.length, verified, tampered, hmacWired };
+  return {
+    total: entries.length,
+    verified,
+    tampered,
+    hmacWired,
+    signedAsymmetric,
+    signedAsymmetricVerified,
+  };
 }
 
 /** Storage backend in use (advertised in API responses for transparency). */

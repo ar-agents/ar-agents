@@ -159,6 +159,18 @@ export default async function AuditExplorerPage({ params }: Props) {
             color={verification.hmacWired ? "#22c55e" : "#eab308"}
           />
           <Card label="Errored" value={String(agg.errored)} color={agg.errored > 0 ? "#eab308" : "#737373"} />
+          {/* RFC-005 asymmetric stats — only shown if any entry carries a signature. */}
+          {verification.signedAsymmetric > 0 && (
+            <Card
+              label="Ed25519 signed"
+              value={`${verification.signedAsymmetricVerified}/${verification.signedAsymmetric}`}
+              color={
+                verification.signedAsymmetricVerified === verification.signedAsymmetric
+                  ? "#22c55e"
+                  : "#ef4444"
+              }
+            />
+          )}
         </section>
 
         {entries.length === 0 ? (
