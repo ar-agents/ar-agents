@@ -484,6 +484,12 @@ export default function Home() {
               test-vectors
             </a>
             <a
+              href="/certifier"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              certifier
+            </a>
+            <a
               href="/status"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >
