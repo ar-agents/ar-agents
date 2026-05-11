@@ -283,6 +283,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "The operational narrative a regulator can demand without a court order, generated from the log not from the operator's recollection. Companion to RFC-004 § 9 + /auditor.",
   },
+  {
+    id: "26-certify-by-fetch",
+    num: 26,
+    title: "Certify any sociedad-IA by fetching its public endpoints",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Reusable TypeScript function that takes a target base URL, runs ~9 checks against its public endpoints (well-known, audit-read, audit-verify, CSV, OpenAPI, security headers), and returns a 0-100 conformance score + per-check breakdown. Same function backs the /certifier web flow + the /api/certifier HTTP endpoint. Pure fetch, runs in Edge / Node / browser / deno. Includes a CLI mode that exits non-zero if score < 60 — drop into CI as a pre-merge gate.",
+    highlight:
+      "Anyone can verify any sociedad-IA's claims from one HTTP call. No install, no setup. Lives behind /certifier (web) + /api/certifier (programmatic).",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {

@@ -1,0 +1,171 @@
+# Quarterly compliance report — generates a self-disclosure JSON for
+# AFIP/ARCA, AAIP, or any regulator request, on the 1st of each quarter.
+#
+# Drop this file into your sociedad-IA repo at:
+#   .github/workflows/sociedad-ia-quarterly-compliance.yml
+#
+# Sources of truth + companion docs:
+#   https://ar-agents.vercel.app/rfcs/004           (operational-log spec)
+#   https://ar-agents.vercel.app/examples           (cookbook recipe 25)
+#   https://ar-agents.vercel.app/auditor            (regulator-facing summary)
+#
+# What this workflow does:
+#   1. Reads your QUARTER_SESSION_IDS env (newline-separated session ids
+#      active in the period) + emits the report JSON via recipe 25.
+#   2. Uploads the report as an artifact (retained 5 years).
+#   3. Optionally signs the report with AUDIT_HMAC_SECRET for
+#      tamper-evidence + posts a digest to a Slack webhook.
+#
+# Secrets you need set on the repo:
+#   AUDIT_HMAC_SECRET            — same secret your prod uses (for report sig)
+#   SLACK_WEBHOOK_URL            — optional, for digest post
+#   AR_AGENTS_BASE_URL           — optional, defaults to ar-agents.vercel.app
+#   SOCIEDAD_DENOMINACION        — required, e.g. "Mi Sociedad-IA SAS"
+#   SOCIEDAD_OPERATOR_CUIT       — required, e.g. "20-12345678-9"
+#
+# Variables you need set on the repo:
+#   QUARTER_SESSION_IDS          — newline-separated list of sessionIds
+
+name: sociedad-ia-quarterly-compliance
+
+on:
+  schedule:
+    # 1st of Jan, Apr, Jul, Oct at 09:00 UTC (~06:00 ART).
+    - cron: "0 9 1 1,4,7,10 *"
+  workflow_dispatch:
+    inputs:
+      periodStart:
+        description: "ISO-8601 start of period (default: 90 days ago)"
+        required: false
+      periodEnd:
+        description: "ISO-8601 end of period (default: now)"
+        required: false
+
+jobs:
+  generate-report:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    permissions:
+      contents: read
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install minimal deps
+        run: |
+          npm i -g tsx@latest @ar-agents/incorporate@latest
+
+      - name: Compute period window
+        id: window
+        run: |
+          if [ -n "${{ inputs.periodStart }}" ] && [ -n "${{ inputs.periodEnd }}" ]; then
+            echo "start=${{ inputs.periodStart }}" >> "$GITHUB_OUTPUT"
+            echo "end=${{ inputs.periodEnd }}" >> "$GITHUB_OUTPUT"
+          else
+            END_ISO="$(date -u +%Y-%m-%dT%H:%M:%S.000Z)"
+            START_ISO="$(date -u -d '90 days ago' +%Y-%m-%dT%H:%M:%S.000Z)"
+            echo "start=$START_ISO" >> "$GITHUB_OUTPUT"
+            echo "end=$END_ISO" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Build config.json
+        env:
+          QUARTER_SESSION_IDS: ${{ vars.QUARTER_SESSION_IDS }}
+          DENOMINACION: ${{ secrets.SOCIEDAD_DENOMINACION }}
+          OPERATOR_CUIT: ${{ secrets.SOCIEDAD_OPERATOR_CUIT }}
+          BASE_URL: ${{ secrets.AR_AGENTS_BASE_URL || 'https://ar-agents.vercel.app' }}
+          PERIOD_START: ${{ steps.window.outputs.start }}
+          PERIOD_END: ${{ steps.window.outputs.end }}
+        run: |
+          if [ -z "$QUARTER_SESSION_IDS" ]; then
+            echo "::error::QUARTER_SESSION_IDS repo variable is empty."
+            exit 1
+          fi
+          if [ -z "$DENOMINACION" ] || [ -z "$OPERATOR_CUIT" ]; then
+            echo "::error::SOCIEDAD_DENOMINACION + SOCIEDAD_OPERATOR_CUIT must be set as secrets."
+            exit 1
+          fi
+
+          # Newline-separated → JSON array.
+          SESSION_IDS_JSON="$(echo "$QUARTER_SESSION_IDS" | jq -R . | jq -s .)"
+
+          cat > config.json <<EOF
+          {
+            "sociedad": {
+              "denominacion": "$DENOMINACION",
+              "operatorCuit": "$OPERATOR_CUIT",
+              "jurisdiction": "AR",
+              "rfcConformance": ["rfc-001-v1", "rfc-002-v1", "rfc-004-draft"],
+              "auditBaseUrl": "$BASE_URL"
+            },
+            "periodStart": "$PERIOD_START",
+            "periodEnd":   "$PERIOD_END",
+            "sessionIds":  $SESSION_IDS_JSON,
+            "baseUrl":     "$BASE_URL"
+          }
+          EOF
+
+          cat config.json
+
+      - name: Run recipe 25 — generate report
+        env:
+          AUDIT_HMAC_SECRET: ${{ secrets.AUDIT_HMAC_SECRET }}
+        run: |
+          curl -sL -o recipe-25.ts \
+            https://raw.githubusercontent.com/ar-agents/ar-agents/main/packages/mercadopago/cookbook/25-sociedad-ia-quarterly-compliance.ts
+          tsx recipe-25.ts config.json > report.json
+          jq '.conclusion' report.json
+
+      - name: Pre-merge certifier check
+        env:
+          BASE_URL: ${{ secrets.AR_AGENTS_BASE_URL || 'https://ar-agents.vercel.app' }}
+        run: |
+          # Recipe 26 + the public /api/certifier endpoint. Fail the build
+          # if score < 60.
+          curl -sL -o recipe-26.ts \
+            https://raw.githubusercontent.com/ar-agents/ar-agents/main/packages/mercadopago/cookbook/26-certify-by-fetch.ts
+          # tsx exit-codes non-zero if score < 60.
+          tsx recipe-26.ts "$BASE_URL" > certifier.json
+          jq '.score, .rating, .rfcConformance' certifier.json
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: quarterly-compliance-${{ github.run_id }}
+          path: |
+            config.json
+            report.json
+            certifier.json
+          retention-days: 1825   # 5 years (per RFC-004 § 7 max retention)
+
+      - name: Post digest to Slack (optional)
+        if: ${{ secrets.SLACK_WEBHOOK_URL != '' }}
+        env:
+          WEBHOOK: ${{ secrets.SLACK_WEBHOOK_URL }}
+        run: |
+          STATUS="$(jq -r '.conclusion.status' report.json)"
+          SUMMARY="$(jq -r '.conclusion.summary' report.json)"
+          SCORE="$(jq -r '.score' certifier.json)"
+          RATING="$(jq -r '.rating' certifier.json)"
+
+          if [ "$STATUS" = "tampering-detected" ]; then EMOJI=":rotating_light:"
+          elif [ "$STATUS" = "anomalies-noted" ]; then  EMOJI=":warning:"
+          else                                           EMOJI=":white_check_mark:"
+          fi
+
+          PAYLOAD=$(jq -n \
+            --arg emoji "$EMOJI" \
+            --arg status "$STATUS" \
+            --arg summary "$SUMMARY" \
+            --arg score "$SCORE" \
+            --arg rating "$RATING" \
+            --arg run "${{ github.run_id }}" \
+            '{ text: ("\($emoji) Quarterly compliance: \($status) · certifier \($score) (\($rating)) · \($summary) · run \($run)") }')
+
+          curl -sS -X POST -H "content-type: application/json" -d "$PAYLOAD" "$WEBHOOK" >/dev/null

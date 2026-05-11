@@ -121,6 +121,16 @@
     <priority>0.7</priority>
   </url>
   <url>
+    <loc>https://ar-agents.vercel.app/certifier</loc>
+    <changefreq>weekly</changefreq>
+    <priority>0.9</priority>
+  </url>
+  <url>
+    <loc>https://ar-agents.vercel.app/workflows/sociedad-ia-quarterly-compliance.yml</loc>
+    <changefreq>monthly</changefreq>
+    <priority>0.7</priority>
+  </url>
+  <url>
     <loc>https://ar-agents.vercel.app/architecture</loc>
     <changefreq>monthly</changefreq>
     <priority>0.9</priority>
