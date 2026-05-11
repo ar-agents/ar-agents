@@ -259,3 +259,102 @@ describe("canonical-JSON stability (regression)", () => {
     expect(sigA).toBe(sigB);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// RFC-005 dual-sign integration (regression).
+// Catches the bug that shipped in round 21 + got fixed in round 22:
+// signEntry and verifyEntry MUST both strip `signature` along with `hmac`
+// before canonical-JSON, otherwise entries that ride the asymmetric upgrade
+// path fail HMAC verification.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("RFC-005 dual-sign — HMAC strip rule covers both fields", () => {
+  it("verifyEntry passes when entry carries both hmac and signature", async () => {
+    process.env.AUDIT_HMAC_SECRET = SECRET;
+    const base: Omit<AuditEntry, "hmac"> = {
+      id: "entry-x",
+      sessionId: "sess-dual",
+      ts: "2026-05-11T00:00:00.000Z",
+      tool: "validate_cuit",
+      governance: "algorithm-only",
+      input: { ping: 1 },
+      output: { pong: 1 },
+    };
+    const hmac = await signEntry(base);
+    expect(hmac).toMatch(/^sha256:[0-9a-f]{64}$/);
+    // Append a signature field AFTER hmac is computed (simulates appendAudit's
+    // dual-sign path).
+    const entry: AuditEntry = {
+      ...base,
+      hmac,
+      signature: {
+        keyId: "ar-agents-ref-2026-05",
+        alg: "ed25519",
+        // Fake-but-format-valid signature value. verifyEntry doesn't validate
+        // the signature; it just strips the field. So this round-trips.
+        value: "AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA",
+      },
+    };
+    expect(await verifyEntry(entry)).toBe(true);
+  });
+
+  it("verifyEntry still passes if signature is absent (back-compat)", async () => {
+    process.env.AUDIT_HMAC_SECRET = SECRET;
+    const base: Omit<AuditEntry, "hmac"> = {
+      id: "entry-y",
+      sessionId: "sess-hmac-only",
+      ts: "2026-05-11T00:00:00.000Z",
+      tool: "validate_cuit",
+      governance: "algorithm-only",
+      input: { ping: 2 },
+    };
+    const hmac = await signEntry(base);
+    expect(await verifyEntry({ ...base, hmac })).toBe(true);
+  });
+
+  it("HMAC computed with or without signature field is identical (signature is stripped)", async () => {
+    process.env.AUDIT_HMAC_SECRET = SECRET;
+    const base: Omit<AuditEntry, "hmac"> = {
+      id: "entry-z",
+      sessionId: "sess-equiv",
+      ts: "2026-05-11T00:00:00.000Z",
+      tool: "validate_cuit",
+      governance: "algorithm-only",
+      input: { ping: 3 },
+    };
+    const sigA = await signEntry(base);
+    // Same logical entry but with a signature added — the stripping rule
+    // means the HMAC value is identical.
+    const withSig = {
+      ...base,
+      signature: {
+        keyId: "ar-agents-ref-2026-05",
+        alg: "ed25519" as const,
+        value: "BBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBBB",
+      },
+    };
+    const sigB = await signEntry(withSig as Omit<AuditEntry, "hmac">);
+    expect(sigA).toBe(sigB);
+  });
+
+  it("appendAudit + readAudit round-trip preserves the signature field when present", async () => {
+    process.env.AUDIT_HMAC_SECRET = SECRET;
+    const sess = "sess-roundtrip";
+    // appendAudit will NOT add a signature here (no AUDIT_ED25519_PRIVATE_KEY).
+    // But if a signature is passed in the partial, it should round-trip.
+    const sigStub = {
+      keyId: "ar-agents-ref-2026-05",
+      alg: "ed25519" as const,
+      value: "CCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCCC",
+    };
+    const written = await appendAudit(sess, {
+      tool: "test.echo",
+      governance: "algorithm-only",
+      input: { x: 1 },
+      signature: sigStub,
+    });
+    expect(written.signature).toEqual(sigStub);
+    const entries = await readAudit(sess);
+    expect(entries[entries.length - 1]?.signature).toEqual(sigStub);
+  });
+});

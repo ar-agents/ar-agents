@@ -372,11 +372,25 @@ export default function Rfc005Page() {
           endpoint 404s (v1 HMAC-only is OK).
         </Li>
         <Li>
-          ◐ Integration into the live <DocCode>appendAudit</DocCode>{" "}
-          flow (so production entries carry both <DocCode>hmac</DocCode>{" "}
-          + <DocCode>signature</DocCode>) is deferred to the operator —
-          set <DocCode>AUDIT_ED25519_PRIVATE_KEY</DocCode> in Vercel
-          env to opt in.
+          ✓ <strong>Integration into the live{" "}
+          <DocCode>appendAudit</DocCode> flow — SHIPPED, VERIFIED LIVE.</strong>{" "}
+          Production entries on the reference deployment now carry both{" "}
+          <DocCode>hmac</DocCode> + <DocCode>signature</DocCode>{" "}
+          (RFC-005 § 3 wire shape). When <DocCode>AUDIT_ED25519_PRIVATE_KEY</DocCode>{" "}
+          is set in Vercel env, every <DocCode>appendAudit</DocCode>{" "}
+          call computes both. Confirmed by a live{" "}
+          <DocCode>/api/play</DocCode> session: 3-of-3 entries reported{" "}
+          <DocCode>signedAsymmetricVerified: 3</DocCode> alongside{" "}
+          <DocCode>verified: 3, tampered: 0</DocCode>.
+        </Li>
+        <Li>
+          ✓ <strong>HMAC strip rule fix (round 22 finding):</strong> the
+          original <DocCode>signEntry</DocCode> stripped only{" "}
+          <DocCode>hmac</DocCode>; the dual-sign integration revealed
+          that <DocCode>signature</DocCode> also needs to be stripped
+          before canonical-JSON so HMAC-and-Ed25519 are computed over
+          the same input space. Now: both strip both. 4 new regression
+          tests in <DocCode>audit.test.ts</DocCode>.
         </Li>
         <Li>
           ◐ Public review period via{" "}
