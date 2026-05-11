@@ -203,6 +203,20 @@ async function runChecks(
     });
   }
 
+  // Determine which RFCs the manifest claims conformance to.
+  // If the manifest doesn't claim an RFC, the related checks SKIP
+  // instead of FAIL — we don't penalize an operator for not claiming
+  // something they didn't claim.
+  const rfcConformanceArr = (manifest?.rfcConformance as unknown[] | undefined) ?? [];
+  const claimsRfc = (prefix: string): boolean =>
+    rfcConformanceArr.some(
+      (x) => typeof x === "string" && x.startsWith(prefix),
+    );
+  const claimsRfc004 = claimsRfc("rfc-004");
+  const claimsRfc005 = claimsRfc("rfc-005");
+  // RFC-002 is implicit: the manifest itself is the RFC-002 product, so
+  // any successful manifest fetch counts as a RFC-002 claim.
+
   // ── Check 3: audit endpoint responds for the sample sessionId ────────────
   const targetSession = sessionId ?? SAMPLE_SESSION_ID_FOR_VERIFY;
   // Prefer manifest-advertised URL; fall back to default /api/play/audit/{id}.
@@ -239,8 +253,10 @@ async function runChecks(
         id: "rfc-004-audit-read",
         label: "RFC-004 · Audit-read endpoint returns 200 + valid AuditPayload",
         weight: 15,
-        status: "fail",
-        detail: `HTTP ${r.status}.`,
+        status: claimsRfc004 ? "fail" : "skip",
+        detail: claimsRfc004
+          ? `HTTP ${r.status}.`
+          : `HTTP ${r.status} — manifest does not claim RFC-004 conformance, so this check is skipped.`,
         source: auditUrl,
         httpStatus: r.status,
       });
@@ -302,8 +318,10 @@ async function runChecks(
         id: "rfc-004-audit-verify",
         label: "RFC-004 · Audit-verify endpoint returns verification counts",
         weight: 20,
-        status: "fail",
-        detail: `HTTP ${r.status}.`,
+        status: claimsRfc004 ? "fail" : "skip",
+        detail: claimsRfc004
+          ? `HTTP ${r.status}.`
+          : `HTTP ${r.status} — manifest does not claim RFC-004 conformance, so this check is skipped.`,
         source: verifyUrl,
         httpStatus: r.status,
       });
@@ -313,8 +331,10 @@ async function runChecks(
       id: "rfc-004-audit-verify",
       label: "RFC-004 · Audit-verify endpoint returns verification counts",
       weight: 20,
-      status: "fail",
-      detail: `Network error: ${(e as Error).message}`,
+      status: claimsRfc004 ? "fail" : "skip",
+      detail: claimsRfc004
+        ? `Network error: ${(e as Error).message}`
+        : `Network error — manifest does not claim RFC-004 conformance, so this check is skipped.`,
       source: verifyUrl,
     });
   }
@@ -340,8 +360,10 @@ async function runChecks(
         id: "rfc-004-audit-csv",
         label: "RFC-004 · CSV export endpoint returns text/csv",
         weight: 10,
-        status: "fail",
-        detail: `HTTP ${r.status}.`,
+        status: claimsRfc004 ? "fail" : "skip",
+        detail: claimsRfc004
+          ? `HTTP ${r.status}.`
+          : `HTTP ${r.status} — manifest does not claim RFC-004 conformance, so this check is skipped.`,
         source: csvUrl,
         httpStatus: r.status,
       });
@@ -351,8 +373,10 @@ async function runChecks(
       id: "rfc-004-audit-csv",
       label: "RFC-004 · CSV export endpoint returns text/csv",
       weight: 10,
-      status: "fail",
-      detail: `Network error: ${(e as Error).message}`,
+      status: claimsRfc004 ? "fail" : "skip",
+      detail: claimsRfc004
+        ? `Network error: ${(e as Error).message}`
+        : `Network error — manifest does not claim RFC-004 conformance, so this check is skipped.`,
       source: csvUrl,
     });
   }
