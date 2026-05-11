@@ -1,0 +1,15 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/keys.v1.json",
+  "spec": "https://ar-agents.vercel.app/rfcs/005",
+  "keys": [
+    {
+      "keyId": "ar-agents-ref-2026-05",
+      "alg": "ed25519",
+      "publicKey": "MCowBQYDK2VwAyEAEt29qtbtds8OzafRASPKZHztjC7hRDDx_2cz6NXzAVc",
+      "publicKeyRaw": "12ddbdaad6ed76cf0ecda7d10123ca647ced8c2ee14430f1ff6733e8d5f30157",
+      "validFrom": "2026-05-11T00:00:00Z",
+      "validUntil": null
+    }
+  ],
+  "note": "Demo key shared across the /arg reference + demo deployments. Real sociedades-IA generate their own keypair."
+}
