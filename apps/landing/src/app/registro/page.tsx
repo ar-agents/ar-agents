@@ -142,6 +142,73 @@ const STATUS_COLOR: Record<RegistryEntry["status"], string> = {
   deprecated: "#ef4444",
 };
 
+export const runtime = "nodejs";
+export const revalidate = 600;
+
+interface HistoryPoint { ts: string; score: number; rating: string }
+
+async function fetchHistory(url: string): Promise<HistoryPoint[]> {
+  if (!url || url === "—") return [];
+  try {
+    const r = await fetch(
+      `https://ar-agents.vercel.app/api/conformance-history?url=${encodeURIComponent(url)}`,
+      { signal: AbortSignal.timeout(5000), next: { revalidate: 600 } },
+    );
+    if (!r.ok) return [];
+    const d = (await r.json()) as { points?: HistoryPoint[] };
+    return d.points ?? [];
+  } catch {
+    return [];
+  }
+}
+
+function Sparkline({ points }: { points: HistoryPoint[] }) {
+  if (points.length === 0) {
+    return null;
+  }
+  const w = 100;
+  const h = 22;
+  const pad = 2;
+  const min = Math.min(...points.map((p) => p.score), 0);
+  const max = Math.max(...points.map((p) => p.score), 100);
+  const range = max - min || 1;
+  const xs = points.map((_p, i) =>
+    points.length === 1 ? w / 2 : pad + (i / (points.length - 1)) * (w - pad * 2),
+  );
+  const ys = points.map((p) => h - pad - ((p.score - min) / range) * (h - pad * 2));
+  const d = points
+    .map((_p, i) => `${i === 0 ? "M" : "L"}${xs[i].toFixed(1)},${ys[i].toFixed(1)}`)
+    .join(" ");
+  const last = points[points.length - 1];
+  const lastX = xs[xs.length - 1];
+  const lastY = ys[ys.length - 1];
+  const color =
+    last.rating === "A"
+      ? "#22c55e"
+      : last.rating === "B"
+        ? "#84cc16"
+        : last.rating === "C"
+          ? "#eab308"
+          : last.rating === "D"
+            ? "#f97316"
+            : "#ef4444";
+  return (
+    <svg
+      width={w}
+      height={h}
+      role="img"
+      aria-label={`Conformance score trend, ${points.length} points, latest ${last.score} ${last.rating}`}
+      style={{ display: "block" }}
+    >
+      <title>
+        {`Score trend (${points.length} pts) · latest ${last.score}/${last.rating}`}
+      </title>
+      <path d={d} fill="none" stroke={color} strokeWidth="1.5" />
+      <circle cx={lastX} cy={lastY} r="2" fill={color} />
+    </svg>
+  );
+}
+
 export const metadata: Metadata = {
   title: "/registro · public registry of known sociedad-IA implementations · ar-agents",
   description:
@@ -156,7 +223,17 @@ export const metadata: Metadata = {
   },
 };
 
-export default function RegistroPage() {
+export default async function RegistroPage() {
+  // Fetch history for each live entry in parallel. 5 entries × ~200ms each
+  // = ~1s server-side cost, cached for 10 min via revalidate.
+  const histories = await Promise.all(
+    REGISTRY.map(async (e) =>
+      e.status === "live" && e.publicUrl !== "—" ? await fetchHistory(e.publicUrl) : [],
+    ),
+  );
+  const historyByName = new Map<string, HistoryPoint[]>();
+  REGISTRY.forEach((e, i) => historyByName.set(e.name, histories[i]));
+
   const counts = REGISTRY.reduce(
     (acc, e) => {
       if (e.status === "live") acc[e.type]++;
@@ -272,7 +349,7 @@ export default function RegistroPage() {
         <section>
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {REGISTRY.map((entry) => (
-              <Entry key={entry.name} entry={entry} />
+              <Entry key={entry.name} entry={entry} history={historyByName.get(entry.name) ?? []} />
             ))}
           </ul>
         </section>
@@ -368,7 +445,7 @@ function Counter({ n, label, color }: { n: number; label: string; color: string 
   );
 }
 
-function Entry({ entry }: { entry: RegistryEntry }) {
+function Entry({ entry, history }: { entry: RegistryEntry; history: HistoryPoint[] }) {
   return (
     <li
       style={{
@@ -413,21 +490,33 @@ function Entry({ entry }: { entry: RegistryEntry }) {
         )}
         {entry.listedSince !== "—" && <span>· listed since {entry.listedSince}</span>}
         {entry.publicUrl !== "—" && entry.status === "live" && (
-          <a
-            href={`/certifier?url=${encodeURIComponent(entry.publicUrl)}`}
-            style={{ marginLeft: "auto", display: "flex", alignItems: "center", textDecoration: "none" }}
-            aria-label={`Live RFC-002+004 conformance badge for ${entry.name}`}
-            title="Click to run live certification"
-          >
-            <img
-              src={`/api/cert-badge?url=${encodeURIComponent(entry.publicUrl)}`}
-              alt={`Conformance score for ${entry.name}`}
-              width="180"
-              height="22"
-              loading="lazy"
-              style={{ display: "block", borderRadius: 4 }}
-            />
-          </a>
+          <div style={{ marginLeft: "auto", display: "flex", alignItems: "center", gap: 8 }}>
+            {history.length > 0 && (
+              <a
+                href={`/api/conformance-history?url=${encodeURIComponent(entry.publicUrl)}`}
+                title={`${history.length}-point trend · latest ${history[history.length - 1].score}/${history[history.length - 1].rating}`}
+                style={{ display: "flex", alignItems: "center", textDecoration: "none" }}
+                aria-label={`Conformance score trend for ${entry.name}`}
+              >
+                <Sparkline points={history} />
+              </a>
+            )}
+            <a
+              href={`/certifier?url=${encodeURIComponent(entry.publicUrl)}`}
+              style={{ display: "flex", alignItems: "center", textDecoration: "none" }}
+              aria-label={`Live RFC-002+004 conformance badge for ${entry.name}`}
+              title="Click to run live certification"
+            >
+              <img
+                src={`/api/cert-badge?url=${encodeURIComponent(entry.publicUrl)}`}
+                alt={`Conformance score for ${entry.name}`}
+                width="180"
+                height="22"
+                loading="lazy"
+                style={{ display: "block", borderRadius: 4 }}
+              />
+            </a>
+          </div>
         )}
       </div>
     </li>
