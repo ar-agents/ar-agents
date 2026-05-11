@@ -316,6 +316,28 @@ const RECIPES: Recipe[] = [
     highlight:
       "Different from recipe 26 (RFC conformance, public) — recipe 28 is operator-internal pre-launch sign-off. Used by /api/auto-incorporate to validate freshly-deployed sociedades before adding to /registro.",
   },
+  {
+    id: "29-publish-your-keys",
+    num: 29,
+    title: "Publish your sociedad-IA's Ed25519 public key (RFC-005 § 4)",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Generate an Ed25519 keypair via Web Crypto, format the public key as SPKI base64url (RFC-005 § 4 wire format), and print: (1) the public-keys JSON to drop into public/.well-known/sociedad-ia/keys.json, (2) the private key as PKCS8 base64url to paste into the operator's secrets manager (Vercel env, 1Password, AWS SM). Same keyId can stay valid; rotation is additive.",
+    highlight:
+      "The one-time bootstrap for opting into the RFC-005 asymmetric path. Subsequent appendAudit calls automatically include both `hmac` (v1) and `signature` (v2) entries when AUDIT_ED25519_PRIVATE_KEY is set.",
+  },
+  {
+    id: "30-submit-to-registry",
+    num: 30,
+    title: "Submit your sociedad-IA to the public /registro",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Pre-flight check + PR-body generator. Runs recipe 28 (operator readiness) + recipe 26 (RFC certifier) against your URL, validates honesty heuristics (CUIT format, demo-vs-productive disclosure language, type matches behavior), and if everything passes, prints a copy-paste Markdown PR body for the registry submission. Refuses to produce a PR body if any check fails — prevents over-eager submission of half-built sociedades.",
+    highlight:
+      "Closes the loop from incorporated → conformant → certified → publicly listed. With recipe 30, the full operator lifecycle from `vercel deploy` to listing in /registro is scripted + repeatable.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {
