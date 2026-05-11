@@ -453,6 +453,12 @@ export default function Home() {
               data room
             </a>
             <a
+              href="/auditor"
+              style={{ color: "var(--text)", textDecoration: "underline" }}
+            >
+              auditor
+            </a>
+            <a
               href="/status"
               style={{ color: "var(--text)", textDecoration: "underline" }}
             >

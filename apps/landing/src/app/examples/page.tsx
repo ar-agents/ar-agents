@@ -272,6 +272,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "sessionId continuity is the load-bearing piece. The export references env-var names (not values), so recovery is config-portable without secret leakage.",
   },
+  {
+    id: "25-sociedad-ia-quarterly-compliance",
+    num: 25,
+    title: "Quarterly compliance report · the answer to a regulator request, generated from the audit log alone",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Pure function that takes a list of sessionIds + a sociedad metadata block and produces a single self-contained JSON report: per-session timelines + HMAC-verification results + cross-session aggregates + anomalies (clock-skew, governance-shifts, errored LLM calls, missing-HMAC) + a self-disclosure conclusion (clean / anomalies-noted / tampering-detected) + remediation list. Optionally HMAC-signs the report itself for tamper-evidence. Bundles RFC-004 § 9's four mandatory artifacts into one document.",
+    highlight:
+      "The operational narrative a regulator can demand without a court order, generated from the log not from the operator's recollection. Companion to RFC-004 § 9 + /auditor.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {
