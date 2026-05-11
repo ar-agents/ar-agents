@@ -1,0 +1,125 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ar-agents.vercel.app/schemas/agents.v1.json",
+  "title": "RFC-002 v1 /.well-known/agents.json",
+  "description": "Discovery manifest published at /.well-known/agents.json by every sociedad-IA. See https://ar-agents.vercel.app/rfcs/002 for the full specification.",
+  "type": "object",
+  "required": ["issuer", "rfcConformance"],
+  "anyOf": [
+    { "required": ["endpoints"] },
+    { "required": ["auditEndpoints"] }
+  ],
+  "properties": {
+    "$schema": { "type": "string" },
+    "version": { "type": "string", "examples": ["1.0", "1.0.0"] },
+    "name": { "type": "string" },
+    "description": { "type": "string" },
+    "homepage": { "type": "string", "format": "uri" },
+    "repository": { "type": "string", "format": "uri" },
+    "license": { "type": "string" },
+    "maintainer": {
+      "type": "object",
+      "properties": {
+        "name": { "type": "string" },
+        "email": { "type": "string", "format": "email" }
+      }
+    },
+    "issuer": {
+      "type": "object",
+      "required": ["jurisdiction", "type"],
+      "properties": {
+        "jurisdiction": {
+          "type": "string",
+          "description": "ISO-3166 alpha-2 country code or extended (US-WY, MH, EE, AR).",
+          "examples": ["AR", "US-WY", "MH", "EE", "US-DE"]
+        },
+        "type": {
+          "type": "string",
+          "description": "Sociedad-IA type / regime.",
+          "examples": [
+            "sociedad-ia",
+            "sociedad-ia-reference-implementation",
+            "wyoming-dao-llc",
+            "midao-foundation",
+            "estonia-ou"
+          ]
+        },
+        "operatorName": { "type": "string" },
+        "operatorCuit": {
+          "type": "string",
+          "description": "Argentine CUIT/CUIL format XX-XXXXXXXX-X (when jurisdiction = AR).",
+          "pattern": "^\\d{2}-\\d{7,8}-\\d$"
+        },
+        "denominacion": { "type": "string" },
+        "supervisionRegime": {
+          "type": "string",
+          "description": "Which RFC-001-style supervision regime the operator claims.",
+          "examples": ["rfc-001-v1"]
+        },
+        "publicKey": {
+          "type": "object",
+          "description": "Optional JWK for asymmetric verification (RFC-004 v2)."
+        }
+      }
+    },
+    "rfcConformance": {
+      "type": "array",
+      "description": "RFC versions this sociedad-IA claims conformance to.",
+      "items": {
+        "type": "string",
+        "examples": ["rfc-001-v1", "rfc-002-v1", "rfc-003-draft", "rfc-004-draft", "rfc-004-v1"]
+      },
+      "minItems": 0
+    },
+    "endpoints": {
+      "description": "Endpoints map. Either object-keyed (RFC-002 strict) or array-style (agents.md v1 compatibility).",
+      "anyOf": [
+        {
+          "type": "object",
+          "properties": {
+            "auditRead": { "type": "string", "format": "uri-template" },
+            "auditVerify": { "type": "string", "format": "uri-template" },
+            "auditCsv": { "type": "string", "format": "uri-template" },
+            "auditStream": { "type": "string", "format": "uri-template" }
+          }
+        },
+        {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": ["name", "url"],
+            "properties": {
+              "name": { "type": "string" },
+              "url": { "type": "string", "format": "uri" },
+              "method": { "type": "string", "enum": ["GET", "POST", "PUT", "PATCH", "DELETE"] },
+              "description": { "type": "string" }
+            }
+          }
+        }
+      ]
+    },
+    "auditEndpoints": {
+      "type": "object",
+      "description": "Map of audit-related endpoints. Companion to RFC-002 + RFC-004 § 5.",
+      "properties": {
+        "auditRead": { "type": "string", "format": "uri-template" },
+        "auditVerify": { "type": "string", "format": "uri-template" },
+        "auditCsv": { "type": "string", "format": "uri-template" },
+        "auditStream": { "type": "string", "format": "uri-template" },
+        "verifyBadge": { "type": "string", "format": "uri-template" }
+      }
+    },
+    "discovery": {
+      "type": "object",
+      "description": "Pointers to companion discovery surfaces.",
+      "properties": {
+        "machineReadable": { "type": "string", "format": "uri" },
+        "openapi": { "type": "string", "format": "uri" },
+        "openapi31": { "type": "string", "format": "uri" },
+        "aiPlugin": { "type": "string", "format": "uri" },
+        "testVectors": { "type": "string", "format": "uri" },
+        "certifier": { "type": "string", "format": "uri-template" }
+      }
+    }
+  }
+}

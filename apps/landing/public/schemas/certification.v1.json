@@ -1,0 +1,57 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ar-agents.vercel.app/schemas/certification.v1.json",
+  "title": "RFC certification report v1",
+  "description": "Output shape of the /api/certifier endpoint + recipe 26 certifySociedad() function. Captures the live RFC-002 + RFC-004 conformance score of a target URL.",
+  "type": "object",
+  "required": ["generatedAt", "target", "score", "rating", "rfcConformance", "checks"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "generatedAt": { "type": "string", "format": "date-time" },
+    "target": {
+      "type": "object",
+      "required": ["baseUrl"],
+      "properties": {
+        "baseUrl": { "type": "string", "format": "uri" },
+        "sessionId": { "type": ["string", "null"] }
+      }
+    },
+    "score": {
+      "type": "integer",
+      "minimum": 0,
+      "maximum": 100
+    },
+    "rating": {
+      "type": "string",
+      "enum": ["A", "B", "C", "D", "F", "N/A"]
+    },
+    "rfcConformance": {
+      "type": "object",
+      "required": ["rfc-002-v1", "rfc-004-draft"],
+      "properties": {
+        "rfc-002-v1": { "type": "string", "enum": ["pass", "partial", "fail", "skip"] },
+        "rfc-004-draft": { "type": "string", "enum": ["pass", "partial", "fail", "skip"] }
+      }
+    },
+    "checks": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "label", "weight", "status", "detail"],
+        "properties": {
+          "id": { "type": "string" },
+          "label": { "type": "string" },
+          "weight": { "type": "integer", "minimum": 0, "maximum": 100 },
+          "status": { "type": "string", "enum": ["pass", "fail", "skip", "warn"] },
+          "detail": { "type": "string" },
+          "source": { "type": "string", "format": "uri" },
+          "httpStatus": { "type": "integer" }
+        }
+      }
+    },
+    "notes": {
+      "type": "array",
+      "items": { "type": "string" }
+    }
+  }
+}
