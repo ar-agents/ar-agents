@@ -80,8 +80,9 @@ export default async function Image() {
           >
             A · 100/100
           </div>
-          <div style={{ fontSize: 18, color: "#666", lineHeight: 1.4 }}>
-            (self-score of the<br/>reference implementation)
+          <div style={{ display: "flex", flexDirection: "column", fontSize: 18, color: "#666", lineHeight: 1.4 }}>
+            <span>(self-score of the</span>
+            <span>reference implementation)</span>
           </div>
         </div>
         <div style={{ flex: 1 }} />
