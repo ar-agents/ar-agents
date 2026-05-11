@@ -35,6 +35,44 @@ Deploys [`apps/mp-hello`](./apps/mp-hello), a runnable agent on Vercel with
 Edge Runtime API routes, MP webhook handler, and Upstash-backed subscription
 state. Around 2 minutes from click to live.
 
+## Governance layer for AR sociedades-IA
+
+Since Argentina announced a sociedad-IA regime (Sturzenegger,
+28-abr-2026), this repo additionally hosts a complete open-source
+governance scaffolding for AI-only Argentine corporations:
+
+- **5 RFCs (001–005)** — civil liability (3-layer) / discovery / cross-
+  jurisdictional reciprocity / operational-log wire format / Ed25519
+  asymmetric extension. All CC-BY-4.0. Documents the legislation can
+  cite by reference.
+- **2 frozen test-vectors files** — 7 RFC-004 HMAC vectors + 3 RFC-005
+  Ed25519 vectors. Byte-exact deterministic signatures. Reference impl
+  passes all 10 (103 vitest tests in 6 files).
+- **Public certifier** at [`ar-agents.vercel.app/certifier`](https://ar-agents.vercel.app/certifier) —
+  paste any URL, score 0-100 against RFC-002 + RFC-004 + RFC-005 in
+  seconds. Programmatic API at `/api/certifier?url=...`. Reference impl
+  self-scores 100/100 Rating A. Cookbook recipes 26 (single-shot) +
+  27 (monitoring) + 28 (operator readiness).
+- **Live time-series** at `/api/conformance-history` — 365-entry capped
+  KV-backed history per URL, daily Vercel cron auto-population.
+- **Public well-known endpoints** — `/.well-known/agents.json` (RFC-002),
+  `/.well-known/sociedad-ia/verify-key?challenge=` (RFC-004 § 5
+  challenge-response), `/.well-known/sociedad-ia/keys` (RFC-005 § 4
+  Ed25519 public key publication).
+- **Bilingual narrative pages** — [`/legislacion`](https://ar-agents.vercel.app/legislacion)
+  (Spanish for AR legislators) + [`/en/legislation`](https://ar-agents.vercel.app/en/legislation)
+  (English for international press / comparative-law scholars).
+- **One-page regulator brief** at [`/auditor`](https://ar-agents.vercel.app/auditor) —
+  print-friendly, 7-minute read, every claim links to evidence.
+- **Public registry** at [`/registro`](https://ar-agents.vercel.app/registro) —
+  self-listed implementations with live cert-badges per entry.
+- **Glossary, outreach templates, BibTeX refs, visual timeline** —
+  see `/glossary`, `/share`, `/refs`, `/timeline`.
+
+For an outsider arriving cold: start at the [auditor's brief](https://ar-agents.vercel.app/auditor)
+or the [legislative synthesis](https://ar-agents.vercel.app/legislacion).
+Citation file: [`CITATION.cff`](./CITATION.cff).
+
 ```ts
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
 import {

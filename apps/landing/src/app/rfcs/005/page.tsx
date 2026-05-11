@@ -243,29 +243,49 @@ export default function Rfc005Page() {
         </Li>
       </ul>
 
-      <DocH2>7 · Test vectors (planned)</DocH2>
+      <DocH2>7 · Test vectors (published)</DocH2>
       <DocP>
-        RFC-005 v1 conformance vectors will be published at{" "}
-        <DocCode>/test-vectors/rfc-005-v1.json</DocCode>. Vectors will
-        include:
+        RFC-005 v1 conformance vectors are live at{" "}
+        <DocCode>
+          <a href="/test-vectors/rfc-005-v1.json" style={linkSty}>
+            /test-vectors/rfc-005-v1.json
+          </a>
+        </DocCode>
+        . The dataset includes:
       </DocP>
       <ul style={listStyle}>
         <Li>
-          A fixed Ed25519 keypair (private + public, base64url).
+          A fixed Ed25519 keypair (private + public, base64url +
+          SPKI/PKCS8 DER). The same keypair is published at{" "}
+          <DocCode>
+            <a href="/.well-known/sociedad-ia/keys" style={linkSty}>
+              /.well-known/sociedad-ia/keys
+            </a>
+          </DocCode>{" "}
+          (public key only).
         </Li>
         <Li>
-          Sample entries with their canonical-JSON form +{" "}
-          <DocCode>signature.value</DocCode> hex-exact expected output.
+          3 sample entries with their canonical-JSON form +{" "}
+          <DocCode>signature.value</DocCode> base64url-exact expected
+          output, cross-validated against Node&apos;s{" "}
+          <DocCode>crypto.sign(null, msg, privateKey)</DocCode>.
         </Li>
         <Li>
-          Cross-validation against the libsodium reference implementation
-          for byte-equality.
-        </Li>
-        <Li>
-          Compatibility vector showing v1 HMAC and v2 signature on the
-          same entry both verify correctly.
+          Mutation-detection vector showing that changing{" "}
+          <DocCode>output.pong</DocCode> from 1 to 2 produces a
+          different signature.
         </Li>
       </ul>
+      <DocP>
+        The reference implementation lives at{" "}
+        <DocCode>apps/landing/src/lib/ed25519.ts</DocCode> in{" "}
+        <a href="https://github.com/ar-agents/ar-agents" style={linkSty}>
+          github.com/ar-agents/ar-agents
+        </a>
+        ; conformance proof at{" "}
+        <DocCode>apps/landing/test/rfc-005-vectors.test.ts</DocCode>{" "}
+        (7 vitest tests, all passing).
+      </DocP>
 
       <DocH2>8 · Open questions</DocH2>
       <ul style={listStyle}>
@@ -314,35 +334,59 @@ export default function Rfc005Page() {
         </tbody>
       </table>
 
-      <DocH2>10 · Decision request</DocH2>
+      <DocH2>10 · Implementation status</DocH2>
       <DocP>
-        For RFC-005 to advance from draft to v1, the following must be
-        resolved:
+        As of 2026-05-11, the following have shipped:
       </DocP>
       <ul style={listStyle}>
         <Li>
-          Reference implementation in <DocCode>apps/landing/src/lib/audit.ts</DocCode>{" "}
-          updated to optionally compute + verify the{" "}
-          <DocCode>signature</DocCode> field. Behind an
-          <DocCode>AUDIT_ED25519_PRIVATE_KEY</DocCode> environment variable
-          so v1-only deployments keep working unchanged.
+          ✓ Reference implementation primitives in{" "}
+          <DocCode>apps/landing/src/lib/ed25519.ts</DocCode>:{" "}
+          <DocCode>signEntryAsymmetric</DocCode>,{" "}
+          <DocCode>verifyEntryAsymmetric</DocCode>,{" "}
+          <DocCode>fetchPublicKey</DocCode>. Behind{" "}
+          <DocCode>AUDIT_ED25519_PRIVATE_KEY</DocCode> env var.
         </Li>
         <Li>
-          <DocCode>/.well-known/sociedad-ia/keys</DocCode> endpoint
-          published on the reference site.
+          ✓ <DocCode>
+            <a href="/.well-known/sociedad-ia/keys" style={linkSty}>
+              /.well-known/sociedad-ia/keys
+            </a>
+          </DocCode>{" "}
+          endpoint published with one demo Ed25519 key.
         </Li>
         <Li>
-          Test vectors published at{" "}
-          <DocCode>/test-vectors/rfc-005-v1.json</DocCode> with
-          hex-exact expected signatures cross-validated against
-          libsodium.
+          ✓ Test vectors published at{" "}
+          <DocCode>
+            <a href="/test-vectors/rfc-005-v1.json" style={linkSty}>
+              /test-vectors/rfc-005-v1.json
+            </a>
+          </DocCode>{" "}
+          with byte-exact expected signatures cross-validated against
+          Node&apos;s native Ed25519. 7 vitest tests passing.
         </Li>
         <Li>
-          /certifier extended to score the asymmetric path: pass
-          if v2 entries verify; warn if mixed; warn if neither.
+          ✓ <DocCode>/certifier</DocCode> extended with check #7a
+          (&quot;RFC-005 keys endpoint advertises Ed25519 public
+          keys&quot;). Weight 5. Pass if &gt;=1 key advertised; skip if
+          endpoint 404s (v1 HMAC-only is OK).
         </Li>
         <Li>
-          Public review period of 30 days via GitHub Discussions.
+          ◐ Integration into the live <DocCode>appendAudit</DocCode>{" "}
+          flow (so production entries carry both <DocCode>hmac</DocCode>{" "}
+          + <DocCode>signature</DocCode>) is deferred to the operator —
+          set <DocCode>AUDIT_ED25519_PRIVATE_KEY</DocCode> in Vercel
+          env to opt in.
+        </Li>
+        <Li>
+          ◐ Public review period via{" "}
+          <a
+            href="https://github.com/ar-agents/ar-agents/discussions"
+            style={linkSty}
+          >
+            GitHub Discussions
+          </a>{" "}
+          — open, no fixed end date for v1 finalization.
         </Li>
       </ul>
       <DocP>
