@@ -396,44 +396,73 @@ async function runChecks(
   }
 
   // ── Check 7a: RFC-005 keys endpoint (asymmetric upgrade path) ─────────────
-  const keysUrl = `${base}/.well-known/sociedad-ia/keys`;
-  try {
-    const r = await fetchWithTimeout(keysUrl);
-    if (r.ok) {
-      const data = (await r.json()) as Record<string, unknown>;
-      const keys = data.keys as unknown[] | undefined;
-      const hasKeys = Array.isArray(keys) && keys.length > 0;
-      checks.push({
-        id: "rfc-005-keys-endpoint",
-        label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
-        weight: 5,
-        status: hasKeys ? "pass" : "warn",
-        detail: hasKeys
-          ? `${keys.length} key(s) advertised (asymmetric upgrade path ready).`
-          : "Endpoint responds but no keys advertised.",
-        source: keysUrl,
-        httpStatus: r.status,
-      });
-    } else {
-      checks.push({
-        id: "rfc-005-keys-endpoint",
-        label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
-        weight: 5,
-        status: "skip",
-        detail: `Not advertised (HTTP ${r.status}). v1 HMAC-only is OK; v2 asymmetric is the migration path per RFC-005.`,
-        source: keysUrl,
-        httpStatus: r.status,
-      });
+  // Try /keys (route handler, RFC-005 § 4 canonical path) THEN /keys.json
+  // (static-file fallback for sites serving via Vercel public/).
+  const keysCanonical = `${base}/.well-known/sociedad-ia/keys`;
+  const keysStatic = `${keysCanonical}.json`;
+  let keysCheckDone = false;
+  for (const url of [keysCanonical, keysStatic]) {
+    if (keysCheckDone) break;
+    try {
+      const r = await fetchWithTimeout(url);
+      if (!r.ok) {
+        if (url === keysStatic) {
+          // Both tried, both failed — emit a single skip.
+          checks.push({
+            id: "rfc-005-keys-endpoint",
+            label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+            weight: 5,
+            status: "skip",
+            detail: `Not advertised (HTTP ${r.status} on both /keys and /keys.json). v1 HMAC-only is OK; v2 asymmetric is the migration path per RFC-005.`,
+            source: keysCanonical,
+            httpStatus: r.status,
+          });
+          keysCheckDone = true;
+        }
+        continue;
+      }
+      try {
+        const data = (await r.json()) as Record<string, unknown>;
+        const keys = data.keys as unknown[] | undefined;
+        const hasKeys = Array.isArray(keys) && keys.length > 0;
+        checks.push({
+          id: "rfc-005-keys-endpoint",
+          label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+          weight: 5,
+          status: hasKeys ? "pass" : "warn",
+          detail: hasKeys
+            ? `${keys.length} key(s) advertised (asymmetric upgrade path ready).`
+            : "Endpoint responds but no keys advertised.",
+          source: url,
+          httpStatus: r.status,
+        });
+        keysCheckDone = true;
+      } catch {
+        // Body wasn't JSON; treat as warn.
+        checks.push({
+          id: "rfc-005-keys-endpoint",
+          label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+          weight: 5,
+          status: "warn",
+          detail: "Endpoint responds but body is not valid JSON.",
+          source: url,
+          httpStatus: r.status,
+        });
+        keysCheckDone = true;
+      }
+    } catch (e) {
+      if (url === keysStatic) {
+        checks.push({
+          id: "rfc-005-keys-endpoint",
+          label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
+          weight: 5,
+          status: "skip",
+          detail: `Not advertised: ${(e as Error).message}.`,
+          source: keysCanonical,
+        });
+        keysCheckDone = true;
+      }
     }
-  } catch (e) {
-    checks.push({
-      id: "rfc-005-keys-endpoint",
-      label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
-      weight: 5,
-      status: "skip",
-      detail: `Not advertised: ${(e as Error).message}.`,
-      source: keysUrl,
-    });
   }
 
   // ── Check 7: Discovery endpoint (RFC-002 alt path) ──────────────────────

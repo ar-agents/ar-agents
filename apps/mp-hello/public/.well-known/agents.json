@@ -1,0 +1,33 @@
+{
+  "$schema": "https://ar-agents.vercel.app/schemas/agents.v1.json",
+  "name": "ar-agents-mp-hello",
+  "description": "Demo: Mercado Pago Subscriptions integration via @ar-agents/mercadopago. Wired to a real MP sandbox + production app 178743372667921. Demonstrates the full MercadoPago Agent Toolkit end-to-end. Not a productive sociedad-IA.",
+  "homepage": "https://ar-agents-mp-hello.vercel.app",
+  "repository": "https://github.com/ar-agents/ar-agents/tree/main/apps/mp-hello",
+  "license": "MIT",
+  "maintainer": {
+    "name": "Nazareno Clemente",
+    "email": "naza@helloastro.co"
+  },
+  "issuer": {
+    "jurisdiction": "AR",
+    "type": "sociedad-ia-demo",
+    "operatorName": "Nazareno Clemente",
+    "operatorCuit": "20-41758101-5",
+    "supervisionRegime": "rfc-001-v1",
+    "denominacion": "ar-agents-mp-hello demo (not a productive sociedad-IA)"
+  },
+  "rfcConformance": [
+    "rfc-001-v1",
+    "rfc-002-v1",
+    "rfc-004-draft"
+  ],
+  "auditEndpoints": {
+    "auditRead": "https://ar-agents-mp-hello.vercel.app/api/play/audit/{sessionId}",
+    "auditVerify": "https://ar-agents-mp-hello.vercel.app/api/play/audit/{sessionId}?verify=1"
+  },
+  "discovery": {
+    "canonicalSpec": "https://ar-agents.vercel.app/rfcs/002",
+    "testVectors": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json"
+  }
+}
