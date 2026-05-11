@@ -174,6 +174,76 @@ export default function SociedadesIAPage() {
         .
       </DocP>
 
+      <DocH2>Documentos técnicos para legisladores</DocH2>
+      <DocP>
+        Si estás escribiendo la ley — o asesorando a quien la escribe —
+        los siguientes documentos están listos para citar por referencia
+        en lugar de reescribir conceptos de cero:
+      </DocP>
+      <ul style={{ paddingLeft: 24, marginBottom: 16, fontSize: 14 }}>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/legislacion" style={linkSty}>
+            /legislación
+          </a>{" "}
+          — Síntesis de los 4 RFCs en una sola página, con texto sugerido
+          para el articulado.
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/rfcs/001" style={linkSty}>RFC-001</a> — Marco de
+          responsabilidad civil de 3 capas (operador / sociedad-IA /
+          proveedor de modelo).
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/rfcs/002" style={linkSty}>RFC-002</a> —
+          Descubrimiento automático vía <DocCode>/.well-known/agents.json</DocCode>.
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/rfcs/003" style={linkSty}>RFC-003</a> — Envelope
+          portable para reciprocidad cross-jurisdiccional (Wyoming DAO,
+          MIDAO, Estonia OÜ).
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/rfcs/004" style={linkSty}>RFC-004</a> —
+          Especificación normativa del log operativo. <strong>Este es el
+          documento clave para enforcement.</strong>
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/test-vectors" style={linkSty}>/test-vectors</a> — 7
+          vectores de conformidad RFC-004 con valores hex deterministas.
+          Cualquier biblioteca corre los vectores; pasa o no pasa.
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/auditor" style={linkSty}>/auditor</a> — Documento
+          español de 1 página para regulador / periodista / inspector
+          que llega cold al sitio.
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/registro" style={linkSty}>/registro</a> — Registro
+          público de implementaciones (1 reference impl + 4 demos hoy).
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/certifier" style={linkSty}>/certifier</a> — Pegá
+          cualquier URL, obtené score 0-100 de conformidad RFC-002 +
+          RFC-004 en segundos. Sin install.
+        </li>
+        <li style={{ marginBottom: 6 }}>
+          <a href="/en/legislation" style={linkSty}>/en/legislation</a>{" "}
+          — Versión inglesa de la síntesis para prensa internacional +
+          juristas comparados.
+        </li>
+      </ul>
+      <DocP>
+        Todo MIT (código) + CC-BY-4.0 (specs). Sin honorarios.
+        Conversación pública en{" "}
+        <a
+          href="https://github.com/ar-agents/ar-agents/discussions"
+          style={linkSty}
+        >
+          github.com/ar-agents/ar-agents/discussions
+        </a>
+        .
+      </DocP>
+
       <DocH2>Caveats</DocH2>
       <DocP>
         El proyecto Sturzenegger no tiene texto publicado todavía — todo
@@ -192,3 +262,8 @@ export default function SociedadesIAPage() {
     </DocShell>
   );
 }
+
+const linkSty: React.CSSProperties = {
+  color: "var(--accent)",
+  textDecoration: "underline",
+};

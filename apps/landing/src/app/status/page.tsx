@@ -216,6 +216,45 @@ export default function StatusPage() {
 
         <Summary ok={okCount} warn={warnCount} off={offCount} />
 
+        {/* Live self-certification badge */}
+        <div
+          style={{
+            marginTop: 24,
+            padding: "14px 16px",
+            background: "#fafafa",
+            borderRadius: 8,
+            boxShadow: SHADOW_BORDER,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            gap: 16,
+            flexWrap: "wrap",
+            fontSize: 13,
+            color: "#4d4d4d",
+          }}
+        >
+          <div>
+            <strong>Live RFC-002 + RFC-004 self-cert.</strong> Re-fetched
+            from <a href="/api/certifier?url=https://ar-agents.vercel.app" style={{ color: "#0a72ef", textDecoration: "underline" }}>
+              /api/certifier
+            </a>
+            {" "}every page load. Click to run live.
+          </div>
+          <a
+            href="/certifier"
+            style={{ flexShrink: 0 }}
+            aria-label="Live RFC conformance badge"
+          >
+            <img
+              src="/api/cert-badge?url=https://ar-agents.vercel.app"
+              alt="RFC-002+004 conformance"
+              width="180"
+              height="22"
+              style={{ display: "block" }}
+            />
+          </a>
+        </div>
+
         <div style={{ marginTop: 32, display: "grid", gap: 24 }}>
           {groups.map((group) => (
             <Group
