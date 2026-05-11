@@ -21,8 +21,8 @@ The toolkit covers 16 of the 17 operating pieces an Argentine business needs (id
 - [RFC-002](https://ar-agents.vercel.app/rfcs/002): agent-discovery-by-default. /.well-known/agents.json convention.
 - [RFC-003](https://ar-agents.vercel.app/rfcs/003): cross-jurisdictional audit-log reciprocity envelope.
 - [RFC-004](https://ar-agents.vercel.app/rfcs/004): canonical operational-log wire format. The document legislation can cite.
-- [RFC-005](https://ar-agents.vercel.app/rfcs/005): Ed25519 asymmetric upgrade path. Working implementation in apps/landing/src/lib/ed25519.ts with byte-exact frozen test vectors.
-- [Test vectors](https://ar-agents.vercel.app/test-vectors): RFC-004 v1 (7 vectors) + RFC-005 v1 (3 vectors). Reference impl passes all 10 (103 vitest tests in 6 files).
+- [RFC-005](https://ar-agents.vercel.app/rfcs/005): Ed25519 asymmetric upgrade path. **SHIPPED + VERIFIED LIVE** — production `/api/play` entries carry both `hmac` and `signature` fields. Live confirmation: 3/3 HMAC + 3/3 Ed25519 verified.
+- [Test vectors](https://ar-agents.vercel.app/test-vectors): RFC-004 v1 (7 vectors) + RFC-005 v1 (3 vectors). Reference impl passes all 10 (107 vitest tests in 6 files, including 4 dual-sign regression tests).
 - [Auditor's brief](https://ar-agents.vercel.app/auditor): 1-page Spanish-first regulator-facing summary. Print-friendly.
 - [Legislative synthesis](https://ar-agents.vercel.app/legislacion): Spanish synthesis of all 5 RFCs with suggested cite-by-reference legislative text. English mirror at /en/legislation.
 - [Registry of known implementations](https://ar-agents.vercel.app/registro): public list of sociedades-IA implementing the RFCs. Self-listed via PR. Live cert-badges per entry.
