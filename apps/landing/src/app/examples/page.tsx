@@ -294,6 +294,17 @@ const RECIPES: Recipe[] = [
     highlight:
       "Anyone can verify any sociedad-IA's claims from one HTTP call. No install, no setup. Lives behind /certifier (web) + /api/certifier (programmatic).",
   },
+  {
+    id: "27-live-conformance-monitoring",
+    num: 27,
+    title: "Live conformance monitoring · 90-day time-series + threshold alerts",
+    tier: "production",
+    packages: ["incorporate"],
+    summary:
+      "Pure monitor loop that POSTs to /api/conformance-history every N minutes to append a new cert-score for a URL, then compares the latest against a sliding-window baseline (default: median of last 24 points). If the new score drops > threshold (default 10%), fires an alert via Slack/webhook. KV-backed 365-entry capped time-series with 90-day TTL. Idempotent. Drop into Vercel cron, GitHub Actions schedule, or any scheduler. Exits non-zero on alert for CI integration.",
+    highlight:
+      "Conformance isn't a snapshot — it's a horizon. Recipe 27 turns the certifier into a continuous monitor with drift detection + alerting. Companion to recipe 25 (compliance report) + the /audit-explorer page.",
+  },
 ];
 
 const TIER_LABEL: Record<Tier, string> = {
