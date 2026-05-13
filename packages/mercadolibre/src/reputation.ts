@@ -7,6 +7,7 @@
 // thermometer drops.
 
 import type { MeliClient } from "./client";
+import { MeliAuthError, MeliValidationError } from "./errors";
 import {
   ReputationAlert,
   SellerReputation,
@@ -194,12 +195,23 @@ export interface MonitorReputationOptions {
   thresholds?: ReputationThresholds;
   /** AbortSignal to stop the monitor. */
   signal?: AbortSignal;
+  /** Callback fired when a transient (recoverable) error is swallowed. Use
+   *  this to wire your telemetry/Sentry without breaking the polling loop. */
+  onTransientError?: (error: unknown) => void;
 }
 
 /**
- * Yields `{ snapshot, alerts }` on every poll. Errors are swallowed and
- * yielded as an empty alert set so transient API failures don't stop the
- * loop. Hosts can compose their own retry/backoff outside.
+ * Yields `{ snapshot, alerts }` on every poll.
+ *
+ * Error handling:
+ *   - **`MeliAuthError`** (revoked seller, banned app, OAuth refresh dead) →
+ *     RE-THROWN. The connection is permanently broken; the caller needs to
+ *     stop polling and surface this to the human.
+ *   - **`MeliValidationError`** (programmer error — schema drift) →
+ *     RE-THROWN. Bugs should fail loud, not silently.
+ *   - **`MeliApiError`** with 5xx, **`MeliNetworkError`**, anything else →
+ *     swallowed and reported via `onTransientError`. The loop keeps polling
+ *     because transient failures are normal.
  */
 export async function* monitorReputation(
   client: MeliClient,
@@ -217,8 +229,15 @@ export async function* monitorReputation(
     try {
       snapshot = await getSellerReputation(client, sellerId);
       alerts = evaluateReputationAlerts(snapshot, options.thresholds);
-    } catch {
-      // Swallow — caller can detect via empty alerts + continue.
+    } catch (err) {
+      // Permanent errors must surface — never silently retry forever.
+      if (
+        err instanceof MeliAuthError ||
+        err instanceof MeliValidationError
+      ) {
+        throw err;
+      }
+      options.onTransientError?.(err);
     }
     yield { snapshot, alerts };
     if (options.signal?.aborted) return;

@@ -18,7 +18,7 @@
 // - Output capped at 800 tokens, 6 reasoning steps, 30s wall clock.
 // - System prompt explicitly refuses jailbreaks, role-play, and topics
 //   unrelated to Mercado Pago payments.
-// - Sandbox tools never hit real APIs — there's no SSRF surface.
+// - Sandbox tools never hit real APIs, there's no SSRF surface.
 
 import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
 import { z } from "zod";

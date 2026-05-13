@@ -2,16 +2,16 @@
  * Shared JSON-LD components. Each emits a `<script type="application/ld+json">`
  * tag with schema.org-typed data. Used on top-traffic pages so search engines
  * + AI crawlers (Google, Bing, ChatGPT, Perplexity, Claude, etc.) get rich
- * structured data — improves snippet quality, rich results, and the
+ * structured data, improves snippet quality, rich results, and the
  * accuracy of AI summaries that link to the page.
  *
  * Pattern: drop the component just before the closing `</main>` (or anywhere
- * in the React tree — Next collapses to HTML <head>/body irrespective).
+ * in the React tree, Next collapses to HTML <head>/body irrespective).
  *
- * No client JS — these render server-side as static script tags.
+ * No client JS, these render server-side as static script tags.
  */
 
-const SITE_URL = "https://ar-agents.vercel.app";
+const SITE_URL = "https://ar-agents.ar";
 const REPO_URL = "https://github.com/ar-agents/ar-agents";
 
 export function JsonLd({ data }: { data: object }) {
@@ -27,7 +27,7 @@ export function JsonLd({ data }: { data: object }) {
 // Page-specific schemas
 // ─────────────────────────────────────────────────────────────────────────────
 
-/** Home page — Organization + WebSite + SoftwareApplication. */
+/** Home page, Organization + WebSite + SoftwareApplication. */
 export function HomeJsonLd() {
   return (
     <>
@@ -39,12 +39,12 @@ export function HomeJsonLd() {
           url: SITE_URL,
           logo: `${SITE_URL}/icon.png`,
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades-IA — AI-only companies under Argentina's proposed regime.",
+            "Open-source toolkit and reference implementation for Argentine sociedades-IA, AI-only companies under Argentina's proposed regime.",
           sameAs: [REPO_URL, "https://www.npmjs.com/org/ar-agents"],
           founder: {
             "@type": "Person",
-            name: "Nazareno Clemente",
-            email: "naza@helloastro.co",
+            name: "Naza",
+            email: "clementenaza@gmail.com",
           },
           areaServed: {
             "@type": "Country",
@@ -90,7 +90,7 @@ export function HomeJsonLd() {
           aggregateRating: undefined,
           author: {
             "@type": "Person",
-            name: "Nazareno Clemente",
+            name: "Naza",
           },
         }}
       />
@@ -98,7 +98,7 @@ export function HomeJsonLd() {
   );
 }
 
-/** /sdk — SoftwareSourceCode for the npm package. */
+/** /sdk, SoftwareSourceCode for the npm package. */
 export function SdkJsonLd() {
   return (
     <>
@@ -117,7 +117,7 @@ export function SdkJsonLd() {
           downloadUrl: "https://www.npmjs.com/package/@ar-agents/incorporate",
           author: {
             "@type": "Person",
-            name: "Nazareno Clemente",
+            name: "Naza",
           },
         }}
       />
@@ -125,7 +125,7 @@ export function SdkJsonLd() {
   );
 }
 
-/** /rfcs/001 — TechArticle for the governance RFC. */
+/** /rfcs/001, TechArticle for the governance RFC. */
 export function RfcJsonLd({
   id,
   title,
@@ -148,8 +148,8 @@ export function RfcJsonLd({
         datePublished,
         author: {
           "@type": "Person",
-          name: "Nazareno Clemente",
-          email: "naza@helloastro.co",
+          name: "Naza",
+          email: "clementenaza@gmail.com",
         },
         publisher: {
           "@type": "Organization",
@@ -174,7 +174,7 @@ export function RfcJsonLd({
   );
 }
 
-/** /incorporar — HowTo for the wizard. */
+/** /incorporar, HowTo for the wizard. */
 export function IncorporarJsonLd() {
   return (
     <JsonLd
@@ -234,7 +234,7 @@ export function IncorporarJsonLd() {
   );
 }
 
-/** /sociedades-ia — TechArticle on the regime alignment. */
+/** /sociedades-ia, TechArticle on the regime alignment. */
 export function SociedadesIaJsonLd() {
   return (
     <JsonLd
@@ -248,7 +248,7 @@ export function SociedadesIaJsonLd() {
         url: `${SITE_URL}/sociedades-ia`,
         author: {
           "@type": "Person",
-          name: "Nazareno Clemente",
+          name: "Naza",
         },
         publisher: {
           "@type": "Organization",
@@ -274,7 +274,7 @@ export function SociedadesIaJsonLd() {
   );
 }
 
-/** /security — TechArticle on the threat model. */
+/** /security, TechArticle on the threat model. */
 export function SecurityJsonLd() {
   return (
     <JsonLd
@@ -285,7 +285,7 @@ export function SecurityJsonLd() {
         description:
           "14 explicit threats, 14 explicit mitigations. STRIDE-inspired threat model for an agent toolkit that moves money in Argentina.",
         url: `${SITE_URL}/security`,
-        author: { "@type": "Person", name: "Nazareno Clemente" },
+        author: { "@type": "Person", name: "Naza" },
         publisher: {
           "@type": "Organization",
           name: "ar-agents",
@@ -302,7 +302,7 @@ export function SecurityJsonLd() {
   );
 }
 
-/** /examples — generic ItemList of cookbook recipes. */
+/** /examples, generic ItemList of cookbook recipes. */
 export function ExamplesJsonLd({
   recipes,
 }: {

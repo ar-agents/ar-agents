@@ -6,15 +6,15 @@ export const metadata: Metadata = {
   title: "/embed · audit-log verification badges + iframes for your site",
   description:
     "Copy-paste snippets to embed an ar-agents verification badge or live audit-log iframe in your README, landing, or status page. Updates live based on the audit log's verification state. Free, no auth.",
-  alternates: { canonical: "https://ar-agents.vercel.app/embed" },
+  alternates: { canonical: "https://ar-agents.ar/embed" },
 };
 
 export default function EmbedPage() {
   return (
     <DocShell
-      eyebrow="/arg · embed · viral surface"
+      eyebrow="embed · viral surface"
       title="Embed the verification proof in your site."
-      subtitle="One copy-paste, your sociedad-IA's audit-log verification status renders inline anywhere. README badges, status pages, vendor profiles, marketing landings — all live, all server-recomputed every 60s, all auditable."
+      subtitle="One copy-paste, your sociedad-IA's audit-log verification status renders inline anywhere. README badges, status pages, vendor profiles, marketing landings, all live, all server-recomputed every 60s, all auditable."
     >
       <DocBlock>
         <DocP>
@@ -36,7 +36,7 @@ export default function EmbedPage() {
       <EmbedClient />
 
       <DocH2>Standard markdown badge</DocH2>
-      <CodeBlock>{`![ar-agents audit](https://ar-agents.vercel.app/api/badge/{sessionId})`}</CodeBlock>
+      <CodeBlock>{`![ar-agents audit](https://ar-agents.ar/api/badge/{sessionId})`}</CodeBlock>
       <DocP>
         Renders inline in any markdown file: GitHub README, GitLab
         snippet, npm package page, BitBucket. The badge color updates
@@ -46,7 +46,7 @@ export default function EmbedPage() {
 
       <DocH2>HTML img tag</DocH2>
       <CodeBlock>{`<img
-  src="https://ar-agents.vercel.app/api/badge/{sessionId}"
+  src="https://ar-agents.ar/api/badge/{sessionId}"
   alt="ar-agents audit"
   height="20"
 />`}</CodeBlock>
@@ -58,9 +58,9 @@ export default function EmbedPage() {
       </DocP>
 
       <DocH2>Linked badge (click to dashboard)</DocH2>
-      <CodeBlock>{`<a href="https://ar-agents.vercel.app/dashboard/{sessionId}">
+      <CodeBlock>{`<a href="https://ar-agents.ar/dashboard/{sessionId}">
   <img
-    src="https://ar-agents.vercel.app/api/badge/{sessionId}"
+    src="https://ar-agents.ar/api/badge/{sessionId}"
     alt="ar-agents audit"
     height="20"
   />
@@ -68,13 +68,13 @@ export default function EmbedPage() {
       <DocP>
         Clicking the badge opens the full forensic dashboard with the
         timeline + tamper-test + share UI. Recommended pattern for
-        marketing landings — it gives the visitor a path to dig
+        marketing landings, it gives the visitor a path to dig
         deeper without committing to it.
       </DocP>
 
       <DocH2>Live audit-log iframe</DocH2>
       <CodeBlock>{`<iframe
-  src="https://ar-agents.vercel.app/dashboard/{sessionId}"
+  src="https://ar-agents.ar/dashboard/{sessionId}"
   width="100%"
   height="640"
   loading="lazy"
@@ -89,11 +89,11 @@ export default function EmbedPage() {
         leaving their tab. The dashboard sets{" "}
         <DocCode>X-Frame-Options: SAMEORIGIN</DocCode>; iframe-ing on a
         different origin requires the&apos; site to set CSP{" "}
-        <DocCode>frame-src https://ar-agents.vercel.app</DocCode>.
+        <DocCode>frame-src https://ar-agents.ar</DocCode>.
       </DocP>
 
       <DocH2>Verification report (programmatic)</DocH2>
-      <CodeBlock>{`curl https://ar-agents.vercel.app/api/play/audit/{sessionId}?verify=1
+      <CodeBlock>{`curl https://ar-agents.ar/api/play/audit/{sessionId}?verify=1
 # returns:
 # {
 #   "sessionId": "...",
@@ -118,14 +118,14 @@ export default function EmbedPage() {
       </DocP>
 
       <DocH2>CSV export (for the contador)</DocH2>
-      <CodeBlock>{`curl https://ar-agents.vercel.app/api/play/audit/{sessionId}/csv > audit-2026-05.csv
+      <CodeBlock>{`curl https://ar-agents.ar/api/play/audit/{sessionId}/csv > audit-2026-05.csv
 # Pivot in Excel / Sheets / Numbers. One row per entry,
 # columns: ts, tool, governance, durationMs, hmac, errored,
 # input (JSON-stringified), output (JSON-stringified).`}</CodeBlock>
       <DocP>
         Practical compliance: el contador can ingest the export, run
         any pivot, and reconcile against the bookkeeping. CSV format
-        is RFC 4180 compliant — escapes embedded commas / quotes /
+        is RFC 4180 compliant, escapes embedded commas / quotes /
         newlines per spec. UTF-8 BOM included so Excel renders
         accents correctly without manual encoding setup.
       </DocP>
@@ -142,24 +142,24 @@ export default function EmbedPage() {
       <ul style={listStyle}>
         <Li>
           <strong style={{ color: "#0a72ef" }}>verified · N/M</strong>{" "}
-          (blue) — every signature recomputes correctly.
+          (blue), every signature recomputes correctly.
         </Li>
         <Li>
           <strong style={{ color: "#ff5b4f" }}>tampered · N</strong>{" "}
-          (red) — at least one signature mismatches the canonical-JSON
+          (red), at least one signature mismatches the canonical-JSON
           of its body.
         </Li>
         <Li>
-          <strong style={{ color: "#999" }}>no entries</strong> (gray) —
+          <strong style={{ color: "#999" }}>no entries</strong> (gray),
           the session id is valid but no tool calls have been logged.
         </Li>
         <Li>
-          <strong style={{ color: "#666" }}>no-hmac</strong> (gray) —{" "}
+          <strong style={{ color: "#666" }}>no-hmac</strong> (gray), {" "}
           <DocCode>AUDIT_HMAC_SECRET</DocCode> isn&apos;t wired in the
           deploy.
         </Li>
         <Li>
-          <strong style={{ color: "#999" }}>invalid id</strong> (gray) —
+          <strong style={{ color: "#999" }}>invalid id</strong> (gray),
           session id failed the regex validation.
         </Li>
       </ul>
@@ -182,7 +182,7 @@ export default function EmbedPage() {
         it doesn&apos;t require auth.
       </DocP>
       <DocP>
-        Don&apos;t log secrets / PII in the entry input/output —{" "}
+        Don&apos;t log secrets / PII in the entry input/output, {" "}
         whatever lands in <DocCode>entry.input</DocCode> is queryable
         forever (or until KV TTL). The system prompt of the live agent
         explicitly refuses to log credentials; agents you build on top

@@ -1,7 +1,7 @@
 "use client";
 
-import { usePathname } from "next/navigation";
-import { useCallback, useEffect, useState } from "react";
+import { useRouter, usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import { useLang, type Lang } from "./i18n";
 
 type Theme = "dark" | "light";
@@ -150,36 +150,95 @@ function ThemeSwitch() {
   );
 }
 
+/**
+ * Map between the canonical URL (Spanish default) and its /en/* mirror.
+ * Add entries here as bilingual page pairs are shipped. When the user
+ * toggles, we navigate to the equivalent path so SEO sees one canonical
+ * URL per language AND the toggle stays effectively-instant via Next's
+ * client-side router + prefetch.
+ *
+ * Pages NOT listed here fall back to a state context flip (no
+ * navigation), the existing /home behavior. That handles the case where
+ * a page has inline bilingual copy via `useLang()`.
+ */
+const ES_TO_EN: Record<string, string> = {
+  // Only list pages whose /en/* mirror physically exists. Append as
+  // new bilingual page pairs ship; keep alphabetical.
+  "/al-ministro": "/en/to-the-minister",
+  "/auditor": "/en/auditor",
+  "/cloud": "/en/cloud",
+  "/co-firmar": "/en/co-sign",
+  "/economia-del-regimen": "/en/regime-economics",
+  "/gobierno": "/en/government",
+  "/jurisdicciones": "/en/jurisdictions",
+  "/legislacion": "/en/legislation",
+  "/manifiesto": "/en/manifesto",
+  "/registro": "/en/registry",
+  "/sociedades-ia": "/en/ai-corporations",
+  "/vs-on-chain": "/en/vs-on-chain",
+};
+
+const EN_TO_ES: Record<string, string> = Object.fromEntries(
+  Object.entries(ES_TO_EN).map(([es, en]) => [en, es]),
+);
+
+function pathForLang(currentPath: string, targetLang: Lang): string | null {
+  // Normalize trailing slashes (except for the root).
+  const normalized =
+    currentPath !== "/" && currentPath.endsWith("/")
+      ? currentPath.slice(0, -1)
+      : currentPath;
+
+  if (targetLang === "en") {
+    // Already on /en/* path? No navigation needed.
+    if (EN_TO_ES[normalized]) return null;
+    return ES_TO_EN[normalized] ?? null;
+  }
+  // targetLang === "es"
+  if (ES_TO_EN[normalized] !== undefined && !EN_TO_ES[normalized]) return null;
+  return EN_TO_ES[normalized] ?? null;
+}
+
 function LangSwitch() {
   const { lang, setLang } = useLang();
+  const router = useRouter();
+  const pathname = usePathname() ?? "/";
+
+  const handleChange = (next: Lang) => {
+    if (next === lang) return;
+    setLang(next);
+    const target = pathForLang(pathname, next);
+    if (target && target !== pathname) {
+      router.push(target);
+    }
+    // No target means: the current page handles bilingual inline (via
+    // useLang()) and just re-renders. No navigation.
+  };
+
   return (
     <Segmented<Lang>
       ariaLabel="Language"
       value={lang}
-      onChange={setLang}
+      onChange={handleChange}
       options={[
-        { value: "en", label: "EN", ariaLabel: "English" },
         { value: "es", label: "ES", ariaLabel: "Español" },
+        { value: "en", label: "EN", ariaLabel: "English" },
       ]}
     />
   );
 }
 
+/**
+ * Inline toggles for use inside the top nav. No fixed positioning,
+ * the caller decides layout.
+ */
 export function Toggles() {
-  const pathname = usePathname();
-  // /demo route is meant for video recording — hide both toggles.
-  if (pathname === "/demo") return null;
   return (
     <div
       style={{
-        position: "fixed",
-        top: 16,
-        right: 16,
-        zIndex: 50,
-        display: "flex",
-        flexDirection: "column",
+        display: "inline-flex",
         gap: 8,
-        alignItems: "flex-end",
+        alignItems: "center",
       }}
     >
       <ThemeSwitch />

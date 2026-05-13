@@ -11,7 +11,7 @@
  * key is published at /.well-known/sociedad-ia/keys for offline
  * verification.
  *
- * Not yet wired into appendAudit — RFC-005 § 6 says migration is
+ * Not yet wired into appendAudit, RFC-005 § 6 says migration is
  * additive. This file ships the sign + verify primitives; integration
  * into the live audit-log flow is a subsequent step (controlled by an
  * env-var presence check).
@@ -125,7 +125,7 @@ export interface Ed25519Signature {
 /**
  * Sign an entry asymmetrically using the operator's Ed25519 private key.
  * Returns null if no key is configured. Strips both `hmac` and
- * `signature` from the entry before signing — symmetric with verify.
+ * `signature` from the entry before signing, symmetric with verify.
  *
  * @param entry  the entry to sign (will be canonical-JSON'd internally)
  * @param keyId  the keyId the verifier will use to look up the public

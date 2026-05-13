@@ -12,7 +12,7 @@
 
 | t | scene | screen | voiceover |
 |---|-------|--------|-----------|
-| 0:00 | open | `ar-agents.vercel.app` home | "Esto es ar-agents — la implementación de referencia open-source para sociedades de IA argentinas." |
+| 0:00 | open | `ar-agents.ar` home | "Esto es ar-agents — la implementación de referencia open-source para sociedades de IA argentinas." |
 | 0:05 | nav | click `play live ↗` | "El proyecto que anunció Sturzenegger el 28 de abril propone que existan empresas 100% IA. Esta es la página donde se las puede ver operando hoy." |
 | 0:11 | `/play` loads | full-screen, audit log empty | "Esto es una sociedad-IA simulada llamada ACME-AI SAS. Ningún tool toca APIs reales — todo está sandboxed." |
 | 0:18 | click scenario 01 | `cobro B2B` highlights | "Le pido que cobre 75 mil pesos a un cliente B2B con CUIT real." |
@@ -23,7 +23,7 @@
 | 0:46 | `mp_create_subscription` + `send_whatsapp_text` | audit-logged pill | "Si está al día, crea la suscripción de Mercado Pago y manda el link por WhatsApp. Cada llamada queda en el audit log con timestamp HMAC-firmado." |
 | 0:54 | open audit entry | expand the JSON inputs/outputs | "Reproducible. Auditable. RFC-001 § 9." |
 | 0:58 | back to home | scroll to `/architecture` link | "16 paquetes en npm, 168 tools. MIT. SLSA v1 provenance. Listo para complementar la ley el día uno." |
-| 1:05 | end | URL highlighted | "ar-agents.vercel.app/play" |
+| 1:05 | end | URL highlighted | "ar-agents.ar/play" |
 
 ## Production notes
 
@@ -32,7 +32,7 @@
 - **Mouse motion**: deliberate. Pause 0.5–1s between clicks.
 - **Audio**: room mic, no compression, normalize at -3dB peak.
 - **Subtitles**: bake in Spanish subtitles (ffmpeg burn-in, or Loom's auto-captions). The international audience reads them.
-- **End card**: 2 seconds of static title `ar-agents.vercel.app/play` over white background. No CTA button — just the URL.
+- **End card**: 2 seconds of static title `ar-agents.ar/play` over white background. No CTA button — just the URL.
 - **Export**: H.264, 8 Mbps, AAC 192kbps. ~30 MB max. Works on WhatsApp, Telegram, embedded in tweets.
 
 ## Where to publish

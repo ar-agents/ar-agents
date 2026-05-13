@@ -105,10 +105,10 @@ export async function replayMissedFeeds(
     app_id: options.appId,
     topic: String(options.topic),
   };
-  if (options.dateFrom) query["date_from"] = options.dateFrom;
-  if (options.dateTo) query["date_to"] = options.dateTo;
+  if (options.dateFrom !== undefined) query["date_from"] = options.dateFrom;
+  if (options.dateTo !== undefined) query["date_to"] = options.dateTo;
   if (options.offset !== undefined) query["offset"] = options.offset;
-  if (options.limit) query["limit"] = options.limit;
+  if (options.limit !== undefined) query["limit"] = options.limit;
   return client.fetch<MissedFeed[]>({
     method: "GET",
     path: `/myfeeds`,
@@ -131,6 +131,11 @@ export async function* iterateAllMissedFeeds(
   topics: ReadonlyArray<MeliWebhookTopic | string>,
   dateFrom?: string,
 ): AsyncGenerator<MissedFeed, void, void> {
+  // MELI's `/myfeeds` is a *live* list — events get appended as the system
+  // produces them. Plain offset pagination on a growing collection causes
+  // duplicate yields when an event is added between pages. Dedupe by
+  // (topic, resource, sent) — the natural identity of a missed delivery.
+  const seen = new Set<string>();
   for (const topic of topics) {
     let offset = 0;
     while (true) {
@@ -138,8 +143,17 @@ export async function* iterateAllMissedFeeds(
       if (dateFrom !== undefined) opts.dateFrom = dateFrom;
       const page = await replayMissedFeeds(client, opts);
       if (page.length === 0) break;
-      for (const event of page) yield event;
-      if (page.length < 100) break;
+      let yielded = 0;
+      for (const event of page) {
+        const key = `${event.topic}|${event.resource}|${event.sent ?? ""}`;
+        if (seen.has(key)) continue;
+        seen.add(key);
+        yield event;
+        yielded++;
+      }
+      // Stop when MELI returned a partial page AND every entry was a
+      // duplicate — that means we've caught up.
+      if (page.length < 100 && yielded === 0) break;
       offset += page.length;
     }
   }

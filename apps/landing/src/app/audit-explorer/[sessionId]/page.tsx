@@ -17,7 +17,7 @@ export async function generateMetadata(
   return {
     title: `/audit-explorer/${sessionId} · session forensic view · ar-agents`,
     description: `Forensic investigation view of audit-log session ${sessionId}: governance breakdown, tool usage, duration histogram, anomalies, HMAC verification counts.`,
-    alternates: { canonical: `https://ar-agents.vercel.app/audit-explorer/${sessionId}` },
+    alternates: { canonical: `https://ar-agents.ar/audit-explorer/${sessionId}` },
   };
 }
 
@@ -102,7 +102,7 @@ export default async function AuditExplorerPage({ params }: Props) {
           "@context": "https://schema.org",
           "@type": "DataCatalog",
           name: `Audit explorer · ${sessionId}`,
-          url: `https://ar-agents.vercel.app/audit-explorer/${sessionId}`,
+          url: `https://ar-agents.ar/audit-explorer/${sessionId}`,
         }}
       />
 
@@ -117,7 +117,7 @@ export default async function AuditExplorerPage({ params }: Props) {
               marginBottom: 8,
             }}
           >
-            /arg · /audit-explorer · live · {entries.length} entries
+            /audit-explorer · live · {entries.length} entries
           </p>
           <h1
             style={{
@@ -159,7 +159,7 @@ export default async function AuditExplorerPage({ params }: Props) {
             color={verification.hmacWired ? "#22c55e" : "#eab308"}
           />
           <Card label="Errored" value={String(agg.errored)} color={agg.errored > 0 ? "#eab308" : "#737373"} />
-          {/* RFC-005 asymmetric stats — only shown if any entry carries a signature. */}
+          {/* RFC-005 asymmetric stats, only shown if any entry carries a signature. */}
           {verification.signedAsymmetric > 0 && (
             <Card
               label="Ed25519 signed"
@@ -403,7 +403,7 @@ export default async function AuditExplorerPage({ params }: Props) {
             RFC-003 envelope
           </a>
           <a
-            href={`/api/cert-badge?url=https://ar-agents.vercel.app&sessionId=${sessionId}`}
+            href={`/api/cert-badge?url=https://ar-agents.ar&sessionId=${sessionId}`}
             style={btnSty}
           >
             Cert badge SVG
@@ -422,7 +422,7 @@ export default async function AuditExplorerPage({ params }: Props) {
             color: "var(--text-muted)",
           }}
         >
-          ar-agents.vercel.app ·{" "}
+          ar-agents.ar ·{" "}
           <Link href="/" style={linkSty}>/</Link>{" · "}
           <Link href="/architecture/audit-log" style={linkSty}>/architecture/audit-log</Link>{" · "}
           <Link href="/auditor" style={linkSty}>/auditor</Link>

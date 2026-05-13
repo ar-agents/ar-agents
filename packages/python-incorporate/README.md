@@ -1,6 +1,6 @@
 # ar-agents-incorporate (Python)
 
-> Zero-dependency-runtime Python client for [`/api/auto-incorporate`](https://ar-agents.vercel.app/api/auto-incorporate). One sync or async call → an Argentine sociedad-IA's full incorporation kit (generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference). Mirror of [`@ar-agents/incorporate`](https://www.npmjs.com/package/@ar-agents/incorporate) on npm.
+> Zero-dependency-runtime Python client for [`/api/auto-incorporate`](https://ar-agents.ar/api/auto-incorporate). One sync or async call → an Argentine sociedad-IA's full incorporation kit (generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference). Mirror of [`@ar-agents/incorporate`](https://www.npmjs.com/package/@ar-agents/incorporate) on npm.
 
 [![PyPI](https://img.shields.io/pypi/v/ar-agents-incorporate.svg)](https://pypi.org/project/ar-agents-incorporate/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -154,7 +154,7 @@ with httpx.Client(timeout=10.0, headers={"x-trace-id": "..."}) as client:
 Every successful `incorporate()` call writes a HMAC-signed audit entry. Embed the verification badge in your dashboard / README to show the forensic-clean status:
 
 ```markdown
-![ar-agents audit](https://ar-agents.vercel.app/api/badge/{session_id})
+![ar-agents audit](https://ar-agents.ar/api/badge/{session_id})
 ```
 
 The badge color updates live: blue = verified · N/M, red = tampered · N, gray = no-hmac / no entries.
@@ -188,4 +188,4 @@ Tests use `respx` to mock httpx requests at the wire level — no network in CI.
 
 ## License
 
-MIT © Nazareno Clemente. The endpoint this client wraps ships HMAC-SHA256-signed audit log entries; verify them at any time at <https://ar-agents.vercel.app/verify>.
+MIT © Nazareno Clemente. The endpoint this client wraps ships HMAC-SHA256-signed audit log entries; verify them at any time at <https://ar-agents.ar/verify>.

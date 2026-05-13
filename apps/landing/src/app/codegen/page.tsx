@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "/codegen · auto-generate incorporate() snippets in any language",
   description:
     "Fill in your sociedad-IA's details, get equivalent code for TypeScript, Python, Go, Rust, curl, and HTTPie. Copy-paste-ready. The snippet that an agent author or compliance engineer drops into their codebase to call /api/auto-incorporate.",
-  alternates: { canonical: "https://ar-agents.vercel.app/codegen" },
+  alternates: { canonical: "https://ar-agents.ar/codegen" },
 };
 
 export default function CodegenPage() {

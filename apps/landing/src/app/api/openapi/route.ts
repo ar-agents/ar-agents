@@ -6,28 +6,28 @@
  * introspect this site (Claude, ChatGPT, Perplexity, custom orchestrators)
  * + for tooling generators (openapi-typescript, openapi-fetch, etc.).
  *
- * Edge runtime — static JSON; no I/O.
+ * Edge runtime, static JSON; no I/O.
  */
 
 import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 
 const spec = {
   openapi: "3.1.0",
   info: {
-    title: "/arg public API",
+    title: "ar-agents public API",
     summary:
       "Public endpoints for the AR sociedad-IA reference implementation: discovery, demo agent, audit-log read + verify + export + stream, badge, auto-incorporate wizard.",
     description:
-      "The endpoints below are all unauthenticated + idempotent in their default verbs (GET). POST endpoints are explicitly marked; some are rate-limited. The audit-log endpoints implement RFC-004 v1; the discovery endpoint implements RFC-002 v1; the auto-incorporate endpoint implements the wizard backing RFC-001 § 6.\n\nMachine-readable schema. Source: https://ar-agents.vercel.app/api/openapi",
+      "The endpoints below are all unauthenticated + idempotent in their default verbs (GET). POST endpoints are explicitly marked; some are rate-limited. The audit-log endpoints implement RFC-004 v1; the discovery endpoint implements RFC-002 v1; the auto-incorporate endpoint implements the wizard backing RFC-001 § 6.\n\nMachine-readable schema. Source: https://ar-agents.ar/api/openapi",
     version: "1.0.0",
     contact: {
-      name: "Nazareno Clemente",
-      email: "naza@helloastro.co",
-      url: "https://ar-agents.vercel.app",
+      name: "Naza",
+      email: "clementenaza@gmail.com",
+      url: "https://ar-agents.ar",
     },
     license: {
       name: "MIT (code) + CC-BY-4.0 (specs)",
@@ -333,7 +333,7 @@ const spec = {
     "/api/auto-monitor": {
       get: {
         operationId: "autoMonitor",
-        summary: "Daily Vercel cron — poll all /registro entries + populate conformance-history",
+        summary: "Daily Vercel cron, poll all /registro entries + populate conformance-history",
         description:
           "Runs the certifier against each live /registro URL + appends each result to its conformance-history. Optional CRON_SECRET auth.",
         tags: ["discovery"],

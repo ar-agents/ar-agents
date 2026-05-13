@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "/verify · independent HMAC verification",
   description:
     "Paste a /play session ID and get an independent server-side HMAC verification of every audit-log entry. Public. Tamper-evidence by the same primitives RFC-001 § 9.2 makes legally probative.",
-  alternates: { canonical: "https://ar-agents.vercel.app/verify" },
+  alternates: { canonical: "https://ar-agents.ar/verify" },
 };
 
 export default function VerifyPage() {

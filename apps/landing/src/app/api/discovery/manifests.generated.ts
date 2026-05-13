@@ -145,7 +145,7 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/mi-argentina",
     "version": "0.1.0",
     "description": "Mi Argentina (gov OIDC) as drop-in tools for the Vercel AI SDK. PKCE login, ID-token JWT verification with JWKS caching, userinfo, refresh.",
@@ -173,10 +173,10 @@ export const MANIFESTS = [
     ]
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/firma-digital",
     "version": "0.1.0",
-    "description": "AR digital signature primitives — PKCS#7/CMS verification with AC-Raíz/ONTI trust-anchor heuristic and certificate fingerprint pinning.",
+    "description": "AR digital signature primitives, PKCS#7/CMS verification with AC-Raíz/ONTI trust-anchor heuristic and certificate fingerprint pinning.",
     "tools": [
       {
         "name": "firma_inspect_cert",
@@ -197,10 +197,10 @@ export const MANIFESTS = [
     ]
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/gde-tad",
     "version": "0.2.0",
-    "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
+    "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives, DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
     "tools": [
       {
         "name": "get_critical_notifications",
@@ -216,7 +216,7 @@ export const MANIFESTS = [
       },
       {
         "name": "validate_igj_inscription",
-        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm, no network, no auth."
       }
     ],
     "name": "@ar-agents/gde-tad",
@@ -237,7 +237,7 @@ export const MANIFESTS = [
       },
       {
         "name": "calculate_installments",
-        "description": "Calculate cuotas (installments) options for a given amount. THE killer Argentine feature — returns options like '12 cuotas sin interés de $X' (recommended_message field) which you should surface VERBA",
+        "description": "Calculate cuotas (installments) options for a given amount. THE killer Argentine feature, returns options like '12 cuotas sin interés de $X' (recommended_message field) which you should surface VERBA",
         "input": {
           "amount_ars": "number positive",
           "payment_method_id": "string? (e.g. visa, master, naranja)",
@@ -250,7 +250,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cancel_order",
-        "description": "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture. **IRREVERSIBLE — confi",
+        "description": "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead, cancel only works pre-capture. **IRREVERSIBLE, confi",
         "input": {
           "order_id": "string"
         },
@@ -261,7 +261,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cancel_payment",
-        "description": "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE — confi",
+        "description": "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE, confi",
         "input": {
           "payment_id": "string"
         },
@@ -273,15 +273,15 @@ export const MANIFESTS = [
       },
       {
         "name": "cancel_point_payment_intent",
-        "description": "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERS"
+        "description": "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN', once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERS"
       },
       {
         "name": "cancel_qr_payment",
-        "description": "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE — but low-stakes since the QR has not been pai"
+        "description": "Cancel a pending QR order on a POS. Necessary if the buyer never scans, otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE, but low-stakes since the QR has not been pai"
       },
       {
         "name": "cancel_subscription",
-        "description": "Cancel an active Mercado Pago subscription. After cancellation, MP will not charge the customer again. This action is irreversible — confirm with the user before calling.",
+        "description": "Cancel an active Mercado Pago subscription. After cancellation, MP will not charge the customer again. This action is irreversible, confirm with the user before calling.",
         "input": {
           "subscription_id": "string"
         },
@@ -306,7 +306,7 @@ export const MANIFESTS = [
       },
       {
         "name": "capture_payment",
-        "description": "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY —",
+        "description": "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY, ",
         "input": {
           "payment_id": "string",
           "amount_ars": "number? (partial capture)"
@@ -323,7 +323,7 @@ export const MANIFESTS = [
       },
       {
         "name": "compute_marketplace_fee",
-        "description": "PURE HELPER (no network) — given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payme"
+        "description": "PURE HELPER (no network), given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payme"
       },
       {
         "name": "confirm_3ds_challenge",
@@ -331,7 +331,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_customer",
-        "description": "Create a Mercado Pago customer record so the buyer can save cards for future charges. Idempotent on email — if a customer with that email exists, MP returns it instead of creating a duplicate. Use fin",
+        "description": "Create a Mercado Pago customer record so the buyer can save cards for future charges. Idempotent on email, if a customer with that email exists, MP returns it instead of creating a duplicate. Use fin",
         "input": {
           "email": "string",
           "first_name": "string?",
@@ -348,7 +348,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_customer_card",
-        "description": "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform — agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard "
+        "description": "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform, agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard "
       },
       {
         "name": "create_order",
@@ -375,7 +375,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_payment",
-        "description": "Create a one-time payment. Two flows: (a) with a card token from MP frontend Cardform — for transparent checkout; (b) without token, for non-card methods like 'account_money', 'rapipago', 'pagofacil'.",
+        "description": "Create a one-time payment. Two flows: (a) with a card token from MP frontend Cardform, for transparent checkout; (b) without token, for non-card methods like 'account_money', 'rapipago', 'pagofacil'.",
         "input": {
           "amount_ars": "number positive",
           "payment_method_id": "string (visa | master | naranja | account_money | rapipago | ...)",
@@ -412,14 +412,14 @@ export const MANIFESTS = [
         "output": {
           "preference_id": "string",
           "init_point_url": "string (production)",
-          "sandbox_init_point_url": "string (sandbox — use this if your token is TEST-)",
+          "sandbox_init_point_url": "string (sandbox, use this if your token is TEST-)",
           "external_reference": "string | null",
           "next_step": "Send init_point_url to the customer..."
         }
       },
       {
         "name": "create_point_payment_intent",
-        "description": "Create a payment intent on a physical Point device — the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait f"
+        "description": "Create a payment intent on a physical Point device, the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait f"
       },
       {
         "name": "create_pos",
@@ -427,7 +427,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_qr_payment",
-        "description": "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS"
+        "description": "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc., interop is mandated by Transferencias 3.0). Requires a pre-configured POS"
       },
       {
         "name": "create_store",
@@ -460,7 +460,7 @@ export const MANIFESTS = [
       },
       {
         "name": "delete_customer_card",
-        "description": "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE — confirm with the user before calling. The customer must re-enter card data (PAN + ",
+        "description": "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE, confirm with the user before calling. The customer must re-enter card data (PAN + ",
         "input": {
           "customer_id": "string",
           "card_id": "string"
@@ -477,19 +477,19 @@ export const MANIFESTS = [
       },
       {
         "name": "delete_store",
-        "description": "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes — delete those first."
+        "description": "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes, delete those first."
       },
       {
         "name": "delete_webhook",
-        "description": "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE — confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subs"
+        "description": "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE, confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subs"
       },
       {
         "name": "explain_payment_status",
-        "description": "PURE HELPER (no network) — given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's crypt"
+        "description": "PURE HELPER (no network), given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's crypt"
       },
       {
         "name": "find_applicable_promos",
-        "description": "PURE HELPER (no network, sub-ms) — returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30"
+        "description": "PURE HELPER (no network, sub-ms), returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30"
       },
       {
         "name": "find_customer_by_email",
@@ -528,7 +528,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_customer_card",
-        "description": "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ — useful before charge_saved_card to confirm the card is still valid."
+        "description": "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ, useful before charge_saved_card to confirm the card is still valid."
       },
       {
         "name": "get_dispute",
@@ -536,7 +536,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_merchant_order",
-        "description": "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference — one Order can have multiple partial Payments (r"
+        "description": "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference, one Order can have multiple partial Payments (r"
       },
       {
         "name": "get_order",
@@ -572,7 +572,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_refund",
-        "description": "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ — useful to verify a refund processed or to reconcile partial-refund history."
+        "description": "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ, useful to verify a refund processed or to reconcile partial-refund history."
       },
       {
         "name": "get_settlement",
@@ -611,7 +611,7 @@ export const MANIFESTS = [
         "name": "handle_webhook",
         "description": "Process an incoming MP webhook in ONE call: verify the HMAC-SHA256 signature, parse the event, and (optionally) auto-fetch the underlying resource (Payment, Subscription, Order). Returns the structure",
         "input": {
-          "raw_body": "string (raw JSON body — do NOT re-stringify)",
+          "raw_body": "string (raw JSON body, do NOT re-stringify)",
           "signature_header": "string|null (x-signature)",
           "request_id_header": "string|null (x-request-id)",
           "auto_fetch": "boolean? default true"
@@ -630,7 +630,7 @@ export const MANIFESTS = [
       },
       {
         "name": "list_bank_accounts",
-        "description": "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array — the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settl"
+        "description": "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array, the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settl"
       },
       {
         "name": "list_customer_cards",
@@ -650,11 +650,11 @@ export const MANIFESTS = [
       },
       {
         "name": "list_issuers",
-        "description": "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments — issuer-specific "
+        "description": "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments, issuer-specific "
       },
       {
         "name": "list_payment_disputes",
-        "description": "List all disputes / chargebacks raised against a payment. Read-only — resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when th"
+        "description": "List all disputes / chargebacks raised against a payment. Read-only, resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when th"
       },
       {
         "name": "list_payment_methods",
@@ -667,7 +667,7 @@ export const MANIFESTS = [
       },
       {
         "name": "list_point_devices",
-        "description": "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS — these are actual terminals at brick-and-mortar shops. Returns each device's id "
+        "description": "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS, these are actual terminals at brick-and-mortar shops. Returns each device's id "
       },
       {
         "name": "list_pos",
@@ -687,11 +687,11 @@ export const MANIFESTS = [
       },
       {
         "name": "list_settlements",
-        "description": "List settlements (release_money) — i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation repo"
+        "description": "List settlements (release_money), i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation repo"
       },
       {
         "name": "list_settlements_all",
-        "description": "Collect ALL settlements matching a filter — auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports."
+        "description": "Collect ALL settlements matching a filter, auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports."
       },
       {
         "name": "list_stores",
@@ -728,7 +728,7 @@ export const MANIFESTS = [
       },
       {
         "name": "oauth_exchange_code",
-        "description": "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response** — refresh_token is long-liv",
+        "description": "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response**, refresh_token is long-liv",
         "input": {
           "code": "string",
           "redirect_uri": "string (must EXACTLY match the URL used in oauth_authorize_url)"
@@ -742,7 +742,7 @@ export const MANIFESTS = [
       },
       {
         "name": "oauth_refresh_token",
-        "description": "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken — pe",
+        "description": "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken, pe",
         "input": {
           "refresh_token": "string"
         },
@@ -781,7 +781,7 @@ export const MANIFESTS = [
       },
       {
         "name": "register_bank_account",
-        "description": "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance — this endpoint may not work for all accounts. If it fails with 403, redirect the "
+        "description": "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance, this endpoint may not work for all accounts. If it fails with 403, redirect the "
       },
       {
         "name": "resume_subscription",
@@ -820,7 +820,7 @@ export const MANIFESTS = [
       },
       {
         "name": "search_payments_all",
-        "description": "Collect ALL payments matching a filter — auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to ca"
+        "description": "Collect ALL payments matching a filter, auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to ca"
       },
       {
         "name": "search_subscriptions",
@@ -832,11 +832,11 @@ export const MANIFESTS = [
       },
       {
         "name": "update_customer",
-        "description": "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch — fields you don't send remain unchanged. Use to keep customer records in sync (e"
+        "description": "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch, fields you don't send remain unchanged. Use to keep customer records in sync (e"
       },
       {
         "name": "update_merchant_order",
-        "description": "Update a merchant_order — typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle."
+        "description": "Update a merchant_order, typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle."
       },
       {
         "name": "update_order",
@@ -870,7 +870,7 @@ export const MANIFESTS = [
       },
       {
         "name": "update_subscription_plan",
-        "description": "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated — only NEW subscribers get the new pricing."
+        "description": "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated, only NEW subscribers get the new pricing."
       },
       {
         "name": "update_webhook",
@@ -878,7 +878,7 @@ export const MANIFESTS = [
       },
       {
         "name": "validate_tax_id",
-        "description": "PURE HELPER (no network, sub-ms) — validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC struct"
+        "description": "PURE HELPER (no network, sub-ms), validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC struct"
       }
     ],
     "name": "@ar-agents/mercadopago",
@@ -888,7 +888,7 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schema/tools-manifest.json",
+    "$schema": "https://ar-agents.ar/schema/tools-manifest.json",
     "package": "@ar-agents/mercadolibre",
     "version": "0.1.0",
     "description": "Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",
@@ -1053,7 +1053,7 @@ export const MANIFESTS = [
       },
       {
         "name": "classify_question_spam",
-        "summary": "Heuristic spam classifier — labels a question as spam, borderline, or ham.",
+        "summary": "Heuristic spam classifier, labels a question as spam, borderline, or ham.",
         "input": {
           "questionText": "string",
           "askerProfile": {
@@ -1086,7 +1086,7 @@ export const MANIFESTS = [
           },
           "features": "QuestionSpamFeatures"
         },
-        "side_effects": "none — pure local function, no MELI call",
+        "side_effects": "none, pure local function, no MELI call",
         "rate_limit_class": "none"
       },
       {
@@ -1164,7 +1164,7 @@ export const MANIFESTS = [
       },
       {
         "name": "defend_claim",
-        "summary": "Defend a claim — uploads N evidences in parallel + optional message.",
+        "summary": "Defend a claim, uploads N evidences in parallel + optional message.",
         "input": {
           "claimId": "number",
           "evidences": "array<{ evidence_type, text?, file_id? }>",
@@ -1288,7 +1288,7 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/banking",
     "version": "0.4.0",
     "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
@@ -1325,7 +1325,7 @@ export const MANIFESTS = [
       },
       {
         "name": "list_psps",
-        "description": "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers — Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need",
+        "description": "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers, Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need",
         "input": {},
         "output": "{ psps: BankInfo[] }"
       },
@@ -1361,7 +1361,7 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/facturacion",
     "version": "0.3.0",
     "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
@@ -1378,7 +1378,7 @@ export const MANIFESTS = [
       },
       {
         "name": "consultar_ultimo_comprobante",
-        "description": "Consultar el último número de comprobante autorizado para un (PtoVta, CbteTipo) — i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener",
+        "description": "Consultar el último número de comprobante autorizado para un (PtoVta, CbteTipo), i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener",
         "input": {
           "ptoVta": "number?",
           "cbteTipo": "number"
@@ -1393,7 +1393,7 @@ export const MANIFESTS = [
       },
       {
         "name": "health_check_afip",
-        "description": "Health check de AFIP WSFE — devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
+        "description": "Health check de AFIP WSFE, devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
         "input": {},
         "output": "DummyResult & { ok }"
       },
@@ -1443,7 +1443,7 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/shipping",
     "version": "0.2.0",
     "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",
@@ -1482,7 +1482,7 @@ export const MANIFESTS = [
       },
       {
         "name": "crear_envio",
-        "description": "Crear un envío real con un carrier. RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier — confirma con el usuario antes si el monto es alto (",
+        "description": "Crear un envío real con un carrier. RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier, confirma con el usuario antes si el monto es alto (",
         "input": {
           "carrier?": "...",
           "origin": "Address",
@@ -1521,10 +1521,10 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/igj",
     "version": "0.1.0",
-    "description": "Inspección General de Justicia (IGJ) public registry primitives — search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",
+    "description": "Inspección General de Justicia (IGJ) public registry primitives, search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",
     "tools": [
       {
         "name": "igj_search_entities",
@@ -1553,10 +1553,10 @@ export const MANIFESTS = [
     ]
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/boletin-oficial",
     "version": "0.1.0",
-    "description": "Boletín Oficial de la República Argentina — search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",
+    "description": "Boletín Oficial de la República Argentina, search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",
     "tools": [
       {
         "name": "bo_search",
@@ -1585,24 +1585,24 @@ export const MANIFESTS = [
     ]
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/ap2",
     "version": "0.2.0",
-    "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
+    "description": "Google AP2 (Agent Payments Protocol) primitives, Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package, no LLM tool surface.",
     "tools": []
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/agentic-commerce-bridge",
     "version": "5.0.0",
-    "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP). LLM-buyer-facing checkout sessions, signed webhooks, /.well-known/acp.json discovery, AR-fiscal compliance (auto-issued AFIP/ARCA factura). Infrastructure package — no LLM tool surface.",
+    "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP). LLM-buyer-facing checkout sessions, signed webhooks, /.well-known/acp.json discovery, AR-fiscal compliance (auto-issued AFIP/ARCA factura). Infrastructure package, no LLM tool surface.",
     "tools": []
   },
   {
-    "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/mcp",
     "version": "0.9.0",
-    "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package — exposes the underlying tool surface via stdio transport.",
+    "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package, exposes the underlying tool surface via stdio transport.",
     "tools": []
   }
 ] as const;

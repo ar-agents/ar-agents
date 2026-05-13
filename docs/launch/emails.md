@@ -34,7 +34,7 @@ El stack está publicado en npm con licencia MIT y SLSA v1 provenance:
     debate parlamentario.
   • Threat model público de 14 amenazas con mitigaciones explícitas.
   • Una sociedad-IA simulada que se puede operar en vivo, sin setup,
-    desde el navegador: ar-agents.vercel.app/play
+    desde el navegador: ar-agents.ar/play
 
 Demo de 60 segundos (sin instalación, sin cuenta): /play recibe un
 prompt, el agente ejecuta tools reales auditadas y muestra el log
@@ -51,7 +51,7 @@ mails en menos de 48 horas.
 Naza Clemente
 naza@helloastro.co
 github.com/ar-agents/ar-agents
-ar-agents.vercel.app
+ar-agents.ar
 ```
 
 **Word count:** ~240. Under the 250 ceiling for ministerial inboxes.
@@ -83,7 +83,7 @@ Después del anuncio de Sturzenegger del 28-abr, lo extendí para que
 sea la implementación de referencia para sociedades de IA: RFC-001
 con marco de responsabilidad de tres capas, threat model público,
 provenance SLSA v1 en cada release, y un demo en vivo donde se ve
-el agente operar la sociedad: ar-agents.vercel.app/play
+el agente operar la sociedad: ar-agents.ar/play
 
 El proyecto encaja exactamente con lo que vos venís impulsando: open
 data, open source, auditabilidad pública por default. No estoy pidiendo
@@ -120,7 +120,7 @@ cualquier sociedad-IA argentina necesitaría el día 1 del régimen.
   • 168 herramientas que cubren las 17 piezas de una empresa argentina:
     factura electrónica AFIP/ARCA, padrón ARCA, BCRA Central de
     Deudores, Mercado Pago, WhatsApp, Boletín Oficial, IGJ, GDE/TAD.
-  • Una sociedad-IA simulada en vivo: ar-agents.vercel.app/play
+  • Una sociedad-IA simulada en vivo: ar-agents.ar/play
     (zero setup, 30 segundos para verla operar).
   • Marco público de responsabilidad de tres capas (RFC-001) que
     propone una respuesta concreta al ataque "¿quién paga si la IA
@@ -134,9 +134,9 @@ Islands / Wyoming, o threat model — estoy disponible para entrevista
 en español o inglés.
 
 Repositorio: github.com/ar-agents/ar-agents
-Sitio: ar-agents.vercel.app
-Press kit: ar-agents.vercel.app/press-kit
-Demo en vivo: ar-agents.vercel.app/play
+Sitio: ar-agents.ar
+Press kit: ar-agents.ar/press-kit
+Demo en vivo: ar-agents.ar/play
 
 Naza Clemente
 naza@helloastro.co

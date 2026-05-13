@@ -3,7 +3,7 @@
 /**
  * Interactive playground for /embed. User pastes a session id and gets
  * the live-rendering badge + per-snippet copy buttons. Pure client
- * component — the badge URL it builds is server-rendered by Vercel.
+ * component, the badge URL it builds is server-rendered by Vercel.
  */
 
 import { useMemo, useState } from "react";
@@ -12,7 +12,7 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
 
 const SAMPLE_SESSION_ID = "4f50ebf2-94ec-4c75-b94a-6e8e1f54f5bc";
-const ORIGIN = "https://ar-agents.vercel.app";
+const ORIGIN = "https://ar-agents.ar";
 
 export function EmbedClient() {
   const [sid, setSid] = useState(SAMPLE_SESSION_ID);
@@ -178,7 +178,7 @@ function SnippetBlock({ label, code }: { label: string; code: string }) {
       setCopied(true);
       setTimeout(() => setCopied(false), 1200);
     } catch {
-      // older browsers — silently fail
+      // older browsers, silently fail
     }
   };
   return (

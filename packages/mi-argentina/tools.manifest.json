@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/mi-argentina",
   "version": "0.1.0",
   "description": "Mi Argentina (gov OIDC) as drop-in tools for the Vercel AI SDK. PKCE login, ID-token JWT verification with JWKS caching, userinfo, refresh.",

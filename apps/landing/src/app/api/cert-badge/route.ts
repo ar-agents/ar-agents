@@ -5,12 +5,12 @@
  * conformance score for the target URL. Pull the score from
  * /api/certifier?url=... and render:
  *
- *   `RFC-002 · A · 100/100`     — score >= 90, green
- *   `RFC-002 · B · 78/100`      — score 75-89, lime
- *   `RFC-002 · C · 65/100`      — score 60-74, yellow
- *   `RFC-002 · D · 42/100`      — score 40-59, orange
- *   `RFC-002 · F · 25/100`      — score < 40, red
- *   `RFC-002 · error`           — fetch failed, gray
+ *   `RFC-002 · A · 100/100`   , score >= 90, green
+ *   `RFC-002 · B · 78/100`    , score 75-89, lime
+ *   `RFC-002 · C · 65/100`    , score 60-74, yellow
+ *   `RFC-002 · D · 42/100`    , score 40-59, orange
+ *   `RFC-002 · F · 25/100`    , score < 40, red
+ *   `RFC-002 · error`         , fetch failed, gray
  *
  * Designed for embedding in READMEs of operators who want to show off
  * their conformance. The badge auto-refreshes (60s GitHub camo cache).
@@ -22,7 +22,7 @@ import { buildSvg, type BadgeState, escapeXml } from "@/lib/badge";
 
 export const runtime = "edge";
 
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 
 function svgResponse(state: BadgeState, status = 200): Response {
   return new Response(buildSvg(state), {
@@ -35,11 +35,11 @@ function svgResponse(state: BadgeState, status = 200): Response {
 }
 
 function colorForScore(score: number): string {
-  if (score >= 90) return "#22c55e"; // A — green
-  if (score >= 75) return "#84cc16"; // B — lime
-  if (score >= 60) return "#eab308"; // C — yellow
-  if (score >= 40) return "#f97316"; // D — orange
-  return "#ef4444";                   // F — red
+  if (score >= 90) return "#22c55e"; // A, green
+  if (score >= 75) return "#84cc16"; // B, lime
+  if (score >= 60) return "#eab308"; // C, yellow
+  if (score >= 40) return "#f97316"; // D, orange
+  return "#ef4444";                   // F, red
 }
 
 function ratingFor(score: number): string {

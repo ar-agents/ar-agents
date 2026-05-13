@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import { buildIdentityTools, describeIdentityConfig } from "../src/registries/identity";
 import { buildBankingTools, describeBankingConfig } from "../src/registries/banking";
 import { buildMercadoPagoTools, describeMercadoPagoConfig } from "../src/registries/mercadopago";
+import { buildMercadoLibreTools, describeMercadoLibreConfig } from "../src/registries/mercadolibre";
 import { buildWhatsAppTools, describeWhatsAppConfig } from "../src/registries/whatsapp";
 import { buildShippingTools, describeShippingConfig } from "../src/registries/shipping";
 import { buildFacturacionTools, describeFacturacionConfig } from "../src/registries/facturacion";
@@ -28,6 +29,9 @@ const ENV_KEYS_TO_RESET = [
   "AFIP_ENV",
   "BCRA_API_KEY",
   "MP_ACCESS_TOKEN",
+  "MELI_ACCESS_TOKEN",
+  "MELI_SELLER_ID",
+  "MELI_SITE_ID",
   "WA_ACCESS_TOKEN",
   "WA_PHONE_NUMBER_ID",
   "WA_BUSINESS_NAME",
@@ -87,6 +91,25 @@ describe("registries — graceful unconfigured fallback", () => {
 
   it("mercadopago: describeConfig says not configured", () => {
     expect(describeMercadoPagoConfig().toLowerCase()).toContain("not configured");
+  });
+
+  it("mercadolibre: returns null without MELI_ACCESS_TOKEN + MELI_SELLER_ID", () => {
+    const tools = buildMercadoLibreTools();
+    expect(tools).toBeNull();
+  });
+
+  it("mercadolibre: describeConfig says not configured", () => {
+    expect(describeMercadoLibreConfig().toLowerCase()).toContain("not configured");
+  });
+
+  it("mercadolibre: returns tools when both env vars are set", () => {
+    process.env["MELI_ACCESS_TOKEN"] = "test-token-1234567890";
+    process.env["MELI_SELLER_ID"] = "12345";
+    const tools = buildMercadoLibreTools();
+    expect(tools).toBeTruthy();
+    expect(tools && Object.keys(tools).length).toBeGreaterThan(0);
+    expect(describeMercadoLibreConfig()).toContain("seller=12345");
+    expect(describeMercadoLibreConfig()).toContain("site=MLA");
   });
 
   it("whatsapp: returns null without WA env vars", () => {

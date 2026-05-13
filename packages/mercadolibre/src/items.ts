@@ -42,8 +42,17 @@ export async function getItem(
 }
 
 // ---------------------------------------------------------------------------
-// Multiget — `/items?ids=ML...,ML...` (max 20 per call)
+// Multiget — `/items?ids=ML...,ML...`
+//
+// MELI's `/items?ids=...` accepts at most **20 ids per call**. This helper
+// auto-chunks larger arrays + parallelizes the chunks (still gated by the
+// client's per-seller rate limiter, so no risk of overwhelming MELI).
+// Items the API returns with a non-200 sub-code (e.g., 404 because the item
+// was deleted) are silently dropped — callers that need to surface those
+// should use `getItem` per-id instead.
 // ---------------------------------------------------------------------------
+
+const MELI_MULTIGET_LIMIT = 20;
 
 const MultigetEntry = z.object({
   code: z.number().int(),
@@ -51,21 +60,58 @@ const MultigetEntry = z.object({
 });
 const MultigetResponse = z.array(MultigetEntry);
 
+export interface MultigetOptions {
+  /** How many chunks to fetch in parallel. Default 4 — high enough to halve
+   *  wall-clock time on a 100-item lookup, low enough that the per-seller
+   *  rate limit stays within burst on hot paths. */
+  concurrency?: number;
+}
+
 export async function multigetItems(
   client: MeliClient,
   itemIds: string[],
+  options: MultigetOptions = {},
 ): Promise<TItem[]> {
   if (itemIds.length === 0) return [];
-  if (itemIds.length > 20) {
-    throw new Error("MELI multiget supports up to 20 ids per call");
+
+  // Single-call fast path: no chunking + no parallelism overhead.
+  if (itemIds.length <= MELI_MULTIGET_LIMIT) {
+    const response = await client.fetch<z.infer<typeof MultigetResponse>>({
+      method: "GET",
+      path: `/items`,
+      query: { ids: itemIds.join(",") },
+      responseSchema: MultigetResponse,
+    });
+    return response.filter((e) => e.code === 200).map((e) => e.body);
   }
-  const response = await client.fetch<z.infer<typeof MultigetResponse>>({
-    method: "GET",
-    path: `/items`,
-    query: { ids: itemIds.join(",") },
-    responseSchema: MultigetResponse,
-  });
-  return response.filter((e) => e.code === 200).map((e) => e.body);
+
+  // Chunk + fetch in parallel. Preserve original order for the caller — when
+  // chunk N completes before chunk N-1, we still want the output to match
+  // the input ordering.
+  const concurrency = Math.max(1, options.concurrency ?? 4);
+  const chunks: string[][] = [];
+  for (let i = 0; i < itemIds.length; i += MELI_MULTIGET_LIMIT) {
+    chunks.push(itemIds.slice(i, i + MELI_MULTIGET_LIMIT));
+  }
+  const results: TItem[][] = new Array(chunks.length);
+  let next = 0;
+  async function worker() {
+    while (next < chunks.length) {
+      const idx = next++;
+      const chunk = chunks[idx]!;
+      const response = await client.fetch<z.infer<typeof MultigetResponse>>({
+        method: "GET",
+        path: `/items`,
+        query: { ids: chunk.join(",") },
+        responseSchema: MultigetResponse,
+      });
+      results[idx] = response.filter((e) => e.code === 200).map((e) => e.body);
+    }
+  }
+  await Promise.all(
+    Array.from({ length: Math.min(concurrency, chunks.length) }, () => worker()),
+  );
+  return results.flat();
 }
 
 // ---------------------------------------------------------------------------

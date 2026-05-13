@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 /**
- * /notes — index of long-form posts about /arg.
+ * /notes, index of long-form posts about ar-agents.
  *
  * Distinct from /changelog (which is auto-pulled from per-package
  * CHANGELOG.md). /notes is hand-written narrative: shipping recaps,
@@ -28,10 +28,10 @@ const NOTES: ReadonlyArray<NoteIndex> = [
 ];
 
 export const metadata: Metadata = {
-  title: "/notes · long-form posts about /arg · ar-agents",
+  title: "/notes · long-form posts · ar-agents",
   description:
-    "Hand-written narrative notes about /arg — shipping recaps, design rationale, retrospectives. Distinct from /changelog (auto-pulled from package CHANGELOGs).",
-  alternates: { canonical: "https://ar-agents.vercel.app/notes" },
+    "Hand-written narrative notes about ar-agents, shipping recaps, design rationale, retrospectives. Distinct from /changelog (auto-pulled from package CHANGELOGs).",
+  alternates: { canonical: "https://ar-agents.ar/notes" },
 };
 
 export default function NotesIndexPage() {
@@ -56,7 +56,7 @@ export default function NotesIndexPage() {
             marginBottom: 8,
           }}
         >
-          /arg · /notes · long-form
+          /notes · long-form
         </p>
         <h1
           style={{
@@ -71,7 +71,7 @@ export default function NotesIndexPage() {
           Notes.
         </h1>
         <p style={{ fontSize: 16 }}>
-          Long-form narrative posts — shipping recaps, design rationale,
+          Long-form narrative posts, shipping recaps, design rationale,
           retrospectives. Different from{" "}
           <Link href="/changelog" style={linkSty}>
             /changelog
@@ -135,7 +135,7 @@ export default function NotesIndexPage() {
           color: "var(--text-muted)",
         }}
       >
-        ar-agents.vercel.app ·{" "}
+        ar-agents.ar ·{" "}
         <Link href="/" style={linkSty}>/</Link>{" · "}
         <Link href="/timeline" style={linkSty}>/timeline</Link>{" · "}
         <Link href="/changelog" style={linkSty}>/changelog</Link>{" · "}

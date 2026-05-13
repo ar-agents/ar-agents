@@ -170,7 +170,7 @@ export async function GET(
   }
 
   const summary: Summary = {
-    $schema: "https://ar-agents.vercel.app/schemas/audit-summary.v1.json",
+    $schema: "https://ar-agents.ar/schemas/audit-summary.v1.json",
     generatedAt: new Date().toISOString(),
     sessionId,
     total: entries.length,

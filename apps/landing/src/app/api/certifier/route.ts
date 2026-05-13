@@ -51,7 +51,7 @@ async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Respon
       ...init,
       signal: controller.signal,
       headers: {
-        "user-agent": "ar-agents-certifier (https://ar-agents.vercel.app/certifier)",
+        "user-agent": "ar-agents-certifier (https://ar-agents.ar/certifier)",
         ...(init?.headers ?? {}),
       },
     });
@@ -215,7 +215,7 @@ async function runChecks(
 
   // Determine which RFCs the manifest claims conformance to.
   // If the manifest doesn't claim an RFC, the related checks SKIP
-  // instead of FAIL — we don't penalize an operator for not claiming
+  // instead of FAIL, we don't penalize an operator for not claiming
   // something they didn't claim.
   const rfcConformanceArr = (manifest?.rfcConformance as unknown[] | undefined) ?? [];
   const claimsRfc = (prefix: string): boolean =>
@@ -266,7 +266,7 @@ async function runChecks(
         status: claimsRfc004 ? "fail" : "skip",
         detail: claimsRfc004
           ? `HTTP ${r.status}.`
-          : `HTTP ${r.status} — manifest does not claim RFC-004 conformance, so this check is skipped.`,
+          : `HTTP ${r.status}, manifest does not claim RFC-004 conformance, so this check is skipped.`,
         source: auditUrl,
         httpStatus: r.status,
       });
@@ -331,7 +331,7 @@ async function runChecks(
         status: claimsRfc004 ? "fail" : "skip",
         detail: claimsRfc004
           ? `HTTP ${r.status}.`
-          : `HTTP ${r.status} — manifest does not claim RFC-004 conformance, so this check is skipped.`,
+          : `HTTP ${r.status}, manifest does not claim RFC-004 conformance, so this check is skipped.`,
         source: verifyUrl,
         httpStatus: r.status,
       });
@@ -344,7 +344,7 @@ async function runChecks(
       status: claimsRfc004 ? "fail" : "skip",
       detail: claimsRfc004
         ? `Network error: ${(e as Error).message}`
-        : `Network error — manifest does not claim RFC-004 conformance, so this check is skipped.`,
+        : `Network error, manifest does not claim RFC-004 conformance, so this check is skipped.`,
       source: verifyUrl,
     });
   }
@@ -373,7 +373,7 @@ async function runChecks(
         status: claimsRfc004 ? "fail" : "skip",
         detail: claimsRfc004
           ? `HTTP ${r.status}.`
-          : `HTTP ${r.status} — manifest does not claim RFC-004 conformance, so this check is skipped.`,
+          : `HTTP ${r.status}, manifest does not claim RFC-004 conformance, so this check is skipped.`,
         source: csvUrl,
         httpStatus: r.status,
       });
@@ -386,7 +386,7 @@ async function runChecks(
       status: claimsRfc004 ? "fail" : "skip",
       detail: claimsRfc004
         ? `Network error: ${(e as Error).message}`
-        : `Network error — manifest does not claim RFC-004 conformance, so this check is skipped.`,
+        : `Network error, manifest does not claim RFC-004 conformance, so this check is skipped.`,
       source: csvUrl,
     });
   }
@@ -441,7 +441,7 @@ async function runChecks(
       const r = await fetchWithTimeout(url);
       if (!r.ok) {
         if (url === keysStatic) {
-          // Both tried, both failed — emit a single skip.
+          // Both tried, both failed, emit a single skip.
           checks.push({
             id: "rfc-005-keys-endpoint",
             label: "RFC-005 · /.well-known/sociedad-ia/keys advertises Ed25519 public keys",
@@ -645,7 +645,7 @@ export async function GET(req: Request): Promise<Response> {
   const rating: Certification["rating"] = possible === 0 ? "N/A" : ratingFromScore(score);
 
   const cert: Certification = {
-    $schema: "https://ar-agents.vercel.app/schemas/certification.v1.json",
+    $schema: "https://ar-agents.ar/schemas/certification.v1.json",
     generatedAt: new Date().toISOString(),
     target: { baseUrl: parsed.origin, sessionId },
     score,

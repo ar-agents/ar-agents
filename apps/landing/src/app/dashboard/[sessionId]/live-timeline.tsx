@@ -7,7 +7,7 @@
  * This component opens an EventSource against /api/play/audit-stream/{id}
  * and merges any newly-arriving entries into the rendered list. Browsers
  * that lack EventSource (or where it fails) silently degrade to the
- * static initial render — no functional regression.
+ * static initial render, no functional regression.
  *
  * Pattern: receive initial entries via prop, maintain a Set of seen ids,
  * append new ones in chronological order. Show a "● live" indicator

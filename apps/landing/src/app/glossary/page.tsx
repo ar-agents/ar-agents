@@ -3,7 +3,7 @@ import Link from "next/link";
 import { JsonLd } from "../json-ld";
 
 /**
- * /glossary — Define every term used across /arg in one searchable page.
+ * /glossary, Define every term used across ar-agents in one searchable page.
  *
  * Audience: journalists writing first piece about sociedades-IA,
  * legislators reading the RFCs cold, developers integrating the libs.
@@ -29,7 +29,7 @@ const ENTRIES: ReadonlyArray<Entry> = [
     term: "Agent",
     type: "concept",
     short: "An autonomous software entity that takes actions on behalf of a human or a sociedad-IA.",
-    long: "In /arg, an agent is the runtime that calls tools (MercadoPago, AFIP, WhatsApp, etc.) on behalf of an operator. Built on top of Vercel AI SDK 6 Experimental_Agent. Each tool-call lands in an audit log entry, signed with HMAC-SHA256 + classified by governance class.",
+    long: "In ar-agents, an agent is the runtime that calls tools (MercadoPago, AFIP, WhatsApp, etc.) on behalf of an operator. Built on top of Vercel AI SDK 6 Experimental_Agent. Each tool-call lands in an audit log entry, signed with HMAC-SHA256 + classified by governance class.",
     refs: [
       { label: "Reference impl", href: "/architecture" },
       { label: "Demo", href: "/play" },
@@ -51,7 +51,7 @@ const ENTRIES: ReadonlyArray<Entry> = [
     term: "AP2",
     type: "protocol",
     short: "Agent Payments Protocol. Mandate-based, signed.",
-    long: "Originated in the Google AP2 spec. In /arg, an AP2 mandate is a signed promise to pay (e.g. a Wyoming DAO LLC mandates $X to AR-CUIT-Y, payable for T+24h). The AR sociedad verifies the signature, emits the factura, lands the cobro. Recipe 21 walks through the full cross-jurisdictional flow.",
+    long: "Originated in the Google AP2 spec. In ar-agents, an AP2 mandate is a signed promise to pay (e.g. a Wyoming DAO LLC mandates $X to AR-CUIT-Y, payable for T+24h). The AR sociedad verifies the signature, emits the factura, lands the cobro. Recipe 21 walks through the full cross-jurisdictional flow.",
     refs: [
       { label: "Cookbook recipe 21", href: "/examples" },
       { label: "Package @ar-agents/ap2", href: "https://www.npmjs.com/package/@ar-agents/ap2" },
@@ -83,7 +83,7 @@ const ENTRIES: ReadonlyArray<Entry> = [
     term: "Canonical-JSON",
     type: "spec",
     short: "Deterministic JSON serialization with sorted object keys.",
-    long: "JSON.stringify in JavaScript follows object insertion order — different runtimes can produce different bytes for semantically-equivalent objects. The HMAC of a canonical-JSON form is stable across runtimes + re-serializations. RFC-004 § 3 specifies the algorithm: keys sorted lexicographically at every depth, arrays preserve order. Test-vectors 1-2 prove the implementation.",
+    long: "JSON.stringify in JavaScript follows object insertion order, different runtimes can produce different bytes for semantically-equivalent objects. The HMAC of a canonical-JSON form is stable across runtimes + re-serializations. RFC-004 § 3 specifies the algorithm: keys sorted lexicographically at every depth, arrays preserve order. Test-vectors 1-2 prove the implementation.",
     refs: [
       { label: "RFC-004 § 3", href: "/rfcs/004" },
       { label: "Test vectors", href: "/test-vectors" },
@@ -96,25 +96,25 @@ const ENTRIES: ReadonlyArray<Entry> = [
     long: "Runs ~9 HTTP checks against a target's public endpoints (agents.json, audit-read, verify, CSV, OpenAPI, security headers) and returns a deterministic Certification JSON. Anyone can verify any sociedad-IA's claims from a single HTTP call with no install.",
     refs: [
       { label: "Web UI", href: "/certifier" },
-      { label: "API", href: "/api/certifier?url=https://ar-agents.vercel.app" },
+      { label: "API", href: "/api/certifier?url=https://ar-agents.ar" },
       { label: "Recipe 26", href: "/examples" },
     ],
   },
   {
     term: "CUIT",
     type: "concept",
-    short: "Clave Única de Identificación Tributaria — Argentine tax-ID format XX-XXXXXXXX-X.",
+    short: "Clave Única de Identificación Tributaria, Argentine tax-ID format XX-XXXXXXXX-X.",
     long: "Issued by AFIP/ARCA. Required to invoice (factura electrónica), open a bank account, register as monotributista. The @ar-agents/identity package validates + does padron lookups against the live ARCA WSAA service.",
     refs: [
       { label: "@ar-agents/identity", href: "https://www.npmjs.com/package/@ar-agents/identity" },
-      { label: "cuit-hello demo", href: "https://ar-agents-cuit-hello.vercel.app" },
+      { label: "cuit-hello demo", href: "https://cuit-hello.ar-agents.ar" },
     ],
   },
   {
     term: "Discovery",
     type: "concept",
     short: "The convention that lets a third party find a sociedad-IA's endpoints without prior knowledge.",
-    long: "RFC-002 specifies discovery via /.well-known/agents.json. RFC-002-v1.1 adds discovery via DNS TXT (planned). A regulator inspecting a sociedad-IA's URL never has to ask the operator where the audit endpoints are — they're at a fixed location.",
+    long: "RFC-002 specifies discovery via /.well-known/agents.json. RFC-002-v1.1 adds discovery via DNS TXT (planned). A regulator inspecting a sociedad-IA's URL never has to ask the operator where the audit endpoints are, they're at a fixed location.",
     refs: [
       { label: "RFC-002", href: "/rfcs/002" },
       { label: "Live manifest", href: "/.well-known/agents.json" },
@@ -155,7 +155,7 @@ const ENTRIES: ReadonlyArray<Entry> = [
     term: "MCP",
     type: "protocol",
     short: "Model Context Protocol. Anthropic / open spec for AI-agent tool servers.",
-    long: "@ar-agents/mcp wraps every /arg library (identity, mercadopago, whatsapp, banking, facturacion, shipping, igj, gde-tad, boletin-oficial, mi-argentina, firma-digital, identity-attest, mercadolibre) as MCP tools so Claude Desktop / Claude Code / ChatGPT MCP users can call them directly.",
+    long: "@ar-agents/mcp wraps every ar-agents library (identity, mercadopago, whatsapp, banking, facturacion, shipping, igj, gde-tad, boletin-oficial, mi-argentina, firma-digital, identity-attest, mercadolibre) as MCP tools so Claude Desktop / Claude Code / ChatGPT MCP users can call them directly.",
     refs: [
       { label: "@ar-agents/mcp", href: "https://www.npmjs.com/package/@ar-agents/mcp" },
       { label: "Repo", href: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp" },
@@ -165,7 +165,7 @@ const ENTRIES: ReadonlyArray<Entry> = [
     term: "Operator",
     type: "concept",
     short: "The human (or legal entity) responsible for a specific sociedad-IA.",
-    long: "Per RFC-001 § 4, the operator absorbs Layer 1 liability — actions tagged algorithm-only or requires-confirmation flow to them. CUIT-identified in the sociedad's well-known manifest. The operator does NOT necessarily code the sociedad; they configure it + accept its operating obligations.",
+    long: "Per RFC-001 § 4, the operator absorbs Layer 1 liability, actions tagged algorithm-only or requires-confirmation flow to them. CUIT-identified in the sociedad's well-known manifest. The operator does NOT necessarily code the sociedad; they configure it + accept its operating obligations.",
     refs: [{ label: "RFC-001 § 4", href: "/rfcs/001" }],
   },
   {
@@ -208,7 +208,7 @@ const ENTRIES: ReadonlyArray<Entry> = [
     term: "Sociedad-IA",
     type: "regime",
     short: "AI-only company under Argentina's proposed regime (Sturzenegger announcement 28-abr-2026).",
-    long: "Equivalent in scope to a Wyoming DAO LLC or a Marshall Islands MIDAO foundation. Operates autonomously through software agents; signs contracts; cobra; pays taxes. The sociedad-IA's legal personhood is what /arg's infrastructure underwrites.",
+    long: "Equivalent in scope to a Wyoming DAO LLC or a Marshall Islands MIDAO foundation. Operates autonomously through software agents; signs contracts; cobra; pays taxes. The sociedad-IA's legal personhood is what ar-agents's infrastructure underwrites.",
     refs: [{ label: "Political context", href: "/sociedades-ia" }, { label: "Manifiesto", href: "/manifiesto" }],
   },
   {
@@ -221,10 +221,10 @@ const ENTRIES: ReadonlyArray<Entry> = [
 ];
 
 export const metadata: Metadata = {
-  title: "/glossary · every term used across /arg, defined · ar-agents",
+  title: "/glossary · every term used across ar-agents, defined · ar-agents",
   description:
-    "Definitions of every term used in the /arg infrastructure + RFCs: agent, agents.json, AP2, append-only, audit log, canonical-JSON, certifier, CUIT, discovery, governance class, HMAC, incorporate, MCP, operator, RFCs 001-004, session, sociedad-IA, test vectors. Cross-linked + searchable.",
-  alternates: { canonical: "https://ar-agents.vercel.app/glossary" },
+    "Definitions of every term used in the ar-agents infrastructure + RFCs: agent, agents.json, AP2, append-only, audit log, canonical-JSON, certifier, CUIT, discovery, governance class, HMAC, incorporate, MCP, operator, RFCs 001-004, session, sociedad-IA, test vectors. Cross-linked + searchable.",
+  alternates: { canonical: "https://ar-agents.ar/glossary" },
 };
 
 export default function GlossaryPage() {
@@ -236,14 +236,14 @@ export default function GlossaryPage() {
         data={{
           "@context": "https://schema.org",
           "@type": "DefinedTermSet",
-          name: "/arg glossary",
+          name: "ar-agents glossary",
           inLanguage: ["en-US", "es-AR"],
-          url: "https://ar-agents.vercel.app/glossary",
+          url: "https://ar-agents.ar/glossary",
           hasDefinedTerm: sorted.map((e) => ({
             "@type": "DefinedTerm",
             name: e.term,
             description: `${e.short} ${e.long}`,
-            url: `https://ar-agents.vercel.app/glossary#${slug(e.term)}`,
+            url: `https://ar-agents.ar/glossary#${slug(e.term)}`,
           })),
         }}
       />
@@ -267,7 +267,7 @@ export default function GlossaryPage() {
               marginBottom: 8,
             }}
           >
-            /arg · /glossary · {sorted.length} terms · alphabetical
+            /glossary · {sorted.length} terms · alphabetical
           </p>
           <h1
             style={{
@@ -282,7 +282,7 @@ export default function GlossaryPage() {
             Glossary.
           </h1>
           <p style={{ fontSize: 16 }}>
-            Every term used across /arg, in one searchable page. For
+            Every term used across ar-agents, in one searchable page. For
             journalists writing their first piece, legislators reading
             the RFCs cold, developers integrating the libraries. Each
             entry links to its canonical reference on the site.
@@ -394,7 +394,7 @@ export default function GlossaryPage() {
             color: "var(--text-muted)",
           }}
         >
-          ar-agents.vercel.app ·{" "}
+          ar-agents.ar ·{" "}
           <Link href="/" style={linkSty}>/</Link>{" · "}
           <Link href="/rfcs/004" style={linkSty}>RFC-004</Link>{" · "}
           <Link href="/auditor" style={linkSty}>/auditor</Link>

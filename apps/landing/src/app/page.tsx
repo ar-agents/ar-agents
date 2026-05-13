@@ -9,15 +9,13 @@
 
 import { useCallback, useState } from "react";
 import { DemoTerminal } from "./demo-terminal";
+import { HeroDiagram } from "./hero-diagram";
 import { useLang, type Translations } from "./i18n";
 import { LiveChat } from "./live-chat";
 import { HomeJsonLd } from "./json-ld";
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
-
-const DEPLOY_URL =
-  "https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents&root-directory=apps%2Fmp-hello&env=MP_ACCESS_TOKEN%2CANTHROPIC_API_KEY%2CUPSTASH_REDIS_REST_URL%2CUPSTASH_REDIS_REST_TOKEN&envDescription=Mercado%20Pago%20access%20token%2C%20Anthropic%20API%20key%2C%20and%20Upstash%20Redis%20credentials.&envLink=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents%2Ftree%2Fmain%2Fapps%2Fmp-hello%23setup&project-name=mp-hello&repository-name=mp-hello";
 
 type Pkg = {
   name: string;
@@ -35,7 +33,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
     purposeKey: "pp_identity",
     npm: "https://www.npmjs.com/package/@ar-agents/identity",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity",
-    demo: "https://ar-agents-cuit-hello.vercel.app",
+    demo: "https://cuit-hello.ar-agents.ar",
   },
   {
     name: "@ar-agents/mi-argentina",
@@ -59,7 +57,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
     purposeKey: "pp_whatsapp",
     npm: "https://www.npmjs.com/package/@ar-agents/whatsapp",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/whatsapp",
-    demo: "https://ar-agents-whatsapp-hello.vercel.app",
+    demo: "https://whatsapp-hello.ar-agents.ar",
   },
   {
     name: "@ar-agents/facturacion",
@@ -131,7 +129,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
     purposeKey: "pp_agentic_commerce_bridge",
     npm: "https://www.npmjs.com/package/@ar-agents/agentic-commerce-bridge",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/agentic-commerce-bridge",
-    demo: "https://ar-agents-bridge-hello.vercel.app",
+    demo: "https://bridge-hello.ar-agents.ar",
   },
   {
     name: "@ar-agents/ap2",
@@ -147,7 +145,7 @@ const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
     purposeKey: "pp_incorporate",
     npm: "https://www.npmjs.com/package/@ar-agents/incorporate",
     github: "https://github.com/ar-agents/ar-agents/tree/main/packages/incorporate",
-    demo: "https://ar-agents.vercel.app/incorporar",
+    demo: "https://ar-agents.ar/incorporar",
   },
   {
     name: "@ar-agents/mcp",
@@ -170,7 +168,7 @@ type RowKey =
   | "compare_row_hitl"
   | "compare_row_coverage";
 
-type CellKey = keyof Translations | "✓" | "—" | "$" | "raw";
+type CellKey = keyof Translations | "✓" | "-" | "$" | "raw";
 type Cell = { key: CellKey; raw?: string };
 
 const COMPARISON_ROWS: ReadonlyArray<{
@@ -237,7 +235,7 @@ const COMPARISON_ROWS: ReadonlyArray<{
 
 function cellText(cell: Cell, t: Translations): string {
   if (cell.key === "raw") return cell.raw ?? "";
-  if (cell.key === "✓" || cell.key === "—" || cell.key === "$") return cell.key;
+  if (cell.key === "✓" || cell.key === "-" || cell.key === "$") return cell.key;
   return t[cell.key as keyof Translations];
 }
 
@@ -296,307 +294,15 @@ export default function Home() {
         background: "var(--bg)",
         fontFamily: FONT_SANS,
         color: "var(--text)",
-        padding: "80px 24px 120px",
+        padding: "48px 24px 120px",
       }}
     >
       <div style={{ maxWidth: 920, margin: "0 auto" }}>
-        {/* /ARG BANNER — the umbrella brand. The MP toolkit below is the
-            flagship; manifesto / sociedades-ia / rfc-001 link to the
-            broader narrative pages. */}
-        <section
-          aria-label={t.arg_banner_eyebrow}
-          style={{
-            marginBottom: 32,
-            padding: "16px 20px",
-            borderRadius: 8,
-            background: "var(--bg-tint)",
-            boxShadow: "var(--shadow-border)",
-            display: "flex",
-            flexWrap: "wrap",
-            alignItems: "center",
-            justifyContent: "space-between",
-            gap: 12,
-          }}
-        >
-          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <span
-              style={{
-                fontSize: 11,
-                fontFamily: FONT_MONO,
-                textTransform: "uppercase",
-                letterSpacing: "0.16em",
-                color: "var(--accent)",
-                fontWeight: 600,
-              }}
-            >
-              {t.arg_banner_eyebrow}
-            </span>
-            <span
-              style={{
-                fontSize: 14,
-                color: "var(--text-body)",
-                lineHeight: 1.5,
-              }}
-            >
-              {t.arg_banner_title}
-            </span>
-          </div>
-          <div
-            style={{
-              display: "flex",
-              gap: 14,
-              fontSize: 13,
-              fontFamily: FONT_MONO,
-            }}
-          >
-            <a
-              href="/manifiesto"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              {t.arg_banner_link_manifesto}
-            </a>
-            <a
-              href="/sociedades-ia"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              {t.arg_banner_link_sociedades}
-            </a>
-            <a
-              href="/rfcs/001"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              {t.arg_banner_link_rfcs}
-            </a>
-            <a
-              href="/architecture"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              architecture
-            </a>
-            <a
-              href="/security"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              security
-            </a>
-            <a
-              href="/play"
-              style={{ color: "var(--text)", textDecoration: "underline", fontWeight: 600 }}
-            >
-              play live ↗
-            </a>
-            <a
-              href="/video"
-              style={{ color: "var(--accent)", textDecoration: "underline", fontWeight: 600 }}
-              title="Video demo de una sociedad-IA en producción"
-            >
-              video ▶
-            </a>
-            <a
-              href="/al-ministro"
-              style={{ color: "var(--accent)", textDecoration: "underline", fontWeight: 600 }}
-              title="Carta abierta al Ministro Sturzenegger"
-            >
-              al ministro ✉
-            </a>
-            <a
-              href="/sdk"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              sdk
-            </a>
-            <a
-              href="/reference"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              reference
-            </a>
-            <a
-              href="/faq"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              faq
-            </a>
-            <a
-              href="/comparison"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              vs · global
-            </a>
-            <a
-              href="/getting-started"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              getting-started
-            </a>
-            <a
-              href="/changelog"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              changelog
-            </a>
-            <a
-              href="/walkthrough"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              walkthrough
-            </a>
-            <a
-              href="/embed"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              embed
-            </a>
-            <a
-              href="/codegen"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              codegen
-            </a>
-            <a
-              href="/data-room"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              data room
-            </a>
-            <a
-              href="/auditor"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              auditor
-            </a>
-            <a
-              href="/legislacion"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              legislación
-            </a>
-            <a
-              href="/registro"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              registro
-            </a>
-            <a
-              href="/test-vectors"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              test-vectors
-            </a>
-            <a
-              href="/certifier"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              certifier
-            </a>
-            <a
-              href="/status"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              status
-            </a>
-            <a
-              href="/verify"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              verify
-            </a>
-            <a
-              href="/examples"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              cookbook
-            </a>
-            <a
-              href="/templates"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              templates
-            </a>
-            <a
-              href="/incorporar"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              incorporar
-            </a>
-            <a
-              href="/playbook"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              playbook
-            </a>
-            <a
-              href="/vs"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              vs
-            </a>
-            <a
-              href="/marketplace"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              benchmark
-            </a>
-            <a
-              href="/press-kit"
-              style={{ color: "var(--text)", textDecoration: "underline" }}
-            >
-              press kit
-            </a>
-          </div>
-        </section>
-
-        {/* REGULATOR / POLICY ENTRYPOINT */}
-        <section
-          style={{
-            background: "var(--bg-tint)",
-            border: "1px solid var(--text-muted)",
-            borderRadius: 8,
-            padding: "16px 18px",
-            marginBottom: 32,
-            display: "grid",
-            gap: 8,
-          }}
-        >
-          <div
-            style={{
-              fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
-              fontSize: 11,
-              color: "var(--text-muted)",
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              fontWeight: 600,
-            }}
-          >
-            ¿Sos regulador, asesor de gobierno, periodista o reviewer?
-          </div>
-          <div style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.55 }}>
-            Cuatro puntos de entrada cortos:{" "}
-            <a href="/play" style={{ color: "var(--accent)" }}>
-              /play
-            </a>{" "}
-            (sociedad-IA en vivo, 30 segundos, sin setup),{" "}
-            <a href="/es/playbook" style={{ color: "var(--accent)" }}>
-              /es/playbook
-            </a>{" "}
-            (narrativa completa, español),{" "}
-            <a href="/rfcs/001" style={{ color: "var(--accent)" }}>
-              /rfcs/001
-            </a>{" "}
-            (marco de responsabilidad),{" "}
-            <a href="/press-kit" style={{ color: "var(--accent)" }}>
-              /press-kit
-            </a>{" "}
-            (datos verificables + contacto). Reunión:{" "}
-            <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>
-              naza@helloastro.co
-            </a>{" "}
-            — respuesta &lt;48hs.
-          </div>
-        </section>
-
+        {/* Legacy banner removed in cleanup. Top navigation lives in <Nav />
+            (layout.tsx). Audience-specific landings are linked from the
+            hero below. */}
         {/* HERO */}
-        <header style={{ marginBottom: 48 }}>
+        <header style={{ marginBottom: 56 }}>
           <p
             style={{
               fontSize: 12,
@@ -609,46 +315,31 @@ export default function Home() {
               fontFeatureSettings: '"liga", "tnum"',
             }}
           >
-            @ar-agents/mercadopago · v0.15.2
+            {lang === "es"
+              ? "Infraestructura abierta · MIT + CC-BY-4.0"
+              : "Open infrastructure · MIT + CC-BY-4.0"}
           </p>
           <h1
             style={{
-              // ES "Toolkit de Mercado Pago para Agentes." has 37 chars and
-              // needs to fit on one line at desktop widths (>=640px). Cap at
-              // 50px so it fits inside the 920px container without wrapping.
-              fontSize: "clamp(38px, 8vw, 50px)",
-              margin: "16px 0 20px",
+              fontSize: "clamp(38px, 7vw, 56px)",
+              margin: "12px 0 20px",
               fontWeight: 600,
-              lineHeight: 1.12,
-              letterSpacing: "-0.05em",
+              lineHeight: 1.08,
+              letterSpacing: "-0.035em",
               color: "var(--text)",
+              maxWidth: 820,
             }}
           >
-            {/* Responsive title.
-                ES desktop: "Toolkit de Mercado Pago para Agentes. / Hecho en Vercel." (2 lines)
-                ES mobile:  "Toolkit de / Mercado Pago / para Agentes. / Hecho en Vercel." (4 lines)
-                EN desktop: "Mercado Pago Agent Toolkit. / Built on Vercel." (2 lines)
-                EN mobile:  "Mercado Pago / Agent Toolkit. / Built on Vercel." (3 lines)
-                Mobile-only breaks use `.br-mobile` (display: none ≥640px). */}
-            {lang === "es" ? (
-              <>
-                Toolkit de<br className="br-mobile" /> Mercado Pago
-                <br className="br-mobile" /> para Agentes.
-              </>
-            ) : (
-              <>
-                Mercado Pago<br className="br-mobile" /> Agent Toolkit.
-              </>
-            )}
+            {t.hero_h1_l1}
             <br />
-            {t.hero_h1_l2}
+            <span style={{ color: "var(--text-muted)" }}>{t.hero_h1_l2}</span>
           </h1>
           <p
             style={{
               color: "var(--text-body)",
-              fontSize: "clamp(16px, 3.6vw, 20px)",
+              fontSize: "clamp(16px, 2.6vw, 19px)",
               margin: 0,
-              maxWidth: 720,
+              maxWidth: 680,
               lineHeight: 1.55,
             }}
           >
@@ -656,116 +347,24 @@ export default function Home() {
           </p>
           <div
             style={{
-              marginTop: 32,
+              marginTop: 28,
               display: "flex",
-              gap: 12,
+              gap: 10,
               flexWrap: "wrap",
             }}
           >
-            <a
-              href={DEPLOY_URL}
-              style={{
-                padding: "8px 16px",
-                background: "var(--primary-bg)",
-                color: "var(--primary-text)",
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                textDecoration: "none",
-                lineHeight: 1.43,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <svg
-                width="13"
-                height="11"
-                viewBox="0 0 1155 1000"
-                fill="currentColor"
-                aria-hidden="true"
-              >
-                <path d="m577.3 0 577.4 1000H0z" />
-              </svg>
-              {t.cta_deploy}
-            </a>
-            <a
-              href="https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago"
-              style={{
-                padding: "8px 16px",
-                background: "var(--primary-bg)",
-                color: "var(--primary-text)",
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                textDecoration: "none",
-                lineHeight: 1.43,
-                display: "inline-flex",
-                alignItems: "center",
-                gap: 8,
-              }}
-            >
-              <svg
-                width="15"
-                height="15"
-                viewBox="0 0 24 24"
-                fill="none"
-                stroke="currentColor"
-                strokeWidth="2"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                aria-hidden="true"
-              >
-                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
-                <path d="M9 18c-4.51 2-5-2-7-2" />
-              </svg>
-              {t.cta_github}
-            </a>
-            <a
-              href="https://www.npmjs.com/package/@ar-agents/mercadopago"
-              style={{
-                padding: "8px 16px",
-                background: "var(--bg)",
-                color: "var(--text)",
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                textDecoration: "none",
-                lineHeight: 1.43,
-                boxShadow: "var(--shadow-ring-light)",
-              }}
-            >
-              {t.cta_npm}
-            </a>
-            <a
-              href="https://github.com/ar-agents/ar-agents/tree/main/packages/mercadopago/cookbook"
-              style={{
-                padding: "8px 16px",
-                background: "var(--bg)",
-                color: "var(--text)",
-                borderRadius: 6,
-                fontSize: 14,
-                fontWeight: 500,
-                textDecoration: "none",
-                lineHeight: 1.43,
-                boxShadow: "var(--shadow-ring-light)",
-              }}
-            >
-              {t.cta_cookbook}
-            </a>
             <button
               type="button"
               onClick={toggleLive}
               aria-pressed={liveOpen}
               style={{
-                padding: "8px 16px",
-                background: "var(--bg)",
-                color: "var(--text)",
+                padding: "9px 16px",
+                background: "var(--primary-bg)",
+                color: "var(--primary-text)",
                 borderRadius: 6,
                 fontSize: 14,
                 fontWeight: 500,
                 lineHeight: 1.43,
-                boxShadow: "var(--shadow-ring-light)",
                 border: "none",
                 cursor: "pointer",
                 fontFamily: FONT_SANS,
@@ -782,14 +381,234 @@ export default function Home() {
                   height: 8,
                   borderRadius: 9999,
                   background: "var(--accent)",
-                  boxShadow: "0 0 0 4px rgba(0, 188, 255, 0.12)",
+                  boxShadow: "0 0 0 4px rgba(0, 188, 255, 0.18)",
                   animation: "demo-pulse 2s ease-in-out infinite",
                 }}
               />
               {t.cta_try_live}
             </button>
+            <a
+              href="/video"
+              style={{
+                padding: "9px 16px",
+                background: "var(--bg)",
+                color: "var(--text)",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: "none",
+                lineHeight: 1.43,
+                boxShadow: "var(--shadow-ring-light)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+              title={
+                lang === "es"
+                  ? "Demo en video, 2:30, una sociedad-IA argentina end-to-end"
+                  : "Video demo, 2:30, an AR sociedad-IA end-to-end"
+              }
+            >
+              <span aria-hidden="true">▶</span>
+              {lang === "es" ? "Ver demo (2:30)" : "Watch demo (2:30)"}
+            </a>
+            <a
+              href="/rfcs/001"
+              style={{
+                padding: "9px 16px",
+                background: "var(--bg)",
+                color: "var(--text)",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: "none",
+                lineHeight: 1.43,
+                boxShadow: "var(--shadow-ring-light)",
+              }}
+            >
+              {lang === "es" ? "Leer RFC-001" : "Read RFC-001"}
+            </a>
+            <a
+              href="https://github.com/ar-agents/ar-agents"
+              style={{
+                padding: "9px 16px",
+                background: "var(--bg)",
+                color: "var(--text)",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: "none",
+                lineHeight: 1.43,
+                boxShadow: "var(--shadow-ring-light)",
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+              }}
+            >
+              <svg
+                width="14"
+                height="14"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                aria-hidden="true"
+              >
+                <path d="M15 22v-4a4.8 4.8 0 0 0-1-3.5c3 0 6-2 6-5.5.08-1.25-.27-2.48-1-3.5.28-1.15.28-2.35 0-3.5 0 0-1 0-3 1.5-2.64-.5-5.36-.5-8 0C6 2 5 2 5 2c-.3 1.15-.3 2.35 0 3.5A5.403 5.403 0 0 0 4 9c0 3.5 3 5.5 6 5.5-.39.49-.68 1.05-.85 1.65-.17.6-.22 1.23-.15 1.85v4" />
+                <path d="M9 18c-4.51 2-5-2-7-2" />
+              </svg>
+              GitHub
+            </a>
+          </div>
+
+          {/* Audience signposts. Three concrete entry points by role. */}
+          <div
+            style={{
+              marginTop: 40,
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+              gap: 12,
+            }}
+          >
+            <AudienceCard
+              role={lang === "es" ? "Para developers" : "For developers"}
+              body={
+                lang === "es"
+                  ? "17 paquetes npm tipados para Vercel AI SDK 6. Cobrar, validar CUIT, mandar WhatsApp, emitir factura, monitorear el BO."
+                  : "17 typed npm packages for Vercel AI SDK 6. Charge, validate CUIT, send WhatsApp, emit invoice, monitor the gazette."
+              }
+              cta={lang === "es" ? "Ver SDK" : "Browse SDK"}
+              href="/sdk"
+            />
+            <AudienceCard
+              role={lang === "es" ? "Para reguladores" : "For regulators"}
+              body={
+                lang === "es"
+                  ? "Audit log forense con HMAC + Ed25519, verificable sin pedir la clave al operador. 1-pager imprimible."
+                  : "Forensic audit log with HMAC + Ed25519, verifiable without asking the operator for their key. Printable 1-pager."
+              }
+              cta={lang === "es" ? "Abrir /auditor" : "Open /auditor"}
+              href="/auditor"
+            />
+            <AudienceCard
+              role={lang === "es" ? "Para legisladores" : "For legislators"}
+              body={
+                lang === "es"
+                  ? "Síntesis técnica de los 5 RFCs con texto sugerido cite-by-reference. Para quien esté redactando la ley."
+                  : "Technical synthesis of the 5 RFCs with suggested cite-by-reference legislative text. For whoever is drafting the bill."
+              }
+              cta={lang === "es" ? "Abrir /legislación" : "Open /legislation"}
+              href={lang === "es" ? "/legislacion" : "/en/legislation"}
+            />
+          </div>
+
+          {/* Visual flow diagram, agent → ar-agents → AR state → audit
+              log. Sits between audience cards and stat strip; gives the
+              landing a single visual asset without animation. */}
+          <div
+            style={{
+              marginTop: 48,
+              padding: "20px 8px",
+              color: "var(--text-body)",
+              display: "flex",
+              justifyContent: "center",
+            }}
+          >
+            <HeroDiagram lang={lang} />
+          </div>
+
+          {/* Falsifiable stats strip. Every number links to a verifiable
+              source (npm org, RFC index, GitHub, registry). */}
+          <div
+            style={{
+              marginTop: 40,
+              paddingTop: 24,
+              borderTop: "1px solid var(--border-color)",
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+              gap: 0,
+            }}
+          >
+            <StatTile
+              n="17"
+              l={lang === "es" ? "Paquetes en npm" : "npm packages"}
+              href="https://www.npmjs.com/org/ar-agents"
+            />
+            <StatTile
+              n="5"
+              l="RFCs (CC-BY-4.0)"
+              href="/rfcs/001"
+            />
+            <StatTile
+              n="168"
+              l={lang === "es" ? "Tools tipadas" : "Typed tools"}
+              href="/sdk"
+            />
+            <StatTile
+              n="5"
+              l={lang === "es" ? "Implementaciones" : "Implementations"}
+              href="/registro"
+            />
+            <StatTile
+              n="100/100"
+              l={lang === "es" ? "Conformidad" : "Conformance"}
+              href="/certifier"
+            />
           </div>
         </header>
+
+        {/* SECTION FRAMING, the sections below are about the flagship
+            package (@ar-agents/mercadopago). Helps the reader who arrived
+            for the AI-corporations story understand why a MercadoPago demo
+            comes next. */}
+        <section
+          style={{
+            marginTop: 32,
+            marginBottom: 24,
+            paddingTop: 32,
+            borderTop: "1px solid var(--border-color)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 11,
+              fontFamily: FONT_MONO,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: "var(--text-muted)",
+              margin: "0 0 8px",
+              fontWeight: 600,
+            }}
+          >
+            {lang === "es" ? "Paquete insignia" : "Flagship package"}
+          </p>
+          <h2
+            style={{
+              fontSize: "clamp(22px, 4vw, 28px)",
+              fontWeight: 600,
+              margin: "0 0 8px",
+              letterSpacing: "-0.02em",
+              color: "var(--text)",
+            }}
+          >
+            @ar-agents/mercadopago
+          </h2>
+          <p
+            style={{
+              color: "var(--text-body)",
+              fontSize: 15,
+              margin: 0,
+              lineHeight: 1.55,
+              maxWidth: 680,
+            }}
+          >
+            {lang === "es"
+              ? "89 tools tipadas para Vercel AI SDK 6. Idempotencia determinística, HITL programático en operaciones irreversibles, verificación de webhook HMAC. La pieza más madura del stack, usada en demos productivos y referenciada por el resto del toolkit."
+              : "89 typed tools for Vercel AI SDK 6. Deterministic idempotency, programmatic HITL on irreversible operations, HMAC webhook verification. The most mature piece of the stack, used in productive demos and referenced by the rest of the toolkit."}
+          </p>
+        </section>
 
         {/* LIVE DEMO */}
         <section style={{ marginBottom: 96 }}>
@@ -1216,14 +1035,14 @@ export default function Home() {
               }}
             >
               <a
-                href="https://ar-agents-whatsapp-hello.vercel.app"
+                href="https://whatsapp-hello.ar-agents.ar"
                 style={{
                   color: "var(--accent)",
                   fontWeight: 500,
                   textDecoration: "underline",
                 }}
               >
-                ar-agents-whatsapp-hello.vercel.app
+                whatsapp-hello.ar-agents.ar
               </a>{" "}
               {" "}{t.comp_intro_a}
             </p>
@@ -1253,7 +1072,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FAQ — visible Q&A so the same content lives in the DOM that the
+        {/* FAQ, visible Q&A so the same content lives in the DOM that the
             FAQPage JSON-LD references. Search engines (and LLMs that don't
             execute scripts) prefer the rendered text. <details> elements
             collapse so it's not a wall of text on first paint. */}
@@ -1323,41 +1142,327 @@ export default function Home() {
         <footer
           style={{
             paddingTop: 40,
+            marginTop: 48,
             color: "var(--text-muted)",
             fontSize: 13,
-            display: "flex",
-            justifyContent: "space-between",
-            flexWrap: "wrap",
-            gap: 8,
+            display: "grid",
+            gap: 24,
             boxShadow: "inset 0 1px 0 var(--border-color)",
           }}
         >
-          <span>
-            {t.footer_by}{" "}
-            <a
-              href="https://github.com/naza00000"
-              style={{
-                color: "var(--text-body)",
-                textDecoration: "underline",
-              }}
-            >
-              Nazareno Clemente
-            </a>
-          </span>
-          <span>
-            <a
-              href="https://github.com/ar-agents/ar-agents/issues"
-              style={{
-                color: "var(--text-body)",
-                textDecoration: "underline",
-              }}
-            >
-              {t.footer_report}
-            </a>
-          </span>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))",
+              gap: 24,
+            }}
+          >
+            <div>
+              <p style={footerColHeading}>
+                {lang === "es" ? "Más" : "More"}
+              </p>
+              <ul style={footerListSty}>
+                <li>
+                  <a href="/cloud" style={footerLinkSty}>
+                    {lang === "es" ? "Cloud (comercial)" : "Cloud (commercial)"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/manifiesto" style={footerLinkSty}>
+                    {lang === "es" ? "Manifiesto" : "Manifesto"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/al-ministro" style={footerLinkSty}>
+                    {lang === "es" ? "Carta al ministro" : "Open letter"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/co-firmar" style={footerLinkSty}>
+                    {lang === "es" ? "Co-firmar RFC" : "Co-sign an RFC"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/faq" style={footerLinkSty}>FAQ</a>
+                </li>
+                <li>
+                  <a href="/timeline" style={footerLinkSty}>
+                    {lang === "es" ? "Cronología" : "Timeline"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/changelog" style={footerLinkSty}>Changelog</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <p style={footerColHeading}>
+                {lang === "es" ? "Para legisladores" : "For legislators"}
+              </p>
+              <ul style={footerListSty}>
+                <li>
+                  <a href="/gobierno" style={footerLinkSty}>
+                    {lang === "es" ? "Briefing para el Estado" : "Government briefing"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/economia-del-regimen" style={footerLinkSty}>
+                    {lang === "es" ? "Economía del régimen" : "Regime economics"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/vs-on-chain" style={footerLinkSty}>
+                    {lang === "es" ? "vs On-chain ($SAIRI)" : "vs On-chain"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/legislacion" style={footerLinkSty}>
+                    {lang === "es" ? "Síntesis legislativa" : "/legislación"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/en/legislation" style={footerLinkSty}>
+                    /en/legislation
+                  </a>
+                </li>
+                <li>
+                  <a href="/jurisdicciones" style={footerLinkSty}>
+                    {lang === "es" ? "Jurisdicciones" : "Jurisdictions"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/cite" style={footerLinkSty}>
+                    {lang === "es" ? "Generar cita" : "Cite generator"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/rfcs/001" style={footerLinkSty}>RFC-001</a>
+                </li>
+                <li>
+                  <a href="/rfcs/004" style={footerLinkSty}>RFC-004</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <p style={footerColHeading}>
+                {lang === "es" ? "Para reguladores" : "For regulators"}
+              </p>
+              <ul style={footerListSty}>
+                <li>
+                  <a href="/auditor" style={footerLinkSty}>/auditor</a>
+                </li>
+                <li>
+                  <a href="/certifier" style={footerLinkSty}>/certifier</a>
+                </li>
+                <li>
+                  <a href="/verify" style={footerLinkSty}>/verify</a>
+                </li>
+                <li>
+                  <a href="/dashboard" style={footerLinkSty}>/dashboard</a>
+                </li>
+                <li>
+                  <a href="/test-vectors" style={footerLinkSty}>/test-vectors</a>
+                </li>
+              </ul>
+            </div>
+            <div>
+              <p style={footerColHeading}>
+                {lang === "es" ? "Para developers" : "For developers"}
+              </p>
+              <ul style={footerListSty}>
+                <li>
+                  <a href="/sdk" style={footerLinkSty}>/sdk</a>
+                </li>
+                <li>
+                  <a href="/getting-started" style={footerLinkSty}>
+                    {lang === "es" ? "Empezar" : "Getting started"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/examples" style={footerLinkSty}>
+                    {lang === "es" ? "Recetario" : "Cookbook"}
+                  </a>
+                </li>
+                <li>
+                  <a href="/reference" style={footerLinkSty}>
+                    {lang === "es" ? "Referencia" : "Reference"}
+                  </a>
+                </li>
+              </ul>
+            </div>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 8,
+              paddingTop: 16,
+              borderTop: "1px solid var(--border-color)",
+            }}
+          >
+            <span>
+              MIT (code) + CC-BY-4.0 (specs) ·{" "}
+              <a
+                href="https://github.com/naza00000"
+                style={footerLinkSty}
+              >
+                Naza
+              </a>
+            </span>
+            <span style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+              <a href="https://github.com/ar-agents/ar-agents" style={footerLinkSty}>
+                GitHub
+              </a>
+              <a href="https://www.npmjs.com/org/ar-agents" style={footerLinkSty}>
+                npm
+              </a>
+              <a href="/feed.xml" style={footerLinkSty}>RSS</a>
+              <a
+                href="https://github.com/ar-agents/ar-agents/issues"
+                style={footerLinkSty}
+              >
+                {t.footer_report}
+              </a>
+            </span>
+          </div>
         </footer>
       </div>
       <HomeJsonLd />
     </main>
+  );
+}
+
+const footerColHeading: React.CSSProperties = {
+  fontSize: 11,
+  fontFamily: FONT_MONO,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "var(--text-muted)",
+  margin: "0 0 8px",
+  fontWeight: 600,
+};
+
+const footerListSty: React.CSSProperties = {
+  listStyle: "none",
+  padding: 0,
+  margin: 0,
+  display: "grid",
+  gap: 6,
+};
+
+const footerLinkSty: React.CSSProperties = {
+  color: "var(--text-body)",
+  textDecoration: "underline",
+};
+
+function StatTile({ n, l, href }: { n: string; l: string; href: string }) {
+  const isExternal = href.startsWith("http");
+  const content = (
+    <>
+      <div
+        style={{
+          fontSize: 26,
+          fontWeight: 400,
+          color: "var(--text)",
+          fontFamily: FONT_MONO,
+          lineHeight: 1.1,
+          letterSpacing: "-0.02em",
+        }}
+      >
+        {n}
+      </div>
+      <div
+        style={{
+          fontSize: 11,
+          letterSpacing: "0.06em",
+          textTransform: "uppercase",
+          color: "var(--text-muted)",
+          marginTop: 4,
+        }}
+      >
+        {l}
+      </div>
+    </>
+  );
+  const sty: React.CSSProperties = {
+    display: "block",
+    padding: "10px 6px",
+    textDecoration: "none",
+    color: "inherit",
+    textAlign: "left",
+  };
+  if (isExternal) {
+    return (
+      <a href={href} style={sty}>
+        {content}
+      </a>
+    );
+  }
+  return (
+    <a href={href} style={sty}>
+      {content}
+    </a>
+  );
+}
+
+function AudienceCard({
+  role,
+  body,
+  cta,
+  href,
+}: {
+  role: string;
+  body: string;
+  cta: string;
+  href: string;
+}) {
+  return (
+    <a
+      href={href}
+      style={{
+        display: "block",
+        padding: "16px 18px",
+        background: "var(--bg-tint)",
+        borderRadius: 8,
+        boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
+        textDecoration: "none",
+        color: "inherit",
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          fontFamily: FONT_MONO,
+          textTransform: "uppercase",
+          letterSpacing: "0.08em",
+          color: "var(--text-muted)",
+          marginBottom: 6,
+          fontWeight: 600,
+        }}
+      >
+        {role}
+      </div>
+      <p
+        style={{
+          fontSize: 14,
+          color: "var(--text-body)",
+          lineHeight: 1.5,
+          margin: "0 0 12px",
+        }}
+      >
+        {body}
+      </p>
+      <span
+        style={{
+          fontSize: 13,
+          color: "var(--accent)",
+          fontWeight: 500,
+          textDecoration: "underline",
+        }}
+      >
+        {cta} →
+      </span>
+    </a>
   );
 }

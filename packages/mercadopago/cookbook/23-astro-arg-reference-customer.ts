@@ -22,7 +22,7 @@
  * - Reversibility: if the new path doesn't pan out, deleting one route
  *   is trivial. Reverting a rewrite is days of work.
  * - Honesty: the migration log is observable. /case-studies/astro on
- *   ar-agents.vercel.app shows the feat-branch link AND notes that
+ *   ar-agents.ar shows the feat-branch link AND notes that
  *   /api/chat is unchanged. No fabricated claims.
  *
  * # When to use
@@ -74,7 +74,7 @@ REGLAS ESTRICTAS:
 - Para CUALQUIER tarea de operación AR, USÁ las tools. No describas lo que harías; ejecutalo.
 - Mantené las respuestas cortas — 2-4 oraciones más el dato relevante.
 - Si una tool devuelve "available: false", surfacealo verbatim al usuario. No alucines datos faltantes.
-- Para el padrón ARCA: si el adapter está unconfigured, DECILO y sugerí el wizard /incorporar de ar-agents.vercel.app.
+- Para el padrón ARCA: si el adapter está unconfigured, DECILO y sugerí el wizard /incorporar de ar-agents.ar.
 - Idioma: español rioplatense conversacional. No uses tú; usá vos.
 - Para temas FUERA de AR ops, rechazá una vez y redirigí.
 
@@ -181,7 +181,7 @@ export async function POST(req: Request) {
 //   github.com/naza00000/astro/tree/feat/ar-agents-cutover
 //
 // The case study page that documents the migration:
-//   ar-agents.vercel.app/case-studies/astro
+//   ar-agents.ar/case-studies/astro
 //
 // The /sdk doc + cookbook recipes 18-22 cover the patterns the cutover
 // uses (incorporate, audit log, multi-tenant, AP2, MP/AFIP reconciliation).

@@ -1,14 +1,14 @@
 /**
- * `GET /api/badge/[sessionId]` — shields.io-style verification badge.
+ * `GET /api/badge/[sessionId]`, shields.io-style verification badge.
  *
  * Returns a 24px SVG that an operator can embed in a README, status page,
  * or anywhere a forensic-clean claim is being asserted. The badge color +
  * label updates live based on the audit log's verification state:
  *
- *   `verified · 5/5`  — clean (blue)
- *   `tampered · 1`    — at least one entry tamper-detected (red)
- *   `no-hmac`         — AUDIT_HMAC_SECRET not configured (gray)
- *   `no entries`      — session id valid but log is empty (gray)
+ *   `verified · 5/5`, clean (blue)
+ *   `tampered · 1`  , at least one entry tamper-detected (red)
+ *   `no-hmac`       , AUDIT_HMAC_SECRET not configured (gray)
+ *   `no entries`    , session id valid but log is empty (gray)
  *
  * Why this matters: the badge propagates the forensic claim virally. An
  * AR sociedad-IA operator embeds it on their landing page, and any visitor
@@ -17,7 +17,7 @@
  *
  * Usage:
  *
- *   ![ar-agents audit](https://ar-agents.vercel.app/api/badge/{sessionId})
+ *   ![ar-agents audit](https://ar-agents.ar/api/badge/{sessionId})
  *
  * Cache-control: 60s. The audit log is append-only with HMAC, so a small
  * staleness window doesn't change the meaningful state.

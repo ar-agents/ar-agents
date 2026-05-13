@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Security threat model",
   description:
     "Explicit threat model for the @ar-agents/* stack: 14 attack surfaces, 14 mitigations, what's covered, what's outside scope.",
-  alternates: { canonical: "https://ar-agents.vercel.app/security" },
+  alternates: { canonical: "https://ar-agents.ar/security" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -38,7 +38,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T3",
     threat:
-      "Webhook spoofing — attacker crafts fake MP webhooks to mark fake payments as completed.",
+      "Webhook spoofing, attacker crafts fake MP webhooks to mark fake payments as completed.",
     mitigation:
       "verifyWebhookSignature() does HMAC-SHA256 over (id, request-id, ts) with the shared secret. Constant-time comparison defangs timing attacks. 5-minute replay-tolerance window rejects old signed payloads.",
     status: "in-toolkit",
@@ -46,7 +46,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T4",
     threat:
-      "Webhook replay — attacker re-plays a legitimately-signed webhook to trigger duplicate downstream actions.",
+      "Webhook replay, attacker re-plays a legitimately-signed webhook to trigger duplicate downstream actions.",
     mitigation:
       "WebhookDedup helper short-circuits duplicate webhook IDs server-side. Configurable TTL window (default 24h). Persisted via the same KV adapter the rest of the toolkit uses.",
     status: "in-toolkit",
@@ -54,7 +54,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T5",
     threat:
-      "Access token leak — MP/AFIP/Meta credentials end up in client-side JS bundles.",
+      "Access token leak, MP/AFIP/Meta credentials end up in client-side JS bundles.",
     mitigation:
       "MercadoPagoClient and WsfeClient throw at construction time when instantiated in a browser context (typeof window !== 'undefined' check). README warns 'use Server Components / Route Handlers / Server Actions only'. server-only side enforced; the agent loop runs on Edge or Node.",
     status: "in-toolkit",
@@ -62,7 +62,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T6",
     threat:
-      "AFIP cert exfiltration — private key in env vars ends up in logs / source maps / serverless cold-start traces.",
+      "AFIP cert exfiltration, private key in env vars ends up in logs / source maps / serverless cold-start traces.",
     mitigation:
       "Cert + key passed as PEM strings via env vars (Vercel secrets / AWS Secrets Manager / GCP Secret Manager). Never written to disk. The toolkit reads them once at boot, holds in memory, signs WSAA tokens with Web Crypto. RFC-001 § 3.2 mandates HSM/KMS for sociedades-IA in production.",
     status: "host-responsibility",
@@ -70,7 +70,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T7",
     threat:
-      "Supply-chain attack — malicious code injected into a published @ar-agents/* tarball.",
+      "Supply-chain attack, malicious code injected into a published @ar-agents/* tarball.",
     mitigation:
       "Every published tarball ships an SLSA v1 npm provenance attestation tying it to a specific GitHub commit + GitHub Actions runner. Verifiable via `npm view <pkg> dist.attestations` against Sigstore transparency log. OpenSSF Scorecard auto-audits 18 supply-chain practices weekly.",
     status: "in-toolkit",
@@ -78,7 +78,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T8",
     threat:
-      "Dependency confusion — attacker publishes a typo-squat (`@ar-agent/mercadopago`).",
+      "Dependency confusion, attacker publishes a typo-squat (`@ar-agent/mercadopago`).",
     mitigation:
       "Scoped npm org `@ar-agents` registered + locked to one publisher. Verified package metadata (homepage, repository, bugs.url) on every package. README badges + Glama listing + MCP Registry listing all cross-link to https://github.com/ar-agents/ar-agents.",
     status: "in-toolkit",
@@ -86,7 +86,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T9",
     threat:
-      "Hung agent / runaway loop — agent gets stuck retrying a failed tool call until quotas exhaust.",
+      "Hung agent / runaway loop, agent gets stuck retrying a failed tool call until quotas exhaust.",
     mitigation:
       "stopWhen: stepCountIs(N) caps agent steps. CircuitBreaker on every external API client (rolling-window failure threshold). Per-request timeout via AbortSignal propagation. MaxRetries default = 1 for state mutations, 3 for read-only lookups.",
     status: "in-toolkit",
@@ -94,15 +94,15 @@ const THREATS: ThreatRow[] = [
   {
     id: "T10",
     threat:
-      "Cross-tenant data leak — multi-tenant host fetches Tenant A's MP payments and Tenant B sees them.",
+      "Cross-tenant data leak, multi-tenant host fetches Tenant A's MP payments and Tenant B sees them.",
     mitigation:
-      "Each MercadoPagoClient instance is bound to one accessToken. State adapters keyed on a host-supplied tenantId. The toolkit doesn't share state across instances — host wires per-tenant adapters.",
+      "Each MercadoPagoClient instance is bound to one accessToken. State adapters keyed on a host-supplied tenantId. The toolkit doesn't share state across instances, host wires per-tenant adapters.",
     status: "host-responsibility",
   },
   {
     id: "T11",
     threat:
-      "Audit log tampering — attacker who breached the host modifies past tool-call records to cover their tracks.",
+      "Audit log tampering, attacker who breached the host modifies past tool-call records to cover their tracks.",
     mitigation:
       "AuditLogger wraps every tool call (input, output, duration, error) with an HMAC-signed timestamp using a separate audit secret. Append-only sink (Vercel KV, S3 with object lock, Postgres with row-level immutability). RFC-001 § 9.2 makes the log legally probative.",
     status: "in-toolkit",
@@ -110,7 +110,7 @@ const THREATS: ThreatRow[] = [
   {
     id: "T12",
     threat:
-      "OAuth token theft — marketplace seller's MP refresh-token leaked, attacker drains their account.",
+      "OAuth token theft, marketplace seller's MP refresh-token leaked, attacker drains their account.",
     mitigation:
       "VercelKVOAuthTokenStore (subpath `/vercel-kv`) encrypts at rest, scoped to your platform's Vercel project. Refresh tokens kept server-side. The toolkit's revoke_marketplace_token tool gated behind requireConfirmation (T2).",
     status: "in-toolkit",
@@ -120,13 +120,13 @@ const THREATS: ThreatRow[] = [
     threat:
       "Content injection in factura PDF (XSS via item description, or embedded executable).",
     mitigation:
-      "Item descriptions sanitized + length-capped before WSFE submit. AFIP's WSFE rejects malformed payloads server-side. PDF generation uses static templates with parameter binding — no user-supplied HTML/JS injection vector.",
+      "Item descriptions sanitized + length-capped before WSFE submit. AFIP's WSFE rejects malformed payloads server-side. PDF generation uses static templates with parameter binding, no user-supplied HTML/JS injection vector.",
     status: "in-toolkit",
   },
   {
     id: "T14",
     threat:
-      "Browser-fingerprint MP fraud detection bypass — attacker scripts payment flow to look like legitimate browser traffic.",
+      "Browser-fingerprint MP fraud detection bypass, attacker scripts payment flow to look like legitimate browser traffic.",
     mitigation:
       "Out of scope. MP's fraud team runs the detection; the toolkit's job is to surface their verdict via explainPaymentStatus(). Recipe 13 (anti-fraud middleware) layers additional pre-charge heuristics (CUIT validity, payer history, velocity, BCRA cross-check).",
     status: "out-of-scope",
@@ -148,7 +148,7 @@ const STATUS_COLOR: Record<ThreatRow["status"], string> = {
 export default function SecurityPage() {
   return (
     <DocShell
-      eyebrow="/arg · security · threat model"
+      eyebrow="security · threat model"
       title="Security threat model."
       subtitle="14 explicit threats, 14 explicit mitigations. What the toolkit covers, what the host is responsible for, what's out of scope. Updated for every release."
     >
@@ -167,12 +167,12 @@ export default function SecurityPage() {
           STRIDE + the OWASP LLM Top 10. Three statuses:
         </DocP>
         <DocP>
-          <strong>Mitigated by toolkit</strong> — code in @ar-agents/*
+          <strong>Mitigated by toolkit</strong>, code in @ar-agents/*
           eliminates or substantially raises the bar for the attack.{" "}
-          <strong>Host is responsible</strong> — the toolkit gives you
+          <strong>Host is responsible</strong>, the toolkit gives you
           the primitives but you have to wire them correctly (e.g.,
-          using HSM/KMS for cert storage). <strong>Out of scope</strong>{" "}
-          — the attack lives outside the boundary the toolkit can
+          using HSM/KMS for cert storage). <strong>Out of scope</strong>:{" "}
+        the attack lives outside the boundary the toolkit can
           reasonably defend.
         </DocP>
       </DocBlock>
@@ -258,8 +258,8 @@ export default function SecurityPage() {
       <DocP>
         If you find a security issue not covered above, please don&apos;t
         open a public GitHub issue. Email{" "}
-        <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>
-          naza@helloastro.co
+        <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
+          clementenaza@gmail.com
         </a>{" "}
         with details and proof-of-concept. We&apos;ll respond within 48
         hours and disclose responsibly per <DocCode>SECURITY.md</DocCode>{" "}

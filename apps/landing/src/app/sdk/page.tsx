@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "/sdk · @ar-agents/incorporate",
   description:
     "Zero-dependency TypeScript client for /api/auto-incorporate. One async call → an Argentine sociedad-IA's full incorporation kit. Works in Node 20+, Edge Runtime, CF Workers, Deno, browsers. SLSA v1 provenance.",
-  alternates: { canonical: "https://ar-agents.vercel.app/sdk" },
+  alternates: { canonical: "https://ar-agents.ar/sdk" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -56,7 +56,7 @@ const CHAIN_SESSIONS = `// Pass the same sessionId across multiple calls to chai
 // a single forensic timeline.
 const sessionId = crypto.randomUUID();
 
-const r1 = await incorporate({ /* ... */ , sessionId });
+const r1 = await incorporate({ /* ... */, sessionId });
 // later: more incorporations or /api/play tool calls under the same id
 
 const audit = await fetchAudit(sessionId, { verify: true });
@@ -87,7 +87,7 @@ try {
   }
 }`;
 
-const CURL_EQUIV = `curl -X POST https://ar-agents.vercel.app/api/auto-incorporate \\
+const CURL_EQUIV = `curl -X POST https://ar-agents.ar/api/auto-incorporate \\
   -H "content-type: application/json" \\
   -d '{
     "denominacion": "ACME-AI SAS",
@@ -99,7 +99,7 @@ const CURL_EQUIV = `curl -X POST https://ar-agents.vercel.app/api/auto-incorpora
 export default function SdkPage() {
   return (
     <DocShell
-      eyebrow="/arg · sdk · @ar-agents/incorporate"
+      eyebrow="sdk · @ar-agents/incorporate"
       title="The agent-economy entry point."
       subtitle="Zero-dependency TypeScript client for /api/auto-incorporate. One async call returns the full AR sociedad-IA incorporation kit: generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference."
     >
@@ -182,7 +182,7 @@ export default function SdkPage() {
           surface for an external orchestrator (USA-LLC agent, ChatGPT
           extension, Claude tool, custom pipeline) to programmatically
           self-incorporate an Argentine sociedad-IA. The package is a thin
-          fetch wrapper — no SDK gymnastics, no runtime adapters. The
+          fetch wrapper, no SDK gymnastics, no runtime adapters. The
           companion human-facing UI is at{" "}
           <a href="/incorporar" style={{ color: "var(--accent)" }}>
             /incorporar
@@ -237,8 +237,8 @@ export default function SdkPage() {
           <code style={inlineCode}>audit</code>:{" "}
           <code style={inlineCode}>
             {`{ sessionId, backend, entry, url, verifyUrl, dashboardUrl }`}
-          </code>{" "}
-          — share <code style={inlineCode}>dashboardUrl</code> for a
+          </code>:{" "}
+        share <code style={inlineCode}>dashboardUrl</code> for a
           forensic timeline page; query{" "}
           <code style={inlineCode}>verifyUrl</code> for a re-verification
           report
@@ -249,8 +249,8 @@ export default function SdkPage() {
         Validation failure (HTTP 422) returns:{" "}
         <code style={inlineCode}>
           {`{ ok: false, validation: { findings: [...] }, rfc001 }`}
-        </code>{" "}
-        — handled as a normal outcome the agent fixes and retries.
+        </code>:{" "}
+      handled as a normal outcome the agent fixes and retries.
       </DocP>
 
       <DocH2>Multi-step orchestration</DocH2>
@@ -290,7 +290,7 @@ export default function SdkPage() {
         visiting:
       </DocP>
       <CodeBlock>
-        {`![ar-agents audit](https://ar-agents.vercel.app/api/badge/{sessionId})`}
+        {`![ar-agents audit](https://ar-agents.ar/api/badge/{sessionId})`}
       </CodeBlock>
       <DocP>
         Color + label updates live based on the audit log's verification
@@ -310,7 +310,7 @@ export default function SdkPage() {
         that uses <code style={inlineCode}>@ar-agents/incorporate</code>{" "}
         to spin up an AR sociedad-IA, materialize the generated files,
         log the incorporation event, and verify the audit log before
-        proceeding — RFC-001 § 7 + § 9.2 in 100 lines:
+        proceeding, RFC-001 § 7 + § 9.2 in 100 lines:
       </DocP>
       <DocP>
         <a
@@ -324,29 +324,29 @@ export default function SdkPage() {
       <DocH2>API reference</DocH2>
       <ul style={listStyle}>
         <Li>
-          <code style={inlineCode}>incorporate(input, options?)</code> —
+          <code style={inlineCode}>incorporate(input, options?)</code>,
           POST. Returns success or validation-failure envelope.
         </Li>
         <Li>
-          <code style={inlineCode}>incorporateOrThrow(input, options?)</code>{" "}
-          — same as above but throws{" "}
+          <code style={inlineCode}>incorporateOrThrow(input, options?)</code>:{" "}
+        same as above but throws{" "}
           <code style={inlineCode}>IncorporateValidationError</code> on
           422.
         </Li>
         <Li>
-          <code style={inlineCode}>describe(options?)</code> — fetches the
+          <code style={inlineCode}>describe(options?)</code>, fetches the
           endpoint's self-description for capability discovery.
         </Li>
         <Li>
-          <code style={inlineCode}>fetchAudit(sessionId, options?)</code>{" "}
-          — fetches the session's audit log; pass{" "}
+          <code style={inlineCode}>fetchAudit(sessionId, options?)</code>:{" "}
+        fetches the session's audit log; pass{" "}
           <code style={inlineCode}>{`{ verify: true }`}</code> for HMAC
           verification report.
         </Li>
       </ul>
       <DocP>
         Full input/output types ship as{" "}
-        <code style={inlineCode}>.d.ts</code> — see{" "}
+        <code style={inlineCode}>.d.ts</code>, see{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/blob/main/packages/incorporate/src/index.ts"
           style={{ color: "var(--accent)" }}

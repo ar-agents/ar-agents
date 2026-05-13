@@ -4,8 +4,8 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 export const metadata: Metadata = {
   title: "/reference · every URL, endpoint, and package",
   description:
-    "Single-page index of every public surface ar-agents exposes — pages, hosted API endpoints, npm packages, well-known wells. Bookmarkable. Sharable. Agent-crawlable.",
-  alternates: { canonical: "https://ar-agents.vercel.app/reference" },
+    "Single-page index of every public surface ar-agents exposes, pages, hosted API endpoints, npm packages, well-known wells. Bookmarkable. Sharable. Agent-crawlable.",
+  alternates: { canonical: "https://ar-agents.ar/reference" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -54,7 +54,7 @@ const SECTIONS: Section[] = [
         label: "/verify",
         tone: "primary",
         description:
-          "Paste any session id, get an independent server-side HMAC verification report — entries / verified / tampered / backend / hmac-wired.",
+          "Paste any session id, get an independent server-side HMAC verification report, entries / verified / tampered / backend / hmac-wired.",
       },
       {
         url: "/incorporar",
@@ -130,7 +130,7 @@ const SECTIONS: Section[] = [
         label: "/sdk",
         tone: "primary",
         description:
-          "Docs for @ar-agents/incorporate — the npm-discoverable client for /api/auto-incorporate. Quickstart, API reference, multi-step orchestration.",
+          "Docs for @ar-agents/incorporate, the npm-discoverable client for /api/auto-incorporate. Quickstart, API reference, multi-step orchestration.",
       },
       {
         url: "/examples",
@@ -203,7 +203,7 @@ const SECTIONS: Section[] = [
         label: "POST /api/play/tamper-demo",
         tone: "infra",
         description:
-          "Read-only tampering demonstration. Educational — does not modify any real audit log.",
+          "Read-only tampering demonstration. Educational, does not modify any real audit log.",
       },
       {
         url: "/api/badge/{sessionId}",
@@ -237,7 +237,7 @@ const SECTIONS: Section[] = [
         url: "/.well-known/security.txt",
         label: "/.well-known/security.txt",
         tone: "infra",
-        description: "RFC 9116 — vulnerability disclosure policy + 48h response window.",
+        description: "RFC 9116, vulnerability disclosure policy + 48h response window.",
       },
       {
         url: "/llms.txt",
@@ -301,9 +301,9 @@ const TONE_COLOR: Record<Tone, { fg: string; bg: string }> = {
 export default function ReferencePage() {
   return (
     <DocShell
-      eyebrow="/arg · reference · index"
+      eyebrow="reference · index"
       title="Every URL, in one page."
-      subtitle="Bookmark this. Send the link. Crawl it. Every public surface ar-agents exposes — pages, hosted API endpoints, npm packages, well-known wells — with a one-line description per entry."
+      subtitle="Bookmark this. Send the link. Crawl it. Every public surface ar-agents exposes, pages, hosted API endpoints, npm packages, well-known wells, with a one-line description per entry."
     >
       <DocBlock>
         <DocP>

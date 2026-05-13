@@ -131,7 +131,7 @@ export async function exportSociedad(args: {
 
   const exportObj: SociedadExport = {
     $schema:
-      "https://ar-agents.vercel.app/schemas/sociedad-export.v1.json",
+      "https://ar-agents.ar/schemas/sociedad-export.v1.json",
     exportedAt: new Date().toISOString(),
     schemaVersion: "1.0",
     sociedad: args.sociedad,

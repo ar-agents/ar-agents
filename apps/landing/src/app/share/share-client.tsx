@@ -18,12 +18,12 @@ const SNIPPETS: ReadonlyArray<Snippet> = [
     title: "Tweet · launch announcement",
     body: `Argentina anunció sociedades-IA el 28-abr. Publiqué 4 RFCs + infraestructura open-source que la ley puede citar:
 
-· RFC-001 — responsabilidad civil (3 capas)
-· RFC-002 — descubrimiento
-· RFC-003 — reciprocidad cross-jurisdiccional
-· RFC-004 — log operativo
+· RFC-001, responsabilidad civil (3 capas)
+· RFC-002, descubrimiento
+· RFC-003, reciprocidad cross-jurisdiccional
+· RFC-004, log operativo
 
-Todo MIT + CC-BY-4.0. ar-agents.vercel.app`,
+Todo MIT + CC-BY-4.0. ar-agents.ar`,
     notes: "Best for: kickoff thread. Spanish, Argentina-centric. Aim at @cesargazzo (Subsec TIC) + @lasturze (Sturzenegger) for cross-pollination. Replies-friendly.",
   },
   {
@@ -32,7 +32,7 @@ Todo MIT + CC-BY-4.0. ar-agents.vercel.app`,
     title: "Tweet · /certifier launch",
     body: `Cualquiera puede verificar la conformidad de una sociedad-IA argentina en 10 segundos, sin install.
 
-→ ar-agents.vercel.app/certifier
+→ ar-agents.ar/certifier
 
 Pegás cualquier URL, scorea 0-100 contra RFC-002 + RFC-004.
 
@@ -47,7 +47,7 @@ Anyone, anywhere, no auth.`,
     title: "Tweet · test vectors / conformance",
     body: `Publiqué los 7 vectores de conformidad RFC-004 con valores hex deterministas.
 
-ar-agents.vercel.app/test-vectors
+ar-agents.ar/test-vectors
 
 Cualquier biblioteca (TS, Python, Go, Rust...) puede correr esos vectores y reclamar conformidad. La spec ya no es negociable; o pasa o no pasa.
 
@@ -60,7 +60,7 @@ La impl de referencia pasa los 7 (96 tests).`,
     title: "LinkedIn post · long narrative",
     body: `Hace un mes el ministro Sturzenegger anunció un régimen de sociedades-IA en Argentina.
 
-Decidí no esperar a que se publique el texto del proyecto de ley. La infraestructura técnica para que las sociedades-IA funcionen ya existe — había que escribirla.
+Decidí no esperar a que se publique el texto del proyecto de ley. La infraestructura técnica para que las sociedades-IA funcionen ya existe, había que escribirla.
 
 Publiqué 4 RFCs que cubren las cuatro decisiones clave que toda legislación de este tipo necesita resolver:
 
@@ -69,82 +69,82 @@ Publiqué 4 RFCs que cubren las cuatro decisiones clave que toda legislación de
 → Reciprocidad cross-jurisdiccional (RFC-003): envelope JSON portable para que una sociedad-IA argentina pueda probar transacciones con una Wyoming DAO LLC o una Estonia OÜ.
 → Log operativo (RFC-004): el formato exacto del registro auditable que cada sociedad debe llevar. Con 7 vectores de conformidad deterministas.
 
-Más: un certificador público que scorea cualquier URL 0-100 en 10 segundos (ar-agents.vercel.app/certifier), 17 npm packages que cubren MercadoPago, AFIP/ARCA, WhatsApp, banking, factura electrónica, etc., 26 cookbook recipes, 96 tests unitarios, una plantilla Vercel deployable, un wizard de auto-incorporación, un dashboard de auditoría con SSE en vivo.
+Más: un certificador público que scorea cualquier URL 0-100 en 10 segundos (ar-agents.ar/certifier), 17 npm packages que cubren MercadoPago, AFIP/ARCA, WhatsApp, banking, factura electrónica, etc., 26 cookbook recipes, 96 tests unitarios, una plantilla Vercel deployable, un wizard de auto-incorporación, un dashboard de auditoría con SSE en vivo.
 
 Todo MIT + CC-BY-4.0. Sin honorarios para consultas con asesores legislativos.
 
 La pregunta que sigue es política: ¿la ley va a citar este trabajo por referencia, o va a reinventar todo desde cero?
 
 Code: github.com/ar-agents/ar-agents
-Documentos para legisladores: ar-agents.vercel.app/legislacion
-Para regulators / journalists: ar-agents.vercel.app/auditor`,
-    notes: "Best for: LinkedIn — long-form is rewarded. Audience: techies + lawyers + policy folk. Tone: confident, not pushy. The 'sin honorarios' line is genuine + disarms.",
+Documentos para legisladores: ar-agents.ar/legislacion
+Para regulators / journalists: ar-agents.ar/auditor`,
+    notes: "Best for: LinkedIn, long-form is rewarded. Audience: techies + lawyers + policy folk. Tone: confident, not pushy. The 'sin honorarios' line is genuine + disarms.",
   },
   {
     id: "email-1-sturzenegger-asesor",
     audience: "email-asesor",
     title: "Email · cold to Sturzenegger / Desregulación asesor técnico",
-    body: `Asunto: Infraestructura técnica para sociedades-IA — RFCs publicados + listos para citar
+    body: `Asunto: Infraestructura técnica para sociedades-IA, RFCs publicados + listos para citar
 
 Estimado/a [nombre del asesor],
 
-Me presento: soy Nazareno Clemente, CUIT 20-41758101-5, autor de las RFCs y la infraestructura publicada en ar-agents.vercel.app.
+Me presento: soy Naza, autor de las RFCs y la infraestructura publicada en ar-agents.ar.
 
 Después del anuncio del Min. Sturzenegger del 28-abr-2026, dediqué el mes a publicar la infraestructura técnica que un régimen de sociedades-IA necesita para ser operativizable. El resultado:
 
-· 4 RFCs (responsabilidad civil, descubrimiento, reciprocidad cross-jurisdiccional, log operativo) — listos para citar por referencia en el articulado de la ley.
+· 4 RFCs (responsabilidad civil, descubrimiento, reciprocidad cross-jurisdiccional, log operativo), listos para citar por referencia en el articulado de la ley.
 · Especificación normativa del log con vectores de conformidad deterministas. Cualquier biblioteca pasa o no pasa los vectores; sin ambigüedad.
 · Certificador público que score 0-100 cualquier URL en 10 segundos contra las RFCs.
 · Implementación de referencia (open-source) que se auto-certifica 100/100.
-· Plantilla deployable + wizard de auto-incorporación — facilita el cumplimiento técnico para operadores.
+· Plantilla deployable + wizard de auto-incorporación, facilita el cumplimiento técnico para operadores.
 
 Todo MIT + CC-BY-4.0. No tengo costo de consultoría para este tipo de conversaciones; el trabajo está hecho + el código es público.
 
-Adjunto la síntesis técnica de 10 minutos para legisladores: ar-agents.vercel.app/legislacion
+Adjunto la síntesis técnica de 10 minutos para legisladores: ar-agents.ar/legislacion
 
 Quedo disponible para una reunión técnica si encuentran útil el trabajo. Cualquier crítica al diseño es bienvenida vía GitHub Discussions; el proceso es público.
 
 Saludos,
-Nazareno Clemente
-naza@helloastro.co
+Naza
+clementenaza@gmail.com
 Monte Grande, BA`,
-    notes: "Best for: cold outreach to ministerial staff. Argentine Spanish, formal but not stiff. Lead with credentials (CUIT) + the work. Single ask at the end (meeting). Attach NOTHING — link out.",
+    notes: "Best for: cold outreach to ministerial staff. Argentine Spanish, formal but not stiff. Lead with credentials (CUIT) + the work. Single ask at the end (meeting). Attach NOTHING, link out.",
   },
   {
     id: "email-2-press-international",
     audience: "email-journalist",
     title: "Email · international journalist (English)",
-    body: `Subject: Argentina's proposed AI-corporation regime — published open-source infrastructure
+    body: `Subject: Argentina's proposed AI-corporation regime, published open-source infrastructure
 
 Dear [Journalist Name],
 
-I'm writing because you covered [recent piece by them — paste link here].
+I'm writing because you covered [recent piece by them, paste link here].
 
 Argentina announced an "AI corporation" (sociedad-IA) regime on April 28, 2026. I'm not a government employee; I'm a Buenos Aires-based engineer who decided not to wait for the law text and instead published the technical infrastructure such a regime would need.
 
-The result is four RFCs + an open-source reference implementation at ar-agents.vercel.app:
+The result is four RFCs + an open-source reference implementation at ar-agents.ar:
 
-1. RFC-001 — Three-layer civil-liability framework (operator / AI corporation / model provider).
-2. RFC-002 — Discovery via /.well-known/agents.json. No central registry.
-3. RFC-003 — Portable envelope for cross-jurisdictional reciprocity (AR ↔ Wyoming DAO ↔ MIDAO ↔ Estonia OÜ).
-4. RFC-004 — Normative wire format for the operational log every AI corporation must keep. 7 frozen conformance vectors with hex-exact HMAC values.
+1. RFC-001, Three-layer civil-liability framework (operator / AI corporation / model provider).
+2. RFC-002, Discovery via /.well-known/agents.json. No central registry.
+3. RFC-003, Portable envelope for cross-jurisdictional reciprocity (AR ↔ Wyoming DAO ↔ MIDAO ↔ Estonia OÜ).
+4. RFC-004, Normative wire format for the operational log every AI corporation must keep. 7 frozen conformance vectors with hex-exact HMAC values.
 
 There's a public certifier at /certifier that scores any URL 0-100 against RFC-002 + RFC-004 in seconds. The reference implementation self-certifies at 100/100.
 
 Why this might matter for international coverage:
 
 · It's the first concrete technical scaffolding for an AI-agent legal personhood regime, with versioned + frozen specs that legislation can cite by reference.
-· It's jurisdiction-agnostic — Wyoming, Marshall Islands, Estonia, Delaware could adopt the same RFCs with one-line legislative cites.
+· It's jurisdiction-agnostic, Wyoming, Marshall Islands, Estonia, Delaware could adopt the same RFCs with one-line legislative cites.
 · It's MIT + CC-BY-4.0. No vendor lock-in.
 
-English synthesis at: ar-agents.vercel.app/en/legislation
-Spanish (for AR legislators) at: ar-agents.vercel.app/legislacion
+English synthesis at: ar-agents.ar/en/legislation
+Spanish (for AR legislators) at: ar-agents.ar/legislacion
 
 Happy to be a technical source on this. CV/links on request.
 
 Best,
-Nazareno Clemente
-naza@helloastro.co
+Naza
+clementenaza@gmail.com
 +34 695 63 22 37`,
     notes: "Best for: international press. English. Lead with their recent work (personalize). The 'jurisdiction-agnostic' angle is the international hook. Phone number signals seriousness.",
   },
@@ -152,17 +152,17 @@ naza@helloastro.co
     id: "email-3-regulator-aaip",
     audience: "email-regulator",
     title: "Email · AAIP / data-protection regulator",
-    body: `Asunto: Especificación abierta del log operativo para sociedades-IA — implicancias en Ley 25.326
+    body: `Asunto: Especificación abierta del log operativo para sociedades-IA, implicancias en Ley 25.326
 
 Estimado/a [nombre],
 
 Le escribo en relación con el anuncio del régimen de sociedades-IA del 28-abr-2026 y su intersección con la Ley 25.326 de protección de datos personales.
 
-Publiqué una especificación normativa abierta del log operativo que toda sociedad-IA debería mantener (RFC-004, ar-agents.vercel.app/rfcs/004). El documento toma posiciones explícitas sobre:
+Publiqué una especificación normativa abierta del log operativo que toda sociedad-IA debería mantener (RFC-004, ar-agents.ar/rfcs/004). El documento toma posiciones explícitas sobre:
 
 · Mínimo de retención: 180 días (suficiente para chargebacks + reclamos operativos típicos).
 · Máximo de retención: 5 años (cobertura prescripción fiscal AFIP); después debe purgarse o re-firmarse.
-· Campos prohibidos en el log: contraseñas, claves privadas, tokens, API keys — la biblioteca de referencia los scrubea antes de escribir.
+· Campos prohibidos en el log: contraseñas, claves privadas, tokens, API keys, la biblioteca de referencia los scrubea antes de escribir.
 · Derecho de borrado (art. 16 Ley 25.326): el RFC v1.1 prevé un campo retentionClass = "privacy-erased" donde el contenido se reemplaza por null pero metadata + HMAC se preservan para integridad de cadena.
 
 El diseño busca explícitamente reconciliar la auditabilidad regulatoria con los derechos de protección de datos. La discusión pública está abierta en github.com/ar-agents/ar-agents/discussions.
@@ -170,9 +170,9 @@ El diseño busca explícitamente reconciliar la auditabilidad regulatoria con lo
 Si encuentran útil dialogar sobre el diseño desde la perspectiva de AAIP, quedo a disposición. Toda crítica que mejore el spec beneficia a cualquier operador futuro.
 
 Saludos,
-Nazareno Clemente
-naza@helloastro.co`,
-    notes: "Best for: AAIP staff or analogous data-protection lawyers. Argentine Spanish. Demonstrate that you've already thought about Ley 25.326 — that establishes credibility instantly with this audience.",
+Naza
+clementenaza@gmail.com`,
+    notes: "Best for: AAIP staff or analogous data-protection lawyers. Argentine Spanish. Demonstrate that you've already thought about Ley 25.326, that establishes credibility instantly with this audience.",
   },
 ];
 
@@ -229,7 +229,7 @@ export function ShareClient() {
             marginBottom: 8,
           }}
         >
-          /arg · /share · copy-paste · cc-by-4.0
+          /share · copy-paste · cc-by-4.0
         </p>
         <h1
           style={{
@@ -244,9 +244,9 @@ export function ShareClient() {
           Prepared social + email templates.
         </h1>
         <p style={{ fontSize: 16 }}>
-          Copy-paste-ready drafts for sharing /arg. Twitter, LinkedIn,
+          Copy-paste-ready drafts for sharing ar-agents. Twitter, LinkedIn,
           and three email templates (ministry asesor, journalist,
-          regulator). CC-BY-4.0 — use freely, modify, attribute the spec
+          regulator). CC-BY-4.0, use freely, modify, attribute the spec
           if you keep large chunks.
         </p>
       </header>
@@ -345,7 +345,7 @@ export function ShareClient() {
           color: "var(--text-muted)",
         }}
       >
-        ar-agents.vercel.app ·{" "}
+        ar-agents.ar ·{" "}
         <Link href="/" style={linkSty}>/</Link>{" · "}
         <Link href="/auditor" style={linkSty}>/auditor</Link>{" · "}
         <Link href="/legislacion" style={linkSty}>/legislación</Link>{" · "}

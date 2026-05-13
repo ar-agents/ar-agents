@@ -1,12 +1,12 @@
 /**
  * GET /api/stats
  *
- * Single aggregate JSON of live numbers about /arg. Pulls:
+ * Single aggregate JSON of live numbers about ar-agents. Pulls:
  *   - npm download counts (last 30 days) per package from
  *     api.npmjs.org/downloads/point/last-month/<pkg>
  *   - GitHub stars/forks/open-issues from api.github.com/repos/...
  *   - Cookbook recipe count (filesystem)
- *   - vitest test count (rough — counts test files)
+ *   - vitest test count (rough, counts test files)
  *   - RFC count (filesystem)
  *   - JSON schema count (filesystem)
  *   - Frozen test-vectors files (filesystem)
@@ -27,7 +27,7 @@ import path from "node:path";
 export const runtime = "nodejs";
 export const revalidate = 21600; // 6h
 
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 
 const PACKAGES = [
   "@ar-agents/identity",
@@ -50,11 +50,11 @@ const PACKAGES = [
 ];
 
 const REGISTRY_URLS = [
-  "https://ar-agents.vercel.app",
-  "https://ar-agents-mp-hello.vercel.app",
-  "https://ar-agents-cuit-hello.vercel.app",
-  "https://ar-agents-whatsapp-hello.vercel.app",
-  "https://ar-agents-bridge-hello.vercel.app",
+  "https://ar-agents.ar",
+  "https://mp-hello.ar-agents.ar",
+  "https://cuit-hello.ar-agents.ar",
+  "https://whatsapp-hello.ar-agents.ar",
+  "https://bridge-hello.ar-agents.ar",
 ];
 
 interface Stats {
@@ -71,6 +71,8 @@ interface Stats {
     forks: number;
     openIssues: number;
     url: string;
+    /** Present when the GitHub API call failed (rate-limit, network, etc). */
+    error?: string;
   };
   artifacts: {
     rfcsCount: number;
@@ -126,9 +128,25 @@ async function npmStats(): Promise<Stats["npm"]> {
 
 async function githubStats(): Promise<Stats["github"]> {
   const url = "https://api.github.com/repos/ar-agents/ar-agents";
-  const r = await fetchOk(url);
+  // GitHub recommends using a Personal Access Token (PAT) in
+  // GITHUB_TOKEN env to lift the 60 req/hr unauthenticated cap to
+  // 5000 req/hr. Falls back gracefully without one.
+  const token = process.env.GITHUB_TOKEN?.trim();
+  const r = await fetchOk(url, {
+    headers: token ? { authorization: `Bearer ${token}` } : undefined,
+  });
+  const fallback = {
+    stars: 0,
+    forks: 0,
+    openIssues: 0,
+    url: "https://github.com/ar-agents/ar-agents",
+  };
   if (!r) {
-    return { stars: 0, forks: 0, openIssues: 0, url: "https://github.com/ar-agents/ar-agents" };
+    // Surface the failure explicitly so the stats consumer can
+    // distinguish "zero stars" from "fetch failed". Without this the
+    // stats look healthy even when the GitHub call rate-limited or
+    // network-errored.
+    return { ...fallback, error: "github_api_unreachable" };
   }
   const d = (await r.json()) as {
     stargazers_count?: number;
@@ -140,7 +158,7 @@ async function githubStats(): Promise<Stats["github"]> {
     stars: d.stargazers_count ?? 0,
     forks: d.forks_count ?? 0,
     openIssues: d.open_issues_count ?? 0,
-    url: d.html_url ?? "https://github.com/ar-agents/ar-agents",
+    url: d.html_url ?? fallback.url,
   };
 }
 
@@ -199,7 +217,7 @@ async function conformanceStats(): Promise<Stats["conformance"]> {
     timeoutMs: 15000,
   });
   const self = selfR ? ((await selfR.json()) as { score?: number; rating?: string }) : null;
-  // Other sociedades — count those at 100.
+  // Other sociedades, count those at 100.
   const others = await Promise.all(
     REGISTRY_URLS.filter((u) => u !== SITE).map(async (url) => {
       const r = await fetchOk(

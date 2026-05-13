@@ -17,11 +17,11 @@ import { isSessionIdValid, readAudit } from "@/lib/audit";
 
 export const runtime = "nodejs";
 
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 
 const ISSUER_AR = {
   jurisdiction: "AR" as const,
-  entityId: "ar-sociedad:20-41758101-5",
+  entityId: "ar-sociedad:reference-impl",
   evidenceCustodyUrl: `${SITE}/api/play/audit/{sessionId}?verify=1`,
   publicKey: {
     kty: "oct",

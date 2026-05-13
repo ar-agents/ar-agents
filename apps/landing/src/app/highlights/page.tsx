@@ -3,7 +3,7 @@ import Link from "next/link";
 import { JsonLd } from "../json-ld";
 
 /**
- * /highlights — single-page "what /arg is" for anyone arriving cold.
+ * /highlights, single-page "what ar-agents is" for anyone arriving cold.
  *
  * Different from:
  *   - /auditor (regulators / journalists, Spanish-first, audit-focused)
@@ -11,8 +11,8 @@ import { JsonLd } from "../json-ld";
  *   - /sociedades-ia (political context)
  *   - /sdk, /reference, /architecture (developer-focused)
  *
- * /highlights is for ANYONE — investor, recruiter, ally, friend asking
- * "what's /arg, in 90 seconds?" The page is short, image-heavy
+ * /highlights is for ANYONE, investor, recruiter, ally, friend asking
+ * "what's ar-agents, in 90 seconds?" The page is short, image-heavy
  * (cert badge embedded), CTA-rich.
  */
 
@@ -20,10 +20,10 @@ export const runtime = "nodejs";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
-  title: "/highlights · what /arg is, in 90 seconds · ar-agents",
+  title: "/highlights · what ar-agents is, in 90 seconds · ar-agents",
   description:
-    "What ar-agents is, in 90 seconds: open-source infrastructure for Argentine sociedades-IA. 5 RFCs, 30 cookbook recipes, public certifier scoring 100/100. For anyone arriving cold — investor, recruiter, journalist, ally.",
-  alternates: { canonical: "https://ar-agents.vercel.app/highlights" },
+    "What ar-agents is, in 90 seconds: open-source infrastructure for Argentine sociedades-IA. 5 RFCs, 30 cookbook recipes, public certifier scoring 100/100. For anyone arriving cold, investor, recruiter, journalist, ally.",
+  alternates: { canonical: "https://ar-agents.ar/highlights" },
 };
 
 export default function HighlightsPage() {
@@ -33,13 +33,13 @@ export default function HighlightsPage() {
         data={{
           "@context": "https://schema.org",
           "@type": "WebPage",
-          name: "/highlights — what /arg is in 90 seconds",
-          url: "https://ar-agents.vercel.app/highlights",
+          name: "/highlights, what ar-agents is in 90 seconds",
+          url: "https://ar-agents.ar/highlights",
           inLanguage: ["en-US", "es-AR"],
           isPartOf: {
             "@type": "WebSite",
             name: "ar-agents",
-            url: "https://ar-agents.vercel.app",
+            url: "https://ar-agents.ar",
           },
         }}
       />
@@ -64,7 +64,7 @@ export default function HighlightsPage() {
               fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
             }}
           >
-            /arg · /highlights · 90-second read · 2026-05-11
+            /highlights · 90-second read · 2026-05-11
           </p>
           <h1
             style={{
@@ -106,12 +106,12 @@ export default function HighlightsPage() {
           }}
         >
           <a
-            href="/certifier?url=https://ar-agents.vercel.app"
+            href="/certifier?url=https://ar-agents.ar"
             style={{ display: "block", textDecoration: "none" }}
             title="Run live RFC-002+004 conformance check"
           >
             <img
-              src="/api/cert-badge?url=https://ar-agents.vercel.app"
+              src="/api/cert-badge?url=https://ar-agents.ar"
               alt="RFC-002+004: A · 100/100"
               width="240"
               height="30"
@@ -149,14 +149,14 @@ export default function HighlightsPage() {
           </P>
           <ul style={ulSty}>
             <li style={liSty}>
-              <strong>Civil liability</strong> — RFC-001 specifies a
+              <strong>Civil liability</strong>, RFC-001 specifies a
               three-layer framework (operator / sociedad-IA / model
               provider) anchored to the governance class tag on each
               action.{" "}
               <A href="/rfcs/001">Read RFC-001</A>
             </li>
             <li style={liSty}>
-              <strong>Operational evidence</strong> — RFC-004 pins
+              <strong>Operational evidence</strong>, RFC-004 pins
               down the wire format of the audit log every sociedad
               must keep. With 7 hex-exact test vectors. The reference
               impl passes byte-for-byte.{" "}
@@ -164,7 +164,7 @@ export default function HighlightsPage() {
               <A href="/test-vectors">View vectors</A>
             </li>
             <li style={liSty}>
-              <strong>Public verifiability</strong> — anyone can paste
+              <strong>Public verifiability</strong>, anyone can paste
               any URL into the certifier and get a 0-100 score in
               seconds. No install. No auth.{" "}
               <A href="/certifier">Open /certifier</A>
@@ -175,18 +175,18 @@ export default function HighlightsPage() {
         <Section title="Three URLs to bookmark">
           <ul style={ulSty}>
             <li style={liSty}>
-              <A href="/auditor">/auditor</A> — Spanish-first 1-page
+              <A href="/auditor">/auditor</A>, Spanish-first 1-page
               regulator brief. Print-friendly. For journalists,
               inspectors, asesores who arrive cold.
             </li>
             <li style={liSty}>
               <A href="/legislacion">/legislación</A>{" / "}
-              <A href="/en/legislation">/en/legislation</A> — Bilingual
+              <A href="/en/legislation">/en/legislation</A>, Bilingual
               synthesis with suggested cite-by-reference legislative
               text. For ministry staff drafting the bill.
             </li>
             <li style={liSty}>
-              <A href="/registro">/registro</A> — Public list of
+              <A href="/registro">/registro</A>, Public list of
               implementations with live cert badges + conformance
               sparklines. For anyone who wants proof we ship.
             </li>
@@ -255,11 +255,11 @@ export default function HighlightsPage() {
 
         <Section title="Contact">
           <P>
-            <strong>Nazareno Clemente</strong> · author + maintainer ·
-            CUIT 20-41758101-5 · Monte Grande, BA, Argentina.
+            <strong>Naza</strong> · author + maintainer ·
+            Monte Grande, BA, Argentina.
           </P>
           <P>
-            <A href="mailto:naza@helloastro.co">naza@helloastro.co</A>{" · "}
+            <A href="mailto:clementenaza@gmail.com">clementenaza@gmail.com</A>{" · "}
             <A href="https://github.com/ar-agents/ar-agents/discussions">
               github discussions
             </A>
@@ -276,7 +276,7 @@ export default function HighlightsPage() {
             color: "var(--text-muted)",
           }}
         >
-          ar-agents.vercel.app · MIT (code) + CC-BY-4.0 (specs) ·{" "}
+          ar-agents.ar · MIT (code) + CC-BY-4.0 (specs) ·{" "}
           <Link href="/" style={linkSty}>/</Link>{" · "}
           <Link href="/timeline" style={linkSty}>/timeline</Link>{" · "}
           <Link href="/feed.xml" style={linkSty}>/feed.xml</Link>

@@ -6,8 +6,8 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 export const metadata: Metadata = {
   title: "/data-room · real numbers, verifiable end-to-end",
   description:
-    "Every number a journalist, investor, or regulator might cite — pulled live from npm + GitHub + the filesystem at build time. Each number links to the source so the recipient can re-verify. Refresh: 6 hours.",
-  alternates: { canonical: "https://ar-agents.vercel.app/data-room" },
+    "Every number a journalist, investor, or regulator might cite, pulled live from npm + GitHub + the filesystem at build time. Each number links to the source so the recipient can re-verify. Refresh: 6 hours.",
+  alternates: { canonical: "https://ar-agents.ar/data-room" },
   robots: { index: true, follow: true },
 };
 
@@ -174,7 +174,7 @@ async function countPagesRecursive(dir: string): Promise<number> {
   return count;
 }
 
-function fmt(n: number | null, fallback = "—"): string {
+function fmt(n: number | null, fallback = "-"): string {
   if (n === null || n === undefined) return fallback;
   if (n < 1000) return String(n);
   if (n < 1_000_000) return `${(n / 1000).toFixed(1)}K`;
@@ -197,9 +197,9 @@ export default async function DataRoomPage() {
 
   return (
     <DocShell
-      eyebrow="/arg · data room · real numbers"
+      eyebrow="data room · real numbers"
       title="Data room."
-      subtitle="Every number a journalist, investor, or regulator might cite — pulled live from npm + GitHub + the filesystem at build time. Each number links the receipt; if you doubt it, the source is one click away."
+      subtitle="Every number a journalist, investor, or regulator might cite, pulled live from npm + GitHub + the filesystem at build time. Each number links the receipt; if you doubt it, the source is one click away."
     >
       <DocBlock>
         <DocP>
@@ -255,7 +255,7 @@ export default async function DataRoomPage() {
         <Metric
           label="Last push"
           value={
-            repoStats.pushedAt ? repoStats.pushedAt.slice(0, 10) : "—"
+            repoStats.pushedAt ? repoStats.pushedAt.slice(0, 10) : "-"
           }
           sub="auto-pulled from GitHub API"
         />
@@ -495,7 +495,7 @@ export default async function DataRoomPage() {
           <strong>Hand-curated numbers</strong>. Every number on this
           page comes from an API call or filesystem read. If you find
           a number you can't reproduce from the URLs above, file an
-          issue — it's a bug.
+          issue, it's a bug.
         </li>
       </ul>
 
@@ -514,7 +514,7 @@ export default async function DataRoomPage() {
           /es/playbook
         </a>{" "}
         cover the technical thesis. The{" "}
-        <a href="/comparison" style={{ color: "var(--accent)" }}>
+        <a href="/vs" style={{ color: "var(--accent)" }}>
           /comparison
         </a>{" "}
         page positions vs. Wyoming DAO LLC / MIDAO / Estonia / Delaware
@@ -524,10 +524,10 @@ export default async function DataRoomPage() {
         </a>{" "}
         deep-dive is the moat (the forensic primitive Wyoming / MIDAO
         haven&apos;t shipped). For a 20-min intro call:{" "}
-        <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>
-          naza@helloastro.co
-        </a>{" "}
-        — &lt;48h response.
+        <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
+          clementenaza@gmail.com
+        </a>:{" "}
+      &lt;48h response.
       </DocP>
 
       <DocH2>For journalists</DocH2>
@@ -540,7 +540,7 @@ export default async function DataRoomPage() {
           /press-kit
         </a>{" "}
         has the one-pager + citable quotes; the{" "}
-        <a href="/walkthrough" style={{ color: "var(--accent)" }}>
+        <a href="/play" style={{ color: "var(--accent)" }}>
           /walkthrough
         </a>{" "}
         page lets you run the live demo in 90 seconds.

@@ -192,7 +192,7 @@ function recordFor(
     deployUrl: result.deploy.oneClickUrl,
     auditDashboardUrl: result.audit.dashboardUrl,
     auditVerifyUrl: result.audit.verifyUrl,
-    badgeSvgUrl: `https://ar-agents.vercel.app/api/badge/${result.audit.sessionId}`,
+    badgeSvgUrl: `https://ar-agents.ar/api/badge/${result.audit.sessionId}`,
     createdAt: new Date().toISOString(),
   };
 }

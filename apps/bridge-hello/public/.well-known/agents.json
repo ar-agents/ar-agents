@@ -1,8 +1,8 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/agents.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/agents.v1.json",
   "name": "ar-agents-bridge-hello",
   "description": "Demo: Agentic Commerce Bridge — AP2 + ACP + MCP protocol surfaces wired to MercadoPago. Shows cross-jurisdictional interaction (Wyoming DAO LLC ↔ AR sociedad-IA) per cookbook recipe 21. Not a productive sociedad-IA.",
-  "homepage": "https://ar-agents-bridge-hello.vercel.app",
+  "homepage": "https://bridge-hello.ar-agents.ar",
   "repository": "https://github.com/ar-agents/ar-agents/tree/main/apps/bridge-hello",
   "license": "MIT",
   "maintainer": {
@@ -21,10 +21,10 @@
     "rfc-001-v1",
     "rfc-002-v1"
   ],
-  "note": "Single-library demo. Does NOT claim RFC-003 or RFC-004 conformance — no audit-log endpoints (no /api/play/audit). RFC-003 envelope generation can be done via the reference implementation at https://ar-agents.vercel.app/api/rfc-003-envelope.",
+  "note": "Single-library demo. Does NOT claim RFC-003 or RFC-004 conformance — no audit-log endpoints (no /api/play/audit). RFC-003 envelope generation can be done via the reference implementation at https://ar-agents.ar/api/rfc-003-envelope.",
   "discovery": {
-    "canonicalSpec": "https://ar-agents.vercel.app/rfcs/002",
-    "testVectors": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json",
-    "rfc003EnvelopeGenerator": "https://ar-agents.vercel.app/api/rfc-003-envelope?sessionId={sessionId}"
+    "canonicalSpec": "https://ar-agents.ar/rfcs/002",
+    "testVectors": "https://ar-agents.ar/test-vectors/rfc-004-v1.json",
+    "rfc003EnvelopeGenerator": "https://ar-agents.ar/api/rfc-003-envelope?sessionId={sessionId}"
   }
 }

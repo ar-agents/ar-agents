@@ -41,11 +41,11 @@ export async function listQuestions(
     seller_id: sellerId,
     api_version: 4,
   };
-  if (options.status) query["status"] = options.status;
-  if (options.itemId) query["item"] = options.itemId;
-  if (options.limit) query["limit"] = options.limit;
-  if (options.offset) query["offset"] = options.offset;
-  if (options.sort) query["sort"] = options.sort;
+  if (options.status !== undefined) query["status"] = options.status;
+  if (options.itemId !== undefined) query["item"] = options.itemId;
+  if (options.limit !== undefined) query["limit"] = options.limit;
+  if (options.offset !== undefined) query["offset"] = options.offset;
+  if (options.sort !== undefined) query["sort"] = options.sort;
   return client.fetch<TQuestionsSearchResponse>({
     method: "GET",
     path: `/questions/search`,
@@ -136,7 +136,15 @@ export interface ClassifySpamInput {
 }
 
 const URL_RE = /\bhttps?:\/\/\S+|www\.\S+/i;
-const PHONE_RE = /(\+?\d[\d\s\-().]{6,})/;
+// Phone-like patterns: require word boundary, an optional country code
+// (`+54` etc.), and either explicit separators (spaces/hyphens/parens/dots)
+// OR a leading + sign — to avoid flagging order numbers and tracking codes
+// that are bare digit runs. Examples this catches:
+//   "+54 11 1234-5678", "(011) 1234 5678", "11 1234.5678", "+34 695 632 237"
+// Examples this rejects:
+//   "2000003508510037" (order id), "AND1234567890" (tracking)
+const PHONE_RE =
+  /(?:\+\d[\d\s\-.()]{6,}\d)|(?:\b\(?\d{2,4}\)?[\s\-.]\d{2,4}[\s\-.]\d{3,4}\b)/;
 const EMAIL_RE = /[^\s]+@[^\s]+\.[^\s]+/i;
 
 export function extractSpamFeatures(input: ClassifySpamInput): TQuestionSpamFeatures {

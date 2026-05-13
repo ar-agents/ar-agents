@@ -1,7 +1,7 @@
 // Scenario presets + governance metadata for the /play demo.
 //
 // Each tool that the agent can call is classified into one of four
-// governance buckets per RFC-001 § 9 — surfacing the classification next to
+// governance buckets per RFC-001 § 9, surfacing the classification next to
 // every audit-log entry is what makes the demo legible to a regulator.
 
 export type ToolGovernance =
@@ -29,13 +29,13 @@ export const GOVERNANCE_COLOR: Record<
 };
 
 export const AUDIT_TOOL_META: Record<string, { governance: ToolGovernance }> = {
-  // identity — algorithm-only, no network
+  // identity, algorithm-only, no network
   validate_cuit: { governance: "algorithm-only" },
   validate_cbu: { governance: "algorithm-only" },
   validate_solicitar_cae: { governance: "algorithm-only" },
   validate_igj_inscription: { governance: "algorithm-only" },
 
-  // upstream lookups — mocked in this demo, real in production
+  // upstream lookups, mocked in this demo, real in production
   lookup_cuit_afip: { governance: "mocked-upstream" },
   lookup_credit_situation: { governance: "mocked-upstream" },
   get_usd_oficial: { governance: "mocked-upstream" },
@@ -43,11 +43,11 @@ export const AUDIT_TOOL_META: Record<string, { governance: ToolGovernance }> = {
   igj_get_entity: { governance: "mocked-upstream" },
   list_domicilio_inbox: { governance: "mocked-upstream" },
 
-  // mutations — audit-logged
+  // mutations, audit-logged
   crear_factura: { governance: "audit-logged" },
   send_whatsapp_text: { governance: "audit-logged" },
 
-  // mutations that touch money — would gate on requireConfirmation in prod
+  // mutations that touch money, would gate on requireConfirmation in prod
   mp_create_subscription: { governance: "audit-logged" },
 };
 

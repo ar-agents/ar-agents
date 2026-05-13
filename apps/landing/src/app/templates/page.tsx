@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "Templates · 1-click Vercel deploys",
   description:
     "5 Vercel-deployable templates wiring @ar-agents/* into common production patterns: SaaS billing, marketplace, ACP checkout, MCP host, sociedad-IA starter. Each one ships agentic flows on Edge Runtime.",
-  alternates: { canonical: "https://ar-agents.vercel.app/templates" },
+  alternates: { canonical: "https://ar-agents.ar/templates" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -21,7 +21,7 @@ type Template = {
   envVars: string[];
   /** Cookbook recipe number this template is built from. */
   recipe?: number;
-  /** Where the canonical source lives (GitHub URL — must resolve). */
+  /** Where the canonical source lives (GitHub URL, must resolve). */
   source: string;
   /** Status of the published template repo. */
   status: "live" | "alpha" | "soon";
@@ -38,7 +38,7 @@ const TEMPLATES: Template[] = [
     title: "Sociedad-IA starter",
     tier: "starter",
     description:
-      "The flagship template. Wires the 8 most-common @ar-agents/* packages (identity, gde-tad, mercadopago, banking, facturacion, igj, boletin-oficial, whatsapp) into a single Next.js app with: agent endpoint, MP webhook receiver, morning-cron operating loop, status page. Configurable via env vars only — degrades gracefully if any client is missing.",
+      "The flagship template. Wires the 8 most-common @ar-agents/* packages (identity, gde-tad, mercadopago, banking, facturacion, igj, boletin-oficial, whatsapp) into a single Next.js app with: agent endpoint, MP webhook receiver, morning-cron operating loop, status page. Configurable via env vars only, degrades gracefully if any client is missing.",
     packages: [
       "identity",
       "gde-tad",
@@ -116,7 +116,7 @@ const TIER_COLOR: Record<Tier, string> = {
 
 const STATUS_LABEL: Record<Template["status"], string> = {
   live: "Live",
-  alpha: "Alpha — clone-ready",
+  alpha: "Alpha, clone-ready",
   soon: "Coming soon",
 };
 
@@ -136,7 +136,7 @@ export default function TemplatesPage() {
 
   return (
     <DocShell
-      eyebrow="/arg · templates · alpha"
+      eyebrow="templates · alpha"
       title="Templates."
       subtitle="5 Vercel-deployable templates that drop @ar-agents/* into common production patterns. Each one ships on Edge Runtime, ships an Experimental_Agent loop, and handles the gotchas the cookbook documents. 1-click deploy. SLSA-provenanced dependencies."
     >

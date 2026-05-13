@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 import { RfcJsonLd } from "../../json-ld";
+import { RfcDisclaimer } from "../disclaimer";
 
 export const metadata: Metadata = {
   title: "RFC-004: Sociedad-IA operational-log specification",
   description:
     "Canonical wire format + cryptographic invariants for the operational log every AR sociedad-IA must keep. Pins down exactly what fields an entry has, how its HMAC is computed, what append-only means in practice, and what a regulator can demand without a court order. Draft.",
-  alternates: { canonical: "https://ar-agents.vercel.app/rfcs/004" },
+  alternates: { canonical: "https://ar-agents.ar/rfcs/004" },
 };
 
 export default function Rfc004Page() {
   return (
     <DocShell
-      eyebrow="/arg · rfc-004 · draft · 2026-05"
+      eyebrow="rfc-004 · draft · 2026-05"
       title="RFC-004: Operational-log specification for AR sociedades-IA."
       subtitle="RFC-001 said every sociedad-IA must keep an append-only HMAC-signed audit log. It did not pin down the wire format. RFC-004 does. This is the document a regulator can cite when demanding evidence, and the spec library authors implement against."
     >
@@ -26,9 +27,9 @@ export default function Rfc004Page() {
       <DocBlock>
         <DocP>
           <strong>Status:</strong> Draft.{" "}
-          <strong>Author:</strong> Nazareno Clemente (
-          <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>
-            naza@helloastro.co
+          <strong>Author:</strong> Naza (
+          <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
+            clementenaza@gmail.com
           </a>
           ). <strong>Discussion:</strong>{" "}
           <a
@@ -37,7 +38,15 @@ export default function Rfc004Page() {
           >
             github.com/ar-agents/ar-agents/discussions
           </a>
-          . <strong>License:</strong> CC-BY-4.0.
+          . <strong>License:</strong> CC-BY-4.0.{" "}
+          <strong>DOI:</strong>{" "}
+          <a
+            href="https://doi.org/10.5281/zenodo.20159417"
+            style={{ color: "var(--accent)" }}
+          >
+            10.5281/zenodo.20159417
+          </a>
+          .
         </DocP>
         <DocP>
           <strong>Companions:</strong>{" "}
@@ -74,12 +83,14 @@ export default function Rfc004Page() {
         </DocP>
       </DocBlock>
 
+      <RfcDisclaimer />
+
       <DocH2>1 · The gap RFC-004 fills</DocH2>
       <DocP>
         RFC-001 § 9.1 says &quot;every sociedad-IA MUST keep an append-only
         audit log, HMAC-signed at write time.&quot; That sentence is enough
         legal scaffolding to anchor the liability framework, but it leaves
-        a dozen implementation decisions on the floor — and every
+        a dozen implementation decisions on the floor, and every
         implementation that diverges is a regulator&apos;s headache later.
       </DocP>
       <DocP>RFC-004 pins down:</DocP>
@@ -102,7 +113,7 @@ export default function Rfc004Page() {
       <DocP>
         Every entry written to the operational log MUST conform to this
         TypeScript-ish shape. JSON-Schema published at{" "}
-        <DocCode>https://ar-agents.vercel.app/schemas/operational-log-entry.v1.json</DocCode>{" "}
+        <DocCode>https://ar-agents.ar/schemas/operational-log-entry.v1.json</DocCode>{" "}
         (planned, not yet served).
       </DocP>
       <CodeBlock>{`interface OperationalLogEntry {
@@ -134,7 +145,7 @@ export default function Rfc004Page() {
     | "requires-confirmation" // Human approval present (HITL).
 
   // MUST. The serialized input to the tool. Canonical-JSON serializable.
-  // MUST NOT contain raw secrets — strip before logging.
+  // MUST NOT contain raw secrets, strip before logging.
   input: unknown;
 
   // MAY. The serialized output. Omit if the tool errored.
@@ -161,7 +172,7 @@ export default function Rfc004Page() {
         <Li>
           <DocCode>password</DocCode>, <DocCode>secret</DocCode>,{" "}
           <DocCode>privateKey</DocCode>, <DocCode>apiKey</DocCode>,{" "}
-          <DocCode>token</DocCode> — under any nested path. Library
+          <DocCode>token</DocCode>, under any nested path. Library
           implementations SHOULD scrub before write.
         </Li>
         <Li>
@@ -182,18 +193,18 @@ export default function Rfc004Page() {
       </DocP>
       <ul style={listStyle}>
         <Li>
-          <strong>Step 1 — strip.</strong> Remove the <DocCode>hmac</DocCode>{" "}
+          <strong>Step 1, strip.</strong> Remove the <DocCode>hmac</DocCode>{" "}
           field if present. Sign + verify MUST operate on the same field set.
         </Li>
         <Li>
-          <strong>Step 2 — canonicalize.</strong> Stringify the remaining
+          <strong>Step 2, canonicalize.</strong> Stringify the remaining
           object with all keys sorted lexicographically at every level. Use
-          the canonical-JSON function defined below — JSON.stringify is{" "}
+          the canonical-JSON function defined below, JSON.stringify is{" "}
           <em>not</em> canonical in JavaScript and re-serialization differs
           across runtimes.
         </Li>
         <Li>
-          <strong>Step 3 — HMAC.</strong> Compute HMAC-SHA256 of the UTF-8
+          <strong>Step 3, HMAC.</strong> Compute HMAC-SHA256 of the UTF-8
           bytes using the sociedad-IA&apos;s signing key. Hex-encode + prefix
           with <DocCode>sha256:</DocCode>.
         </Li>
@@ -215,8 +226,8 @@ export default function Rfc004Page() {
         The signing key (RFC-004 calls it <DocCode>AUDIT_HMAC_SECRET</DocCode>)
         is a single shared symmetric secret. Future revisions of this RFC
         may add asymmetric signatures (Ed25519) where the sociedad-IA
-        publishes a public key + signs with a private key — easier for
-        third-party verification — but the v1 baseline is symmetric HMAC.
+        publishes a public key + signs with a private key, easier for
+        third-party verification, but the v1 baseline is symmetric HMAC.
         Rationale: HMAC is universally available in every standard library
         + Web Crypto, has a vetted security boundary, and an asymmetric
         upgrade can be additive (entry carries both a hmac and a signature
@@ -257,7 +268,7 @@ export default function Rfc004Page() {
           computed over the post-strip canonical JSON. Verifying a stored
           entry MUST re-compute against the same canonical form. The
           reference implementation includes both <DocCode>signEntry</DocCode> +{" "}
-          <DocCode>verifyEntry</DocCode> for symmetry — a chain that signs
+          <DocCode>verifyEntry</DocCode> for symmetry, a chain that signs
           but cannot self-verify is broken-by-design.
         </Li>
       </ul>
@@ -290,7 +301,7 @@ export default function Rfc004Page() {
         <Li>
           <strong>Key endpoint (planned v2).</strong>{" "}
           <DocCode>GET /.well-known/sociedad-ia/verify-key</DocCode> returns
-          the sociedad-IA&apos;s public verification material — for v1
+          the sociedad-IA&apos;s public verification material, for v1
           symmetric HMAC, this is the SHA-256 of the signing key with a
           challenge-nonce, allowing offline proof of key-possession without
           revealing the key itself. For v2 asymmetric, returns the
@@ -435,10 +446,10 @@ verifyEntry({ ...mutated, hmac: bigSig }, secret) === false;`}</CodeBlock>
         </Li>
         <Li>
           <strong>Operational narrative.</strong> A human-readable summary
-          of what the sociedad-IA was doing during the window — generated
+          of what the sociedad-IA was doing during the window, generated
           from the audit log, not from human recollection. The reference
           stack provides this via{" "}
-          <a href="/play/dashboard" style={{ color: "var(--accent)" }}>
+          <a href="/play" style={{ color: "var(--accent)" }}>
             /play/dashboard
           </a>{" "}
           + the CSV export.
@@ -447,7 +458,7 @@ verifyEntry({ ...mutated, hmac: bigSig }, secret) === false;`}</CodeBlock>
       <DocP>
         With a court order, the regulator can additionally compel
         production of the signing-key custody chain (who held the
-        AUDIT_HMAC_SECRET, where it was stored, who rotated it when) —
+        AUDIT_HMAC_SECRET, where it was stored, who rotated it when),
         equivalent to compelling production of a wet-signature notary&apos;s
         seal-custody log.
       </DocP>

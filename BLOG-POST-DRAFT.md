@@ -6,8 +6,8 @@ Front matter for dev.to (https://dev.to/new):
   published: false
   description: "Lessons from building agent ergonomics on top of LATAM's largest payment platform — idempotency keys an LLM can't break, HITL on irreversible ops, AGENTS.md per package, npm provenance attestations."
   tags: ai, vercel, typescript, opensource
-  cover_image: https://ar-agents.vercel.app/opengraph-image
-  canonical_url: https://ar-agents.vercel.app
+  cover_image: https://ar-agents.ar/opengraph-image
+  canonical_url: https://ar-agents.ar
 -->
 
 # I shipped Mercado Pago as 89 typed tools for the Vercel AI SDK
@@ -46,7 +46,7 @@ const { text } = await agent.generate({
 
 The agent picks `create_subscription`, returns an `init_point_url` you send to the customer, and the rest of the flow (first payment confirmation, recurring charges, webhooks) just works.
 
-[Live demo](https://ar-agents.vercel.app) (Claude Sonnet 4.6 via Vercel AI Gateway, mocked MP tools, no signup).
+[Live demo](https://ar-agents.ar) (Claude Sonnet 4.6 via Vercel AI Gateway, mocked MP tools, no signup).
 
 ## What I tried to get right for agent ergonomics
 
@@ -165,4 +165,4 @@ pnpm add @ar-agents/mercadopago ai zod
 
 Or one-click deploy to Vercel: [Deploy](https://vercel.com/new/clone?repository-url=https%3A%2F%2Fgithub.com%2Far-agents%2Far-agents&root-directory=apps%2Fmp-hello).
 
-Live agent demo (no signup): [ar-agents.vercel.app](https://ar-agents.vercel.app).
+Live agent demo (no signup): [ar-agents.ar](https://ar-agents.ar).

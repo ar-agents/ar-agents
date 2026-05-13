@@ -101,7 +101,7 @@ export default function OpengraphImage() {
               fontWeight: 500,
             }}
           >
-            ar-agents.vercel.app
+            ar-agents.ar
           </div>
         </div>
       </div>

@@ -28,7 +28,7 @@ The toolkit covers 16 of the 17 operating pieces an Argentine business needs (id
 - [Registry of known implementations](https://ar-agents.vercel.app/registro): public list of sociedades-IA implementing the RFCs. Self-listed via PR. Live cert-badges per entry.
 - [Compliance certifier](https://ar-agents.vercel.app/certifier): paste any URL, score 0-100 against RFC-002 + RFC-004 + RFC-005. Programmatic API at /api/certifier.
 - [Glossary](https://ar-agents.vercel.app/glossary): 21 alphabetized term definitions across concepts/protocols/specs/tools.
-- [Outreach templates](https://ar-agents.vercel.app/share): copy-paste social + email drafts for sharing /arg with regulators, journalists, ministry asesores.
+- [Outreach templates](https://ar-agents.vercel.app/share): copy-paste social + email drafts for sharing ar-agents with regulators, journalists, ministry asesores.
 - [Academic references](https://ar-agents.vercel.app/refs): BibTeX, APA, Chicago citations for the 4 RFCs + datasets + toolkit.
 - [Timeline](https://ar-agents.vercel.app/timeline): visual chronology from the Sturzenegger 28-abr-2026 announcement onwards.
 - [Architecture / audit-log deep-dive](https://ar-agents.vercel.app/architecture/audit-log): 11-section code-level breakdown.
@@ -37,6 +37,12 @@ The toolkit covers 16 of the 17 operating pieces an Argentine business needs (id
 - [Verify any audit log](https://ar-agents.vercel.app/verify): paste a session id, get an independent server-side HMAC re-verification report.
 - [Audit explorer](https://ar-agents.vercel.app/audit-explorer/demo-public-ar-001): forensic per-session view with governance bar, tool usage, latency quantiles, mini-timeline.
 - [Operational status](https://ar-agents.vercel.app/status): live state of every subsystem (KV, HMAC, AI Gateway, ARCA, MP, WhatsApp, BCRA). Refreshed every 30s. Live RFC-002+004 self-cert badge.
+- [Jurisdiction comparison](https://ar-agents.vercel.app/jurisdicciones): side-by-side of AR proposal vs Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify, EU AI Act Art. 50. Honest delta of what each precedent has that ar-agents does not (yet).
+- [Immutable citation generator](https://ar-agents.vercel.app/cite): pick an RFC + commit hash, get BibTeX / APA / Chicago citations anchored to GitHub commit. Programmatic API at GET /api/cite. For legislators citing the spec in articulado.
+- [Government briefing](https://ar-agents.vercel.app/gobierno): operational 10-min briefing for ministry advisors. Distinct from /al-ministro (personal letter): this is the structured one-page-scroll a staffer forwards internally.
+- [Cloud (commercial tier)](https://ar-agents.vercel.app/cloud): the open-core model. Self-host stays free forever; Studio/Government/Bespoke tiers cover managed hosting, SLA, AR data residency, key custody. Answers "how does this monetize if everything is open-source?".
+- [Co-sign an RFC](https://ar-agents.vercel.app/co-firmar): open invitation to academic / juridical co-authors of the 5 RFCs. CC-BY-4.0, no commercial commitment, co-authorship cited formally via /cite.
+- [Dashboard index](https://ar-agents.vercel.app/dashboard): per-session forensic model + link to public demo session /dashboard/demo-public-ar-001.
 - [Feed](https://ar-agents.vercel.app/feed.xml): Atom feed of shipping rounds.
 
 ## Hosted HTTP API (call directly, no SDK required)

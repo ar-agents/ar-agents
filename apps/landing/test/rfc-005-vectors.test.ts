@@ -42,9 +42,9 @@ const vectorsPath = resolve(
 );
 const vectors = JSON.parse(readFileSync(vectorsPath, "utf8")) as VectorsFile;
 
-describe("RFC-005 v1 conformance — Ed25519 reference implementation", () => {
+describe("RFC-005 v1 conformance, Ed25519 reference implementation", () => {
   it("loads the vectors file", () => {
-    expect(vectors.spec).toBe("https://ar-agents.vercel.app/rfcs/005");
+    expect(vectors.spec).toBe("https://ar-agents.ar/rfcs/005");
     expect(vectors.vectors.length).toBeGreaterThanOrEqual(3);
     expect(vectors.keypair.alg).toBe("ed25519");
   });

@@ -1,18 +1,19 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 import { RfcJsonLd } from "../../json-ld";
+import { RfcDisclaimer } from "../disclaimer";
 
 export const metadata: Metadata = {
   title: "RFC-005: Asymmetric upgrade for the operational log",
   description:
-    "Proposed v2 extension for RFC-004: replace shared-secret HMAC with Ed25519 asymmetric signatures + key-id rotation. Additive — entries carry both fields during migration, libraries verify whichever they can. Draft.",
-  alternates: { canonical: "https://ar-agents.vercel.app/rfcs/005" },
+    "Proposed v2 extension for RFC-004: replace shared-secret HMAC with Ed25519 asymmetric signatures + key-id rotation. Additive, entries carry both fields during migration, libraries verify whichever they can. Draft.",
+  alternates: { canonical: "https://ar-agents.ar/rfcs/005" },
 };
 
 export default function Rfc005Page() {
   return (
     <DocShell
-      eyebrow="/arg · rfc-005 · draft · 2026-05"
+      eyebrow="rfc-005 · draft · 2026-05"
       title="RFC-005: Asymmetric upgrade for the operational log."
       subtitle="RFC-004 v1 uses shared-secret HMAC. That works in a single-operator-single-key world. The day a sociedad-IA delegates verification to a third party (regulator, auditor, counterpart) without sharing its key, asymmetric signatures (Ed25519) become necessary. RFC-005 specifies the additive migration path."
     >
@@ -26,9 +27,9 @@ export default function Rfc005Page() {
       <DocBlock>
         <DocP>
           <strong>Status:</strong> Draft.{" "}
-          <strong>Author:</strong> Nazareno Clemente (
-          <a href="mailto:naza@helloastro.co" style={linkSty}>
-            naza@helloastro.co
+          <strong>Author:</strong> Naza (
+          <a href="mailto:clementenaza@gmail.com" style={linkSty}>
+            clementenaza@gmail.com
           </a>
           ). <strong>Discussion:</strong>{" "}
           <a
@@ -37,20 +38,30 @@ export default function Rfc005Page() {
           >
             github.com/ar-agents/ar-agents/discussions
           </a>
-          . <strong>License:</strong> CC-BY-4.0.
+          . <strong>License:</strong> CC-BY-4.0.{" "}
+          <strong>DOI:</strong>{" "}
+          <a
+            href="https://doi.org/10.5281/zenodo.20159424"
+            style={linkSty}
+          >
+            10.5281/zenodo.20159424
+          </a>
+          .
         </DocP>
         <DocP>
           <strong>Companions:</strong>{" "}
           <a href="/rfcs/004" style={linkSty}>
             RFC-004
           </a>{" "}
-          (v1 HMAC operational-log spec — the base this builds on),{" "}
+          (v1 HMAC operational-log spec, the base this builds on),{" "}
           <a href="/rfcs/003" style={linkSty}>
             RFC-003
           </a>{" "}
           (envelope that benefits most from asymmetric).
         </DocP>
       </DocBlock>
+
+      <RfcDisclaimer />
 
       <DocH2>1 · Why upgrade</DocH2>
       <DocP>
@@ -96,7 +107,7 @@ export default function Rfc005Page() {
           modern crypto library. Same as the HMAC story.
         </Li>
         <Li>
-          Deterministic by construction — same input + same key always
+          Deterministic by construction, same input + same key always
           produces the same signature. Maps onto RFC-004 § 3 (canonical-
           JSON + HMAC is deterministic) without surprise.
         </Li>
@@ -160,7 +171,7 @@ export default function Rfc005Page() {
     {
       "keyId": "ar-sociedad-key-2026-05",
       "alg": "ed25519",
-      "publicKey": "MCowBQYDK2VwAyEA...",       // base64url, SubjectPublicKeyInfo DER
+      "publicKey": "MCowBQYDK2VwAyEA...",      // base64url, SubjectPublicKeyInfo DER
       "validFrom": "2026-05-01T00:00:00Z",
       "validUntil": null                         // null = currently active
     },
@@ -305,7 +316,7 @@ export default function Rfc005Page() {
         <Li>
           <strong>Cross-jurisdictional key registry.</strong> Should the
           AR registry, Wyoming registry, etc. publish a federated index
-          of public keys? Centralization risk vs. enforcement utility —
+          of public keys? Centralization risk vs. enforcement utility,
           same trade-off as RFC-004 § 11.
         </Li>
         <Li>
@@ -373,7 +384,7 @@ export default function Rfc005Page() {
         </Li>
         <Li>
           ✓ <strong>Integration into the live{" "}
-          <DocCode>appendAudit</DocCode> flow — SHIPPED, VERIFIED LIVE.</strong>{" "}
+          <DocCode>appendAudit</DocCode> flow, SHIPPED, VERIFIED LIVE.</strong>{" "}
           Production entries on the reference deployment now carry both{" "}
           <DocCode>hmac</DocCode> + <DocCode>signature</DocCode>{" "}
           (RFC-005 § 3 wire shape). When <DocCode>AUDIT_ED25519_PRIVATE_KEY</DocCode>{" "}
@@ -399,8 +410,8 @@ export default function Rfc005Page() {
             style={linkSty}
           >
             GitHub Discussions
-          </a>{" "}
-          — open, no fixed end date for v1 finalization.
+          </a>:{" "}
+        open, no fixed end date for v1 finalization.
         </Li>
       </ul>
       <DocP>

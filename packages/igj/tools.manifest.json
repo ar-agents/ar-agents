@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/igj",
   "version": "0.1.0",
   "description": "Inspección General de Justicia (IGJ) public registry primitives — search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",

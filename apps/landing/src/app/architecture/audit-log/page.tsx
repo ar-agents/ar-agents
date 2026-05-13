@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Deep-dive on the forensic primitive that makes RFC-001 § 9.2's 'legally probative' claim mechanically true. Canonical-JSON, HMAC-SHA256, Vercel KV, write/read/verify lifecycle, why each design choice is the way it is.",
   alternates: {
-    canonical: "https://ar-agents.vercel.app/architecture/audit-log",
+    canonical: "https://ar-agents.ar/architecture/audit-log",
   },
 };
 
@@ -16,15 +16,15 @@ const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
 export default function AuditLogArchitecturePage() {
   return (
     <DocShell
-      eyebrow="/arg · architecture · deep-dive"
+      eyebrow="architecture · deep-dive"
       title="The audit log lifecycle."
       subtitle="The forensic primitive that lets RFC-001 § 9.2 claim 'legally probative'. Canonical-JSON serialization → HMAC-SHA256 signature → Vercel KV append-only storage → public read with server-side re-verify. Every design choice traced to a concrete failure mode it prevents."
     >
       <DocBlock>
         <DocP>
           The audit log is the single most-load-bearing primitive in the
-          ar-agents stack. The whole regulator pitch — "this isn&apos;t
-          just a UI, it&apos;s mechanically forensic" — collapses if any
+          ar-agents stack. The whole regulator pitch, "this isn&apos;t
+          just a UI, it&apos;s mechanically forensic", collapses if any
           of the four steps fails:
         </DocP>
         <ol style={listStyle}>
@@ -71,17 +71,17 @@ export default function AuditLogArchitecturePage() {
   output?: unknown;              // optional, omitted on errored
   errored?: boolean;
   durationMs?: number;
-  hmac: string | null;           // "sha256:<hex>" — null only when secret not wired
+  hmac: string | null;           // "sha256:<hex>", null only when secret not wired
 }`}</CodeBlock>
       <DocP>
         Why this exact shape: the HMAC needs a fixed input space, so
         all fields are explicit, none are inferred at read time. The{" "}
         <DocCode>id</DocCode> is ISO-prefixed so the natural string
-        sort matches chronological order — useful when a downstream
+        sort matches chronological order, useful when a downstream
         consumer wants to merge entries from multiple sources without
         timestamp parsing. <DocCode>sessionId</DocCode> validates
         against a strict regex (<DocCode>{"/^[A-Za-z0-9_-]{8,64}$/"}</DocCode>)
-        — short enough to be UUIDs, long enough to be opaque tokens, no
+      , short enough to be UUIDs, long enough to be opaque tokens, no
         characters that need URL-encoding.
       </DocP>
 
@@ -90,7 +90,7 @@ export default function AuditLogArchitecturePage() {
         The HMAC is computed over a canonical JSON serialization of the
         entry, with object keys sorted alphabetically. Without this,
         two entries with the same data but different key insertion
-        order would sign differently — and JavaScript&apos;s default{" "}
+        order would sign differently, and JavaScript&apos;s default{" "}
         <DocCode>JSON.stringify</DocCode> uses insertion order, not
         alphabetical.
       </DocP>
@@ -122,8 +122,8 @@ export default function AuditLogArchitecturePage() {
             style={{ color: "var(--accent)" }}
           >
             184a424
-          </a>{" "}
-          — both functions now strip <DocCode>hmac</DocCode> at runtime
+          </a>:{" "}
+        both functions now strip <DocCode>hmac</DocCode> at runtime
           before serializing. Caught by the unit tests in{" "}
           <DocCode>apps/landing/test/audit.test.ts</DocCode>.
         </Li>
@@ -157,7 +157,7 @@ export default function AuditLogArchitecturePage() {
     "raw",
     enc.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
-    false,        // not extractable — can't be exported back
+    false,       // not extractable, can't be exported back
     ["sign", "verify"],
   );
   cachedKey.key = key;
@@ -173,7 +173,7 @@ export default function AuditLogArchitecturePage() {
       </DocP>
       <DocP>
         Verification uses <DocCode>crypto.subtle.verify</DocCode>{" "}
-        directly — Web Crypto&apos;s implementation is constant-time on
+        directly, Web Crypto&apos;s implementation is constant-time on
         the byte comparison (per WebCrypto spec § 18). A naive{" "}
         <DocCode>===</DocCode> on hex strings would be timing-attack
         vulnerable. We never roll our own.
@@ -185,7 +185,7 @@ export default function AuditLogArchitecturePage() {
         <DocCode>play:audit:{`{sessionId}`}</DocCode>. Append via{" "}
         <DocCode>RPUSH</DocCode>, read via <DocCode>LRANGE 0 -1</DocCode>,
         TTL via <DocCode>EXPIRE</DocCode> at 7 days. The TTL bounds
-        cost — KV free tier has finite storage — and the 7-day window
+        cost, KV free tier has finite storage, and the 7-day window
         is long enough to span a forensic challenge cycle while short
         enough to let demo sessions naturally expire.
       </DocP>
@@ -194,13 +194,13 @@ export default function AuditLogArchitecturePage() {
     await kv.rpush(key(sessionId), entry);
     await kv.expire(key(sessionId), ENTRY_TTL_SECONDS);
   } catch {
-    // KV down — fall through to in-memory so the demo doesn't break.
+    // KV down, fall through to in-memory so the demo doesn't break.
     const arr = memStore.get(sessionId) ?? [];
     arr.push(entry);
     memStore.set(sessionId, arr);
   }
 } else {
-  // No KV — in-memory only. Per-instance, no cross-Edge persistence.
+  // No KV, in-memory only. Per-instance, no cross-Edge persistence.
   // Accepted degradation for PR previews + local dev without secrets.
   ...
 }`}</CodeBlock>
@@ -210,7 +210,7 @@ export default function AuditLogArchitecturePage() {
         demo still has to work for a maintainer testing a feature. The
         fallback is per-instance (Edge functions don&apos;t share
         memory across cold starts), so cross-instance reads return
-        empty — but every smoke-test in CI hits the same instance once
+        empty, but every smoke-test in CI hits the same instance once
         and verifies the round-trip works. Production-mode (KV) is
         verified end-to-end via the live{" "}
         <a href="/api/play/audit/4f50ebf2-94ec-4c75-b94a-6e8e1f54f5bc?verify=1" style={{ color: "var(--accent)" }}>
@@ -259,7 +259,7 @@ export default function AuditLogArchitecturePage() {
       <DocH2>6 · Streaming reads via SSE</DocH2>
       <DocP>
         For consumers that want real-time updates (e.g., the{" "}
-        <a href="/dashboard/4f50ebf2-94ec-4c75-b94a-6e8e1f54f5bc" style={{ color: "var(--accent)" }}>
+        <a href="/dashboard" style={{ color: "var(--accent)" }}>
           live /dashboard view
         </a>{" "}
         or a compliance ops tool watching tenants),{" "}
@@ -273,7 +273,7 @@ export default function AuditLogArchitecturePage() {
         write is already a KV operation. Adding a separate pub/sub
         channel doubles the failure modes (entry lands in KV but
         pub/sub message lost). Polling against the same KV is simpler
-        + idempotent — duplicate ticks read the same state and emit no
+        + idempotent, duplicate ticks read the same state and emit no
         events. The 2s tick is well under what KV can sustain on the
         free tier.
       </DocP>
@@ -291,7 +291,7 @@ export default function AuditLogArchitecturePage() {
         virally. An operator embeds the badge in their landing page;
         any visitor sees a recomputable verification status without
         knowing what HMAC means. The badge link itself can be shared
-        in WhatsApp / Slack / Twitter — preview cards render the SVG
+        in WhatsApp / Slack / Twitter, preview cards render the SVG
         directly.
       </DocP>
 
@@ -357,8 +357,8 @@ export default function AuditLogArchitecturePage() {
           (Optional) attempt to demonstrate tampering: hit{" "}
           <DocCode>POST /api/play/tamper-demo</DocCode> and confirm the
           response shows the original entry verifies, the mutated
-          entry does not. The demo is read-only — it doesn&apos;t
-          touch the live log — but it proves the algorithm catches
+          entry does not. The demo is read-only, it doesn&apos;t
+          touch the live log, but it proves the algorithm catches
           edits mechanically.
         </Li>
         <Li>
@@ -403,7 +403,7 @@ export default function AuditLogArchitecturePage() {
           regulated workloads that need year-scale retention, the
           recommended pattern is a nightly cron that mirrors entries
           to S3 with object lock. The toolkit doesn&apos;t ship this
-          yet — operators wire it.
+          yet, operators wire it.
         </Li>
         <Li>
           <strong>Multi-region replication</strong>: KV is currently
@@ -427,8 +427,8 @@ export default function AuditLogArchitecturePage() {
             style={{ color: "var(--accent)" }}
           >
             src/lib/audit.ts
-          </a>{" "}
-          — primary implementation.
+          </a>:{" "}
+        primary implementation.
         </Li>
         <Li>
           <a
@@ -436,26 +436,26 @@ export default function AuditLogArchitecturePage() {
             style={{ color: "var(--accent)" }}
           >
             test/audit.test.ts
-          </a>{" "}
-          — 16 unit tests.
+          </a>:{" "}
+        16 unit tests.
         </Li>
         <Li>
           <a href="/rfcs/001" style={{ color: "var(--accent)" }}>
             RFC-001 § 9
-          </a>{" "}
-          — legal framework.
+          </a>:{" "}
+        legal framework.
         </Li>
         <Li>
           <a href="/verify" style={{ color: "var(--accent)" }}>
             /verify
-          </a>{" "}
-          — the public re-verification UI.
+          </a>:{" "}
+        the public re-verification UI.
         </Li>
         <Li>
           <a href="/dashboard" style={{ color: "var(--accent)" }}>
             /dashboard/{`{sessionId}`}
-          </a>{" "}
-          — the live forensic timeline.
+          </a>:{" "}
+        the live forensic timeline.
         </Li>
         <Li>
           <a
@@ -463,17 +463,17 @@ export default function AuditLogArchitecturePage() {
             style={{ color: "var(--accent)" }}
           >
             W3C WebCrypto §HMAC operations
-          </a>{" "}
-          — the spec we depend on.
+          </a>:{" "}
+        the spec we depend on.
         </Li>
         <Li>
           <a
             href="https://datatracker.ietf.org/doc/html/rfc8785"
             style={{ color: "var(--accent)" }}
           >
-            RFC 8785 — JSON Canonicalization Scheme
-          </a>{" "}
-          — the spec our canonicalization is heavily inspired by
+            RFC 8785, JSON Canonicalization Scheme
+          </a>:{" "}
+        the spec our canonicalization is heavily inspired by
           (we ship a subset, not full JCS).
         </Li>
       </ul>

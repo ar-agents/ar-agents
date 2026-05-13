@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 /**
- * /timeline — Visual chronology from the Sturzenegger announcement to
- * the current state of /arg.
+ * /timeline, Visual chronology from the Sturzenegger announcement to
+ * the current state of ar-agents.
  *
  * Useful for any reader who arrives mid-story: a journalist deciding
  * whether to cover this, a regulator deciding whether to engage, a
@@ -32,7 +32,7 @@ const EVENTS: ReadonlyArray<Event> = [
     kind: "milestone",
     title: "Initial launch · 17 npm packages + landing site",
     detail:
-      "/arg published as open-source infrastructure: 17 packages covering MercadoPago, AFIP/ARCA, banking, WhatsApp, factura, shipping, GDE/TAD, BCRA, IGJ, BO, ML. Landing site + first wave of demos live.",
+      "ar-agents published as open-source infrastructure: 17 packages covering MercadoPago, AFIP/ARCA, banking, WhatsApp, factura, shipping, GDE/TAD, BCRA, IGJ, BO, ML. Landing site + first wave of demos live.",
     refs: [
       { label: "Repo", href: "https://github.com/ar-agents/ar-agents" },
       { label: "npm org", href: "https://www.npmjs.com/org/ar-agents" },
@@ -41,7 +41,7 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-05",
     kind: "spec",
-    title: "RFC-001 published — three-layer liability framework",
+    title: "RFC-001 published, three-layer liability framework",
     detail:
       "First normative document: operator / sociedad-IA / model-provider layered civil liability. § 9 specifies the audit-log probative-value contract.",
     refs: [{ label: "RFC-001", href: "/rfcs/001" }],
@@ -49,7 +49,7 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-05",
     kind: "spec",
-    title: "RFC-002 published — agent-discovery-by-default",
+    title: "RFC-002 published, agent-discovery-by-default",
     detail:
       "/.well-known/agents.json convention. No central registry. Every sociedad-IA publishes its endpoints at a fixed location.",
     refs: [{ label: "RFC-002", href: "/rfcs/002" }],
@@ -72,7 +72,7 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-11",
     kind: "spec",
-    title: "RFC-004 published — operational-log normative wire format",
+    title: "RFC-004 published, operational-log normative wire format",
     detail:
       "The document legislation can cite. Pins down: entry shape MUST/SHOULD/MAY fields, HMAC computation, append-only invariants, retention boundaries, conformance test vectors.",
     refs: [{ label: "RFC-004", href: "/rfcs/004" }],
@@ -100,12 +100,12 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-11",
     kind: "milestone",
-    title: "/certifier launches — reference impl self-scores 100/100",
+    title: "/certifier launches, reference impl self-scores 100/100",
     detail:
       "Anyone can verify any sociedad-IA's RFC conformance in seconds. Paste URL → score 0-100 + per-check report. Reference implementation passes 10/10 checks at Rating A.",
     refs: [
       { label: "/certifier", href: "/certifier" },
-      { label: "API", href: "/api/certifier?url=https://ar-agents.vercel.app" },
+      { label: "API", href: "/api/certifier?url=https://ar-agents.ar" },
     ],
   },
   {
@@ -121,7 +121,7 @@ const EVENTS: ReadonlyArray<Event> = [
     title: "Round 6 · cert-badge SVG + 4 JSON schemas + custom OG images",
     detail:
       "Embeddable shields-style badge showing live RFC-002+004 score for any URL. 4 published JSON schemas (operational-log, agents, certification, cross-jurisdiction). Custom Open Graph images for /auditor, /legislacion, /certifier.",
-    refs: [{ label: "Badge demo", href: "/api/cert-badge?url=https://ar-agents.vercel.app" }],
+    refs: [{ label: "Badge demo", href: "/api/cert-badge?url=https://ar-agents.ar" }],
   },
   {
     date: "2026-05-11",
@@ -177,7 +177,7 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-11",
     kind: "milestone",
-    title: "Round 13 · RFC-005 implementation — Ed25519 lib + frozen test vectors + 7 tests",
+    title: "Round 13 · RFC-005 implementation, Ed25519 lib + frozen test vectors + 7 tests",
     detail:
       "apps/landing/src/lib/ed25519.ts sign + verify primitives (Web Crypto). /test-vectors/rfc-005-v1.json with 3 vectors + the keypair. 7 vitest tests; suite at 103 across 6 files.",
   },
@@ -198,7 +198,7 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-11",
     kind: "milestone",
-    title: "Round 16 · all 5 sociedades score 100/100 — certifier honors rfcConformance claims",
+    title: "Round 16 · all 5 sociedades score 100/100, certifier honors rfcConformance claims",
     detail:
       "Certifier now SKIPs RFC-004 checks for sociedades that don't claim rfc-004 in their rfcConformance (vs FAILing). Demo apps drop overclaim. All 5 entries on /registro score 100/100 Rating A.",
     refs: [{ label: "/registro", href: "/registro" }],
@@ -221,9 +221,9 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-11",
     kind: "ship",
-    title: "Round 19 · /highlights — best single shareable URL",
+    title: "Round 19 · /highlights, best single shareable URL",
     detail:
-      "90-second single-page summary of /arg for anyone arriving cold. Live cert-badge embed + 6 stat tiles + audience-segmented deep links + explicit 'what's NOT here' section.",
+      "90-second single-page summary of ar-agents for anyone arriving cold. Live cert-badge embed + 6 stat tiles + audience-segmented deep links + explicit 'what's NOT here' section.",
     refs: [{ label: "/highlights", href: "/highlights" }],
   },
   {
@@ -243,7 +243,7 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-11",
     kind: "milestone",
-    title: "Round 22 · RFC-005 verified LIVE — 3/3 HMAC + 3/3 Ed25519",
+    title: "Round 22 · RFC-005 verified LIVE, 3/3 HMAC + 3/3 Ed25519",
     detail:
       "Set Ed25519 env vars on Vercel via API. Caught + fixed critical signEntry/verifyEntry strip-rule bug (must strip both hmac AND signature). Live /api/play session now reports verified=3/3 + signedAsymmetricVerified=3/3.",
   },
@@ -264,10 +264,10 @@ const KIND_LABEL: Record<Event["kind"], string> = {
 };
 
 export const metadata: Metadata = {
-  title: "/timeline · chronology of /arg, from Sturzenegger announcement onwards · ar-agents",
+  title: "/timeline · chronology of ar-agents, from Sturzenegger announcement onwards · ar-agents",
   description:
-    "Visual timeline of every event in the /arg story so far: the Sturzenegger sociedad-IA announcement (28-abr-2026), the initial launch (05-may), the RFCs (001-004), the shipping rounds, the certifier reaching 100/100. Helps any reader arriving mid-story get oriented in one scroll.",
-  alternates: { canonical: "https://ar-agents.vercel.app/timeline" },
+    "Visual timeline of every event in the ar-agents story so far: the Sturzenegger sociedad-IA announcement (28-abr-2026), the initial launch (05-may), the RFCs (001-004), the shipping rounds, the certifier reaching 100/100. Helps any reader arriving mid-story get oriented in one scroll.",
+  alternates: { canonical: "https://ar-agents.ar/timeline" },
 };
 
 export default function TimelinePage() {
@@ -292,7 +292,7 @@ export default function TimelinePage() {
             marginBottom: 8,
           }}
         >
-          /arg · /timeline · chronology · 2026-04-28 → present
+          /timeline · chronology · 2026-04-28 → present
         </p>
         <h1
           style={{
@@ -307,8 +307,8 @@ export default function TimelinePage() {
           Timeline.
         </h1>
         <p style={{ fontSize: 16 }}>
-          Every event in the /arg story so far. For any reader arriving
-          mid-narrative — journalists, regulators, developers. One scroll
+          Every event in the ar-agents story so far. For any reader arriving
+          mid-narrative, journalists, regulators, developers. One scroll
           to get oriented.
         </p>
         <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 12 }}>
@@ -412,7 +412,7 @@ export default function TimelinePage() {
           color: "var(--text-muted)",
         }}
       >
-        ar-agents.vercel.app ·{" "}
+        ar-agents.ar ·{" "}
         <Link href="/" style={linkSty}>/</Link>{" · "}
         <Link href="/feed.xml" style={linkSty}>/feed.xml</Link>{" · "}
         <Link href="/glossary" style={linkSty}>/glossary</Link>

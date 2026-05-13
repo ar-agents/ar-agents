@@ -84,6 +84,83 @@ describe("MeliClient", () => {
     expect(url.searchParams.has("includeUndef")).toBe(false);
   });
 
+  it("does NOT retry POST on 5xx by default (split-brain risk)", async () => {
+    let calls = 0;
+    const fm = mockFetch()
+      .on("POST", "/items", () => {
+        calls++;
+        return { status: 502, body: { error: "bad_gateway" } };
+      })
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch });
+    await expect(
+      client.fetch({
+        method: "POST",
+        path: "/items",
+        body: { title: "x" },
+        retry: { baseDelayMs: 1, maxAttempts: 4 },
+      }),
+    ).rejects.toBeInstanceOf(MeliApiError);
+    expect(calls).toBe(1);
+  });
+
+  it("DOES retry GET on 5xx (idempotent verbs are safe)", async () => {
+    let calls = 0;
+    const fm = mockFetch()
+      .on("GET", "/items/MLA1", () => {
+        calls++;
+        if (calls < 3) return { status: 502, body: {} };
+        return { status: 200, body: { id: "MLA1" } };
+      })
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch });
+    await client.fetch({
+      method: "GET",
+      path: "/items/MLA1",
+      retry: { baseDelayMs: 1 },
+    });
+    expect(calls).toBe(3);
+  });
+
+  it("DOES retry POST on 429 (request never reached the application)", async () => {
+    let calls = 0;
+    const fm = mockFetch()
+      .on("POST", "/x", () => {
+        calls++;
+        if (calls < 2) return { status: 429, body: {} };
+        return { status: 200, body: { ok: true } };
+      })
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch });
+    await client.fetch({
+      method: "POST",
+      path: "/x",
+      body: {},
+      retry: { baseDelayMs: 1 },
+    });
+    expect(calls).toBe(2);
+  });
+
+  it("Retry-After in HTTP-date format is honored", async () => {
+    const future = new Date(Date.now() + 50).toUTCString();
+    let calls = 0;
+    const fm = mockFetch()
+      .on("GET", "/x", () => {
+        calls++;
+        if (calls < 2)
+          return {
+            status: 429,
+            body: {},
+            headers: { "Retry-After": future },
+          };
+        return { status: 200, body: {} };
+      })
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch });
+    await client.fetch({ method: "GET", path: "/x", retry: { baseDelayMs: 1 } });
+    expect(calls).toBe(2);
+  });
+
   it("sends JSON body and Content-Type when body is provided", async () => {
     const fm = mockFetch()
       .on("POST", "/x", (req) => ({ status: 200, body: req.body }))

@@ -4,8 +4,8 @@ import { PlayClient } from "./play-client";
 export const metadata: Metadata = {
   title: "/play · Sociedad-IA argentina en vivo",
   description:
-    "Live interactive demo of an Argentine sociedad-IA running on @ar-agents/* under RFC-001 governance. Type a prompt, watch the agent operate the business — every tool call audit-logged with HMAC-signed timestamps in real time. Zero setup.",
-  alternates: { canonical: "https://ar-agents.vercel.app/play" },
+    "Live interactive demo of an Argentine sociedad-IA running on @ar-agents/* under RFC-001 governance. Type a prompt, watch the agent operate the business, every tool call audit-logged with HMAC-signed timestamps in real time. Zero setup.",
+  alternates: { canonical: "https://ar-agents.ar/play" },
 };
 
 export default function PlayPage() {
@@ -13,8 +13,8 @@ export default function PlayPage() {
     <main
       style={{
         minHeight: "100vh",
-        background: "#ffffff",
-        color: "#171717",
+        background: "var(--bg)",
+        color: "var(--text)",
         fontFamily:
           "var(--font-geist-sans), Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol",
       }}

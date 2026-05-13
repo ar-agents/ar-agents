@@ -1,19 +1,18 @@
 {
   "$schema": "https://agents.md/schema/agents.v1.json",
   "name": "ar-agents",
-  "description": "Open-source toolkit and reference implementation for Argentine sociedades-IA — AI-only companies under Argentina's proposed regime (Sturzenegger announcement 28-abr-2026).",
-  "homepage": "https://ar-agents.vercel.app",
+  "description": "Open-source toolkit and reference implementation for Argentine sociedades-IA, AI-only companies under Argentina's proposed regime (Sturzenegger announcement 28-abr-2026).",
+  "homepage": "https://ar-agents.ar",
   "repository": "https://github.com/ar-agents/ar-agents",
   "license": "MIT",
   "maintainer": {
-    "name": "Nazareno Clemente",
-    "email": "naza@helloastro.co"
+    "name": "Naza",
+    "email": "clementenaza@gmail.com"
   },
   "issuer": {
     "jurisdiction": "AR",
     "type": "sociedad-ia-reference-implementation",
-    "operatorName": "Nazareno Clemente",
-    "operatorCuit": "20-41758101-5",
+    "operatorName": "Naza",
     "supervisionRegime": "rfc-001-v1",
     "denominacion": "ar-agents reference implementation (not a productive sociedad-IA)"
   },
@@ -24,24 +23,24 @@
     "rfc-004-draft"
   ],
   "auditEndpoints": {
-    "auditRead": "https://ar-agents.vercel.app/api/play/audit/{sessionId}",
-    "auditVerify": "https://ar-agents.vercel.app/api/play/audit/{sessionId}?verify=1",
-    "auditCsv": "https://ar-agents.vercel.app/api/play/audit/{sessionId}/csv",
-    "auditStream": "https://ar-agents.vercel.app/api/play/audit-stream/{sessionId}",
-    "verifyBadge": "https://ar-agents.vercel.app/api/badge/{sessionId}"
+    "auditRead": "https://ar-agents.ar/api/play/audit/{sessionId}",
+    "auditVerify": "https://ar-agents.ar/api/play/audit/{sessionId}?verify=1",
+    "auditCsv": "https://ar-agents.ar/api/play/audit/{sessionId}/csv",
+    "auditStream": "https://ar-agents.ar/api/play/audit-stream/{sessionId}",
+    "verifyBadge": "https://ar-agents.ar/api/badge/{sessionId}"
   },
   "discovery": {
-    "machineReadable": "https://ar-agents.vercel.app/api/discovery",
-    "openapi": "https://ar-agents.vercel.app/api/discovery?format=openapi",
-    "openapi31": "https://ar-agents.vercel.app/api/openapi",
-    "aiPlugin": "https://ar-agents.vercel.app/.well-known/ai-plugin.json",
-    "testVectors": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json",
-    "certifier": "https://ar-agents.vercel.app/api/certifier?url={baseUrl}"
+    "machineReadable": "https://ar-agents.ar/api/discovery",
+    "openapi": "https://ar-agents.ar/api/discovery?format=openapi",
+    "openapi31": "https://ar-agents.ar/api/openapi",
+    "aiPlugin": "https://ar-agents.ar/.well-known/ai-plugin.json",
+    "testVectors": "https://ar-agents.ar/test-vectors/rfc-004-v1.json",
+    "certifier": "https://ar-agents.ar/api/certifier?url={baseUrl}"
   },
   "endpoints": [
     {
       "name": "auto-incorporate",
-      "url": "https://ar-agents.vercel.app/api/auto-incorporate",
+      "url": "https://ar-agents.ar/api/auto-incorporate",
       "method": "POST",
       "description": "Self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, env-var manifest, legal+operational checklist, signed audit-log reference.",
       "inputContentType": "application/json",
@@ -50,26 +49,26 @@
     },
     {
       "name": "play",
-      "url": "https://ar-agents.vercel.app/api/play",
+      "url": "https://ar-agents.ar/api/play",
       "method": "POST",
       "description": "Live sociedad-IA agent demo. 12 mocked-but-realistic tools across the @ar-agents/* surface. Streaming via Vercel AI Gateway. Per-IP rate-limited.",
       "inputContentType": "application/json"
     },
     {
       "name": "play-audit",
-      "url": "https://ar-agents.vercel.app/api/play/audit/{sessionId}",
+      "url": "https://ar-agents.ar/api/play/audit/{sessionId}",
       "method": "GET",
       "description": "Read the HMAC-SHA256-signed audit log for a /play session. Append `?verify=1` to ask the server to recompute every signature and report tampering counts."
     },
     {
       "name": "play-tamper-demo",
-      "url": "https://ar-agents.vercel.app/api/play/tamper-demo",
+      "url": "https://ar-agents.ar/api/play/tamper-demo",
       "method": "POST",
       "description": "Read-only demonstration that the HMAC mechanically catches tampering. Returns an original signed entry + a mutated version + verification results for both."
     },
     {
       "name": "badge",
-      "url": "https://ar-agents.vercel.app/api/badge/{sessionId}",
+      "url": "https://ar-agents.ar/api/badge/{sessionId}",
       "method": "GET",
       "description": "Returns a 24px SVG verification badge for embeds. Color + label updates live based on the audit log's verification state."
     }
@@ -102,7 +101,7 @@
     {
       "id": "RFC-001",
       "title": "Three-layer liability framework for AR sociedad-IA",
-      "url": "https://ar-agents.vercel.app/rfcs/001"
+      "url": "https://ar-agents.ar/rfcs/001"
     }
   ],
   "governance": {
@@ -111,8 +110,8 @@
       "primitive": "HMAC-SHA256",
       "storage": "Vercel KV (Upstash, sa-east-1) with in-memory fallback",
       "ttlSeconds": 604800,
-      "verify": "https://ar-agents.vercel.app/verify",
-      "publicReadEndpoint": "https://ar-agents.vercel.app/api/play/audit/{sessionId}?verify=1"
+      "verify": "https://ar-agents.ar/verify",
+      "publicReadEndpoint": "https://ar-agents.ar/api/play/audit/{sessionId}?verify=1"
     },
     "humanInTheLoop": {
       "primitive": "requireConfirmation",

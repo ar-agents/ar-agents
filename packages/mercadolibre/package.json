@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/mercadolibre",
-  "version": "0.1.0",
-  "description": "Production-grade Mercado Libre Agent Toolkit for the Vercel AI SDK 6. Wraps the agent-relevant MELI API surface — items + catalog (category predictor + domain technical specs), questions/messages, orders + packs, claims/mediation evidence, Mercado Envíos shipments, seller reputation monitor, promotions/candidates, webhooks with /missed_feeds replay. The first faithful TypeScript SDK since the official `mercadolibre/nodejs-sdk` was archived in February 2022.",
+  "version": "0.4.3",
+  "description": "Independent open-source TypeScript SDK + Vercel AI SDK 6 toolkit for the Mercado Libre API. Not affiliated with Mercado Libre S.R.L. Wraps the agent-relevant API surface (items, categories, questions, orders, packs, claims, shipments, reputation, promotions, webhooks) with OAuth coalescing, /myfeeds replay, HITL gates on irreversible operations, and an opt-in ACP product feed generator. Community-built to fill the gap left when `mercadolibre/nodejs-sdk` was archived in February 2022. MERCADOLIBRE® is a registered trademark of Mercado Libre S.R.L.",
   "keywords": [
     "mercadolibre",
     "meli",
@@ -56,7 +56,8 @@
   "typesVersions": {
     "*": {
       "ai-sdk": ["./dist/ai-sdk.d.ts"],
-      "testing": ["./dist/testing.d.ts"]
+      "testing": ["./dist/testing.d.ts"],
+      "feed": ["./dist/feed.d.ts"]
     }
   },
   "exports": {
@@ -89,16 +90,33 @@
         "types": "./dist/testing.d.cts",
         "default": "./dist/testing.cjs"
       }
+    },
+    "./feed": {
+      "import": {
+        "types": "./dist/feed.d.ts",
+        "default": "./dist/feed.js"
+      },
+      "require": {
+        "types": "./dist/feed.d.cts",
+        "default": "./dist/feed.cjs"
+      }
     }
   },
   "files": [
     "dist",
     "cookbook",
+    "postman",
     "README.md",
     "AGENTS.md",
     "CHANGELOG.md",
     "LICENSE",
     "SECURITY.md",
+    "ARCHITECTURE.md",
+    "MIGRATION.md",
+    "GOVERNANCE.md",
+    "POSITIONING.md",
+    "README.es.md",
+    "docs",
     "tools.manifest.json"
   ],
   "scripts": {
@@ -108,6 +126,7 @@
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage",
     "bench": "vitest bench --run test/bench/",
+    "evals": "tsx evals/run.ts",
     "typecheck": "tsc --noEmit",
     "lint": "echo 'no lint configured yet'",
     "validate": "publint && attw --pack .",
@@ -132,12 +151,14 @@
     }
   },
   "devDependencies": {
+    "@ai-sdk/anthropic": "^3.0.0",
     "@fast-check/vitest": "^0.2.1",
     "@types/node": "^20.19.39",
     "ai": "^6.0.175",
     "fast-check": "^4.7.0",
     "msw": "^2.6.0",
     "tsup": "^8.3.5",
+    "tsx": "^4.19.0",
     "typescript": "^5.9.3",
     "vitest": "^2.1.8",
     "zod": "^4.4.3"

@@ -13,7 +13,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "edge";
 
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 
 // ─── minimal YAML serializer ────────────────────────────────────────────────
 // Conservative output: always-quote strings that contain YAML-special chars,

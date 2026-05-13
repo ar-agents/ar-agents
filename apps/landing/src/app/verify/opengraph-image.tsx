@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · verify · forensic check
+          verify · forensic check
         </div>
         <div
           style={{
@@ -54,7 +54,7 @@ export default async function Image() {
             marginBottom: 40,
           }}
         >
-          Pegá el ID de una sesión, el servidor recomputa HMAC-SHA256 sobre el cuerpo canonical-JSON. RFC-001 § 9.2 — log probatorio, mecánicamente.
+          Pegá el ID de una sesión, el servidor recomputa HMAC-SHA256 sobre el cuerpo canonical-JSON. RFC-001 § 9.2, log probatorio, mecánicamente.
         </div>
         <div
           style={{
@@ -68,7 +68,7 @@ export default async function Image() {
             color: "#171717",
           }}
         >
-          curl ar-agents.vercel.app/api/play/audit/&#123;sessionId&#125;?verify=1
+          curl ar-agents.ar/api/play/audit/&#123;sessionId&#125;?verify=1
         </div>
         <div style={{ flex: 1 }} />
         <div
@@ -80,7 +80,7 @@ export default async function Image() {
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/verify</span>
+          <span>ar-agents.ar/verify</span>
           <span style={{ fontSize: 16, color: "#999" }}>RFC-001 § 9.2</span>
         </div>
       </div>

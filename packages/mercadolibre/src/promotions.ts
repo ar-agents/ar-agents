@@ -52,9 +52,9 @@ export async function listPromotionCandidates(
   options: ListPromotionCandidatesOptions = {},
 ): Promise<PromotionCandidatesResponse> {
   const query: Record<string, string | number> = { app_version: "v2" };
-  if (options.promotionType) query["promotion_type"] = options.promotionType;
-  if (options.limit) query["limit"] = options.limit;
-  if (options.offset) query["offset"] = options.offset;
+  if (options.promotionType !== undefined) query["promotion_type"] = options.promotionType;
+  if (options.limit !== undefined) query["limit"] = options.limit;
+  if (options.offset !== undefined) query["offset"] = options.offset;
   return client.fetch<PromotionCandidatesResponse>({
     method: "GET",
     path: `/seller-promotions/users/${sellerId}/candidates`,
@@ -159,13 +159,18 @@ export async function autoOptInPromotions(
         });
         continue;
       }
-      const suggested = item.suggested_price ?? item.original_price;
-      if (!suggested) {
+      // Margin is computed against the SUGGESTED (discounted) price — that's
+      // the revenue we'd actually book if we opt in. Falling back to
+      // `original_price` would compute margin against full price and then
+      // opt in at full price, defeating the entire promotion. If MELI didn't
+      // suggest a discount, skip the candidate.
+      const suggested = item.suggested_price;
+      if (suggested === undefined || suggested === null || suggested <= 0) {
         result.skipped.push({
           itemId: item.id,
           promotionId: cand.promotion_id,
           reason: "no_suggested_price",
-          detail: "Candidate has no suggested_price/original_price.",
+          detail: "MELI did not suggest a discount price for this candidate.",
         });
         continue;
       }

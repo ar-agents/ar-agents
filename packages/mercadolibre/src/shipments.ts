@@ -55,33 +55,26 @@ export interface FetchLabelsInput {
  * Fetch shipment labels as a Blob. Caller decides what to do (save to disk,
  * stream to user, attach to email).
  *
+ * Goes through the same auth + rate-limit + retry + telemetry plumbing as
+ * the rest of the client (via `client.fetchRaw`) — labels never get a
+ * silent unauthenticated request and aren't excluded from per-seller rate
+ * limiting.
+ *
  * NOTE: labels invalidate after 7 days — re-fetch close to ship time.
  */
 export async function fetchLabelsBlob(
   client: MeliClient,
   input: FetchLabelsInput,
 ): Promise<Blob> {
-  const ids = input.shipmentIds.join(",");
-  const url = new URL("/shipment_labels", client.baseUrl);
-  url.searchParams.set("shipment_ids", ids);
-  url.searchParams.set("response_type", input.format);
-
-  // We can't use `client.fetch` directly because it expects JSON. Build a
-  // request that piggybacks on the same auth + rate limit + retry plumbing
-  // by going through a `fetch`-style call here. For Phase 1 we do a plain
-  // fetch; advanced retries can be added later.
-  const auth = await (client as { resolveAuthHeaderForExternalUse?: () => Promise<string | null> }).resolveAuthHeaderForExternalUse?.();
-  const response = await fetch(url.toString(), {
-    headers: {
-      Accept: input.format === "pdf" ? "application/pdf" : "text/plain",
-      ...(auth ? { Authorization: auth } : {}),
+  const response = await client.fetchRaw({
+    method: "GET",
+    path: "/shipment_labels",
+    query: {
+      shipment_ids: input.shipmentIds.join(","),
+      response_type: input.format,
     },
+    acceptHeader: input.format === "pdf" ? "application/pdf" : "text/plain",
   });
-  if (!response.ok) {
-    throw new Error(
-      `MELI label fetch failed: ${response.status} ${response.statusText}`,
-    );
-  }
   return response.blob();
 }
 
@@ -106,8 +99,8 @@ export async function getShippingOptions(
   options: { zipCode?: string; quantity?: number } = {},
 ): Promise<ShippingOptionsResponse> {
   const query: Record<string, string | number> = {};
-  if (options.zipCode) query["zip_code"] = options.zipCode;
-  if (options.quantity) query["quantity"] = options.quantity;
+  if (options.zipCode !== undefined) query["zip_code"] = options.zipCode;
+  if (options.quantity !== undefined) query["quantity"] = options.quantity;
   return client.fetch<ShippingOptionsResponse>({
     method: "GET",
     path: `/items/${itemId}/shipping_options`,

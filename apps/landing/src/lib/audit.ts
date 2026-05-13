@@ -9,13 +9,13 @@
  *
  * Storage: Vercel KV (Upstash REST under the hood, Edge-safe). When KV
  * isn't provisioned (KV_REST_API_URL absent), falls back to an in-memory
- * Map — useful for local dev and PR previews without secrets. The
+ * Map, useful for local dev and PR previews without secrets. The
  * fallback is per-instance so it won't survive a cold start, but the
  * production case is the KV path.
  *
  * Why this matters for RFC-001:
- *   § 9.1 — append-only sink, HMAC-signed timestamps.
- *   § 9.2 — log is legally probative. The verify endpoint exists for
+ *   § 9.1, append-only sink, HMAC-signed timestamps.
+ *   § 9.2, log is legally probative. The verify endpoint exists for
  *           anyone to challenge or confirm a sociedad-IA's claimed
  *           operating history.
  */
@@ -198,7 +198,7 @@ export async function appendAudit(
       await kv.rpush(key(sessionId), entry);
       await kv.expire(key(sessionId), ENTRY_TTL_SECONDS);
     } catch {
-      // KV down — fall through to in-memory so the demo doesn't break.
+      // KV down, fall through to in-memory so the demo doesn't break.
       const arr = memStore.get(sessionId) ?? [];
       arr.push(entry);
       memStore.set(sessionId, arr);
@@ -229,7 +229,7 @@ export function isSessionIdValid(s: string): boolean {
 
 /**
  * Verify every entry in a session. Returns aggregate stats for an
- * external auditor — count of entries, count tampered, plus RFC-005
+ * external auditor, count of entries, count tampered, plus RFC-005
  * asymmetric verification counts when entries carry `signature` fields.
  */
 export async function verifySession(sessionId: string): Promise<{
@@ -245,7 +245,7 @@ export async function verifySession(sessionId: string): Promise<{
   const entries = await readAudit(sessionId);
   const hmacWired = Boolean(process.env.AUDIT_HMAC_SECRET?.trim());
 
-  // Asymmetric verification stats are computed regardless of HMAC config —
+  // Asymmetric verification stats are computed regardless of HMAC config,
   // the two checks are independent.
   let signedAsymmetric = 0;
   let signedAsymmetricVerified = 0;

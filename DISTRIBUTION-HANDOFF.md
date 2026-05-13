@@ -8,8 +8,8 @@ State as of 2026-05-08 (Friday morning Argentina). Updated after the autonomous 
 
 | Surface | Status | URL |
 |---|---|---|
-| /llms.txt for LLM crawlers | live | https://ar-agents.vercel.app/llms.txt |
-| Schema.org JSON-LD on landing | live (SoftwareApplication + Org + Person) | https://ar-agents.vercel.app |
+| /llms.txt for LLM crawlers | live | https://ar-agents.ar/llms.txt |
+| Schema.org JSON-LD on landing | live (SoftwareApplication + Org + Person) | https://ar-agents.ar |
 | Glama MCP registry | listed + badge | https://glama.ai/mcp/servers/ar-agents/ar-agents |
 | punkpeye/awesome-mcp-servers PR | open with badge | https://github.com/punkpeye/awesome-mcp-servers/pull/6016 |
 | **TensorBlock/awesome-mcp-servers PR** | **open** | **https://github.com/TensorBlock/awesome-mcp-servers/pull/512** |
@@ -58,7 +58,7 @@ Adds ar-agents/mcp to the Finance section. Bundles 7 packages:
 - @ar-agents/identity-attest — Verification orchestrator with HMAC-signed attestations.
 
 Glama listing: https://glama.ai/mcp/servers/ar-agents/ar-agents
-Live demos: https://ar-agents.vercel.app
+Live demos: https://ar-agents.ar
 ```
 
 ### 3. Sign in to Smithery + publish (5 min)
@@ -81,7 +81,7 @@ Post via your account around 10am EDT (= 11am ART today, since we're in EDT not 
 **Title:** `Show HN: Mercado Pago Agent Toolkit – 89 typed tools for the Vercel AI SDK 6`
 (80 chars exactly — HN limit)
 
-**URL:** `https://ar-agents.vercel.app`
+**URL:** `https://ar-agents.ar`
 
 **First comment** (post immediately after submission, gets pinned):
 ```
@@ -133,7 +133,7 @@ HITL on the 8 irreversible ops.
 Plus sidecars: @ar-agents/identity (CUIT+AFIP), facturacion (factura
 electrónica), whatsapp, banking (CBU+BCRA), shipping.
 
-Live demo runs Sonnet 4.6 via AI Gateway: ar-agents.vercel.app
+Live demo runs Sonnet 4.6 via AI Gateway: ar-agents.ar
 Open source, MIT.
 ```
 
@@ -150,7 +150,7 @@ source toolkit for Mercado Pago (89 typed tools for Vercel AI SDK 6) plus
 sidecar packages for AFIP, WhatsApp, AR banking, shipping. Each ships
 AGENTS.md per the agents.md convention.
 
-ar-agents.vercel.app
+ar-agents.ar
 
 Let me know if it'd fit your "Latent Space" coverage of agent infra.
 ```
@@ -162,7 +162,7 @@ Pago (the Stripe of LATAM). 89 typed tools with HITL on irreversible ops,
 idempotency-by-default, npm provenance, edge-runtime safe.
 
 Live demo with mocked MP tools running Sonnet 4.6 via AI Gateway:
-ar-agents.vercel.app
+ar-agents.ar
 
 Curious if you'd cover this — the LATAM payments stack hasn't really had its
 agent moment yet.
@@ -175,7 +175,7 @@ Hey Lee — built this on top of Vercel AI SDK 6: 89 typed Mercado Pago tools
 Runtime-safe primitives with idempotency-by-default and webhook HMAC
 verification. Uses AI Gateway for the model routing.
 
-ar-agents.vercel.app — there's a "Try it with a live agent" button that runs
+ar-agents.ar — there's a "Try it with a live agent" button that runs
 Sonnet 4.6 against mocked MP tools, no signup.
 
 Would love your eyes on it from an agent-ergonomics POV.
@@ -196,7 +196,7 @@ Cubre Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Cuotas (con cat�
 
 También sidecars: @ar-agents/identity (CUIT + padrón AFIP/ARCA), facturacion (WSFE), whatsapp, banking (CBU + BCRA Central de Deudores), shipping (Andreani/OCA/Correo).
 
-Demo en vivo (Sonnet 4.6 via Vercel AI Gateway, MP mockeado): ar-agents.vercel.app
+Demo en vivo (Sonnet 4.6 via Vercel AI Gateway, MP mockeado): ar-agents.ar
 
 Feedback bienvenido.
 ```
@@ -215,7 +215,7 @@ Things I tried to get right for agent ergonomics:
 - npm provenance attestation (SLSA v1)
 - Subpath exports for Vercel KV adapters and OpenTelemetry instrumentation
 
-Live demo runs Claude Sonnet 4.6 via Vercel AI Gateway against mocked MP tools: ar-agents.vercel.app
+Live demo runs Claude Sonnet 4.6 via Vercel AI Gateway against mocked MP tools: ar-agents.ar
 
 Open to feedback on the API shape.
 ```
@@ -241,7 +241,7 @@ Form: https://vercel.com/blog/submit (or DM @vercel team in Discord).
 
 ```
 Project: ar-agents — Mercado Pago Agent Toolkit for Vercel AI SDK 6
-URL: https://ar-agents.vercel.app
+URL: https://ar-agents.ar
 GitHub: https://github.com/ar-agents/ar-agents
 Description: Drop Mercado Pago into your AI agent. 89 typed tools across the
 agent-relevant MP API surface (Subscriptions, Payments, Checkout Pro,

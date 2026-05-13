@@ -13,7 +13,7 @@
 Hola Mariano,
 
 Soy Naza Clemente. Estoy shipeando una colección de packages npm open
-source (`@ar-agents/*`, ar-agents.vercel.app) que wrappea AFIP/ARCA,
+source (`@ar-agents/*`, ar-agents.ar) que wrappea AFIP/ARCA,
 Mercado Pago, BCRA, Boletín Oficial, IGJ, Firma Digital y otros como
 tools del Vercel AI SDK 6 — pensando en agentes IA y en lo que va a
 necesitar el régimen de "sociedades de IA" si llega a aprobarse.
@@ -23,7 +23,7 @@ parte de WSAA + WSFE. Quería invitarte a un working group informal
 para cuidar standards técnicos de esta capa. ¿Tenés 30 min para una
 call esta semana?
 
-Manifiesto: ar-agents.vercel.app/manifiesto
+Manifiesto: ar-agents.ar/manifiesto
 
 Saludos,
 Naza
@@ -52,7 +52,7 @@ advisor del working group /arg.
 
 Saludos,
 Naza
-ar-agents.vercel.app
+ar-agents.ar
 
 ---
 
@@ -117,7 +117,7 @@ extensible.
 
 Saludos,
 Naza
-ar-agents.vercel.app/manifiesto
+ar-agents.ar/manifiesto
 
 ---
 

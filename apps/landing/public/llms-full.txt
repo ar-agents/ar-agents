@@ -6,7 +6,7 @@ This file is `llms-full.txt`, an extension of [`llms.txt`](/llms.txt) per the [l
 
 ## Sociedades-IA governance layer (added 2026-05-11)
 
-The original /arg shipped as a Mercado Pago + Argentine business toolkit. After Sturzenegger announced the sociedad-IA regime, a 26-round shipping series added a full governance scaffolding (the rest of the original MercadoPago-deep-reference below is still accurate — the sociedad-IA layer is additive):
+The original ar-agents shipped as a Mercado Pago + Argentine business toolkit. After Sturzenegger announced the sociedad-IA regime, a 26-round shipping series added a full governance scaffolding (the rest of the original MercadoPago-deep-reference below is still accurate — the sociedad-IA layer is additive):
 
 - **5 RFCs (all working live in production)**:
   - [RFC-001](https://ar-agents.vercel.app/rfcs/001): Three-layer civil liability (operator / sociedad-IA / model provider)

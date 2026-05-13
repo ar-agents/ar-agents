@@ -46,13 +46,13 @@ mv .git .git-bak && npx vercel --prod --yes; mv ../../.git-bak ../../.git
 
 ```bash
 # 1. Hit auto-incorporate to write an entry
-SESSION=$(curl -sS -X POST https://ar-agents.vercel.app/api/auto-incorporate \
+SESSION=$(curl -sS -X POST https://ar-agents.ar/api/auto-incorporate \
   -H "Content-Type: application/json" \
   -d '{"denominacion":"ACME-AI SAS","tipo":"SOCIEDAD-IA","capitalSocial":1,"objeto":"Operación de servicios digitales y desarrollo de software propio."}' \
   | jq -r '.audit.sessionId')
 
 # 2. Read the audit log
-curl -sS "https://ar-agents.vercel.app/api/play/audit/${SESSION}?verify=1" | jq
+curl -sS "https://ar-agents.ar/api/play/audit/${SESSION}?verify=1" | jq
 
 # Expected:
 # {
@@ -75,13 +75,13 @@ Once KV is wired, you can prove the HMAC works:
 
 ```bash
 # 1. Read an entry
-curl -sS "https://ar-agents.vercel.app/api/play/audit/${SESSION}" | jq '.entries[0]'
+curl -sS "https://ar-agents.ar/api/play/audit/${SESSION}" | jq '.entries[0]'
 
 # 2. Use redis-cli to manually corrupt one (via Upstash console)
 #    e.g., LSET play:audit:${SESSION} 0 '{"id":"...","tool":"FAKE","input":"...","hmac":"sha256:00000..."}'
 
 # 3. Re-verify
-curl -sS "https://ar-agents.vercel.app/api/play/audit/${SESSION}?verify=1" | jq '.verification'
+curl -sS "https://ar-agents.ar/api/play/audit/${SESSION}?verify=1" | jq '.verification'
 
 # Expected: { "total": 1, "verified": 0, "tampered": 1, "hmacWired": true }
 ```

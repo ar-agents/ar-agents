@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/shipping",
   "version": "0.2.0",
   "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",

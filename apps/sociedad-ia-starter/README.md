@@ -1,9 +1,9 @@
 # Sociedad-IA Starter
 
-> The reference Next.js app for an Argentine **sociedad-IA** — an AI-only company under [Argentina's proposed regime](https://ar-agents.vercel.app/sociedades-ia). Operated by an LLM agent on top of [`@ar-agents/*`](https://ar-agents.vercel.app) (16 packages, 168 tools). MIT-licensed, SLSA-provenanced, RFC-001-governed. Deploy in one click.
+> The reference Next.js app for an Argentine **sociedad-IA** — an AI-only company under [Argentina's proposed regime](https://ar-agents.ar/sociedades-ia). Operated by an LLM agent on top of [`@ar-agents/*`](https://ar-agents.ar) (16 packages, 168 tools). MIT-licensed, SLSA-provenanced, RFC-001-governed. Deploy in one click.
 
 [![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter&project-name=sociedad-ia-starter&env=ANTHROPIC_API_KEY,AFIP_CERT_PEM,AFIP_KEY_PEM,AFIP_CUIT,MERCADOPAGO_ACCESS_TOKEN,WHATSAPP_ACCESS_TOKEN,WHATSAPP_PHONE_NUMBER_ID,AUDIT_HMAC_SECRET&envDescription=Configure%20at%20least%20ANTHROPIC_API_KEY%20to%20boot.%20Each%20section%20degrades%20gracefully%20when%20its%20env%20vars%20are%20missing.&envLink=https://github.com/ar-agents/ar-agents/blob/main/apps/sociedad-ia-starter/.env.example)
-[![Live demo](https://img.shields.io/badge/▲%20Live%20demo-ar--agents.vercel.app%2Fplay-black)](https://ar-agents.vercel.app/play)
+[![Live demo](https://img.shields.io/badge/▲%20Live%20demo-ar--agents.vercel.app%2Fplay-black)](https://ar-agents.ar/play)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![SLSA v1](https://img.shields.io/badge/SLSA-v1-success)](https://slsa.dev)
 
@@ -52,7 +52,7 @@ Sin nada configurado, la app sigue funcionando: `pnpm dev` → la home page mues
 
 Toda decisión irreversible (refunds, cancellations, transferencias) pasa por `requireConfirmation`. Cada tool call queda en el audit log con timestamp HMAC-firmado.
 
-Lectura completa: <https://ar-agents.vercel.app/rfcs/001>.
+Lectura completa: <https://ar-agents.ar/rfcs/001>.
 
 ## Trust + audit
 
@@ -62,9 +62,9 @@ Lectura completa: <https://ar-agents.vercel.app/rfcs/001>.
 
 ## Soporte
 
-- Cookbook: <https://ar-agents.vercel.app/examples>
-- Architecture: <https://ar-agents.vercel.app/architecture>
-- Threat model: <https://ar-agents.vercel.app/security>
+- Cookbook: <https://ar-agents.ar/examples>
+- Architecture: <https://ar-agents.ar/architecture>
+- Threat model: <https://ar-agents.ar/security>
 - Issues: <https://github.com/ar-agents/ar-agents/issues>
 
 ## License

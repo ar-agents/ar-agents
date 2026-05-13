@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ar-agents.vercel.app/schemas/cross-jurisdiction-audit.v1.json",
+  "$id": "https://ar-agents.ar/schemas/cross-jurisdiction-audit.v1.json",
   "title": "RFC-003 cross-jurisdictional audit envelope v1",
-  "description": "Portable interchange format for sociedad-IA audit logs crossing jurisdictional boundaries. See https://ar-agents.vercel.app/rfcs/003 for the full specification.",
+  "description": "Portable interchange format for sociedad-IA audit logs crossing jurisdictional boundaries. See https://ar-agents.ar/rfcs/003 for the full specification.",
   "type": "object",
   "required": ["$schema", "issuer", "sessionId", "entries", "issuedAt", "expiresAt"],
   "properties": {
@@ -35,7 +35,7 @@
       "type": "array",
       "description": "Audit entries per RFC-004 v1.",
       "items": {
-        "$ref": "https://ar-agents.vercel.app/schemas/operational-log-entry.v1.json"
+        "$ref": "https://ar-agents.ar/schemas/operational-log-entry.v1.json"
       }
     },
     "externalReferences": {

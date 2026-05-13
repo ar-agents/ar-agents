@@ -57,7 +57,7 @@ const RFC_CONFORMANCE_COLOR: Record<Certification["rfcConformance"]["rfc-002-v1"
 };
 
 export function CertifierClient() {
-  const [url, setUrl] = useState("https://ar-agents.vercel.app");
+  const [url, setUrl] = useState("https://ar-agents.ar");
   const [sessionId, setSessionId] = useState("demo-public-ar-001");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -106,7 +106,7 @@ export function CertifierClient() {
             marginBottom: 8,
           }}
         >
-          /arg · /certifier · live · no install
+          /certifier · live · no install
         </p>
         <h1
           style={{
@@ -149,7 +149,7 @@ export function CertifierClient() {
           />
         </label>
         <label style={labelStyle}>
-          Sample sessionId (optional — defaults to demo-public-ar-001)
+          Sample sessionId (optional, defaults to demo-public-ar-001)
           <input
             type="text"
             value={sessionId}
@@ -362,19 +362,19 @@ export function CertifierClient() {
         </h2>
         <ul style={{ paddingLeft: 24, marginBottom: 16, fontSize: 14 }}>
           <li style={{ marginBottom: 6 }}>
-            <strong>HMAC validity</strong> — the certifier relies on the
+            <strong>HMAC validity</strong>, the certifier relies on the
             target&apos;s own verify=1 endpoint. To verify independently,
             fetch the entries + the public key (RFC-004 § 5) + run the
             cryptographic check client-side.
           </li>
           <li style={{ marginBottom: 6 }}>
-            <strong>Business legitimacy</strong> — passing 100/100 means the
+            <strong>Business legitimacy</strong>, passing 100/100 means the
             technical scaffolding is in place. It does NOT mean the
             sociedad-IA is doing legal business; that&apos;s the
             regulator&apos;s job.
           </li>
           <li style={{ marginBottom: 6 }}>
-            <strong>Operational health</strong> — endpoint up/down at this
+            <strong>Operational health</strong>, endpoint up/down at this
             moment ≠ ran legitimately for 6 months. Use{" "}
             <Link href="/examples" style={linkStyle}>
               cookbook recipe 25
@@ -400,8 +400,8 @@ export function CertifierClient() {
             marginBottom: 16,
           }}
         >
-{`curl "https://ar-agents.vercel.app/api/certifier?url=https://your-sociedad.vercel.app"
-curl "https://ar-agents.vercel.app/api/certifier?url=...&sessionId=abc12345"`}
+{`curl "https://ar-agents.ar/api/certifier?url=https://your-sociedad.vercel.app"
+curl "https://ar-agents.ar/api/certifier?url=...&sessionId=abc12345"`}
         </pre>
       </section>
 
@@ -414,7 +414,7 @@ curl "https://ar-agents.vercel.app/api/certifier?url=...&sessionId=abc12345"`}
           color: "var(--text-muted)",
         }}
       >
-        ar-agents.vercel.app ·{" "}
+        ar-agents.ar ·{" "}
         <Link href="/rfcs/002" style={linkStyle}>RFC-002</Link>{" · "}
         <Link href="/rfcs/004" style={linkStyle}>RFC-004</Link>{" · "}
         <Link href="/test-vectors" style={linkStyle}>/test-vectors</Link>{" · "}

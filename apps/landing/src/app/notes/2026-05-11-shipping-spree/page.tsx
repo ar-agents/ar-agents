@@ -3,12 +3,12 @@ import Link from "next/link";
 import { JsonLd } from "../../json-ld";
 
 export const metadata: Metadata = {
-  title: "Shipping spree: 18 rounds in one day · /arg notes",
+  title: "Shipping spree: 18 rounds in one day · ar-agents notes",
   description:
     "Recap of what shipped in the autonomous 18-round series after the Sturzenegger sociedad-IA announcement: 5 RFCs, 30 cookbook recipes, 32+ public surfaces, all 5 sociedades at 100/100 conformance. Plus a list of what's deliberately NOT in the work.",
   alternates: {
     canonical:
-      "https://ar-agents.vercel.app/notes/2026-05-11-shipping-spree",
+      "https://ar-agents.ar/notes/2026-05-11-shipping-spree",
   },
   openGraph: {
     title: "Shipping spree: 18 rounds in one day",
@@ -29,10 +29,10 @@ export default function NotePage() {
           datePublished: "2026-05-11",
           author: {
             "@type": "Person",
-            name: "Nazareno Clemente",
-            email: "naza@helloastro.co",
+            name: "Naza",
+            email: "clementenaza@gmail.com",
           },
-          url: "https://ar-agents.vercel.app/notes/2026-05-11-shipping-spree",
+          url: "https://ar-agents.ar/notes/2026-05-11-shipping-spree",
           inLanguage: "en-US",
         }}
       />
@@ -57,7 +57,7 @@ export default function NotePage() {
               fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
             }}
           >
-            2026-05-11 · /arg · /notes
+            2026-05-11 · ar-agents · /notes
           </p>
           <h1
             style={{
@@ -124,7 +124,7 @@ export default function NotePage() {
           </Li>
           <Li>
             <strong>Public certifier</strong> at{" "}
-            <A href="/certifier">/certifier</A> — paste any URL, get a
+            <A href="/certifier">/certifier</A>, paste any URL, get a
             0-100 score across ~11 checks in seconds. Honors{" "}
             <code style={codeSty}>rfcConformance</code> claims: SKIPs
             checks the manifest doesn&apos;t claim, FAILs only on
@@ -132,7 +132,7 @@ export default function NotePage() {
           </Li>
           <Li>
             <strong>14 HTTP APIs</strong> + <strong>3 well-known
-            endpoints</strong> — audit (read/verify/csv/stream), badge,
+            endpoints</strong>, audit (read/verify/csv/stream), badge,
             cert-badge, openapi (JSON + YAML), discovery, certifier,
             conformance-history (KV time-series), auto-monitor (daily
             cron), auto-incorporate, rfc-003-envelope, audit-summary,
@@ -149,13 +149,13 @@ export default function NotePage() {
           </Li>
           <Li>
             <strong>Regulator brief</strong>:{" "}
-            <A href="/auditor">/auditor</A> — 1-page Spanish-first,
+            <A href="/auditor">/auditor</A>, 1-page Spanish-first,
             print-friendly summary. 7-minute read. Every claim links to
             evidence.
           </Li>
           <Li>
             <strong>Public registry</strong>:{" "}
-            <A href="/registro">/registro</A> — 5 entries, each with
+            <A href="/registro">/registro</A>, 5 entries, each with
             live cert-badge + conformance sparkline. All 5 currently
             score 100/100 A. Self-listing via PR (recipe 30).
           </Li>
@@ -163,23 +163,23 @@ export default function NotePage() {
             <strong>30 cookbook recipes</strong> at{" "}
             <A href="/examples">/examples</A>. Highlights:
             <ul style={ulInnerStyle}>
-              <Li>25 — quarterly compliance report generator (the
+              <Li>25, quarterly compliance report generator (the
               answer to a regulator request, generated from the audit
               log alone).</Li>
-              <Li>26 — single-shot certifier function (also backs the
+              <Li>26, single-shot certifier function (also backs the
               web /certifier UI).</Li>
-              <Li>27 — live monitoring loop with drift detection +
+              <Li>27, live monitoring loop with drift detection +
               alerting.</Li>
-              <Li>28 — operator pre-launch readiness checklist.</Li>
-              <Li>29 — Ed25519 keypair generation + publication
+              <Li>28, operator pre-launch readiness checklist.</Li>
+              <Li>29, Ed25519 keypair generation + publication
               walkthrough (RFC-005 § 4).</Li>
-              <Li>30 — registry-submission PR-body generator with
+              <Li>30, registry-submission PR-body generator with
               honesty heuristics + pre-flight checks.</Li>
             </ul>
           </Li>
           <Li>
             <strong>4 published JSON schemas</strong> at{" "}
-            <A href="/schemas/operational-log-entry.v1.json">/schemas/*</A> —
+            <A href="/schemas/operational-log-entry.v1.json">/schemas/*</A>,
             operational-log entry (RFC-004), agents.json (RFC-002),
             certification (the /certifier output), cross-jurisdiction
             envelope (RFC-003).
@@ -276,7 +276,7 @@ export default function NotePage() {
             color: "var(--text-muted)",
           }}
         >
-          ar-agents.vercel.app ·{" "}
+          ar-agents.ar ·{" "}
           <Link href="/" style={linkSty}>/</Link>{" · "}
           <Link href="/notes" style={linkSty}>/notes</Link>{" · "}
           <Link href="/timeline" style={linkSty}>/timeline</Link>{" · "}

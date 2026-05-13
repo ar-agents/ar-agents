@@ -1,7 +1,7 @@
 import { defineConfig } from "tsup";
 
 export default defineConfig({
-  entry: ["src/index.ts", "src/ai-sdk.ts", "src/testing.ts"],
+  entry: ["src/index.ts", "src/ai-sdk.ts", "src/testing.ts", "src/feed.ts"],
   external: ["zod", "ai"],
   format: ["esm", "cjs"],
   dts: true,

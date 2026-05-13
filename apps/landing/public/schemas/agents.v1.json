@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ar-agents.vercel.app/schemas/agents.v1.json",
+  "$id": "https://ar-agents.ar/schemas/agents.v1.json",
   "title": "RFC-002 v1 /.well-known/agents.json",
-  "description": "Discovery manifest published at /.well-known/agents.json by every sociedad-IA. See https://ar-agents.vercel.app/rfcs/002 for the full specification.",
+  "description": "Discovery manifest published at /.well-known/agents.json by every sociedad-IA. See https://ar-agents.ar/rfcs/002 for the full specification.",
   "type": "object",
   "required": ["issuer", "rfcConformance"],
   "anyOf": [

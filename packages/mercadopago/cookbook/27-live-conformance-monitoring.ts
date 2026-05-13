@@ -10,7 +10,7 @@
  * Recipe 27 is the monitoring loop:
  *
  *   1. Every N minutes (cron), POST /api/conformance-history?url=YOUR_URL
- *      to the public ar-agents.vercel.app endpoint. This re-runs the
+ *      to the public ar-agents.ar endpoint. This re-runs the
  *      certifier + appends the new point to a 365-entry time-series.
  *
  *   2. Compare the latest point against a sliding-window baseline
@@ -87,7 +87,7 @@ interface MonitorOptions {
   alertWebhooks?: string[];
 }
 
-const DEFAULT_API_BASE = "https://ar-agents.vercel.app";
+const DEFAULT_API_BASE = "https://ar-agents.ar";
 const DEFAULT_BASELINE_WINDOW = 24;
 const DEFAULT_THRESHOLD_PCT = 10;
 

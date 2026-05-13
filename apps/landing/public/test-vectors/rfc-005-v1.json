@@ -1,9 +1,9 @@
 {
-  "$schema": "https://ar-agents.vercel.app/test-vectors/rfc-005-v1.schema.json",
-  "spec": "https://ar-agents.vercel.app/rfcs/005",
+  "$schema": "https://ar-agents.ar/test-vectors/rfc-005-v1.schema.json",
+  "spec": "https://ar-agents.ar/rfcs/005",
   "version": "rfc-005-v1-draft",
   "publishedAt": "2026-05-11",
-  "notes": "Conformance vectors for RFC-005 v1 (Ed25519 asymmetric upgrade for the operational log). The keypair is published in full for testing — DO NOT use this exact key in production. License: CC-BY-4.0. RFC-005 v1 finalization will lock these vectors.",
+  "notes": "Conformance vectors for RFC-005 v1 (Ed25519 asymmetric upgrade for the operational log). The keypair is published in full for testing, DO NOT use this exact key in production. License: CC-BY-4.0. RFC-005 v1 finalization will lock these vectors.",
   "keypair": {
     "keyId": "ar-agents-ref-2026-05",
     "alg": "ed25519",

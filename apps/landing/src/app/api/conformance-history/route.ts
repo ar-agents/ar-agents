@@ -35,7 +35,7 @@ import { NextResponse } from "next/server";
 
 export const runtime = "nodejs";
 
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 const MAX_HISTORY = 365;
 const TTL_SECONDS = 90 * 24 * 60 * 60;
 const KEY_PREFIX = "conformance-history:";

@@ -93,7 +93,7 @@ const tools = gdeTadTools({ domicilio });
 
 ## RFC-001 reference
 
-Full pieza-4 governance plan in [RFC-001 § 3.4](https://ar-agents.vercel.app/rfcs/001).
+Full pieza-4 governance plan in [RFC-001 § 3.4](https://ar-agents.ar/rfcs/001).
 
 ## License
 

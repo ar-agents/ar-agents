@@ -268,7 +268,7 @@ describe("canonical-JSON stability (regression)", () => {
 // path fail HMAC verification.
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe("RFC-005 dual-sign — HMAC strip rule covers both fields", () => {
+describe("RFC-005 dual-sign, HMAC strip rule covers both fields", () => {
   it("verifyEntry passes when entry carries both hmac and signature", async () => {
     process.env.AUDIT_HMAC_SECRET = SECRET;
     const base: Omit<AuditEntry, "hmac"> = {
@@ -323,7 +323,7 @@ describe("RFC-005 dual-sign — HMAC strip rule covers both fields", () => {
       input: { ping: 3 },
     };
     const sigA = await signEntry(base);
-    // Same logical entry but with a signature added — the stripping rule
+    // Same logical entry but with a signature added, the stripping rule
     // means the HMAC value is identical.
     const withSig = {
       ...base,

@@ -23,7 +23,7 @@ agente argentino — operen contra el Estado.
 
 11 packages npm. Vercel AI SDK 6 + MCP. MIT.
 
-ar-agents.vercel.app
+ar-agents.ar
 
 **3/** Lo que ya está shipeado:
 
@@ -55,15 +55,15 @@ ar-agents.vercel.app
 
 **6/** Demo completo con los 17 pasos de incorporación + operación:
 
-ar-agents.vercel.app/sociedades-ia
+ar-agents.ar/sociedades-ia
 
 Manifiesto:
 
-ar-agents.vercel.app/manifiesto
+ar-agents.ar/manifiesto
 
 RFC-001 (identidad + firma de agentes en AR):
 
-ar-agents.vercel.app/rfcs/001
+ar-agents.ar/rfcs/001
 
 **7/** /arg es civil. Comercial. OSS.
 
@@ -113,7 +113,7 @@ that wants to operate in Argentina needs this exact stack.
 
 We just made it free + composable.
 
-**4/** ar-agents.vercel.app
+**4/** ar-agents.ar
 
 — Naza
 

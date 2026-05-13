@@ -1,5 +1,5 @@
 /**
- * `POST /api/auto-incorporate` — machine-readable incorporation
+ * `POST /api/auto-incorporate`, machine-readable incorporation
  * surface for an external agent.
  *
  * The /incorporar wizard is for humans clicking through a form; this
@@ -57,7 +57,7 @@ export async function POST(req: Request) {
       {
         ok: false,
         validation,
-        rfc001: { version: "1.0", url: "https://ar-agents.vercel.app/rfcs/001" },
+        rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
       },
       { status: 422 },
     );
@@ -121,11 +121,11 @@ export async function POST(req: Request) {
         sessionId,
         backend: auditBackend(),
         entry: auditEntry,
-        url: `https://ar-agents.vercel.app/api/play/audit/${sessionId}`,
-        verifyUrl: `https://ar-agents.vercel.app/api/play/audit/${sessionId}?verify=1`,
-        dashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+        url: `https://ar-agents.ar/api/play/audit/${sessionId}`,
+        verifyUrl: `https://ar-agents.ar/api/play/audit/${sessionId}?verify=1`,
+        dashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
       },
-      rfc001: { version: "1.0", url: "https://ar-agents.vercel.app/rfcs/001" },
+      rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
       generatedAt: new Date().toISOString(),
     },
     {
@@ -138,24 +138,47 @@ export async function POST(req: Request) {
 }
 
 export async function GET() {
-  return NextResponse.json({
-    endpoint: "/api/auto-incorporate",
-    method: "POST",
-    description:
-      "Machine-readable wizard for self-incorporating an Argentine sociedad-IA. POST a body with the schema below; receive package.json + agent.ts + .env.example + README.md + Vercel deploy URL + checklist + signed audit-log reference.",
-    inputSchema: {
-      denominacion: "string (3-200 chars)",
-      tipo: "SAS | SRL | SA | SOCIEDAD-IA",
-      capitalSocial: "number > 0 (ARS)",
-      objeto: "string (20-2000 chars)",
-      representante: "{ nombre: string, cuit: string }? (optional)",
-      emailContacto: "string? (email)",
-      piezas: `string[]? — subset of [${PIEZA_IDS.join(", ")}]; required pieces auto-added`,
-      sessionId: "string? — for audit log continuity across calls",
+  // GET returns the endpoint's self-description (machine-readable docs).
+  // The real call is POST; we surface this via Allow header so HTTP-aware
+  // clients + conformance scanners read it correctly. Cache aggressively
+  // because the doc body is stable.
+  return NextResponse.json(
+    {
+      endpoint: "/api/auto-incorporate",
+      method: "POST",
+      description:
+        "Machine-readable wizard for self-incorporating an Argentine sociedad-IA. POST a body with the schema below; receive package.json + agent.ts + .env.example + README.md + Vercel deploy URL + checklist + signed audit-log reference.",
+      inputSchema: {
+        denominacion: "string (3-200 chars)",
+        tipo: "SAS | SRL | SA | SOCIEDAD-IA",
+        capitalSocial: "number > 0 (ARS)",
+        objeto: "string (20-2000 chars)",
+        representante: "{ nombre: string, cuit: string }? (optional)",
+        emailContacto: "string? (email)",
+        piezas: `string[]?, subset of [${PIEZA_IDS.join(", ")}]; required pieces auto-added`,
+        sessionId: "string?, for audit log continuity across calls",
+      },
+      requiredPiezas: REQUIRED_PIEZAS,
+      rfc001: "https://ar-agents.ar/rfcs/001",
+      auditLogReadEndpoint: "/api/play/audit/{sessionId}",
+      dashboardEndpoint: "/dashboard/{sessionId}",
     },
-    requiredPiezas: REQUIRED_PIEZAS,
-    rfc001: "https://ar-agents.vercel.app/rfcs/001",
-    auditLogReadEndpoint: "/api/play/audit/{sessionId}",
-    dashboardEndpoint: "/dashboard/{sessionId}",
+    {
+      headers: {
+        Allow: "POST, OPTIONS",
+        "Cache-Control": "public, max-age=300, s-maxage=3600, stale-while-revalidate=86400",
+      },
+    },
+  );
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      Allow: "POST, OPTIONS",
+      "Access-Control-Allow-Methods": "POST, OPTIONS",
+      "Access-Control-Allow-Headers": "Content-Type",
+    },
   });
 }

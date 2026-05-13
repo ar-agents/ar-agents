@@ -28,7 +28,7 @@
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@helloastro.co>",
-  "homepage": "https://ar-agents.vercel.app/templates",
+  "homepage": "https://ar-agents.ar/templates",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ar-agents/ar-agents.git",
@@ -41,7 +41,7 @@
     "displayName": "Sociedad-IA Starter",
     "description": "Argentine AI-only company starter. 8 @ar-agents/* packages wired (identity, banking, factura, MP, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD). Agent endpoint + MP webhook + morning cron + status page. Degrades gracefully when env vars are missing.",
     "framework": "nextjs",
-    "demoUrl": "https://ar-agents.vercel.app/play",
+    "demoUrl": "https://ar-agents.ar/play",
     "type": "ai-agent",
     "tags": ["ai", "agentic", "argentina", "fintech", "compliance"]
   },

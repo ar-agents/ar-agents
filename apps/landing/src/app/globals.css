@@ -8,6 +8,31 @@ body {
   overflow-x: hidden;
 }
 
+/* Theme-agnostic tokens: typography scale, spacing, semantic colors. */
+:root {
+  /* Type scale (modular ratio ~1.2, capped). Use these instead of inline
+     font-size values to keep rhythm consistent across pages. */
+  --fs-xs: 11px;
+  --fs-sm: 13px;
+  --fs-base: 15px;
+  --fs-md: 17px;
+  --fs-lg: 20px;
+  --fs-xl: 24px;
+  --fs-2xl: 32px;
+  --fs-display: clamp(40px, 6vw, 64px);
+
+  --tracking-tight: -0.022em;
+  --tracking-display: -0.035em;
+
+  /* Semantic colors — shared across dark/light. */
+  --success: #10b981;
+  --success-bg: rgba(16, 185, 129, 0.15);
+  --warning: #f59e0b;
+  --warning-bg: rgba(245, 158, 11, 0.15);
+  --danger: #ef4444;
+  --danger-bg: rgba(239, 68, 68, 0.15);
+}
+
 /* Default = DARK mode. The init script in <head> writes data-theme to <html>
    before paint, so legitimate dark-mode visitors never see light mode flash. */
 :root,
@@ -109,6 +134,25 @@ pre {
   font-feature-settings: "liga";
 }
 
+/* Prevent <pre>/wide-content from forcing parent flex children to expand
+   past the viewport. Without `min-width: 0` + an explicit cap, flex items
+   default to `min-width: auto` and grow to fit content — which on mobile
+   means a long unbroken code block can push the whole page horizontally. */
+body > main,
+body > nav {
+  min-width: 0;
+  max-width: 100%;
+  width: 100%;
+}
+pre {
+  max-width: 100%;
+  overflow-x: auto;
+}
+/* Cap children of <main> so a single wide element can't blow out the column. */
+main > * {
+  max-width: 100%;
+}
+
 ::selection {
   background: rgba(0, 188, 255, 0.3);
   color: var(--text);
@@ -129,4 +173,60 @@ button:focus-visible {
   .br-mobile {
     display: none;
   }
+}
+
+/* Headings balance their wrapping on supporting browsers — avoids
+   awkward one-word last lines. Falls back gracefully. */
+h1, h2, h3 {
+  text-wrap: balance;
+}
+
+/* Long-form prose: cap to ~65ch for readability, give paragraphs rhythm. */
+.doc-prose {
+  max-width: 65ch;
+}
+.doc-prose > * + * {
+  margin-top: 0.5em;
+}
+.doc-prose h2 {
+  margin-top: 2em;
+}
+
+/* Reduced-motion users: kill transitions globally. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.001s !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.001s !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* Visually-hidden utility for skip-links and SR-only labels. */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+.sr-only-focusable:focus,
+.sr-only-focusable:focus-visible {
+  position: static;
+  width: auto;
+  height: auto;
+  padding: 8px 12px;
+  margin: 0;
+  overflow: visible;
+  clip: auto;
+  white-space: normal;
+  background: var(--accent);
+  color: var(--primary-text);
+  text-decoration: none;
 }

@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · /certifier · live · no install
+          /certifier · live · no install
         </div>
         <div
           style={{
@@ -95,7 +95,7 @@ export default async function Image() {
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/certifier</span>
+          <span>ar-agents.ar/certifier</span>
           <span style={{ fontSize: 16, color: "#999" }}>+ /api/certifier · + /api/cert-badge</span>
         </div>
       </div>

@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · /auditor · español · 1-page
+          /auditor · español · 1-page
         </div>
         <div
           style={{
@@ -55,7 +55,7 @@ export default async function Image() {
           }}
         >
           Para periodistas, legisladores, inspectores AAIP/AFIP/BCRA.
-          Cómo verificar — sin pedir permiso al operador — qué hizo una
+          Cómo verificar, sin pedir permiso al operador, qué hizo una
           sociedad-IA durante un período de tiempo determinado.
         </div>
         <div
@@ -82,7 +82,7 @@ export default async function Image() {
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/auditor</span>
+          <span>ar-agents.ar/auditor</span>
           <span style={{ fontSize: 16, color: "#999" }}>RFC-001 · 002 · 003 · 004</span>
         </div>
       </div>
