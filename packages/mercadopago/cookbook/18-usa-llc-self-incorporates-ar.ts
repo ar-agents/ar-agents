@@ -8,7 +8,7 @@
  * was a manual escribano + contador job per spawn. Recipe 18 collapses
  * the manual layer to one programmatic call:
  *
- *   POST https://ar-agents.vercel.app/api/auto-incorporate
+ *   POST https://ar-agents.ar/api/auto-incorporate
  *
  * via the `@ar-agents/incorporate` client. The output is everything the
  * USA-LLC agent's deploy pipeline needs to spin up the AR side:

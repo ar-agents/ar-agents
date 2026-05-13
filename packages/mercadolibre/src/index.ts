@@ -24,6 +24,7 @@ export {
   type RetryOptions,
   type RetryClassifier,
   type RetryDecision,
+  type RetryContext,
 } from "./retry";
 export {
   TokenBucketRateLimiter,
@@ -182,3 +183,16 @@ export {
   type TelemetryRetryEvent,
   type TelemetryRateLimitEvent,
 } from "./telemetry";
+
+// Human-in-the-loop (HITL) gates for irreversible operations.
+export {
+  HitlRejectedError,
+  classifyHitlSeverity,
+  denyAllAutoApprove,
+  type HitlConfig,
+  type HitlContext,
+  type HitlDecision,
+  type HitlOpKind,
+  type RequireConfirmation,
+  type AutoApprovePolicy,
+} from "./hitl";

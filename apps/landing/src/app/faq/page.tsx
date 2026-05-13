@@ -5,8 +5,8 @@ import { JsonLd } from "../json-ld";
 export const metadata: Metadata = {
   title: "/faq · regulator + dev questions answered",
   description:
-    "21 questions a Sturzenegger asesor, journalist, builder, or external agent would ask about ar-agents — answered crisply, with verifiable links. JSON-LD FAQPage for rich results.",
-  alternates: { canonical: "https://ar-agents.vercel.app/faq" },
+    "21 questions a Sturzenegger asesor, journalist, builder, or external agent would ask about ar-agents, answered crisply, with verifiable links. JSON-LD FAQPage for rich results.",
+  alternates: { canonical: "https://ar-agents.ar/faq" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -23,7 +23,7 @@ const FAQS: Q[] = [
   {
     audience: "regulator",
     q: "¿Qué es ar-agents? ¿Es un proyecto del gobierno?",
-    a: 'No. ar-agents es un proyecto open-source civil-comercial, escrito por Nazareno Clemente (DNI 41.758.101). Sin financiamiento estatal, sin relación contractual con ningún ministerio. La iniciativa pública relevante es el anuncio Sturzenegger del 28-abr-2026; ar-agents es la implementación de referencia técnica que un proyecto así necesita para operar el día 1. MIT-licensed, públicamente auditable en <a href="https://github.com/ar-agents/ar-agents">github.com/ar-agents/ar-agents</a>.',
+    a: 'No. ar-agents es un proyecto open-source civil-comercial, escrito por Naza. Sin financiamiento estatal, sin relación contractual con ningún ministerio. La iniciativa pública relevante es el anuncio Sturzenegger del 28-abr-2026; ar-agents es la implementación de referencia técnica que un proyecto así necesita para operar el día 1. MIT-licensed, públicamente auditable en <a href="https://github.com/ar-agents/ar-agents">github.com/ar-agents/ar-agents</a>.',
   },
   {
     audience: "regulator",
@@ -33,7 +33,7 @@ const FAQS: Q[] = [
   {
     audience: "regulator",
     q: "¿Quién responde si la IA rompe algo? ¿Hay liability framework?",
-    a: 'Sí. <a href="/rfcs/001">RFC-001 § 9</a> propone un marco de tres capas: (1) operador — la entidad que despliega, asume responsabilidad operacional; (2) proveedor del modelo — Anthropic/OpenAI/Google según sus SLAs; (3) autor de la librería — open source MIT, sin garantía. Convierte la pregunta filosófica en un contrato concreto. El audit log HMAC-firmado (RFC-001 § 9.2) es el mecanismo probatorio.',
+    a: 'Sí. <a href="/rfcs/001">RFC-001 § 9</a> propone un marco de tres capas: (1) operador, la entidad que despliega, asume responsabilidad operacional; (2) proveedor del modelo, Anthropic/OpenAI/Google según sus SLAs; (3) autor de la librería, open source MIT, sin garantía. Convierte la pregunta filosófica en un contrato concreto. El audit log HMAC-firmado (RFC-001 § 9.2) es el mecanismo probatorio.',
   },
   {
     audience: "regulator",
@@ -65,7 +65,7 @@ const FAQS: Q[] = [
   {
     audience: "developer",
     q: "¿Qué runtime soporta?",
-    a: 'Vercel Edge Runtime, Cloudflare Workers, Deno, Node 20+, browsers (con CORS). Todo el código usa Web Crypto + fetch — cero <code>node:crypto</code> en producción. <a href="/architecture">/architecture</a> tiene el contrato Edge-Runtime completo. La única excepción es <code>@ar-agents/identity/wsaa</code> que usa node-forge para firmar PKCS#7 (importable por subpath para no contaminar el bundle).',
+    a: 'Vercel Edge Runtime, Cloudflare Workers, Deno, Node 20+, browsers (con CORS). Todo el código usa Web Crypto + fetch, cero <code>node:crypto</code> en producción. <a href="/architecture">/architecture</a> tiene el contrato Edge-Runtime completo. La única excepción es <code>@ar-agents/identity/wsaa</code> que usa node-forge para firmar PKCS#7 (importable por subpath para no contaminar el bundle).',
   },
   {
     audience: "developer",
@@ -92,7 +92,7 @@ const FAQS: Q[] = [
   {
     audience: "agent",
     q: "Soy un LLM agent. ¿Cómo descubro las capabilities?",
-    a: '4 paths machine-readable:<br/>1. <code>GET /.well-known/agents.json</code> — agents.md convention con per-agent operating instructions.<br/>2. <code>GET /.well-known/ai-plugin.json</code> — OpenAI plugin spec.<br/>3. <code>GET /api/discovery</code> — JSON inventory (17 packages + 168 tools + 5 endpoints).<br/>4. <code>GET /api/discovery?format=openapi</code> — OpenAPI 3.1 stub.',
+    a: '4 paths machine-readable:<br/>1. <code>GET /.well-known/agents.json</code>, agents.md convention con per-agent operating instructions.<br/>2. <code>GET /.well-known/ai-plugin.json</code>, OpenAI plugin spec.<br/>3. <code>GET /api/discovery</code>, JSON inventory (17 packages + 168 tools + 5 endpoints).<br/>4. <code>GET /api/discovery?format=openapi</code>, OpenAPI 3.1 stub.',
   },
   {
     audience: "agent",
@@ -119,7 +119,7 @@ const FAQS: Q[] = [
   {
     audience: "investor",
     q: "¿Cuál es la moat?",
-    a: '(1) First-mover en la jurisdicción AR + alineación con régimen sociedades-IA. (2) Cobertura del 16/17 piezas operativas — nadie más lo tiene completo. (3) RFC-001 governance framework, marco original. (4) Audit log HMAC + KV — primitivos forenses que requieren disciplina, no solo código. (5) Network: <code>@ar-agents/incorporate</code> es la entrada canónica para agentes externos USA-LLC / DAO LLCs / Estonia e-Residency a operar en AR.',
+    a: '(1) First-mover en la jurisdicción AR + alineación con régimen sociedades-IA. (2) Cobertura del 16/17 piezas operativas, nadie más lo tiene completo. (3) RFC-001 governance framework, marco original. (4) Audit log HMAC + KV, primitivos forenses que requieren disciplina, no solo código. (5) Network: <code>@ar-agents/incorporate</code> es la entrada canónica para agentes externos USA-LLC / DAO LLCs / Estonia e-Residency a operar en AR.',
   },
 
   // ─── Journalist / general ───────────────────────────────────────────
@@ -131,7 +131,7 @@ const FAQS: Q[] = [
   {
     audience: "journalist",
     q: "¿Hay alguien usándolo en producción?",
-    a: 'El maintainer (Nazareno) está en mid-cutover de Astro Chat (astro.ar) a <code>@ar-agents/*</code> — feat-branch público en <a href="https://github.com/naza00000/astro/tree/feat/ar-agents-cutover">naza00000/astro/feat/ar-agents-cutover</a>. <a href="/case-studies/astro">/case-studies/astro</a> es la migration log honesta. Otros early-adopters: pendientes de anuncio.',
+    a: 'El maintainer (Naza) está en mid-cutover de Astro Chat (astro.ar) a <code>@ar-agents/*</code>, feat-branch público en <a href="https://github.com/naza00000/astro/tree/feat/ar-agents-cutover">naza00000/astro/feat/ar-agents-cutover</a>. <a href="/case-studies/astro">/case-studies/astro</a> es la migration log honesta. Otros early-adopters: pendientes de anuncio.',
   },
 ];
 
@@ -144,7 +144,7 @@ const AUDIENCE_LABEL: Record<Q["audience"], string> = {
 };
 
 const AUDIENCE_COLOR: Record<Q["audience"], { fg: string; bg: string }> = {
-  regulator: { fg: "#ff5b4f", bg: "#fff1f0" }, // ship-red — high stakes
+  regulator: { fg: "#ff5b4f", bg: "#fff1f0" }, // ship-red, high stakes
   developer: { fg: "#0a72ef", bg: "#ebf5ff" }, // develop-blue
   agent: { fg: "#7928ca", bg: "#f5edfd" }, // console-purple
   investor: { fg: "#22c55e", bg: "#ecfdf5" },
@@ -160,7 +160,7 @@ const AUDIENCES_ORDER: Q["audience"][] = [
 ];
 
 export default function FaqPage() {
-  // Render answers safely — only sanitized HTML inline (we control it).
+  // Render answers safely, only sanitized HTML inline (we control it).
   // Building FAQPage JSON-LD for rich results.
   const faqJsonLd = {
     "@context": "https://schema.org",
@@ -177,9 +177,9 @@ export default function FaqPage() {
 
   return (
     <DocShell
-      eyebrow="/arg · faq · 21 preguntas"
+      eyebrow="faq · 21 preguntas"
       title="FAQ."
-      subtitle="21 preguntas que un asesor de Sturzenegger, un developer, un LLM agent, un investor o un periodista podría hacer — respondidas con links verificables. Schema.org FAQPage para rich results en buscadores."
+      subtitle="21 preguntas que un asesor de Sturzenegger, un developer, un LLM agent, un investor o un periodista podría hacer, respondidas con links verificables. Schema.org FAQPage para rich results en buscadores."
     >
       <DocBlock>
         <DocP>
@@ -279,7 +279,7 @@ export default function FaqPage() {
                       color: "var(--text-body)",
                       lineHeight: 1.6,
                     }}
-                    // Safe — content is fully under our control above.
+                    // Safe, content is fully under our control above.
                     dangerouslySetInnerHTML={{ __html: f.a }}
                   />
                 </details>
@@ -291,7 +291,7 @@ export default function FaqPage() {
 
       <DocH2>¿Algo que no respondimos?</DocH2>
       <DocP>
-        Email <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>naza@helloastro.co</a>{" "}
+        Email <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>clementenaza@gmail.com</a>{" "}
         o abrí un issue en{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/issues/new?labels=question&template=question.md"

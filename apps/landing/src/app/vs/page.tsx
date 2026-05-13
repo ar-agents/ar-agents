@@ -4,8 +4,8 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 export const metadata: Metadata = {
   title: "vs · cómo se compara con las alternativas",
   description:
-    "Cómo se compara @ar-agents/* con las alternativas: AfipSDK, integración handrolled, consultoría Globant, MercadoPago SDK oficial, Mi Argentina sin librería, soluciones cerradas. Tabla honesta — qué cubre cada uno y qué no.",
-  alternates: { canonical: "https://ar-agents.vercel.app/vs" },
+    "Cómo se compara @ar-agents/* con las alternativas: AfipSDK, integración handrolled, consultoría Globant, MercadoPago SDK oficial, Mi Argentina sin librería, soluciones cerradas. Tabla honesta, qué cubre cada uno y qué no.",
+  alternates: { canonical: "https://ar-agents.ar/vs" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -32,7 +32,7 @@ const ROWS: Row[] = [
     dimension: "Provenance (SLSA v1)",
     ours: { value: "Sí", tone: "pos" },
     afipsdk: { value: "No", tone: "neg" },
-    handrolled: { value: "—", tone: "neu" },
+    handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "No", tone: "neg" },
   },
   {
@@ -53,21 +53,21 @@ const ROWS: Row[] = [
     dimension: "MCP host (Claude Desktop / Cursor / Continue)",
     ours: { value: "Sí (@ar-agents/mcp)", tone: "pos" },
     afipsdk: { value: "No", tone: "neg" },
-    handrolled: { value: "—", tone: "neu" },
+    handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "No", tone: "neg" },
   },
   {
     dimension: "ACP (LLM-buyer checkout)",
     ours: { value: "Sí (bridge)", tone: "pos" },
     afipsdk: { value: "No", tone: "neg" },
-    handrolled: { value: "—", tone: "neu" },
+    handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "No", tone: "neg" },
   },
   {
     dimension: "AP2 mandate verification",
     ours: { value: "Sí (@ar-agents/ap2)", tone: "pos" },
     afipsdk: { value: "No", tone: "neg" },
-    handrolled: { value: "—", tone: "neu" },
+    handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "No", tone: "neg" },
   },
   {
@@ -88,21 +88,21 @@ const ROWS: Row[] = [
     dimension: "Marco de responsabilidad (3 capas)",
     ours: { value: "RFC-001", tone: "pos" },
     afipsdk: { value: "Implícito", tone: "neg" },
-    handrolled: { value: "—", tone: "neu" },
+    handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "Contractual", tone: "neu" },
   },
   {
     dimension: "Threat model público",
     ours: { value: "14 amenazas", tone: "pos" },
     afipsdk: { value: "No", tone: "neg" },
-    handrolled: { value: "—", tone: "neu" },
+    handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "Cerrado", tone: "neg" },
   },
   {
     dimension: "Cookbook de patrones de producción",
     ours: { value: "17 recetas", tone: "pos" },
     afipsdk: { value: "Docs API", tone: "neu" },
-    handrolled: { value: "—", tone: "neu" },
+    handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "Cerrado", tone: "neg" },
   },
   {
@@ -163,7 +163,7 @@ function CellRender({ cell }: { cell: Cell }) {
 export default function VsPage() {
   return (
     <DocShell
-      eyebrow="/arg · vs · 2026-05"
+      eyebrow="vs · 2026-05"
       title="Cómo se compara."
       subtitle="Tabla honesta vs las 4 alternativas reales para operar como sociedad-IA argentina hoy. Ningún competidor te cubre las 17 piezas; este es el único que cubre 16."
     >
@@ -321,18 +321,18 @@ export default function VsPage() {
 
       <DocH2>Cuándo elegir cada uno</DocH2>
       <DocP>
-        <strong>@ar-agents/*</strong> — cuando estás construyendo un agente
+        <strong>@ar-agents/*</strong>, cuando estás construyendo un agente
         que opera la totalidad de un negocio AR (factura + cobro + identidad
         + comms + logística + macro + Boletín Oficial + IGJ). El surface es
         coherente, audita-friendly, y compone con la stack Vercel/AI-SDK.
       </DocP>
       <DocP>
-        <strong>AfipSDK</strong> — si solo te importa AFIP/ARCA y no estás
+        <strong>AfipSDK</strong>, si solo te importa AFIP/ARCA y no estás
         operando como agente. Closed source pero suficientemente probado;
         ahorra tiempo si el alcance está acotado a factura electrónica.
       </DocP>
       <DocP>
-        <strong>Handrolled</strong> — si tenés un equipo de 3+ devs senior
+        <strong>Handrolled</strong>, si tenés un equipo de 3+ devs senior
         con bandwidth para entender SOAP+WSDL+WSAA, mantener cert renewals,
         debuggear A13 vs A5 vs constancia_inscripcion, manejar las 11
         gotchas que documentamos en{" "}
@@ -342,7 +342,7 @@ export default function VsPage() {
         . Y todo eso para los próximos 5 años.
       </DocP>
       <DocP>
-        <strong>Consultoría</strong> — si tenés presupuesto USD 30k+ inicial
+        <strong>Consultoría</strong>, si tenés presupuesto USD 30k+ inicial
         + USD 5k+/mo y querés delegar el problema a una casa de software
         tradicional. Te resuelven, pero el resultado es cerrado y vendor-locked.
       </DocP>

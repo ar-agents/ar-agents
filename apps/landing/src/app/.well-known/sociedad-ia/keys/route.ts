@@ -50,11 +50,11 @@ const KEYS: PublishedKey[] = [
 export async function GET() {
   return NextResponse.json(
     {
-      $schema: "https://ar-agents.vercel.app/schemas/keys.v1.json",
-      spec: "https://ar-agents.vercel.app/rfcs/005",
+      $schema: "https://ar-agents.ar/schemas/keys.v1.json",
+      spec: "https://ar-agents.ar/rfcs/005",
       issuer: {
         jurisdiction: "AR",
-        entityId: "ar-sociedad:20-41758101-5",
+        entityId: "ar-sociedad:reference-impl",
         denominacion: "ar-agents reference implementation",
       },
       keys: KEYS,

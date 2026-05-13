@@ -7,13 +7,13 @@ export const metadata: Metadata = {
   title: "Incorporar una sociedad-IA · 10 minutos",
   description:
     "Wizard que genera el repositorio + config + Vercel deploy para una sociedad-IA argentina. 16 piezas pre-cableadas. RFC-001 governance. MIT.",
-  alternates: { canonical: "https://ar-agents.vercel.app/incorporar" },
+  alternates: { canonical: "https://ar-agents.ar/incorporar" },
 };
 
 export default function IncorporarPage() {
   return (
     <DocShell
-      eyebrow="/arg · incorporar · alpha"
+      eyebrow="incorporar · alpha"
       title="Incorporar una sociedad-IA."
       subtitle="Pre-launch wizard. Te genera el repo, los env vars, el Vercel deploy y la lista de pasos legales para constituir una sociedad-IA en Argentina cuando la ley salga (H1 2027). Hoy podés operar como SAS estándar con todo el stack agentic ya cableado."
     >
@@ -56,9 +56,9 @@ export default function IncorporarPage() {
 
       <DocH2>Lo que NO hace (todavía)</DocH2>
       <DocP>
-        Filing trámites IGJ programáticamente — el surface escribir requiere
+        Filing trámites IGJ programáticamente, el surface escribir requiere
         per-organism integration que aún está rolling out (RFC-001 § 3.4).
-        Retiramos plata de la cuenta de la sociedad — eso requiere
+        Retiramos plata de la cuenta de la sociedad, eso requiere
         autenticación humana per AR banking law actual. El wizard genera
         el código que pueda hacerlo cuando la ley lo permita.
       </DocP>

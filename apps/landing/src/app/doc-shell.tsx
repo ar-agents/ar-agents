@@ -1,15 +1,15 @@
-// Shared chrome for /manifiesto, /sociedades-ia, /rfcs/001 — keeps
-// typography + spacing in lockstep with the homepage without duplicating
-// styles into every page.
+// Shared chrome for doc-style pages, keeps typography + spacing in
+// lockstep with the homepage without duplicating styles into every page.
+// Top navigation is provided globally by <Nav /> in layout.tsx, so this
+// shell renders just the article column.
 
 import type { ReactNode } from "react";
-import Link from "next/link";
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
 interface DocShellProps {
-  /** Short uppercased eyebrow above the H1 (e.g., "/arg · manifiesto"). */
+  /** Short uppercased eyebrow above the H1 (e.g., "manifiesto · 2026-05"). */
   eyebrow: string;
   title: string;
   /** Optional subtitle (deck) under the H1. */
@@ -25,23 +25,10 @@ export function DocShell({ eyebrow, title, subtitle, children }: DocShellProps) 
         background: "var(--bg)",
         fontFamily: FONT_SANS,
         color: "var(--text)",
-        padding: "80px 24px 120px",
+        padding: "56px 24px 120px",
       }}
     >
       <div style={{ maxWidth: 760, margin: "0 auto" }}>
-        <Link
-          href="/"
-          style={{
-            display: "inline-block",
-            marginBottom: 24,
-            color: "var(--text-muted)",
-            fontSize: 13,
-            fontFamily: FONT_MONO,
-            textDecoration: "underline",
-          }}
-        >
-          ← /arg
-        </Link>
         <p
           style={{
             fontSize: 12,
@@ -100,42 +87,68 @@ export function DocShell({ eyebrow, title, subtitle, children }: DocShellProps) 
         />
         <footer
           style={{
-            display: "flex",
-            justifyContent: "space-between",
             color: "var(--text-muted)",
             fontSize: 13,
-            flexWrap: "wrap",
-            gap: 8,
+            display: "grid",
+            gap: 12,
           }}
         >
-          <span>
-            <a
-              href="https://github.com/ar-agents/ar-agents"
-              style={{
-                color: "var(--text-body)",
-                textDecoration: "underline",
-              }}
-            >
-              github.com/ar-agents
-            </a>
-          </span>
-          <span>
-            MIT ·{" "}
-            <a
-              href="https://github.com/naza00000"
-              style={{
-                color: "var(--text-body)",
-                textDecoration: "underline",
-              }}
-            >
-              Nazareno Clemente
-            </a>
-          </span>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 14,
+              fontFamily: FONT_MONO,
+              fontSize: 12,
+            }}
+          >
+            <a href="/" style={shellLinkSty}>/</a>
+            <a href="/sociedades-ia" style={shellLinkSty}>thesis</a>
+            <a href="/rfcs/001" style={shellLinkSty}>spec</a>
+            <a href="/registro" style={shellLinkSty}>registry</a>
+            <a href="/auditor" style={shellLinkSty}>auditor</a>
+            <a href="/legislacion" style={shellLinkSty}>legislación</a>
+            <a href="/sdk" style={shellLinkSty}>sdk</a>
+            <a href="/faq" style={shellLinkSty}>faq</a>
+          </div>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              flexWrap: "wrap",
+              gap: 8,
+              paddingTop: 8,
+              borderTop: "1px solid var(--border-color)",
+            }}
+          >
+            <span>
+              MIT (code) + CC-BY-4.0 (specs) ·{" "}
+              <a
+                href="https://github.com/naza00000"
+                style={shellLinkSty}
+              >
+                Naza
+              </a>
+            </span>
+            <span>
+              <a
+                href="https://github.com/ar-agents/ar-agents"
+                style={shellLinkSty}
+              >
+                github.com/ar-agents
+              </a>
+            </span>
+          </div>
         </footer>
       </div>
     </main>
   );
 }
+
+const shellLinkSty: React.CSSProperties = {
+  color: "var(--text-body)",
+  textDecoration: "underline",
+};
 
 /** Minimal H2 to use inside DocShell without breaking the prose rhythm. */
 export function DocH2({ children }: { children: ReactNode }) {

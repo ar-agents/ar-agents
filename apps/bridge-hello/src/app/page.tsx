@@ -78,6 +78,41 @@ export default async function HomePage() {
       </section>
 
       <section>
+        <h2>Agent-readable product feed</h2>
+        <p>
+          Buyer agents (ChatGPT, Claude, Gemini) discover this storefront&rsquo;s
+          catalog via{" "}
+          <code>
+            <a href="/.well-known/agentic-feed.json">
+              /.well-known/agentic-feed.json
+            </a>
+          </code>{" "}
+          and paginate through{" "}
+          <code>
+            <a href="/api/feed/products">/api/feed/products</a>
+          </code>
+          . The feed is ACP <code>2026-04-17</code>-compatible, ETag-cached,
+          and powered by{" "}
+          <a href="https://www.npmjs.com/package/@ar-agents/mercadolibre">
+            @ar-agents/mercadolibre/feed
+          </a>
+          . When <code>MELI_ACCESS_TOKEN</code> + <code>MELI_SELLER_ID</code>{" "}
+          are configured, it streams the seller&rsquo;s live MELI catalog;
+          otherwise it serves a synthesized demo feed of the products above.
+        </p>
+        <ul className="endpoint-list">
+          <li>
+            <span className="method">GET</span>
+            /.well-known/agentic-feed.json
+          </li>
+          <li>
+            <span className="method">GET</span>
+            /api/feed/products?cursor=&amp;limit=
+          </li>
+        </ul>
+      </section>
+
+      <section>
         <h2>Catalog</h2>
         <p>
           {meliCatalogStatus.connected ? (

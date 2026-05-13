@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "The sociedad-IA playbook · English flagship",
   description:
     "How to build a fully-autonomous Argentine AI company in 2027. The infrastructure, the law, the liability framework, and the operational reality. Written for English-speaking founders, regulators, and journalists.",
-  alternates: { canonical: "https://ar-agents.vercel.app/playbook" },
+  alternates: { canonical: "https://ar-agents.ar/playbook" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -13,7 +13,7 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 export default function PlaybookPage() {
   return (
     <DocShell
-      eyebrow="/arg · playbook · 2026-05"
+      eyebrow="playbook · 2026-05"
       title="The sociedad-IA playbook."
       subtitle="How to build a fully-autonomous Argentine AI company in 2027. The infrastructure, the law, the liability framework, the operational reality. Written for the founders, regulators, journalists, and engineers who will get this right or wrong."
     >
@@ -21,7 +21,7 @@ export default function PlaybookPage() {
         <DocP>
           On April 28th 2026, Argentina&apos;s minister of deregulation
           Federico Sturzenegger announced a new corporate form: the{" "}
-          <em>sociedad de IA</em> — a legal entity with no human shareholders,
+          <em>sociedad de IA</em>, a legal entity with no human shareholders,
           no human directors, no human employees. Pure software. It would have
           a tax ID, issue invoices, hold a bank account, pay taxes. Sturzenegger
           said the country was aiming for <strong>500 million AI agents
@@ -45,8 +45,8 @@ export default function PlaybookPage() {
             style={{ color: "var(--accent)" }}
           >
             github.com/ar-agents/ar-agents
-          </a>{" "}
-          — 16 packages, 168 tools, 4 testing subpaths, 17 cookbook recipes.
+          </a>:{" "}
+        16 packages, 168 tools, 4 testing subpaths, 17 cookbook recipes.
           Open source. MIT-licensed. SLSA-provenanced.
         </DocP>
       </DocBlock>
@@ -62,7 +62,7 @@ export default function PlaybookPage() {
         <strong>Existing as an entity</strong> (4): search the public
         registry for name conflicts, register at IGJ, obtain a CUIT (the
         federal tax ID), establish a Domicilio Electrónico Constituido
-        (DEC) — the legally-binding inbox for federal notifications.
+        (DEC), the legally-binding inbox for federal notifications.
       </DocP>
       <DocP>
         <strong>Proving who you are</strong> (3): validate CUITs against
@@ -93,8 +93,8 @@ export default function PlaybookPage() {
         treasury decisions.
       </DocP>
       <DocP>
-        We cover 16 of the 17. The 17th — programmatic filing of trámites
-        at TAD (Trámites a Distancia) — requires per-organism integration
+        We cover 16 of the 17. The 17th, programmatic filing of trámites
+        at TAD (Trámites a Distancia), requires per-organism integration
         the AR government is still rolling out. Read-only access to the
         DEC inbox and Mis Trámites is shipped today via{" "}
         <DocCode>@ar-agents/gde-tad</DocCode>; write capability lands per
@@ -109,7 +109,7 @@ export default function PlaybookPage() {
       <DocP>
         <strong>Web Crypto only.</strong> No <DocCode>node:crypto</DocCode>{" "}
         in any production code path. HMAC-SHA256, RSA signing for AFIP WSAA,
-        signature verification, idempotency-key generation — all use{" "}
+        signature verification, idempotency-key generation, all use{" "}
         <DocCode>crypto.subtle</DocCode>.
       </DocP>
       <DocP>
@@ -139,7 +139,7 @@ export default function PlaybookPage() {
         three-layer model:
       </DocP>
       <DocP>
-        <strong>Layer 1 — operator.</strong> The deploy entity (ClawBank,
+        <strong>Layer 1, operator.</strong> The deploy entity (ClawBank,
         doola, MIDAO, an AR-resident escribano, a platform partner)
         assumes operational liability proportional to its control over
         the agent&apos;s tool surface. The scope is bounded: the operator
@@ -147,13 +147,13 @@ export default function PlaybookPage() {
         infrastructure choices.
       </DocP>
       <DocP>
-        <strong>Layer 2 — model provider.</strong> Anthropic, OpenAI,
+        <strong>Layer 2, model provider.</strong> Anthropic, OpenAI,
         Google etc. assume model-quality liability per their published
         SLAs. The toolkit&apos;s job is to make this layer auditable: every
         tool call carries a model-version + prompt-hash header.
       </DocP>
       <DocP>
-        <strong>Layer 3 — toolkit author.</strong> MIT-licensed open
+        <strong>Layer 3, toolkit author.</strong> MIT-licensed open
         source, no warranty. The toolkit&apos;s author is liable only for
         material misrepresentation in the public docs (e.g., claiming
         idempotency where there is none).
@@ -172,8 +172,8 @@ export default function PlaybookPage() {
       <DocH2>4 · The threat model</DocH2>
       <DocP>
         When agents move money, the threat surface widens. An LLM that can
-        authorize a charge can also be coerced — via prompt injection,
-        jailbreak, or compromised upstream model — into authorizing a
+        authorize a charge can also be coerced, via prompt injection,
+        jailbreak, or compromised upstream model, into authorizing a
         fraudulent one. The toolkit treats this with the same seriousness
         as a banking application:
       </DocP>
@@ -205,9 +205,9 @@ export default function PlaybookPage() {
         is legally probative.
       </DocP>
       <DocP>
-        Full threat model — 14 explicit threats, 14 explicit mitigations,
+        Full threat model, 14 explicit threats, 14 explicit mitigations,
         what the toolkit covers, what the host is responsible for, what is
-        out of scope — at <a href="/security" style={{ color: "var(--accent)" }}>/security</a>.
+        out of scope, at <a href="/security" style={{ color: "var(--accent)" }}>/security</a>.
       </DocP>
 
       <DocH2>5 · A day in the life of ACME-AI SAS</DocH2>
@@ -319,20 +319,20 @@ export default function PlaybookPage() {
       <DocP>
         <strong>Regulators</strong>: the formal proposal is{" "}
         <a href="/rfcs/001" style={{ color: "var(--accent)" }}>RFC-001</a>.
-        Read it as a draft to comment on. Email naza@helloastro.co for
+        Read it as a draft to comment on. Email clementenaza@gmail.com for
         meetings.
       </DocP>
       <DocP>
         <strong>Investors</strong>: there is a thesis to be written about
         the first jurisdictional bet on AI commerce. The toolkit is the
-        public reference implementation. Email naza@helloastro.co.
+        public reference implementation. Email clementenaza@gmail.com.
       </DocP>
       <DocP>
         <strong>Journalists</strong>: source material, technical
         background, and the threat-model walkthrough at{" "}
         <a href="/security" style={{ color: "var(--accent)" }}>/security</a>{" "}
         and <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>.
-        Email naza@helloastro.co for interviews.
+        Email clementenaza@gmail.com for interviews.
       </DocP>
     </DocShell>
   );

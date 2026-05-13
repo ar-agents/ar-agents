@@ -8,7 +8,7 @@ exposed as Vercel AI SDK 6 agent tools.
 - ✅ **v0.1 (this build):** algorithmic validation only (format + prefix +
   modulo-11 check digit). 100% offline, zero external API calls.
 - ⏳ **v0.2 (planned):** AFIP padron lookup (taxpayer name, tax condition,
-  monotributo category). Requires X.509 cert setup — see
+  monotributo category). Requires X.509 cert setup, see
   [`src/lib/afip-stub.ts`](./src/lib/afip-stub.ts) for the full walkthrough.
 
 ## What it ships
@@ -27,22 +27,22 @@ Conversational interface. The agent has two tools:
 ```bash
 curl -X POST http://localhost:3014/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"message": "Validá el CUIT 20-41758101-5 y decime qué sabés de él."}'
+  -d '{"message": "Validá el CUIT XX-XXXXXXXX-X y decime qué sabés de él."}'
 ```
 
 ### 2. Direct REST endpoint (`/api/cuit`)
 
 Pure-algorithm validation without LLM in the loop. Cheap, fast, deterministic
-— ideal for form validation in high-volume use cases.
+- ideal for form validation in high-volume use cases.
 
 ```bash
 # Single validation
-curl 'http://localhost:3014/api/cuit?value=20-41758101-5'
+curl 'http://localhost:3014/api/cuit?value=XX-XXXXXXXX-X'
 
 # Batch validation
 curl -X POST http://localhost:3014/api/cuit \
   -H "Content-Type: application/json" \
-  -d '{"values":["20-41758101-5","30707500126","27ABCD"]}'
+  -d '{"values":["XX-XXXXXXXX-X","30707500126","27ABCD"]}'
 ```
 
 Returns:
@@ -50,11 +50,11 @@ Returns:
 ```json
 {
   "valid": true,
-  "normalized": "20417581015",
-  "formatted": "20-41758101-5",
+  "normalized": "XXXXXXXXXXX",
+  "formatted": "XX-XXXXXXXX-X",
   "prefix": "20",
-  "body": "41758101",
-  "checkDigit": "5",
+  "body": "XXXXXXXX",
+  "checkDigit": "X",
   "personType": "fisica_masculina",
   "personTypeDescription": "Persona física (masculino).",
   "error": null
@@ -115,20 +115,20 @@ Some real and synthetic CUITs to test against:
 
 | CUIT                | Expected                  | Notes                                         |
 | ------------------- | ------------------------- | --------------------------------------------- |
-| `20-41758101-5`     | valid, fisica_masculina   | Naza's CUIT (Monotributo Cat A)               |
+| `XX-XXXXXXXX-X`     | valid, fisica_masculina   | Operator CUIT (redacted; Monotributo Cat A)   |
 | `30-70750012-9`     | valid, juridica           | Synthetic juridical CUIT (correct check)      |
 | `00-12345678-9`     | invalid, prefix unknown   | Prefix 00 not in PREFIX_TO_TYPE               |
-| `20-41758101-9`     | invalid, check digit      | Wrong check digit (should be 5)               |
+| `XX-XXXXXXXX-9`     | invalid, check digit      | Wrong check digit                             |
 | `20417581`          | invalid, length           | Too short                                     |
-| `20.41758101.5`     | valid                     | Dots accepted; normalization strips them      |
-| `20 41758101 5`     | valid                     | Spaces accepted                               |
+| `XX.XXXXXXXX.X`     | valid                     | Dots accepted; normalization strips them      |
+| `XX XXXXXXXX X`     | valid                     | Spaces accepted                               |
 
 ## Acceptance criteria for Fase 3
 
 - [x] Agent receives a CUIT, returns valid/invalid + person type in <5s
 - [x] Direct `/api/cuit` endpoint for high-volume non-LLM validation
 - [x] AFIP padron lookup interface stubbed with clear setup docs
-- [ ] AFIP padron real implementation (Fase 3b — requires user-provided cert)
+- [ ] AFIP padron real implementation (Fase 3b, requires user-provided cert)
 
 ## Roadmap
 

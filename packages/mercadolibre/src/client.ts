@@ -70,6 +70,10 @@ export interface MeliClientOptions {
   skipResponseValidation?: boolean;
   /** Pluggable telemetry hooks (OpenTelemetry, Sentry, Datadog, custom). */
   telemetry?: TelemetryHooks;
+  /** Per-request timeout in milliseconds. Default 30000.
+   *  Wedged TCP connections that never return data otherwise burn a Vercel
+   *  Edge function's entire 25-60s budget on attempt #1 and never retry. */
+  requestTimeoutMs?: number;
 }
 
 export interface FetchOptions<T = unknown> {
@@ -106,6 +110,7 @@ export class MeliClient {
   private readonly userAgent: string;
   private readonly skipResponseValidation: boolean;
   private readonly telemetry: Required<TelemetryHooks>;
+  private readonly requestTimeoutMs: number;
 
   constructor(options: MeliClientOptions) {
     this.auth = options.auth;
@@ -123,6 +128,7 @@ export class MeliClient {
     this.retryClassifier = options.retryClassifier ?? defaultRetryClassifier;
     this.userAgent = options.userAgent ?? `@ar-agents/mercadolibre/0.1`;
     this.skipResponseValidation = options.skipResponseValidation ?? false;
+    this.requestTimeoutMs = options.requestTimeoutMs ?? 30_000;
     this.telemetry = {
       onRequest: options.telemetry?.onRequest ?? noopTelemetry.onRequest,
       onResponse: options.telemetry?.onResponse ?? noopTelemetry.onResponse,
@@ -130,6 +136,19 @@ export class MeliClient {
       onRateLimitWait:
         options.telemetry?.onRateLimitWait ?? noopTelemetry.onRateLimitWait,
     };
+  }
+
+  /**
+   * Like `fetch`, but returns the raw `Response`. Used for binary endpoints
+   * (e.g., `/shipment_labels` returning PDF/ZPL). Goes through the same
+   * auth + rate-limit + retry + telemetry plumbing.
+   *
+   * Throws on non-2xx the same way `fetch<T>` does.
+   */
+  async fetchRaw(
+    options: FetchOptions<unknown> & { acceptHeader?: string },
+  ): Promise<Response> {
+    return (await this.executeRequest({ ...options, parseAsJson: false })) as Response;
   }
 
   /**
@@ -142,6 +161,16 @@ export class MeliClient {
    *   - `MeliValidationError` if response failed Zod validation
    */
   async fetch<T = unknown>(options: FetchOptions<T>): Promise<T> {
+    return this.executeRequest({ ...options, parseAsJson: true }) as Promise<T>;
+  }
+
+  /** Internal — runs the full request pipeline. JSON-parses unless told otherwise. */
+  private async executeRequest(
+    options: FetchOptions<unknown> & {
+      parseAsJson: boolean;
+      acceptHeader?: string;
+    },
+  ): Promise<unknown> {
     const url = this.buildUrl(options.path, options.query);
     const requestId = generateRequestId();
     const startedAt = Date.now();
@@ -168,11 +197,17 @@ export class MeliClient {
       attempt: 1,
     });
 
-    // 3. Build request init.
+    // 3. Build request init. Compose a per-request timeout signal with the
+    // caller's signal (if any) so wedged connections can't burn the agent's
+    // budget on a single attempt.
+    const timeoutSignal = AbortSignal.timeout(this.requestTimeoutMs);
+    const composedSignal = options.signal
+      ? anySignal(options.signal, timeoutSignal)
+      : timeoutSignal;
     const init: RequestInit = {
       method: options.method ?? "GET",
       headers: {
-        Accept: "application/json",
+        Accept: options.acceptHeader ?? "application/json",
         "User-Agent": options.userAgent ?? this.userAgent,
         ...(authHeader ? { Authorization: authHeader } : {}),
         ...(options.body !== undefined && options.body !== null
@@ -182,7 +217,7 @@ export class MeliClient {
       ...(options.body !== undefined && options.body !== null
         ? { body: typeof options.body === "string" ? options.body : JSON.stringify(options.body) }
         : {}),
-      ...(options.signal !== undefined ? { signal: options.signal } : {}),
+      signal: composedSignal,
     };
 
     // 4. Do the request with retry.
@@ -250,8 +285,24 @@ export class MeliClient {
     if (meliReqId) responseEvent.meliRequestId = meliReqId;
     this.telemetry.onResponse(responseEvent);
 
+    // Raw mode: return the Response untouched (caller handles binary body).
+    if (!options.parseAsJson) {
+      if (response.status >= 400) {
+        // Try to read a JSON error body for context, but tolerate non-JSON.
+        const errorBody = await safeReadJson(response.clone());
+        throw new MeliApiError(
+          `MELI API ${response.status} on ${options.method ?? "GET"} ${options.path}`,
+          response.status,
+          url,
+          errorBody,
+          response.headers.get("x-request-id") ?? undefined,
+        );
+      }
+      return response;
+    }
+
     if (response.status === 204 || response.status === 205) {
-      return undefined as T;
+      return undefined;
     }
     let body: unknown;
     try {
@@ -288,7 +339,7 @@ export class MeliClient {
       }
       return parsed.data;
     }
-    return body as T;
+    return body;
   }
 
   // -------------------------------------------------------------------------
@@ -306,6 +357,7 @@ export class MeliClient {
           userId: this.auth.userId,
           app: this.auth.app,
           store: this.auth.store,
+          fetchImpl: this.fetchImpl,
         }).catch((err) => {
           throw err instanceof Error ? new MeliAuthError(err.message, err) : err;
         });
@@ -316,7 +368,12 @@ export class MeliClient {
 
   private deriveRateLimitScope(): string {
     if (this.auth.kind === "oauth") return `seller:${this.auth.userId}`;
-    if (this.auth.kind === "bearer") return `bearer:${this.auth.accessToken.slice(-8)}`;
+    if (this.auth.kind === "bearer") {
+      // Hash instead of slicing the token. Slicing leaks the last 8 chars
+      // into telemetry; hashing produces an opaque, collision-resistant id.
+      // Use a non-cryptographic FNV-1a 32-bit (deterministic, no async).
+      return `bearer:${fnv1a32(this.auth.accessToken)}`;
+    }
     return "anon";
   }
 
@@ -324,6 +381,22 @@ export class MeliClient {
     path: string,
     query?: Record<string, string | number | boolean | undefined | null>,
   ): string {
+    // Defence in depth against SSRF: reject any path that includes a scheme
+    // (`http://...`) or a protocol-relative authority (`//evil.com/x`).
+    // Without this, a path containing an absolute URL would silently rebase
+    // the request onto an attacker's host. Domain helpers always pass paths
+    // beginning with `/`, so this only catches mistakes (or attacks) before
+    // they reach the network.
+    if (
+      typeof path !== "string" ||
+      /^[a-z][a-z0-9+.-]*:\/\//i.test(path) ||
+      path.startsWith("//") ||
+      path.includes(" ")
+    ) {
+      throw new Error(
+        `MeliClient: refusing to fetch path that looks like an absolute URL or contains NUL: ${JSON.stringify(path)}`,
+      );
+    }
     const url = new URL(path.startsWith("/") ? path : `/${path}`, this.baseUrl);
     if (query) {
       for (const [k, v] of Object.entries(query)) {
@@ -341,4 +414,33 @@ async function safeReadJson(r: Response): Promise<unknown> {
   } catch {
     return null;
   }
+}
+
+/** Compose multiple AbortSignals into one. The result aborts when any input
+ *  aborts. Pure ES2022, works on Node 20+ / browsers / Edge. */
+function anySignal(...signals: AbortSignal[]): AbortSignal {
+  if (typeof (AbortSignal as unknown as { any?: (s: AbortSignal[]) => AbortSignal }).any === "function") {
+    return (AbortSignal as unknown as { any: (s: AbortSignal[]) => AbortSignal }).any(signals);
+  }
+  // Polyfill for runtimes without AbortSignal.any (older Node 20.x).
+  const ctrl = new AbortController();
+  const onAbort = () => ctrl.abort();
+  for (const s of signals) {
+    if (s.aborted) {
+      ctrl.abort();
+      break;
+    }
+    s.addEventListener("abort", onAbort, { once: true });
+  }
+  return ctrl.signal;
+}
+
+/** FNV-1a 32-bit hash. Used to scope rate-limit buckets without leaking tokens. */
+function fnv1a32(s: string): string {
+  let h = 0x811c9dc5;
+  for (let i = 0; i < s.length; i++) {
+    h ^= s.charCodeAt(i);
+    h = (h + ((h << 1) + (h << 4) + (h << 7) + (h << 8) + (h << 24))) >>> 0;
+  }
+  return h.toString(16).padStart(8, "0");
 }

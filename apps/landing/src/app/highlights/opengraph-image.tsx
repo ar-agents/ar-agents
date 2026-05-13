@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · /highlights · 90-second read
+          /highlights · 90-second read
         </div>
         <div
           style={{
@@ -114,7 +114,7 @@ export default async function Image() {
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/highlights</span>
+          <span>ar-agents.ar/highlights</span>
           <span style={{ fontSize: 15, color: "#999" }}>
             MIT + CC-BY-4.0 · 2026-05-11
           </span>

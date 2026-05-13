@@ -3,7 +3,7 @@ import Link from "next/link";
 import { JsonLd } from "../../json-ld";
 
 /**
- * /en/legislation — English-language mirror of /legislacion.
+ * /en/legislation, English-language mirror of /legislacion.
  *
  * Target audience: international press, comparative-law scholars,
  * regulators in OTHER jurisdictions (Wyoming, Marshall Islands, Estonia,
@@ -21,7 +21,7 @@ export const metadata: Metadata = {
   description:
     "English-language synthesis of the four RFCs (liability, discovery, reciprocity, operational log) backing Argentina's proposed sociedad-IA regime. Suggested cite-by-reference legislative text. For international press + comparative-law scholars + regulators in adjacent jurisdictions.",
   alternates: {
-    canonical: "https://ar-agents.vercel.app/en/legislation",
+    canonical: "https://ar-agents.ar/en/legislation",
     languages: {
       en: "/en/legislation",
       es: "/legislacion",
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
     title: "/en/legislation · technical synthesis for AI-corporation regimes",
     description:
       "English-language synthesis of the four RFCs backing Argentina's proposed sociedad-IA regime.",
-    url: "https://ar-agents.vercel.app/en/legislation",
+    url: "https://ar-agents.ar/en/legislation",
     type: "article",
     locale: "en_US",
     alternateLocale: "es_AR",
@@ -45,14 +45,14 @@ export default function EnLegislationPage() {
         data={{
           "@context": "https://schema.org",
           "@type": "TechArticle",
-          headline: "Technical synthesis for AI-corporation regimes — Argentina's sociedad-IA",
+          headline: "Technical synthesis for AI-corporation regimes, Argentina's sociedad-IA",
           inLanguage: "en-US",
-          url: "https://ar-agents.vercel.app/en/legislation",
+          url: "https://ar-agents.ar/en/legislation",
           datePublished: "2026-05-11",
           author: {
             "@type": "Person",
-            name: "Nazareno Clemente",
-            email: "naza@helloastro.co",
+            name: "Naza",
+            email: "clementenaza@gmail.com",
           },
           audience: {
             "@type": "Audience",
@@ -82,7 +82,7 @@ export default function EnLegislationPage() {
               marginBottom: 8,
             }}
           >
-            /arg · /en/legislation · english · synthesis · 2026-05-11
+            /en/legislation · english · synthesis · 2026-05-11
           </p>
           <h1
             style={{
@@ -121,12 +121,12 @@ export default function EnLegislationPage() {
             is ambiguous and discourages investment. The sociedad-IA
             regime proposes a specific framework; this document suggests
             how to technically anchor each piece so liability is{" "}
-            <em>operationalizable</em> — i.e. a judge + forensic expert
+            <em>operationalizable</em>, i.e. a judge + forensic expert
             can reconstruct what happened.
           </P>
         </Section>
 
-        <Section title="2 · Civil liability — RFC-001">
+        <Section title="2 · Civil liability, RFC-001">
           <P>
             <strong>Concept.</strong> Three layers of civil liability
             (Layer 1: human operator · Layer 2: sociedad-IA · Layer 3:
@@ -151,12 +151,12 @@ export default function EnLegislationPage() {
               determined as a function of the operational category
               assigned to each action per the technical standard
               published as RFC-001 v1 (
-              <A href="https://ar-agents.vercel.app/rfcs/001">
-                ar-agents.vercel.app/rfcs/001
+              <A href="https://ar-agents.ar/rfcs/001">
+                ar-agents.ar/rfcs/001
               </A>
               ) and its companion specification RFC-004 § 6 (
-              <A href="https://ar-agents.vercel.app/rfcs/004">
-                ar-agents.vercel.app/rfcs/004
+              <A href="https://ar-agents.ar/rfcs/004">
+                ar-agents.ar/rfcs/004
               </A>
               ).&quot;
             </em>
@@ -170,7 +170,7 @@ export default function EnLegislationPage() {
           </P>
         </Section>
 
-        <Section title="3 · Discovery — RFC-002">
+        <Section title="3 · Discovery, RFC-002">
           <P>
             <strong>Concept.</strong> For a regulator to inspect an AI
             corporation without asking permission, the regulator must be
@@ -198,7 +198,7 @@ export default function EnLegislationPage() {
           </LegislativeBox>
         </Section>
 
-        <Section title="4 · Cross-jurisdictional reciprocity — RFC-003">
+        <Section title="4 · Cross-jurisdictional reciprocity, RFC-003">
           <P>
             <strong>Concept.</strong> An Argentine AI corporation may
             transact with an agent-entity from another jurisdiction
@@ -228,7 +228,7 @@ export default function EnLegislationPage() {
           </LegislativeBox>
         </Section>
 
-        <Section title="5 · Operational log — RFC-004">
+        <Section title="5 · Operational log, RFC-004">
           <P>
             <strong>Concept.</strong> The append-only HMAC-SHA256-signed
             record every AI corporation must keep.{" "}
@@ -243,7 +243,7 @@ export default function EnLegislationPage() {
             code, what a regulator can demand without a court order,
             minimum retention (180 days) and maximum (5 years),
             conformance vectors with deterministic hex values (
-            <A href="https://ar-agents.vercel.app/test-vectors">
+            <A href="https://ar-agents.ar/test-vectors">
               /test-vectors
             </A>
             ).
@@ -407,7 +407,7 @@ export default function EnLegislationPage() {
             <li style={liStyle}>
               <strong>EU AI Act § 14 (human oversight).</strong> The
               RFC-001 governance classes operationalize what &quot;human
-              oversight&quot; means as a tag-per-action — concrete enough
+              oversight&quot; means as a tag-per-action, concrete enough
               for compliance audits.
             </li>
             <li style={liStyle}>
@@ -420,16 +420,16 @@ export default function EnLegislationPage() {
 
         <Section title="11 · Contact">
           <P>
-            I am <strong>Nazareno Clemente</strong>, author of the RFCs
+            I am <strong>Naza</strong>, author of the RFCs
             and maintainer of the infrastructure. Available for
             technical meetings with regulators, ministries, comparative-
             law scholars, and any organization considering an AI
-            corporation regime. No fees for this kind of consultation —
+            corporation regime. No fees for this kind of consultation,
             the work is done, the code is public, the conversation is
             public.
           </P>
           <P>
-            <A href="mailto:naza@helloastro.co">naza@helloastro.co</A> ·{" "}
+            <A href="mailto:clementenaza@gmail.com">clementenaza@gmail.com</A> ·{" "}
             <A href="https://github.com/ar-agents/ar-agents/discussions">
               github.com/ar-agents/ar-agents/discussions
             </A>
@@ -450,7 +450,7 @@ export default function EnLegislationPage() {
           }}
         >
           <span>
-            ar-agents.vercel.app · MIT + CC-BY-4.0 ·{" "}
+            ar-agents.ar · MIT + CC-BY-4.0 ·{" "}
             <Link href="/legislacion" style={linkStyle}>español</Link>
           </span>
           <span>

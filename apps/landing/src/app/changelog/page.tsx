@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   title: "/changelog · all 17 packages",
   description:
     "Auto-aggregated CHANGELOG entries across every @ar-agents/* package. Newest releases first. SLSA v1 npm provenance attestation tags.",
-  alternates: { canonical: "https://ar-agents.vercel.app/changelog" },
+  alternates: { canonical: "https://ar-agents.ar/changelog" },
 };
 
 // Run at build time + revalidate hourly so freshly-released packages
@@ -84,7 +84,7 @@ export default async function ChangelogPage() {
 
   return (
     <DocShell
-      eyebrow="/arg · changelog · all packages"
+      eyebrow="changelog · all packages"
       title="Changelog."
       subtitle="Aggregated CHANGELOG entries across every @ar-agents/* package. Auto-pulled from each package's CHANGELOG.md at build (revalidate hourly). For full release history per package, see github.com/ar-agents/ar-agents."
     >

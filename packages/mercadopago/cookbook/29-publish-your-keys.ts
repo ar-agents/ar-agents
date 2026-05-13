@@ -125,8 +125,8 @@ export function publishedKeysFromKeypair(
   issuer: { jurisdiction: string; entityId: string; denominacion: string },
 ): PublishedKeysFile {
   return {
-    $schema: "https://ar-agents.vercel.app/schemas/keys.v1.json",
-    spec: "https://ar-agents.vercel.app/rfcs/005",
+    $schema: "https://ar-agents.ar/schemas/keys.v1.json",
+    spec: "https://ar-agents.ar/rfcs/005",
     issuer,
     keys: [
       {

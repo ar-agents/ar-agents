@@ -101,7 +101,7 @@ export function TamperDemo() {
           el secret de producción, le aplica una mutación, y verifica
           ambas. Si <code style={{ fontFamily: FONT_MONO }}>tamperedVerified</code>{" "}
           vuelve <code style={{ fontFamily: FONT_MONO }}>false</code>, el
-          HMAC está atrapando el cambio. Read-only — no toca ningún audit
+          HMAC está atrapando el cambio. Read-only, no toca ningún audit
           log real.
         </p>
       </div>
@@ -206,7 +206,7 @@ function ResultPanel({ result }: { result: Result }) {
             fontFamily: FONT_MONO,
           }}
         >
-          AUDIT_HMAC_SECRET no está cableado en este deploy — el demo es
+          AUDIT_HMAC_SECRET no está cableado en este deploy, el demo es
           informativo pero las firmas son null. Setear el secret en Vercel
           para que la verificación tenga contenido.
         </div>

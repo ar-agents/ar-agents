@@ -1,8 +1,8 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/agents.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/agents.v1.json",
   "name": "ar-agents-cuit-hello",
   "description": "Demo: AFIP/ARCA padron lookup + CUIT validation via @ar-agents/identity. Demonstrates the @ar-agents/identity npm package end-to-end. Not a productive sociedad-IA.",
-  "homepage": "https://ar-agents-cuit-hello.vercel.app",
+  "homepage": "https://cuit-hello.ar-agents.ar",
   "repository": "https://github.com/ar-agents/ar-agents/tree/main/apps/cuit-hello",
   "license": "MIT",
   "maintainer": {
@@ -21,9 +21,9 @@
     "rfc-001-v1",
     "rfc-002-v1"
   ],
-  "note": "Single-library demo. Does NOT claim RFC-004 conformance — no audit-log endpoints (no /api/play/audit). Cite-by-reference to the reference implementation at ar-agents.vercel.app for the full RFC-004 surface.",
+  "note": "Single-library demo. Does NOT claim RFC-004 conformance — no audit-log endpoints (no /api/play/audit). Cite-by-reference to the reference implementation at ar-agents.ar for the full RFC-004 surface.",
   "discovery": {
-    "canonicalSpec": "https://ar-agents.vercel.app/rfcs/002",
-    "testVectors": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json"
+    "canonicalSpec": "https://ar-agents.ar/rfcs/002",
+    "testVectors": "https://ar-agents.ar/test-vectors/rfc-004-v1.json"
   }
 }

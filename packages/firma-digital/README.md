@@ -6,7 +6,7 @@
 pnpm add @ar-agents/firma-digital ai zod
 ```
 
-Part of the [`Arg`](https://ar-agents.vercel.app) toolkit — open infrastructure for the Argentine AI agent jurisdiction.
+Part of the [`Arg`](https://ar-agents.ar) toolkit — open infrastructure for the Argentine AI agent jurisdiction.
 
 ## What this gives you
 

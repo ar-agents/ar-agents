@@ -3,7 +3,7 @@ import Link from "next/link";
 import { JsonLd } from "../json-ld";
 
 /**
- * /legislacion — Single Spanish-language synthesis of all 4 RFCs aimed
+ * /legislacion, Single Spanish-language synthesis of all 4 RFCs aimed
  * at someone drafting the AR sociedad-IA legislation.
  *
  * Different from /auditor (investigation/forensics) and from
@@ -21,12 +21,12 @@ export const metadata: Metadata = {
   title: "/legislación · síntesis técnica para legisladores · ar-agents",
   description:
     "Síntesis de los 4 RFCs publicados (responsabilidad, descubrimiento, reciprocidad, log operativo) con sugerencias de texto legislativo cite-by-reference. Para quien esté redactando la ley de sociedades-IA: aquí está la infraestructura técnica de referencia + cómo incorporarla sin reinventarla.",
-  alternates: { canonical: "https://ar-agents.vercel.app/legislacion" },
+  alternates: { canonical: "https://ar-agents.ar/legislacion" },
   openGraph: {
     title: "/legislación · síntesis técnica para legisladores",
     description:
       "Síntesis de los 4 RFCs publicados con sugerencias de texto legislativo cite-by-reference. Para quien esté redactando la ley de sociedades-IA.",
-    url: "https://ar-agents.vercel.app/legislacion",
+    url: "https://ar-agents.ar/legislacion",
     type: "article",
   },
 };
@@ -40,12 +40,12 @@ export default function LegislacionPage() {
           "@type": "TechArticle",
           headline: "Síntesis técnica para la legislación de sociedades-IA argentinas",
           inLanguage: "es-AR",
-          url: "https://ar-agents.vercel.app/legislacion",
+          url: "https://ar-agents.ar/legislacion",
           datePublished: "2026-05-11",
           author: {
             "@type": "Person",
-            name: "Nazareno Clemente",
-            email: "naza@helloastro.co",
+            name: "Naza",
+            email: "clementenaza@gmail.com",
           },
           audience: {
             "@type": "Audience",
@@ -75,7 +75,7 @@ export default function LegislacionPage() {
               marginBottom: 8,
             }}
           >
-            /arg · /legislación · síntesis · español · 2026-05-11
+            /legislación · síntesis · español · 2026-05-11
           </p>
           <h1
             style={{
@@ -87,16 +87,18 @@ export default function LegislacionPage() {
               letterSpacing: "-0.01em",
             }}
           >
-            Síntesis técnica para legisladores.
+            Cinco RFCs listos para citar en el articulado.
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.55 }}>
             El régimen de sociedades-IA fue anunciado el 28 de abril de
-            2026. Esta página resume cuatro documentos técnicos
-            (RFC-001 a RFC-004) publicados como infraestructura
+            2026. Esta página resume cinco documentos técnicos
+            (RFC-001 a RFC-005) publicados como infraestructura
             open-source que la legislación puede incorporar{" "}
-            <em>cite-by-reference</em> en lugar de reescribir cada concepto
-            desde cero. Cada sección propone texto sugerido para el
-            articulado.
+            <em>cite-by-reference</em> (referenciar la norma técnica en
+            lugar de transcribirla, como cuando una ley dice
+            &ldquo;según norma IRAM 4001&rdquo; sin copiar la norma) en
+            lugar de reescribir cada concepto desde cero. Cada sección
+            propone texto sugerido para el articulado.
           </p>
           <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 8 }}>
             Tiempo de lectura: 10 minutos · Sin marketing · Texto sugerido
@@ -104,6 +106,90 @@ export default function LegislacionPage() {
             de código abierto bajo MIT + CC-BY-4.0
           </p>
         </header>
+
+        {/* Disclaimer legal honesto. Lo primero que pide un asesor
+            regulatorio escéptico es esta cláusula. */}
+        <div
+          style={{
+            padding: 14,
+            background: "var(--bg-tint)",
+            borderLeft: "3px solid var(--text-muted)",
+            borderRadius: 4,
+            marginBottom: 24,
+            fontSize: 13,
+            lineHeight: 1.55,
+            color: "var(--text-muted)",
+          }}
+          role="note"
+        >
+          <strong style={{ color: "var(--text-body)" }}>
+            Aviso.
+          </strong>{" "}
+          Este documento es una propuesta técnica de un desarrollador
+          independiente (Naza,
+          monotributista). <strong>No constituye opinión jurídica
+          profesional</strong> y no reemplaza la revisión por especialistas
+          matriculados. La adopción legislativa de cualquier porción de
+          este material requiere análisis por abogados corporativos y
+          asesores técnicos del organismo legislativo correspondiente. Las
+          referencias a las especificaciones (RFC-001..005) apuntan a
+          documentos versionados en{" "}
+          <a
+            href="https://github.com/ar-agents/ar-agents"
+            style={{ color: "var(--accent)", textDecoration: "underline" }}
+          >
+            github.com/ar-agents/ar-agents
+          </a>
+          ; cualquier cita normativa debería anclarse a un commit hash o
+          DOI inmutable, no a la URL canónica.
+        </div>
+
+        {/* TL;DR placed at the top per copy review, legislative staffers
+            scan from above. The full "Resumen ejecutivo" stays at the
+            bottom (sec 9) for completeness. */}
+        <div
+          style={{
+            padding: 16,
+            background: "var(--bg-tint)",
+            borderLeft: "3px solid var(--accent)",
+            borderRadius: 4,
+            margin: "0 0 32px",
+            fontSize: 14,
+            lineHeight: 1.6,
+          }}
+        >
+          <p
+            style={{
+              fontSize: 11,
+              fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+              textTransform: "uppercase",
+              letterSpacing: "0.08em",
+              color: "var(--text-muted)",
+              margin: "0 0 8px",
+              fontWeight: 600,
+            }}
+          >
+            TL;DR · resumen en 3 líneas
+          </p>
+          <ul style={{ paddingLeft: 20, margin: 0 }}>
+            <li style={{ marginBottom: 6 }}>
+              <strong>Línea 1.</strong> Cinco RFCs publicados, abiertos,
+              versionados, con tests automatizados que prueban
+              conformidad. Listos para citar.
+            </li>
+            <li style={{ marginBottom: 6 }}>
+              <strong>Línea 2.</strong> Cite-by-reference: la ley fija
+              v1; los RFCs evolucionan en su propio gobierno público;
+              los operadores eligen versión al incorporarse.
+            </li>
+            <li>
+              <strong>Línea 3.</strong> Toda la infraestructura es MIT +
+              CC-BY-4.0. Ningún operador pagó por nada para
+              implementarla; ningún operador puede ser excluido por
+              motivos comerciales.
+            </li>
+          </ul>
+        </div>
 
         <Section title="1 · El problema en una oración">
           <P>
@@ -113,12 +199,12 @@ export default function LegislacionPage() {
             actual es ambigua y disuade la inversión. El régimen de
             sociedades-IA propone un marco específico; este documento
             sugiere cómo anclar técnicamente cada elemento del marco para
-            que la responsabilidad sea operativizable (i.e. un juez +
+            que la responsabilidad sea operativizable (es decir un juez +
             perito puedan reconstruir qué pasó).
           </P>
         </Section>
 
-        <Section title="2 · Responsabilidad civil — RFC-001">
+        <Section title="2 · Responsabilidad civil, RFC-001">
           <P>
             <strong>Concepto.</strong> Tres capas de responsabilidad civil
             (Layer 1: operador humano · Layer 2: sociedad-IA · Layer 3:
@@ -143,12 +229,12 @@ export default function LegislacionPage() {
               determinará en función de la categoría operativa asignada a
               cada acción según el estándar técnico publicado en RFC-001
               v1 (
-              <A href="https://ar-agents.vercel.app/rfcs/001">
-                ar-agents.vercel.app/rfcs/001
+              <A href="https://ar-agents.ar/rfcs/001">
+                ar-agents.ar/rfcs/001
               </A>
               ) y su especificación complementaria RFC-004 § 6 (
-              <A href="https://ar-agents.vercel.app/rfcs/004">
-                ar-agents.vercel.app/rfcs/004
+              <A href="https://ar-agents.ar/rfcs/004">
+                ar-agents.ar/rfcs/004
               </A>
               ).&quot;
             </em>
@@ -163,7 +249,7 @@ export default function LegislacionPage() {
           </P>
         </Section>
 
-        <Section title="3 · Descubrimiento — RFC-002">
+        <Section title="3 · Descubrimiento, RFC-002">
           <P>
             <strong>Concepto.</strong> Para que un regulador pueda
             inspeccionar a una sociedad-IA sin pedir permiso, debe poder
@@ -184,8 +270,8 @@ export default function LegislacionPage() {
               <Code>/.well-known/agents.json</Code> bajo el dominio
               registrado en su acto constitutivo la información mínima
               especificada por RFC-002 v1 (
-              <A href="https://ar-agents.vercel.app/rfcs/002">
-                ar-agents.vercel.app/rfcs/002
+              <A href="https://ar-agents.ar/rfcs/002">
+                ar-agents.ar/rfcs/002
               </A>
               ): jurisdicción, tipo societario, CUIT del operador,
               endpoints de auditoría, conformidad con RFCs aplicables. La
@@ -196,7 +282,7 @@ export default function LegislacionPage() {
           </LegislativeBox>
         </Section>
 
-        <Section title="4 · Reciprocidad cross-jurisdiccional — RFC-003">
+        <Section title="4 · Reciprocidad cross-jurisdiccional, RFC-003">
           <P>
             <strong>Concepto.</strong> Una sociedad-IA argentina puede
             transaccionar con una entidad-agente de otra jurisdicción
@@ -219,8 +305,8 @@ export default function LegislacionPage() {
               entidad-agente extranjera, la documentación recíproca de las
               transacciones deberá ajustarse al envelope normativo RFC-003
               v1 (
-              <A href="https://ar-agents.vercel.app/rfcs/003">
-                ar-agents.vercel.app/rfcs/003
+              <A href="https://ar-agents.ar/rfcs/003">
+                ar-agents.ar/rfcs/003
               </A>
               ). Las firmas criptográficas allí establecidas tendrán
               valor probatorio equivalente al documento privado con
@@ -229,7 +315,7 @@ export default function LegislacionPage() {
           </LegislativeBox>
         </Section>
 
-        <Section title="5 · Log operativo — RFC-004">
+        <Section title="5 · Log operativo, RFC-004">
           <P>
             <strong>Concepto.</strong> El registro append-only firmado con
             HMAC-SHA256 que toda sociedad-IA debe llevar.{" "}
@@ -244,7 +330,7 @@ export default function LegislacionPage() {
             puede exigir un regulador sin orden judicial, retención
             mínima (180 días) y máxima (5 años), vectores de conformidad
             con valores hex deterministas (
-            <A href="https://ar-agents.vercel.app/test-vectors">
+            <A href="https://ar-agents.ar/test-vectors">
               /test-vectors
             </A>
             ).
@@ -256,8 +342,8 @@ export default function LegislacionPage() {
               &quot;Toda sociedad de IA deberá llevar un registro
               operativo conforme a la especificación normativa RFC-004 v1
               (
-              <A href="https://ar-agents.vercel.app/rfcs/004">
-                ar-agents.vercel.app/rfcs/004
+              <A href="https://ar-agents.ar/rfcs/004">
+                ar-agents.ar/rfcs/004
               </A>
               ), firmando cada entrada con HMAC-SHA256 al momento de su
               creación. El registro será conservado por el plazo mínimo
@@ -316,7 +402,7 @@ export default function LegislacionPage() {
         <Section title="7 · Por qué cite-by-reference y no reescribir">
           <ul style={ulStyle}>
             <li style={liStyle}>
-              <strong>Velocidad.</strong> Los RFCs ya existen, están
+              <strong>Tiempo.</strong> Los RFCs ya existen, están
               publicados, son discutidos públicamente. La ley no necesita
               empezar el debate técnico de cero.
             </li>
@@ -328,10 +414,14 @@ export default function LegislacionPage() {
               operadores opt-in a v2 cuando estén listos.
             </li>
             <li style={liStyle}>
-              <strong>Interoperabilidad.</strong> Si Wyoming, Estonia, o
-              Marshall Islands publican RFCs análogos (RFC-003 ya prevé
-              la reciprocidad), los regímenes pueden coordinar al nivel
-              técnico sin tratados.
+              <strong>Interoperabilidad.</strong> Wyoming DAO LLC,
+              Estonia e-Residency, Marshall Islands MIDAO y Singapore
+              VCC ya tienen primitivas análogas (Title 17 §17-31-106,
+              eIDAS + X-Road, DAO Act 2022, AI Verify); RFC-003 ya
+              prevé la reciprocidad entre todas. Comparativa completa
+              en{" "}
+              <A href="/jurisdicciones">/jurisdicciones</A>. Los
+              regímenes pueden coordinar al nivel técnico sin tratados.
             </li>
             <li style={liStyle}>
               <strong>Auditabilidad pública.</strong> Cualquier ciudadano
@@ -401,16 +491,16 @@ export default function LegislacionPage() {
 
         <Section title="10 · Contacto">
           <P>
-            Soy <strong>Nazareno Clemente</strong>, autor de los RFCs y
-            mantenedor de la infraestructura. CUIT 20-41758101-5,
-            domicilio en Monte Grande, BA. Disponible para reuniones
+            Soy <strong>Naza</strong>, autor de los RFCs y
+            mantenedor de la infraestructura. Domicilio en Monte
+            Grande, BA. Disponible para reuniones
             técnicas con asesores legislativos, ministerios, o cualquier
             organismo interesado. Sin honorarios para este tipo de
-            consultas — el trabajo está hecho, el código es público, la
+            consultas, el trabajo está hecho, el código es público, la
             conversación es pública.
           </P>
           <P>
-            <A href="mailto:naza@helloastro.co">naza@helloastro.co</A> ·{" "}
+            <A href="mailto:clementenaza@gmail.com">clementenaza@gmail.com</A> ·{" "}
             <A href="https://github.com/ar-agents/ar-agents/discussions">
               github.com/ar-agents/ar-agents/discussions
             </A>
@@ -430,7 +520,7 @@ export default function LegislacionPage() {
             justifyContent: "space-between",
           }}
         >
-          <span>ar-agents.vercel.app · MIT + CC-BY-4.0</span>
+          <span>ar-agents.ar · MIT + CC-BY-4.0</span>
           <span>
             <Link href="/" style={linkStyle}>/</Link>{" · "}
             <Link href="/manifiesto" style={linkStyle}>/manifiesto</Link>{" · "}

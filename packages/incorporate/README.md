@@ -1,6 +1,6 @@
 # @ar-agents/incorporate
 
-> Zero-dependency TypeScript client for [`/api/auto-incorporate`](https://ar-agents.vercel.app/api/auto-incorporate). One async call → an Argentine sociedad-IA's full incorporation kit (generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference).
+> Zero-dependency TypeScript client for [`/api/auto-incorporate`](https://ar-agents.ar/api/auto-incorporate). One async call → an Argentine sociedad-IA's full incorporation kit (generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference).
 
 [![npm version](https://img.shields.io/npm/v/@ar-agents/incorporate.svg)](https://www.npmjs.com/package/@ar-agents/incorporate)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
@@ -10,7 +10,7 @@
 
 When the AR sociedad-IA regime ships (anuncio Sturzenegger 28-abr-2026), an external agent (USA-LLC, ChatGPT, Claude, Gemini) should be able to spin up a properly-configured AR sociedad in one programmatic call — not by clicking through a wizard. This package is the canonical surface for that, designed to fit cleanly into any agent's tool list or any orchestration script.
 
-The companion human-facing UI is at [/incorporar](https://ar-agents.vercel.app/incorporar). Same backend, same generated output.
+The companion human-facing UI is at [/incorporar](https://ar-agents.ar/incorporar). Same backend, same generated output.
 
 ## Install
 
@@ -81,7 +81,7 @@ Throws `IncorporateError` on network errors or unexpected HTTP statuses (5xx, 42
 
 ```ts
 {
-  baseUrl?: string;               // defaults to https://ar-agents.vercel.app
+  baseUrl?: string;               // defaults to https://ar-agents.ar
   fetchImpl?: typeof fetch;       // for Node 18 polyfill / instrumented fetch
   signal?: AbortSignal;
   headers?: Record<string, string>;
@@ -112,9 +112,9 @@ result.audit = {
     id, sessionId, ts, tool: "auto_incorporate", governance: "audit-logged",
     input, output, hmac: "sha256:..."
   },
-  url: "https://ar-agents.vercel.app/api/play/audit/{sessionId}",
-  verifyUrl: "https://ar-agents.vercel.app/api/play/audit/{sessionId}?verify=1",
-  dashboardUrl: "https://ar-agents.vercel.app/dashboard/{sessionId}",
+  url: "https://ar-agents.ar/api/play/audit/{sessionId}",
+  verifyUrl: "https://ar-agents.ar/api/play/audit/{sessionId}?verify=1",
+  dashboardUrl: "https://ar-agents.ar/dashboard/{sessionId}",
 };
 ```
 

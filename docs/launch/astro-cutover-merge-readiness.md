@@ -38,7 +38,7 @@ Two commits:
 - `GET /api/arg` — endpoint self-description (reports `activeClients` for capability discovery).
 - `/arg` — visitor-facing UI at `astro.ar/arg`. 4 sample prompts, single-prompt single-response, streams tool calls.
 
-**Hardening profile** (mirrors `ar-agents.vercel.app/api/play`):
+**Hardening profile** (mirrors `ar-agents.ar/api/play`):
 - ✅ Body size cap (16KB)
 - ✅ Prompt char cap (4000)
 - ✅ Output token cap (800)
@@ -85,7 +85,7 @@ Two commits:
 
 ## Post-merge actions
 
-- Update `/case-studies/astro` on `ar-agents.vercel.app` to point at the merged commit instead of the feat-branch link.
+- Update `/case-studies/astro` on `ar-agents.ar` to point at the merged commit instead of the feat-branch link.
 - Tweet a short "Astro is now running on @ar-agents/* via /arg" announcement (optional; the case study update + the live URL is enough on its own).
 - Schedule the next slice: integrate `@ar-agents/banking`'s `lookup_credit_situation` into the legacy `/api/chat` so credit-decision questions route through the toolkit even when not coming via /arg. (Sequenced separately to keep risk low.)
 
@@ -107,7 +107,7 @@ Total time-to-rollback: ~3 minutes. The new routes are isolated, so reverting th
 - ✅ Diff is purely additive — zero modifications to existing files except `package.json` (+4 deps) + `package-lock.json` (resolved versions).
 - ✅ No removed env vars / dropped routes / changed schema.
 - ✅ Toolkit packages are pinned to caret-major (`^0.x.0`) — minor bumps will land on next `npm install` but are safe by semver.
-- ✅ Hardening profile matches `ar-agents.vercel.app/api/play` (the reference implementation).
+- ✅ Hardening profile matches `ar-agents.ar/api/play` (the reference implementation).
 - ✅ Route structure follows the Astro app's existing convention (`src/app/api/<name>/route.ts`).
 
 ## What I did NOT verify (your job)

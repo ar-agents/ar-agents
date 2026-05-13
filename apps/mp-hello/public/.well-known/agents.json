@@ -1,8 +1,8 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/agents.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/agents.v1.json",
   "name": "ar-agents-mp-hello",
   "description": "Demo: Mercado Pago Subscriptions integration via @ar-agents/mercadopago. Wired to a real MP sandbox + production app 178743372667921. Demonstrates the full MercadoPago Agent Toolkit end-to-end. Not a productive sociedad-IA.",
-  "homepage": "https://ar-agents-mp-hello.vercel.app",
+  "homepage": "https://mp-hello.ar-agents.ar",
   "repository": "https://github.com/ar-agents/ar-agents/tree/main/apps/mp-hello",
   "license": "MIT",
   "maintainer": {
@@ -21,9 +21,9 @@
     "rfc-001-v1",
     "rfc-002-v1"
   ],
-  "note": "Single-library demo. Does NOT claim RFC-004 conformance — no audit-log endpoints (no /api/play/audit). Cite-by-reference to the reference implementation at ar-agents.vercel.app for the full RFC-004 surface.",
+  "note": "Single-library demo. Does NOT claim RFC-004 conformance — no audit-log endpoints (no /api/play/audit). Cite-by-reference to the reference implementation at ar-agents.ar for the full RFC-004 surface.",
   "discovery": {
-    "canonicalSpec": "https://ar-agents.vercel.app/rfcs/002",
-    "testVectors": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json"
+    "canonicalSpec": "https://ar-agents.ar/rfcs/002",
+    "testVectors": "https://ar-agents.ar/test-vectors/rfc-004-v1.json"
   }
 }

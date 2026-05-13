@@ -44,7 +44,7 @@ import { buildShippingTools, describeShippingConfig } from "./registries/shippin
 import { buildWhatsAppTools, describeWhatsAppConfig } from "./registries/whatsapp";
 
 const SERVER_NAME = "ar-agents";
-const SERVER_VERSION = "0.6.0";
+const SERVER_VERSION = "0.10.0";
 
 /**
  * Build the @ar-agents/mcp server. Inspects environment variables to decide

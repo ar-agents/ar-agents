@@ -8,7 +8,7 @@ assignees: ""
 
 <!--
 If your question would benefit a wider audience (other devs, regulators,
-journalists), it'll likely end up on https://ar-agents.vercel.app/faq.
+journalists), it'll likely end up on https://ar-agents.ar/faq.
 
 Tier-1 answers come back inside 48 hours. RFC-001 / governance questions
 are routed to /discussions instead — they need conversation, not a single
@@ -37,6 +37,6 @@ unclear. The richer the context, the more useful the answer. -->
 
 ### Already checked
 
-- [ ] [/faq](https://ar-agents.vercel.app/faq)
-- [ ] [/reference](https://ar-agents.vercel.app/reference)
+- [ ] [/faq](https://ar-agents.ar/faq)
+- [ ] [/reference](https://ar-agents.ar/reference)
 - [ ] [Existing issues](https://github.com/ar-agents/ar-agents/issues?q=is%3Aissue)

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 
 /**
- * /operator-quickstart — zero-to-listed-on-/registro in 15 minutes.
+ * /operator-quickstart, zero-to-listed-on-/registro in 15 minutes.
  *
  * For the operator who has already deployed their own sociedad-IA (or
  * is about to). Walks through the env vars, the conformance pipeline,
@@ -17,7 +17,7 @@ export const metadata: Metadata = {
   title: "/operator-quickstart · zero-to-listed in 15 minutes · ar-agents",
   description:
     "Step-by-step for operators who have deployed a sociedad-IA and want to: wire env vars, claim 100/100 conformance on /certifier, get listed on the public /registro. 15 minutes start-to-finish.",
-  alternates: { canonical: "https://ar-agents.vercel.app/operator-quickstart" },
+  alternates: { canonical: "https://ar-agents.ar/operator-quickstart" },
 };
 
 export default function QuickstartPage() {
@@ -43,7 +43,7 @@ export default function QuickstartPage() {
             fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
           }}
         >
-          /arg · /operator-quickstart · 15 minutes
+          /operator-quickstart · 15 minutes
         </p>
         <h1
           style={{
@@ -86,7 +86,7 @@ KV_REST_API_URL              https://*.upstash.io             # audit-log storag
 KV_REST_API_TOKEN            <your token>`}</Code>
         <P>
           Generate the Ed25519 keypair via{" "}
-          <A href="/examples">cookbook recipe 29</A> — it prints both
+          <A href="/examples">cookbook recipe 29</A>, it prints both
           the public-keys JSON (drop into your repo at{" "}
           <Code inline>public/.well-known/sociedad-ia/keys.json</Code>)
           and the private key (paste into the env var above).
@@ -100,7 +100,7 @@ KV_REST_API_TOKEN            <your token>`}</Code>
           deployment&apos;s root. Replace the placeholders.
         </P>
         <Code>{`{
-  "$schema": "https://ar-agents.vercel.app/schemas/agents.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/agents.v1.json",
   "name": "<your-sociedad-name>",
   "homepage": "https://your-sociedad.example",
   "license": "MIT",
@@ -140,7 +140,7 @@ KV_REST_API_TOKEN            <your token>`}</Code>
           are picked up. Then run the certifier:
         </P>
         <Code>{`# Run the public certifier against your URL
-curl "https://ar-agents.vercel.app/api/certifier?url=https://your-sociedad.example" \\
+curl "https://ar-agents.ar/api/certifier?url=https://your-sociedad.example" \\
   | jq '.score, .rating, .rfcConformance'`}</Code>
         <P>
           Expect <Code inline>score: 100, rating: &quot;A&quot;</Code>.
@@ -165,10 +165,10 @@ curl "https://your-sociedad.example/api/play/audit/SESSION_ID?verify=1" | jq '.v
 # Expected output:
 # {
 #   "total": N,
-#   "verified": N,                        ← HMAC verified
+#   "verified": N,                       ← HMAC verified
 #   "tampered": 0,
 #   "hmacWired": true,
-#   "signedAsymmetric": N,                ← entries dual-signed
+#   "signedAsymmetric": N,               ← entries dual-signed
 #   "signedAsymmetricVerified": N         ← Ed25519 verified offline
 # }`}</Code>
       </Step>
@@ -181,12 +181,12 @@ curl "https://your-sociedad.example/api/play/audit/SESSION_ID?verify=1" | jq '.v
         </P>
         <ul style={ulSty}>
           <li style={liSty}>
-            Run recipe 28 (operator readiness) — must pass{" "}
+            Run recipe 28 (operator readiness), must pass{" "}
             <Code inline>readiness: &quot;ready&quot;</Code> or{" "}
             <Code inline>&quot;almost&quot;</Code>.
           </li>
           <li style={liSty}>
-            Run recipe 26 (certifier) — must score ≥ 60 (rating C+).
+            Run recipe 26 (certifier), must score ≥ 60 (rating C+).
           </li>
           <li style={liSty}>
             Validate honesty heuristics (CUIT format, demo-vs-productive
@@ -211,8 +211,8 @@ curl "https://your-sociedad.example/api/play/audit/SESSION_ID?verify=1" | jq '.v
         <ul style={ulSty}>
           <li style={liSty}>
             A green <strong>A · 100/100</strong> cert badge for your
-            sociedad — embeddable in your own site via{" "}
-            <Code inline>https://ar-agents.vercel.app/api/cert-badge?url=YOUR_URL</Code>
+            sociedad, embeddable in your own site via{" "}
+            <Code inline>https://ar-agents.ar/api/cert-badge?url=YOUR_URL</Code>
           </li>
           <li style={liSty}>
             A row on the public <A href="/registro">/registro</A> with
@@ -238,7 +238,7 @@ curl "https://your-sociedad.example/api/play/audit/SESSION_ID?verify=1" | jq '.v
             github.com/ar-agents/ar-agents/issues
           </A>{" "}
           with: your sociedad URL + the certifier output (
-          <Code inline>curl https://ar-agents.vercel.app/api/certifier?url=YOUR_URL</Code>
+          <Code inline>curl https://ar-agents.ar/api/certifier?url=YOUR_URL</Code>
           ). The per-check breakdown narrows the cause quickly.
         </P>
       </Section>
@@ -252,7 +252,7 @@ curl "https://your-sociedad.example/api/play/audit/SESSION_ID?verify=1" | jq '.v
           color: "var(--text-muted)",
         }}
       >
-        ar-agents.vercel.app ·{" "}
+        ar-agents.ar ·{" "}
         <Link href="/" style={linkSty}>/</Link>{" · "}
         <Link href="/highlights" style={linkSty}>/highlights</Link>{" · "}
         <Link href="/incorporar" style={linkSty}>/incorporar</Link>{" · "}

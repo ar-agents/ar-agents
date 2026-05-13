@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/incorporate",
   "version": "0.2.0",
-  "description": "Zero-dependency TypeScript client for the ar-agents.vercel.app/api/auto-incorporate endpoint. Lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
+  "description": "Zero-dependency TypeScript client for the ar-agents.ar/api/auto-incorporate endpoint. Lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
   "keywords": [
     "ar-agents",
     "argentina",
@@ -24,7 +24,7 @@
     "type": "github",
     "url": "https://github.com/sponsors/naza00000"
   },
-  "homepage": "https://ar-agents.vercel.app/api/auto-incorporate",
+  "homepage": "https://ar-agents.ar/api/auto-incorporate",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ar-agents/ar-agents.git",

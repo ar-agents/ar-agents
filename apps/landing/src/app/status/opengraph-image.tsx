@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · status · live
+          status · live
         </div>
         <div
           style={{
@@ -100,7 +100,7 @@ export default async function Image() {
         </div>
         <div style={{ flex: 1 }} />
         <div style={{ fontSize: 22, color: "#666" }}>
-          ar-agents.vercel.app/status
+          ar-agents.ar/status
         </div>
       </div>
     ),

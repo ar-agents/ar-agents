@@ -95,9 +95,9 @@ export default function Home() {
 
       <p style={{ marginTop: 32, fontSize: 14, color: "var(--text-muted)" }}>
         Documentación completa:{" "}
-        <a href="https://ar-agents.vercel.app/playbook">/playbook</a> · RFC:{" "}
-        <a href="https://ar-agents.vercel.app/rfcs/001">/rfcs/001</a> · Threat
-        model: <a href="https://ar-agents.vercel.app/security">/security</a>.
+        <a href="https://ar-agents.ar/playbook">/playbook</a> · RFC:{" "}
+        <a href="https://ar-agents.ar/rfcs/001">/rfcs/001</a> · Threat
+        model: <a href="https://ar-agents.ar/security">/security</a>.
       </p>
     </main>
   );

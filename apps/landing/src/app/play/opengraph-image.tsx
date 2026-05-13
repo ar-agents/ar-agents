@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · play · sociedad-IA en vivo
+          play · sociedad-IA en vivo
         </div>
         <div
           style={{
@@ -77,7 +77,7 @@ export default async function Image() {
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/play</span>
+          <span>ar-agents.ar/play</span>
           <span style={{ fontSize: 16, color: "#999" }}>30 segundos · zero setup</span>
         </div>
       </div>

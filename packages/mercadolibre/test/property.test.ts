@@ -69,6 +69,37 @@ describe("property: spam classifier", () => {
     );
   });
 
+  it("bare digit-runs (order ids, tracking codes) are NOT flagged as phones", () => {
+    const orderIds = [
+      "2000003508510037", // typical MELI order id
+      "1234567890",
+      "AND1234567890123",
+      "MLA1402155766",
+    ];
+    for (const text of orderIds) {
+      const features = extractSpamFeatures({
+        question: { ...questionFixture(text), text: `¿Pedido ${text}?` },
+      });
+      expect(features.contains_external_contact).toBe(false);
+    }
+  });
+
+  it("real phone formats ARE flagged", () => {
+    const phones = [
+      "+54 11 1234-5678",
+      "+34 695 632 237",
+      "(011) 1234 5678",
+      "11 1234.5678",
+      "+5491145678901",
+    ];
+    for (const text of phones) {
+      const features = extractSpamFeatures({
+        question: { ...questionFixture(text), text: `Llamame al ${text}` },
+      });
+      expect(features.contains_external_contact).toBe(true);
+    }
+  });
+
   it("repetition >= 2 always sets cross_listing_repetition", () => {
     fc.assert(
       fc.property(

@@ -111,7 +111,7 @@ export const metadata: Metadata = {
   title: "Architecture",
   description:
     "Canonical reference for the @ar-agents/* stack: 16 packages, 168 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
-  alternates: { canonical: "https://ar-agents.vercel.app/architecture" },
+  alternates: { canonical: "https://ar-agents.ar/architecture" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -165,7 +165,7 @@ const PACKAGES: PackageRow[] = [
     category: "fiscal",
     external: "TAD / GDE / Domicilio Electrónico",
     notes:
-      "DEC inbox polling + Mis Trámites + IGJ pre-flight validator. The 4th pieza for sociedades-IA — RFC-001 § 3.4.",
+      "DEC inbox polling + Mis Trámites + IGJ pre-flight validator. The 4th pieza for sociedades-IA, RFC-001 § 3.4.",
   },
   {
     name: "@ar-agents/mercadopago",
@@ -205,7 +205,7 @@ const PACKAGES: PackageRow[] = [
     tools: 6,
     category: "fiscal",
     external: "datos.jus.gob.ar (open data)",
-    notes: "Inspección General de Justicia — corporate registry lookups.",
+    notes: "Inspección General de Justicia, corporate registry lookups.",
   },
   {
     name: "@ar-agents/boletin-oficial",
@@ -281,7 +281,7 @@ const PUBLISHED_PACKAGES = PACKAGES.length;
 export default function ArchitecturePage() {
   return (
     <DocShell
-      eyebrow="/arg · architecture · 2026-05"
+      eyebrow="architecture · 2026-05"
       title="Architecture."
       subtitle={`${PUBLISHED_PACKAGES} packages, ${TOTAL_TOOLS} tools, one Edge-Runtime composition contract.`}
     >
@@ -289,13 +289,13 @@ export default function ArchitecturePage() {
         <DocP>
           The toolkit is not a monolith. Each package solves one external
           dependency (AFIP, BCRA, MP, Meta, Andreani, etc.) and ships
-          independently to npm. They compose at the agent-loop level —
+          independently to npm. They compose at the agent-loop level,
           there are no cross-package runtime dependencies beyond optional
           adapter subpaths.
         </DocP>
         <DocP>
           That matters because an Argentine business-as-agent isn&apos;t one
-          thing — it&apos;s the simultaneous operation of 5–7 external systems
+          thing, it&apos;s the simultaneous operation of 5–7 external systems
           (taxpayer registry, payment processor, banking, invoicing, government
           identity, shipping carrier, public records). The toolkit is shaped
           around that fact.
@@ -395,7 +395,7 @@ export default function ArchitecturePage() {
       <DocP>
         How a single <DocCode>agent.generate()</DocCode> call traverses the
         stack when an Argentine SaaS bills a B2B customer. Sequence diagram
-        below — each arrow is a real tool invocation or HTTP round-trip.
+        below, each arrow is a real tool invocation or HTTP round-trip.
         The audit log records every step with HMAC-signed timestamps; what
         the diagram hides is that all of those arrows return through{" "}
         <DocCode>AuditLogger.wrap()</DocCode> on the way back.
@@ -444,8 +444,8 @@ export default function ArchitecturePage() {
           style={{ color: "var(--accent)" }}
         >
           recipe 10
-        </a>{" "}
-        — one agent loop wiring identity + identity-attest + mercadopago +
+        </a>:{" "}
+      one agent loop wiring identity + identity-attest + mercadopago +
         facturacion + whatsapp. The flagship demo of the composition contract.
       </DocP>
       <DocP>
@@ -479,7 +479,7 @@ export default function ArchitecturePage() {
       </DocP>
       <DocP>
         <strong>Programmatic HITL on irreversible ops</strong>: refunds,
-        cancellations, deletions, marketplace token revokes — all 8
+        cancellations, deletions, marketplace token revokes, all 8
         gated behind a <DocCode>requireConfirmation</DocCode> callback
         the host implements. Tool functions literally don&apos;t execute
         until your callback returns <DocCode>true</DocCode>.
@@ -488,7 +488,7 @@ export default function ArchitecturePage() {
         <strong>Audit log adapter</strong>: every tool call (input + output
         + duration + status) gets logged to a pluggable sink (in-memory,
         Vercel KV, your own). HMAC timestamps make the log forensically
-        sound — see{" "}
+        sound, see{" "}
         <a
           href="/rfcs/001"
           style={{ color: "var(--accent)" }}

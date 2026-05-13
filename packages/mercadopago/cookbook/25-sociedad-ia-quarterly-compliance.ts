@@ -102,7 +102,7 @@ interface ReportInput {
   periodStart: string;           // ISO-8601 UTC
   periodEnd: string;             // ISO-8601 UTC
   sessionIds: string[];          // sessions active in the period
-  baseUrl?: string;              // /arg deployment, default ar-agents.vercel.app
+  baseUrl?: string;              // /arg deployment, default ar-agents.ar
 }
 
 interface SessionSummary {
@@ -441,7 +441,7 @@ export async function generateQuarterlyComplianceReport(
     fetchImpl?: typeof fetch;
   } = {},
 ): Promise<QuarterlyReport> {
-  const baseUrl = input.baseUrl ?? "https://ar-agents.vercel.app";
+  const baseUrl = input.baseUrl ?? "https://ar-agents.ar";
 
   // 1. Pull every session's audit log + verification result, in parallel.
   const payloads: AuditPayload[] = await Promise.all(
@@ -477,7 +477,7 @@ export async function generateQuarterlyComplianceReport(
 
   // 6. Assemble.
   const base: Omit<QuarterlyReport, "reportHmac"> = {
-    $schema: "https://ar-agents.vercel.app/schemas/quarterly-compliance.v1.json",
+    $schema: "https://ar-agents.ar/schemas/quarterly-compliance.v1.json",
     generatedAt: new Date().toISOString(),
     schemaVersion: "1.0",
     sociedad: input.sociedad,
@@ -506,12 +506,12 @@ export async function generateQuarterlyComplianceReport(
 //     "operatorCuit": "20-41758101-5",
 //     "jurisdiction": "AR",
 //     "rfcConformance": ["rfc-001-v1", "rfc-004-draft"],
-//     "auditBaseUrl": "https://ar-agents.vercel.app"
+//     "auditBaseUrl": "https://ar-agents.ar"
 //   },
 //   "periodStart": "2026-04-01T00:00:00.000Z",
 //   "periodEnd":   "2026-06-30T23:59:59.999Z",
 //   "sessionIds":  ["session-abc", "session-def", "session-ghi"],
-//   "baseUrl":     "https://ar-agents.vercel.app"
+//   "baseUrl":     "https://ar-agents.ar"
 // }
 // ─────────────────────────────────────────────────────────────────────────────
 

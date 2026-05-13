@@ -9,7 +9,7 @@
  * Certification object with a 0-100 score + per-check breakdown.
  *
  * This is the function backing the /certifier web flow + the /api/certifier
- * HTTP endpoint at ar-agents.vercel.app. It's also useful as:
+ * HTTP endpoint at ar-agents.ar. It's also useful as:
  *
  *   - A CI guard. Run every commit; fail the build if score drops below a
  *     threshold.
@@ -94,7 +94,7 @@ async function fetchWithTimeout(
       ...init,
       signal: controller.signal,
       headers: {
-        "user-agent": "ar-agents-recipe-26-certify (https://ar-agents.vercel.app/certifier)",
+        "user-agent": "ar-agents-recipe-26-certify (https://ar-agents.ar/certifier)",
         ...(init?.headers ?? {}),
       },
     });
@@ -490,7 +490,7 @@ export async function certifySociedad(
   const rating: Certification["rating"] = possible === 0 ? "N/A" : ratingFromScore(score);
 
   return {
-    $schema: "https://ar-agents.vercel.app/schemas/certification.v1.json",
+    $schema: "https://ar-agents.ar/schemas/certification.v1.json",
     generatedAt: new Date().toISOString(),
     target: { baseUrl: base, sessionId },
     score,

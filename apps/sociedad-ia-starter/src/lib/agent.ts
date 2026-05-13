@@ -38,7 +38,7 @@ import {
 } from "./clients";
 
 const SYSTEM_PROMPT = `Sos el agente operador de una sociedad-IA argentina.
-Operás bajo el marco de RFC-001 (https://ar-agents.vercel.app/rfcs/001):
+Operás bajo el marco de RFC-001 (https://ar-agents.ar/rfcs/001):
 
 1. Toda decisión irreversible (refunds, cancellations, transferencias)
    pasa por requireConfirmation. Nunca la ejecutes vos directamente.

@@ -9,7 +9,7 @@
  * Run with: pnpm test
  *
  * Re-generate vectors (if the canonical-JSON or HMAC algorithm changes
- * — which it MUST NOT, by RFC-004 v1's frozen-spec rule, but the
+ *, which it MUST NOT, by RFC-004 v1's frozen-spec rule, but the
  * regeneration script is useful for v2+):
  *   pnpm tsx scripts/regenerate-rfc-004-vectors.ts
  */
@@ -55,7 +55,7 @@ const vectors = JSON.parse(readFileSync(vectorsPath, "utf8")) as VectorsFile;
 // ─────────────────────────────────────────────────────────────────────────────
 // Canonical-JSON (duplicated here for vector-1 + vector-2 tests; the
 // HMAC vectors use the lib's signEntry which uses the lib's canonical
-// function internally — proving the lib's canonical matches the spec)
+// function internally, proving the lib's canonical matches the spec)
 // ─────────────────────────────────────────────────────────────────────────────
 
 function canonical(value: unknown): string {
@@ -89,9 +89,9 @@ afterAll(() => {
 // Tests
 // ─────────────────────────────────────────────────────────────────────────────
 
-describe("RFC-004 v1 conformance — reference implementation", () => {
+describe("RFC-004 v1 conformance, reference implementation", () => {
   it("loads the vectors file successfully", () => {
-    expect(vectors.spec).toBe("https://ar-agents.vercel.app/rfcs/004");
+    expect(vectors.spec).toBe("https://ar-agents.ar/rfcs/004");
     expect(vectors.vectors.length).toBeGreaterThanOrEqual(7);
   });
 

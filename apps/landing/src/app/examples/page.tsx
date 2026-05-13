@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   title: "Cookbook · 17 production patterns",
   description:
     "17 end-to-end recipes wiring @ar-agents/* into real Argentine business workflows: SaaS subscriptions, marketplace OAuth, anti-fraud, ACP checkout with auto-factura, USA-LLC ↔ AR composition.",
-  alternates: { canonical: "https://ar-agents.vercel.app/examples" },
+  alternates: { canonical: "https://ar-agents.ar/examples" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -23,7 +23,7 @@ type Recipe = {
   tier: Tier;
   packages: string[];
   summary: string;
-  /** Optional one-liner hook — what makes this recipe noteworthy. */
+  /** Optional one-liner hook, what makes this recipe noteworthy. */
   highlight?: string;
 };
 
@@ -46,7 +46,7 @@ const RECIPES: Recipe[] = [
     summary:
       "Reusable Plan, per-customer subscribe_to_plan, recurring auto-charge, card swap on expiration via update_subscription({ card_token_id }).",
     highlight:
-      "Card swap is the path that breaks the most production deploys — recipe wires it correctly.",
+      "Card swap is the path that breaks the most production deploys, recipe wires it correctly.",
   },
   {
     id: "03-webhook-handler",
@@ -215,7 +215,7 @@ const RECIPES: Recipe[] = [
     summary:
       "Daily cron-driven Node.js script that ingests audit entries via fetchAudit(sessionId, { verify: true }), buckets by tool / governance / latency, surfaces anomalies (tampering, error-rate spikes, p95 regressions), and renders a contador-friendly Spanish summary for monthly compliance reports. The pattern that turns RFC-001 § 9.2's 'legally probative' into actually monitored.",
     highlight:
-      "Multi-tenant marketplaces operating many sociedades-IA scale linearly with this — one digest per tenant, escalation on tampered.",
+      "Multi-tenant marketplaces operating many sociedades-IA scale linearly with this, one digest per tenant, escalation on tampered.",
   },
   {
     id: "20-multi-tenant-marketplace",
@@ -253,7 +253,7 @@ const RECIPES: Recipe[] = [
   {
     id: "23-astro-arg-reference-customer",
     num: 23,
-    title: "Astro Chat /arg · the additive-migration cutover pattern",
+    title: "Astro Chat · the additive-migration cutover pattern",
     tier: "production",
     packages: ["identity", "banking", "gde-tad", "whatsapp"],
     summary:
@@ -268,7 +268,7 @@ const RECIPES: Recipe[] = [
     tier: "production",
     packages: ["incorporate"],
     summary:
-      "Nightly export of a sociedad's configuration to portable JSON (no secrets — those stay in your secrets manager). When disaster hits (Vercel project deleted, repo locked, laptop dies), feed the export to a fresh /api/auto-incorporate call with the SAME sessionId — the forensic audit timeline continues unbroken across the disaster. Regulators see one chain of events, not two.",
+      "Nightly export of a sociedad's configuration to portable JSON (no secrets, those stay in your secrets manager). When disaster hits (Vercel project deleted, repo locked, laptop dies), feed the export to a fresh /api/auto-incorporate call with the SAME sessionId, the forensic audit timeline continues unbroken across the disaster. Regulators see one chain of events, not two.",
     highlight:
       "sessionId continuity is the load-bearing piece. The export references env-var names (not values), so recovery is config-portable without secret leakage.",
   },
@@ -290,7 +290,7 @@ const RECIPES: Recipe[] = [
     tier: "production",
     packages: ["incorporate"],
     summary:
-      "Reusable TypeScript function that takes a target base URL, runs ~9 checks against its public endpoints (well-known, audit-read, audit-verify, CSV, OpenAPI, security headers), and returns a 0-100 conformance score + per-check breakdown. Same function backs the /certifier web flow + the /api/certifier HTTP endpoint. Pure fetch, runs in Edge / Node / browser / deno. Includes a CLI mode that exits non-zero if score < 60 — drop into CI as a pre-merge gate.",
+      "Reusable TypeScript function that takes a target base URL, runs ~9 checks against its public endpoints (well-known, audit-read, audit-verify, CSV, OpenAPI, security headers), and returns a 0-100 conformance score + per-check breakdown. Same function backs the /certifier web flow + the /api/certifier HTTP endpoint. Pure fetch, runs in Edge / Node / browser / deno. Includes a CLI mode that exits non-zero if score < 60, drop into CI as a pre-merge gate.",
     highlight:
       "Anyone can verify any sociedad-IA's claims from one HTTP call. No install, no setup. Lives behind /certifier (web) + /api/certifier (programmatic).",
   },
@@ -303,7 +303,7 @@ const RECIPES: Recipe[] = [
     summary:
       "Pure monitor loop that POSTs to /api/conformance-history every N minutes to append a new cert-score for a URL, then compares the latest against a sliding-window baseline (default: median of last 24 points). If the new score drops > threshold (default 10%), fires an alert via Slack/webhook. KV-backed 365-entry capped time-series with 90-day TTL. Idempotent. Drop into Vercel cron, GitHub Actions schedule, or any scheduler. Exits non-zero on alert for CI integration.",
     highlight:
-      "Conformance isn't a snapshot — it's a horizon. Recipe 27 turns the certifier into a continuous monitor with drift detection + alerting. Companion to recipe 25 (compliance report) + the /audit-explorer page.",
+      "Conformance isn't a snapshot, it's a horizon. Recipe 27 turns the certifier into a continuous monitor with drift detection + alerting. Companion to recipe 25 (compliance report) + the /audit-explorer page.",
   },
   {
     id: "28-operator-onboarding-checklist",
@@ -314,7 +314,7 @@ const RECIPES: Recipe[] = [
     summary:
       "Pure function `checkOperatorReadiness(baseUrl)` that walks 10 pre-launch items (discovery manifest, audit endpoints, CSV export, RFC-005 keys, OpenAPI spec, HSTS headers, sitemap, /llms.txt) and returns a per-item pass/fail/skip with remediation links. Reads as the readiness report the operator's pre-launch sign-off. Aggregate readiness rating: ready / almost / blocked. CLI mode exits non-zero on blocked.",
     highlight:
-      "Different from recipe 26 (RFC conformance, public) — recipe 28 is operator-internal pre-launch sign-off. Used by /api/auto-incorporate to validate freshly-deployed sociedades before adding to /registro.",
+      "Different from recipe 26 (RFC conformance, public), recipe 28 is operator-internal pre-launch sign-off. Used by /api/auto-incorporate to validate freshly-deployed sociedades before adding to /registro.",
   },
   {
     id: "29-publish-your-keys",
@@ -334,7 +334,7 @@ const RECIPES: Recipe[] = [
     tier: "production",
     packages: ["incorporate"],
     summary:
-      "Pre-flight check + PR-body generator. Runs recipe 28 (operator readiness) + recipe 26 (RFC certifier) against your URL, validates honesty heuristics (CUIT format, demo-vs-productive disclosure language, type matches behavior), and if everything passes, prints a copy-paste Markdown PR body for the registry submission. Refuses to produce a PR body if any check fails — prevents over-eager submission of half-built sociedades.",
+      "Pre-flight check + PR-body generator. Runs recipe 28 (operator readiness) + recipe 26 (RFC certifier) against your URL, validates honesty heuristics (CUIT format, demo-vs-productive disclosure language, type matches behavior), and if everything passes, prints a copy-paste Markdown PR body for the registry submission. Refuses to produce a PR body if any check fails, prevents over-eager submission of half-built sociedades.",
     highlight:
       "Closes the loop from incorporated → conformant → certified → publicly listed. With recipe 30, the full operator lifecycle from `vercel deploy` to listing in /registro is scripted + repeatable.",
   },
@@ -387,7 +387,7 @@ export default function ExamplesPage() {
 
   return (
     <DocShell
-      eyebrow="/arg · cookbook · 2026-05"
+      eyebrow="cookbook · 2026-05"
       title="Cookbook."
       subtitle={`${counts.total} production patterns. ${counts.production} battle-tested in real money flows. ${counts.composition} demonstrate cross-package composition. Every recipe is runnable TypeScript.`}
     >
@@ -551,7 +551,7 @@ git clone https://github.com/ar-agents/ar-agents
 cd ar-agents
 pnpm install
 
-# set env vars (MP token, AFIP cert, etc — see each recipe's header)
+# set env vars (MP token, AFIP cert, etc, see each recipe's header)
 cp .env.example .env.local
 $EDITOR .env.local
 
@@ -569,7 +569,7 @@ pnpm tsx packages/mercadopago/cookbook/10-cross-package-billing.ts`}
         >
           {REPO}/issues
         </a>{" "}
-        with the use case and the API surface you wish existed — most new
+        with the use case and the API surface you wish existed, most new
         recipes start as a one-paragraph issue.
       </DocP>
       <ExamplesJsonLd

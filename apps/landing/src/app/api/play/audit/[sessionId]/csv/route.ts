@@ -1,5 +1,5 @@
 /**
- * `GET /api/play/audit/[sessionId]/csv` — RFC 4180 CSV export of the
+ * `GET /api/play/audit/[sessionId]/csv`, RFC 4180 CSV export of the
  * session's audit log. For accountants who want to pivot in Excel /
  * Sheets / Numbers / a finance dashboard.
  *
@@ -45,7 +45,7 @@ const CSV_HEADERS = [
  *     double quotes.
  *   - Inside a wrapped cell, double up double quotes.
  *
- * Applies to every cell unconditionally — wrapping never hurts; mixed
+ * Applies to every cell unconditionally, wrapping never hurts; mixed
  * wrapping makes pivot tables fragile.
  */
 function csvCell(value: unknown): string {

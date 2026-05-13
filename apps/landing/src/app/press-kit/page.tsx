@@ -4,17 +4,17 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 export const metadata: Metadata = {
   title: "Press kit · @ar-agents",
   description:
-    "Press-ready material for @ar-agents/* — el toolkit open-source para sociedades-IA argentinas. One-pager, datos verificables, links a code, RFC, threat model, y contacto del autor.",
-  alternates: { canonical: "https://ar-agents.vercel.app/press-kit" },
+    "Press-ready material for @ar-agents/*, el toolkit open-source para sociedades-IA argentinas. One-pager, datos verificables, links a code, RFC, threat model, y contacto del autor.",
+  alternates: { canonical: "https://ar-agents.ar/press-kit" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
 const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
   { label: "Qué es", value: "Toolkit open-source para construir sociedades-IA argentinas." },
-  { label: "Status", value: "16 paquetes en npm, 168 herramientas, MIT, SLSA v1 provenance." },
-  { label: "Autor", value: "Nazareno Clemente, 26 años, monotributista, Buenos Aires." },
-  { label: "Licencia", value: "MIT — copy, fork, comercializar permitido." },
+  { label: "Status", value: "17 paquetes en npm, 168 herramientas, MIT, SLSA v1 provenance." },
+  { label: "Autor", value: "Naza, 26 años, monotributista, Buenos Aires." },
+  { label: "Licencia", value: "MIT, copy, fork, comercializar permitido." },
   { label: "Origen", value: "Build privado iniciado nov 2025; npm pública desde may 2026." },
   { label: "Estado régimen", value: "Anuncio Sturzenegger 28-abr-2026; ley estimada H1 2027." },
   { label: "Alcance funcional", value: "16 de las 17 piezas (TAD escritura sigue rolling out)." },
@@ -22,38 +22,40 @@ const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
 ];
 
 const ONE_LINERS_ES = [
-  "ar-agents es la implementación de referencia open-source para sociedades-IA argentinas — la propuesta del ministro Sturzenegger del 28 de abril de 2026.",
-  "16 paquetes npm, 168 herramientas, todas auditables. MIT-licensed. Cualquier operador serio puede leer el código línea por línea.",
-  "El stack cubre 16 de las 17 piezas operativas que una empresa argentina necesita: identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD.",
+  "ar-agents es la implementación de referencia open-source para sociedades-IA argentinas, la propuesta del ministro Sturzenegger del 28 de abril de 2026.",
+  "17 paquetes npm, 168 herramientas, todas auditables. MIT-licensed. Cualquier operador serio puede leer el código línea por línea.",
+  "El stack cubre 16 de las 17 piezas operativas que una empresa argentina necesita: identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, AP2, ACP bridge.",
   "RFC-001 es el marco de responsabilidad propuesto: tres capas (operador / proveedor de modelo / autor de librería) que convierten el ataque ¿quién paga si la IA rompe algo? en una conversación contractual concreta.",
   "El threat model público (14 amenazas explícitas, 14 mitigaciones) está en /security. No esconde nada.",
 ];
 
 const CONTACT_BLOCK = [
-  { label: "Email", value: "naza@helloastro.co" },
+  { label: "Email", value: "clementenaza@gmail.com" },
   { label: "GitHub", value: "github.com/ar-agents/ar-agents" },
-  { label: "npm scope", value: "@ar-agents/* (16 paquetes públicos)" },
-  { label: "Sitio", value: "ar-agents.vercel.app" },
-  { label: "RFC-001", value: "ar-agents.vercel.app/rfcs/001" },
-  { label: "Threat model", value: "ar-agents.vercel.app/security" },
-  { label: "Wizard de incorporación", value: "ar-agents.vercel.app/incorporar" },
+  { label: "npm scope", value: "@ar-agents/* (17 paquetes públicos)" },
+  { label: "Sitio", value: "ar-agents.ar" },
+  { label: "Carta abierta al Ministro", value: "ar-agents.ar/al-ministro" },
+  { label: "RFC-001", value: "ar-agents.ar/rfcs/001" },
+  { label: "Threat model", value: "ar-agents.ar/security" },
+  { label: "Wizard de incorporación", value: "ar-agents.ar/incorporar" },
+  { label: "Propuesta AAIF working group", value: "github.com/ar-agents/ar-agents/blob/main/AAIF-WORKING-GROUP-PROPOSAL.md" },
 ];
 
 const NUMBERS_ES = [
-  { label: "Paquetes en npm", value: "16" },
+  { label: "Paquetes en npm", value: "17" },
   { label: "Tools expuestas", value: "168" },
   { label: "Recetas de cookbook", value: "17" },
   { label: "Subpaths de testing", value: "4" },
   { label: "Tests automatizados", value: "300+" },
   { label: "Provenance attestations", value: "SLSA v1, en cada release" },
-  { label: "Tiempo desde primer commit a 16 paquetes", value: "~6 meses" },
+  { label: "Tiempo desde primer commit a 17 paquetes", value: "~6 meses" },
   { label: "Costo upfront para usar", value: "USD 0" },
 ];
 
 export default function PressKitPage() {
   return (
     <DocShell
-      eyebrow="/arg · press kit · 2026-05"
+      eyebrow="press kit · 2026-05"
       title="Press kit."
       subtitle="Material listo-para-publicar sobre @ar-agents/*. One-pager + datos verificables + frases citables + contacto. Pensado para periodistas, investors, regulators y comms teams que necesitan describir el proyecto en una página."
     >
@@ -67,7 +69,7 @@ export default function PressKitPage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>One-pager — qué es @ar-agents en 8 líneas</DocH2>
+      <DocH2>One-pager, qué es @ar-agents en 8 líneas</DocH2>
 
       <div
         style={{
@@ -187,7 +189,7 @@ export default function PressKitPage() {
       <DocH2>Endpoints públicos (machine-readable)</DocH2>
       <DocP>
         Tres surfaces hosted que un agente externo puede invocar
-        directamente — sin instalar ningún paquete, sin ningún wrapper:
+        directamente, sin instalar ningún paquete, sin ningún wrapper:
       </DocP>
       <ul
         style={{
@@ -198,8 +200,8 @@ export default function PressKitPage() {
         }}
       >
         <li>
-          <code style={{ fontFamily: FONT_MONO }}>POST /api/auto-incorporate</code>{" "}
-          — auto-incorporación de una sociedad-IA en una sola llamada.
+          <code style={{ fontFamily: FONT_MONO }}>POST /api/auto-incorporate</code>:{" "}
+        auto-incorporación de una sociedad-IA en una sola llamada.
           Devuelve <code style={{ fontFamily: FONT_MONO }}>package.json</code>,{" "}
           <code style={{ fontFamily: FONT_MONO }}>agent.ts</code>,{" "}
           <code style={{ fontFamily: FONT_MONO }}>.env.example</code>,{" "}
@@ -209,20 +211,20 @@ export default function PressKitPage() {
           programáticamente.
         </li>
         <li>
-          <code style={{ fontFamily: FONT_MONO }}>POST /api/play</code> — agent
+          <code style={{ fontFamily: FONT_MONO }}>POST /api/play</code>, agent
           loop en vivo con 12 tools mockeados pero realistas. Streaming via
           Vercel AI Gateway. Cada tool call queda HMAC-firmado en el audit
           log keyed por <code style={{ fontFamily: FONT_MONO }}>x-play-session</code>.
         </li>
         <li>
-          <code style={{ fontFamily: FONT_MONO }}>GET /api/play/audit/&#123;sessionId&#125;?verify=1</code>{" "}
-          — público y verificable. Devuelve las entradas del audit log con su
+          <code style={{ fontFamily: FONT_MONO }}>GET /api/play/audit/&#123;sessionId&#125;?verify=1</code>:{" "}
+        público y verificable. Devuelve las entradas del audit log con su
           firma HMAC-SHA256; el query param hace que el server reverifique y
           reporte si alguna entrada fue tampered.
         </li>
         <li>
           <code style={{ fontFamily: FONT_MONO }}>GET /api/discovery</code> +{" "}
-          <code style={{ fontFamily: FONT_MONO }}>?format=openapi</code> —
+          <code style={{ fontFamily: FONT_MONO }}>?format=openapi</code>,
           inventario de los 16 paquetes + las 168 tools + estos 3 endpoints
           como OpenAPI 3.1 stub. Un agente que crawlea el toolkit lo lee y
           decide qué llamar.
@@ -246,7 +248,7 @@ export default function PressKitPage() {
       </DocP>
       <DocP>
         <strong>El surface de tools:</strong>{" "}
-        <DocCode>curl https://ar-agents.vercel.app/api/discovery</DocCode>.
+        <DocCode>curl https://ar-agents.ar/api/discovery</DocCode>.
         JSON machine-readable con los 16 paquetes y las 168 tools listadas
         explícitamente. <DocCode>?format=openapi</DocCode> devuelve un OpenAPI
         3.1.0 stub para auditing tools.
@@ -276,36 +278,36 @@ export default function PressKitPage() {
         }}
       >
         <li>
-          <a href="/" style={{ color: "var(--accent)" }}>/</a> — landing
+          <a href="/" style={{ color: "var(--accent)" }}>/</a>, landing
         </li>
         <li>
-          <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>{" "}
-          — diagrama Mermaid de los 16 paquetes
+          <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>:{" "}
+        diagrama Mermaid de los 16 paquetes
         </li>
         <li>
-          <a href="/security" style={{ color: "var(--accent)" }}>/security</a>{" "}
-          — threat model con 14 amenazas
+          <a href="/security" style={{ color: "var(--accent)" }}>/security</a>:{" "}
+        threat model con 14 amenazas
         </li>
         <li>
-          <a href="/incorporar" style={{ color: "var(--accent)" }}>/incorporar</a>{" "}
-          — wizard live (genera repo + checklist legal)
+          <a href="/incorporar" style={{ color: "var(--accent)" }}>/incorporar</a>:{" "}
+        wizard live (genera repo + checklist legal)
         </li>
         <li>
           <a href="/playbook" style={{ color: "var(--accent)" }}>/playbook</a>{" "}
           (en) ·{" "}
           <a href="/es/playbook" style={{ color: "var(--accent)" }}>/es/playbook</a>{" "}
-          (es) — narrativa flagship
+          (es), narrativa flagship
         </li>
         <li>
-          <a href="/sociedades-ia" style={{ color: "var(--accent)" }}>/sociedades-ia</a>{" "}
-          — terminal demo + framing del régimen
+          <a href="/sociedades-ia" style={{ color: "var(--accent)" }}>/sociedades-ia</a>:{" "}
+        terminal demo + framing del régimen
         </li>
         <li>
-          <a href="/rfcs/001" style={{ color: "var(--accent)" }}>/rfcs/001</a>{" "}
-          — RFC con marco de responsabilidad de tres capas
+          <a href="/rfcs/001" style={{ color: "var(--accent)" }}>/rfcs/001</a>:{" "}
+        RFC con marco de responsabilidad de tres capas
         </li>
         <li>
-          <a href="/vs" style={{ color: "var(--accent)" }}>/vs</a> — tabla
+          <a href="/vs" style={{ color: "var(--accent)" }}>/vs</a>, tabla
           comparativa con AfipSDK / handrolled / consultoría
         </li>
       </ul>

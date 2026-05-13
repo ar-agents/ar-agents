@@ -191,7 +191,7 @@ removing the entry.
 
 ### Verifier instructions for the maintainer
 
-1. \`curl https://ar-agents.vercel.app/api/certifier?url=${input.publicUrl}\`
+1. \`curl https://ar-agents.ar/api/certifier?url=${input.publicUrl}\`
    — expect score >= 60.
 2. \`curl ${input.publicUrl}/.well-known/agents.json\` — expect issuer.operatorCuit to match \`${input.operatorCuit}\`.
 3. Verify disclosure honesty by eye.

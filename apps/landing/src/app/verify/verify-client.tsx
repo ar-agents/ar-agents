@@ -1,7 +1,7 @@
 "use client";
 
 /**
- * /verify — paste-a-session-id UI for independent verification.
+ * /verify, paste-a-session-id UI for independent verification.
  *
  * Hits /api/play/audit/{id}?verify=1 and renders the server's report
  * (count, verified, tampered, hmacWired). The point is to give an
@@ -94,7 +94,7 @@ export function VerifyClient() {
             margin: 0,
           }}
         >
-          /arg · verify · independent forensic check
+          verify · independent forensic check
         </p>
         <h1
           style={{
@@ -287,11 +287,11 @@ function ResultPanel({ result }: { result: VerifyResponse }) {
         <Metric label="entradas" value={String(v.total)} />
         <Metric
           label="verificadas"
-          value={v.hmacWired ? `${v.verified}/${v.total}` : "—"}
+          value={v.hmacWired ? `${v.verified}/${v.total}` : "-"}
         />
         <Metric
           label="tampered"
-          value={v.hmacWired ? String(v.tampered) : "—"}
+          value={v.hmacWired ? String(v.tampered) : "-"}
           tone={v.tampered > 0 ? "danger" : undefined}
         />
         <Metric
@@ -396,7 +396,7 @@ function Footer() {
     >
       <strong style={{ color: "#171717" }}>Cómo verificar manualmente:</strong>{" "}
       <code style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
-        curl https://ar-agents.vercel.app/api/play/audit/&#123;sessionId&#125;?verify=1
+        curl https://ar-agents.ar/api/play/audit/&#123;sessionId&#125;?verify=1
       </code>{" "}
       devuelve el JSON crudo. Cada entrada incluye{" "}
       <code style={{ fontFamily: FONT_MONO, fontSize: 12 }}>hmac</code>{" "}

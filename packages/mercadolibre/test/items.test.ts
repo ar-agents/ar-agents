@@ -52,11 +52,39 @@ describe("items API", () => {
     expect(items[0]?.id).toBe("MLA123456789");
   });
 
-  it("multigetItems rejects requests > 20 ids", async () => {
+  it("multigetItems auto-chunks > 20 ids and concatenates results in order", async () => {
+    const callIdsByOrder: string[][] = [];
+    const fm = mockFetch()
+      .on("GET", "/items", (req) => {
+        const u = new URL(req.url);
+        const ids = (u.searchParams.get("ids") ?? "").split(",");
+        callIdsByOrder.push(ids);
+        return {
+          status: 200,
+          body: ids.map((id) => ({
+            code: 200,
+            body: { ...ITEM_FIXTURE, id },
+          })),
+        };
+      })
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch });
+    const ids = Array.from({ length: 47 }, (_, i) => `MLA${1000 + i}`);
+    const items = await multigetItems(client, ids);
+    expect(items).toHaveLength(47);
+    // Output ordering matches input ordering even with parallel chunks.
+    expect(items.map((i) => i.id)).toEqual(ids);
+    // 47 ids → 3 chunks (20+20+7).
+    expect(fm.requests).toHaveLength(3);
+    expect(callIdsByOrder.flat()).toHaveLength(47);
+  });
+
+  it("multigetItems handles empty input without hitting the network", async () => {
     const fm = mockFetch().build();
     const client = makeMeliClient({ fetch: fm.fetch });
-    const ids = Array.from({ length: 21 }, (_, i) => `MLA${i}`);
-    await expect(multigetItems(client, ids)).rejects.toThrow();
+    const items = await multigetItems(client, []);
+    expect(items).toHaveLength(0);
+    expect(fm.requests).toHaveLength(0);
   });
 
   it("createItem POSTs the validated payload", async () => {

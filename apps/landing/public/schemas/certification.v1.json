@@ -1,6 +1,6 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ar-agents.vercel.app/schemas/certification.v1.json",
+  "$id": "https://ar-agents.ar/schemas/certification.v1.json",
   "title": "RFC certification report v1",
   "description": "Output shape of the /api/certifier endpoint + recipe 26 certifySociedad() function. Captures the live RFC-002 + RFC-004 conformance score of a target URL.",
   "type": "object",

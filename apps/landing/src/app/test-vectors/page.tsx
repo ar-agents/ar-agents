@@ -5,11 +5,11 @@ import { resolve } from "node:path";
 import { JsonLd } from "../json-ld";
 
 /**
- * /test-vectors — Human-browsable index of the RFC conformance vectors.
+ * /test-vectors, Human-browsable index of the RFC conformance vectors.
  *
  * Server-rendered with revalidate so the page reflects whatever is
  * committed to /public/test-vectors/. The actual vectors live as static
- * JSON files alongside this page — library authors fetch them at test
+ * JSON files alongside this page, library authors fetch them at test
  * time, this page is the human-discoverable index pointing to those
  * files + showing the conformance status of each known impl.
  */
@@ -31,7 +31,7 @@ export const metadata: Metadata = {
   title: "/test-vectors · normative conformance vectors for RFC-004 · ar-agents",
   description:
     "Deterministic JSON test vectors any sociedad-IA library author can run against their implementation to claim RFC-004 v1 conformance. Vectors are versioned + frozen per spec version; this page is the human-browsable index.",
-  alternates: { canonical: "https://ar-agents.vercel.app/test-vectors" },
+  alternates: { canonical: "https://ar-agents.ar/test-vectors" },
 };
 
 function loadVectors(): VectorsFile | null {
@@ -55,18 +55,18 @@ export default function TestVectorsPage() {
           name: "RFC-004 v1 conformance test vectors",
           description:
             "Deterministic JSON test vectors for the AR sociedad-IA operational-log specification (RFC-004 v1). Versioned and frozen per spec revision.",
-          url: "https://ar-agents.vercel.app/test-vectors",
+          url: "https://ar-agents.ar/test-vectors",
           license: "https://creativecommons.org/licenses/by/4.0/",
           creator: {
             "@type": "Person",
-            name: "Nazareno Clemente",
-            email: "naza@helloastro.co",
+            name: "Naza",
+            email: "clementenaza@gmail.com",
           },
           distribution: [
             {
               "@type": "DataDownload",
               encodingFormat: "application/json",
-              contentUrl: "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json",
+              contentUrl: "https://ar-agents.ar/test-vectors/rfc-004-v1.json",
             },
           ],
         }}
@@ -92,7 +92,7 @@ export default function TestVectorsPage() {
               marginBottom: 8,
             }}
           >
-            /arg · /test-vectors · conformance · index
+            /test-vectors · conformance · index
           </p>
           <h1
             style={{
@@ -124,8 +124,8 @@ export default function TestVectorsPage() {
               /rfcs/004
             </Link>{" "}
             · <strong>Status:</strong> {v ? "draft" : "(vectors not loaded)"} ·{" "}
-            <strong>Published:</strong> {v?.publishedAt ?? "—"} ·{" "}
-            <strong>Vectors:</strong> {v?.conformance?.vectorsCount ?? "—"}
+            <strong>Published:</strong> {v?.publishedAt ?? "-"} ·{" "}
+            <strong>Vectors:</strong> {v?.conformance?.vectorsCount ?? "-"}
           </p>
 
           <div
@@ -163,7 +163,7 @@ export default function TestVectorsPage() {
             <ul style={{ paddingLeft: 24, marginBottom: 16 }}>
               {v.vectors.map((vec) => (
                 <li key={vec.id} style={{ marginBottom: 6, lineHeight: 1.5 }}>
-                  <code style={codeInlineStyle}>{vec.id}</code> — {vec.description}
+                  <code style={codeInlineStyle}>{vec.id}</code>, {vec.description}
                 </li>
               ))}
             </ul>
@@ -205,7 +205,7 @@ export default function TestVectorsPage() {
           <ol style={{ paddingLeft: 24, marginBottom: 16 }}>
             <li style={{ marginBottom: 6 }}>
               Fetch the JSON file:{" "}
-              <code style={codeInlineStyle}>curl -sL https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json</code>
+              <code style={codeInlineStyle}>curl -sL https://ar-agents.ar/test-vectors/rfc-004-v1.json</code>
             </li>
             <li style={{ marginBottom: 6 }}>
               Run every vector through your library. Compare{" "}
@@ -253,8 +253,8 @@ export default function TestVectorsPage() {
               </tr>
               <tr>
                 <td style={tdStyle}>(your library here)</td>
-                <td style={tdStyle}>—</td>
-                <td style={tdStyle}>—</td>
+                <td style={tdStyle}>-</td>
+                <td style={tdStyle}>-</td>
                 <td style={tdStyle}>open a PR</td>
               </tr>
             </tbody>
@@ -348,7 +348,7 @@ export default function TestVectorsPage() {
             color: "var(--text-muted)",
           }}
         >
-          ar-agents.vercel.app ·{" "}
+          ar-agents.ar ·{" "}
           <Link href="/rfcs/004" style={linkStyle}>
             RFC-004
           </Link>{" "}

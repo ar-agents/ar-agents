@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · sdk · npm
+          sdk · npm
         </div>
         <div
           style={{
@@ -81,7 +81,7 @@ export default async function Image() {
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/sdk</span>
+          <span>ar-agents.ar/sdk</span>
           <span style={{ fontSize: 16, color: "#999" }}>~4 KB · MIT · SLSA v1</span>
         </div>
       </div>

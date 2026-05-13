@@ -1,5 +1,6 @@
 "use client";
 
+import { usePathname } from "next/navigation";
 import {
   createContext,
   useCallback,
@@ -30,20 +31,50 @@ export function useLang(): Ctx {
   return ctx;
 }
 
-function readInitialLang(): Lang {
-  if (typeof window === "undefined") return "en";
+/** Path-based detection: any URL under /en/* (or /en exactly) is English. */
+function langFromPath(pathname: string): Lang | null {
+  if (pathname === "/en" || pathname.startsWith("/en/")) return "en";
+  return null;
+}
+
+function readInitialLang(pathname: string): Lang {
+  // Path is authoritative, if user is on /en/X, lang must be "en" regardless
+  // of what's in localStorage. This keeps the toggle in sync with the URL on
+  // direct loads and after navigation.
+  const fromPath = langFromPath(pathname);
+  if (fromPath) return fromPath;
+  if (typeof window === "undefined") return "es";
   const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === "es" ? "es" : "en";
+  return stored === "en" ? "en" : "es";
 }
 
 export function LangProvider({ children }: { children: ReactNode }) {
-  const [lang, setLangState] = useState<Lang>("en");
+  const pathname = usePathname() ?? "/";
+  const [lang, setLangState] = useState<Lang>("es");
   const [mounted, setMounted] = useState(false);
 
+  // First mount: pick lang based on path + storage.
   useEffect(() => {
-    setLangState(readInitialLang());
+    setLangState(readInitialLang(pathname));
     setMounted(true);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  // Subsequent navigations: if path implies a lang different from current,
+  // sync to it. Doesn't fight the user's manual toggle, which navigates the
+  // path first, by the time pathname changes, the toggle already set lang.
+  useEffect(() => {
+    if (!mounted) return;
+    const fromPath = langFromPath(pathname);
+    if (fromPath && fromPath !== lang) {
+      setLangState(fromPath);
+    } else if (!fromPath && lang === "en") {
+      // Navigated away from /en/* to a canonical (ES) path, only switch
+      // back if user's preference was ES. Otherwise respect their toggle.
+      const stored = window.localStorage.getItem(STORAGE_KEY);
+      if (stored !== "en") setLangState("es");
+    }
+  }, [pathname, lang, mounted]);
 
   useEffect(() => {
     if (!mounted) return;
@@ -62,23 +93,16 @@ export function LangProvider({ children }: { children: ReactNode }) {
 // ---------------------------------------------------------------------------
 // Dictionary. Keep keys descriptive (page.section.role) so additions are
 // safe and maps never collide. Technical terms stay in English on both
-// sides — "Edge Runtime", "Vercel KV", "OpenTelemetry", "idempotencia",
+// sides, "Edge Runtime", "Vercel KV", "OpenTelemetry", "idempotencia",
 // "webhook", "preference" all read natively in AR dev Spanish.
 // ---------------------------------------------------------------------------
 
 export const EN = {
-  // /arg banner
-  arg_banner_eyebrow: "Part of /arg",
-  arg_banner_title: "Open infrastructure for Argentina's AI agent jurisdiction.",
-  arg_banner_link_manifesto: "Manifesto",
-  arg_banner_link_sociedades: "Sociedades de IA",
-  arg_banner_link_rfcs: "RFC-001",
-
   // hero
-  hero_h1_l1: "Mercado Pago Agent Toolkit.",
-  hero_h1_l2: "Built on Vercel.",
+  hero_h1_l1: "Open infrastructure for AI corporations.",
+  hero_h1_l2: "Built in Argentina.",
   hero_sub:
-    "Drop Mercado Pago into your AI agent. The whole API, with idempotency, retries, observability, and human-in-the-loop guardrails on irreversible operations. The flagship package of the /arg toolkit.",
+    "Gives an AI agent everything it needs to operate as an Argentine company: invoice at AFIP, collect with Mercado Pago, validate CUITs, file paperwork. Open-source and ready to use.",
   cta_deploy: "Deploy on Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -154,15 +178,25 @@ export const EN = {
   pp_shipping:
     "Andreani (full REST), OCA, Correo Argentino. cotizar / crear / trackear / cancelar. Provincia + CPA helpers.",
   pp_mi_argentina:
-    "Mi Argentina OIDC (login with the AR government identity). PKCE, RS256 ID-token verification, JWKS caching, refresh, end-session. Web Crypto only — runs on Edge.",
+    "Mi Argentina OIDC (login with the AR government identity). PKCE, RS256 ID-token verification, JWKS caching, refresh, end-session. Web Crypto only, runs on Edge.",
   pp_boletin_oficial:
     "Boletín Oficial as a structured firehose: search, filter by sección, get norma by id, subscribe to keywords/CUITs/organismos. The 'Vercel for legal monitoring' that the AR ecosystem was missing.",
   pp_igj:
-    "Inspección General de Justicia (IGJ) open data: search entities, fetch domicilios / autoridades / balances / asambleas. Wraps the public CKAN at datos.jus.gob.ar. Sample dataset (not real-time) — `coverageNote` surfaces every result.",
+    "Inspección General de Justicia (IGJ) open data: search entities, fetch domicilios / autoridades / balances / asambleas. Wraps the public CKAN at datos.jus.gob.ar. Sample dataset (not real-time), `coverageNote` surfaces every result.",
   pp_firma_digital:
-    "Argentine Firma Digital (Ley 25.506 / ONTI) verification: parse X.509 certs, verify chains anchored at AC-Raíz Argentina, verify CMS / PKCS#7 detached signatures, extract CUIT from signer subject. Verification only — signing requires hardware tokens.",
+    "Argentine Firma Digital (Ley 25.506 / ONTI) verification: parse X.509 certs, verify chains anchored at AC-Raíz Argentina, verify CMS / PKCS#7 detached signatures, extract CUIT from signer subject. Verification only, signing requires hardware tokens.",
+  pp_gde_tad:
+    "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives: Domicilio Electrónico Constituido notification ingestion, trámite tracking, IGJ inscription pre-flight. The 4th pieza for sociedades-IA, RFC-001 § 3.4. No documented public API yet; adapter pattern + scrape-based defaults.",
+  pp_mercadolibre:
+    "Independent SDK + tool collection for the Mercado Libre marketplace API (items, categories, questions, orders, packs, claims, shipments, reputation, promotions, webhooks). OAuth coalescing, /myfeeds replay, HITL gates on irreversible ops. Community-built, not affiliated.",
+  pp_agentic_commerce_bridge:
+    "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP) bridging ChatGPT, Claude, Gemini and other agentic-commerce clients to MercadoLibre + MercadoPago. ACP-compliant checkout sessions, signed webhooks, .well-known/acp.json discovery, auto-issued AFIP Factura A/B/C. First LATAM agentic-commerce bridge.",
+  pp_ap2:
+    "First faithful TypeScript implementation of the Agent Payments Protocol (AP2) v0.2, schemas, ES256 SD-JWT VC mandates (Checkout + Payment, open + closed), 8 constraint evaluators, signed Checkout/Payment receipts. Edge-Runtime-compatible. Aligned with the FIDO Alliance Agentic Auth WG reference Python SDK.",
+  pp_incorporate:
+    "Zero-dependency TypeScript client for `ar-agents.ar/api/auto-incorporate`, lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
   pp_mcp:
-    "MCP server bundling all 11 packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
+    "MCP server bundling all 16 tool-bearing packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
 
   // quick start
   quick_h2: "Quick start",
@@ -237,17 +271,10 @@ export const EN = {
 } as const;
 
 export const ES: Translations = {
-  arg_banner_eyebrow: "Parte de /arg",
-  arg_banner_title:
-    "La infraestructura abierta para la jurisdicción de agentes argentina.",
-  arg_banner_link_manifesto: "Manifiesto",
-  arg_banner_link_sociedades: "Sociedades de IA",
-  arg_banner_link_rfcs: "RFC-001",
-
-  hero_h1_l1: "Toolkit de Mercado Pago para Agentes.",
-  hero_h1_l2: "Hecho en Vercel.",
+  hero_h1_l1: "Infraestructura abierta para sociedades de IA.",
+  hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
-    "Conectá Mercado Pago a tu agente IA. Toda la API, con idempotencia, retries, observabilidad y human-in-the-loop en operaciones irreversibles. El package insignia del toolkit /arg.",
+    "Le da a un agente de IA todo lo que necesita para operar como una empresa argentina: facturar en AFIP, cobrar con Mercado Pago, validar CUITs, registrar trámites. Open-source y lista para usar.",
   cta_deploy: "Deployar en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -321,15 +348,25 @@ export const ES: Translations = {
   pp_shipping:
     "Andreani (REST completo), OCA, Correo Argentino. cotizar / crear / trackear / cancelar. Helpers de provincia + CPA.",
   pp_mi_argentina:
-    "OIDC de Mi Argentina (login con la identidad del gobierno argentino). PKCE, verificación RS256 del ID token, JWKS cacheado, refresh, end-session. Solo Web Crypto — corre en Edge.",
+    "OIDC de Mi Argentina (login con la identidad del gobierno argentino). PKCE, verificación RS256 del ID token, JWKS cacheado, refresh, end-session. Solo Web Crypto, corre en Edge.",
   pp_boletin_oficial:
     "Boletín Oficial como firehose estructurado: búsqueda, filtro por sección, obtener norma por id, suscripciones por keyword/CUIT/organismo. El 'Vercel for legal monitoring' que faltaba en el ecosistema AR.",
   pp_igj:
-    "Inspección General de Justicia (IGJ) datos abiertos: búsqueda de entidades, domicilios / autoridades / balances / asambleas. Wrappea el CKAN público en datos.jus.gob.ar. Dataset es muestreo (no real-time) — `coverageNote` viaja con cada resultado.",
+    "Inspección General de Justicia (IGJ) datos abiertos: búsqueda de entidades, domicilios / autoridades / balances / asambleas. Wrappea el CKAN público en datos.jus.gob.ar. Dataset es muestreo (no real-time), `coverageNote` viaja con cada resultado.",
   pp_firma_digital:
-    "Firma Digital argentina (Ley 25.506 / ONTI): parsea certs X.509, verifica cadenas ancladas en AC-Raíz Argentina, verifica firmas CMS / PKCS#7 desligadas, extrae CUIT del subject del firmante. Sólo verificación — la firma real requiere token físico.",
+    "Firma Digital argentina (Ley 25.506 / ONTI): parsea certs X.509, verifica cadenas ancladas en AC-Raíz Argentina, verifica firmas CMS / PKCS#7 desligadas, extrae CUIT del subject del firmante. Sólo verificación, la firma real requiere token físico.",
+  pp_gde_tad:
+    "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica): ingestión de notificaciones del Domicilio Electrónico Constituido, tracking de trámites, pre-flight de inscripciones IGJ. La 4ta pieza de las sociedades-IA, RFC-001 § 3.4. Sin API pública documentada todavía; adapter pattern + defaults vía scrape.",
+  pp_mercadolibre:
+    "SDK y tool collection independiente para el marketplace de Mercado Libre (items, categorías, preguntas, órdenes, packs, reclamos, shipments, reputación, promociones, webhooks). OAuth coalescing, replay de /myfeeds, gates HITL en operaciones irreversibles. Community-built, sin afiliación.",
+  pp_agentic_commerce_bridge:
+    "Merchant facilitator open-source para el Agentic Commerce Protocol (ACP) que puentea ChatGPT, Claude, Gemini y otros clientes agentic-commerce con MercadoLibre + MercadoPago. Sesiones de checkout ACP, webhooks firmados, discovery .well-known/acp.json, emisión automática de Factura A/B/C AFIP. Primer bridge agentic-commerce de LATAM.",
+  pp_ap2:
+    "Primera implementación TypeScript fiel del Agent Payments Protocol (AP2) v0.2, schemas, mandatos ES256 SD-JWT VC (Checkout + Payment, open + closed), 8 evaluadores de constraints, recibos Checkout/Payment firmados. Edge-Runtime-compatible. Alineado con el SDK Python de referencia del FIDO Alliance Agentic Auth WG.",
+  pp_incorporate:
+    "Cliente TypeScript zero-dependency para `ar-agents.ar/api/auto-incorporate`, permite que un agente externo (USA-LLC, ChatGPT, Claude, Gemini) auto-incorpore una sociedad-IA argentina en una sola llamada. Devuelve los archivos generados, la URL de deploy en Vercel y la referencia firmada del audit-log.",
   pp_mcp:
-    "Servidor MCP que bundlea los 11 packages. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
+    "Servidor MCP que bundlea los 16 packages con tools. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
 
   quick_h2: "Inicio rápido",
 

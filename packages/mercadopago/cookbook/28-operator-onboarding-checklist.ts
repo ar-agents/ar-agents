@@ -101,7 +101,7 @@ const CHECKS: ReadonlyArray<Check> = [
     id: "discovery-well-known",
     category: "discovery",
     label: "/.well-known/agents.json serves manifest with issuer.jurisdiction",
-    ref: "https://ar-agents.vercel.app/rfcs/002",
+    ref: "https://ar-agents.ar/rfcs/002",
     run: async (base, fetchImpl) => {
       const r = await fetchOk(`${base}/.well-known/agents.json`, fetchImpl);
       if (!r.ok) return { status: "fail", detail: `HTTP ${r.status || "network error"}`, remediation: "Add apps/landing/public/.well-known/agents.json per RFC-002 schema." };
@@ -129,7 +129,7 @@ const CHECKS: ReadonlyArray<Check> = [
     id: "audit-read",
     category: "audit",
     label: "Audit-read endpoint /api/play/audit/{sessionId} responds",
-    ref: "https://ar-agents.vercel.app/rfcs/004",
+    ref: "https://ar-agents.ar/rfcs/004",
     run: async (base, fetchImpl) => {
       const r = await fetchOk(`${base}/api/play/audit/demo-public-ar-001`, fetchImpl);
       if (!r.ok) return { status: "fail", detail: `HTTP ${r.status}.`, remediation: "Verify your audit-log route is deployed + has the {sessionId} dynamic segment." };
@@ -140,7 +140,7 @@ const CHECKS: ReadonlyArray<Check> = [
     id: "audit-verify",
     category: "audit",
     label: "Audit-verify (?verify=1) returns HMAC verification counts",
-    ref: "https://ar-agents.vercel.app/rfcs/004",
+    ref: "https://ar-agents.ar/rfcs/004",
     run: async (base, fetchImpl) => {
       const r = await fetchOk(`${base}/api/play/audit/demo-public-ar-001?verify=1`, fetchImpl);
       if (!r.ok) return { status: "fail", detail: `HTTP ${r.status}.` };
@@ -175,7 +175,7 @@ const CHECKS: ReadonlyArray<Check> = [
     id: "rfc-005-keys",
     category: "audit",
     label: "RFC-005 /.well-known/sociedad-ia/keys publishes Ed25519 key",
-    ref: "https://ar-agents.vercel.app/rfcs/005",
+    ref: "https://ar-agents.ar/rfcs/005",
     run: async (base, fetchImpl) => {
       const r = await fetchOk(`${base}/.well-known/sociedad-ia/keys`, fetchImpl);
       if (!r.ok) return { status: "skip", detail: `Not advertised (HTTP ${r.status}). v1 HMAC-only is OK.`, remediation: "Optional: publish your Ed25519 public key per RFC-005 § 4 for asymmetric verifier support." };
@@ -272,7 +272,7 @@ export async function checkOperatorReadiness(
   else readiness = "ready";
 
   return {
-    $schema: "https://ar-agents.vercel.app/schemas/readiness.v1.json",
+    $schema: "https://ar-agents.ar/schemas/readiness.v1.json",
     generatedAt: new Date().toISOString(),
     target: { baseUrl: base },
     readiness,

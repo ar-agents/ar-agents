@@ -5,9 +5,9 @@
 #   .github/workflows/sociedad-ia-quarterly-compliance.yml
 #
 # Sources of truth + companion docs:
-#   https://ar-agents.vercel.app/rfcs/004           (operational-log spec)
-#   https://ar-agents.vercel.app/examples           (cookbook recipe 25)
-#   https://ar-agents.vercel.app/auditor            (regulator-facing summary)
+#   https://ar-agents.ar/rfcs/004           (operational-log spec)
+#   https://ar-agents.ar/examples           (cookbook recipe 25)
+#   https://ar-agents.ar/auditor            (regulator-facing summary)
 #
 # What this workflow does:
 #   1. Reads your QUARTER_SESSION_IDS env (newline-separated session ids
@@ -19,7 +19,7 @@
 # Secrets you need set on the repo:
 #   AUDIT_HMAC_SECRET            — same secret your prod uses (for report sig)
 #   SLACK_WEBHOOK_URL            — optional, for digest post
-#   AR_AGENTS_BASE_URL           — optional, defaults to ar-agents.vercel.app
+#   AR_AGENTS_BASE_URL           — optional, defaults to ar-agents.ar
 #   SOCIEDAD_DENOMINACION        — required, e.g. "Mi Sociedad-IA SAS"
 #   SOCIEDAD_OPERATOR_CUIT       — required, e.g. "20-12345678-9"
 #
@@ -79,7 +79,7 @@ jobs:
           QUARTER_SESSION_IDS: ${{ vars.QUARTER_SESSION_IDS }}
           DENOMINACION: ${{ secrets.SOCIEDAD_DENOMINACION }}
           OPERATOR_CUIT: ${{ secrets.SOCIEDAD_OPERATOR_CUIT }}
-          BASE_URL: ${{ secrets.AR_AGENTS_BASE_URL || 'https://ar-agents.vercel.app' }}
+          BASE_URL: ${{ secrets.AR_AGENTS_BASE_URL || 'https://ar-agents.ar' }}
           PERIOD_START: ${{ steps.window.outputs.start }}
           PERIOD_END: ${{ steps.window.outputs.end }}
         run: |
@@ -124,7 +124,7 @@ jobs:
 
       - name: Pre-merge certifier check
         env:
-          BASE_URL: ${{ secrets.AR_AGENTS_BASE_URL || 'https://ar-agents.vercel.app' }}
+          BASE_URL: ${{ secrets.AR_AGENTS_BASE_URL || 'https://ar-agents.ar' }}
         run: |
           # Recipe 26 + the public /api/certifier endpoint. Fail the build
           # if score < 60.

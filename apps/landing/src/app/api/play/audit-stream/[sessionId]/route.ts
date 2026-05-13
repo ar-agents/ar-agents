@@ -1,5 +1,5 @@
 /**
- * `GET /api/play/audit-stream/[sessionId]` — SSE live-stream of audit
+ * `GET /api/play/audit-stream/[sessionId]`, SSE live-stream of audit
  * entries for a session.
  *
  * Use case: a /dashboard page wants to update in real-time as the agent
@@ -11,13 +11,13 @@
  * Each tick reads the audit log, diffs against the last sent state,
  * and pushes new entries as `event: entry` SSE messages. Sends a
  * `event: ping` keep-alive every 15s. Closes the stream after 5 minutes
- * of total uptime — clients should reconnect (EventSource auto-handles
+ * of total uptime, clients should reconnect (EventSource auto-handles
  * this) to bound server memory.
  *
  * Why polling vs Redis pub/sub: the audit log already lives in Vercel KV.
  * Adding a separate pub/sub channel doubles the failure modes (entry
  * lands in KV but pub/sub message lost; vice versa). Polling against
- * the same KV is simpler + idempotent — duplicate ticks read the same
+ * the same KV is simpler + idempotent, duplicate ticks read the same
  * state and emit no events. The 2s tick is well under what KV can
  * sustain.
  *
@@ -32,7 +32,7 @@ import { isSessionIdValid, readAudit, type AuditEntry } from "@/lib/audit";
 import { sseLine } from "@/lib/sse";
 
 export const runtime = "nodejs";
-export const maxDuration = 300; // 5 minutes — see cap below.
+export const maxDuration = 300; // 5 minutes, see cap below.
 
 const TICK_INTERVAL_MS = 2_000;
 const KEEPALIVE_INTERVAL_MS = 15_000;
@@ -144,7 +144,7 @@ export async function GET(
       // GC sweep.)
     },
     cancel() {
-      // No-op — the interval is cleared above when we close, and the
+      // No-op, the interval is cleared above when we close, and the
       // stream's natural GC handles abandonment.
     },
   });

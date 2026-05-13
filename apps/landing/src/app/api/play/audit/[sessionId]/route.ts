@@ -1,5 +1,5 @@
 /**
- * `GET /api/play/audit/[sessionId]` — public audit log for a /play
+ * `GET /api/play/audit/[sessionId]`, public audit log for a /play
  * session. Each entry is HMAC-SHA256-signed; consumers can re-compute
  * the signature against `AUDIT_HMAC_SECRET` (server-side only) to
  * confirm authenticity, OR call this endpoint with `?verify=1` to ask

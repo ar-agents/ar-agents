@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "El playbook sociedad-IA · documento flagship en español",
   description:
     "Cómo construir una empresa argentina 100% autónoma en 2027. La infraestructura, la ley, el marco de responsabilidad y la realidad operativa. Escrito para quienes lo van a aprobar, regular o desplegar primero.",
-  alternates: { canonical: "https://ar-agents.vercel.app/es/playbook" },
+  alternates: { canonical: "https://ar-agents.ar/es/playbook" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -13,15 +13,15 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 export default function PlaybookEsPage() {
   return (
     <DocShell
-      eyebrow="/arg · playbook · 2026-05 · es"
+      eyebrow="playbook · 2026-05 · es"
       title="El playbook sociedad-IA."
-      subtitle="Cómo construir una empresa argentina sin humanos en 2027. La infraestructura, la ley, el marco de responsabilidad y la operación diaria. Versión en español del flagship doc — la inglesa vive en /playbook para audiencia internacional."
+      subtitle="Cómo construir una empresa argentina sin humanos en 2027. La infraestructura, la ley, el marco de responsabilidad y la operación diaria. Versión en español del flagship doc, la inglesa vive en /playbook para audiencia internacional."
     >
       <DocBlock>
         <DocP>
           El 28 de abril de 2026, el ministro de Desregulación Federico
           Sturzenegger anunció una nueva forma societaria: la{" "}
-          <em>sociedad de IA</em> — una persona jurídica sin accionistas
+          <em>sociedad de IA</em>, una persona jurídica sin accionistas
           humanos, sin directores humanos, sin empleados humanos. Software
           puro. Tendría CUIT, emitiría facturas, sería titular de cuenta
           bancaria, pagaría impuestos. La cita literal:{" "}
@@ -46,8 +46,8 @@ export default function PlaybookEsPage() {
             style={{ color: "var(--accent)" }}
           >
             github.com/ar-agents/ar-agents
-          </a>{" "}
-          — 16 paquetes, 168 herramientas, 4 subpaths de testing, 17
+          </a>:{" "}
+        16 paquetes, 168 herramientas, 4 subpaths de testing, 17
           recetas del cookbook. Open source. Licencia MIT. Provenance SLSA.
         </DocP>
       </DocBlock>
@@ -63,7 +63,7 @@ export default function PlaybookEsPage() {
         <strong>Existir como entidad</strong> (4): buscar el registro
         público para conflictos de denominación, inscribirse en IGJ,
         obtener un CUIT en ARCA (ex AFIP), constituir Domicilio Electrónico
-        (DEC) — la casilla legalmente vinculante para notificaciones
+        (DEC), la casilla legalmente vinculante para notificaciones
         federales.
       </DocP>
       <DocP>
@@ -94,8 +94,8 @@ export default function PlaybookEsPage() {
         tesorería.
       </DocP>
       <DocP>
-        Cubrimos 16 de las 17. La pieza 17 — filing programático de
-        trámites en TAD — requiere integración por organismo que el Estado
+        Cubrimos 16 de las 17. La pieza 17, filing programático de
+        trámites en TAD, requiere integración por organismo que el Estado
         argentino aún está rolleando out. Lectura solo (DEC inbox + Mis
         Trámites) está disponible hoy vía{" "}
         <DocCode>@ar-agents/gde-tad</DocCode>; capacidad de escritura
@@ -110,7 +110,7 @@ export default function PlaybookEsPage() {
       <DocP>
         <strong>Solo Web Crypto.</strong> Cero <DocCode>node:crypto</DocCode>{" "}
         en código de producción. HMAC-SHA256, firma RSA para WSAA,
-        verificación de firmas, generación de idempotency-keys — todo usa{" "}
+        verificación de firmas, generación de idempotency-keys, todo usa{" "}
         <DocCode>crypto.subtle</DocCode>.
       </DocP>
       <DocP>
@@ -140,7 +140,7 @@ export default function PlaybookEsPage() {
         propone un modelo de tres capas:
       </DocP>
       <DocP>
-        <strong>Capa 1 — operador.</strong> La entidad que despliega
+        <strong>Capa 1, operador.</strong> La entidad que despliega
         (ClawBank, doola, MIDAO, un escribano AR-residente, un platform
         partner) asume responsabilidad operacional proporcional al control
         que tiene sobre el surface de tools del agente. El alcance está
@@ -148,14 +148,14 @@ export default function PlaybookEsPage() {
         agente, solo de las decisiones de infraestructura.
       </DocP>
       <DocP>
-        <strong>Capa 2 — proveedor del modelo.</strong> Anthropic, OpenAI,
+        <strong>Capa 2, proveedor del modelo.</strong> Anthropic, OpenAI,
         Google etc. asumen responsabilidad por la calidad del modelo según
         sus SLAs publicados. El trabajo de la librería es hacer esta capa
         auditable: cada tool call lleva un header de versión-de-modelo +
         hash-de-prompt.
       </DocP>
       <DocP>
-        <strong>Capa 3 — autor de la librería.</strong> Open source bajo
+        <strong>Capa 3, autor de la librería.</strong> Open source bajo
         MIT, sin garantía. El autor responde solo por errores materiales
         en la documentación pública (ej. afirmar idempotencia donde no la
         hay).
@@ -175,8 +175,8 @@ export default function PlaybookEsPage() {
       <DocP>
         Cuando los agentes mueven plata, la superficie de ataque se
         amplía. Un LLM que puede autorizar un cobro también puede ser
-        coercido — vía prompt injection, jailbreak, o modelo upstream
-        comprometido — a autorizar uno fraudulento. La librería trata esto
+        coercido, vía prompt injection, jailbreak, o modelo upstream
+        comprometido, a autorizar uno fraudulento. La librería trata esto
         con la misma seriedad que una aplicación bancaria:
       </DocP>
       <DocP>
@@ -208,9 +208,9 @@ export default function PlaybookEsPage() {
         el log es legalmente probatorio.
       </DocP>
       <DocP>
-        Threat model completo — 14 amenazas explícitas, 14 mitigaciones
+        Threat model completo, 14 amenazas explícitas, 14 mitigaciones
         explícitas, qué cubre la librería, qué es responsabilidad del
-        host, qué queda fuera de scope — en{" "}
+        host, qué queda fuera de scope, en{" "}
         <a href="/security" style={{ color: "var(--accent)" }}>/security</a>.
       </DocP>
 
@@ -326,21 +326,21 @@ export default function PlaybookEsPage() {
       <DocP>
         <strong>Reguladores</strong>: la propuesta formal es{" "}
         <a href="/rfcs/001" style={{ color: "var(--accent)" }}>RFC-001</a>.
-        Léanla como un draft sobre el cual comentar. Email naza@helloastro.co
+        Léanla como un draft sobre el cual comentar. Email clementenaza@gmail.com
         para reuniones.
       </DocP>
       <DocP>
         <strong>Inversores</strong>: hay una tesis para escribir sobre la
         primera apuesta jurisdiccional al comercio entre agentes. La
         librería es la implementación de referencia pública. Email
-        naza@helloastro.co.
+        clementenaza@gmail.com.
       </DocP>
       <DocP>
         <strong>Periodistas</strong>: material fuente, contexto técnico,
         y el walkthrough del threat model en{" "}
         <a href="/security" style={{ color: "var(--accent)" }}>/security</a>{" "}
         y <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>.
-        Email naza@helloastro.co para entrevistas.
+        Email clementenaza@gmail.com para entrevistas.
       </DocP>
     </DocShell>
   );

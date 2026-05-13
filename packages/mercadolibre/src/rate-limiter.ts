@@ -25,6 +25,9 @@ export interface TokenBucketOptions {
   burst?: number;
   /** Override "now" for tests. Returns ms. */
   now?: () => number;
+  /** Evict buckets idle for more than this many ms. Default 600_000 (10 min).
+   *  Set to 0 to disable GC (useful in tests). */
+  idleEvictMs?: number;
 }
 
 interface Bucket {
@@ -37,14 +40,20 @@ export class TokenBucketRateLimiter implements RateLimiter {
   private readonly refillPerSecond: number;
   private readonly burst: number;
   private readonly now: () => number;
+  private readonly idleEvictMs: number;
+  /** Counter — every N acquires we sweep idle buckets. */
+  private acquireSinceLastSweep = 0;
+  private static readonly SWEEP_EVERY_N_ACQUIRES = 256;
 
   constructor(options: TokenBucketOptions = {}) {
     this.refillPerSecond = options.refillPerSecond ?? 24;
     this.burst = options.burst ?? 60;
     this.now = options.now ?? (() => Date.now());
+    this.idleEvictMs = options.idleEvictMs ?? 600_000;
   }
 
   async acquire(scope: string): Promise<void> {
+    this.maybeSweep();
     while (true) {
       const ms = this.now();
       const bucket = this.refill(scope, ms);
@@ -62,6 +71,36 @@ export class TokenBucketRateLimiter implements RateLimiter {
   inspect(scope: string): { tokens: number } {
     const bucket = this.refill(scope, this.now());
     return { tokens: bucket.tokens };
+  }
+
+  /** Number of currently-tracked buckets. Diagnostics only. */
+  bucketCount(): number {
+    return this.buckets.size;
+  }
+
+  /** Force-evict buckets that have been idle longer than `idleEvictMs`.
+   *  We don't bother checking token count — recreating an idle bucket
+   *  later is essentially free (one Map.set + one allocation), and any
+   *  bucket that's been idle for >10 min has long since refilled to burst
+   *  anyway. */
+  sweepIdleBuckets(now = this.now()): number {
+    if (this.idleEvictMs === 0) return 0;
+    let evicted = 0;
+    for (const [scope, bucket] of this.buckets) {
+      if (now - bucket.lastRefillMs > this.idleEvictMs) {
+        this.buckets.delete(scope);
+        evicted++;
+      }
+    }
+    return evicted;
+  }
+
+  private maybeSweep(): void {
+    if (this.idleEvictMs === 0) return;
+    this.acquireSinceLastSweep++;
+    if (this.acquireSinceLastSweep < TokenBucketRateLimiter.SWEEP_EVERY_N_ACQUIRES) return;
+    this.acquireSinceLastSweep = 0;
+    this.sweepIdleBuckets();
   }
 
   private refill(scope: string, ms: number): Bucket {

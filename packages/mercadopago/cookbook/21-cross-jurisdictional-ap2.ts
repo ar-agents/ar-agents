@@ -112,7 +112,7 @@ export async function verifyAndAct(
     return {
       ok: false,
       reason: `Mandate verification failed: ${verification.reason}`,
-      auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+      auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
     };
   }
 
@@ -121,7 +121,7 @@ export async function verifyAndAct(
     return {
       ok: false,
       reason: "Mandate expired (exp claim in the past)",
-      auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+      auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
     };
   }
 
@@ -130,7 +130,7 @@ export async function verifyAndAct(
     return {
       ok: false,
       reason: `Amount $${mandate.claims.amountArs} exceeds per-op cap $${mandate.claims.allowance.capPerOpArs}.`,
-      auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+      auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
     };
   }
 
@@ -158,7 +158,7 @@ export async function verifyAndAct(
     return {
       ok: false,
       reason: `Cumulative monthly emissions ($${cumulative} + $${mandate.claims.amountArs}) exceed cap $${mandate.claims.allowance.capPerMonthArs}.`,
-      auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+      auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
     };
   }
 
@@ -173,7 +173,7 @@ export async function verifyAndAct(
     return {
       ok: false,
       reason: `externalId ${mandate.claims.externalId} already processed (idempotency).`,
-      auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+      auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
     };
   }
 
@@ -188,7 +188,7 @@ export async function verifyAndAct(
     return {
       ok: false,
       reason: `Consumer CUIT ${mandate.claims.consumer.cuit} is malformed.`,
-      auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+      auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
     };
   }
 
@@ -206,7 +206,7 @@ export async function verifyAndAct(
       return {
         ok: false,
         reason: `Consumer has BCRA situation ${credit.worstSituation} (>2 = high risk).`,
-        auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+        auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
       };
     }
   }
@@ -232,7 +232,7 @@ export async function verifyAndAct(
   return {
     ok: true,
     facturaCae: result.cae ?? undefined,
-    auditDashboardUrl: `https://ar-agents.vercel.app/dashboard/${sessionId}`,
+    auditDashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
   };
 }
 

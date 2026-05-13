@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/mcp",
   "version": "0.9.0",
   "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package — exposes the underlying tool surface via stdio transport.",

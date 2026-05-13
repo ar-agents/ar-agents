@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schema/tools-manifest.json",
+  "$schema": "https://ar-agents.ar/schema/tools-manifest.json",
   "package": "@ar-agents/mercadolibre",
   "version": "0.1.0",
   "description": "Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",

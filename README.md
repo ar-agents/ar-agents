@@ -48,7 +48,7 @@ governance scaffolding for AI-only Argentine corporations:
 - **2 frozen test-vectors files** — 7 RFC-004 HMAC vectors + 3 RFC-005
   Ed25519 vectors. Byte-exact deterministic signatures. Reference impl
   passes all 10 (103 vitest tests in 6 files).
-- **Public certifier** at [`ar-agents.vercel.app/certifier`](https://ar-agents.vercel.app/certifier) —
+- **Public certifier** at [`ar-agents.ar/certifier`](https://ar-agents.ar/certifier) —
   paste any URL, score 0-100 against RFC-002 + RFC-004 + RFC-005 in
   seconds. Programmatic API at `/api/certifier?url=...`. Reference impl
   self-scores 100/100 Rating A. Cookbook recipes 26 (single-shot) +
@@ -59,18 +59,18 @@ governance scaffolding for AI-only Argentine corporations:
   `/.well-known/sociedad-ia/verify-key?challenge=` (RFC-004 § 5
   challenge-response), `/.well-known/sociedad-ia/keys` (RFC-005 § 4
   Ed25519 public key publication).
-- **Bilingual narrative pages** — [`/legislacion`](https://ar-agents.vercel.app/legislacion)
-  (Spanish for AR legislators) + [`/en/legislation`](https://ar-agents.vercel.app/en/legislation)
+- **Bilingual narrative pages** — [`/legislacion`](https://ar-agents.ar/legislacion)
+  (Spanish for AR legislators) + [`/en/legislation`](https://ar-agents.ar/en/legislation)
   (English for international press / comparative-law scholars).
-- **One-page regulator brief** at [`/auditor`](https://ar-agents.vercel.app/auditor) —
+- **One-page regulator brief** at [`/auditor`](https://ar-agents.ar/auditor) —
   print-friendly, 7-minute read, every claim links to evidence.
-- **Public registry** at [`/registro`](https://ar-agents.vercel.app/registro) —
+- **Public registry** at [`/registro`](https://ar-agents.ar/registro) —
   self-listed implementations with live cert-badges per entry.
 - **Glossary, outreach templates, BibTeX refs, visual timeline** —
   see `/glossary`, `/share`, `/refs`, `/timeline`.
 
-For an outsider arriving cold: start at the [auditor's brief](https://ar-agents.vercel.app/auditor)
-or the [legislative synthesis](https://ar-agents.vercel.app/legislacion).
+For an outsider arriving cold: start at the [auditor's brief](https://ar-agents.ar/auditor)
+or the [legislative synthesis](https://ar-agents.ar/legislacion).
 Citation file: [`CITATION.cff`](./CITATION.cff).
 
 ```ts
@@ -195,9 +195,9 @@ the docs at runtime, following the [agents.md](https://agents.md/) format
 
 | App | URL | Shows |
 | --- | --- | --- |
-| Landing | <https://ar-agents.vercel.app> | Toolkit overview |
-| `cuit-hello` | <https://ar-agents-cuit-hello.vercel.app> | CUIT validation + ARCA padrón (real AFIP cert) |
-| `whatsapp-hello` | <https://ar-agents-whatsapp-hello.vercel.app> | Billing assistant: MP composed with identity, identity-attest, whatsapp |
+| Landing | <https://ar-agents.ar> | Toolkit overview |
+| `cuit-hello` | <https://cuit-hello.ar-agents.ar> | CUIT validation + ARCA padrón (real AFIP cert) |
+| `whatsapp-hello` | <https://whatsapp-hello.ar-agents.ar> | Billing assistant: MP composed with identity, identity-attest, whatsapp |
 | `mp-hello` | dev-only | MP Subscriptions full flow (`pnpm dev`, port 3013) |
 
 ## Develop
@@ -218,9 +218,9 @@ manifest-drift, publint, arethetypeswrong, and size-limit on every push.
 ```
 ar-agents/
 ├── apps/
-│   ├── landing/                 # ar-agents.vercel.app
-│   ├── cuit-hello/              # ar-agents-cuit-hello.vercel.app (port 3014)
-│   ├── whatsapp-hello/          # ar-agents-whatsapp-hello.vercel.app
+│   ├── landing/                 # ar-agents.ar
+│   ├── cuit-hello/              # cuit-hello.ar-agents.ar (port 3014)
+│   ├── whatsapp-hello/          # whatsapp-hello.ar-agents.ar
 │   └── mp-hello/                # dev-only (port 3013)
 ├── packages/
 │   ├── mercadopago/             # 89 tools: subscriptions, payments, OAuth, QR, 3DS, point, ...

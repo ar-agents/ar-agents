@@ -11,5 +11,10 @@ Real recipes for `@ar-agents/mercadolibre`, ordered roughly by frequency-of-need
 | 05 | [Webhooks + replay](./05-webhooks-with-replay.md) | Live POST receiver + the `/myfeeds` 2-day replay everyone forgets |
 | 06 | [Listing creation](./06-listing-creation-with-category-predictor.md) | Category prediction + technical specs + create, all in one flow |
 | 07 | [Reputation monitor](./07-reputation-monitor.md) | Severity-aware alerts + the `monitorReputation` async generator |
+| 08 | [Webhook dedup with Vercel KV](./08-webhook-dedup-vercel-kv.md) | Atomic `SET … NX EX` so MELI's redeliveries never double-process |
+| 09 | [Distributed rate limiter (Upstash Redis)](./09-redis-rate-limiter.md) | Multi-region GCRA token bucket implementing the `RateLimiter` interface |
+| 10 | [Cloudflare Durable Objects for OAuth](./10-cloudflare-durable-objects-oauth.md) | Per-userId DO partitioning makes single-use refresh-token races impossible |
+| 11 | [Human-in-the-loop on irreversible ops](./11-human-in-the-loop.md) | Programmatic gate the LLM cannot bypass — confirms `create_item`, price changes, claim defenses, public answers before they fire |
+| 12 | [ACP feed generator](./12-acp-feed-generator.md) | Agent-readable product feed so ChatGPT/Claude/Gemini buyers find your MELI catalog before they go to Amazon/Shein |
 
 > Each recipe is self-contained. Copy-paste and adapt — the imports already match what's exported from `@ar-agents/mercadolibre` and `@ar-agents/mercadolibre/ai-sdk`.

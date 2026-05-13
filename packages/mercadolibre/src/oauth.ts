@@ -106,6 +106,7 @@ export function buildAuthorizationUrl(input: BuildAuthUrlInput): string {
 export async function exchangeAuthorizationCode(
   app: OAuthAppCredentials,
   code: string,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<MeliOAuthTokens> {
   const body = new URLSearchParams({
     grant_type: "authorization_code",
@@ -114,7 +115,7 @@ export async function exchangeAuthorizationCode(
     code,
     redirect_uri: app.redirectUri,
   });
-  const tokens = await postTokenRequest(body);
+  const tokens = await postTokenRequest(body, fetchImpl);
   return enrichTokens(tokens);
 }
 
@@ -125,6 +126,7 @@ export async function exchangeAuthorizationCode(
 export async function refreshTokens(
   app: OAuthAppCredentials,
   refreshToken: string,
+  fetchImpl: typeof fetch = fetch,
 ): Promise<MeliOAuthTokens> {
   const body = new URLSearchParams({
     grant_type: "refresh_token",
@@ -132,7 +134,7 @@ export async function refreshTokens(
     client_secret: app.clientSecret,
     refresh_token: refreshToken,
   });
-  const tokens = await postTokenRequest(body);
+  const tokens = await postTokenRequest(body, fetchImpl);
   return enrichTokens(tokens);
 }
 
@@ -156,6 +158,8 @@ export async function ensureAccessToken(args: {
   preflightWindowSeconds?: number;
   /** Override "now" for tests. Returns Unix seconds. */
   now?: () => number;
+  /** Override fetch (mocked in tests / Edge runtime). Default global fetch. */
+  fetchImpl?: typeof fetch;
 }): Promise<MeliOAuthTokens> {
   const now = args.now ?? (() => Math.floor(Date.now() / 1000));
   const preflight = args.preflightWindowSeconds ?? 60;
@@ -175,7 +179,7 @@ export async function ensureAccessToken(args: {
     // Refresh.
     let refreshed: MeliOAuthTokens;
     try {
-      refreshed = await refreshTokens(args.app, stored.refresh_token);
+      refreshed = await refreshTokens(args.app, stored.refresh_token, args.fetchImpl);
     } catch (err) {
       throw new MeliAuthError(
         `Token refresh failed for MELI user ${args.userId}: ${
@@ -225,8 +229,11 @@ interface RawTokenResponse {
   token_type: "bearer";
 }
 
-async function postTokenRequest(body: URLSearchParams): Promise<RawTokenResponse> {
-  const response = await fetch(TOKEN_URL, {
+async function postTokenRequest(
+  body: URLSearchParams,
+  fetchImpl: typeof fetch = fetch,
+): Promise<RawTokenResponse> {
+  const response = await fetchImpl(TOKEN_URL, {
     method: "POST",
     headers: {
       "Content-Type": "application/x-www-form-urlencoded",

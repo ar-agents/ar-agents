@@ -3,7 +3,7 @@ import Link from "next/link";
 
 export const metadata: Metadata = {
   title: "404 · Not found",
-  description: "The page you're looking for doesn't exist on ar-agents.vercel.app.",
+  description: "The page you're looking for doesn't exist on ar-agents.ar.",
   robots: { index: false, follow: false },
 };
 
@@ -45,7 +45,7 @@ export default function NotFound() {
             margin: 0,
           }}
         >
-          /arg · 404
+          404
         </p>
         <h1
           style={{
@@ -69,7 +69,7 @@ export default function NotFound() {
             maxWidth: 520,
           }}
         >
-          La URL que pediste no existe en ar-agents.vercel.app. Puede que sea
+          La URL que pediste no existe en ar-agents.ar. Puede que sea
           una vieja URL de pre-rebrand, o un session id inválido, o un typo.
         </p>
 
@@ -135,8 +135,8 @@ export default function NotFound() {
             issue
           </a>{" "}
           o mandanos un email a{" "}
-          <a href="mailto:naza@helloastro.co" style={{ color: "#0072f5" }}>
-            naza@helloastro.co
+          <a href="mailto:clementenaza@gmail.com" style={{ color: "#0072f5" }}>
+            clementenaza@gmail.com
           </a>
           . Toda 404 es un bug.
         </p>

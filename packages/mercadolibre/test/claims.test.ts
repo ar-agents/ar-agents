@@ -107,7 +107,36 @@ describe("claims API", () => {
     expect(r.decision).toBe("accepted");
   });
 
-  it("defendClaim composes get + parallel evidence uploads + optional message", async () => {
+  it("defendClaim stops on first evidence failure and skips the message", async () => {
+    const fm = mockFetch()
+      .on("GET", "/post-purchase/v1/claims/5555", () => ({
+        status: 200,
+        body: CLAIM_FIXTURE,
+      }))
+      .on("POST", "/post-purchase/v1/claims/5555/evidences", () => ({
+        status: 400,
+        body: { error: "evidence_window_closed" },
+      }))
+      .on("POST", "/post-purchase/v1/claims/5555/messages", () => ({
+        status: 200,
+        body: { message: "should not be sent" },
+      }))
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch });
+    const r = await defendClaim(client, {
+      claimId: 5555,
+      evidences: [
+        { evidence_type: "PROOF_OF_SHIPMENT", text: "tracking 1" },
+        { evidence_type: "INVOICE", text: "factura A 0001" },
+      ],
+      message: "Should NOT be posted because evidence failed.",
+    });
+    expect(r.uploadedEvidences).toHaveLength(0);
+    expect(r.failedEvidences).toHaveLength(1);
+    expect(r.messagePosted).toBeNull();
+  });
+
+  it("defendClaim composes get + sequential evidence uploads + optional message", async () => {
     let getCalls = 0;
     let evidenceCalls = 0;
     let messageCalls = 0;
@@ -141,6 +170,7 @@ describe("claims API", () => {
     expect(evidenceCalls).toBe(2);
     expect(messageCalls).toBe(1);
     expect(r.uploadedEvidences).toHaveLength(2);
+    expect(r.failedEvidences).toHaveLength(0);
     expect(r.messagePosted).not.toBeNull();
   });
 });

@@ -30,34 +30,71 @@ export interface RetryDecision {
   delayMsOverride?: number;
 }
 
+export interface RetryContext {
+  /** HTTP method of the request being attempted, uppercase. Default "GET". */
+  method?: string;
+  /** Attempt number (1-based). */
+  attempt?: number;
+}
+
 /** A function that decides whether a thrown error / response is retryable. */
 export type RetryClassifier = (
   error: unknown,
   response: Response | null,
+  ctx?: RetryContext,
 ) => RetryDecision;
 
-/** Default classifier — retry on 5xx, 429, AbortError, fetch network errors. */
-export const defaultRetryClassifier: RetryClassifier = (error, response) => {
+/** HTTP methods that are safe to retry by default (RFC 9110 idempotent set). */
+const IDEMPOTENT_METHODS = new Set(["GET", "HEAD", "OPTIONS", "PUT", "DELETE"]);
+
+/** Parse a `Retry-After` header value: integer seconds OR HTTP-date. */
+function parseRetryAfter(value: string): number | null {
+  const seconds = Number.parseInt(value, 10);
+  if (Number.isFinite(seconds)) return seconds * 1000;
+  const dateMs = Date.parse(value);
+  if (Number.isFinite(dateMs)) return Math.max(0, dateMs - Date.now());
+  return null;
+}
+
+/**
+ * Default classifier — retry on 5xx, 429, network errors. By default,
+ * **only retries idempotent methods** (GET/HEAD/OPTIONS/PUT/DELETE). POST
+ * and PATCH are NOT retried because MELI's gateway can persist a request
+ * after a 5xx (split-brain), which would create duplicate listings,
+ * double-answers, or duplicate promo opt-ins on retry.
+ *
+ * Callers who know their POST endpoint is idempotent (or who supply an
+ * `X-Idempotency-Key` header) can override via `retryClassifier`.
+ */
+export const defaultRetryClassifier: RetryClassifier = (error, response, ctx) => {
+  const method = ctx?.method?.toUpperCase() ?? "GET";
+  const methodIsIdempotent = IDEMPOTENT_METHODS.has(method);
+
   if (response) {
     if (response.status === 429) {
       const retryAfter = response.headers.get("Retry-After");
       if (retryAfter) {
-        const seconds = Number.parseInt(retryAfter, 10);
-        if (Number.isFinite(seconds)) {
-          return { shouldRetry: true, delayMsOverride: seconds * 1000 };
+        const delayMs = parseRetryAfter(retryAfter);
+        if (delayMs !== null) {
+          return { shouldRetry: true, delayMsOverride: delayMs };
         }
       }
+      // 429 is safe to retry on any method (request hadn't been processed).
       return { shouldRetry: true };
     }
     if (response.status >= 500 && response.status < 600) {
-      return { shouldRetry: true };
+      // 5xx is split-brain risky: only retry idempotent verbs.
+      return { shouldRetry: methodIsIdempotent };
     }
     return { shouldRetry: false };
   }
-  // Network error, fetch threw, AbortError, etc.
+  // Network-level failure (fetch threw, AbortError, etc.)
   if (error instanceof Error) {
     if (error.name === "AbortError") return { shouldRetry: false };
-    return { shouldRetry: true };
+    // Network errors are safe to retry on idempotent methods. For non-
+    // idempotent ones we have no way to know if the server got the request,
+    // so we err on the side of "fail loud."
+    return { shouldRetry: methodIsIdempotent };
   }
   return { shouldRetry: false };
 };
@@ -74,6 +111,7 @@ export async function withRetry<T>(
   op: (attempt: number) => Promise<T>,
   classifier: RetryClassifier = defaultRetryClassifier,
   options: RetryOptions = {},
+  ctx: RetryContext = {},
 ): Promise<T> {
   const opts = { ...DEFAULTS, ...options };
   let lastError: unknown = null;
@@ -83,7 +121,7 @@ export async function withRetry<T>(
     } catch (err) {
       lastError = err;
       const response = (err as { response?: Response }).response ?? null;
-      const decision = classifier(err, response);
+      const decision = classifier(err, response, { ...ctx, attempt });
       if (!decision.shouldRetry || attempt === opts.maxAttempts) {
         throw err;
       }
@@ -110,17 +148,12 @@ export async function fetchWithRetry(
   classifier: RetryClassifier = defaultRetryClassifier,
   fetchImpl: typeof fetch = fetch,
 ): Promise<Response> {
+  const method = (init.method ?? "GET").toUpperCase();
+  const ctx: RetryContext = { method };
   return withRetry(
     async () => {
-      let response: Response;
-      try {
-        response = await fetchImpl(url, init);
-      } catch (err) {
-        const decision = classifier(err, null);
-        if (!decision.shouldRetry) throw err;
-        throw err;
-      }
-      const decision = classifier(null, response);
+      const response = await fetchImpl(url, init);
+      const decision = classifier(null, response, ctx);
       if (decision.shouldRetry) {
         const synthetic = new Error(`HTTP ${response.status} ${response.statusText}`);
         (synthetic as { response?: Response }).response = response;
@@ -130,6 +163,7 @@ export async function fetchWithRetry(
     },
     classifier,
     options,
+    ctx,
   );
 }
 

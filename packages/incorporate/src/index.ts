@@ -1,6 +1,6 @@
 /**
  * `@ar-agents/incorporate` — zero-dependency TypeScript client for the
- * `/api/auto-incorporate` endpoint at https://ar-agents.vercel.app.
+ * `/api/auto-incorporate` endpoint at https://ar-agents.ar.
  *
  * Designed to be the canonical surface for an external agent
  * (USA-incorporated LLC, ChatGPT/Claude/Gemini extension, custom
@@ -41,7 +41,7 @@
  * ```
  */
 
-const DEFAULT_BASE_URL = "https://ar-agents.vercel.app";
+const DEFAULT_BASE_URL = "https://ar-agents.ar";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types — mirror the server contract at /api/auto-incorporate.
@@ -154,7 +154,7 @@ export interface IncorporateSuccess {
 export type IncorporateResult = IncorporateSuccess | IncorporateValidationFailure;
 
 export interface IncorporateOptions {
-  /** Defaults to https://ar-agents.vercel.app — override for staging or self-hosted mirror. */
+  /** Defaults to https://ar-agents.ar — override for staging or self-hosted mirror. */
   baseUrl?: string;
   /** Pass a custom `fetch` (e.g. for Node 18 polyfill or instrumented fetch). */
   fetchImpl?: typeof fetch;
@@ -220,7 +220,7 @@ export async function incorporate(
     method: "POST",
     headers: {
       "content-type": "application/json",
-      "user-agent": "@ar-agents/incorporate (https://ar-agents.vercel.app)",
+      "user-agent": "@ar-agents/incorporate (https://ar-agents.ar)",
       ...options.headers,
     },
     body: JSON.stringify(input),
@@ -265,7 +265,7 @@ export async function describe(
   const r = await fetchImpl(`${baseUrl}/api/auto-incorporate`, {
     method: "GET",
     headers: {
-      "user-agent": "@ar-agents/incorporate (https://ar-agents.vercel.app)",
+      "user-agent": "@ar-agents/incorporate (https://ar-agents.ar)",
       ...options.headers,
     },
     signal: options.signal ?? null,
@@ -302,7 +302,7 @@ export async function fetchAudit(
   const r = await fetchImpl(`${baseUrl}${path}`, {
     method: "GET",
     headers: {
-      "user-agent": "@ar-agents/incorporate (https://ar-agents.vercel.app)",
+      "user-agent": "@ar-agents/incorporate (https://ar-agents.ar)",
       ...options.headers,
     },
     signal: options.signal ?? null,

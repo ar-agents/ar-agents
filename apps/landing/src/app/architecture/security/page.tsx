@@ -4,9 +4,9 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 export const metadata: Metadata = {
   title: "/architecture/security · what the code actually does to prevent each threat",
   description:
-    "Code-level walkthrough of how each of the 14 threats in /security is mitigated. The companion to /architecture/audit-log — same depth, security side.",
+    "Code-level walkthrough of how each of the 14 threats in /security is mitigated. The companion to /architecture/audit-log, same depth, security side.",
   alternates: {
-    canonical: "https://ar-agents.vercel.app/architecture/security",
+    canonical: "https://ar-agents.ar/architecture/security",
   },
 };
 
@@ -40,7 +40,7 @@ const idempotencyKey = await sha256Hex(JSON.stringify({
 
 const response = await client.payments.create({
   ...args,
-  idempotencyKey,  // ← MP server-side dedupes on this
+  idempotencyKey, // ← MP server-side dedupes on this
 });`,
     mitigationCodePath: "packages/mercadopago/src/tools.ts",
     whatWouldBreak:
@@ -74,7 +74,7 @@ export function applyConfirmationGate<T>(tools: T, require: ConfirmFn): T {
 }`,
     mitigationCodePath: "packages/mercadopago/src/middleware.ts",
     whatWouldBreak:
-      "If the gate were a system-prompt instruction ('always ask before refunding'), a sufficiently determined jailbreak would bypass it. The programmatic wrapper makes the gate a mechanical contract — the tool literally doesn't execute until the host's UI / Slack / pager confirms.",
+      "If the gate were a system-prompt instruction ('always ask before refunding'), a sufficiently determined jailbreak would bypass it. The programmatic wrapper makes the gate a mechanical contract, the tool literally doesn't execute until the host's UI / Slack / pager confirms.",
     related: [
       { label: "RFC-001 § 3.2", href: "/rfcs/001#3.2" },
       { label: "/security T2", href: "/security" },
@@ -157,7 +157,7 @@ constructor(options: WsaaWscdcAdapterOptions) {
     id: "T11-audit-tamper",
     title: "T11 · Attacker who breached the host modifies past audit-log records",
     threatSummary:
-      "The attacker is INSIDE — they have shell on your prod box. They want to cover their tracks by editing past tool calls in the audit log. Without HMAC signing, they just open the KV record + change a field. Nobody notices.",
+      "The attacker is INSIDE, they have shell on your prod box. They want to cover their tracks by editing past tool calls in the audit log. Without HMAC signing, they just open the KV record + change a field. Nobody notices.",
     mitigationCode: `// apps/landing/src/lib/audit.ts
 export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string | null> {
   const key = await getHmacKey();  // server-side secret, not in process.env at runtime
@@ -166,7 +166,7 @@ export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string
   const sig = await crypto.subtle.sign(
     "HMAC",
     key,
-    enc.encode(canonical(payload)),  // canonical-JSON-stable input space
+    enc.encode(canonical(payload)), // canonical-JSON-stable input space
   );
   return \`sha256:\${bytesToHex(sig)}\`;
 }`,
@@ -183,7 +183,7 @@ export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string
     id: "T12-oauth-theft",
     title: "T12 · Marketplace seller's MP refresh-token leaked",
     threatSummary:
-      "Your marketplace OAuth flow stores per-seller refresh tokens. If your DB is leaked, every seller's MP account is compromised — an attacker can drain them via your access token credentials. Refresh tokens are long-lived (180 days+), so even a year-old leak is a usable foothold.",
+      "Your marketplace OAuth flow stores per-seller refresh tokens. If your DB is leaked, every seller's MP account is compromised, an attacker can drain them via your access token credentials. Refresh tokens are long-lived (180 days+), so even a year-old leak is a usable foothold.",
     mitigationCode: `// packages/mercadopago/src/oauth-store.ts (subpath: @ar-agents/mercadopago/vercel-kv)
 export class VercelKVOAuthTokenStore implements OAuthTokenStore {
   // - Encrypted at rest via Upstash (KV TLS + at-rest encryption).
@@ -211,9 +211,9 @@ export class VercelKVOAuthTokenStore implements OAuthTokenStore {
 const result = streamText({
   model: "anthropic/claude-sonnet-4-6",
   ...
-  stopWhen: ({ steps }) => steps.length >= 12,   // step ceiling
+  stopWhen: ({ steps }) => steps.length >= 12,  // step ceiling
   providerOptions: {
-    anthropic: { maxOutputTokens: 1200 },        // token ceiling
+    anthropic: { maxOutputTokens: 1200 },       // token ceiling
   },
 });
 
@@ -221,11 +221,11 @@ const result = streamText({
 const client = new MercadoPagoClient({
   accessToken: token,
   circuitBreaker: {                              // rolling-window
-    failureThreshold: 5,                         //   5 failures in
-    failureWindowMs: 60_000,                     //   60s opens the
-    resetAfterMs: 30_000,                        //   breaker for 30s
+    failureThreshold: 5,                        //   5 failures in
+    failureWindowMs: 60_000,                    //   60s opens the
+    resetAfterMs: 30_000,                       //   breaker for 30s
   },
-  maxRetries: 1,                                 // mutations: 1 retry
+  maxRetries: 1,                                // mutations: 1 retry
 });`,
     mitigationCodePath: "apps/landing/src/app/api/play/route.ts",
     whatWouldBreak:
@@ -240,7 +240,7 @@ const client = new MercadoPagoClient({
 export default function ArchitectureSecurityPage() {
   return (
     <DocShell
-      eyebrow="/arg · architecture · security deep-dive"
+      eyebrow="architecture · security deep-dive"
       title="What the code does to prevent each threat."
       subtitle="The /security page maps the threat-mitigation contract at a glance. This page traces the contract into the actual code: which file, which lines, what would break if it weren't there. Companion to /architecture/audit-log."
     >
@@ -256,7 +256,7 @@ export default function ArchitectureSecurityPage() {
           what would mechanically break if it were removed.
         </DocP>
         <DocP>
-          For T1, T2, T3, T5, T6, T9, T11, T12 — the rest of the 14 follow
+          For T1, T2, T3, T5, T6, T9, T11, T12, the rest of the 14 follow
           the same pattern; the source is small enough to read end-to-end
           in &lt; 1h.
         </DocP>
@@ -274,14 +274,14 @@ export default function ArchitectureSecurityPage() {
         <a href="/security" style={{ color: "var(--accent)" }}>
           /security
         </a>
-        . T4 (replay) is the closest sibling of T3 — same HMAC primitive,
+        . T4 (replay) is the closest sibling of T3, same HMAC primitive,
         +5-min window check. T7 (supply-chain) is covered by SLSA v1
         provenance on every npm release. T8 (typo-squat) is covered by
         owning the entire <DocCode>@ar-agents/*</DocCode> scope. T10
         (cross-tenant) is a host-responsibility flag per RFC-001 § 3.1.
         T13 (PDF injection) is mitigated by static template binding in{" "}
         <DocCode>@ar-agents/facturacion</DocCode>. T14 (MP fingerprint
-        bypass) is explicitly out-of-scope — the toolkit surfaces MP's
+        bypass) is explicitly out-of-scope, the toolkit surfaces MP's
         fraud verdict, it doesn't run the detection.
       </DocP>
 
@@ -314,7 +314,7 @@ export default function ArchitectureSecurityPage() {
         </Li>
         <Li>
           Run the live tamper-demo:{" "}
-          <DocCode>curl -X POST https://ar-agents.vercel.app/api/play/tamper-demo</DocCode>{" "}
+          <DocCode>curl -X POST https://ar-agents.ar/api/play/tamper-demo</DocCode>{" "}
           returns the original entry verifying + the mutated entry NOT
           verifying. Mechanical proof, not opinion.
         </Li>
@@ -341,7 +341,7 @@ export default function ArchitectureSecurityPage() {
           SLSA v1 attestations + the audit-log primitives don&apos;t
           protect against the maintainer deliberately publishing a
           backdoored package. They DO make the backdoor mechanically
-          observable — any change to a published tarball requires a
+          observable, any change to a published tarball requires a
           commit on the public main branch, which is itself signed +
           timestamped.
         </Li>
@@ -351,12 +351,12 @@ export default function ArchitectureSecurityPage() {
       <DocP>
         Coordinated disclosure via{" "}
         <a
-          href="https://ar-agents.vercel.app/.well-known/security.txt"
+          href="https://ar-agents.ar/.well-known/security.txt"
           style={{ color: "var(--accent)" }}
         >
           /.well-known/security.txt
-        </a>{" "}
-        — 48-hour response window, GitHub Security Advisory flow. PGP
+        </a>:{" "}
+      48-hour response window, GitHub Security Advisory flow. PGP
         key available on request. Acknowledgments in{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/blob/main/SECURITY.md"

@@ -1,27 +1,28 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 import { RfcJsonLd } from "../../json-ld";
+import { RfcDisclaimer } from "../disclaimer";
 
 export const metadata: Metadata = {
   title: "RFC-003: Cross-jurisdictional audit-log reciprocity",
   description:
     "Proposed convention for AR sociedades-IA to import + verify audit logs from foreign agent-entity regimes (Wyoming DAO LLC, Marshall Islands MIDAO, Estonia OÜ) so cross-jurisdictional commerce produces a single chain of forensic evidence. Draft.",
-  alternates: { canonical: "https://ar-agents.vercel.app/rfcs/003" },
+  alternates: { canonical: "https://ar-agents.ar/rfcs/003" },
 };
 
 export default function Rfc003Page() {
   return (
     <DocShell
-      eyebrow="/arg · rfc-003 · draft · 2026-05"
+      eyebrow="rfc-003 · draft · 2026-05"
       title="RFC-003: Cross-jurisdictional audit-log reciprocity."
       subtitle="When an AR sociedad-IA transacts with a Wyoming DAO LLC, MIDAO foundation, or Estonia OÜ, both sides keep their own audit logs. Today, reconciling those logs requires manual contractual coordination. RFC-003 proposes a portable interchange format so the logs can verify each other automatically."
     >
       <DocBlock>
         <DocP>
           <strong>Status:</strong> Draft.{" "}
-          <strong>Author:</strong> Nazareno Clemente (
-          <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>
-            naza@helloastro.co
+          <strong>Author:</strong> Naza (
+          <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
+            clementenaza@gmail.com
           </a>
           ). <strong>Discussion:</strong>{" "}
           <a
@@ -30,7 +31,15 @@ export default function Rfc003Page() {
           >
             github.com/ar-agents/ar-agents/discussions
           </a>
-          . <strong>License:</strong> CC-BY-4.0.
+          . <strong>License:</strong> CC-BY-4.0.{" "}
+          <strong>DOI:</strong>{" "}
+          <a
+            href="https://doi.org/10.5281/zenodo.20159411"
+            style={{ color: "var(--accent)" }}
+          >
+            10.5281/zenodo.20159411
+          </a>
+          .
         </DocP>
         <DocP>
           <strong>Companions:</strong>{" "}
@@ -44,6 +53,8 @@ export default function Rfc003Page() {
           (agent-discovery-by-default convention).
         </DocP>
       </DocBlock>
+
+      <RfcDisclaimer />
 
       <DocH2>1 · The cross-jurisdictional drift problem</DocH2>
       <DocP>
@@ -64,8 +75,8 @@ export default function Rfc003Page() {
       </ul>
       <DocP>
         Both logs are HMAC-signed. Each is verifiable independently. But
-        the cross-jurisdictional <em>contract</em> — &quot;the USA-LLC
-        promised X, the AR sociedad delivered X, the chain matches&quot; —
+        the cross-jurisdictional <em>contract</em>, &quot;the USA-LLC
+        promised X, the AR sociedad delivered X, the chain matches&quot;,
         only holds if both sides import each other&apos;s evidence + the
         interchange format is portable.
       </DocP>
@@ -83,7 +94,7 @@ export default function Rfc003Page() {
         fields:
       </DocP>
       <CodeBlock>{`{
-  "$schema": "https://ar-agents.vercel.app/schemas/cross-jurisdiction-audit.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/cross-jurisdiction-audit.v1.json",
   "issuer": {
     "jurisdiction": "AR" | "US-WY" | "MH" | "EE" | "US-DE" | ...,
     "entityId": "ar-sociedad:30123456789" | "wyoming-dao-llc:claw-bank" | ...,
@@ -208,7 +219,7 @@ await appendAudit(sessionId, {
         <Li>
           Auditor (or automated compliance script) fetches AR side&apos;s
           envelope at{" "}
-          <DocCode>https://ar-agents.vercel.app/api/play/audit/{`{sid}`}.crossjur</DocCode>.
+          <DocCode>https://ar-agents.ar/api/play/audit/{`{sid}`}.crossjur</DocCode>.
         </Li>
         <Li>
           Verifies each entry&apos;s HMAC against the AR side&apos;s
@@ -271,7 +282,7 @@ await appendAudit(sessionId, {
         <Li>
           Willingness to implement the{" "}
           <DocCode>.crossjur</DocCode> envelope. Backwards-compatible
-          add — they can keep their existing audit format.
+          add, they can keep their existing audit format.
         </Li>
       </ul>
       <DocP>
@@ -290,7 +301,7 @@ await appendAudit(sessionId, {
         </Li>
         <Li>
           Ship <DocCode>GET /api/play/audit/{`{sessionId}`}.crossjur</DocCode>{" "}
-          on ar-agents.vercel.app. Reuses existing primitives in{" "}
+          on ar-agents.ar. Reuses existing primitives in{" "}
           <DocCode>src/lib/audit.ts</DocCode>; adds envelope wrapping +
           external-reference extraction.
         </Li>
@@ -317,7 +328,7 @@ await appendAudit(sessionId, {
           doesn&apos;t mandate HMAC-SHA256; it requires that the
           signature be verifiable against the published key. ES256/JWS
           (per AP2), HMAC-SHA256 (per RFC-001 § 9.2), Ethereum EAS,
-          on-chain commitments — all acceptable.
+          on-chain commitments, all acceptable.
         </Li>
         <Li>
           <strong>Replay defense</strong>. The envelope includes{" "}
@@ -388,28 +399,28 @@ await appendAudit(sessionId, {
         <Li>
           <a href="/rfcs/001" style={{ color: "var(--accent)" }}>
             RFC-001 § 9
-          </a>{" "}
-          — AR-side audit log spec.
+          </a>:{" "}
+        AR-side audit log spec.
         </Li>
         <Li>
           <a href="/rfcs/002" style={{ color: "var(--accent)" }}>
             RFC-002
-          </a>{" "}
-          — agent-discovery-by-default (cross-jurisdictional verifier
+          </a>:{" "}
+        agent-discovery-by-default (cross-jurisdictional verifier
           libraries would consume RFC-002 wells to find counterpart
           endpoints).
         </Li>
         <Li>
           <a href="/examples#21" style={{ color: "var(--accent)" }}>
             Cookbook R21
-          </a>{" "}
-          — the AP2 mandate verification flow this RFC builds on.
+          </a>:{" "}
+        the AP2 mandate verification flow this RFC builds on.
         </Li>
         <Li>
-          <a href="/comparison" style={{ color: "var(--accent)" }}>
+          <a href="/vs" style={{ color: "var(--accent)" }}>
             /comparison
-          </a>{" "}
-          — Wyoming / MIDAO / Estonia / Delaware regime context.
+          </a>:{" "}
+        Wyoming / MIDAO / Estonia / Delaware regime context.
         </Li>
         <Li>
           <a
@@ -417,8 +428,8 @@ await appendAudit(sessionId, {
             style={{ color: "var(--accent)" }}
           >
             RFC 7519
-          </a>{" "}
-          — JWT, the format model for the envelope claims.
+          </a>:{" "}
+        JWT, the format model for the envelope claims.
         </Li>
         <Li>
           <a
@@ -426,8 +437,8 @@ await appendAudit(sessionId, {
             style={{ color: "var(--accent)" }}
           >
             Ethereum Attestation Service
-          </a>{" "}
-          — alternative on-chain signature scheme the envelope can wrap.
+          </a>:{" "}
+        alternative on-chain signature scheme the envelope can wrap.
         </Li>
       </ul>
 

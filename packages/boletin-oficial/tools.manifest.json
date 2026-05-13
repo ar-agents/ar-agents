@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/boletin-oficial",
   "version": "0.1.0",
   "description": "Boletín Oficial de la República Argentina — search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",

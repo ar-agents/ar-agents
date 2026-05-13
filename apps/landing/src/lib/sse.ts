@@ -16,12 +16,12 @@
 
 /**
  * Format a single SSE event. Stringify the payload to JSON. The function
- * is total — non-finite numbers in payload become `null` per JSON spec.
+ * is total, non-finite numbers in payload become `null` per JSON spec.
  */
 export function sseLine(event: string, data: unknown): string {
   if (!isValidEventName(event)) {
     throw new Error(
-      `Invalid SSE event name: ${JSON.stringify(event)} — must be a non-empty single-line ASCII identifier.`,
+      `Invalid SSE event name: ${JSON.stringify(event)}, must be a non-empty single-line ASCII identifier.`,
     );
   }
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;

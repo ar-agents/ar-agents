@@ -1,14 +1,14 @@
 {
-  "$schema": "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.schema.json",
-  "spec": "https://ar-agents.vercel.app/rfcs/004",
+  "$schema": "https://ar-agents.ar/test-vectors/rfc-004-v1.schema.json",
+  "spec": "https://ar-agents.ar/rfcs/004",
   "version": "rfc-004-v1-draft",
   "publishedAt": "2026-05-11",
-  "notes": "Conformance vectors for RFC-004 v1 (draft). A library claiming RFC-004 v1 conformance MUST produce these exact outputs given these exact inputs and the shared secret below. The HMAC values are hex-encoded SHA-256 outputs prefixed with 'sha256:'. Vectors are deterministic + reproducible — re-run the reference impl against this file and every assertion holds. License: CC-BY-4.0.",
+  "notes": "Conformance vectors for RFC-004 v1 (draft). A library claiming RFC-004 v1 conformance MUST produce these exact outputs given these exact inputs and the shared secret below. The HMAC values are hex-encoded SHA-256 outputs prefixed with 'sha256:'. Vectors are deterministic + reproducible, re-run the reference impl against this file and every assertion holds. License: CC-BY-4.0.",
   "secret": "rfc-004-conformance-secret",
   "vectors": [
     {
       "id": "vector-1-canonical-keys-sorted",
-      "description": "canonical-JSON serializes objects with keys sorted lexicographically at every level. JSON.stringify on its own is NOT canonical in JavaScript — key order follows insertion order, which differs across runtimes + reconstructions.",
+      "description": "canonical-JSON serializes objects with keys sorted lexicographically at every level. JSON.stringify on its own is NOT canonical in JavaScript, key order follows insertion order, which differs across runtimes + reconstructions.",
       "input": { "b": 1, "a": 2 },
       "expectedCanonical": "{\"a\":2,\"b\":1}"
     },

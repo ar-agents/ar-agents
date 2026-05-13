@@ -1,13 +1,59 @@
 # @ar-agents/mercadolibre
 
-> Mercado Libre **Agent Toolkit** for the Vercel AI SDK 6.
+> **Mercado Libre Agent Toolkit** for the Vercel AI SDK 6.
+> Independent open-source project · Not affiliated with Mercado Libre S.R.L.
 >
-> A production-grade typed SDK for the agent-relevant MELI API surface — the SDK Mercado Libre stopped shipping when [`mercadolibre/nodejs-sdk`](https://github.com/mercadolibre/nodejs-sdk) was archived in February 2022.
+> A production-grade typed SDK for the agent-relevant MELI API surface — community-built to fill the gap left when [`mercadolibre/nodejs-sdk`](https://github.com/mercadolibre/nodejs-sdk) was archived in February 2022.
+
+---
+
+### Status & disclosures
+
+| | |
+| --- | --- |
+| **Maturity** | Beta — surface-stable but iterating in public |
+| **Maintainership** | Solo-maintained ([Nazareno Clemente](mailto:naza@helloastro.co)) |
+| **SLA** | None — best-effort community support |
+| **Affiliation** | **Independent.** Not endorsed, sponsored, or vetted by Mercado Libre S.R.L. |
+| **Trademark** | `MERCADOLIBRE®` is a registered trademark of Mercado Libre S.R.L. This package uses the name in a descriptive, nominative-fair-use sense to identify the API it integrates with. |
+| **Security disclosures** | Email `naza@helloastro.co` with subject `[security]`. See [SECURITY.md](./SECURITY.md). |
+| **Bus factor** | 1. Plan accordingly. |
+
+If you're considering this for production:
+
+- 🧭 [`ARCHITECTURE.md`](./ARCHITECTURE.md) — system context, layers, trust boundaries, design decisions
+- 🛡️ [`SECURITY.md`](./SECURITY.md) — threat model, agent-runtime risks, disclosure policy
+- 📋 [`MIGRATION.md`](./MIGRATION.md) — side-by-side from the archived `mercadolibre/nodejs-sdk`
+- 🏛️ [`GOVERNANCE.md`](./GOVERNANCE.md) — decisions log, bus-factor mitigation, co-maintainer path
+- 📈 [`evals/results.md`](./evals/results.md) — LLM-as-judge agent benchmark (18.7/20 mean)
+- 📜 [`CHANGELOG.md`](./CHANGELOG.md) — versioned history, BREAKING markers explicit
+- 👤 [Operated by →](https://mercadolibre.ar-agents.ar/operated-by) — vendor security questionnaire pre-filled (legal, SLA, incident response, SBOM, latency snapshot)
+
+---
 
 [![npm](https://img.shields.io/npm/v/@ar-agents/mercadolibre)](https://npmjs.com/package/@ar-agents/mercadolibre)
-[![tests](https://img.shields.io/badge/tests-75%20passing-brightgreen)](#)
+[![tests](https://img.shields.io/badge/tests-111%20unit%20%2B%2010%20property-brightgreen)](#)
+[![integration](https://github.com/ar-agents/ar-agents/actions/workflows/mercadolibre-integration-cron.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/mercadolibre-integration-cron.yml)
 [![publint](https://img.shields.io/badge/publint-passing-brightgreen)](https://publint.dev/@ar-agents/mercadolibre)
 [![attw](https://img.shields.io/badge/types-correct-brightgreen)](https://arethetypeswrong.github.io/?p=@ar-agents/mercadolibre)
+[![bundle](https://img.shields.io/badge/brotli-11_KB-brightgreen)](#)
+
+🇦🇷 [Versión en español](./README.es.md) · 📋 [POSITIONING](./POSITIONING.md) · 🏛️ [GOVERNANCE](./GOVERNANCE.md) · 🧭 [ARCHITECTURE](./ARCHITECTURE.md) · 📦 [MIGRATION](./MIGRATION.md) · 👤 [Operated by →](https://mercadolibre.ar-agents.ar/operated-by) · 🤝 [Integrate →](https://mercadolibre.ar-agents.ar/integrate) · 📜 [RFC 001 →](https://mercadolibre.ar-agents.ar/rfc/001)
+
+## MCP host compatibility
+
+The bundled `@ar-agents/mcp` server (which includes `@ar-agents/mercadolibre`) has been verified to install + register tools cleanly in:
+
+| MCP host | Install method | Verified |
+| --- | --- | --- |
+| Claude Desktop | `claude_desktop_config.json` → `npx -y @ar-agents/mcp` | ✓ |
+| Cursor | `~/.cursor/mcp.json` → same shape | ✓ |
+| Codeium / Windsurf | Workspace settings → `mcpServers` block | ✓ |
+| Continue | `~/.continue/config.json` → `mcpServers` | ✓ |
+| Cline | VS Code extension → `cline.mcpServers` | ✓ |
+| Anthropic / OpenAI native runtime | `Experimental_Agent` from `ai` SDK 6 (no MCP needed) | ✓ |
+
+The same MCP server bundle works across these hosts because we follow the standard MCP `@modelcontextprotocol/sdk@^1.0.0` server interface — no host-specific adaptations.
 
 `@ar-agents/mercadolibre` is the toolkit you wire into a Vercel AI SDK agent so it can:
 
@@ -74,8 +120,11 @@ This package coalesces concurrent refreshes per-user with an in-process mutex an
 import { MeliClient, type OAuthTokenStore } from "@ar-agents/mercadolibre";
 
 const store: OAuthTokenStore = {
-  async getTokens(userId) { /* read from DB */ },
-  async saveTokens(userId, tokens) { /* atomic UPDATE WHERE refresh_token = old */ },
+  async read(userId) { /* SELECT FROM meli_tokens WHERE user_id = $userId */ },
+  async write(userId, tokens) {
+    /* INSERT … ON CONFLICT … DO UPDATE WHERE refresh_token = $old_refresh_token */
+  },
+  async remove(userId) { /* optional — DELETE FROM meli_tokens WHERE user_id = $userId */ },
 };
 
 const client = new MeliClient({

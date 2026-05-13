@@ -1,7 +1,7 @@
 import type { NextConfig } from "next";
 import path from "node:path";
 
-// Static-CSP approach (no nonces) — fine here because the landing renders
+// Static-CSP approach (no nonces), fine here because the landing renders
 // only Next.js framework scripts + Tailwind inline styles, no third-party.
 // `next/font/google` self-hosts the fonts at build, so font-src 'self' is
 // sufficient. If you ever add Vercel Analytics, add `vitals.vercel-insights.com`

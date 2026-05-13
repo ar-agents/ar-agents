@@ -20,7 +20,7 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
 const SHADOW_CARD =
   "rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px";
-const SITE_URL = "https://ar-agents.vercel.app";
+const SITE_URL = "https://ar-agents.ar";
 
 export async function generateMetadata({
   params,
@@ -152,7 +152,7 @@ function Header({ sessionId }: { sessionId: string }) {
           margin: 0,
         }}
       >
-        /arg · dashboard · forensic timeline
+        dashboard · forensic timeline
       </p>
       <h1
         style={{
@@ -263,13 +263,13 @@ function VerificationCard({
           value={
             verification.hmacWired
               ? `${verification.verified}/${verification.total}`
-              : "—"
+              : "-"
           }
         />
         <Metric
           label="tampered"
           value={
-            verification.hmacWired ? String(verification.tampered) : "—"
+            verification.hmacWired ? String(verification.tampered) : "-"
           }
           tone={verification.tampered > 0 ? "danger" : undefined}
         />
@@ -411,7 +411,7 @@ function Footer() {
         lineHeight: 1.6,
       }}
     >
-      Esta página es la implementación de RFC-001 § 9.2 — el log es legalmente
+      Esta página es la implementación de RFC-001 § 9.2, el log es legalmente
       probatorio cuando el HMAC está cableado y el backend es persistente
       (Vercel KV en producción). Cualquier tercero puede{" "}
       <a href={`/api/play/audit/${"sessionId"}?verify=1`} style={{ color: "#0072f5" }}>

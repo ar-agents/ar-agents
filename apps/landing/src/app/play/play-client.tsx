@@ -1,14 +1,14 @@
 "use client";
 
 /**
- * /play — interactive sociedad-IA demo.
+ * /play, interactive sociedad-IA demo.
  *
  * Layout: chat-pane on the left, audit-log on the right. The audit log
- * mirrors what an RFC-001-compliant deployment would record — tool name,
+ * mirrors what an RFC-001-compliant deployment would record, tool name,
  * input, output, timestamp, and the governance class (algorithm-only,
  * mocked-upstream, audit-logged, requires-confirmation).
  *
- * Design: Vercel-grade chrome — Geist Sans + Geist Mono, shadow-as-border,
+ * Design: Vercel-grade chrome, Geist Sans + Geist Mono, shadow-as-border,
  * three-weight system, achromatic palette with workflow accents only on
  * compliance pills.
  */
@@ -26,10 +26,10 @@ import {
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
-// Vercel design tokens
-const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
-const SHADOW_CARD =
-  "rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px";
+// Theme-aware design tokens, use globals.css CSS vars so /play tracks
+// the user's dark/light preference like the rest of the site.
+const SHADOW_BORDER = "var(--shadow-border)";
+const SHADOW_CARD = "var(--card-shadow)";
 
 // WCAG-friendly screen-reader-only style for off-screen labels.
 const visuallyHidden: React.CSSProperties = {
@@ -196,7 +196,7 @@ export function PlayClient() {
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "minmax(0, 1fr) minmax(0, 480px)",
+          gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 380px), 1fr))",
           gap: 24,
           marginTop: 24,
         }}
@@ -205,7 +205,7 @@ export function PlayClient() {
         <section
           aria-label="Conversación con la sociedad-IA"
           style={{
-            background: "#ffffff",
+            background: "var(--bg)",
             borderRadius: 8,
             boxShadow: SHADOW_CARD,
             display: "flex",
@@ -216,20 +216,20 @@ export function PlayClient() {
           <div
             style={{
               padding: "12px 16px",
-              boxShadow: `inset 0 -1px 0 0 rgba(0,0,0,0.08)`,
+              boxShadow: `inset 0 -1px 0 0 var(--border-color)`,
               display: "flex",
               alignItems: "center",
               gap: 8,
             }}
           >
-            <Pill color="#0a72ef" bg="#ebf5ff">
+            <Pill color="var(--accent)" bg="var(--accent-bg)">
               ACME-AI SAS · sandbox
             </Pill>
             <span
               style={{
                 fontSize: 11,
                 fontFamily: FONT_MONO,
-                color: "#666",
+                color: "var(--text-muted)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
               }}
@@ -241,8 +241,8 @@ export function PlayClient() {
               onClick={reset}
               style={{
                 marginLeft: "auto",
-                background: "#ffffff",
-                color: "#171717",
+                background: "var(--bg)",
+                color: "var(--text)",
                 border: 0,
                 borderRadius: 6,
                 padding: "4px 10px",
@@ -250,7 +250,7 @@ export function PlayClient() {
                 fontFamily: FONT_MONO,
                 fontWeight: 500,
                 cursor: "pointer",
-                boxShadow: "rgb(235,235,235) 0px 0px 0px 1px",
+                boxShadow: "var(--shadow-ring-light)",
               }}
             >
               reset
@@ -281,7 +281,7 @@ export function PlayClient() {
                 style={{
                   fontFamily: FONT_MONO,
                   fontSize: 12,
-                  color: "#666",
+                  color: "var(--text-muted)",
                   letterSpacing: "0.04em",
                 }}
               >
@@ -291,7 +291,7 @@ export function PlayClient() {
                     width: 8,
                     height: 8,
                     borderRadius: "50%",
-                    background: "#0a72ef",
+                    background: "var(--accent)",
                     marginRight: 6,
                     animation: "pulse 1s ease-in-out infinite",
                   }}
@@ -303,13 +303,13 @@ export function PlayClient() {
               <div
                 role="alert"
                 style={{
-                  background: "#fff5f5",
-                  color: "#c53030",
+                  background: "var(--danger-bg)",
+                  color: "var(--danger)",
                   padding: "10px 14px",
                   borderRadius: 6,
                   fontSize: 13,
                   fontFamily: FONT_MONO,
-                  boxShadow: "rgba(197,48,48,0.2) 0px 0px 0px 1px",
+                  boxShadow: "var(--danger) 0px 0px 0px 1px",
                 }}
               >
                 {error.message}
@@ -321,7 +321,7 @@ export function PlayClient() {
             onSubmit={onSubmit}
             style={{
               padding: 16,
-              boxShadow: "inset 0 1px 0 0 rgba(0,0,0,0.08)",
+              boxShadow: "inset 0 1px 0 0 var(--border-color)",
               display: "flex",
               gap: 8,
             }}
@@ -344,14 +344,14 @@ export function PlayClient() {
               maxLength={2000}
               style={{
                 flex: 1,
-                background: "#ffffff",
-                color: "#171717",
+                background: "var(--bg)",
+                color: "var(--text)",
                 border: 0,
                 borderRadius: 6,
                 padding: "10px 14px",
                 fontSize: 14,
                 fontFamily: "inherit",
-                boxShadow: "rgb(235,235,235) 0px 0px 0px 1px",
+                boxShadow: "var(--shadow-ring-light)",
                 outline: "none",
               }}
               onFocus={(e) => {
@@ -360,7 +360,7 @@ export function PlayClient() {
               }}
               onBlur={(e) => {
                 e.currentTarget.style.boxShadow =
-                  "rgb(235,235,235) 0px 0px 0px 1px";
+                  "var(--shadow-ring-light)";
               }}
             />
             <span id="play-prompt-hint" style={visuallyHidden}>
@@ -372,8 +372,8 @@ export function PlayClient() {
               aria-busy={isStreaming}
               style={{
                 background:
-                  isStreaming || !input.trim() ? "#ebebeb" : "#171717",
-                color: isStreaming || !input.trim() ? "#666" : "#ffffff",
+                  isStreaming || !input.trim() ? "var(--border-color)" : "var(--text)",
+                color: isStreaming || !input.trim() ? "var(--text-muted)" : "var(--bg)",
                 border: 0,
                 borderRadius: 6,
                 padding: "10px 16px",
@@ -392,7 +392,7 @@ export function PlayClient() {
         <aside
           aria-label="Audit log RFC-001"
           style={{
-            background: "#ffffff",
+            background: "var(--bg)",
             borderRadius: 8,
             boxShadow: SHADOW_CARD,
             display: "flex",
@@ -403,7 +403,7 @@ export function PlayClient() {
           <div
             style={{
               padding: "12px 16px",
-              boxShadow: `inset 0 -1px 0 0 rgba(0,0,0,0.08)`,
+              boxShadow: `inset 0 -1px 0 0 var(--border-color)`,
               display: "flex",
               alignItems: "center",
               gap: 8,
@@ -414,7 +414,7 @@ export function PlayClient() {
               style={{
                 fontSize: 11,
                 fontFamily: FONT_MONO,
-                color: "#171717",
+                color: "var(--text)",
                 textTransform: "uppercase",
                 letterSpacing: "0.06em",
                 fontWeight: 600,
@@ -429,7 +429,7 @@ export function PlayClient() {
               style={{
                 fontSize: 10,
                 fontFamily: FONT_MONO,
-                color: "#0072f5",
+                color: "var(--accent)",
                 textDecoration: "none",
                 marginLeft: 4,
                 fontWeight: 500,
@@ -439,8 +439,8 @@ export function PlayClient() {
             </a>
             {backend && (
               <Pill
-                color={backend === "vercel-kv" ? "#0a72ef" : "#666"}
-                bg={backend === "vercel-kv" ? "#ebf5ff" : "#f5f5f5"}
+                color={backend === "vercel-kv" ? "var(--accent)" : "var(--text-muted)"}
+                bg={backend === "vercel-kv" ? "var(--accent-bg)" : "var(--bg-tint)"}
               >
                 {backend}
               </Pill>
@@ -450,7 +450,7 @@ export function PlayClient() {
                 marginLeft: "auto",
                 fontSize: 11,
                 fontFamily: FONT_MONO,
-                color: "#666",
+                color: "var(--text-muted)",
               }}
             >
               {audit.length} {audit.length === 1 ? "entrada" : "entradas"}
@@ -475,7 +475,7 @@ export function PlayClient() {
               <div
                 style={{
                   fontSize: 13,
-                  color: "#666",
+                  color: "var(--text-muted)",
                   padding: 16,
                   fontFamily: FONT_MONO,
                   lineHeight: 1.55,
@@ -483,7 +483,7 @@ export function PlayClient() {
               >
                 Cada tool call que invoque la sociedad-IA va a aparecer acá con
                 timestamp, input, output, y la clasificación de governance
-                (RFC-001 § 9.2 — append-only, HMAC-signed timestamps).
+                (RFC-001 § 9.2, append-only, HMAC-signed timestamps).
               </div>
             ) : (
               audit.map((entry) => <AuditEntryCard key={entry.id} entry={entry} />)
@@ -498,7 +498,7 @@ export function PlayClient() {
           style={{
             fontSize: 14,
             fontFamily: FONT_MONO,
-            color: "#666",
+            color: "var(--text-muted)",
             textTransform: "uppercase",
             letterSpacing: "0.06em",
             margin: "0 0 12px",
@@ -521,8 +521,8 @@ export function PlayClient() {
               onClick={() => submit(s.prompt)}
               disabled={isStreaming}
               style={{
-                background: "#ffffff",
-                color: "#171717",
+                background: "var(--bg)",
+                color: "var(--text)",
                 border: 0,
                 borderRadius: 8,
                 padding: "12px 14px",
@@ -541,14 +541,14 @@ export function PlayClient() {
                 style={{
                   fontSize: 11,
                   fontFamily: FONT_MONO,
-                  color: "#666",
+                  color: "var(--text-muted)",
                   textTransform: "uppercase",
                   letterSpacing: "0.05em",
                 }}
               >
                 {s.label}
               </span>
-              <span style={{ color: "#4d4d4d" }}>{s.prompt}</span>
+              <span style={{ color: "var(--text-body)" }}>{s.prompt}</span>
             </button>
           ))}
         </div>
@@ -581,19 +581,19 @@ function Header() {
           style={{
             fontSize: 11,
             fontFamily: FONT_MONO,
-            color: "#666",
+            color: "var(--text-muted)",
             textTransform: "uppercase",
             letterSpacing: "0.06em",
             margin: 0,
           }}
         >
-          /arg · play · sociedad-IA en vivo
+          play · sociedad-IA en vivo
         </p>
         <h1
           style={{
             fontSize: 40,
             fontWeight: 600,
-            color: "#171717",
+            color: "var(--text)",
             letterSpacing: "-2.4px",
             lineHeight: 1.0,
             margin: 0,
@@ -609,7 +609,7 @@ function Header() {
           marginLeft: "auto",
           maxWidth: 360,
           fontSize: 14,
-          color: "#4d4d4d",
+          color: "var(--text-body)",
           lineHeight: 1.5,
           margin: 0,
         }}
@@ -628,7 +628,7 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
       style={{
         textAlign: "center",
         padding: "32px 16px",
-        color: "#4d4d4d",
+        color: "var(--text-body)",
         fontSize: 14,
         lineHeight: 1.6,
       }}
@@ -637,7 +637,7 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
         style={{
           fontSize: 13,
           fontFamily: FONT_MONO,
-          color: "#666",
+          color: "var(--text-muted)",
           textTransform: "uppercase",
           letterSpacing: "0.06em",
           marginBottom: 12,
@@ -645,18 +645,18 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
       >
         sandbox · cero setup · cero datos reales
       </div>
-      <p style={{ margin: 0, color: "#171717", fontSize: 16, fontWeight: 500 }}>
+      <p style={{ margin: 0, color: "var(--text)", fontSize: 16, fontWeight: 500 }}>
         Escribí un pedido como si fueras el dueño humano de ACME-AI SAS.
       </p>
-      <p style={{ margin: "8px 0 24px", color: "#4d4d4d" }}>
+      <p style={{ margin: "8px 0 24px", color: "var(--text-body)" }}>
         El agente va a usar las 12 tools del stack <code style={{ fontFamily: FONT_MONO }}>@ar-agents/*</code> para resolverlo, y cada tool call va a aparecer en el audit log →
       </p>
       <button
         type="button"
         onClick={() => onPick(SCENARIOS[0]!.prompt)}
         style={{
-          background: "#171717",
-          color: "#ffffff",
+          background: "var(--text)",
+          color: "var(--bg)",
           border: 0,
           borderRadius: 6,
           padding: "10px 18px",
@@ -684,8 +684,8 @@ function MessageBubble({ message }: { message: { role: string; parts?: ChatPart[
       style={{
         alignSelf: isUser ? "flex-end" : "flex-start",
         maxWidth: "85%",
-        background: isUser ? "#171717" : "#fafafa",
-        color: isUser ? "#ffffff" : "#171717",
+        background: isUser ? "var(--text)" : "var(--bg-tint)",
+        color: isUser ? "var(--bg)" : "var(--text)",
         padding: "10px 14px",
         borderRadius: 12,
         boxShadow: isUser ? "none" : SHADOW_BORDER,
@@ -710,7 +710,7 @@ function AuditEntryCard({ entry }: { entry: AuditEntry }) {
   return (
     <article
       style={{
-        background: "#ffffff",
+        background: "var(--bg)",
         padding: "10px 12px",
         borderRadius: 6,
         boxShadow: SHADOW_BORDER,
@@ -729,7 +729,7 @@ function AuditEntryCard({ entry }: { entry: AuditEntry }) {
           style={{
             fontFamily: FONT_MONO,
             fontSize: 12,
-            color: "#171717",
+            color: "var(--text)",
             fontWeight: 500,
           }}
         >
@@ -744,7 +744,7 @@ function AuditEntryCard({ entry }: { entry: AuditEntry }) {
               marginLeft: "auto",
               fontFamily: FONT_MONO,
               fontSize: 10,
-              color: "#666",
+              color: "var(--text-muted)",
             }}
           >
             {elapsed}ms
@@ -756,7 +756,7 @@ function AuditEntryCard({ entry }: { entry: AuditEntry }) {
           style={{
             fontSize: 11,
             fontFamily: FONT_MONO,
-            color: "#666",
+            color: "var(--text-muted)",
             cursor: "pointer",
             textTransform: "uppercase",
             letterSpacing: "0.05em",
@@ -766,15 +766,15 @@ function AuditEntryCard({ entry }: { entry: AuditEntry }) {
         </summary>
         <pre
           style={{
-            background: "#fafafa",
+            background: "var(--bg-tint)",
             padding: 8,
             borderRadius: 4,
             fontSize: 11,
             fontFamily: FONT_MONO,
-            color: "#4d4d4d",
+            color: "var(--text-body)",
             margin: "6px 0 0",
             overflowX: "auto",
-            boxShadow: "rgb(235,235,235) 0px 0px 0px 1px",
+            boxShadow: "var(--shadow-ring-light)",
             whiteSpace: "pre-wrap",
             wordBreak: "break-word",
           }}
@@ -821,90 +821,90 @@ function FooterNotes({ sessionId }: { sessionId: string }) {
       style={{
         marginTop: 48,
         padding: "16px 18px",
-        background: "#fafafa",
+        background: "var(--bg-tint)",
         borderRadius: 8,
         boxShadow: SHADOW_BORDER,
         fontSize: 13,
-        color: "#4d4d4d",
+        color: "var(--text-body)",
         lineHeight: 1.6,
         display: "grid",
         gap: 10,
       }}
     >
       <div>
-        <strong style={{ color: "#171717" }}>Esto es un sandbox.</strong> Ningún
+        <strong style={{ color: "var(--text)" }}>Esto es un sandbox.</strong> Ningún
         tool toca APIs reales. Los CUITs que ingreses se procesan
         algorítmicamente; los lookups de padrón ARCA, BCRA, IGJ y WSFE
         devuelven datos sintéticos plausibles para que el agente pueda mostrar
         el flujo. Producción real:{" "}
-        <a href="/incorporar" style={{ color: "#0072f5" }}>
+        <a href="/incorporar" style={{ color: "var(--accent)" }}>
           /incorporar
         </a>{" "}
         →{" "}
         <code style={{ fontFamily: FONT_MONO }}>apps/sociedad-ia-starter</code>.
       </div>
       <div>
-        <strong style={{ color: "#171717" }}>Audit log de esta sesión:</strong>{" "}
+        <strong style={{ color: "var(--text)" }}>Audit log de esta sesión:</strong>{" "}
         <a
           href={`/dashboard/${sessionId}`}
           target="_blank"
           rel="noreferrer"
           style={{
-            color: "#0072f5",
+            color: "var(--accent)",
             fontFamily: FONT_MONO,
             fontSize: 12,
           }}
         >
           /dashboard/{sessionId.slice(0, 8)}…
         </a>
-        {" — "}timeline forense con cada tool call HMAC-SHA256-firmado server-
+        {", "}timeline forense con cada tool call HMAC-SHA256-firmado server-
         side. JSON crudo en{" "}
         <a
           href={`/api/play/audit/${sessionId}?verify=1`}
           target="_blank"
           rel="noreferrer"
-          style={{ color: "#0072f5", fontFamily: FONT_MONO, fontSize: 12 }}
+          style={{ color: "var(--accent)", fontFamily: FONT_MONO, fontSize: 12 }}
         >
           /api/play/audit/{sessionId.slice(0, 8)}…?verify=1
         </a>
         .
       </div>
       <div>
-        <strong style={{ color: "#171717" }}>Auto-incorporación machine-readable:</strong>{" "}
+        <strong style={{ color: "var(--text)" }}>Auto-incorporación machine-readable:</strong>{" "}
         <code style={{ fontFamily: FONT_MONO, fontSize: 12 }}>
           POST /api/auto-incorporate
-        </code>{" "}
-        — un agente externo (USA-LLC, ChatGPT, Claude) puede self-incorporar
+        </code>:{" "}
+      un agente externo (USA-LLC, ChatGPT, Claude) puede self-incorporar
         una sociedad-IA argentina en una sola llamada. Ver{" "}
         <a
           href="/api/auto-incorporate"
           target="_blank"
           rel="noreferrer"
-          style={{ color: "#0072f5" }}
+          style={{ color: "var(--accent)" }}
         >
           schema
         </a>
         .
       </div>
       <div>
-        <strong style={{ color: "#171717" }}>Más:</strong>{" "}
-        <a href="/playbook" style={{ color: "#0072f5" }}>
+        <strong style={{ color: "var(--text)" }}>Más:</strong>{" "}
+        <a href="/playbook" style={{ color: "var(--accent)" }}>
           /playbook
         </a>{" "}
         ·{" "}
-        <a href="/es/playbook" style={{ color: "#0072f5" }}>
+        <a href="/es/playbook" style={{ color: "var(--accent)" }}>
           /es/playbook
         </a>{" "}
         ·{" "}
-        <a href="/rfcs/001" style={{ color: "#0072f5" }}>
+        <a href="/rfcs/001" style={{ color: "var(--accent)" }}>
           /rfcs/001
         </a>{" "}
         ·{" "}
-        <a href="/security" style={{ color: "#0072f5" }}>
+        <a href="/security" style={{ color: "var(--accent)" }}>
           /security
         </a>{" "}
         ·{" "}
-        <a href="/architecture" style={{ color: "#0072f5" }}>
+        <a href="/architecture" style={{ color: "var(--accent)" }}>
           /architecture
         </a>
       </div>

@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
 export const metadata: Metadata = {
-  title: "Benchmark — what an Argentine agent stack actually answers",
+  title: "Benchmark, what an Argentine agent stack actually answers",
   description:
     "Side-by-side: 12 real questions about an Argentine business operation, answered by @ar-agents/* tools vs. AfipSDK + ChatGPT + the official mercadopago SDK. The gap is the product.",
-  alternates: { canonical: "https://ar-agents.vercel.app/marketplace" },
+  alternates: { canonical: "https://ar-agents.ar/marketplace" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -86,7 +86,7 @@ const ROWS: Row[] = [
   {
     q: "Cobrale $25.000 mensual a juan@example.com con razón 'Plan Pro'",
     ours:
-      "create_subscription via @ar-agents/mercadopago — returns init_point_url + idempotency-key derived from inputs (LLM-retry safe)",
+      "create_subscription via @ar-agents/mercadopago, returns init_point_url + idempotency-key derived from inputs (LLM-retry safe)",
     others: [
       {
         name: "AfipSDK",
@@ -169,7 +169,7 @@ const ROWS: Row[] = [
   {
     q: "Validá la firma de un PKCS#7/CMS firmado con cert AR-ONTI",
     ours:
-      "verify_cms_signature (AR-ONTI heuristic + fingerprint pinning) — única lib OSS que cubre el catálogo de cert authorities AR-públicas (AC-Raíz, ONTI)",
+      "verify_cms_signature (AR-ONTI heuristic + fingerprint pinning), única lib OSS que cubre el catálogo de cert authorities AR-públicas (AC-Raíz, ONTI)",
     others: [
       {
         name: "node-forge / @peculiar/x509",
@@ -186,7 +186,7 @@ const ROWS: Row[] = [
   {
     q: "¿La sociedad 'Acme Argentina SRL' está activa en IGJ y quién es su director?",
     ours:
-      "buscar_sociedad_igj + get_acta_directorio (datos.jus.gob.ar pulled + normalized — primera lib pública con AGENTS.md sobre IGJ)",
+      "buscar_sociedad_igj + get_acta_directorio (datos.jus.gob.ar pulled + normalized, primera lib pública con AGENTS.md sobre IGJ)",
     others: [
       {
         name: "datos.jus.gob.ar",
@@ -203,7 +203,7 @@ const ROWS: Row[] = [
   {
     q: "Verificá identidad del usuario via Mi Argentina (gov OIDC)",
     ours:
-      "mi_argentina_authorize + verify_id_token — PKCE + RS256 ID-token verification + JWKS caching, runs on Edge",
+      "mi_argentina_authorize + verify_id_token, PKCE + RS256 ID-token verification + JWKS caching, runs on Edge",
     others: [
       {
         name: "Auth0 / Supabase",
@@ -220,7 +220,7 @@ const ROWS: Row[] = [
   {
     q: "Monitoreá el Boletín Oficial por publicaciones que mencionen un CUIT específico",
     ours:
-      "subscribe_boletin_oficial — webhook fires en cada publicación matched · 'Vercel for legal monitoring'",
+      "subscribe_boletin_oficial, webhook fires en cada publicación matched · 'Vercel for legal monitoring'",
     others: [
       {
         name: "boletinoficial.gob.ar",
@@ -237,7 +237,7 @@ const ROWS: Row[] = [
   {
     q: "Implementá ACP (Agentic Commerce Protocol) con auto-emisión de Factura A/B/C/E al confirmar pago",
     ours:
-      "@ar-agents/agentic-commerce-bridge — único OSS que combina ACP spec + Mercado Pago + AFIP factura · 160 tests · /.well-known/acp.json discovery",
+      "@ar-agents/agentic-commerce-bridge, único OSS que combina ACP spec + Mercado Pago + AFIP factura · 160 tests · /.well-known/acp.json discovery",
     others: [
       {
         name: "Stripe ACP",
@@ -281,7 +281,7 @@ function Verdict({ kind }: { kind: "yes" | "partial" | "no" }) {
 export default function MarketplacePage() {
   return (
     <DocShell
-      eyebrow="/arg · benchmark · 2026-05"
+      eyebrow="benchmark · 2026-05"
       title="What an Argentine agent stack actually answers."
       subtitle="12 real questions about running a business in Argentina, side-by-side: @ar-agents/* tools vs. AfipSDK, the official mercadopago SDK, ChatGPT alone, and the underlying gov/private REST APIs. The gap is what the toolkit ships."
     >
@@ -290,7 +290,7 @@ export default function MarketplacePage() {
           Most agent toolkits answer payment questions. A real Argentine
           business operation needs to also answer tax, identity, banking, gov
           identity, IGJ corporate registry, public-records monitoring, digital
-          signatures, and shipping questions — and those answers have to flow
+          signatures, and shipping questions, and those answers have to flow
           through the same agent loop, with the same idempotency &amp; HITL
           guardrails as payments.
         </DocP>
@@ -371,9 +371,9 @@ export default function MarketplacePage() {
         which are the easy half of the problem).
       </DocP>
       <DocP>
-        The hard half — AR fiscal compliance, identity verification, IGJ
+        The hard half, AR fiscal compliance, identity verification, IGJ
         corporate registry, BCRA credit history, digital signature
-        verification, Boletín Oficial monitoring, ACP-with-factura — has been
+        verification, Boletín Oficial monitoring, ACP-with-factura, has been
         un-or-poorly served until now. The toolkit&apos;s thesis is that the
         agent jurisdiction Argentina is shaping (sociedades-IA bill, April
         2026) needs that hard half answered first, before any of the headline

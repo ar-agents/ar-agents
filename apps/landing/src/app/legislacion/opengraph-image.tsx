@@ -30,7 +30,7 @@ export default async function Image() {
             marginBottom: 12,
           }}
         >
-          /arg · /legislación · síntesis para legisladores
+          /legislación · síntesis para legisladores
         </div>
         <div
           style={{
@@ -84,7 +84,7 @@ export default async function Image() {
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/legislacion</span>
+          <span>ar-agents.ar/legislacion</span>
           <span style={{ fontSize: 16, color: "#999" }}>MIT + CC-BY-4.0</span>
         </div>
       </div>

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { LangProvider } from "./i18n";
-import { Toggles } from "./toggles";
+import { Nav } from "./nav";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -15,47 +15,48 @@ const geistMono = Geist_Mono({
 });
 
 // Compact, keyword-rich meta description (155 char limit for Google snippet
-// truncation). Lead with the proper noun ("Mercado Pago"), the unique value
-// ("89 typed tools"), and the platform ("Vercel AI SDK 6").
+// truncation). Lead with the umbrella story (open infrastructure for AR
+// sociedades-IA), follow with proof points (17 packages, 5 RFCs, audit log).
 const META_DESCRIPTION =
-  "Mercado Pago Agent Toolkit for the Vercel AI SDK 6. 89 typed tools, Edge Runtime, idempotency-by-default, webhook HMAC, HITL on irreversible ops.";
+  "Open-source infrastructure for Argentine AI corporations (sociedades-IA). 17 npm packages, 5 RFCs, a public registry, an HMAC + Ed25519 audit log. MIT + CC-BY-4.0.";
 
-const SITE_URL = "https://ar-agents.vercel.app";
+const SITE_URL = "https://ar-agents.ar";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "Mercado Pago Agent Toolkit · Built on Vercel",
+    default: "ar-agents · open infrastructure for AI corporations in Argentina",
     template: "%s · ar-agents",
   },
   description: META_DESCRIPTION,
   keywords: [
-    "mercado pago",
-    "mercadopago",
-    "vercel ai sdk",
-    "ai agent toolkit",
+    "sociedades de IA",
+    "sociedades ia",
+    "argentina ai law",
+    "argentine ai corporations",
+    "ai agent legal framework",
+    "ai agent jurisdiction",
+    "ai agent infrastructure",
+    "agent audit log",
+    "rfc",
+    "agents.json",
+    "agents.md",
+    "agent identity",
+    "agent liability",
     "argentina",
     "afip",
     "arca",
     "factura electronica",
-    "wsfe",
-    "whatsapp business",
-    "cbu",
-    "bcra",
-    "andreani",
-    "oca",
-    "correo argentino",
-    "edge runtime",
+    "mercado pago",
+    "vercel ai sdk",
     "mcp",
     "model context protocol",
-    "agent tools",
+    "open source",
+    "agent infrastructure",
     "typescript",
-    "stripe alternative",
-    "latam payments",
-    "cuotas",
   ],
-  authors: [{ name: "Nazareno Clemente", url: "https://github.com/naza00000" }],
-  creator: "Nazareno Clemente",
+  authors: [{ name: "Naza", url: "https://github.com/naza00000" }],
+  creator: "Naza",
   publisher: "ar-agents",
   alternates: {
     canonical: SITE_URL,
@@ -70,9 +71,9 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "ar-agents",
-    title: "Mercado Pago Agent Toolkit",
+    title: "ar-agents, open infrastructure for AI corporations in Argentina",
     description:
-      "89 typed tools for the Vercel AI SDK 6: Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Cuotas, QR, 3DS. Plus AFIP/ARCA, WhatsApp, banking, shipping.",
+      "17 npm packages, 5 RFCs, a public registry, an HMAC + Ed25519 audit log. The technical scaffolding for the Argentine sociedades-IA regime.",
     url: SITE_URL,
     locale: "en_US",
     alternateLocale: ["es_AR"],
@@ -102,17 +103,17 @@ const themeInitScript = `
 // Schema.org JSON-LD. Six entities in @graph for rich citation by AI engines
 // (Google AI Overviews, Bing Copilot, Perplexity, Claude.ai web search):
 //
-//   1. SoftwareApplication — the toolkit itself, with sameAs to every external
+//   1. SoftwareApplication, the toolkit itself, with sameAs to every external
 //      surface (npm, Glama, MCP Registry) so cross-citation works.
-//   2. WebSite — site-level metadata.
-//   3. Organization — the ar-agents GitHub org.
-//   4. Person — Naza, with sameAs to GitHub + npm + email.
-//   5. FAQPage — question/answer pairs that LLMs love quoting verbatim.
-//   6. HowTo — install + first-call sequence with discrete steps.
+//   2. WebSite, site-level metadata.
+//   3. Organization, the ar-agents GitHub org.
+//   4. Person, Naza, with sameAs to GitHub + npm + email.
+//   5. FAQPage, question/answer pairs that LLMs love quoting verbatim.
+//   6. HowTo, install + first-call sequence with discrete steps.
 //
-// dateCreated / dateModified are ISO 8601 — search engines use these to
+// dateCreated / dateModified are ISO 8601, search engines use these to
 // decide content freshness.
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 const SCHEMA_DATE_CREATED = "2026-05-05";
 const SCHEMA_DATE_MODIFIED = "2026-05-08";
 
@@ -122,23 +123,21 @@ const schemaOrgJsonLd = {
     {
       "@type": "SoftwareApplication",
       "@id": SITE + "/#app",
-      name: "Mercado Pago Agent Toolkit",
-      alternateName: ["@ar-agents/mercadopago", "ar-agents"],
-      headline: "Drop Mercado Pago into your AI agent",
+      name: "ar-agents",
+      alternateName: ["ar-agents toolkit", "@ar-agents/*"],
+      headline: "Open infrastructure for AI corporations in Argentina",
       description:
-        "89 typed Mercado Pago tools (Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Cuotas, QR, 3DS, Point devices, Stores+POS, Account/Balance/Settlements, Webhooks, Disputes, Lookups, Bank Accounts) for the Vercel AI SDK 6. Edge Runtime, Vercel KV adapters, OpenTelemetry, npm provenance attestation, deterministic idempotency, programmatic human-in-the-loop on 8 irreversible operations. Sidecar packages cover AFIP/ARCA factura electronica, WhatsApp Business Cloud, banking (CBU/CVU + BCRA Central de Deudores), and shipping (Andreani, OCA, Correo Argentino).",
+        "Open-source technical scaffolding for the proposed Argentine sociedades-IA regime (AI corporations as legal entities). 17 typed npm packages covering the Argentine state + financial stack (identity, signing, money, customer ops, gazette monitoring, corporate registry). 5 RFCs covering three-layer liability framework, agent discovery, cross-jurisdictional reciprocity, operational-log specification, and asymmetric signature upgrade. A public registry of conformant implementations. Audit log signed dual HMAC-SHA256 + Ed25519. MIT (code) + CC-BY-4.0 (specs). Flagship package: @ar-agents/mercadopago with 89 Vercel AI SDK 6 tools.",
       url: SITE,
       image: SITE + "/opengraph-image",
       applicationCategory: ["DeveloperApplication", "BusinessApplication"],
-      applicationSubCategory: "Payment SDK",
+      applicationSubCategory: "Agent infrastructure",
       operatingSystem: "Cross-platform (Edge Runtime, Node.js 20+)",
-      softwareVersion: "0.15.3",
+      softwareVersion: "0.x",
       softwareRequirements:
         "Vercel AI SDK 6+, Node.js 20+ or any Edge Runtime (Vercel Edge, Cloudflare Workers, Deno)",
-      downloadUrl:
-        "https://www.npmjs.com/package/@ar-agents/mercadopago",
-      installUrl:
-        "https://www.npmjs.com/package/@ar-agents/mercadopago",
+      downloadUrl: "https://www.npmjs.com/org/ar-agents",
+      installUrl: "https://www.npmjs.com/org/ar-agents",
       license: "https://opensource.org/licenses/MIT",
       offers: {
         "@type": "Offer",
@@ -152,7 +151,7 @@ const schemaOrgJsonLd = {
       programmingLanguage: "TypeScript",
       codeRepository: "https://github.com/ar-agents/ar-agents",
       keywords:
-        "mercado pago, agent, ai sdk, vercel, argentina, afip, arca, factura electronica, whatsapp business, cbu, bcra, mcp, model context protocol, edge runtime, idempotency, webhook hmac, latam payments, cuotas, stripe alternative",
+        "sociedades de IA, sociedades-ia, AI corporation, agent infrastructure, agent identity, agent liability, agent audit log, RFC, ar-agents, argentina ai law, mercado pago agent, afip arca, factura electronica, whatsapp business, vercel ai sdk, mcp, model context protocol, agents.json, agents.md, edge runtime, open source",
       dateCreated: SCHEMA_DATE_CREATED,
       datePublished: SCHEMA_DATE_CREATED,
       dateModified: SCHEMA_DATE_MODIFIED,
@@ -246,7 +245,7 @@ const schemaOrgJsonLd = {
     {
       "@type": "Person",
       "@id": SITE + "/#person-naza",
-      name: "Nazareno Clemente",
+      name: "Naza",
       url: "https://github.com/naza00000",
       jobTitle: "Independent developer",
       sameAs: [
@@ -393,7 +392,7 @@ export default function RootLayout({
 }>) {
   return (
     <html
-      lang="en"
+      lang="es"
       className={`${geistSans.variable} ${geistMono.variable}`}
       data-theme="dark"
       suppressHydrationWarning
@@ -413,7 +412,7 @@ export default function RootLayout({
             `metadata.alternates.canonical` already emits a <link rel=canonical>;
             these are extras that some legacy crawlers still expect. */}
         <link rel="me" href="https://github.com/naza00000" />
-        {/* Browser search box / OpenSearch — lets users add the site to their
+        {/* Browser search box / OpenSearch, lets users add the site to their
             browser's search engines. Lightweight, only one extra GET. */}
         <link
           rel="search"
@@ -424,7 +423,7 @@ export default function RootLayout({
       </head>
       <body suppressHydrationWarning>
         <LangProvider>
-          <Toggles />
+          <Nav />
           {children}
         </LangProvider>
       </body>

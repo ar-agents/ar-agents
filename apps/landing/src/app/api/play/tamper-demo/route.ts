@@ -1,9 +1,9 @@
 /**
- * `POST /api/play/tamper-demo` — educational tampering demonstration.
+ * `POST /api/play/tamper-demo`, educational tampering demonstration.
  *
  * The point of this endpoint is to make the forensic claim of RFC-001
  * § 9.2 viscerally provable in a meeting. It does NOT touch any real
- * audit log — it constructs a synthetic entry, signs it, then applies
+ * audit log, it constructs a synthetic entry, signs it, then applies
  * a user-chosen mutation to demonstrate that the HMAC verification
  * mechanically catches the change.
  *
@@ -49,7 +49,7 @@ const MUTATIONS: Record<
 > = {
   tool: (entry) => ({
     description:
-      "Reescribir el `tool` de `validate_cuit` a `mp_create_subscription` — un atacante quiere fingir que el agente cobró cuando en realidad solo validó.",
+      "Reescribir el `tool` de `validate_cuit` a `mp_create_subscription`, un atacante quiere fingir que el agente cobró cuando en realidad solo validó.",
     tampered: { ...entry, tool: "mp_create_subscription" },
   }),
   input: (entry) => ({
@@ -123,7 +123,7 @@ export async function POST(req: Request) {
       tamperedVerified,
       explanation: hmacWired
         ? "Al re-firmar la entrada original con el secret server-side y verificar contra la versión mutada, la firma no coincide. El tampering es mecánicamente detectable."
-        : "AUDIT_HMAC_SECRET no está configurado — la firma vuelve null y la verificación queda sin contenido. En producción, set AUDIT_HMAC_SECRET (ver docs/launch/audit-log-setup.md).",
+        : "AUDIT_HMAC_SECRET no está configurado, la firma vuelve null y la verificación queda sin contenido. En producción, set AUDIT_HMAC_SECRET (ver docs/launch/audit-log-setup.md).",
     },
     {
       headers: {

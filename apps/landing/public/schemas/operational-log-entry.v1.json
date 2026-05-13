@@ -1,8 +1,8 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
-  "$id": "https://ar-agents.vercel.app/schemas/operational-log-entry.v1.json",
+  "$id": "https://ar-agents.ar/schemas/operational-log-entry.v1.json",
   "title": "RFC-004 v1 operational-log entry",
-  "description": "Normative shape of a single entry in a sociedad-IA's operational log. See https://ar-agents.vercel.app/rfcs/004 for the full specification.",
+  "description": "Normative shape of a single entry in a sociedad-IA's operational log. See https://ar-agents.ar/rfcs/004 for the full specification.",
   "type": "object",
   "additionalProperties": false,
   "required": ["id", "sessionId", "ts", "tool", "governance", "input", "hmac"],

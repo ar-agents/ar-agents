@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import { backend as auditBackend } from "@/lib/audit";
 
-// Server-rendered Node.js runtime — pulls @vercel/kv etc.
+// Server-rendered Node.js runtime, pulls @vercel/kv etc.
 export const runtime = "nodejs";
 
 // Re-checks every 30s in production. The page itself is cheap; the value is
@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   title: "/status · ar-agents operational state",
   description:
     "Live operational status of every ar-agents subsystem: Vercel KV (audit log), HMAC signing, AI Gateway, ARCA cert wiring, Mercado Pago, WhatsApp, BCRA. Public. Refreshed every 30s.",
-  alternates: { canonical: "https://ar-agents.vercel.app/status" },
+  alternates: { canonical: "https://ar-agents.ar/status" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -108,7 +108,7 @@ function buildChecks(): Check[] {
     name: "BCRA Principales Variables (USD oficial, CER, UVA, reservas)",
     status: "ok",
     detail:
-      "Public BCRA endpoints — no auth required. Always available; the demo's get_usd_oficial / get_cer / get_uva tools point at this surface.",
+      "Public BCRA endpoints, no auth required. Always available; the demo's get_usd_oficial / get_cer / get_uva tools point at this surface.",
   });
   const bcraDeudores = envSet("BCRA_DEUDORES_URL");
   checks.push({
@@ -187,7 +187,7 @@ export default function StatusPage() {
               margin: 0,
             }}
           >
-            /arg · status · live
+            status · live
           </p>
           <h1
             style={{
@@ -235,7 +235,7 @@ export default function StatusPage() {
         >
           <div>
             <strong>Live RFC-002 + RFC-004 self-cert.</strong> Re-fetched
-            from <a href="/api/certifier?url=https://ar-agents.vercel.app" style={{ color: "#0a72ef", textDecoration: "underline" }}>
+            from <a href="/api/certifier?url=https://ar-agents.ar" style={{ color: "#0a72ef", textDecoration: "underline" }}>
               /api/certifier
             </a>
             {" "}every page load. Click to run live.
@@ -246,7 +246,7 @@ export default function StatusPage() {
             aria-label="Live RFC conformance badge"
           >
             <img
-              src="/api/cert-badge?url=https://ar-agents.vercel.app"
+              src="/api/cert-badge?url=https://ar-agents.ar"
               alt="RFC-002+004 conformance"
               width="180"
               height="22"

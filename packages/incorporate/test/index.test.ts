@@ -54,7 +54,7 @@ describe("incorporate()", () => {
     expect(r.ok).toBe(true);
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, init] = fetchImpl.mock.calls[0]!;
-    expect(url).toBe("https://ar-agents.vercel.app/api/auto-incorporate");
+    expect(url).toBe("https://ar-agents.ar/api/auto-incorporate");
     expect(init.method).toBe("POST");
     expect(init.headers).toMatchObject({ "content-type": "application/json" });
     expect(JSON.parse(init.body as string)).toMatchObject({ denominacion: "ACME-AI SAS" });
@@ -203,7 +203,7 @@ describe("describe()", () => {
     expect(r).toMatchObject({ endpoint: "/api/auto-incorporate" });
     expect(fetchImpl).toHaveBeenCalledTimes(1);
     const [url, init] = fetchImpl.mock.calls[0]!;
-    expect(url).toBe("https://ar-agents.vercel.app/api/auto-incorporate");
+    expect(url).toBe("https://ar-agents.ar/api/auto-incorporate");
     expect(init.method).toBe("GET");
   });
 });
@@ -219,7 +219,7 @@ describe("fetchAudit()", () => {
     const r = await fetchAudit("abc12345", { fetchImpl });
     expect(r).toMatchObject({ sessionId: "abc12345" });
     const [url] = fetchImpl.mock.calls[0]!;
-    expect(url).toBe("https://ar-agents.vercel.app/api/play/audit/abc12345");
+    expect(url).toBe("https://ar-agents.ar/api/play/audit/abc12345");
   });
   it("appends ?verify=1 when verify is true", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(
@@ -227,6 +227,6 @@ describe("fetchAudit()", () => {
     );
     await fetchAudit("abc12345", { fetchImpl, verify: true });
     const [url] = fetchImpl.mock.calls[0]!;
-    expect(url).toBe("https://ar-agents.vercel.app/api/play/audit/abc12345?verify=1");
+    expect(url).toBe("https://ar-agents.ar/api/play/audit/abc12345?verify=1");
   });
 });

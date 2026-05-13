@@ -14,7 +14,7 @@ const csp = [
   "object-src 'none'",
   "base-uri 'self'",
   "form-action 'self'",
-  "frame-ancestors 'self' https://ar-agents.vercel.app",
+  "frame-ancestors 'self' https://ar-agents.ar",
   "upgrade-insecure-requests",
 ].join("; ");
 

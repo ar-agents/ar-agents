@@ -3,7 +3,7 @@ import { backend as auditBackend, readAudit, verifySession } from "@/lib/audit";
 
 // Dynamic OG image for /dashboard/[sessionId]. When the URL is shared in
 // Slack, WhatsApp, Twitter, etc., the preview shows the audit log's
-// verification state right in the message — green when clean, red when
+// verification state right in the message, green when clean, red when
 // tampered. Visually communicates the forensic proof before the recipient
 // even clicks.
 
@@ -58,7 +58,7 @@ export default async function Image({
             marginBottom: 8,
           }}
         >
-          /arg · dashboard · forensic timeline
+          dashboard · forensic timeline
         </div>
 
         {/* Headline */}
@@ -99,13 +99,13 @@ export default async function Image({
             value={
               verification.hmacWired
                 ? `${verification.verified}/${verification.total}`
-                : "—"
+                : "-"
             }
           />
           <Metric
             label="tampered"
             value={
-              verification.hmacWired ? String(verification.tampered) : "—"
+              verification.hmacWired ? String(verification.tampered) : "-"
             }
             highlight={verification.tampered > 0 ? "danger" : "neutral"}
           />
@@ -127,7 +127,7 @@ export default async function Image({
             alignItems: "baseline",
           }}
         >
-          <span>ar-agents.vercel.app/dashboard/{sessionId.slice(0, 8)}…</span>
+          <span>ar-agents.ar/dashboard/{sessionId.slice(0, 8)}…</span>
           <span style={{ fontSize: 14, color: "#999" }}>RFC-001 § 9.2</span>
         </div>
       </div>

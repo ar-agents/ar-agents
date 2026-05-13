@@ -5,7 +5,7 @@ export const metadata: Metadata = {
   title: "/getting-started · 5 minutes from zero to operating",
   description:
     "Three onboarding paths for ar-agents: try-without-installing (30s), human wizard for full incorporation (~10 min), TypeScript SDK for programmatic agents. Pick one.",
-  alternates: { canonical: "https://ar-agents.vercel.app/getting-started" },
+  alternates: { canonical: "https://ar-agents.ar/getting-started" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -30,7 +30,7 @@ const PATHS = [
       },
       {
         title: "Pick a scenario",
-        body: 'Hacé click en "01 · cobro B2B" — agente valida CUIT, consulta padrón, chequea BCRA, crea suscripción MP, manda WhatsApp.',
+        body: 'Hacé click en "01 · cobro B2B", agente valida CUIT, consulta padrón, chequea BCRA, crea suscripción MP, manda WhatsApp.',
       },
       {
         title: "Watch the audit log",
@@ -47,7 +47,7 @@ const PATHS = [
     color: "#22c55e",
     bg: "#ecfdf5",
     description:
-      "Para constituir una empresa argentina operada por IA, hoy. SAS estándar mientras la ley sociedades-IA no esté sancionada — el código pre-cableado migra el día 1.",
+      "Para constituir una empresa argentina operada por IA, hoy. SAS estándar mientras la ley sociedades-IA no esté sancionada, el código pre-cableado migra el día 1.",
     steps: [
       {
         title: "Abrir el wizard",
@@ -106,7 +106,7 @@ const PATHS = [
 export default function GettingStartedPage() {
   return (
     <DocShell
-      eyebrow="/arg · getting-started · pick one"
+      eyebrow="getting-started · pick one"
       title="3 caminos. Elegí el que aplica."
       subtitle="Cada path está optimizado para una audiencia diferente. Si dudás, empezá por /play (30 segundos, sin setup, sin compromiso). Si ya querés ir a producción, /incorporar es el wizard humano. Si sos un agente, andá directo al SDK."
     >
@@ -116,7 +116,7 @@ export default function GettingStartedPage() {
           <DocCode>/api/auto-incorporate</DocCode>, el mismo audit log con
           HMAC, el mismo template{" "}
           <DocCode>apps/sociedad-ia-starter</DocCode>. Lo que cambia es el
-          surface por el cual entrás. Podés combinarlas — empezar con{" "}
+          surface por el cual entrás. Podés combinarlas, empezar con{" "}
           <DocCode>/play</DocCode>, ir a <DocCode>/incorporar</DocCode>{" "}
           cuando sepas qué configurar, terminar usando el SDK para
           orchestration recurrente.
@@ -274,39 +274,39 @@ export default function GettingStartedPage() {
         <li>
           <a href="/dashboard" style={{ color: "var(--accent)" }}>
             /dashboard/{`{sessionId}`}
-          </a>{" "}
-          — forensic timeline live (SSE updates).
+          </a>:{" "}
+        forensic timeline live (SSE updates).
         </li>
         <li>
           <a href="/verify" style={{ color: "var(--accent)" }}>
             /verify
-          </a>{" "}
-          — paste a session id, get an independent HMAC verification
+          </a>:{" "}
+        paste a session id, get an independent HMAC verification
           report.
         </li>
         <li>
           <a href="/examples#19" style={{ color: "var(--accent)" }}>
             Cookbook recipe 19
-          </a>{" "}
-          — daily compliance digest cron job.
+          </a>:{" "}
+        daily compliance digest cron job.
         </li>
         <li>
           <a href="/examples#20" style={{ color: "var(--accent)" }}>
             Cookbook recipe 20
-          </a>{" "}
-          — multi-tenant marketplace pattern.
+          </a>:{" "}
+        multi-tenant marketplace pattern.
         </li>
         <li>
           <a href="/architecture" style={{ color: "var(--accent)" }}>
             /architecture
-          </a>{" "}
-          — la arquitectura full + Edge Runtime contract.
+          </a>:{" "}
+        la arquitectura full + Edge Runtime contract.
         </li>
         <li>
           <a href="/security" style={{ color: "var(--accent)" }}>
             /security
-          </a>{" "}
-          — threat model con 14 amenazas explícitas.
+          </a>:{" "}
+        threat model con 14 amenazas explícitas.
         </li>
       </ul>
 
@@ -324,10 +324,10 @@ export default function GettingStartedPage() {
           issue
         </a>{" "}
         o mandá un email a{" "}
-        <a href="mailto:naza@helloastro.co" style={{ color: "var(--accent)" }}>
-          naza@helloastro.co
-        </a>{" "}
-        — primera respuesta &lt;48hs.
+        <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
+          clementenaza@gmail.com
+        </a>:{" "}
+      primera respuesta &lt;48hs.
       </DocP>
     </DocShell>
   );

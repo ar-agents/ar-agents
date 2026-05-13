@@ -1,10 +1,10 @@
 /**
- * `/api/discovery` — machine-readable index of every tool the @ar-agents/*
+ * `/api/discovery`, machine-readable index of every tool the @ar-agents/*
  * stack exposes. Aggregates the per-package `tools.manifest.json` files into
  * one document for crawlers, agent registries, and compliance auditors.
  *
  * Two output formats:
- *   GET /api/discovery                 → JSON (default — agent-friendly)
+ *   GET /api/discovery                 → JSON (default, agent-friendly)
  *   GET /api/discovery?format=openapi  → OpenAPI 3.1.0 stub (compliance-friendly)
  *
  * The aggregated document is the source of truth for "what does this stack
@@ -13,7 +13,7 @@
  */
 
 // Manifests are pre-baked at build time by `scripts/gen-discovery-manifests.mjs`
-// so the route doesn't need fs access at runtime — Edge-friendly even though
+// so the route doesn't need fs access at runtime, Edge-friendly even though
 // we currently run on nodejs (in case we want to flip later for cold-start
 // latency).
 import { MANIFESTS as RAW_MANIFESTS } from "./manifests.generated";
@@ -35,7 +35,7 @@ type Manifest = {
 const MANIFESTS: Manifest[] = RAW_MANIFESTS as unknown as Manifest[];
 
 const REPO_URL = "https://github.com/ar-agents/ar-agents";
-const SITE_URL = "https://ar-agents.vercel.app";
+const SITE_URL = "https://ar-agents.ar";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // JSON aggregator (default)
@@ -56,7 +56,7 @@ type DiscoveryDoc = {
   totalTools: number;
   /**
    * Hosted endpoints an autonomous agent can invoke directly without
-   * pulling any package — useful for cross-jurisdiction agent commerce
+   * pulling any package, useful for cross-jurisdiction agent commerce
    * (a USA-LLC agent self-incorporating an AR sociedad-IA).
    */
   endpoints: Array<{
@@ -107,7 +107,7 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       url: `${SITE_URL}/api/play/tamper-demo`,
       method: "POST",
       description:
-        "Read-only tampering demonstration. Returns an original signed entry + a mutated version + verification results for both. Educational — does not modify any real audit log.",
+        "Read-only tampering demonstration. Returns an original signed entry + a mutated version + verification results for both. Educational, does not modify any real audit log.",
     },
     {
       name: "audit_badge",
@@ -185,7 +185,7 @@ function buildOpenApiDoc() {
     }
   }
 
-  // Extend with the live hosted endpoints — these run on this server, not
+  // Extend with the live hosted endpoints, these run on this server, not
   // in the host's runtime. An external agent can call them directly.
   paths["/api/auto-incorporate"] = {
     post: {
@@ -243,14 +243,14 @@ function buildOpenApiDoc() {
   return {
     openapi: "3.1.0",
     info: {
-      title: "ar-agents — aggregated tool + endpoint surface",
+      title: "ar-agents, aggregated tool + endpoint surface",
       version: "1.0.0",
       description:
         "Machine-readable inventory of every tool the @ar-agents/* stack exposes, plus the hosted endpoints (auto-incorporate, play, audit) that run on this server.",
       license: { name: "MIT", identifier: "MIT" },
-      contact: { name: "Nazareno Clemente", url: "https://github.com/naza00000" },
+      contact: { name: "Naza", url: "https://github.com/naza00000" },
     },
-    servers: [{ url: SITE_URL, description: "Hosted ar-agents.vercel.app" }],
+    servers: [{ url: SITE_URL, description: "Hosted ar-agents.ar" }],
     "x-toolkit": {
       repository: REPO_URL,
       packages: MANIFESTS.map((m) => ({ name: m.package, version: m.version })),
@@ -263,7 +263,7 @@ function buildOpenApiDoc() {
 // Route handler
 // ─────────────────────────────────────────────────────────────────────────────
 
-// Edge-safe — manifests are pre-baked into the bundle at build time.
+// Edge-safe, manifests are pre-baked into the bundle at build time.
 export const runtime = "edge";
 
 export async function GET(req: Request) {

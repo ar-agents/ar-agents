@@ -2,7 +2,54 @@
 
 > Threat model + audit results for the production-grade Mercado Libre Agent Toolkit.
 >
-> **Last reviewed:** 2026-05-09 (v0.1.0).
+> **Last reviewed:** 2026-05-09 (v0.4.1).
+>
+> **Disclosure:** Email `naza@helloastro.co` with subject `[security]`.
+> Encrypted (Signal / age-encryption) preferred for non-trivial findings; PGP key on request.
+> First-response target: 72 hours. Coordinated disclosure window: 30 days minimum.
+
+## Threat model — known limitations (read first)
+
+This is a **solo-maintained, MELI-unaffiliated, open-source** project. Adopters should treat it as such:
+
+- **Bus factor 1.** A single maintainer ships, patches, and triages disclosures.
+- **No SLA.** Best-effort response on issues, PRs, and security reports.
+- **Not vetted by Mercado Libre S.R.L.** No formal review by their security team has occurred.
+- **No bug bounty.** Reports are graded and credited; not paid.
+
+If your organization needs a vetted, contracted, SLA-backed integration with MELI, build it in-house against the [official MELI API docs](https://developers.mercadolibre.com.ar/) or contact MELI directly at `ospo@mercadolibre.com`.
+
+## Known threat vectors specific to AI-agent contexts
+
+The default README focuses on classic web-app threats (SSRF, secret leakage, etc.). The following are **agent-runtime-specific** risks worth flagging up front:
+
+### Prompt injection via tool-result content
+
+`list_unanswered_questions`, `list_open_claims`, `get_order` return strings that originated from buyers (question text, claim message, buyer billing info). These flow into the agent's context window and could contain prompt-injection payloads. The HITL gate covers categorized irreversible ops; it does NOT gate every subsequent tool the model decides to call.
+
+**Mitigations available to hosts:**
+- Sanitize/escape question/claim text before letting the agent reason over it (e.g., wrap in `<untrusted_content>` tags + system-prompt guidance).
+- Use HITL liberally, including on read-then-write chains.
+- Run an LLM-as-judge over agent transcripts to flag suspicious tool sequences.
+
+### MCP supply-chain compromise
+
+If `@ar-agents/mcp` (which bundles this package) is compromised on npm — maintainer 2FA bypass, key theft, dependency takeover — the bundled MCP runs inside Claude Desktop / Cursor / Codeium with full OAuth tokens. Consequence: full seller-account write access on every connected user.
+
+**Mitigations:**
+- npm 2FA + scoped automation token + audit logs are in place.
+- The package will adopt npm provenance + SLSA attestation in a future release.
+- Adopters should **pin a specific version** (not `latest`) and review `pnpm audit` before bumping.
+
+### Multi-instance OAuth refresh
+
+The in-process AsyncLock on OAuth refresh works within ONE Node process / ONE Edge isolate. Multi-instance deployments (Vercel multi-region, Lambda fleet, ECS cluster) need a database-level CAS in the `OAuthTokenStore.write` implementation. We document this in [Cookbook 01](./cookbook/01-oauth-setup.md), but adopters MUST implement it.
+
+### ACP feed disintermediation
+
+The `@ar-agents/mercadolibre/feed` subpath produces an Agentic Commerce Protocol feed. Exposed publicly, it allows buyer agents to discover seller catalogs and route transactions outside MELI's checkout. The bridge-hello reference implementation is **opt-in by default** (returns 403 unless explicitly enabled). Adopters should keep it that way unless they understand the marketplace-relationship tradeoff.
+
+---
 
 ## Executive summary
 

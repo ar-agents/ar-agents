@@ -1,5 +1,5 @@
 {
-  "$schema": "https://ar-agents.vercel.app/schemas/tools.manifest.v1.json",
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/agentic-commerce-bridge",
   "version": "5.0.0",
   "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP). LLM-buyer-facing checkout sessions, signed webhooks, /.well-known/acp.json discovery, AR-fiscal compliance (auto-issued AFIP/ARCA factura). Infrastructure package — no LLM tool surface.",

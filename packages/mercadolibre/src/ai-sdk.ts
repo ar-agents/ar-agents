@@ -19,6 +19,14 @@
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { MeliClient } from "./client";
+import {
+  classifyHitlSeverity,
+  gateHitl,
+  HitlRejectedError,
+  type HitlConfig,
+  type HitlContext,
+  type HitlOpKind,
+} from "./hitl";
 import * as items from "./items";
 import * as categories from "./categories";
 import * as questions from "./questions";
@@ -56,6 +64,12 @@ export interface MeliToolsOptions {
   sellerId: number;
   /** Override agent-facing descriptions. */
   descriptions?: Partial<Record<MeliToolName, string>>;
+  /** Human-in-the-loop gate for irreversible operations
+   *  (`create_item`, `update_item_price_or_stock`, `answer_question`,
+   *  `defend_claim`). Without this, the LLM can execute every tool
+   *  freely. With it, the destructive tools wait for the host's
+   *  `requireConfirmation` callback before firing the HTTP request. */
+  hitl?: HitlConfig;
 }
 
 // ---------------------------------------------------------------------------
@@ -150,31 +164,40 @@ export function meliTools(
           .enum(["free", "bronze", "silver", "gold", "gold_special", "gold_pro"])
           .optional(),
       }),
-      execute: wrap(async (input) => {
-        const payload: Parameters<typeof items.createItem>[1] = {
-          title: input.title,
-          category_id: input.category_id,
-          price: input.price,
-          currency_id: input.currency_id as never,
-          available_quantity: input.available_quantity,
-          buying_mode: "buy_it_now",
-          condition: input.condition ?? "new",
-          listing_type_id: input.listing_type_id ?? "gold_special",
-        };
-        if (input.description) payload.description = { plain_text: input.description };
-        if (input.pictures) {
-          payload.pictures = input.pictures.map((source: string) => ({ source }));
-        }
-        if (input.attributes) {
-          payload.attributes = input.attributes.map(
-            (a: { id: string; value_name: string }) => ({
-              id: a.id,
-              value_name: a.value_name,
-            }),
-          );
-        }
-        return { item: await items.createItem(client, payload) };
-      }),
+      execute: hitlWrap(
+        options.hitl,
+        (input) => ({
+          kind: "create_item",
+          resourceId: input.title.slice(0, 80),
+          summary: `Publicar listing nuevo: "${input.title}" a ${input.currency_id} ${input.price} (${input.available_quantity} disponibles).`,
+          input,
+        }),
+        async (input) => {
+          const payload: Parameters<typeof items.createItem>[1] = {
+            title: input.title,
+            category_id: input.category_id,
+            price: input.price,
+            currency_id: input.currency_id as never,
+            available_quantity: input.available_quantity,
+            buying_mode: "buy_it_now",
+            condition: input.condition ?? "new",
+            listing_type_id: input.listing_type_id ?? "gold_special",
+          };
+          if (input.description) payload.description = { plain_text: input.description };
+          if (input.pictures) {
+            payload.pictures = input.pictures.map((source: string) => ({ source }));
+          }
+          if (input.attributes) {
+            payload.attributes = input.attributes.map(
+              (a: { id: string; value_name: string }) => ({
+                id: a.id,
+                value_name: a.value_name,
+              }),
+            );
+          }
+          return { item: await items.createItem(client, payload) };
+        },
+      ),
     }),
 
     update_item_price_or_stock: tool({
@@ -185,13 +208,31 @@ export function meliTools(
         available_quantity: z.number().int().nonnegative().optional(),
         status: z.enum(["active", "paused", "closed"]).optional(),
       }),
-      execute: wrap(async ({ id, price, available_quantity, status }) => {
-        const payload: Parameters<typeof items.updateItem>[2] = {};
-        if (price !== undefined) payload.price = price;
-        if (available_quantity !== undefined) payload.available_quantity = available_quantity;
-        if (status !== undefined) payload.status = status;
-        return { item: await items.updateItem(client, id, payload) };
-      }),
+      execute: hitlWrap(
+        options.hitl,
+        (input) => {
+          const parts: string[] = [];
+          if (input.price !== undefined) parts.push(`precio → ${input.price}`);
+          if (input.available_quantity !== undefined)
+            parts.push(`stock → ${input.available_quantity}`);
+          if (input.status !== undefined) parts.push(`estado → ${input.status}`);
+          return {
+            kind: input.status === "paused" || input.status === "closed"
+              ? (input.status === "paused" ? "pause_item" : "close_item")
+              : "update_item_price_or_stock",
+            resourceId: input.id,
+            summary: `Modificar item ${input.id}: ${parts.join(", ")}.`,
+            input,
+          };
+        },
+        async ({ id, price, available_quantity, status }) => {
+          const payload: Parameters<typeof items.updateItem>[2] = {};
+          if (price !== undefined) payload.price = price;
+          if (available_quantity !== undefined) payload.available_quantity = available_quantity;
+          if (status !== undefined) payload.status = status;
+          return { item: await items.updateItem(client, id, payload) };
+        },
+      ),
     }),
 
     categorize_listing_and_plan_attributes: tool({
@@ -227,10 +268,19 @@ export function meliTools(
         question_id: z.number().int(),
         text: z.string().min(1).max(2000),
       }),
-      execute: wrap(async (input) => {
-        const r = await questions.answerQuestion(client, input);
-        return { answer: r };
-      }),
+      execute: hitlWrap(
+        options.hitl,
+        (input) => ({
+          kind: "answer_question",
+          resourceId: input.question_id,
+          summary: `Responder pregunta ${input.question_id} con: "${input.text.slice(0, 140)}${input.text.length > 140 ? "…" : ""}".`,
+          input,
+        }),
+        async (input) => {
+          const r = await questions.answerQuestion(client, input);
+          return { answer: r };
+        },
+      ),
     }),
 
     classify_question_spam: tool({
@@ -331,14 +381,23 @@ export function meliTools(
           .min(1),
         message: z.string().optional(),
       }),
-      execute: wrap(async (input) => {
-        const defendInput: claims.DefendClaimInput = {
-          claimId: input.claim_id,
-          evidences: input.evidences,
-        };
-        if (input.message !== undefined) defendInput.message = input.message;
-        return claims.defendClaim(client, defendInput);
-      }),
+      execute: hitlWrap(
+        options.hitl,
+        (input) => ({
+          kind: "defend_claim",
+          resourceId: input.claim_id,
+          summary: `Defender claim ${input.claim_id} con ${input.evidences.length} evidencia(s)${input.message ? " + mensaje" : ""}.`,
+          input,
+        }),
+        async (input) => {
+          const defendInput: claims.DefendClaimInput = {
+            claimId: input.claim_id,
+            evidences: input.evidences,
+          };
+          if (input.message !== undefined) defendInput.message = input.message;
+          return claims.defendClaim(client, defendInput);
+        },
+      ),
     }),
 
     get_seller_reputation: tool({
@@ -388,6 +447,14 @@ function wrap<I, O>(fn: (input: I) => Promise<O>) {
       const result = await fn(input);
       return { ok: true as const, ...(result as object) };
     } catch (err) {
+      if (err instanceof HitlRejectedError) {
+        return {
+          ok: false as const,
+          code: err.code,
+          message: err.message,
+          ...(err.reason !== undefined ? { reason: err.reason } : {}),
+        };
+      }
       if (isMeliError(err)) {
         return {
           ok: false as const,
@@ -402,6 +469,30 @@ function wrap<I, O>(fn: (input: I) => Promise<O>) {
       };
     }
   };
+}
+
+/**
+ * Higher-order wrapper for irreversible tools. Builds the HITL context,
+ * runs the gate, applies any host-supplied input overrides, then calls
+ * the underlying executor.
+ */
+function hitlWrap<I extends Record<string, unknown>, O>(
+  hitl: HitlConfig | undefined,
+  buildContext: (input: I) => Omit<HitlContext, "severity"> & { kind: HitlOpKind },
+  fn: (input: I) => Promise<O>,
+) {
+  return wrap(async (input: I) => {
+    const partial = buildContext(input);
+    const ctx: HitlContext = {
+      ...partial,
+      severity: classifyHitlSeverity(partial.kind),
+    };
+    const decision = await gateHitl(hitl, ctx);
+    const finalInput = decision.overrides
+      ? ({ ...input, ...decision.overrides } as I)
+      : input;
+    return fn(finalInput);
+  });
 }
 
 // Re-export shipments helpers for tools that call them via the public lib.

@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   description:
     "Astro is an Argentine AI products company running its WhatsApp / clipper / chat surfaces on @ar-agents/* end-to-end. The reference customer for the toolkit, written by the maintainer.",
   alternates: {
-    canonical: "https://ar-agents.vercel.app/case-studies/astro",
+    canonical: "https://ar-agents.ar/case-studies/astro",
   },
 };
 
@@ -15,15 +15,15 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 export default function AstroCaseStudyPage() {
   return (
     <DocShell
-      eyebrow="/arg · case study · astro.ar"
+      eyebrow="case study · astro.ar"
       title="Astro · planned reference customer for @ar-agents/*."
-      subtitle="The maintainer's own AR-context products are mid-cutover from raw SDKs to the @ar-agents/* tool surface. This page is the honest-as-it-is record of the migration — what runs on the toolkit today, what doesn't yet, and which production numbers we'll publish once the cutover lands."
+      subtitle="The maintainer's own AR-context products are mid-cutover from raw SDKs to the @ar-agents/* tool surface. This page is the honest-as-it-is record of the migration, what runs on the toolkit today, what doesn't yet, and which production numbers we'll publish once the cutover lands."
     >
       <DocBlock>
         <DocP>
           <strong>Disclosure.</strong> Astro and{" "}
           <DocCode>@ar-agents/*</DocCode> are owned by the same person
-          (Nazareno Clemente). Astro is the financial floor that keeps the
+          (Naza). Astro is the financial floor that keeps the
           toolkit&apos;s author employed; the toolkit is the operating
           system the maintainer wants Astro to run on. Treat this as a{" "}
           <em>migration log</em> from a single founder, not a third-party
@@ -35,7 +35,7 @@ export default function AstroCaseStudyPage() {
           fabricated claims. The maintainer&apos;s own product runs on raw
           SDKs today; the migration to <DocCode>@ar-agents/*</DocCode> is
           the next visible cutover. When it lands, this page replaces
-          aspirational copy with measured numbers — invoice volume,
+          aspirational copy with measured numbers, invoice volume,
           dedup rate, audit-log size, webhook-signature reject count.
         </DocP>
       </DocBlock>
@@ -163,7 +163,7 @@ export default function AstroCaseStudyPage() {
         <strong>2. The agent loop.</strong> One{" "}
         <DocCode>Experimental_Agent</DocCode> from{" "}
         <DocCode>ai@^6</DocCode> with all needed tool collections spread in.
-        Same agent across all three surfaces — different system prompts and
+        Same agent across all three surfaces, different system prompts and
         different identity-attestation gates. The composition recipe (R10)
         is the canonical example.
       </DocP>
@@ -219,11 +219,11 @@ export default function AstroCaseStudyPage() {
           feat/ar-agents-cutover
         </a>{" "}
         ships a new, additive <DocCode>/api/arg</DocCode> route + a{" "}
-        <DocCode>/arg</DocCode> visitor page running entirely on Vercel AI
+        <DocCode>ar-agents</DocCode> visitor page running entirely on Vercel AI
         SDK 6 + <DocCode>@ar-agents/identity</DocCode> +{" "}
         <DocCode>@ar-agents/banking</DocCode> +{" "}
         <DocCode>@ar-agents/gde-tad</DocCode>. The legacy chat path is
-        untouched. Once /arg has a week of production behavior visible,
+        untouched. Once ar-agents has a week of production behavior visible,
         the next slices migrate /api/chat&apos;s AFIP/MP integrations to
         the matching @ar-agents packages.
       </DocP>
@@ -238,7 +238,7 @@ export default function AstroCaseStudyPage() {
         doctor CLI on a stock dev machine (
         <DocCode>npx ar-agents-mcp doctor</DocCode>), and the live{" "}
         <a href="/play" style={{ color: "var(--accent)" }}>/play</a>{" "}
-        endpoint generates HMAC-signed audit entries on every tool call —
+        endpoint generates HMAC-signed audit entries on every tool call,
         click any session URL like{" "}
         <DocCode>/dashboard/{`{sessionId}`}</DocCode> for a forensic
         timeline. Those are the assertions a regulator can challenge
@@ -267,7 +267,7 @@ export default function AstroCaseStudyPage() {
       <DocP>
         <strong>3. Regulatory evidence.</strong> When ARCA / IGJ /
         Sturzenegger&apos;s office ask &quot;is anyone actually using
-        this?&quot;, the answer is &quot;yes — the maintainer&apos;s own
+        this?&quot;, the answer is &quot;yes, the maintainer&apos;s own
         company runs end-to-end on it&quot;. The first sociedad-IA will
         not be ACME-AI from a slide deck; it will be a company that has
         already been running at SAS-grade for a year, flipping one config

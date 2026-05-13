@@ -1,12 +1,12 @@
 "use client";
 
 /**
- * /codegen — multi-language code generator for /api/auto-incorporate.
+ * /codegen, multi-language code generator for /api/auto-incorporate.
  *
  * User fills in a form, gets equivalent snippets for TypeScript (via
  * @ar-agents/incorporate), Python (via ar-agents-incorporate), Go
  * (stdlib net/http), Rust (reqwest), curl, and HTTPie. Each snippet
- * has its own copy button. Pure client component — every generator
+ * has its own copy button. Pure client component, every generator
  * is a pure function over the same input model.
  */
 
@@ -192,7 +192,7 @@ ${json
 
 \treq, _ := http.NewRequest(
 \t\t"POST",
-\t\t"https://ar-agents.vercel.app/api/auto-incorporate",
+\t\t"https://ar-agents.ar/api/auto-incorporate",
 \t\tbytes.NewReader(b),
 \t)
 \treq.Header.Set("Content-Type", "application/json")
@@ -231,7 +231,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     let body: Value = serde_json::from_str(r##"${jsonStr}"##)?;
 
     let resp = reqwest::blocking::Client::new()
-        .post("https://ar-agents.vercel.app/api/auto-incorporate")
+        .post("https://ar-agents.ar/api/auto-incorporate")
         .header("user-agent", "ar-agents-codegen/rust")
         .json(&body)
         .send()?;
@@ -255,7 +255,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
 function generateCurl(s: FormState): string {
   const body = buildJsonBody(s);
   const json = JSON.stringify(body, null, 2);
-  return `curl -X POST https://ar-agents.vercel.app/api/auto-incorporate \\
+  return `curl -X POST https://ar-agents.ar/api/auto-incorporate \\
   -H "Content-Type: application/json" \\
   -d '${json.replace(/'/g, "'\\''")}'`;
 }
@@ -269,7 +269,7 @@ function generateHttpie(s: FormState): string {
       return `${k}:=${JSON.stringify(v)}`;
     })
     .join(" \\\n  ");
-  return `http POST https://ar-agents.vercel.app/api/auto-incorporate \\
+  return `http POST https://ar-agents.ar/api/auto-incorporate \\
   ${fields}`;
 }
 
@@ -323,7 +323,7 @@ export function CodegenClient() {
             margin: 0,
           }}
         >
-          /arg · codegen · multi-lang snippets
+          codegen · multi-lang snippets
         </p>
         <h1
           style={{
@@ -350,7 +350,7 @@ export function CodegenClient() {
           Fill in your sociedad-IA&apos;s details, get equivalent code in
           6 languages. Copy, paste, run. The form fields mirror{" "}
           <code style={{ fontFamily: FONT_MONO }}>POST /api/auto-incorporate</code>
-          &apos;s input schema. Everything happens client-side — no data
+          &apos;s input schema. Everything happens client-side, no data
           leaves your browser until you actually run the snippet.
         </p>
       </header>
@@ -770,7 +770,7 @@ function Footer() {
         </code>{" "}
         with the form fields as the body. The response includes the
         generated source files, env-var manifest, deploy URL, and audit
-        log reference — see{" "}
+        log reference, see{" "}
         <a href="/sdk" style={{ color: "#0072f5" }}>
           /sdk
         </a>{" "}

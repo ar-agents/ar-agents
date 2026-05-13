@@ -65,7 +65,7 @@ export async function GET(req: Request): Promise<Response> {
         error: "Missing required query parameter: challenge",
         instructions: "Send GET /.well-known/sociedad-ia/verify-key?challenge=HEX where HEX is 16-128 hex characters of random entropy.",
         scheme: "rfc-004-v1-hmac-sha256",
-        spec: "https://ar-agents.vercel.app/rfcs/004",
+        spec: "https://ar-agents.ar/rfcs/004",
       },
       { status: 400 },
     );
@@ -105,7 +105,7 @@ export async function GET(req: Request): Promise<Response> {
   return NextResponse.json(
     {
       scheme: "rfc-004-v1-hmac-sha256",
-      spec: "https://ar-agents.vercel.app/rfcs/004",
+      spec: "https://ar-agents.ar/rfcs/004",
       challenge: normalized,
       response: `sha256:${response}`,
       keyFingerprint: `sha256:${keyFingerprint}`,
@@ -113,12 +113,12 @@ export async function GET(req: Request): Promise<Response> {
       issuedAt: new Date().toISOString(),
       verification: {
         howTo: "Compute sha256:<hex(HMAC-SHA256(secret, challenge))>. Match the `response` field. If `response` matches AND `keyFingerprint` matches what you remember from previous interactions, the server proved continuity of key possession without revealing the key.",
-        spec: "https://ar-agents.vercel.app/rfcs/004#section-5",
+        spec: "https://ar-agents.ar/rfcs/004#section-5",
       },
     },
     {
       headers: {
-        // Never cache — the response depends on the challenge.
+        // Never cache, the response depends on the challenge.
         "cache-control": "no-store, no-cache, must-revalidate",
         "content-type": "application/json; charset=utf-8",
       },

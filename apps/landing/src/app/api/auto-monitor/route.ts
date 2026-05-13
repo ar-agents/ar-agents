@@ -9,7 +9,7 @@
  *
  * Designed to be called by Vercel cron (which arrives with no auth
  * header but a CRON_SECRET-protected request from Vercel's
- * infrastructure). For now, this endpoint is publicly callable —
+ * infrastructure). For now, this endpoint is publicly callable,
  * if rate-limit pressure builds up, add a CRON_SECRET check.
  *
  * Node runtime. ~3-5s per URL (the certifier itself does 9 HTTP
@@ -22,7 +22,7 @@ import { NextResponse } from "next/server";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
-const SITE = "https://ar-agents.vercel.app";
+const SITE = "https://ar-agents.ar";
 
 /**
  * URLs to monitor. Source of truth: the live entries in /registro.
@@ -30,11 +30,11 @@ const SITE = "https://ar-agents.vercel.app";
  * apps/landing/src/app/registro/page.tsx.
  */
 const TARGETS = [
-  "https://ar-agents.vercel.app",
-  "https://ar-agents-mp-hello.vercel.app",
-  "https://ar-agents-cuit-hello.vercel.app",
-  "https://ar-agents-whatsapp-hello.vercel.app",
-  "https://ar-agents-bridge-hello.vercel.app",
+  "https://ar-agents.ar",
+  "https://mp-hello.ar-agents.ar",
+  "https://cuit-hello.ar-agents.ar",
+  "https://whatsapp-hello.ar-agents.ar",
+  "https://bridge-hello.ar-agents.ar",
 ];
 
 interface TargetResult {

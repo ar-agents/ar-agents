@@ -3,7 +3,7 @@
 /**
  * Client-side Mermaid renderer. Used on /architecture to replace the ASCII
  * composition flow with an actual diagram. Heavy (~150KB gzipped) but
- * code-split — only the architecture page pays for it.
+ * code-split, only the architecture page pays for it.
  */
 
 import { useEffect, useRef, useState } from "react";
@@ -39,7 +39,7 @@ export function MermaidDiagram({ chart, caption }: MermaidDiagramProps) {
             tertiaryColor: "#0c4a6e",
             background: "transparent",
             mainBkg: "#0f172a",
-            // Edge label background — same as page background so labels read clean.
+            // Edge label background, same as page background so labels read clean.
             edgeLabelBackground: "var(--bg, #ffffff)",
           },
           flowchart: {
@@ -92,7 +92,7 @@ export function MermaidDiagram({ chart, caption }: MermaidDiagramProps) {
         ref={ref}
         // dangerouslySetInnerHTML is the canonical way to mount Mermaid's SVG output.
         // The chart string is a static literal in the importing server component,
-        // never user input — no XSS surface.
+        // never user input, no XSS surface.
         dangerouslySetInnerHTML={svg ? { __html: svg } : undefined}
         style={{
           background: "var(--bg-tint)",

@@ -48,12 +48,12 @@ export async function searchClaims(
   options: SearchClaimsOptions = {},
 ): Promise<ClaimsSearchResponse> {
   const query: Record<string, string | number> = {};
-  if (options.stage) query["stage"] = options.stage;
-  if (options.status) query["status"] = options.status;
-  if (options.resource) query["resource"] = options.resource;
-  if (options.resourceId) query["resource_id"] = options.resourceId;
-  if (options.limit) query["limit"] = options.limit;
-  if (options.offset) query["offset"] = options.offset;
+  if (options.stage !== undefined) query["stage"] = options.stage;
+  if (options.status !== undefined) query["status"] = options.status;
+  if (options.resource !== undefined) query["resource"] = options.resource;
+  if (options.resourceId !== undefined) query["resource_id"] = options.resourceId;
+  if (options.limit !== undefined) query["limit"] = options.limit;
+  if (options.offset !== undefined) query["offset"] = options.offset;
   return client.fetch<ClaimsSearchResponse>({
     method: "GET",
     path: `/post-purchase/v1/claims/search`,
@@ -188,28 +188,54 @@ export interface DefendClaimInput {
 export interface DefendClaimResult {
   claim: TClaim;
   uploadedEvidences: TClaimEvidence[];
+  /** Evidences that failed to upload, in the same order they were submitted.
+   *  When non-empty, the claim is partially defended — surface this to the
+   *  human for manual review. */
+  failedEvidences: { evidence: TEvidenceUploadRequest; error: unknown }[];
   messagePosted: TClaimMessage | null;
 }
 
 /**
- * The 2-day SLA defender flow. Loads claim metadata, uploads ALL evidence
- * in a single batch (parallel), and (optionally) posts a closing message.
+ * The 2-day SLA defender flow. Loads claim metadata, uploads evidences
+ * **sequentially** (NOT in parallel — see below), and optionally posts a
+ * closing message.
  *
- * Per spec, evidence is one-shot — DO NOT call this twice for the same
- * claim. The agent should accumulate every piece of evidence (proof of
- * shipment, invoice, video, etc.) and submit them all at once.
+ * Why sequential. MELI's `/claims/{id}/evidences` endpoint has one-shot
+ * semantics per evidence-type: if N requests land concurrently, MELI may
+ * persist some, reject others as duplicates, or close the evidence window
+ * mid-batch — leaving the claim half-defended with no way to amend.
+ * Sequential uploads cap the blast radius: on failure, we stop and return
+ * the partial state so the caller can decide whether to retry, escalate, or
+ * proceed with the message.
+ *
+ * The cost is latency (~N × 200ms instead of ~200ms). For a typical 3-piece
+ * defence under MELI's 2-day SLA, that's a non-issue.
  */
 export async function defendClaim(
   client: MeliClient,
   input: DefendClaimInput,
 ): Promise<DefendClaimResult> {
   const claim = await getClaim(client, input.claimId);
-  const uploaded = await Promise.all(
-    input.evidences.map((e) => uploadClaimEvidence(client, input.claimId, e)),
-  );
+  const uploaded: TClaimEvidence[] = [];
+  const failed: { evidence: TEvidenceUploadRequest; error: unknown }[] = [];
+  for (const evidence of input.evidences) {
+    try {
+      uploaded.push(await uploadClaimEvidence(client, input.claimId, evidence));
+    } catch (err) {
+      failed.push({ evidence, error: err });
+      // Stop on first failure — we don't know whether MELI persisted partial
+      // state, and we don't want the agent to keep stomping on the claim.
+      break;
+    }
+  }
   let messagePosted: TClaimMessage | null = null;
-  if (input.message) {
+  if (input.message && failed.length === 0) {
     messagePosted = await postClaimMessage(client, input.claimId, input.message);
   }
-  return { claim, uploadedEvidences: uploaded, messagePosted };
+  return {
+    claim,
+    uploadedEvidences: uploaded,
+    failedEvidences: failed,
+    messagePosted,
+  };
 }
