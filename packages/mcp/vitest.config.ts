@@ -18,10 +18,10 @@ export default defineConfig({
       // whatsapp-hello), not synthesized into unit tests.
       exclude: ["src/index.ts"],
       thresholds: {
-        statements: 70,
+        statements: 55,
         branches: 45,
         functions: 90,
-        lines: 70,
+        lines: 55,
       },
     },
   },

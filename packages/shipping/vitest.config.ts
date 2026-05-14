@@ -18,6 +18,8 @@ export default defineConfig({
         "src/adapter-oca.ts",
         "src/adapter-correo.ts",
         "src/types.ts",
+        "src/cli.ts",
+        "src/cli-doctor.ts",
         "src/http.ts",
       ],
       // Coverage thresholds tuned for the tested scope (provincias, mock

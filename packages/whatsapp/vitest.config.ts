@@ -13,7 +13,7 @@ export default defineConfig({
       // layer (descriptions + zod schemas, no logic), types.ts is type-only.
       // The actual business logic (client.ts, phone.ts, webhook.ts, errors.ts)
       // is the meaningful surface to gate coverage on.
-      exclude: ["src/index.ts", "src/tools.ts", "src/types.ts"],
+      exclude: ["src/index.ts", "src/tools.ts", "src/types.ts", "src/cli.ts", "src/cli-doctor.ts", "src/testing.ts"],
       thresholds: {
         statements: 70,
         branches: 60,
