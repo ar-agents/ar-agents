@@ -45,3 +45,11 @@ coverage/
 # gstack local artifacts (security reports, learnings, checkpoints)
 .gstack/
 .claude/
+
+# Personal / not part of the public project
+apps/portfolio/
+outreach/
+
+# App-level pnpm lock files (monorepo uses root pnpm-lock.yaml only)
+apps/*/pnpm-lock.yaml
+

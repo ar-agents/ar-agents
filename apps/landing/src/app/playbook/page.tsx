@@ -319,20 +319,20 @@ export default function PlaybookPage() {
       <DocP>
         <strong>Regulators</strong>: the formal proposal is{" "}
         <a href="/rfcs/001" style={{ color: "var(--accent)" }}>RFC-001</a>.
-        Read it as a draft to comment on. Email clementenaza@gmail.com for
+        Read it as a draft to comment on. Email naza@naza.ar for
         meetings.
       </DocP>
       <DocP>
         <strong>Investors</strong>: there is a thesis to be written about
         the first jurisdictional bet on AI commerce. The toolkit is the
-        public reference implementation. Email clementenaza@gmail.com.
+        public reference implementation. Email naza@naza.ar.
       </DocP>
       <DocP>
         <strong>Journalists</strong>: source material, technical
         background, and the threat-model walkthrough at{" "}
         <a href="/security" style={{ color: "var(--accent)" }}>/security</a>{" "}
         and <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>.
-        Email clementenaza@gmail.com for interviews.
+        Email naza@naza.ar for interviews.
       </DocP>
     </DocShell>
   );

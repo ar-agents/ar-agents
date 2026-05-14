@@ -60,7 +60,7 @@ export default function TestVectorsPage() {
           creator: {
             "@type": "Person",
             name: "Naza",
-            email: "clementenaza@gmail.com",
+            email: "naza@naza.ar",
           },
           distribution: [
             {

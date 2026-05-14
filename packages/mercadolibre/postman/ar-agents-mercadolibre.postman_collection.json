@@ -1,0 +1,359 @@
+{
+  "info": {
+    "_postman_id": "ar-agents-meli-001",
+    "name": "@ar-agents/mercadolibre — MELI API",
+    "description": "Postman collection for the agent-relevant Mercado Libre API surface, mirroring the helpers shipped by @ar-agents/mercadolibre v0.2.0.\n\nSet the `MELI_ACCESS_TOKEN`, `MELI_SELLER_ID` and `MELI_SITE_ID` environment variables in Postman (or fill the placeholders inline). Site IDs: MLA, MLB, MLM, MLC, MCO, MLU, MPE.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "auth": {
+    "type": "bearer",
+    "bearer": [
+      { "key": "token", "value": "{{MELI_ACCESS_TOKEN}}", "type": "string" }
+    ]
+  },
+  "variable": [
+    { "key": "BASE_URL", "value": "https://api.mercadolibre.com" },
+    { "key": "MELI_ACCESS_TOKEN", "value": "" },
+    { "key": "MELI_SELLER_ID", "value": "" },
+    { "key": "MELI_SITE_ID", "value": "MLA" }
+  ],
+  "item": [
+    {
+      "name": "Items",
+      "item": [
+        {
+          "name": "Get item",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/items/MLA1402155766"
+          }
+        },
+        {
+          "name": "Multiget items",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/items?ids=MLA1,MLA2,MLA3"
+          }
+        },
+        {
+          "name": "Search seller items (scroll)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/users/{{MELI_SELLER_ID}}/items/search?status=active&limit=50&search_type=scan"
+          }
+        },
+        {
+          "name": "Create item",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/items",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"title\": \"Yerba Amanda 1kg\",\n  \"category_id\": \"MLA409408\",\n  \"price\": 4500,\n  \"currency_id\": \"ARS\",\n  \"available_quantity\": 50,\n  \"buying_mode\": \"buy_it_now\",\n  \"condition\": \"new\",\n  \"listing_type_id\": \"gold_special\",\n  \"attributes\": [{\"id\":\"BRAND\",\"value_name\":\"Amanda\"}],\n  \"shipping\": {\"mode\":\"me2\",\"free_shipping\":false}\n}"
+            }
+          }
+        },
+        {
+          "name": "Update item (price/stock)",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/items/MLA1402155766",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"price\": 4750,\n  \"available_quantity\": 30\n}"
+            }
+          }
+        },
+        {
+          "name": "Pause item",
+          "request": {
+            "method": "PUT",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/items/MLA1402155766",
+            "body": { "mode": "raw", "raw": "{\"status\":\"paused\"}" }
+          }
+        },
+        {
+          "name": "Get description",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/items/MLA1402155766/description"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Categories",
+      "item": [
+        {
+          "name": "Predict category",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/sites/{{MELI_SITE_ID}}/category_predictor/predict?title=Yerba mate Amanda 1kg"
+          }
+        },
+        {
+          "name": "Discover domain",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/sites/{{MELI_SITE_ID}}/domain_discovery/search?q=yerba mate amanda"
+          }
+        },
+        {
+          "name": "Domain technical specs",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/domains/MLA-YERBA_MATE/technical_specs/input"
+          }
+        },
+        {
+          "name": "Get category",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/categories/MLA1071"
+          }
+        },
+        {
+          "name": "Category attributes",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/categories/MLA1071/attributes"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Questions",
+      "item": [
+        {
+          "name": "List unanswered questions",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/questions/search?seller_id={{MELI_SELLER_ID}}&status=UNANSWERED&limit=50"
+          }
+        },
+        {
+          "name": "Get question",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/questions/QUESTION_ID"
+          }
+        },
+        {
+          "name": "Answer question",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/answers",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"question_id\": 12345,\n  \"text\": \"Sí, hay stock en talle M.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Blacklist asker",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/users/{{MELI_SELLER_ID}}/questions_blacklist",
+            "body": { "mode": "raw", "raw": "{\"user_id\": 88}" }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Orders + Packs",
+      "item": [
+        {
+          "name": "Search orders (paid today)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/orders/search?seller={{MELI_SELLER_ID}}&order.status=paid&sort=date_desc&limit=50"
+          }
+        },
+        {
+          "name": "Get order",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/orders/ORDER_ID"
+          }
+        },
+        {
+          "name": "Order billing info",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/orders/ORDER_ID/billing_info"
+          }
+        },
+        {
+          "name": "Get pack",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/marketplace/orders/pack/PACK_ID"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Claims & Mediation",
+      "item": [
+        {
+          "name": "Search claims (mediation)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/post-purchase/v1/claims/search?stage=mediation&status=opened&limit=50"
+          }
+        },
+        {
+          "name": "Get claim",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/post-purchase/v1/claims/CLAIM_ID"
+          }
+        },
+        {
+          "name": "List evidences",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/post-purchase/v1/claims/CLAIM_ID/evidences"
+          }
+        },
+        {
+          "name": "Upload evidence (text)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/post-purchase/v1/claims/CLAIM_ID/evidences",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"evidence_type\": \"PROOF_OF_SHIPMENT\",\n  \"text\": \"Tracking Andreani 1234567890 — entregado y firmado.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Post claim message",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/post-purchase/v1/claims/CLAIM_ID/messages",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"message\": \"Adjuntamos prueba de envío.\"\n}"
+            }
+          }
+        },
+        {
+          "name": "Review return",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/post-purchase/v1/returns/RETURN_ID/return-review",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"decision\": \"accepted\",\n  \"reason\": \"shipping damage\"\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Mercado Envíos",
+      "item": [
+        {
+          "name": "Get shipment",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/shipments/SHIPMENT_ID"
+          }
+        },
+        {
+          "name": "Shipment history",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/shipments/SHIPMENT_ID/history"
+          }
+        },
+        {
+          "name": "Print labels (PDF)",
+          "request": {
+            "method": "GET",
+            "header": [{ "key": "Accept", "value": "application/pdf" }],
+            "url": "{{BASE_URL}}/shipment_labels?shipment_ids=SHIPMENT_ID&response_type=pdf"
+          }
+        },
+        {
+          "name": "Shipping options for item",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/items/MLA1402155766/shipping_options?zip_code=1842"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Reputation",
+      "item": [
+        {
+          "name": "Seller reputation",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/users/{{MELI_SELLER_ID}}/seller_reputation"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Promotions",
+      "item": [
+        {
+          "name": "Promotion candidates",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/seller-promotions/users/{{MELI_SELLER_ID}}/candidates?app_version=v2"
+          }
+        },
+        {
+          "name": "Active promotions",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/seller-promotions/users/{{MELI_SELLER_ID}}?app_version=v2"
+          }
+        },
+        {
+          "name": "Opt in promotion (item)",
+          "request": {
+            "method": "POST",
+            "header": [{ "key": "Content-Type", "value": "application/json" }],
+            "url": "{{BASE_URL}}/seller-promotions/items/MLA1402155766",
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"promotion_id\": \"PROMO_2026_05\",\n  \"promotion_type\": \"DEAL\",\n  \"deal_price\": 3600\n}"
+            }
+          }
+        }
+      ]
+    },
+    {
+      "name": "Webhooks (/myfeeds replay)",
+      "item": [
+        {
+          "name": "Replay missed feeds (orders_v2)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/myfeeds?app_id=YOUR_APP_ID&topic=orders_v2&limit=100"
+          }
+        },
+        {
+          "name": "Replay missed feeds (claims)",
+          "request": {
+            "method": "GET",
+            "url": "{{BASE_URL}}/myfeeds?app_id=YOUR_APP_ID&topic=claims&limit=100"
+          }
+        }
+      ]
+    }
+  ]
+}

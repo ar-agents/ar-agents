@@ -258,8 +258,8 @@ export default function SecurityPage() {
       <DocP>
         If you find a security issue not covered above, please don&apos;t
         open a public GitHub issue. Email{" "}
-        <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
-          clementenaza@gmail.com
+        <a href="mailto:naza@naza.ar" style={{ color: "var(--accent)" }}>
+          naza@naza.ar
         </a>{" "}
         with details and proof-of-concept. We&apos;ll respond within 48
         hours and disclose responsibly per <DocCode>SECURITY.md</DocCode>{" "}

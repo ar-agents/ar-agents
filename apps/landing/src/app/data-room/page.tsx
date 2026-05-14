@@ -524,8 +524,8 @@ export default async function DataRoomPage() {
         </a>{" "}
         deep-dive is the moat (the forensic primitive Wyoming / MIDAO
         haven&apos;t shipped). For a 20-min intro call:{" "}
-        <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
-          clementenaza@gmail.com
+        <a href="mailto:naza@naza.ar" style={{ color: "var(--accent)" }}>
+          naza@naza.ar
         </a>:{" "}
       &lt;48h response.
       </DocP>

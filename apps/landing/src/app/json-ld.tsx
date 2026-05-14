@@ -44,7 +44,7 @@ export function HomeJsonLd() {
           founder: {
             "@type": "Person",
             name: "Naza",
-            email: "clementenaza@gmail.com",
+            email: "naza@naza.ar",
           },
           areaServed: {
             "@type": "Country",
@@ -149,7 +149,7 @@ export function RfcJsonLd({
         author: {
           "@type": "Person",
           name: "Naza",
-          email: "clementenaza@gmail.com",
+          email: "naza@naza.ar",
         },
         publisher: {
           "@type": "Organization",

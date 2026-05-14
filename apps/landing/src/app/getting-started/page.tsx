@@ -324,8 +324,8 @@ export default function GettingStartedPage() {
           issue
         </a>{" "}
         o mandá un email a{" "}
-        <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
-          clementenaza@gmail.com
+        <a href="mailto:naza@naza.ar" style={{ color: "var(--accent)" }}>
+          naza@naza.ar
         </a>:{" "}
       primera respuesta &lt;48hs.
       </DocP>

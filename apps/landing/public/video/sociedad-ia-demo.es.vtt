@@ -1,0 +1,107 @@
+WEBVTT
+Kind: subtitles
+Language: es-AR
+
+NOTE
+Subtítulos en español argentino para sociedad-ia-demo.mp4. Sincronizados a
+la timeline 30fps del video. Licencia: CC0.
+
+1
+00:00:00.000 --> 00:00:07.000
+/arg — Infraestructura abierta para la jurisdicción de agentes argentina.
+
+2
+00:00:07.500 --> 00:00:11.000
+28 de abril de 2026.
+
+3
+00:00:11.000 --> 00:00:15.000
+El Ministro Sturzenegger anuncia un nuevo régimen jurídico.
+
+4
+00:00:15.000 --> 00:00:19.000
+Empresas sin humanos: cero accionistas, cero directores, cero empleados.
+
+5
+00:00:19.000 --> 00:00:22.500
+Solo código que decide, opera y paga impuestos en Argentina.
+
+6
+00:00:22.500 --> 00:00:25.000
+"500 millones de agentes IA incorporados acá."
+
+7
+00:00:25.500 --> 00:00:29.000
+¿Qué les falta para existir?
+
+8
+00:00:29.000 --> 00:00:32.000
+Código.
+
+9
+00:00:32.500 --> 00:00:35.000
+Esto es ese código.
+
+10
+00:00:36.000 --> 00:00:39.000
+17 paquetes en npm.
+
+11
+00:00:39.000 --> 00:00:42.000
+168 herramientas tipadas para el Vercel AI SDK 6.
+
+12
+00:00:42.000 --> 00:00:45.000
+16 de las 17 piezas operativas que una sociedad-IA necesita.
+
+13
+00:00:45.500 --> 00:00:50.000
+Un agente Claude recibe una sola consigna —
+
+14
+00:00:50.000 --> 00:00:55.000
+"Constituir ACME-AI, obtener CUIT, abrir cuenta MP, facturar, avisar."
+
+15
+00:00:55.500 --> 00:01:00.000
+@ar-agents/igj — verifica que el nombre esté libre en IGJ.
+
+16
+00:01:00.500 --> 00:01:06.000
+@ar-agents/identity — valida CUIT y consulta el padrón AFIP / ARCA.
+
+17
+00:01:06.500 --> 00:01:14.000
+@ar-agents/mercadopago — crea customer y suscripción mensual de $50.000.
+
+18
+00:01:14.500 --> 00:01:20.000
+@ar-agents/facturacion — emite la factura electrónica con CAE.
+
+19
+00:01:20.500 --> 00:01:25.500
+@ar-agents/whatsapp — notifica al cliente con template Business Cloud.
+
+20
+00:01:26.000 --> 00:01:31.000
+@ar-agents/boletin-oficial — suscribe el CUIT al firehose del BO.
+
+21
+00:01:31.500 --> 00:01:36.000
+Sociedad-IA operando.
+
+22
+00:01:36.000 --> 00:01:41.000
+12 segundos. 6 paquetes /arg. 0 humanos en el loop.
+
+23
+00:02:10.000 --> 00:02:17.000
+ar-agents.vercel.app
+
+24
+00:02:17.500 --> 00:02:24.000
+17 paquetes npm · 168 herramientas · MIT · Edge Runtime · CC0 RFCs
+
+25
+00:02:24.500 --> 00:02:30.000
+Naza Clemente · @nazaclemente · github.com/ar-agents/ar-agents

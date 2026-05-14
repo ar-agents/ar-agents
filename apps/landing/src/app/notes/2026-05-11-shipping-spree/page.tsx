@@ -30,7 +30,7 @@ export default function NotePage() {
           author: {
             "@type": "Person",
             name: "Naza",
-            email: "clementenaza@gmail.com",
+            email: "naza@naza.ar",
           },
           url: "https://ar-agents.ar/notes/2026-05-11-shipping-spree",
           inLanguage: "en-US",

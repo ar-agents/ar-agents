@@ -30,7 +30,7 @@ const ONE_LINERS_ES = [
 ];
 
 const CONTACT_BLOCK = [
-  { label: "Email", value: "clementenaza@gmail.com" },
+  { label: "Email", value: "naza@naza.ar" },
   { label: "GitHub", value: "github.com/ar-agents/ar-agents" },
   { label: "npm scope", value: "@ar-agents/* (17 paquetes públicos)" },
   { label: "Sitio", value: "ar-agents.ar" },

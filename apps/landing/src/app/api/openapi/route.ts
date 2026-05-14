@@ -26,7 +26,7 @@ const spec = {
     version: "1.0.0",
     contact: {
       name: "Naza",
-      email: "clementenaza@gmail.com",
+      email: "naza@naza.ar",
       url: "https://ar-agents.ar",
     },
     license: {

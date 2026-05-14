@@ -135,8 +135,8 @@ export default function NotFound() {
             issue
           </a>{" "}
           o mandanos un email a{" "}
-          <a href="mailto:clementenaza@gmail.com" style={{ color: "#0072f5" }}>
-            clementenaza@gmail.com
+          <a href="mailto:naza@naza.ar" style={{ color: "#0072f5" }}>
+            naza@naza.ar
           </a>
           . Toda 404 es un bug.
         </p>

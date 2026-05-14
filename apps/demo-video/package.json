@@ -1,0 +1,26 @@
+{
+  "name": "ar-agents-demo-video",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Remotion-built demo video for /arg — sociedad-IA en producción.",
+  "scripts": {
+    "build": "remotion render src/index.ts SociedadIaDemo out/demo.mp4 --codec h264 --pixel-format yuv420p",
+    "build-fast": "remotion render src/index.ts SociedadIaDemo out/demo-fast.mp4 --concurrency 4 --codec h264 --pixel-format yuv420p",
+    "preview": "remotion studio src/index.ts",
+    "render": "remotion render src/index.ts SociedadIaDemo out/demo.mp4 --codec h264 --pixel-format yuv420p"
+  },
+  "dependencies": {
+    "@remotion/bundler": "4.0.330",
+    "@remotion/cli": "4.0.330",
+    "@remotion/google-fonts": "4.0.330",
+    "@remotion/renderer": "4.0.330",
+    "react": "19.2.4",
+    "react-dom": "19.2.4",
+    "remotion": "4.0.330"
+  },
+  "devDependencies": {
+    "@types/react": "^19.2.0",
+    "@types/react-dom": "^19.2.0",
+    "typescript": "^5.9.3"
+  }
+}
