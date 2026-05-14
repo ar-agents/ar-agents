@@ -106,7 +106,7 @@ Quedo disponible para una reunión técnica si encuentran útil el trabajo. Cual
 
 Saludos,
 Naza
-clementenaza@gmail.com
+naza@naza.ar
 Monte Grande, BA`,
     notes: "Best for: cold outreach to ministerial staff. Argentine Spanish, formal but not stiff. Lead with credentials (CUIT) + the work. Single ask at the end (meeting). Attach NOTHING, link out.",
   },
@@ -144,7 +144,7 @@ Happy to be a technical source on this. CV/links on request.
 
 Best,
 Naza
-clementenaza@gmail.com
+naza@naza.ar
 +34 695 63 22 37`,
     notes: "Best for: international press. English. Lead with their recent work (personalize). The 'jurisdiction-agnostic' angle is the international hook. Phone number signals seriousness.",
   },
@@ -171,7 +171,7 @@ Si encuentran útil dialogar sobre el diseño desde la perspectiva de AAIP, qued
 
 Saludos,
 Naza
-clementenaza@gmail.com`,
+naza@naza.ar`,
     notes: "Best for: AAIP staff or analogous data-protection lawyers. Argentine Spanish. Demonstrate that you've already thought about Ley 25.326, that establishes credibility instantly with this audience.",
   },
 ];

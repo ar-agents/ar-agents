@@ -1,0 +1,53 @@
+name: mercadolibre integration (daily)
+
+# Runs the live-MELI integration suite every day at 12:00 UTC + on
+# changes to the mercadolibre package on main. If MELI silently changes
+# a schema, this cron turns the badge red BEFORE any consumer hits it.
+#
+# Tests hit only public, no-auth endpoints (categories, domain_discovery)
+# so no secrets are needed in CI.
+
+on:
+  schedule:
+    - cron: "0 12 * * *"
+  push:
+    branches: [main]
+    paths:
+      - "packages/mercadolibre/**"
+      - ".github/workflows/mercadolibre-integration-cron.yml"
+  workflow_dispatch: {}
+
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5.0.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: "20"
+          cache: pnpm
+
+      - name: Install
+        run: pnpm install --frozen-lockfile
+
+      - name: Build mercadolibre
+        run: pnpm --filter @ar-agents/mercadolibre build
+
+      - name: Run integration tests against live MELI public API
+        env:
+          MELI_INTEGRATION: "1"
+        run: pnpm --filter @ar-agents/mercadolibre test:integration
+
+      # If MELI's response shape drifts and the suite fails, we want the
+      # commit history to surface the regression as soon as possible.
+      - name: Failure notice
+        if: failure()
+        run: |
+          echo "::error::MELI public-API integration suite failed."
+          echo "::error::Likely causes: (1) MELI changed a response schema,"
+          echo "::error::(2) the auth-gating policy on a previously-public"
+          echo "::error::endpoint changed, (3) MELI is having an outage."
+          echo "::error::Check https://mercadolibre.ar-agents.ar and"
+          echo "::error::https://api.mercadolibre.com/categories/MLA1071."

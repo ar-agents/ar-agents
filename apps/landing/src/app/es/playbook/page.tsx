@@ -326,21 +326,21 @@ export default function PlaybookEsPage() {
       <DocP>
         <strong>Reguladores</strong>: la propuesta formal es{" "}
         <a href="/rfcs/001" style={{ color: "var(--accent)" }}>RFC-001</a>.
-        Léanla como un draft sobre el cual comentar. Email clementenaza@gmail.com
+        Léanla como un draft sobre el cual comentar. Email naza@naza.ar
         para reuniones.
       </DocP>
       <DocP>
         <strong>Inversores</strong>: hay una tesis para escribir sobre la
         primera apuesta jurisdiccional al comercio entre agentes. La
         librería es la implementación de referencia pública. Email
-        clementenaza@gmail.com.
+        naza@naza.ar.
       </DocP>
       <DocP>
         <strong>Periodistas</strong>: material fuente, contexto técnico,
         y el walkthrough del threat model en{" "}
         <a href="/security" style={{ color: "var(--accent)" }}>/security</a>{" "}
         y <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>.
-        Email clementenaza@gmail.com para entrevistas.
+        Email naza@naza.ar para entrevistas.
       </DocP>
     </DocShell>
   );

@@ -28,8 +28,8 @@ export default function Rfc005Page() {
         <DocP>
           <strong>Status:</strong> Draft.{" "}
           <strong>Author:</strong> Naza (
-          <a href="mailto:clementenaza@gmail.com" style={linkSty}>
-            clementenaza@gmail.com
+          <a href="mailto:naza@naza.ar" style={linkSty}>
+            naza@naza.ar
           </a>
           ). <strong>Discussion:</strong>{" "}
           <a

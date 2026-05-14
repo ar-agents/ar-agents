@@ -259,7 +259,7 @@ export default function HighlightsPage() {
             Monte Grande, BA, Argentina.
           </P>
           <P>
-            <A href="mailto:clementenaza@gmail.com">clementenaza@gmail.com</A>{" · "}
+            <A href="mailto:naza@naza.ar">naza@naza.ar</A>{" · "}
             <A href="https://github.com/ar-agents/ar-agents/discussions">
               github discussions
             </A>

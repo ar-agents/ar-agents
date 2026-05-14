@@ -21,8 +21,8 @@ export default function Rfc002Page() {
         <DocP>
           <strong>Status:</strong> Draft.{" "}
           <strong>Author:</strong> Naza (
-          <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>
-            clementenaza@gmail.com
+          <a href="mailto:naza@naza.ar" style={{ color: "var(--accent)" }}>
+            naza@naza.ar
           </a>
           ). <strong>Discussion:</strong>{" "}
           <a

@@ -291,7 +291,7 @@ export default function FaqPage() {
 
       <DocH2>¿Algo que no respondimos?</DocH2>
       <DocP>
-        Email <a href="mailto:clementenaza@gmail.com" style={{ color: "var(--accent)" }}>clementenaza@gmail.com</a>{" "}
+        Email <a href="mailto:naza@naza.ar" style={{ color: "var(--accent)" }}>naza@naza.ar</a>{" "}
         o abrí un issue en{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/issues/new?labels=question&template=question.md"

@@ -1,0 +1,136 @@
+html {
+  height: 100%;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Default = DARK mode. The init script in <head> writes data-theme to <html>
+   before paint, so legitimate dark-mode visitors never see light mode flash. */
+:root,
+html[data-theme="dark"] {
+  color-scheme: dark;
+
+  --bg: #000000;
+  --bg-tint: #0a0a0a;
+  --text: #ededed;
+  --text-body: #a1a1a1;
+  --text-muted: #717171;
+
+  /* MELI yellow */
+  --accent: #ffe600;
+  --accent-bg: rgba(255, 230, 0, 0.14);
+  --accent-text: #ffe600;
+  --accent-strong: #ffe600;
+  --accent-strong-text: #000000;
+
+  --border-color: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.08);
+
+  --card-shadow:
+    rgba(255, 255, 255, 0.1) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.5) 0px 2px 2px,
+    rgba(255, 255, 255, 0.02) 0px 0px 0px 1px inset;
+  --shadow-border: rgba(255, 255, 255, 0.1) 0px 0px 0px 1px;
+  --shadow-ring-light: rgba(255, 255, 255, 0.12) 0px 0px 0px 1px;
+
+  --code-bg: #ededed;
+  --code-text: #0a0a0a;
+
+  --primary-bg: #ededed;
+  --primary-text: #0a0a0a;
+}
+
+html[data-theme="light"] {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-tint: #fafafa;
+  --text: #171717;
+  --text-body: #4d4d4d;
+  --text-muted: #666666;
+
+  /* On light bg, pure #ffe600 is too bright for body text. Use a darker
+     companion for text/links and keep #ffe600 for fills + chips. */
+  --accent: #b58e00;
+  --accent-bg: #fff8b8;
+  --accent-text: #806400;
+  --accent-strong: #ffe600;
+  --accent-strong-text: #1a1400;
+
+  --border-color: rgba(0, 0, 0, 0.08);
+  --border-light: rgb(235, 235, 235);
+
+  --card-shadow:
+    rgba(0, 0, 0, 0.08) 0px 0px 0px 1px,
+    rgba(0, 0, 0, 0.04) 0px 2px 2px,
+    #fafafa 0px 0px 0px 1px inset;
+  --shadow-border: rgba(0, 0, 0, 0.08) 0px 0px 0px 1px;
+  --shadow-ring-light: rgb(235, 235, 235) 0px 0px 0px 1px;
+
+  --code-bg: #171717;
+  --code-text: #ffffff;
+
+  --primary-bg: #171717;
+  --primary-text: #ffffff;
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  background: var(--bg);
+  font-family:
+    var(--font-geist-sans), Arial, "Apple Color Emoji", "Segoe UI Emoji",
+    "Segoe UI Symbol", sans-serif;
+  font-feature-settings: "liga";
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  transition:
+    background 0.15s ease,
+    color 0.15s ease;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+  text-decoration: none;
+}
+
+code,
+pre {
+  font-family:
+    var(--font-geist-mono), ui-monospace, SFMono-Regular, "Roboto Mono", Menlo,
+    Monaco, "Liberation Mono", "DejaVu Sans Mono", "Courier New", monospace;
+  font-feature-settings: "liga";
+}
+
+::selection {
+  background: rgba(255, 230, 0, 0.4);
+  color: #000;
+}
+
+a:focus-visible,
+button:focus-visible {
+  outline: 2px solid var(--accent-strong);
+  outline-offset: 2px;
+  border-radius: 6px;
+}
+
+.br-mobile {
+  display: inline;
+}
+@media (min-width: 640px) {
+  .br-mobile {
+    display: none;
+  }
+}

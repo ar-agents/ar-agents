@@ -45,7 +45,7 @@ export default function LegislacionPage() {
           author: {
             "@type": "Person",
             name: "Naza",
-            email: "clementenaza@gmail.com",
+            email: "naza@naza.ar",
           },
           audience: {
             "@type": "Audience",
@@ -500,7 +500,7 @@ export default function LegislacionPage() {
             conversación es pública.
           </P>
           <P>
-            <A href="mailto:clementenaza@gmail.com">clementenaza@gmail.com</A> ·{" "}
+            <A href="mailto:naza@naza.ar">naza@naza.ar</A> ·{" "}
             <A href="https://github.com/ar-agents/ar-agents/discussions">
               github.com/ar-agents/ar-agents/discussions
             </A>
