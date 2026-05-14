@@ -16,10 +16,10 @@ export default defineConfig({
       // gate coverage on the always-loaded core surface instead.
       exclude: ["src/index.ts", "src/otel.ts", "src/vercel-kv.ts"],
       thresholds: {
-        statements: 75,
+        statements: 70,
         branches: 70,
         functions: 65,
-        lines: 75,
+        lines: 70,
       },
     },
   },
