@@ -1,17 +1,17 @@
 cff-version: 1.2.0
-title: "ar-agents: Open-source infrastructure for Argentine sociedades-IA"
+title: "ar-agents: Open-source infrastructure for Argentine AI corporations"
 message: "If you reference this work in academic literature, please cite it using these metadata."
 type: software
 authors:
-  - given-names: Nazareno
-    family-names: Clemente
-    email: naza@helloastro.co
-    affiliation: Independent (Buenos Aires, Argentina)
-    orcid: "https://orcid.org/0000-0000-0000-0000"
+  - given-names: Naza
+    family-names: ""
+    email: naza@naza.ar
+    affiliation: Independent
 repository-code: "https://github.com/ar-agents/ar-agents"
-url: "https://ar-agents.vercel.app"
+url: "https://ar-agents.ar"
 keywords:
   - sociedad-ia
+  - ai-corporations
   - ai-agent
   - civil-liability
   - agentic-commerce
@@ -27,63 +27,78 @@ version: "0.x"
 date-released: "2026-05-05"
 abstract: >
   Open-source infrastructure and reference implementation for Argentine
-  sociedades-IA (AI-only companies) under the regime announced by the
-  Ministry of Desregulación on 28 April 2026. The package comprises 17
-  Vercel-AI-SDK-compatible npm libraries spanning MercadoPago, AFIP/ARCA
-  identity + factura electrónica, WhatsApp Business, banking, shipping,
-  GDE/TAD, BCRA, IGJ, Boletín Oficial, and MercadoLibre integration; 26
-  cookbook recipes; four RFCs (001-004) covering civil liability,
-  agent discovery, cross-jurisdictional reciprocity, and the normative
-  operational-log wire format; seven frozen conformance test vectors;
-  a public certifier that scores any URL 0-100 against RFC-002 + RFC-004
-  in seconds; a reference implementation that self-certifies at 100/100.
+  AI corporations (sociedades de inteligencia artificial) under the
+  regime announced by the Ministry of Desregulación on 28 April 2026.
+  The package comprises 17 Vercel AI SDK 6 compatible npm libraries
+  spanning Mercado Pago, AFIP/ARCA identity + electronic invoicing,
+  WhatsApp Business, banking, shipping, GDE/TAD, BCRA, IGJ, Boletín
+  Oficial, and Mercado Libre integration; cookbook recipes; five RFCs
+  (RFC-001..005) with Zenodo DOIs covering identity, agent discovery,
+  cross-jurisdictional audit-log reciprocity, the operational-log wire
+  format, and the Ed25519 asymmetric upgrade path; conformance test
+  vectors; a public certifier that scores any URL 0-100 against
+  RFC-002 + RFC-004 in seconds; a reference implementation that
+  self-certifies at 100/100.
 references:
   - type: report
-    title: "RFC-001: Three-layer civil liability framework for Argentine sociedades-IA"
+    title: "RFC-001: Identity and signing for AI corporations in Argentina"
     authors:
-      - given-names: Nazareno
-        family-names: Clemente
+      - given-names: Naza
+        family-names: ""
     year: 2026
-    url: "https://ar-agents.vercel.app/rfcs/001"
+    doi: "10.5281/zenodo.20159396"
+    url: "https://ar-agents.ar/rfcs/001"
     license: CC-BY-4.0
   - type: report
     title: "RFC-002: Agent-discovery-by-default convention"
     authors:
-      - given-names: Nazareno
-        family-names: Clemente
+      - given-names: Naza
+        family-names: ""
     year: 2026
-    url: "https://ar-agents.vercel.app/rfcs/002"
+    doi: "10.5281/zenodo.20159407"
+    url: "https://ar-agents.ar/rfcs/002"
     license: CC-BY-4.0
   - type: report
     title: "RFC-003: Cross-jurisdictional audit-log reciprocity"
     authors:
-      - given-names: Nazareno
-        family-names: Clemente
+      - given-names: Naza
+        family-names: ""
     year: 2026
-    url: "https://ar-agents.vercel.app/rfcs/003"
+    doi: "10.5281/zenodo.20159411"
+    url: "https://ar-agents.ar/rfcs/003"
     license: CC-BY-4.0
   - type: report
-    title: "RFC-004: Operational-log specification for AR sociedades-IA"
+    title: "RFC-004: Operational-log specification for AR AI corporations"
     authors:
-      - given-names: Nazareno
-        family-names: Clemente
+      - given-names: Naza
+        family-names: ""
     year: 2026
-    url: "https://ar-agents.vercel.app/rfcs/004"
+    doi: "10.5281/zenodo.20159417"
+    url: "https://ar-agents.ar/rfcs/004"
+    license: CC-BY-4.0
+  - type: report
+    title: "RFC-005: Asymmetric upgrade for the operational log"
+    authors:
+      - given-names: Naza
+        family-names: ""
+    year: 2026
+    doi: "10.5281/zenodo.20159424"
+    url: "https://ar-agents.ar/rfcs/005"
     license: CC-BY-4.0
   - type: data
     title: "RFC-004 v1 conformance test vectors"
     authors:
-      - given-names: Nazareno
-        family-names: Clemente
+      - given-names: Naza
+        family-names: ""
     year: 2026
-    url: "https://ar-agents.vercel.app/test-vectors/rfc-004-v1.json"
+    url: "https://ar-agents.ar/test-vectors/rfc-004-v1.json"
     license: CC-BY-4.0
 preferred-citation:
   type: software
-  title: "ar-agents: Open-source infrastructure for Argentine sociedades-IA"
+  title: "ar-agents: Open-source infrastructure for Argentine AI corporations"
   authors:
-    - given-names: Nazareno
-      family-names: Clemente
+    - given-names: Naza
+      family-names: ""
   year: 2026
   url: "https://github.com/ar-agents/ar-agents"
   license: MIT
