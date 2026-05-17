@@ -1,10 +1,11 @@
 # Conformance: RFC-004 / RFC-005 ⇄ Vultur `@vultur/core`
 
 **Status:** analysis, 2026-05-17. **Tool:** [`arg-verify.mjs`](./arg-verify.mjs)
-(zero-dependency, offline). **Result of `arg-verify vectors`:** 14/14 PASS — a
+(zero-dependency, offline). **Result of `arg-verify vectors`:** 31/31 PASS — a
 clean-room implementation written from the RFC text reproduces every published
-RFC-004 HMAC and RFC-005 Ed25519 vector byte-for-byte. The cited standard is
-independently reproducible without trusting the reference implementation.
+RFC-004 HMAC, RFC-005 Ed25519, RFC-006 chain/anchor/projection, **and RFC-006
+§8.1 export-bundle** vector byte-for-byte. The cited standard is independently
+reproducible without trusting the reference implementation.
 
 This document exists because the **cited standard and the flagship
 implementation are two different designs**, and a cited standard nobody's
@@ -52,6 +53,7 @@ with an optional external notary. Independent offline verifier:
 | Independent offline verify | RFC-005 §5 flow | `verify-attestation.mjs` (zero-dep, offline) — but verifies the **attestation**, not RFC-004 entries | **PARTIAL** — real verifier, wrong shape relative to the cited vectors |
 | Governance taxonomy (RFC-004 §6) | 4-class enum per entry → RFC-001 liability | not modeled (`actor/action/meta`) | **NOT IMPLEMENTED** |
 | Retention (RFC-004 §7) | 180d min / 5y max | not modeled in `@vultur/core` | **NOT IMPLEMENTED** at the standard layer |
+| Regulator export artifact | n/a (RFC-004 has no bundle) | `vultur-export-SLUG.json`: nested attestation + non-contiguous `createdAt` slice | **RESOLVED** — RFC-006 §8.1 + `arg-verify bundle` verify the bundle *as received* (Ed25519 + binding trust-free; recordsOnly with `--secret`); vector + tampered twin in `rfc-006-v1.json` |
 
 ## What this means
 
@@ -62,6 +64,21 @@ invisible: a regulator who takes the cited RFC-004, downloads
 `rfc-004-v1.json`, and runs the standard's own tool against a Vultur export
 gets **"does not conform"**. That has to be resolved deliberately, not left
 to discovery.
+
+### Update 2026-05-17 — export-artifact verifiability gap closed
+
+A second, narrower instance of the same "discovery risk" is now closed. The
+verifier could check a hand-extracted attestation, but a regulator handed the
+real `vultur-export-SLUG.json` bundle got failures: the attestation is nested
+under `.attestation` (not top-level), and `auditEvents` is a non-contiguous
+per-society slice keyed by `createdAt` (not `ts`). RFC-006 **§8.1** now makes
+the bundle envelope + `createdAt→ts` mapping + recordsOnly slice + mandatory
+attestation↔bundle binding normative, and `arg-verify bundle` verifies the
+bundle *as received* — Ed25519 + binding trust-free, recordsOnly with the
+operator secret, honest skip without it. A swapped-bundle attack (valid
+attestation lifted onto a manipulated bundle) fails the binding. This is the
+narrow, owed-anyway fix; the broader RFC-004 entry-shape divergence is still
+addressed by the RFC-006 profile + §5 projection below.
 
 ## The fork (decision required)
 
@@ -91,7 +108,8 @@ same `arg-verify entry` command works unchanged on a Vultur entry.
 ## Reproducing
 
 ```
-node tools/arg-verify/arg-verify.mjs vectors      # 14/14 PASS expected
+node tools/arg-verify/arg-verify.mjs vectors      # 31/31 PASS expected
 node tools/arg-verify/arg-verify.mjs attestation att.json [expectedPubKeyB64]
 node tools/arg-verify/arg-verify.mjs entry e.json --secret S --keys keys.json
+node tools/arg-verify/arg-verify.mjs bundle vultur-export-SLUG.json [--secret S]
 ```

@@ -183,6 +183,17 @@ const RFC004_GOV = new Set([
   "requires-confirmation",
 ]);
 
+// RFC-006 §8 export mapping (normative): an export record's timestamp column
+// is `createdAt`; the canonical hash material's `ts` is `createdAt` rendered
+// as ISO-8601 UTC. Native links already carry `ts`; `ts ?? createdAt→ISO`
+// makes the verifier accept BOTH the native shape and the real producer
+// export shape with one code path (non-breaking — `ts` wins when present).
+function linkTs(L) {
+  if (L.ts != null) return L.ts;
+  if (L.createdAt != null) return new Date(L.createdAt).toISOString();
+  return undefined;
+}
+
 function chainLinkHash(secret, L) {
   return hmacSha256Hex(
     canonical({
@@ -192,10 +203,29 @@ function chainLinkHash(secret, L) {
       actor: L.actor,
       action: L.action,
       meta: L.meta ?? null,
-      ts: L.ts,
+      ts: linkTs(L),
     }),
     secret,
   );
+}
+
+// RFC-006 §4.2 — per-record (recordsOnly) verification. For a filtered,
+// NON-contiguous slice (e.g. one society's events pulled out of the global
+// chain, as the Ley-25.326 export emits) contiguity/linkage cannot hold;
+// assert only that each stored hash recomputes. Proves each record is
+// unmutated, NOT set-completeness — callers MUST label results recordsOnly.
+function verifyRecordsOnly(events, secret) {
+  for (const e of events) {
+    if (!eqConstTime(chainLinkHash(secret, e), e.hash))
+      return {
+        valid: false,
+        count: events.length,
+        brokenAtSeq: e.seq,
+        reason: "hash mismatch (record tampered)",
+        recordsOnly: true,
+      };
+  }
+  return { valid: true, count: events.length, recordsOnly: true };
 }
 
 function verifyChain(links, secret) {
@@ -330,6 +360,58 @@ function runRfc006(dir) {
           `projection·seq${pe.fromSeq}`,
           `canonEq=${canonEq} hmacEq=${hmacEq} rfc004verify=${rfc004ok}`,
         );
+  }
+
+  // §8 export bundle (the real regulator artifact).
+  if (doc.exportBundle) {
+    const eb = doc.exportBundle.bundle;
+    const att = eb.attestation;
+    const pub = createPublicKey({
+      key: Buffer.from(att.publicKey, "base64"),
+      format: "der",
+      type: "spki",
+    });
+    const attOk = edVerify(
+      null,
+      Buffer.from(canonical(att.body), "utf8"),
+      pub,
+      Buffer.from(att.sig, "base64"),
+    );
+    attOk
+      ? pass("export·attestation", "Ed25519 valid over canonical(body)")
+      : fail("export·attestation", "attestation signature did not verify");
+    const bindOk =
+      att.body.chain.societyEventCount === eb.auditEvents.length &&
+      att.body.society.slug === eb.society.slug &&
+      canonical(att.body.chain.verification) ===
+        canonical(eb.ledgerVerification);
+    bindOk
+      ? pass("export·binding", "attestation ↔ bundle bound (count/identity/verification)")
+      : fail("export·binding", "attestation does not bind to the surrounding bundle");
+    const ro = verifyRecordsOnly(eb.auditEvents, doc.secrets.audit);
+    ro.valid && ro.count === doc.exportBundle.expect.recordsOnly.count
+      ? pass("export·recordsOnly", `${ro.count} record(s) authentic (§4.2 non-contiguous slice)`)
+      : fail("export·recordsOnly", JSON.stringify(ro));
+
+    const tb = doc.exportBundleTampered.bundle;
+    const tAttOk = edVerify(
+      null,
+      Buffer.from(canonical(tb.attestation.body), "utf8"),
+      createPublicKey({
+        key: Buffer.from(tb.attestation.publicKey, "base64"),
+        format: "der",
+        type: "spki",
+      }),
+      Buffer.from(tb.attestation.sig, "base64"),
+    );
+    const tRo = verifyRecordsOnly(tb.auditEvents, doc.secrets.audit);
+    tAttOk && !tRo.valid &&
+    tRo.brokenAtSeq === doc.exportBundleTampered.expect.recordsOnly.brokenAtSeq
+      ? pass(
+          "exportTampered·detected",
+          `attestation still valid but recordsOnly flags seq ${tRo.brokenAtSeq} — proves why §8 binding is normative`,
+        )
+      : fail("exportTampered·detected", JSON.stringify({ tAttOk, tRo }));
   }
 }
 
@@ -466,6 +548,109 @@ function cmdAttestation(args) {
   process.exit(0);
 }
 
+// ── `bundle` (verify a real Vultur Ley-25.326 export end-to-end) ────────
+// The artifact a regulator actually downloads:
+//   { exportedAt, society, movements, invoices, auditEvents,
+//     ledgerVerification, attestation:{body,sig,publicKey,...}, notice }
+// `arg-verify attestation` fails on it (attestation is nested, not
+// top-level); `arg-verify chain` fails on it (auditEvents is a
+// NON-contiguous per-society slice keyed by `createdAt`, not `ts`).
+// This command verifies the whole bundle the way RFC-006 §8 specifies:
+//   1. Ed25519-verify the embedded attestation (trust-free, no secret).
+//   2. Bind attestation ↔ surrounding bundle (a valid attestation around
+//      a swapped bundle MUST NOT pass).
+//   3. recordsOnly-verify the auditEvents slice (§4.2) with the
+//      createdAt→ts mapping — needs --secret (HMAC is operator-keyed;
+//      honest skip + clear notice when absent).
+function cmdBundle(args) {
+  const file = args[0];
+  if (!file) {
+    console.error(
+      "usage: arg-verify bundle <vultur-export-SLUG.json> [--secret S] [expectedPubKeyB64]",
+    );
+    process.exit(2);
+  }
+  const si = args.indexOf("--secret");
+  const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
+  const expected = args
+    .slice(1)
+    .find((a, idx) => a !== "--secret" && args[idx] !== "--secret" && !a.startsWith("--"));
+  const b = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const att = b.attestation;
+  if (!att || !att.body || !att.sig || !att.publicKey) {
+    console.error(
+      `${RED}✗${RST} not a Vultur export bundle (missing .attestation{body,sig,publicKey})`,
+    );
+    process.exit(1);
+  }
+
+  // 1 · Ed25519 attestation (trust-free).
+  if (expected && att.publicKey !== expected) {
+    fail("attestation·pubkey", "embedded public key != expected pinned key");
+  } else if (expected) {
+    pass("attestation·pubkey", "matches pinned key");
+  }
+  const pub = createPublicKey({
+    key: Buffer.from(att.publicKey, "base64"),
+    format: "der",
+    type: "spki",
+  });
+  const attOk = edVerify(
+    null,
+    Buffer.from(canonical(att.body), "utf8"),
+    pub,
+    Buffer.from(att.sig, "base64"),
+  );
+  attOk
+    ? pass("attestation·ed25519", "signature valid over canonical(body)")
+    : fail("attestation·ed25519", "signature did NOT verify — altered or forged");
+
+  // 2 · Bind attestation ↔ bundle (defeats valid-attestation-around-swapped-bundle).
+  const c = att.body.chain ?? {};
+  const events = Array.isArray(b.auditEvents) ? b.auditEvents : null;
+  if (!events) fail("bundle·shape", "no auditEvents array");
+  else {
+    c.societyEventCount === events.length
+      ? pass("bundle·bind·count", `societyEventCount=${events.length}`)
+      : fail(
+          "bundle·bind·count",
+          `attestation says ${c.societyEventCount}, bundle has ${events.length}`,
+        );
+  }
+  const aS = att.body.society ?? {};
+  const bS = b.society ?? {};
+  aS.slug === bS.slug && (aS.cuit == null || aS.cuit === bS.cuit)
+    ? pass("bundle·bind·identity", `${aS.slug} / ${aS.cuit ?? "—"}`)
+    : fail("bundle·bind·identity", "attestation society != bundle society");
+  canonical(c.verification ?? null) === canonical(b.ledgerVerification ?? null)
+    ? pass("bundle·bind·verification", "attestation echoes bundle ledgerVerification")
+    : fail("bundle·bind·verification", "attestation.verification != bundle.ledgerVerification");
+
+  // 3 · recordsOnly slice (§4.2) — needs the operator HMAC secret.
+  if (events && secret) {
+    const r = verifyRecordsOnly(events, secret);
+    r.valid
+      ? pass("bundle·recordsOnly", `${r.count} record(s) authentic (non-contiguous slice)`)
+      : fail(
+          "bundle·recordsOnly",
+          `record tampered @seq ${r.brokenAtSeq} (${r.reason})`,
+        );
+  } else if (events) {
+    console.log(
+      `  ${DIM}skip  recordsOnly (no --secret/AUDIT_SECRET; HMAC is operator-keyed. The Ed25519 attestation above is the trust-free guarantee per RFC-006 §7)${RST}`,
+    );
+  }
+
+  if (failures === 0) {
+    console.log(
+      `\n${GREEN}✓ BUNDLE VERIFIED${RST} — ${aS.denominacion ?? "—"} (${aS.slug ?? "—"}) · head seq ${c.globalHeadSeq ?? "?"}`,
+    );
+    process.exit(0);
+  }
+  console.log(`\n${RED}✗ BUNDLE FAILED${RST} — ${failures} check(s) failed`);
+  process.exit(1);
+}
+
 // ── `chain` (verify an RFC-006 ledger) ──────────────────────────────────
 function cmdChain(args) {
   const file = args[0];
@@ -554,6 +739,9 @@ switch (cmd) {
   case "chain":
     cmdChain(rest);
     break;
+  case "bundle":
+    cmdBundle(rest);
+    break;
   case "project":
     cmdProject(rest);
     break;
@@ -566,6 +754,7 @@ switch (cmd) {
         "  node arg-verify.mjs entry <entry.json> [--secret S] [--keys keys.json]",
         "  node arg-verify.mjs attestation <attestation.json> [expectedPubKeyB64]",
         "  node arg-verify.mjs chain <chain.json> --secret S    RFC-006 ledger",
+        "  node arg-verify.mjs bundle <vultur-export-SLUG.json> [--secret S] [pubkeyB64]",
         "  node arg-verify.mjs project <chain.json> --proj-secret P [--secret S --verify]",
         "",
         "Zero dependencies. Offline. RFC-004 (HMAC) · RFC-005 (Ed25519) ·",
