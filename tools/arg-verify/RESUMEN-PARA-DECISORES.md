@@ -1,6 +1,6 @@
 # Un estándar abierto y verificable para el registro de operaciones de las empresas de IA en Argentina
 
-*Resumen para decisores — 1 página, sin tecnicismos. Autor: Nazareno Clemente · naza@helloastro.co · /arg (ar-agents.vercel.app)*
+*Resumen para decisores — 1 página, sin tecnicismos. Autor: Nazareno Clemente · naza@naza.ar · /arg (ar-agents.vercel.app)*
 
 ---
 
@@ -17,7 +17,7 @@
 - Verificarlo usted mismo, sin confiar en nadie:
   `node tools/arg-verify/arg-verify.mjs vectors` → debe imprimir **ALL VECTORS PASS**.
 - Repositorio abierto: github.com/ar-agents/ar-agents
-- Contacto: Nazareno Clemente — naza@helloastro.co
+- Contacto: Nazareno Clemente — naza@naza.ar
 
 > En una frase: **construimos, abierto y desde afuera, la pieza técnica de confianza que el régimen de sociedades de IA va a necesitar — y cualquiera puede comprobar que funciona en un comando, sin confiar en nosotros.**
 
@@ -25,4 +25,4 @@
 
 ### English TL;DR (for international press / forwarding)
 
-We built — open-source, from outside government — the **verifiable audit-log standard** an AI-company legal regime needs: a tamper-evident operational record every AI company would keep, plus a **zero-dependency tool anyone runs in one command, offline, to verify it without trusting us**. It survived **two independent hostile security reviews** (all critical issues fixed and re-verified), including defence against the operator itself forging its own logs. It's free (MIT/CC-BY), implemented, and ready to be cited by legislation. We're not asking for money, a contract, or a meeting — only that whoever drafts the framework use it as the technical reference. See **ar-agents.vercel.app**; reproduce it with `node tools/arg-verify/arg-verify.mjs vectors`. Contact: Nazareno Clemente, naza@helloastro.co.
+We built — open-source, from outside government — the **verifiable audit-log standard** an AI-company legal regime needs: a tamper-evident operational record every AI company would keep, plus a **zero-dependency tool anyone runs in one command, offline, to verify it without trusting us**. It survived **two independent hostile security reviews** (all critical issues fixed and re-verified), including defence against the operator itself forging its own logs. It's free (MIT/CC-BY), implemented, and ready to be cited by legislation. We're not asking for money, a contract, or a meeting — only that whoever drafts the framework use it as the technical reference. See **ar-agents.vercel.app**; reproduce it with `node tools/arg-verify/arg-verify.mjs vectors`. Contact: Nazareno Clemente, naza@naza.ar.
