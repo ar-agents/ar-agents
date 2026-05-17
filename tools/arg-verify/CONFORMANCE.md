@@ -10,16 +10,24 @@ byte-for-byte, **including the post-red-team negative vectors**
 non-guarantee; canonical domain throws). The cited standard is independently
 reproducible without trusting the reference implementation.
 
-> **Red-team closure.** A hostile review found 4 P0 issues in the b97c15e
-> state (canonical could emit non-JSON / sort runtime-dependently;
-> `verifyChain` accepted truncated/forged histories; projection not
-> injective; governance default under-stated liability). All are fixed on
-> this branch — canonical is code-point-ordered + domain-restricted (throws),
-> `verifyChain` rejects empty/non-genesis-rooted input, `verifyChainAnchored`
-> gates operator-defense on a verified external anchor, projection is
-> 64-bit-id + string|null societyId + `requires-confirmation` default, and
-> RFC-006 §2/§4/§5/§6 prose was corrected to stop overstating the
-> guarantees. See PR #7 thread.
+> **Red-team closure (two rounds).** Round 1 (vs b97c15e) found 4 P0s:
+> canonical could emit non-JSON / sort runtime-dependently; `verifyChain`
+> accepted truncated/forged histories; projection not injective; governance
+> default under-stated liability. Round 2 (vs the round-1 fix) found the
+> fix had reintroduced the operator-defense hole in a new shape — a verified
+> anchor chain signed with the *same* `AUDIT_SECRET` proves nothing against
+> a key-holding operator (P0-A) — plus an out-of-domain crash (P0-B) and an
+> incomplete string rule (P1-A). **All closed on this branch:** canonical is
+> code-point-ordered, domain-restricted, rejects ill-formed UTF-16, and
+> throws (never emits non-JSON); `verifyChain` rejects empty / non-genesis /
+> non-contiguous / out-of-domain **without crashing**;
+> `verifyChainAnchored` REQUIRES an external notary Ed25519 key independent
+> of `AUDIT_SECRET` and rejects operator-forged / un-notarised anchors (no
+> notary key ⇒ "not provable", never a pass); projection is 64-bit-id +
+> string|null societyId + `requires-confirmation` default. RFC-006
+> §2/§4/§5/§6 prose corrected. Vectors include forged-chain, no-notary-key,
+> out-of-domain, empty, non-genesis, tail-truncation, records-only
+> negatives — all PASS. See PR #7 thread.
 
 This document exists because the **cited standard and the flagship
 implementation are two different designs**, and a cited standard nobody's

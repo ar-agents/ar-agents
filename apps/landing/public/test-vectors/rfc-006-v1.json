@@ -203,8 +203,13 @@
       "contiguousValid": false
     }
   },
+  "notary": {
+    "description": "RFC-006 §6 EXTERNAL notary. Operator-defense requires an Ed25519 key the operator does NOT control; every anchor carries notarySig = Ed25519(notaryPriv, anchorBodyCanonical). verifyChainAnchored MUST be given notaryPublicKey (independent of secrets.audit) and MUST reject anchors lacking a valid notarySig. Fixture keypair = RFC-005 published TEST key; never use in production.",
+    "notaryKeyId": "rfc-006-notary-ref-2026-05",
+    "notaryPublicKey": "MCowBQYDK2VwAyEAEt29qtbtds8OzafRASPKZHztjC7hRDDx_2cz6NXzAVc"
+  },
   "anchors": {
-    "description": "2-anchor chain over the §3 chain head. signature_n = HMAC-SHA256(audit, canonical(AnchorBody)); prevAnchor links to previous signature; genesis prevAnchor = 'GENESIS'.",
+    "description": "2-anchor chain over the §3 chain head. signature_n = HMAC-SHA256(audit, anchorBodyCanonical); notarySig_n = Ed25519(notaryPriv, anchorBodyCanonical); prevAnchor links to previous signature; genesis prevAnchor = 'GENESIS'.",
     "genesis": "GENESIS",
     "anchors": [
       {
@@ -213,7 +218,9 @@
         "headHash": "a7dbd708286799a1e2c3b5c97b9daf015072535d2abd713e78d5e8912d0c1bad",
         "prevAnchor": "GENESIS",
         "ts": "2026-05-11T00:01:00.000Z",
-        "signature": "2acf14307564a1bf27e0ff225dacda75ecb55912a8b178d38691bf46eb76fa1b"
+        "signature": "2acf14307564a1bf27e0ff225dacda75ecb55912a8b178d38691bf46eb76fa1b",
+        "notarySig": "a4TPICAxWdJ-0v23ByKk1Wl2QFB04FCDipNX1Qnay5-m2V0d5uzN9UdedR7f07SjQzcxaybC5zm_hQeaccbGAw",
+        "notaryKeyId": "rfc-006-notary-ref-2026-05"
       },
       {
         "seq": 2,
@@ -221,12 +228,109 @@
         "headHash": "33eb348ae76bf4c12a54d6f97cbf351504bac58ccd7bab5c950f0130dea48fc7",
         "prevAnchor": "2acf14307564a1bf27e0ff225dacda75ecb55912a8b178d38691bf46eb76fa1b",
         "ts": "2026-05-11T00:02:00.000Z",
-        "signature": "9cbf53f16b995a8a226db76dfb15cb252187f45e35537be05a8f37fd012a484f"
+        "signature": "9cbf53f16b995a8a226db76dfb15cb252187f45e35537be05a8f37fd012a484f",
+        "notarySig": "kbeHtzSDL1bF3d59oLWSEPm3pMKbxzNinqC1rRI5H83F7yi4yarZnyhGzRM4dJnmazMUkLkWlT13xZLjv6KmDg",
+        "notaryKeyId": "rfc-006-notary-ref-2026-05"
       }
     ],
     "expect": {
       "valid": true,
       "count": 2
+    }
+  },
+  "forgedChain": {
+    "description": "P0-A. Operator wholesale-rewrites to a self-consistent 1-link chain (holds AUDIT_SECRET, so verifyChain ALONE returns valid:true) and mints a fresh anchor with a valid HMAC signature but NO external-notary Ed25519 signature (it cannot forge the notary key). verifyChainAnchored(forgedChain, audit, forgedAnchors, notary.notaryPublicKey) MUST return valid:false (missing/invalid notarySig). Also: verifyChainAnchored(chain, audit, anchors, /*no notary key*/) MUST return valid:false ('operator-defense not provable'). Together these prove the §6 operator-defense is real, not self-signed theatre.",
+    "links": [
+      {
+        "seq": 1,
+        "prevHash": "GENESIS",
+        "societyId": null,
+        "actor": "system",
+        "action": "ledger.genesis",
+        "meta": {
+          "forged": true
+        },
+        "ts": "2026-05-11T00:00:00.000Z",
+        "hash": "ac48c2eb9cfc12701d2aceec2549586ecd912bdbba245279e038dd0d92084b32"
+      }
+    ],
+    "anchors": [
+      {
+        "seq": 1,
+        "headSeq": 1,
+        "headHash": "ac48c2eb9cfc12701d2aceec2549586ecd912bdbba245279e038dd0d92084b32",
+        "prevAnchor": "GENESIS",
+        "ts": "2026-05-11T00:01:00.000Z",
+        "signature": "17806248465208e1d34bdd404c1b1fa2c16060e753b47d129b0b952072b7e568"
+      }
+    ],
+    "expect": {
+      "bareChainValid": true,
+      "anchoredValid": false,
+      "noNotaryKeyValid": false
+    }
+  },
+  "emptyChain": {
+    "description": "RFC-006 §4.1: empty/non-array input MUST be valid:false (no provable history), never a crash or a pass.",
+    "links": [],
+    "expect": {
+      "valid": false
+    }
+  },
+  "nonGenesisChain": {
+    "description": "RFC-006 §4.1: a slice not starting at seq 1 / prevHash GENESIS (here seq 2 first) MUST be valid:false (head truncation / non-rooted), not silently accepted.",
+    "links": [
+      {
+        "seq": 2,
+        "prevHash": "e8688b9eac9e5e63b8822d4585c4023d31348e30f589e946c4f3533409c22031",
+        "societyId": "soc_abc12345",
+        "actor": "mercadopago",
+        "action": "mercadopago.preapproval.create",
+        "meta": {
+          "amount": 1500,
+          "currency": "ARS",
+          "governance": "audit-logged"
+        },
+        "ts": "2026-05-11T00:00:01.000Z",
+        "hash": "a7dbd708286799a1e2c3b5c97b9daf015072535d2abd713e78d5e8912d0c1bad"
+      },
+      {
+        "seq": 3,
+        "prevHash": "a7dbd708286799a1e2c3b5c97b9daf015072535d2abd713e78d5e8912d0c1bad",
+        "societyId": "soc_abc12345",
+        "actor": "afip",
+        "action": "afip.factura.emitir",
+        "meta": {
+          "cae": "75123456789012",
+          "governance": "requires-confirmation"
+        },
+        "ts": "2026-05-11T00:00:02.000Z",
+        "hash": "33eb348ae76bf4c12a54d6f97cbf351504bac58ccd7bab5c950f0130dea48fc7"
+      }
+    ],
+    "expect": {
+      "valid": false
+    }
+  },
+  "outOfDomain": {
+    "description": "P0-B: a link whose meta carries a non-safe-integer (2.5) makes canonical() throw. verifyChain MUST CATCH this and return valid:false ('out-of-domain (non-conformant/tampered)') — NEVER an uncaught stack trace. A tampered ledger must read as INVALID, not crash the regulator's tool.",
+    "links": [
+      {
+        "seq": 1,
+        "prevHash": "GENESIS",
+        "societyId": null,
+        "actor": "x",
+        "action": "y",
+        "meta": {
+          "bad": 2.5
+        },
+        "ts": "2026-05-11T00:00:00.000Z",
+        "hash": "deadbeef"
+      }
+    ],
+    "expect": {
+      "valid": false,
+      "reasonContains": "out-of-domain"
     }
   },
   "projection": {
@@ -292,10 +396,10 @@
     ]
   },
   "conformance": {
-    "vectorsCount": 15,
     "referenceGenerator": "tools/arg-verify/_gen-rfc006-vectors.mjs",
     "independentVerifier": "tools/arg-verify/arg-verify.mjs (vectors)",
     "repo": "https://github.com/ar-agents/ar-agents",
-    "howToClaimConformance": "Use RFC-006 §2 canonical (code-point key order; throws outside the safe-integer/string/bool/null/array/object domain). Reproduce every link.hash, every anchor.signature, every projection.entry (canonical-equal) and its hmac (string-equal). verifyChain/verifyAnchors must reject empty, non-genesis-rooted, and non-contiguous input. verifyChainAnchored MUST hold for chain (head==latest verified anchor) and MUST reject chainTruncated. recordsOnly MUST verify per-record yet fail contiguous verification. Every projected entry (P1-3: the verifier's OWN P(L) output, not the published one) MUST pass RFC-004 §3 verifyEntry with secrets.projection. Then add your library to tools/arg-verify/CONFORMANCE-REGISTRY.md."
+    "adversariallyHardened": "Two independent hostile reviews. P0s closed: canonical code-point-ordered + domain-restricted + ill-formed-UTF-16 rejected + throws-not-emits-non-JSON; verifyChain rejects empty/non-genesis/out-of-domain WITHOUT crashing; operator-defense requires an EXTERNAL notary Ed25519 key (not AUDIT_SECRET), self-signed anchors rejected; projection 64-bit-id + string|null societyId + requires-confirmation default.",
+    "howToClaimConformance": "Use RFC-006 §2 canonical (code-point key order; reject ill-formed UTF-16; throw outside the safe-integer/string/bool/null/array/object domain). Reproduce every link.hash, anchor.signature, anchor.notarySig (Ed25519 over anchorBodyCanonical, verifiable with notary.notaryPublicKey), every projection.entry (canonical-equal) + hmac (string-equal). verifyChain MUST reject empty / non-genesis-rooted / non-contiguous / out-of-domain WITHOUT throwing. verifyChainAnchored MUST require an external notary key independent of secrets.audit, MUST reject forgedChain+forgedAnchors and MUST reject when no notary key is given. recordsOnly MUST verify per-record yet fail contiguous verification. Every projected entry — the verifier's OWN P(L) output — MUST pass RFC-004 §3 verifyEntry with secrets.projection. Then add your library to apps/landing/public/test-vectors/conformance-registry.md."
   }
 }

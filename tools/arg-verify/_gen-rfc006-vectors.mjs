@@ -9,7 +9,12 @@
  *   node tools/arg-verify/_gen-rfc006-vectors.mjs > \
  *     apps/landing/public/test-vectors/rfc-006-v1.json
  */
-import { createHmac, createHash } from "node:crypto";
+import {
+  createHmac,
+  createHash,
+  createPrivateKey,
+  sign as edSign,
+} from "node:crypto";
 
 // RFC-006 §2 canonical-JSON (tightens RFC-004 §3): code-point key order +
 // restricted domain (throws outside it). Mirrors arg-verify.mjs exactly so
@@ -156,9 +161,39 @@ function project(L) {
 }
 const projection = links.map((L) => ({ fromSeq: L.seq, entry: project(L) }));
 
-// ── §6 anchors ──────────────────────────────────────────────────────────
+// ── §6 anchors + EXTERNAL NOTARY (red-team P0-A) ────────────────────────
+// The operator HMAC `signature` proves NOTHING against a key-holding
+// operator (they hold AUDIT_SECRET). RFC-006 §6 therefore requires an
+// EXTERNAL notary, with its own keypair the operator does not control, to
+// Ed25519-counter-sign every anchor body. Fixture keypair = the RFC-005
+// published TEST keypair (do NOT use in production).
+const NOTARY_KEY_ID = "rfc-006-notary-ref-2026-05";
+const NOTARY_PUBLIC_KEY =
+  "MCowBQYDK2VwAyEAEt29qtbtds8OzafRASPKZHztjC7hRDDx_2cz6NXzAVc";
+const NOTARY_PRIVATE_KEY =
+  "MC4CAQAwBQYDK2VwBCIEIPEc_pc1x185UGirt43fbE3MkzLpR4l_hyOSnvzysbPD";
+const _notaryPriv = createPrivateKey({
+  key: Buffer.from(NOTARY_PRIVATE_KEY, "base64url"),
+  format: "der",
+  type: "pkcs8",
+});
+// MUST be byte-identical to arg-verify.mjs anchorBodyCanonical().
+function anchorBodyCanonical(b) {
+  return canonical({
+    seq: b.seq,
+    headSeq: b.headSeq,
+    headHash: b.headHash,
+    prevAnchor: b.prevAnchor,
+    ts: b.ts,
+  });
+}
 function anchorSig(b) {
-  return hmacHex(AUDIT_SECRET, canonical(b));
+  return hmacHex(AUDIT_SECRET, anchorBodyCanonical(b));
+}
+function notarySign(b) {
+  return edSign(null, Buffer.from(anchorBodyCanonical(b), "utf8"), _notaryPriv).toString(
+    "base64url",
+  );
 }
 const anchorsRaw = [
   { headSeq: 2, headHash: links[1].hash, ts: "2026-05-11T00:01:00.000Z" },
@@ -175,7 +210,8 @@ anchorsRaw.forEach((a, i) => {
     ts: a.ts,
   };
   const signature = anchorSig(body);
-  anchors.push({ ...body, signature });
+  const notarySig = notarySign(body);
+  anchors.push({ ...body, signature, notarySig, notaryKeyId: NOTARY_KEY_ID });
   prevAnchor = signature;
 });
 
@@ -188,6 +224,47 @@ chainMutated[1] = {
 const chainDeleted = [links[0], links[2]].map((l) => ({ ...l })); // seq 1,3
 const chainTruncated = [links[0], links[1]].map((l) => ({ ...l })); // seq 1,2 — clean prefix, tail dropped
 const recordsOnly = [links[1], links[2]].map((l) => ({ ...l })); // per-society slice soc_abc12345 = seq 2,3
+
+// P0-A: a key-holding operator wholesale-rewrites to a self-consistent
+// 1-link chain (it holds AUDIT_SECRET so verifyChain ALONE passes) and
+// re-signs a fresh anchor with AUDIT_SECRET — but it CANNOT mint the
+// external notary's Ed25519 signature (no notarySig). verifyChainAnchored
+// with the real notary key MUST reject. This is the decisive test.
+const _forgedPayload = {
+  seq: 1,
+  prevHash: GENESIS,
+  societyId: null,
+  actor: "system",
+  action: "ledger.genesis",
+  meta: { forged: true },
+  ts: "2026-05-11T00:00:00.000Z",
+};
+const forgedChain = [{ ..._forgedPayload, hash: linkHash(_forgedPayload) }];
+const _forgedAnchorBody = {
+  seq: 1,
+  headSeq: 1,
+  headHash: forgedChain[0].hash,
+  prevAnchor: GENESIS,
+  ts: "2026-05-11T00:01:00.000Z",
+};
+const forgedAnchors = [
+  { ..._forgedAnchorBody, signature: anchorSig(_forgedAnchorBody) }, // valid HMAC, NO notarySig
+];
+
+const emptyChain = [];
+const nonGenesisChain = [links[1], links[2]].map((l) => ({ ...l })); // starts at seq 2
+const outOfDomain = [
+  {
+    seq: 1,
+    prevHash: GENESIS,
+    societyId: null,
+    actor: "x",
+    action: "y",
+    meta: { bad: 2.5 }, // non-safe-integer → canonical() throws on the verify path
+    ts: "2026-05-11T00:00:00.000Z",
+    hash: "deadbeef",
+  },
+];
 
 const doc = {
   $schema: "https://ar-agents.ar/test-vectors/rfc-006-v1.schema.json",
@@ -228,12 +305,43 @@ const doc = {
     links: recordsOnly,
     expect: { recordsAuthentic: true, contiguousValid: false },
   },
+  notary: {
+    description:
+      "RFC-006 §6 EXTERNAL notary. Operator-defense requires an Ed25519 key the operator does NOT control; every anchor carries notarySig = Ed25519(notaryPriv, anchorBodyCanonical). verifyChainAnchored MUST be given notaryPublicKey (independent of secrets.audit) and MUST reject anchors lacking a valid notarySig. Fixture keypair = RFC-005 published TEST key; never use in production.",
+    notaryKeyId: NOTARY_KEY_ID,
+    notaryPublicKey: NOTARY_PUBLIC_KEY,
+  },
   anchors: {
     description:
-      "2-anchor chain over the §3 chain head. signature_n = HMAC-SHA256(audit, canonical(AnchorBody)); prevAnchor links to previous signature; genesis prevAnchor = 'GENESIS'.",
+      "2-anchor chain over the §3 chain head. signature_n = HMAC-SHA256(audit, anchorBodyCanonical); notarySig_n = Ed25519(notaryPriv, anchorBodyCanonical); prevAnchor links to previous signature; genesis prevAnchor = 'GENESIS'.",
     genesis: GENESIS,
     anchors,
     expect: { valid: true, count: 2 },
+  },
+  forgedChain: {
+    description:
+      "P0-A. Operator wholesale-rewrites to a self-consistent 1-link chain (holds AUDIT_SECRET, so verifyChain ALONE returns valid:true) and mints a fresh anchor with a valid HMAC signature but NO external-notary Ed25519 signature (it cannot forge the notary key). verifyChainAnchored(forgedChain, audit, forgedAnchors, notary.notaryPublicKey) MUST return valid:false (missing/invalid notarySig). Also: verifyChainAnchored(chain, audit, anchors, /*no notary key*/) MUST return valid:false ('operator-defense not provable'). Together these prove the §6 operator-defense is real, not self-signed theatre.",
+    links: forgedChain,
+    anchors: forgedAnchors,
+    expect: { bareChainValid: true, anchoredValid: false, noNotaryKeyValid: false },
+  },
+  emptyChain: {
+    description:
+      "RFC-006 §4.1: empty/non-array input MUST be valid:false (no provable history), never a crash or a pass.",
+    links: emptyChain,
+    expect: { valid: false },
+  },
+  nonGenesisChain: {
+    description:
+      "RFC-006 §4.1: a slice not starting at seq 1 / prevHash GENESIS (here seq 2 first) MUST be valid:false (head truncation / non-rooted), not silently accepted.",
+    links: nonGenesisChain,
+    expect: { valid: false },
+  },
+  outOfDomain: {
+    description:
+      "P0-B: a link whose meta carries a non-safe-integer (2.5) makes canonical() throw. verifyChain MUST CATCH this and return valid:false ('out-of-domain (non-conformant/tampered)') — NEVER an uncaught stack trace. A tampered ledger must read as INVALID, not crash the regulator's tool.",
+    links: outOfDomain,
+    expect: { valid: false, reasonContains: "out-of-domain" },
   },
   projection: {
     description:
@@ -242,20 +350,13 @@ const doc = {
     entries: projection,
   },
   conformance: {
-    vectorsCount:
-      links.length /* chain hashes */ +
-      1 /* chain·verify */ +
-      1 /* chain·anchored */ +
-      3 /* chainMutated + chainDeleted + chainTruncated */ +
-      1 /* recordsOnly */ +
-      anchors.length +
-      1 /* anchors·verify */ +
-      projection.length,
     referenceGenerator: "tools/arg-verify/_gen-rfc006-vectors.mjs",
     independentVerifier: "tools/arg-verify/arg-verify.mjs (vectors)",
     repo: "https://github.com/ar-agents/ar-agents",
+    adversariallyHardened:
+      "Two independent hostile reviews. P0s closed: canonical code-point-ordered + domain-restricted + ill-formed-UTF-16 rejected + throws-not-emits-non-JSON; verifyChain rejects empty/non-genesis/out-of-domain WITHOUT crashing; operator-defense requires an EXTERNAL notary Ed25519 key (not AUDIT_SECRET), self-signed anchors rejected; projection 64-bit-id + string|null societyId + requires-confirmation default.",
     howToClaimConformance:
-      "Use RFC-006 §2 canonical (code-point key order; throws outside the safe-integer/string/bool/null/array/object domain). Reproduce every link.hash, every anchor.signature, every projection.entry (canonical-equal) and its hmac (string-equal). verifyChain/verifyAnchors must reject empty, non-genesis-rooted, and non-contiguous input. verifyChainAnchored MUST hold for chain (head==latest verified anchor) and MUST reject chainTruncated. recordsOnly MUST verify per-record yet fail contiguous verification. Every projected entry (P1-3: the verifier's OWN P(L) output, not the published one) MUST pass RFC-004 §3 verifyEntry with secrets.projection. Then add your library to tools/arg-verify/CONFORMANCE-REGISTRY.md.",
+      "Use RFC-006 §2 canonical (code-point key order; reject ill-formed UTF-16; throw outside the safe-integer/string/bool/null/array/object domain). Reproduce every link.hash, anchor.signature, anchor.notarySig (Ed25519 over anchorBodyCanonical, verifiable with notary.notaryPublicKey), every projection.entry (canonical-equal) + hmac (string-equal). verifyChain MUST reject empty / non-genesis-rooted / non-contiguous / out-of-domain WITHOUT throwing. verifyChainAnchored MUST require an external notary key independent of secrets.audit, MUST reject forgedChain+forgedAnchors and MUST reject when no notary key is given. recordsOnly MUST verify per-record yet fail contiguous verification. Every projected entry — the verifier's OWN P(L) output — MUST pass RFC-004 §3 verifyEntry with secrets.projection. Then add your library to apps/landing/public/test-vectors/conformance-registry.md.",
   },
 };
 
