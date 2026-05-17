@@ -1,11 +1,13 @@
 # Conformance: RFC-004 / RFC-005 ⇄ Vultur `@vultur/core`
 
 **Status:** analysis, 2026-05-17. **Tool:** [`arg-verify.mjs`](./arg-verify.mjs)
-(zero-dependency, offline). **Result of `arg-verify vectors`:** 31/31 PASS — a
+(zero-dependency, offline). **Result of `arg-verify vectors`:** 42/42 PASS — a
 clean-room implementation written from the RFC text reproduces every published
-RFC-004 HMAC, RFC-005 Ed25519, RFC-006 chain/anchor/projection, **and RFC-006
-§8.1 export-bundle** vector byte-for-byte. The cited standard is independently
-reproducible without trusting the reference implementation.
+RFC-004 HMAC, RFC-005 Ed25519, RFC-006 chain/anchor/projection, RFC-006 §8.1
+export-bundle vector byte-for-byte, **and the RFC-006 §2 canonical-JSON domain
+self-check** (pinned lexicographic form + out-of-domain rejection). The cited
+standard is independently reproducible without trusting the reference
+implementation.
 
 This document exists because the **cited standard and the flagship
 implementation are two different designs**, and a cited standard nobody's
@@ -42,7 +44,7 @@ with an optional external notary. Independent offline verifier:
 
 | Concern | RFC-004/005 | Vultur `@vultur/core` | Status |
 |---|---|---|---|
-| Canonical-JSON | RFC-004 §3 hand-rolled, keys sorted recursively | `JSON.stringify(sort(v))` | **MATCHES** — string-equivalent for JSON-safe values; `arg-verify` confirms both yield the §3 form |
+| Canonical-JSON | RFC-004 §3 hand-rolled, keys lexicographic (string-built) | `JSON.stringify(sort(v))` | **DIVERGES on integer-like keys** — byte-identical across the JSON domain EXCEPT objects with array-index keys (`"2"`,`"10"`): ECMAScript enumerates those numeric-first, so the producer emits `2,10` while RFC-006 §2 mandates lexicographic `10,2`. `arg-verify` (string-built) is the conformant reference; `vectors` pins it. Producer SHOULD avoid integer-like keys in `meta` or adopt a string-built canonicalizer. Out-of-domain values (`undefined`/function/non-finite/array-hole) are now **rejected**, not silently serialized into a forgeable string. |
 | Symmetric primitive | HMAC-SHA256, `sha256:`+hex | HMAC-SHA256, `sha256:`+hex | **MATCHES** on primitive |
 | Asymmetric primitive | Ed25519; sig **base64url**; SPKI key at `/.well-known/sociedad-ia/keys`; `keyId` + rotation list | Ed25519; sig **base64** (std); SPKI key at `/api/audit/pubkey`, embedded in attestation; no `keyId` | **DIVERGES** — same algorithm, different encoding + endpoint + no key rotation envelope |
 | Unit of signing | Per-entry: each record independently signed over its own canonical form | Chain link: signature binds `seq ‖ prevHash ‖ payload`; integrity is the linked chain | **DIVERGES** (fundamental) |
@@ -79,6 +81,28 @@ operator secret, honest skip without it. A swapped-bundle attack (valid
 attestation lifted onto a manipulated bundle) fails the binding. This is the
 narrow, owed-anyway fix; the broader RFC-004 entry-shape divergence is still
 addressed by the RFC-006 profile + §5 projection below.
+
+### Update 2026-05-17 — canonical-JSON ambiguity found + closed
+
+The independent verifier's new §2 self-check **caught a real
+cross-implementation signature ambiguity**, the highest-severity class of
+bug for a signed-data standard. For objects with integer-like string keys
+(`{"2":…,"10":…}` — legal anywhere in `meta`), the producer model
+`JSON.stringify(sort(v))` emits ECMAScript integer-index-first order
+(`2,10`) while the normative rule is lexicographic (`10,2`). Same record →
+two different canonical strings → two different HMAC/Ed25519 signatures: the
+independent verifier would report a valid record as tampered, or an attacker
+gains ordering wiggle-room. RFC-006 **§2** now states the domain (JSON model
+only; out-of-domain rejected) and that ordering is lexicographic over the
+key string, explicitly forbidding reliance on a runtime's array-index-first
+enumeration; `arg-verify` (string-built) is the conformant reference and
+`vectors` pins it. **Producer-side gap (documented, not silently masked):**
+Vultur's `@vultur/core` `canonicalize()` is a product change and out of
+scope here; real exposure is low (audit `meta` rarely uses integer-like
+keys) but non-zero, so it is flagged for the producer to either avoid
+integer-like `meta` keys or adopt a string-built canonicalizer. Finding a
+latent forgery-class ambiguity *before* a regulator does, and owning it in
+the spec + checker, is the entire point of this document.
 
 ## The fork (decision required)
 

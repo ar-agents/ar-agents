@@ -50,9 +50,41 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // This is a clean-room reimplementation written from the RFC text, NOT a
 // copy of apps/landing/src/lib/audit.ts — that is the point of an
 // independent verifier.
+// RFC-006 §2 domain (normative): JSON data model ONLY. Out-of-domain input
+// (undefined / function / symbol / BigInt / non-finite number / array hole)
+// is REJECTED, not silently serialized — because the canonical string is the
+// signed material, so any value two conformant implementations could
+// serialize differently is a cross-implementation signature-forgery hole
+// (e.g. JSON.stringify drops an `undefined` member; a naïve serializer emits
+// literal `undefined`). Byte-identical to the prior implementation on every
+// valid JSON value (all 31 vectors unaffected); it only ever throws on input
+// the spec now forbids.
 function canonical(value) {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value === null) return "null";
+  const t = typeof value;
+  if (t === "number") {
+    if (!Number.isFinite(value))
+      throw new TypeError(
+        `canonical: non-finite number out of domain (RFC-006 §2): ${value}`,
+      );
+    return JSON.stringify(value);
+  }
+  if (t === "string" || t === "boolean") return JSON.stringify(value);
+  if (t === "bigint" || t === "function" || t === "symbol" || t === "undefined")
+    throw new TypeError(
+      `canonical: ${t} is out of domain (RFC-006 §2): not a JSON value`,
+    );
+  if (Array.isArray(value)) {
+    let out = "[";
+    for (let i = 0; i < value.length; i++) {
+      if (!(i in value))
+        throw new TypeError(
+          `canonical: array hole at index ${i} out of domain (RFC-006 §2)`,
+        );
+      out += (i ? "," : "") + canonical(value[i]);
+    }
+    return out + "]";
+  }
   const keys = Object.keys(value).sort();
   return `{${keys
     .map((k) => `${JSON.stringify(k)}:${canonical(value[k])}`)
@@ -415,11 +447,79 @@ function runRfc006(dir) {
   }
 }
 
+// RFC-006 §2 canonical-JSON self-check. Asserts (a) `canonical()` reproduces
+// the SPEC-correct lexicographic form on pinned vectors — including the
+// integer-like-key case where the producer model `JSON.stringify(sort(v))`
+// is NON-conformant (ECMAScript reorders array-index keys numeric-first; the
+// spec mandates lexicographic). `canonical()` is the conformant reference;
+// the producer divergence is documented in CONFORMANCE.md. And (b) it
+// REJECTS every out-of-domain value rather than emit a forgeable string.
+// CI-enforced via the self-defending `arg-verify` workflow.
+function runDomain() {
+  console.log(`\nRFC-006 §2 (canonical-JSON) — ${DIM}clean-room self-check${RST}`);
+  // [value, expected canonical] — pinned to the normative lexicographic form,
+  // independent of any runtime's object-key enumeration.
+  const pinned = [
+    [{ z: 1, a: 2, m: { y: [3, 2, 1], x: "ü" } }, '{"a":2,"m":{"x":"ü","y":[3,2,1]},"z":1}'],
+    [[null, false, 0, -1, "", "→"], '[null,false,0,-1,"","→"]'],
+    // The integer-like-key case: lexicographic "10" < "2" < "9" < "note".
+    // Producer JSON.stringify(sort(v)) would WRONGLY emit 2,9,10,note.
+    [{ "10": "j", "2": "b", "9": "i", note: "n" }, '{"10":"j","2":"b","9":"i","note":"n"}'],
+    [{ "": "e", "0": "z", a: [{ c: null, b: true }] }, '{"":"e","0":"z","a":[{"b":true,"c":null}]}'],
+    ["plain", '"plain"'],
+    [42, "42"],
+    [-7.5, "-7.5"],
+    [true, "true"],
+    [null, "null"],
+    [[], "[]"],
+    [{}, "{}"],
+  ];
+  let ok = true;
+  for (const [v, expected] of pinned) {
+    const got = canonical(v);
+    if (got !== expected) {
+      ok = false;
+      fail("domain·lexicographic", `want ${expected}\n        got  ${got}`);
+    }
+  }
+  if (ok)
+    pass(
+      "domain·lexicographic",
+      `${pinned.length} pinned vectors match the normative form (incl. integer-like keys where the producer model is non-conformant)`,
+    );
+
+  const sym = Symbol("s");
+  const outOfDomain = [
+    ["undefined", undefined],
+    ["function", () => 1],
+    ["symbol", sym],
+    ["bigint", 10n],
+    ["NaN", NaN],
+    ["Infinity", Infinity],
+    ["-Infinity", -Infinity],
+    ["array-hole", [1, , 3]],
+    ["object-undefined-member", { a: 1, b: undefined }],
+    ["array-undefined-element", [1, undefined, 3]],
+  ];
+  for (const [name, v] of outOfDomain) {
+    let threw = false;
+    try {
+      canonical(v);
+    } catch {
+      threw = true;
+    }
+    threw
+      ? pass(`domain·reject(${name})`, "rejected (no ambiguous/forgeable output)")
+      : fail(`domain·reject(${name})`, "out-of-domain value was NOT rejected");
+  }
+}
+
 function cmdVectors(args) {
   const i = args.indexOf("--vectors-dir");
   const dir = i >= 0 ? resolve(args[i + 1]) : defaultVectorsDir();
   console.log(`arg-verify · conformance vectors\nvectors dir: ${dir}`);
   try {
+    runDomain();
     runRfc004(dir);
     runRfc005(dir);
     runRfc006(dir);
