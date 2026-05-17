@@ -20,7 +20,7 @@ trust a green row and see precisely what a partial row does not yet cover.
 
 | Implementation | RFC-004 | RFC-005 | RFC-006 | Verified by | Date | Evidence |
 |---|---|---|---|---|---|---|
-| **`arg-verify` (clean-room verifier)** | ✓ 10/10 | ✓ 4/4 | ✓ 12/12 | self (independent reimplementation vs published vectors) | 2026-05-17 | `arg-verify vectors` → `ALL VECTORS PASS` |
+| **`arg-verify` (clean-room verifier)** | ✓ | ✓ | ✓ (incl. anchored + tail-truncation + records-only negative vectors) | self (independent reimplementation vs published vectors; adversarially hardened on `claude/arg-verify-p0-hardening`) | 2026-05-17 | `arg-verify vectors` → `ALL VECTORS PASS` |
 | **`/arg` reference impl** — `apps/landing/src/lib/{audit,ed25519}.ts` | ✓ | ✓ | n/a (per-entry reference, not the chain profile) | published vectors + repo `apps/landing/test/rfc-00{4,5}-vectors.test.ts` | 2026-05-17 | byte-exact vectors reproduced clean-room by `arg-verify` |
 | **Vultur `@vultur/core`** (flagship producer) | ✓ via RFC-006 §5 projection | ✗ encoding/endpoint divergence | ◐ profile-conformant by design; runtime export check pending | code inspection + `rfc-006-v1.json` derived from `@vultur/core/{audit,anchor}.ts`; projection proven by `arg-verify` | 2026-05-17 | see notes |
 

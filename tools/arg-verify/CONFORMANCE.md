@@ -1,10 +1,25 @@
 # Conformance: RFC-004 / RFC-005 ⇄ Vultur `@vultur/core`
 
-**Status:** analysis, 2026-05-17. **Tool:** [`arg-verify.mjs`](./arg-verify.mjs)
-(zero-dependency, offline). **Result of `arg-verify vectors`:** 14/14 PASS — a
+**Status:** analysis, 2026-05-17 (adversarially hardened on branch
+`claude/arg-verify-p0-hardening`). **Tool:** [`arg-verify.mjs`](./arg-verify.mjs)
+(zero-dependency, offline). **Result of `arg-verify vectors`:** ALL PASS — a
 clean-room implementation written from the RFC text reproduces every published
-RFC-004 HMAC and RFC-005 Ed25519 vector byte-for-byte. The cited standard is
-independently reproducible without trusting the reference implementation.
+RFC-004 HMAC, RFC-005 Ed25519, and RFC-006 chain/anchor/projection vector
+byte-for-byte, **including the post-red-team negative vectors**
+(tail-truncation defeated only by the external anchor; records-only
+non-guarantee; canonical domain throws). The cited standard is independently
+reproducible without trusting the reference implementation.
+
+> **Red-team closure.** A hostile review found 4 P0 issues in the b97c15e
+> state (canonical could emit non-JSON / sort runtime-dependently;
+> `verifyChain` accepted truncated/forged histories; projection not
+> injective; governance default under-stated liability). All are fixed on
+> this branch — canonical is code-point-ordered + domain-restricted (throws),
+> `verifyChain` rejects empty/non-genesis-rooted input, `verifyChainAnchored`
+> gates operator-defense on a verified external anchor, projection is
+> 64-bit-id + string|null societyId + `requires-confirmation` default, and
+> RFC-006 §2/§4/§5/§6 prose was corrected to stop overstating the
+> guarantees. See PR #7 thread.
 
 This document exists because the **cited standard and the flagship
 implementation are two different designs**, and a cited standard nobody's

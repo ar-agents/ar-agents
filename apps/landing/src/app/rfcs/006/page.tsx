@@ -87,10 +87,12 @@ export default function Rfc006Page() {
           <em>set</em> of records is complete and ordered.
         </Li>
         <Li>
-          <strong>A guarantee against the operator itself.</strong> A
-          per-entry HMAC is computed with the operator&apos;s key; the
-          operator can re-sign a rewritten history. The log must be defensible
-          even when the adversary is the sociedad-IA.
+          <strong>Defensibility when the adversary is the operator.</strong> A
+          per-link HMAC is computed with the operator&apos;s key; the
+          key-holder can re-sign a rewritten history. The chain alone does{" "}
+          <em>not</em> solve this (see §4.0) — only the external anchor (§6)
+          does, and only relative to the last notarized checkpoint. RFC-006
+          states this honestly rather than claiming more.
         </Li>
       </ul>
       <DocP>
@@ -102,15 +104,43 @@ export default function Rfc006Page() {
         verify an RFC-006 producer with no new software.
       </DocP>
 
-      <DocH2>2 · Canonical-JSON (normative, inherited)</DocH2>
+      <DocH2>2 · Canonical-JSON (normative — RFC-006 tightens RFC-004 §3)</DocH2>
       <DocP>
-        RFC-006 uses the RFC-004 §3 canonical-JSON function verbatim: keys
-        sorted lexicographically at every level, arrays positional, primitives
-        via <DocCode>JSON.stringify</DocCode>. The reference producer&apos;s{" "}
-        <DocCode>canonicalize()</DocCode> (
-        <DocCode>JSON.stringify(sort(v))</DocCode>) is a conformant
-        implementation; <DocCode>arg-verify</DocCode> reimplements the §3 form
-        clean-room and the two agree on every published vector.
+        A standard whose signature predicate is runtime-dependent cannot
+        anchor liability law, so RFC-006 <strong>tightens</strong> RFC-004 §3
+        into a form two independent implementations cannot disagree on:
+      </DocP>
+      <ul style={listStyle}>
+        <Li>
+          <strong>Code-point key ordering (MUST).</strong> Object keys order
+          by Unicode code point, not UTF-16 code unit. JavaScript&apos;s
+          default <DocCode>Array.sort()</DocCode> is code-unit and disagrees
+          with Python / Go / RFC-8785 on astral-plane keys — a silent
+          cross-implementation divergence that would produce false
+          &quot;tampered&quot;.
+        </Li>
+        <Li>
+          <strong>Restricted signable domain (MUST).</strong> Only{" "}
+          <DocCode>string</DocCode>, <DocCode>boolean</DocCode>,{" "}
+          <DocCode>null</DocCode>, finite safe-integer{" "}
+          <DocCode>number</DocCode>, and arrays / plain objects thereof are
+          canonicalizable. Floats, non-finite, &gt; 2^53,{" "}
+          <DocCode>undefined</DocCode>, functions, symbols are out of domain
+          and <DocCode>canonical()</DocCode> <strong>MUST throw</strong> — it
+          MUST NEVER emit non-JSON (
+          <DocCode>{`{"a":[1,,2]}`}</DocCode>, a bare{" "}
+          <DocCode>undefined</DocCode>, <DocCode>NaN</DocCode>→
+          <DocCode>null</DocCode>).
+        </Li>
+      </ul>
+      <DocP>
+        The reference producer&apos;s{" "}
+        <DocCode>JSON.stringify(sort(v))</DocCode> is conformant{" "}
+        <em>only within this domain and with code-point ordering</em>.
+        Generator and <DocCode>arg-verify</DocCode> reimplement this exact form
+        so they cannot drift. Full RFC-8785 (JCS) number/string
+        canonicalization is the v1.1 cross-language target; v1 achieves
+        runtime independence by restricting the domain.
       </DocP>
 
       <DocH2>3 · Chain link (normative)</DocH2>
@@ -146,22 +176,43 @@ prevHash_n = hash_{n-1}        (n > 1)`}</CodeBlock>
 
       <DocH2>4 · Chain verification (normative)</DocH2>
       <DocP>
-        <strong>4.1 Contiguous chain (full integrity).</strong> For an ordered
-        slice from genesis or a known checkpoint, assert for every{" "}
-        <DocCode>i</DocCode>: (1) <DocCode>seq_i == seq_&#123;i-1&#125; + 1</DocCode>{" "}
-        (contiguity — detects deletion / reordering); (2){" "}
-        <DocCode>prevHash_i == hash_&#123;i-1&#125;</DocCode> (linkage — detects
-        insertion / deletion); (3){" "}
-        <DocCode>hash_i == HMAC(secret, canonical(payload_i))</DocCode>{" "}
-        (authenticity — detects mutation, including deeply-nested mutation). A
-        passing slice proves the records are unmutated{" "}
-        <em>and</em> complete <em>and</em> ordered.
+        <strong>4.0 What the chain does NOT prove (read first).</strong> A
+        passing contiguous chain proves the records are unmutated, linked, and
+        ordered. It does <strong>not</strong>, by itself, defend against the
+        key-holding operator: that operator can <strong>tail-truncate</strong>{" "}
+        (drop recent links) or <strong>wholesale-rewrite</strong> from genesis,
+        and a bare verifier returns <DocCode>valid:true</DocCode> for the
+        resulting clean prefix / fresh history. Completeness against the
+        operator is provable <em>only</em> via a verified external anchor
+        (§6). Implementations MUST NOT advertise operator-defense from the
+        chain alone.
       </DocP>
       <DocP>
-        <strong>4.2 Per-record (non-contiguous slice).</strong> For a filtered
-        view (one society pulled from a global chain), contiguity cannot hold;
-        assert only check (3) per record and label the result{" "}
-        <DocCode>recordsOnly: true</DocCode>.
+        <strong>4.1 Contiguous chain (interior integrity).</strong> A verifier
+        MUST reject a non-array or <strong>empty</strong> input, MUST require{" "}
+        <DocCode>links[0].seq === 1</DocCode> and{" "}
+        <DocCode>links[0].prevHash === &quot;GENESIS&quot;</DocCode> (rejecting
+        a truncated head / non-rooted slice), and for every{" "}
+        <DocCode>i</DocCode> assert (1){" "}
+        <DocCode>seq_i == seq_&#123;i-1&#125; + 1</DocCode>; (2){" "}
+        <DocCode>prevHash_i == hash_&#123;i-1&#125;</DocCode>; (3){" "}
+        <DocCode>hash_i == HMAC(secret, canonical(payload_i))</DocCode>.
+      </DocP>
+      <DocP>
+        <strong>4.2 Anchored verification (operator-defense).</strong>{" "}
+        <DocCode>verifyChainAnchored</DocCode>: §4.1 passes, the anchor chain
+        (§6) verifies, and the chain head equals the head covered by the{" "}
+        <em>latest verified anchor</em>. With no anchors the result is{" "}
+        <DocCode>valid:false</DocCode> (&quot;operator-defense not
+        provable&quot;) — never a misleading pass.
+      </DocP>
+      <DocP>
+        <strong>4.3 Per-record (non-contiguous slice).</strong> A filtered
+        view (one society pulled from a global chain) asserts only check (3)
+        per record and MUST label the result{" "}
+        <DocCode>recordsOnly: true</DocCode> — per-record authenticity{" "}
+        <em>and explicitly NOT</em> set-completeness; it MUST NOT be presented
+        as a completeness proof.
       </DocP>
 
       <DocH2>5 · RFC-004 projection (normative — the conformance bridge)</DocH2>
@@ -170,20 +221,24 @@ prevHash_n = hash_{n-1}        (n > 1)`}</CodeBlock>
         via this deterministic projection <DocCode>P</DocCode>. Given chain
         link <DocCode>L</DocCode>:
       </DocP>
-      <CodeBlock>{`id         := \`\${L.ts}-\${L.hash.slice(0,8)}\`
-sessionId  := if   typeof L.societyId === "string"
-                   && /^[A-Za-z0-9_-]{8,64}$/.test(L.societyId)
-              then L.societyId
-              else if L.societyId == null  then "GLOBAL-LEDGER"
-              else "soc-" + base64url(sha256(String(L.societyId))).slice(0,16)
+      <CodeBlock>{`id         := \`\${L.ts}-\${L.hash.slice(0,16)}\`     // 64-bit (was 8/32-bit)
+societyId  := MUST be string | null. Any other type → REJECT (no
+                String() coercion: 1 and "1" must not collide).
+                "GLOBAL-LEDGER" and any "soc-"-prefixed string are
+                RESERVED, forbidden as a tenant societyId.
+sessionId  := /^[A-Za-z0-9_-]{8,64}$/ string → that string
+              null                            → "GLOBAL-LEDGER"
+              other valid string              → "soc-" +
+                                base64url(sha256(societyId)).slice(0,16)
 ts         := L.ts
 tool       := L.action
-governance := (L.meta is object && L.meta.governance ∈ RFC-004 §6 enum)
-              ? L.meta.governance : "audit-logged"
+governance := L.meta.governance if it is an RFC-004 §6 value;
+              else "requires-confirmation"   (liability-safe; see below)
 input      := { actor: L.actor, seq: L.seq, meta: L.meta ?? null }
+              (+ governanceInferred:true when governance was defaulted)
 output     := (omitted)
 hmac       := "sha256:" + HMAC_SHA256( PROJECTION_SECRET,
-                            canonical(P(L) without \`hmac\`) )`}</CodeBlock>
+                            canonical(stripForSign(P(L))) )`}</CodeBlock>
       <DocP>
         Properties (all machine-checked by{" "}
         <DocCode>arg-verify project</DocCode> /{" "}
@@ -201,17 +256,24 @@ hmac       := "sha256:" + HMAC_SHA256( PROJECTION_SECRET,
           returns <DocCode>true</DocCode>.
         </Li>
         <Li>
-          <strong>Injectivity.</strong> <DocCode>input.seq</DocCode> plus{" "}
-          <DocCode>id</DocCode> (which embeds <DocCode>hash</DocCode>) make{" "}
-          <DocCode>P</DocCode> collision-free, preserving chain order and
-          identity.
+          <strong>Injectivity.</strong> <DocCode>P</DocCode> is injective over
+          distinct <DocCode>(societyId|null, seq)</DocCode>:{" "}
+          <DocCode>input.seq</DocCode> is the load-bearing disambiguator and{" "}
+          <DocCode>id</DocCode> embeds 64 bits of <DocCode>hash</DocCode> (the
+          earlier 32-bit id had a birthday collision at ~77k same-
+          <DocCode>ts</DocCode> links and is fixed here).
         </Li>
         <Li>
-          <strong>Lossy-but-declared.</strong> <DocCode>governance</DocCode>{" "}
-          defaults to <DocCode>audit-logged</DocCode> when the producer did not
-          carry an explicit class in <DocCode>meta.governance</DocCode>. This
-          is the only lossy point and it fails safe (toward the more-liability
-          class, never toward <DocCode>mocked-upstream</DocCode>).
+          <strong>Liability-safe default (MUST).</strong> A producer{" "}
+          <strong>MUST</strong> carry <DocCode>meta.governance</DocCode>. When
+          absent, <DocCode>P</DocCode> defaults to{" "}
+          <DocCode>requires-confirmation</DocCode> — the{" "}
+          <em>most operator-onerous</em> class — and sets{" "}
+          <DocCode>input.governanceInferred = true</DocCode>. RFC-006 does{" "}
+          <strong>not</strong> default to <DocCode>audit-logged</DocCode>: per
+          RFC-004 §6 that class <em>shares</em> liability with the LLM
+          provider and would under-state operator exposure for a real
+          human-confirmed action.
         </Li>
       </ul>
       <DocP>
@@ -226,10 +288,11 @@ hmac       := "sha256:" + HMAC_SHA256( PROJECTION_SECRET,
         ) gets a green check with zero RFC-006 awareness.
       </DocP>
 
-      <DocH2>6 · External anchoring (normative)</DocH2>
+      <DocH2>6 · External anchoring (normative — MUST for operator-defense)</DocH2>
       <DocP>
-        Periodically the producer checkpoints the chain head into an{" "}
-        <strong>anchor</strong>; anchors form their own HMAC-signed chain:
+        The producer <strong>MUST</strong> periodically checkpoint the chain
+        head into an <strong>anchor</strong>; anchors form their own
+        HMAC-signed chain:
       </DocP>
       <CodeBlock>{`interface AnchorBody {
   seq:        number;      // 1-based, contiguous
@@ -241,13 +304,20 @@ hmac       := "sha256:" + HMAC_SHA256( PROJECTION_SECRET,
 signature_n  = HMAC_SHA256( AUDIT_SECRET, canonical(AnchorBody_n) )  // hex
 prevAnchor_n = signature_{n-1}`}</CodeBlock>
       <DocP>
-        The anchor chain SHOULD be mirrored to an{" "}
-        <strong>external notary</strong> outside the operator&apos;s control
-        (an append-only third party, timestamping authority, or public log).
-        The operator then cannot retroactively rewrite or backdate history
-        without invalidating every anchor issued since the divergence point,
-        and the external mirror is evidence the operator cannot suppress. This
-        is the §1 guarantee against the operator itself.
+        Anchor verification mirrors §4.1 (reject empty / non-
+        <DocCode>seq:1</DocCode> / non-<DocCode>GENESIS</DocCode> /
+        non-contiguous; recompute every signature). The anchor chain{" "}
+        <strong>MUST</strong> be mirrored to an{" "}
+        <strong>external notary</strong> that is (a){" "}
+        <strong>append-only</strong> with an independently checkable proof of
+        non-removal; (b) <strong>outside the operator&apos;s unilateral
+        control</strong> (a distinct legal/technical party, a public
+        timestamping authority, or a public transparency log); (c){" "}
+        <strong>independently fetchable</strong> by a regulator without the
+        operator&apos;s cooperation. Operator-defense (§4.2) holds{" "}
+        <em>only</em> up to the most recent head a compliant notary attests;
+        anything newer is within the operator&apos;s tamper window and MUST be
+        treated as provisional.
       </DocP>
 
       <DocH2>7 · Asymmetric attestation (normative, aligns RFC-005)</DocH2>
@@ -295,17 +365,22 @@ prevAnchor_n = signature_{n-1}`}</CodeBlock>
           </a>
         </DocCode>{" "}
         contains, with byte-exact deterministic outputs: a genesis-rooted
-        3-link chain (expected <DocCode>hash</DocCode> per link); a mutated
-        copy that MUST fail at the mutated <DocCode>seq</DocCode>; a deletion
-        copy that MUST fail on contiguity/linkage; a 2-anchor chain; and the
-        exact <DocCode>P(L)</DocCode> object and RFC-004{" "}
-        <DocCode>hmac</DocCode> for every link. A library claims RFC-006
-        conformance iff it reproduces every value and the projected entries
-        pass RFC-004 §3 <DocCode>verifyEntry</DocCode>. Run:
+        3-link chain; a mutated copy (fails at the mutated{" "}
+        <DocCode>seq</DocCode>); a deleted-interior copy (fails
+        contiguity/linkage); a <strong>tail-truncated</strong> copy where the
+        bare chain passes (a clean prefix — §4.0) <em>but</em>{" "}
+        <DocCode>verifyChainAnchored</DocCode> rejects it; a{" "}
+        <strong>records-only</strong> non-contiguous slice (authentic yet
+        explicitly not a completeness proof, §4.3); a 2-anchor chain; and the
+        exact <DocCode>P(L)</DocCode> + RFC-004 <DocCode>hmac</DocCode> for
+        every link (the verifier reproduces <DocCode>P(L)</DocCode> itself,
+        not the supplied one). All MUST reproduce and pass RFC-004 §3{" "}
+        <DocCode>verifyEntry</DocCode>. Run:
       </DocP>
       <CodeBlock>{`node tools/arg-verify/arg-verify.mjs vectors
-# RFC-004: 10 PASS · RFC-005: 4 PASS · RFC-006: 12 PASS
-# ALL VECTORS PASS — the published /arg standard is independently reproducible.`}</CodeBlock>
+# RFC-004 + RFC-005 + RFC-006 (incl. anchored, tail-truncation,
+# records-only negative vectors): ALL VECTORS PASS — the published
+# /arg standard is independently reproducible, adversarially hardened.`}</CodeBlock>
 
       <DocH2>10 · Decision request</DocH2>
       <ul style={listStyle}>
