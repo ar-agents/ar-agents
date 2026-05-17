@@ -44,19 +44,62 @@ import {
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
-// ── Canonical-JSON, RFC-004 §3 (normative) ──────────────────────────────
-// Keys sorted lexicographically at every level; arrays positional; the
-// `hmac` and `signature` fields stripped by the caller before signing.
-// This is a clean-room reimplementation written from the RFC text, NOT a
-// copy of apps/landing/src/lib/audit.ts — that is the point of an
-// independent verifier.
+// ── Canonical-JSON (RFC-006 §2, tightens RFC-004 §3) ────────────────────
+// Clean-room (not a copy of the reference impl). Two hardenings make the
+// predicate runtime-independent (red-team P0-1/P0-2):
+//   (a) object keys ordered by Unicode CODE POINT, not UTF-16 code unit —
+//       JS default .sort() is code-unit and disagrees with Python/Go/JCS
+//       on astral-plane keys (false "tampered" across conformant impls);
+//   (b) the signable domain is restricted so canonical() can never emit
+//       non-JSON (`{"a":[1,,2]}`, bare `undefined`, `NaN`→`null`) or a
+//       runtime-dependent number — anything outside it THROWS.
+function cpCompare(a, b) {
+  const ai = Array.from(a); // string iterator → code points, not UTF-16 units
+  const bi = Array.from(b);
+  const n = Math.min(ai.length, bi.length);
+  for (let i = 0; i < n; i++) {
+    const x = ai[i].codePointAt(0);
+    const y = bi[i].codePointAt(0);
+    if (x !== y) return x - y;
+  }
+  return ai.length - bi.length;
+}
 function canonical(value) {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
-  const keys = Object.keys(value).sort();
-  return `{${keys
-    .map((k) => `${JSON.stringify(k)}:${canonical(value[k])}`)
-    .join(",")}}`;
+  const t = typeof value;
+  if (value === null) return "null";
+  if (t === "string" || t === "boolean") return JSON.stringify(value);
+  if (t === "number") {
+    if (!Number.isFinite(value) || !Number.isSafeInteger(value))
+      throw new Error(
+        `RFC-006 §2: only finite safe-integer numbers are canonicalizable (got ${String(value)})`,
+      );
+    return JSON.stringify(value);
+  }
+  if (Array.isArray(value)) {
+    return `[${value
+      .map((v) => {
+        if (v === undefined || typeof v === "function" || typeof v === "symbol")
+          throw new Error(
+            "RFC-006 §2: array element out of canonical domain (undefined/function/symbol)",
+          );
+        return canonical(v);
+      })
+      .join(",")}]`;
+  }
+  if (t === "object") {
+    const keys = Object.keys(value).sort(cpCompare);
+    return `{${keys
+      .map((k) => {
+        const cv = value[k];
+        if (cv === undefined || typeof cv === "function" || typeof cv === "symbol")
+          throw new Error(
+            `RFC-006 §2: object value out of canonical domain at key ${JSON.stringify(k)}`,
+          );
+        return `${JSON.stringify(k)}:${canonical(cv)}`;
+      })
+      .join(",")}}`;
+  }
+  throw new Error(`RFC-006 §2: value out of canonical domain (type ${t})`);
 }
 
 function stripForSign(entry) {
@@ -198,7 +241,27 @@ function chainLinkHash(secret, L) {
   );
 }
 
+// Hardened (red-team P0-3). The bare chain only proves INTERIOR integrity.
+// A key-holding operator can still tail-truncate or wholesale-rewrite a
+// genesis-rooted chain and have it verify. So a passing contiguous chain
+// requires: non-empty, starts at seq 1 with prevHash GENESIS (a forged
+// 1-link "fresh history" still passes THIS — completeness vs the operator
+// is only provable via an external anchor, see verifyChainAnchored).
 function verifyChain(links, secret) {
+  if (!Array.isArray(links) || links.length === 0)
+    return { valid: false, reason: "empty/non-array chain (no provable history)" };
+  if (links[0].seq !== 1)
+    return {
+      valid: false,
+      brokenAtSeq: links[0].seq,
+      reason: "chain does not start at seq 1 (head truncation)",
+    };
+  if (links[0].prevHash !== "GENESIS")
+    return {
+      valid: false,
+      brokenAtSeq: links[0].seq,
+      reason: "first link prevHash is not GENESIS",
+    };
   let prev = "GENESIS";
   for (let i = 0; i < links.length; i++) {
     const e = links[i];
@@ -210,7 +273,34 @@ function verifyChain(links, secret) {
       return { valid: false, brokenAtSeq: e.seq, reason: "hash mismatch (record tampered)" };
     prev = e.hash;
   }
-  return { valid: true, count: links.length };
+  const head = links[links.length - 1];
+  return { valid: true, count: links.length, headSeq: head.seq, headHash: head.hash };
+}
+
+// Operator-defense (RFC-006 §4.0/§6). The ONLY thing that stops a
+// key-holding operator from tail-truncating or rewriting wholesale is an
+// external anchor: require the chain head to equal the head covered by the
+// latest VERIFIED anchor. Without anchors, completeness vs the operator is
+// not provable — say so honestly rather than returning a misleading pass.
+function verifyChainAnchored(links, secret, anchors) {
+  const c = verifyChain(links, secret);
+  if (!c.valid) return c;
+  if (!Array.isArray(anchors) || anchors.length === 0)
+    return {
+      valid: false,
+      reason: "no external anchors: completeness/operator-defense not provable",
+    };
+  const a = verifyAnchors(anchors, secret);
+  if (!a.valid)
+    return { valid: false, reason: `anchor chain invalid: ${a.reason}`, brokenAtSeq: a.brokenAtSeq };
+  const last = anchors[anchors.length - 1];
+  if (last.headSeq !== c.headSeq || last.headHash !== c.headHash)
+    return {
+      valid: false,
+      brokenAtSeq: c.headSeq,
+      reason: `chain head (seq ${c.headSeq}) ≠ latest external anchor (seq ${last.headSeq}) — tail truncation or rewrite`,
+    };
+  return { valid: true, count: c.count, anchoredHeadSeq: last.headSeq };
 }
 
 function anchorSig(secret, b) {
@@ -227,6 +317,12 @@ function anchorSig(secret, b) {
 }
 
 function verifyAnchors(anchors, secret) {
+  if (!Array.isArray(anchors) || anchors.length === 0)
+    return { valid: false, reason: "empty/non-array anchor chain" };
+  if (anchors[0].seq !== 1)
+    return { valid: false, brokenAtSeq: anchors[0].seq, reason: "anchors do not start at seq 1" };
+  if (anchors[0].prevAnchor !== "GENESIS")
+    return { valid: false, brokenAtSeq: anchors[0].seq, reason: "first anchor prevAnchor is not GENESIS" };
   let prev = "GENESIS";
   for (let i = 0; i < anchors.length; i++) {
     const a = anchors[i];
@@ -241,29 +337,48 @@ function verifyAnchors(anchors, secret) {
   return { valid: true, count: anchors.length };
 }
 
-// RFC-006 §5 projection P(L) → RFC-004 OperationalLogEntry.
+// RFC-006 §5 projection P(L) → RFC-004 OperationalLogEntry. Hardened
+// (red-team P0-4 / P1-2):
+//   • societyId MUST be string|null — no String() coercion (1 and "1"
+//     must not collide); reserved values that alias a derived sessionId
+//     ("GLOBAL-LEDGER", "soc-"-prefixed) are rejected.
+//   • id carries 16 hex of hash (64-bit) not 8 (32-bit) — kills the
+//     birthday collision at realistic same-ts ledger sizes.
+//   • missing governance projects to the MOST operator-onerous class
+//     ("requires-confirmation"), never a liability-sharing default, and
+//     is flagged governanceInferred so the lossy point is auditable.
+//   • HMAC over stripForSign(entry) for symmetry with verifyRfc004Entry.
 function projectLink(L, projSecret) {
-  const gov =
-    L.meta && typeof L.meta === "object" && RFC004_GOV.has(L.meta.governance)
-      ? L.meta.governance
-      : "audit-logged";
+  if (!(typeof L.societyId === "string" || L.societyId === null || L.societyId === undefined))
+    throw new Error("RFC-006 §5: societyId MUST be string|null (no type coercion)");
+  const sidRaw = L.societyId ?? null;
+  if (sidRaw !== null && (sidRaw === "GLOBAL-LEDGER" || sidRaw.startsWith("soc-")))
+    throw new Error(`RFC-006 §5: societyId "${sidRaw}" is reserved (aliases a derived sessionId)`);
   let sid;
-  if (typeof L.societyId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(L.societyId))
-    sid = L.societyId;
-  else if (L.societyId == null) sid = "GLOBAL-LEDGER";
+  if (typeof sidRaw === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(sidRaw)) sid = sidRaw;
+  else if (sidRaw === null) sid = "GLOBAL-LEDGER";
   else
     sid =
       "soc-" +
-      createHash("sha256").update(String(L.societyId), "utf8").digest("base64url").slice(0, 16);
+      createHash("sha256").update(sidRaw, "utf8").digest("base64url").slice(0, 16);
+  const hasGov =
+    L.meta && typeof L.meta === "object" && RFC004_GOV.has(L.meta.governance);
+  const governance = hasGov ? L.meta.governance : "requires-confirmation";
+  const input = hasGov
+    ? { actor: L.actor, seq: L.seq, meta: L.meta ?? null }
+    : { actor: L.actor, governanceInferred: true, seq: L.seq, meta: L.meta ?? null };
   const entry = {
-    id: `${L.ts}-${L.hash.slice(0, 8)}`,
+    id: `${L.ts}-${L.hash.slice(0, 16)}`,
     sessionId: sid,
     ts: L.ts,
     tool: L.action,
-    governance: gov,
-    input: { actor: L.actor, seq: L.seq, meta: L.meta ?? null },
+    governance,
+    input,
   };
-  return { ...entry, hmac: `sha256:${hmacSha256Hex(canonical(entry), projSecret)}` };
+  return {
+    ...entry,
+    hmac: `sha256:${hmacSha256Hex(canonical(stripForSign(entry)), projSecret)}`,
+  };
 }
 
 // RFC-004 §3 entry verification (used to prove projected entries conform).
@@ -317,13 +432,43 @@ function runRfc006(dir) {
     ? pass("anchors·verify", "valid anchor chain")
     : fail("anchors·verify", JSON.stringify(av));
 
+  // P0-3: operator-defense only holds with a verified external anchor.
+  const ca = verifyChainAnchored(doc.chain.links, aSec, doc.anchors.anchors);
+  ca.valid
+    ? pass("chain·anchored", "head matches latest verified external anchor")
+    : fail("chain·anchored", JSON.stringify(ca));
+
+  // P1-4: tail truncation. The bare chain CANNOT catch it (a clean prefix
+  // verifies); only the external anchor does. This vector proves both.
+  if (doc.chainTruncated) {
+    const bare = verifyChain(doc.chainTruncated.links, aSec);
+    const anch = verifyChainAnchored(doc.chainTruncated.links, aSec, doc.anchors.anchors);
+    bare.valid && !anch.valid
+      ? pass("chainTruncated·detected", `bare chain passes (prefix), anchor rejects: ${anch.reason}`)
+      : fail("chainTruncated·detected", `bare=${JSON.stringify(bare)} anchored=${JSON.stringify(anch)}`);
+  }
+
+  // P1-4: recordsOnly non-guarantee. A non-contiguous per-society slice:
+  // every record is authentic, but completeness is NOT proven and MUST be
+  // labelled. Demonstrate: per-record hash holds, contiguous verify fails.
+  if (doc.recordsOnly) {
+    const recs = doc.recordsOnly.links;
+    const allAuthentic = recs.every((e) => eqConstTime(chainLinkHash(aSec, e), e.hash));
+    const contiguous = verifyChain(recs, aSec);
+    allAuthentic && !contiguous.valid
+      ? pass("recordsOnly·non-guarantee", "records authentic; completeness explicitly NOT claimed")
+      : fail("recordsOnly·non-guarantee", `authentic=${allAuthentic} contiguous=${JSON.stringify(contiguous)}`);
+  }
+
   const bySeq = new Map(doc.chain.links.map((l) => [l.seq, l]));
   for (const pe of doc.projection.entries) {
     const L = bySeq.get(pe.fromSeq);
     const got = projectLink(L, pSec);
     const canonEq = canonical(got) === canonical(pe.entry);
     const hmacEq = got.hmac === pe.entry.hmac;
-    const rfc004ok = verifyRfc004Entry(pe.entry, pSec);
+    // P1-3: verify OUR re-derived projection, not the vector-supplied one,
+    // so the RFC-004-validity check is independent, not circular.
+    const rfc004ok = verifyRfc004Entry(got, pSec);
     canonEq && hmacEq && rfc004ok
       ? pass(`projection·seq${pe.fromSeq}`, "P(L) deterministic + RFC-004 §3 valid")
       : fail(
@@ -393,20 +538,35 @@ function cmdEntry(args) {
       if (!k) {
         fail("signature", `keyId "${entry.signature.keyId}" not found in key set`);
       } else {
-        const pub = createPublicKey({
-          key: Buffer.from(k.publicKey, k.publicKey.includes("_") || k.publicKey.includes("-") ? "base64url" : "base64"),
-          format: "der",
-          type: "spki",
-        });
-        const ok = edVerify(
-          null,
-          Buffer.from(material, "utf8"),
-          pub,
-          Buffer.from(entry.signature.value, "base64url"),
-        );
-        ok
-          ? pass("signature", `RFC-005 Ed25519 (keyId ${k.keyId})`)
-          : fail("signature", "Ed25519 signature did not verify");
+        // P1-1: RFC-005 §4 mandates base64url for the key set. Decode it
+        // unconditionally — the old includes('_'||'-') heuristic mis-typed
+        // ~27% of valid keys as std base64 and reported compliant
+        // operators as non-conformant. Fail explicitly if the SPKI doesn't
+        // parse rather than silently mis-decoding.
+        let pub = null;
+        try {
+          pub = createPublicKey({
+            key: Buffer.from(k.publicKey, "base64url"),
+            format: "der",
+            type: "spki",
+          });
+        } catch {
+          fail(
+            "signature",
+            `publicKey for keyId "${k.keyId}" is not valid base64url SPKI Ed25519 (RFC-005 §4)`,
+          );
+        }
+        if (pub) {
+          const ok = edVerify(
+            null,
+            Buffer.from(material, "utf8"),
+            pub,
+            Buffer.from(entry.signature.value, "base64url"),
+          );
+          ok
+            ? pass("signature", `RFC-005 Ed25519 (keyId ${k.keyId})`)
+            : fail("signature", "Ed25519 signature did not verify");
+        }
       }
     }
   }
@@ -429,9 +589,21 @@ function cmdAttestation(args) {
   }
   const att = JSON.parse(readFileSync(resolve(file), "utf8"));
   const expected = args[1];
-  if (expected && att.publicKey !== expected) {
-    console.error(`${RED}✗${RST} embedded public key does NOT match the expected key`);
-    process.exit(1);
+  if (expected) {
+    if (!eqConstTime(String(att.publicKey ?? ""), expected)) {
+      console.error(`${RED}✗${RST} embedded public key does NOT match the expected (pinned) key`);
+      process.exit(1);
+    }
+  } else {
+    // P2: do not silently skip pinning — a self-signed attestation
+    // verifies against its own embedded key, which proves nothing about
+    // WHOSE key it is. Say so loudly.
+    console.error(
+      `${DIM}warning: no expected public key passed — key pinning DISABLED. ` +
+        `This proves the doc is internally consistent, NOT that it is the ` +
+        `key published at the operator's /.well-known. Pass the expected ` +
+        `key as arg 2 for a trust-anchored check.${RST}`,
+    );
   }
   if (!att.body || !att.sig || !att.publicKey) {
     console.error(`${RED}✗${RST} not a vultur.compliance.attestation (missing body/sig/publicKey)`);
@@ -470,10 +642,11 @@ function cmdAttestation(args) {
 function cmdChain(args) {
   const file = args[0];
   if (!file) {
-    console.error("usage: arg-verify chain <chain.json> --secret S");
+    console.error("usage: arg-verify chain <chain.json> --secret S [--anchors anchors.json]");
     process.exit(2);
   }
   const si = args.indexOf("--secret");
+  const ai = args.indexOf("--anchors");
   const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
   if (!secret) {
     console.error("error: --secret (or AUDIT_SECRET) required");
@@ -485,9 +658,28 @@ function cmdChain(args) {
     console.error("error: file has no link array (expect [...] or {links:[...]})");
     process.exit(2);
   }
+  if (ai >= 0) {
+    const araw = JSON.parse(readFileSync(resolve(args[ai + 1]), "utf8"));
+    const anchors = Array.isArray(araw) ? araw : araw.anchors ?? araw.anchors?.anchors;
+    const r = verifyChainAnchored(links, secret, anchors);
+    if (r.valid) {
+      console.log(
+        `${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), head anchored at seq ${r.anchoredHeadSeq} (operator-defense holds)`,
+      );
+      process.exit(0);
+    }
+    console.error(`${RED}✗ INVALID${RST} RFC-006 anchored chain — ${r.reason}`);
+    process.exit(1);
+  }
   const r = verifyChain(links, secret);
   if (r.valid) {
-    console.log(`${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), contiguous + linked + authentic`);
+    console.log(
+      `${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), contiguous + linked + authentic`,
+    );
+    console.error(
+      `${DIM}note: interior integrity only. Pass --anchors <anchors.json> to ` +
+        `prove completeness vs the key-holding operator (RFC-006 §4.0/§6).${RST}`,
+    );
     process.exit(0);
   }
   console.error(`${RED}✗ INVALID${RST} RFC-006 chain — broke at seq ${r.brokenAtSeq}: ${r.reason}`);
@@ -565,7 +757,7 @@ switch (cmd) {
         "  node arg-verify.mjs vectors [--vectors-dir DIR]      RFC-004/005/006 vectors",
         "  node arg-verify.mjs entry <entry.json> [--secret S] [--keys keys.json]",
         "  node arg-verify.mjs attestation <attestation.json> [expectedPubKeyB64]",
-        "  node arg-verify.mjs chain <chain.json> --secret S    RFC-006 ledger",
+        "  node arg-verify.mjs chain <chain.json> --secret S [--anchors a.json]",
         "  node arg-verify.mjs project <chain.json> --proj-secret P [--secret S --verify]",
         "",
         "Zero dependencies. Offline. RFC-004 (HMAC) · RFC-005 (Ed25519) ·",
