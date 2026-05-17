@@ -1,0 +1,577 @@
+#!/usr/bin/env node
+/**
+ * arg-verify — independent conformance + verification tool for the /arg
+ * operational-log standard (RFC-004 HMAC, RFC-005 Ed25519).
+ *
+ * ZERO dependencies. Node built-ins only. Does not import /arg or Vultur
+ * code and never makes a network call. A regulator, auditor, or journalist
+ * runs this offline to:
+ *
+ *   1. `vectors`      Prove the published RFC-004 + RFC-005 conformance
+ *                     vectors reproduce byte-for-byte against a clean-room
+ *                     implementation of the spec (not the reference impl).
+ *   2. `entry`        Verify a single OperationalLogEntry (RFC-004 §5 /
+ *                     RFC-005 §5 flow): HMAC with a shared secret and/or
+ *                     Ed25519 against a published key set.
+ *   3. `attestation`  Verify a Vultur `vultur.compliance.attestation`
+ *                     document offline against its embedded Ed25519 key.
+ *
+ * The point of (1): the cited standard is only worth citing if anyone can
+ * independently reproduce its conformance vectors without trusting us.
+ * The point of (3): the flagship implementation (Vultur) emits a different
+ * artifact than the RFC entry shape — see CONFORMANCE.md. This tool checks
+ * both so the divergence is measurable, not hand-waved.
+ *
+ * Usage:
+ *   node arg-verify.mjs vectors [--vectors-dir DIR]
+ *   node arg-verify.mjs entry <entry.json> [--secret S] [--keys keys.json]
+ *   node arg-verify.mjs attestation <attestation.json> [expectedPubKeyB64]
+ *
+ * Exit code 0 = all checks passed, non-zero = at least one failed.
+ */
+import { readFileSync } from "node:fs";
+import { fileURLToPath } from "node:url";
+import { dirname, join, resolve } from "node:path";
+import {
+  createHmac,
+  createHash,
+  createPrivateKey,
+  createPublicKey,
+  sign as edSign,
+  verify as edVerify,
+  timingSafeEqual,
+} from "node:crypto";
+
+const HERE = dirname(fileURLToPath(import.meta.url));
+
+// ── Canonical-JSON, RFC-004 §3 (normative) ──────────────────────────────
+// Keys sorted lexicographically at every level; arrays positional; the
+// `hmac` and `signature` fields stripped by the caller before signing.
+// This is a clean-room reimplementation written from the RFC text, NOT a
+// copy of apps/landing/src/lib/audit.ts — that is the point of an
+// independent verifier.
+function canonical(value) {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  const keys = Object.keys(value).sort();
+  return `{${keys
+    .map((k) => `${JSON.stringify(k)}:${canonical(value[k])}`)
+    .join(",")}}`;
+}
+
+function stripForSign(entry) {
+  const e = { ...entry };
+  delete e.hmac;
+  delete e.signature;
+  return e;
+}
+
+function hmacSha256Hex(material, secret) {
+  return createHmac("sha256", secret).update(material, "utf8").digest("hex");
+}
+
+function eqConstTime(a, b) {
+  const ab = Buffer.from(a);
+  const bb = Buffer.from(b);
+  if (ab.length !== bb.length) return false;
+  try {
+    return timingSafeEqual(ab, bb);
+  } catch {
+    return false;
+  }
+}
+
+// ── Output helpers ──────────────────────────────────────────────────────
+const GREEN = "\x1b[32m";
+const RED = "\x1b[31m";
+const DIM = "\x1b[2m";
+const RST = "\x1b[0m";
+let failures = 0;
+function pass(id, note = "") {
+  console.log(`  ${GREEN}PASS${RST}  ${id}${note ? `  ${DIM}${note}${RST}` : ""}`);
+}
+function fail(id, note = "") {
+  failures++;
+  console.log(`  ${RED}FAIL${RST}  ${id}${note ? `  ${note}` : ""}`);
+}
+
+// ── `vectors` ───────────────────────────────────────────────────────────
+function defaultVectorsDir() {
+  // Repo layout: <repo>/tools/arg-verify/arg-verify.mjs
+  //              <repo>/apps/landing/public/test-vectors/*.json
+  return resolve(HERE, "..", "..", "apps", "landing", "public", "test-vectors");
+}
+
+function runRfc004(dir) {
+  console.log(`\nRFC-004 (HMAC-SHA256 operational log) — ${DIM}rfc-004-v1.json${RST}`);
+  const doc = JSON.parse(readFileSync(join(dir, "rfc-004-v1.json"), "utf8"));
+  const secret = doc.secret;
+  const hmacById = new Map();
+  for (const v of doc.vectors) {
+    if (v.expectedCanonical !== undefined) {
+      const got = canonical(v.input);
+      got === v.expectedCanonical
+        ? pass(v.id, "canonical")
+        : fail(v.id, `canonical mismatch\n        want ${v.expectedCanonical}\n        got  ${got}`);
+      continue;
+    }
+    if (v.entry && v.expectedHmac) {
+      const got = `sha256:${hmacSha256Hex(canonical(stripForSign(v.entry)), secret)}`;
+      hmacById.set(v.id, got);
+      if (got === v.expectedHmac) pass(v.id, "hmac");
+      else fail(v.id, `hmac mismatch\n        want ${v.expectedHmac}\n        got  ${got}`);
+    }
+  }
+  // Cross-checks (mustEqual / mustDifferFrom).
+  for (const v of doc.vectors) {
+    if (v.mustEqual && hmacById.has(v.id) && hmacById.has(v.mustEqual)) {
+      eqConstTime(hmacById.get(v.id), hmacById.get(v.mustEqual))
+        ? pass(`${v.id}·mustEqual(${v.mustEqual})`)
+        : fail(`${v.id}·mustEqual(${v.mustEqual})`, "expected equal HMACs");
+    }
+    if (v.mustDifferFrom && hmacById.has(v.id) && hmacById.has(v.mustDifferFrom)) {
+      hmacById.get(v.id) !== hmacById.get(v.mustDifferFrom)
+        ? pass(`${v.id}·mustDifferFrom(${v.mustDifferFrom})`)
+        : fail(`${v.id}·mustDifferFrom(${v.mustDifferFrom})`, "HMACs unexpectedly equal");
+    }
+  }
+}
+
+function runRfc005(dir) {
+  console.log(`\nRFC-005 (Ed25519 asymmetric upgrade) — ${DIM}rfc-005-v1.json${RST}`);
+  const doc = JSON.parse(readFileSync(join(dir, "rfc-005-v1.json"), "utf8"));
+  const kp = doc.keypair;
+  const priv = createPrivateKey({
+    key: Buffer.from(kp.privateKey, "base64url"),
+    format: "der",
+    type: "pkcs8",
+  });
+  const pub = createPublicKey({
+    key: Buffer.from(kp.publicKey, "base64url"),
+    format: "der",
+    type: "spki",
+  });
+  const sigById = new Map();
+  for (const v of doc.vectors) {
+    const msg = Buffer.from(canonical(stripForSign(v.entry)), "utf8");
+    const sig = edSign(null, msg, priv);
+    const b64u = sig.toString("base64url");
+    sigById.set(v.id, b64u);
+    const matches = b64u === v.expectedSignature.value;
+    const verifies = edVerify(null, msg, pub, sig);
+    if (matches && verifies) pass(v.id, "ed25519 sig + verify");
+    else if (!matches)
+      fail(v.id, `signature mismatch\n        want ${v.expectedSignature.value}\n        got  ${b64u}`);
+    else fail(v.id, "signature did not verify against the published public key");
+  }
+  for (const v of doc.vectors) {
+    if (v.mustDifferFrom && sigById.has(v.id) && sigById.has(v.mustDifferFrom)) {
+      sigById.get(v.id) !== sigById.get(v.mustDifferFrom)
+        ? pass(`${v.id}·mustDifferFrom(${v.mustDifferFrom})`)
+        : fail(`${v.id}·mustDifferFrom(${v.mustDifferFrom})`, "signatures unexpectedly equal");
+    }
+  }
+}
+
+// ── RFC-006: hash-chained ledger + anchoring + RFC-004 projection ───────
+// Clean-room reimplementation of RFC-006 §3-§6; independent of the
+// generator. The §5 projection makes an RFC-006 ledger RFC-004-conformant.
+const RFC004_GOV = new Set([
+  "algorithm-only",
+  "audit-logged",
+  "mocked-upstream",
+  "requires-confirmation",
+]);
+
+function chainLinkHash(secret, L) {
+  return hmacSha256Hex(
+    canonical({
+      seq: L.seq,
+      prevHash: L.prevHash,
+      societyId: L.societyId,
+      actor: L.actor,
+      action: L.action,
+      meta: L.meta ?? null,
+      ts: L.ts,
+    }),
+    secret,
+  );
+}
+
+function verifyChain(links, secret) {
+  let prev = "GENESIS";
+  for (let i = 0; i < links.length; i++) {
+    const e = links[i];
+    if (i > 0 && e.seq !== links[i - 1].seq + 1)
+      return { valid: false, brokenAtSeq: e.seq, reason: "non-contiguous sequence" };
+    if (e.prevHash !== prev)
+      return { valid: false, brokenAtSeq: e.seq, reason: "prevHash mismatch (insertion/deletion)" };
+    if (!eqConstTime(chainLinkHash(secret, e), e.hash))
+      return { valid: false, brokenAtSeq: e.seq, reason: "hash mismatch (record tampered)" };
+    prev = e.hash;
+  }
+  return { valid: true, count: links.length };
+}
+
+function anchorSig(secret, b) {
+  return hmacSha256Hex(
+    canonical({
+      seq: b.seq,
+      headSeq: b.headSeq,
+      headHash: b.headHash,
+      prevAnchor: b.prevAnchor,
+      ts: b.ts,
+    }),
+    secret,
+  );
+}
+
+function verifyAnchors(anchors, secret) {
+  let prev = "GENESIS";
+  for (let i = 0; i < anchors.length; i++) {
+    const a = anchors[i];
+    if (i > 0 && a.seq !== anchors[i - 1].seq + 1)
+      return { valid: false, brokenAtSeq: a.seq, reason: "non-contiguous" };
+    if (a.prevAnchor !== prev)
+      return { valid: false, brokenAtSeq: a.seq, reason: "prevAnchor mismatch" };
+    if (!eqConstTime(anchorSig(secret, a), a.signature))
+      return { valid: false, brokenAtSeq: a.seq, reason: "signature mismatch" };
+    prev = a.signature;
+  }
+  return { valid: true, count: anchors.length };
+}
+
+// RFC-006 §5 projection P(L) → RFC-004 OperationalLogEntry.
+function projectLink(L, projSecret) {
+  const gov =
+    L.meta && typeof L.meta === "object" && RFC004_GOV.has(L.meta.governance)
+      ? L.meta.governance
+      : "audit-logged";
+  let sid;
+  if (typeof L.societyId === "string" && /^[A-Za-z0-9_-]{8,64}$/.test(L.societyId))
+    sid = L.societyId;
+  else if (L.societyId == null) sid = "GLOBAL-LEDGER";
+  else
+    sid =
+      "soc-" +
+      createHash("sha256").update(String(L.societyId), "utf8").digest("base64url").slice(0, 16);
+  const entry = {
+    id: `${L.ts}-${L.hash.slice(0, 8)}`,
+    sessionId: sid,
+    ts: L.ts,
+    tool: L.action,
+    governance: gov,
+    input: { actor: L.actor, seq: L.seq, meta: L.meta ?? null },
+  };
+  return { ...entry, hmac: `sha256:${hmacSha256Hex(canonical(entry), projSecret)}` };
+}
+
+// RFC-004 §3 entry verification (used to prove projected entries conform).
+function verifyRfc004Entry(entry, secret) {
+  if (!entry || typeof entry.hmac !== "string" || !entry.hmac.startsWith("sha256:"))
+    return false;
+  return eqConstTime(
+    entry.hmac.slice("sha256:".length),
+    hmacSha256Hex(canonical(stripForSign(entry)), secret),
+  );
+}
+
+function runRfc006(dir) {
+  console.log(
+    `\nRFC-006 (hash-chained ledger + anchoring + RFC-004 projection) — ${DIM}rfc-006-v1.json${RST}`,
+  );
+  const doc = JSON.parse(readFileSync(join(dir, "rfc-006-v1.json"), "utf8"));
+  const aSec = doc.secrets.audit;
+  const pSec = doc.secrets.projection;
+
+  for (const L of doc.chain.links) {
+    const got = chainLinkHash(aSec, L);
+    eqConstTime(got, L.hash)
+      ? pass(`chain·seq${L.seq}`, "link hash")
+      : fail(`chain·seq${L.seq}`, `hash mismatch\n        want ${L.hash}\n        got  ${got}`);
+  }
+  const v = verifyChain(doc.chain.links, aSec);
+  v.valid && v.count === doc.chain.expect.count
+    ? pass("chain·verify", "valid contiguous chain")
+    : fail("chain·verify", JSON.stringify(v));
+
+  const m = verifyChain(doc.chainMutated.links, aSec);
+  !m.valid &&
+  m.brokenAtSeq === doc.chainMutated.expect.brokenAtSeq &&
+  String(m.reason).includes(doc.chainMutated.expect.reasonContains)
+    ? pass("chainMutated·detected", `invalid @seq${m.brokenAtSeq} (${m.reason})`)
+    : fail("chainMutated·detected", JSON.stringify(m));
+
+  const d = verifyChain(doc.chainDeleted.links, aSec);
+  !d.valid
+    ? pass("chainDeleted·detected", `invalid @seq${d.brokenAtSeq} (${d.reason})`)
+    : fail("chainDeleted·detected", "deletion NOT detected");
+
+  for (const a of doc.anchors.anchors) {
+    eqConstTime(anchorSig(aSec, a), a.signature)
+      ? pass(`anchor·seq${a.seq}`, "signature")
+      : fail(`anchor·seq${a.seq}`, "signature mismatch");
+  }
+  const av = verifyAnchors(doc.anchors.anchors, aSec);
+  av.valid && av.count === doc.anchors.expect.count
+    ? pass("anchors·verify", "valid anchor chain")
+    : fail("anchors·verify", JSON.stringify(av));
+
+  const bySeq = new Map(doc.chain.links.map((l) => [l.seq, l]));
+  for (const pe of doc.projection.entries) {
+    const L = bySeq.get(pe.fromSeq);
+    const got = projectLink(L, pSec);
+    const canonEq = canonical(got) === canonical(pe.entry);
+    const hmacEq = got.hmac === pe.entry.hmac;
+    const rfc004ok = verifyRfc004Entry(pe.entry, pSec);
+    canonEq && hmacEq && rfc004ok
+      ? pass(`projection·seq${pe.fromSeq}`, "P(L) deterministic + RFC-004 §3 valid")
+      : fail(
+          `projection·seq${pe.fromSeq}`,
+          `canonEq=${canonEq} hmacEq=${hmacEq} rfc004verify=${rfc004ok}`,
+        );
+  }
+}
+
+function cmdVectors(args) {
+  const i = args.indexOf("--vectors-dir");
+  const dir = i >= 0 ? resolve(args[i + 1]) : defaultVectorsDir();
+  console.log(`arg-verify · conformance vectors\nvectors dir: ${dir}`);
+  try {
+    runRfc004(dir);
+    runRfc005(dir);
+    runRfc006(dir);
+  } catch (e) {
+    console.error(`\n${RED}error${RST}: ${e.message}`);
+    console.error(
+      `${DIM}hint: pass --vectors-dir pointing at the dir containing rfc-004-v1.json / rfc-005-v1.json${RST}`,
+    );
+    process.exit(2);
+  }
+  console.log(
+    failures === 0
+      ? `\n${GREEN}ALL VECTORS PASS${RST} — the published /arg standard is independently reproducible.\n`
+      : `\n${RED}${failures} CHECK(S) FAILED${RST}\n`,
+  );
+  process.exit(failures === 0 ? 0 : 1);
+}
+
+// ── `entry` (RFC-004 §5 / RFC-005 §5 verification flow) ──────────────────
+function cmdEntry(args) {
+  const file = args[0];
+  if (!file) {
+    console.error("usage: arg-verify entry <entry.json> [--secret S] [--keys keys.json]");
+    process.exit(2);
+  }
+  const si = args.indexOf("--secret");
+  const ki = args.indexOf("--keys");
+  const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_HMAC_SECRET;
+  const keysFile = ki >= 0 ? args[ki + 1] : null;
+  const entry = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const material = canonical(stripForSign(entry));
+  let any = false;
+
+  if (entry.hmac && secret) {
+    any = true;
+    const want = String(entry.hmac).replace(/^sha256:/, "");
+    const got = hmacSha256Hex(material, secret);
+    eqConstTime(want, got)
+      ? pass("hmac", "RFC-004 §3 HMAC-SHA256 over canonical form")
+      : fail("hmac", "HMAC does not match — entry altered or wrong secret");
+  } else if (entry.hmac && !secret) {
+    console.log(`  ${DIM}skip  hmac (no --secret / AUDIT_HMAC_SECRET given)${RST}`);
+  }
+
+  if (entry.signature) {
+    if (!keysFile) {
+      console.log(`  ${DIM}skip  signature (no --keys <published key set> given)${RST}`);
+    } else {
+      any = true;
+      const keyset = JSON.parse(readFileSync(resolve(keysFile), "utf8"));
+      const keys = keyset.keys ?? [keyset.keypair].filter(Boolean);
+      const k = keys.find((x) => x.keyId === entry.signature.keyId);
+      if (!k) {
+        fail("signature", `keyId "${entry.signature.keyId}" not found in key set`);
+      } else {
+        const pub = createPublicKey({
+          key: Buffer.from(k.publicKey, k.publicKey.includes("_") || k.publicKey.includes("-") ? "base64url" : "base64"),
+          format: "der",
+          type: "spki",
+        });
+        const ok = edVerify(
+          null,
+          Buffer.from(material, "utf8"),
+          pub,
+          Buffer.from(entry.signature.value, "base64url"),
+        );
+        ok
+          ? pass("signature", `RFC-005 Ed25519 (keyId ${k.keyId})`)
+          : fail("signature", "Ed25519 signature did not verify");
+      }
+    }
+  }
+
+  if (!any) {
+    console.error(
+      `  ${RED}nothing verifiable${RST}: entry has no hmac+secret and no signature+keys`,
+    );
+    process.exit(2);
+  }
+  process.exit(failures === 0 ? 0 : 1);
+}
+
+// ── `attestation` (Vultur vultur.compliance.attestation) ────────────────
+function cmdAttestation(args) {
+  const file = args[0];
+  if (!file) {
+    console.error("usage: arg-verify attestation <attestation.json> [expectedPubKeyB64]");
+    process.exit(2);
+  }
+  const att = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const expected = args[1];
+  if (expected && att.publicKey !== expected) {
+    console.error(`${RED}✗${RST} embedded public key does NOT match the expected key`);
+    process.exit(1);
+  }
+  if (!att.body || !att.sig || !att.publicKey) {
+    console.error(`${RED}✗${RST} not a vultur.compliance.attestation (missing body/sig/publicKey)`);
+    process.exit(1);
+  }
+  const pub = createPublicKey({
+    key: Buffer.from(att.publicKey, "base64"),
+    format: "der",
+    type: "spki",
+  });
+  const ok = edVerify(
+    null,
+    Buffer.from(canonical(att.body), "utf8"),
+    pub,
+    Buffer.from(att.sig, "base64"),
+  );
+  if (!ok) {
+    console.error(`${RED}✗ INVALID${RST} — attestation was altered or forged`);
+    process.exit(1);
+  }
+  const s = att.body.society ?? {};
+  const c = att.body.chain ?? {};
+  console.log(`${GREEN}✓ VALID${RST} vultur.compliance.attestation`);
+  console.log(`  society:    ${s.denominacion ?? "—"} (${s.slug ?? "—"})`);
+  console.log(`  cuit:       ${s.cuit ?? "—"}`);
+  console.log(`  issuedAt:   ${att.body.issuedAt ?? "—"}`);
+  console.log(`  chainHead:  seq ${c.globalHeadSeq ?? "?"} · ${c.globalHeadHash ?? "?"}`);
+  console.log(`  ledgerOK:   ${c.verification?.valid ?? "?"}`);
+  console.log(
+    `  ${DIM}note: this verifies the Vultur attestation shape, NOT an RFC-004 entry. See CONFORMANCE.md.${RST}`,
+  );
+  process.exit(0);
+}
+
+// ── `chain` (verify an RFC-006 ledger) ──────────────────────────────────
+function cmdChain(args) {
+  const file = args[0];
+  if (!file) {
+    console.error("usage: arg-verify chain <chain.json> --secret S");
+    process.exit(2);
+  }
+  const si = args.indexOf("--secret");
+  const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
+  if (!secret) {
+    console.error("error: --secret (or AUDIT_SECRET) required");
+    process.exit(2);
+  }
+  const raw = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const links = Array.isArray(raw) ? raw : raw.links ?? raw.chain?.links;
+  if (!Array.isArray(links)) {
+    console.error("error: file has no link array (expect [...] or {links:[...]})");
+    process.exit(2);
+  }
+  const r = verifyChain(links, secret);
+  if (r.valid) {
+    console.log(`${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), contiguous + linked + authentic`);
+    process.exit(0);
+  }
+  console.error(`${RED}✗ INVALID${RST} RFC-006 chain — broke at seq ${r.brokenAtSeq}: ${r.reason}`);
+  process.exit(1);
+}
+
+// ── `project` (RFC-006 ledger → RFC-004 entries) ────────────────────────
+function cmdProject(args) {
+  const file = args[0];
+  if (!file) {
+    console.error(
+      "usage: arg-verify project <chain.json> --proj-secret P [--secret S] [--verify]",
+    );
+    process.exit(2);
+  }
+  const pi = args.indexOf("--proj-secret");
+  const si = args.indexOf("--secret");
+  const projSecret = pi >= 0 ? args[pi + 1] : process.env.PROJECTION_SECRET;
+  if (!projSecret) {
+    console.error("error: --proj-secret (or PROJECTION_SECRET) required");
+    process.exit(2);
+  }
+  const raw = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const links = Array.isArray(raw) ? raw : raw.links ?? raw.chain?.links;
+  if (!Array.isArray(links)) {
+    console.error("error: file has no link array");
+    process.exit(2);
+  }
+  if (args.includes("--verify")) {
+    const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
+    if (secret) {
+      const r = verifyChain(links, secret);
+      if (!r.valid) {
+        console.error(
+          `${RED}✗${RST} native chain invalid (seq ${r.brokenAtSeq}: ${r.reason}); refusing to project a tampered ledger`,
+        );
+        process.exit(1);
+      }
+    }
+  }
+  const entries = links.map((L) => projectLink(L, projSecret));
+  // Self-check: every projected entry must pass RFC-004 §3.
+  const allOk = entries.every((e) => verifyRfc004Entry(e, projSecret));
+  if (!allOk) {
+    console.error(`${RED}✗${RST} a projected entry failed RFC-004 §3 self-verify (bug)`);
+    process.exit(1);
+  }
+  process.stdout.write(JSON.stringify(entries, null, 2) + "\n");
+  process.exit(0);
+}
+
+// ── dispatch ────────────────────────────────────────────────────────────
+const [cmd, ...rest] = process.argv.slice(2);
+switch (cmd) {
+  case "vectors":
+    cmdVectors(rest);
+    break;
+  case "entry":
+    cmdEntry(rest);
+    break;
+  case "attestation":
+    cmdAttestation(rest);
+    break;
+  case "chain":
+    cmdChain(rest);
+    break;
+  case "project":
+    cmdProject(rest);
+    break;
+  default:
+    console.log(
+      [
+        "arg-verify — independent verifier for the /arg operational-log standard",
+        "",
+        "  node arg-verify.mjs vectors [--vectors-dir DIR]      RFC-004/005/006 vectors",
+        "  node arg-verify.mjs entry <entry.json> [--secret S] [--keys keys.json]",
+        "  node arg-verify.mjs attestation <attestation.json> [expectedPubKeyB64]",
+        "  node arg-verify.mjs chain <chain.json> --secret S    RFC-006 ledger",
+        "  node arg-verify.mjs project <chain.json> --proj-secret P [--secret S --verify]",
+        "",
+        "Zero dependencies. Offline. RFC-004 (HMAC) · RFC-005 (Ed25519) ·",
+        "RFC-006 (hash-chained ledger + anchoring, projects onto RFC-004).",
+        "See CONFORMANCE.md for the RFC ⇄ Vultur (@vultur/core) mapping.",
+      ].join("\n"),
+    );
+    process.exit(cmd ? 2 : 0);
+}

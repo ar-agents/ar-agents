@@ -61,7 +61,12 @@ export default function Rfc004Page() {
           <a href="/rfcs/003" style={{ color: "var(--accent)" }}>
             RFC-003
           </a>{" "}
-          (cross-jurisdictional reciprocity envelope).
+          (cross-jurisdictional reciprocity envelope),{" "}
+          <a href="/rfcs/006" style={{ color: "var(--accent)" }}>
+            RFC-006
+          </a>{" "}
+          (hash-chained ledger profile that strengthens §4 and projects back
+          onto this spec by a normative map).
         </DocP>
         <DocP>
           <strong>Reference implementation:</strong>{" "}
