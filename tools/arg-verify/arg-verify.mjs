@@ -64,10 +64,25 @@ function cpCompare(a, b) {
   }
   return ai.length - bi.length;
 }
+// P1-A: a lone UTF-16 surrogate is signed happily by JS `JSON.stringify`
+// but a conformant Go/Python/RFC-8785 implementation errors or emits
+// different bytes → cross-implementation HMAC divergence, exactly what §2
+// claims to eliminate. Reject ill-formed strings as out-of-domain.
+function wellFormed(s) {
+  if (typeof s.isWellFormed === "function") return s.isWellFormed();
+  return !/[\uD800-\uDBFF](?![\uDC00-\uDFFF])|(?:^|[^\uD800-\uDBFF])[\uDC00-\uDFFF]/.test(s);
+}
 function canonical(value) {
   const t = typeof value;
   if (value === null) return "null";
-  if (t === "string" || t === "boolean") return JSON.stringify(value);
+  if (t === "boolean") return JSON.stringify(value);
+  if (t === "string") {
+    if (!wellFormed(value))
+      throw new Error(
+        "RFC-006 §2: ill-formed UTF-16 string (lone surrogate) is out of canonical domain",
+      );
+    return JSON.stringify(value);
+  }
   if (t === "number") {
     if (!Number.isFinite(value) || !Number.isSafeInteger(value))
       throw new Error(
@@ -90,6 +105,8 @@ function canonical(value) {
     const keys = Object.keys(value).sort(cpCompare);
     return `{${keys
       .map((k) => {
+        if (!wellFormed(k))
+          throw new Error("RFC-006 §2: ill-formed UTF-16 object key out of domain");
         const cv = value[k];
         if (cv === undefined || typeof cv === "function" || typeof cv === "symbol")
           throw new Error(
@@ -269,7 +286,20 @@ function verifyChain(links, secret) {
       return { valid: false, brokenAtSeq: e.seq, reason: "non-contiguous sequence" };
     if (e.prevHash !== prev)
       return { valid: false, brokenAtSeq: e.seq, reason: "prevHash mismatch (insertion/deletion)" };
-    if (!eqConstTime(chainLinkHash(secret, e), e.hash))
+    // P0-B: attacker-controlled out-of-domain payload (float/NaN/>2^53/
+    // ill-formed string) makes canonical() throw. That is a tampered /
+    // non-conformant ledger, NOT a verifier crash — never let it escape.
+    let computed;
+    try {
+      computed = chainLinkHash(secret, e);
+    } catch (err) {
+      return {
+        valid: false,
+        brokenAtSeq: e.seq,
+        reason: `out-of-domain payload (non-conformant/tampered): ${err.message}`,
+      };
+    }
+    if (!eqConstTime(computed, e.hash))
       return { valid: false, brokenAtSeq: e.seq, reason: "hash mismatch (record tampered)" };
     prev = e.hash;
   }
@@ -277,43 +307,90 @@ function verifyChain(links, secret) {
   return { valid: true, count: links.length, headSeq: head.seq, headHash: head.hash };
 }
 
-// Operator-defense (RFC-006 §4.0/§6). The ONLY thing that stops a
-// key-holding operator from tail-truncating or rewriting wholesale is an
-// external anchor: require the chain head to equal the head covered by the
-// latest VERIFIED anchor. Without anchors, completeness vs the operator is
-// not provable — say so honestly rather than returning a misleading pass.
-function verifyChainAnchored(links, secret, anchors) {
+// RFC-006 §6 anchor body, canonical form. Both the operator HMAC
+// `signature` AND the external-notary Ed25519 `notarySig` are computed
+// over THIS exact string, so a verifier can check both independently.
+function anchorBodyCanonical(b) {
+  return canonical({
+    seq: b.seq,
+    headSeq: b.headSeq,
+    headHash: b.headHash,
+    prevAnchor: b.prevAnchor,
+    ts: b.ts,
+  });
+}
+function anchorSig(secret, b) {
+  return hmacSha256Hex(anchorBodyCanonical(b), secret);
+}
+
+// Operator-defense (RFC-006 §4.2/§6). RED-TEAM P0-A: a verified anchor
+// chain signed with the SAME `AUDIT_SECRET` as the main chain proves
+// NOTHING against a key-holding operator — they mint a forged chain AND a
+// consistent anchor chain with the one key. Operator-defense REQUIRES an
+// external notary whose key the operator does NOT control. This function
+// therefore demands a `notaryPubKey` (Ed25519 SPKI base64url, supplied
+// independently of `secret`) and verifies each anchor's `notarySig`
+// against it. No notary key ⇒ NOT provable (never a misleading pass).
+function verifyChainAnchored(links, secret, anchors, notaryPubKeyB64url) {
   const c = verifyChain(links, secret);
   if (!c.valid) return c;
   if (!Array.isArray(anchors) || anchors.length === 0)
-    return {
-      valid: false,
-      reason: "no external anchors: completeness/operator-defense not provable",
-    };
+    return { valid: false, reason: "no anchors: completeness/operator-defense not provable" };
   const a = verifyAnchors(anchors, secret);
   if (!a.valid)
     return { valid: false, reason: `anchor chain invalid: ${a.reason}`, brokenAtSeq: a.brokenAtSeq };
+  if (!notaryPubKeyB64url)
+    return {
+      valid: false,
+      reason:
+        "no external-notary public key: anchors are operator-signed with AUDIT_SECRET, so the operator can forge chain AND anchors — operator-defense NOT provable (RFC-006 §6)",
+    };
+  let notaryPub;
+  try {
+    notaryPub = createPublicKey({
+      key: Buffer.from(notaryPubKeyB64url, "base64url"),
+      format: "der",
+      type: "spki",
+    });
+  } catch {
+    return { valid: false, reason: "external-notary key is not valid Ed25519 SPKI base64url" };
+  }
+  // Every anchor MUST carry an external-notary Ed25519 signature over its
+  // canonical body, verifiable with the independent notary key. Checking
+  // all (not just the latest) defeats a spliced-in forged tail anchor.
+  for (const an of anchors) {
+    if (typeof an.notarySig !== "string")
+      return {
+        valid: false,
+        brokenAtSeq: an.seq,
+        reason: `anchor seq ${an.seq} has no external-notary signature (notarySig)`,
+      };
+    let ok = false;
+    try {
+      ok = edVerify(
+        null,
+        Buffer.from(anchorBodyCanonical(an), "utf8"),
+        notaryPub,
+        Buffer.from(an.notarySig, "base64url"),
+      );
+    } catch {
+      ok = false;
+    }
+    if (!ok)
+      return {
+        valid: false,
+        brokenAtSeq: an.seq,
+        reason: `anchor seq ${an.seq} external-notary signature does not verify against the supplied notary key (operator-forged anchors)`,
+      };
+  }
   const last = anchors[anchors.length - 1];
   if (last.headSeq !== c.headSeq || last.headHash !== c.headHash)
     return {
       valid: false,
       brokenAtSeq: c.headSeq,
-      reason: `chain head (seq ${c.headSeq}) ≠ latest external anchor (seq ${last.headSeq}) — tail truncation or rewrite`,
+      reason: `chain head (seq ${c.headSeq}) ≠ latest notarised anchor (seq ${last.headSeq}) — tail truncation or rewrite`,
     };
-  return { valid: true, count: c.count, anchoredHeadSeq: last.headSeq };
-}
-
-function anchorSig(secret, b) {
-  return hmacSha256Hex(
-    canonical({
-      seq: b.seq,
-      headSeq: b.headSeq,
-      headHash: b.headHash,
-      prevAnchor: b.prevAnchor,
-      ts: b.ts,
-    }),
-    secret,
-  );
+  return { valid: true, count: c.count, anchoredHeadSeq: last.headSeq, notarised: true };
 }
 
 function verifyAnchors(anchors, secret) {
@@ -330,7 +407,17 @@ function verifyAnchors(anchors, secret) {
       return { valid: false, brokenAtSeq: a.seq, reason: "non-contiguous" };
     if (a.prevAnchor !== prev)
       return { valid: false, brokenAtSeq: a.seq, reason: "prevAnchor mismatch" };
-    if (!eqConstTime(anchorSig(secret, a), a.signature))
+    let sig;
+    try {
+      sig = anchorSig(secret, a);
+    } catch (err) {
+      return {
+        valid: false,
+        brokenAtSeq: a.seq,
+        reason: `out-of-domain anchor body (non-conformant/tampered): ${err.message}`,
+      };
+    }
+    if (!eqConstTime(sig, a.signature))
       return { valid: false, brokenAtSeq: a.seq, reason: "signature mismatch" };
     prev = a.signature;
   }
@@ -432,19 +519,69 @@ function runRfc006(dir) {
     ? pass("anchors·verify", "valid anchor chain")
     : fail("anchors·verify", JSON.stringify(av));
 
-  // P0-3: operator-defense only holds with a verified external anchor.
-  const ca = verifyChainAnchored(doc.chain.links, aSec, doc.anchors.anchors);
-  ca.valid
-    ? pass("chain·anchored", "head matches latest verified external anchor")
+  // P0-A: operator-defense requires an EXTERNAL notary key, independent of
+  // aSec. With it, the genuine chain's head is notarised → valid.
+  const notaryPub = doc.notary?.notaryPublicKey;
+  const ca = verifyChainAnchored(doc.chain.links, aSec, doc.anchors.anchors, notaryPub);
+  ca.valid && ca.notarised
+    ? pass("chain·anchored", "head notarised by external Ed25519 key (not AUDIT_SECRET)")
     : fail("chain·anchored", JSON.stringify(ca));
 
-  // P1-4: tail truncation. The bare chain CANNOT catch it (a clean prefix
-  // verifies); only the external anchor does. This vector proves both.
+  // P0-A: WITHOUT the external notary key, operator-defense is NOT
+  // provable — must refuse, not pass (the original P0-3 in new form).
+  const noKey = verifyChainAnchored(doc.chain.links, aSec, doc.anchors.anchors, undefined);
+  !noKey.valid && /not provable|notary/i.test(noKey.reason)
+    ? pass("chain·anchored·noNotaryKey", `refused: ${noKey.reason.slice(0, 60)}…`)
+    : fail("chain·anchored·noNotaryKey", JSON.stringify(noKey));
+
+  // P0-A decisive: operator forges chain AND re-signs anchors with
+  // AUDIT_SECRET but cannot mint the notary Ed25519 sig. Bare chain
+  // passes (the danger); anchored-with-real-notary-key MUST reject.
+  if (doc.forgedChain) {
+    const bare = verifyChain(doc.forgedChain.links, aSec);
+    const forged = verifyChainAnchored(
+      doc.forgedChain.links,
+      aSec,
+      doc.forgedChain.anchors,
+      notaryPub,
+    );
+    bare.valid && !forged.valid
+      ? pass("forgedChain·rejected", `bare passes (operator-consistent), notary rejects: ${forged.reason.slice(0, 50)}…`)
+      : fail("forgedChain·rejected", `bare=${JSON.stringify(bare)} forged=${JSON.stringify(forged)}`);
+  }
+
+  // P1-C: §4.1 MUSTs with enforcing vectors (were code-true, unproven).
+  if (doc.emptyChain) {
+    const r = verifyChain(doc.emptyChain.links, aSec);
+    !r.valid ? pass("emptyChain·rejected", r.reason) : fail("emptyChain·rejected", "empty accepted");
+  }
+  if (doc.nonGenesisChain) {
+    const r = verifyChain(doc.nonGenesisChain.links, aSec);
+    !r.valid
+      ? pass("nonGenesisChain·rejected", `${r.reason} @seq${r.brokenAtSeq}`)
+      : fail("nonGenesisChain·rejected", "non-rooted slice accepted");
+  }
+  // P0-B: out-of-domain attacker data → verifyChain returns invalid, does
+  // NOT throw. Reaching this assertion at all proves no uncaught throw.
+  if (doc.outOfDomain) {
+    let r, threw = false;
+    try {
+      r = verifyChain(doc.outOfDomain.links, aSec);
+    } catch {
+      threw = true;
+    }
+    !threw && r && !r.valid && String(r.reason).includes(doc.outOfDomain.expect.reasonContains)
+      ? pass("outOfDomain·nocrash", `invalid not crash: ${r.reason}`)
+      : fail("outOfDomain·nocrash", `threw=${threw} r=${JSON.stringify(r)}`);
+  }
+
+  // P1-4: tail truncation. Bare chain CANNOT catch it (clean prefix);
+  // only the notarised anchor does.
   if (doc.chainTruncated) {
     const bare = verifyChain(doc.chainTruncated.links, aSec);
-    const anch = verifyChainAnchored(doc.chainTruncated.links, aSec, doc.anchors.anchors);
+    const anch = verifyChainAnchored(doc.chainTruncated.links, aSec, doc.anchors.anchors, notaryPub);
     bare.valid && !anch.valid
-      ? pass("chainTruncated·detected", `bare chain passes (prefix), anchor rejects: ${anch.reason}`)
+      ? pass("chainTruncated·detected", `bare passes (prefix), notarised anchor rejects: ${anch.reason.slice(0, 50)}…`)
       : fail("chainTruncated·detected", `bare=${JSON.stringify(bare)} anchored=${JSON.stringify(anch)}`);
   }
 
@@ -640,75 +777,108 @@ function cmdAttestation(args) {
 
 // ── `chain` (verify an RFC-006 ledger) ──────────────────────────────────
 function cmdChain(args) {
-  const file = args[0];
-  if (!file) {
-    console.error("usage: arg-verify chain <chain.json> --secret S [--anchors anchors.json]");
-    process.exit(2);
-  }
-  const si = args.indexOf("--secret");
-  const ai = args.indexOf("--anchors");
-  const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
-  if (!secret) {
-    console.error("error: --secret (or AUDIT_SECRET) required");
-    process.exit(2);
-  }
-  const raw = JSON.parse(readFileSync(resolve(file), "utf8"));
-  const links = Array.isArray(raw) ? raw : raw.links ?? raw.chain?.links;
-  if (!Array.isArray(links)) {
-    console.error("error: file has no link array (expect [...] or {links:[...]})");
-    process.exit(2);
-  }
-  if (ai >= 0) {
-    const araw = JSON.parse(readFileSync(resolve(args[ai + 1]), "utf8"));
-    const anchors = Array.isArray(araw) ? araw : araw.anchors ?? araw.anchors?.anchors;
-    const r = verifyChainAnchored(links, secret, anchors);
+  try {
+    const file = args[0];
+    if (!file) {
+      console.error(
+        "usage: arg-verify chain <chain.json> --secret S [--anchors a.json --notary-key <b64url|file>]",
+      );
+      process.exit(2);
+    }
+    const si = args.indexOf("--secret");
+    const ai = args.indexOf("--anchors");
+    const ni = args.indexOf("--notary-key");
+    const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
+    if (!secret) {
+      console.error("error: --secret (or AUDIT_SECRET) required");
+      process.exit(2);
+    }
+    const raw = JSON.parse(readFileSync(resolve(file), "utf8"));
+    const links = Array.isArray(raw) ? raw : raw.links ?? raw.chain?.links;
+    if (!Array.isArray(links)) {
+      console.error("error: file has no link array (expect [...] or {links:[...]})");
+      process.exit(2);
+    }
+    if (ai >= 0) {
+      const araw = JSON.parse(readFileSync(resolve(args[ai + 1]), "utf8"));
+      const anchors = Array.isArray(araw) ? araw : araw.anchors ?? araw.anchors?.anchors;
+      // Notary key: a literal base64url string, OR a path to a file whose
+      // content is the key, OR a JSON {notaryPublicKey|publicKey}. It is
+      // supplied INDEPENDENTLY of --secret (RFC-006 §6); that independence
+      // is the whole point — do not derive it from the ledger.
+      let notaryKey;
+      if (ni >= 0) {
+        const v = args[ni + 1];
+        try {
+          const fc = readFileSync(resolve(v), "utf8").trim();
+          try {
+            const j = JSON.parse(fc);
+            notaryKey = j.notaryPublicKey ?? j.publicKey ?? j.key ?? fc;
+          } catch {
+            notaryKey = fc;
+          }
+        } catch {
+          notaryKey = v; // treat as a literal key string
+        }
+      }
+      const r = verifyChainAnchored(links, secret, anchors, notaryKey);
+      if (r.valid) {
+        console.log(
+          `${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), head notarised at anchor seq ${r.anchoredHeadSeq} (operator-defense holds: external notary key, not AUDIT_SECRET)`,
+        );
+        process.exit(0);
+      }
+      console.error(`${RED}✗ INVALID${RST} RFC-006 anchored chain — ${r.reason}`);
+      process.exit(1);
+    }
+    const r = verifyChain(links, secret);
     if (r.valid) {
       console.log(
-        `${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), head anchored at seq ${r.anchoredHeadSeq} (operator-defense holds)`,
+        `${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), contiguous + linked + authentic`,
+      );
+      console.error(
+        `${DIM}note: INTERIOR integrity only. This does NOT defend against the ` +
+          `key-holding operator. Pass --anchors a.json --notary-key <independent ` +
+          `Ed25519 key> for the RFC-006 §4.2/§6 operator-defense.${RST}`,
       );
       process.exit(0);
     }
-    console.error(`${RED}✗ INVALID${RST} RFC-006 anchored chain — ${r.reason}`);
+    console.error(`${RED}✗ INVALID${RST} RFC-006 chain — broke at seq ${r.brokenAtSeq}: ${r.reason}`);
+    process.exit(1);
+  } catch (err) {
+    // P0-B: never surface a raw stack trace for attacker-controlled input.
+    console.error(`${RED}✗ INVALID${RST} RFC-006 chain — input error: ${err.message}`);
     process.exit(1);
   }
-  const r = verifyChain(links, secret);
-  if (r.valid) {
-    console.log(
-      `${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), contiguous + linked + authentic`,
-    );
-    console.error(
-      `${DIM}note: interior integrity only. Pass --anchors <anchors.json> to ` +
-        `prove completeness vs the key-holding operator (RFC-006 §4.0/§6).${RST}`,
-    );
-    process.exit(0);
-  }
-  console.error(`${RED}✗ INVALID${RST} RFC-006 chain — broke at seq ${r.brokenAtSeq}: ${r.reason}`);
-  process.exit(1);
 }
 
 // ── `project` (RFC-006 ledger → RFC-004 entries) ────────────────────────
 function cmdProject(args) {
-  const file = args[0];
-  if (!file) {
-    console.error(
-      "usage: arg-verify project <chain.json> --proj-secret P [--secret S] [--verify]",
-    );
-    process.exit(2);
-  }
-  const pi = args.indexOf("--proj-secret");
-  const si = args.indexOf("--secret");
-  const projSecret = pi >= 0 ? args[pi + 1] : process.env.PROJECTION_SECRET;
-  if (!projSecret) {
-    console.error("error: --proj-secret (or PROJECTION_SECRET) required");
-    process.exit(2);
-  }
-  const raw = JSON.parse(readFileSync(resolve(file), "utf8"));
-  const links = Array.isArray(raw) ? raw : raw.links ?? raw.chain?.links;
-  if (!Array.isArray(links)) {
-    console.error("error: file has no link array");
-    process.exit(2);
-  }
-  if (args.includes("--verify")) {
+  try {
+    const file = args[0];
+    if (!file) {
+      console.error(
+        "usage: arg-verify project <chain.json> --proj-secret P [--secret S]",
+      );
+      process.exit(2);
+    }
+    const pi = args.indexOf("--proj-secret");
+    const si = args.indexOf("--secret");
+    const projSecret = pi >= 0 ? args[pi + 1] : process.env.PROJECTION_SECRET;
+    if (!projSecret) {
+      console.error("error: --proj-secret (or PROJECTION_SECRET) required");
+      process.exit(2);
+    }
+    const raw = JSON.parse(readFileSync(resolve(file), "utf8"));
+    const links = Array.isArray(raw) ? raw : raw.links ?? raw.chain?.links;
+    if (!Array.isArray(links)) {
+      console.error("error: file has no link array");
+      process.exit(2);
+    }
+    // P2: never project a ledger that hasn't been integrity-checked. With
+    // --secret, refuse on an invalid chain. Without it, refuse outright
+    // unless --unsafe is explicit (projecting unverified links would let a
+    // tampered ledger produce clean-looking RFC-004 entries).
     const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
     if (secret) {
       const r = verifyChain(links, secret);
@@ -718,17 +888,30 @@ function cmdProject(args) {
         );
         process.exit(1);
       }
+    } else if (!args.includes("--unsafe")) {
+      console.error(
+        `${RED}✗${RST} refusing to project unverified links. Pass --secret S to ` +
+          `integrity-check the chain first, or --unsafe to project anyway (NOT for regulators).`,
+      );
+      process.exit(2);
+    } else {
+      console.error(
+        `${DIM}warning: --unsafe — projecting from UNVERIFIED links; output is ` +
+          `not evidence of an intact ledger.${RST}`,
+      );
     }
-  }
-  const entries = links.map((L) => projectLink(L, projSecret));
-  // Self-check: every projected entry must pass RFC-004 §3.
-  const allOk = entries.every((e) => verifyRfc004Entry(e, projSecret));
-  if (!allOk) {
-    console.error(`${RED}✗${RST} a projected entry failed RFC-004 §3 self-verify (bug)`);
+    const entries = links.map((L) => projectLink(L, projSecret));
+    const allOk = entries.every((e) => verifyRfc004Entry(e, projSecret));
+    if (!allOk) {
+      console.error(`${RED}✗${RST} a projected entry failed RFC-004 §3 self-verify (bug)`);
+      process.exit(1);
+    }
+    process.stdout.write(JSON.stringify(entries, null, 2) + "\n");
+    process.exit(0);
+  } catch (err) {
+    console.error(`${RED}✗${RST} project — input error: ${err.message}`);
     process.exit(1);
   }
-  process.stdout.write(JSON.stringify(entries, null, 2) + "\n");
-  process.exit(0);
 }
 
 // ── dispatch ────────────────────────────────────────────────────────────

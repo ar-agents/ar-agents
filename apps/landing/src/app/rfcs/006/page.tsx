@@ -132,6 +132,16 @@ export default function Rfc006Page() {
           <DocCode>undefined</DocCode>, <DocCode>NaN</DocCode>→
           <DocCode>null</DocCode>).
         </Li>
+        <Li>
+          <strong>Well-formed UTF-16 (MUST).</strong> A lone surrogate is
+          out of domain and <DocCode>canonical()</DocCode> MUST throw on it.
+          JS <DocCode>JSON.stringify</DocCode> would silently sign{" "}
+          <DocCode>&quot;\uD800&quot;</DocCode>, but Go / Python / RFC-8785
+          reject or re-encode it → cross-implementation HMAC divergence. v1
+          does <em>not</em> claim full RFC-8785 string escaping (that is
+          v1.1); restricting to well-formed strings + the safe-integer
+          number domain is what makes v1 runtime-independent.
+        </Li>
       </ul>
       <DocP>
         The reference producer&apos;s{" "}
@@ -294,30 +304,35 @@ hmac       := "sha256:" + HMAC_SHA256( PROJECTION_SECRET,
         head into an <strong>anchor</strong>; anchors form their own
         HMAC-signed chain:
       </DocP>
-      <CodeBlock>{`interface AnchorBody {
-  seq:        number;      // 1-based, contiguous
-  headSeq:    number;      // chain head seq at checkpoint time
-  headHash:   string;      // chain head hash at checkpoint time
-  prevAnchor: string;      // previous anchor signature; "GENESIS" for seq 1
-  ts:         string;      // ISO-8601 UTC
+      <CodeBlock>{`interface Anchor {            // body = the 5 fields below ONLY
+  seq, headSeq, headHash, prevAnchor, ts
+  signature:   HMAC_SHA256( AUDIT_SECRET, canonical(body) ) hex   // operator
+  notarySig:   Ed25519( NOTARY_PRIV,      canonical(body) ) b64u  // external
+  notaryKeyId: resolves in the external notary key set
 }
-signature_n  = HMAC_SHA256( AUDIT_SECRET, canonical(AnchorBody_n) )  // hex
 prevAnchor_n = signature_{n-1}`}</CodeBlock>
       <DocP>
-        Anchor verification mirrors §4.1 (reject empty / non-
-        <DocCode>seq:1</DocCode> / non-<DocCode>GENESIS</DocCode> /
-        non-contiguous; recompute every signature). The anchor chain{" "}
-        <strong>MUST</strong> be mirrored to an{" "}
-        <strong>external notary</strong> that is (a){" "}
-        <strong>append-only</strong> with an independently checkable proof of
-        non-removal; (b) <strong>outside the operator&apos;s unilateral
-        control</strong> (a distinct legal/technical party, a public
-        timestamping authority, or a public transparency log); (c){" "}
-        <strong>independently fetchable</strong> by a regulator without the
-        operator&apos;s cooperation. Operator-defense (§4.2) holds{" "}
-        <em>only</em> up to the most recent head a compliant notary attests;
-        anything newer is within the operator&apos;s tamper window and MUST be
-        treated as provisional.
+        <strong>The operator HMAC <DocCode>signature</DocCode> alone proves
+        nothing against a key-holding operator</strong> (red-team P0-A): an
+        operator that holds <DocCode>AUDIT_SECRET</DocCode> forges the chain{" "}
+        <em>and</em> mints a consistent anchor chain. Operator-defense MUST
+        rest on <DocCode>notarySig</DocCode> — an Ed25519 signature by an
+        external notary whose private key the operator does{" "}
+        <strong>not</strong> control. A conformant{" "}
+        <DocCode>verifyChainAnchored</DocCode>: (1) mirrors §4.1 on the anchor
+        chain; (2) <strong>MUST be supplied the notary public key
+        out-of-band</strong>, independent of <DocCode>AUDIT_SECRET</DocCode>{" "}
+        — <strong>no notary key ⇒ operator-defense NOT provable ⇒ return
+        invalid</strong>, never a pass; (3) MUST verify{" "}
+        <DocCode>notarySig</DocCode> on <em>every</em> anchor (not just the
+        latest — defeats a spliced forged tail); (4) requires the chain head
+        to equal the latest <em>notarised</em> anchor&apos;s{" "}
+        <DocCode>(headSeq, headHash)</DocCode>. The notary itself MUST be
+        append-only with an independently checkable non-removal proof,
+        outside the operator&apos;s unilateral control, and independently
+        fetchable. Operator-defense holds <em>only</em> up to the most recent
+        notarised head; anything newer is within the operator&apos;s tamper
+        window and is provisional.
       </DocP>
 
       <DocH2>7 · Asymmetric attestation (normative, aligns RFC-005)</DocH2>
