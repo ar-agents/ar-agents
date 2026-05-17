@@ -69,12 +69,18 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "20 KB"
+      "limit": "20 KB",
+      "ignore": [
+        "node-forge"
+      ]
     },
     {
       "name": "CJS",
       "path": "dist/index.cjs",
-      "limit": "20 KB"
+      "limit": "20 KB",
+      "ignore": [
+        "node-forge"
+      ]
     }
   ],
   "peerDependencies": {
