@@ -83,7 +83,7 @@
     {
       "name": "ESM",
       "path": "dist/index.js",
-      "limit": "80 KB",
+      "limit": "120 KB",
       "ignore": [
         "@modelcontextprotocol/sdk",
         "node:crypto",

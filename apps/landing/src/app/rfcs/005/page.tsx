@@ -57,7 +57,12 @@ export default function Rfc005Page() {
           <a href="/rfcs/003" style={linkSty}>
             RFC-003
           </a>{" "}
-          (envelope that benefits most from asymmetric).
+          (envelope that benefits most from asymmetric),{" "}
+          <a href="/rfcs/006" style={linkSty}>
+            RFC-006
+          </a>{" "}
+          (hash-chained ledger profile; §7 requires these RFC-005 wire
+          conventions for its attestations).
         </DocP>
       </DocBlock>
 
