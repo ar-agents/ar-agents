@@ -1,11 +1,12 @@
 # Conformance: RFC-004 / RFC-005 ⇄ Vultur `@vultur/core`
 
 **Status:** analysis, 2026-05-17. **Tool:** [`arg-verify.mjs`](./arg-verify.mjs)
-(zero-dependency, offline). **Result of `arg-verify vectors`:** 42/42 PASS — a
+(zero-dependency, offline). **Result of `arg-verify vectors`:** 43/43 PASS — a
 clean-room implementation written from the RFC text reproduces every published
 RFC-004 HMAC, RFC-005 Ed25519, RFC-006 chain/anchor/projection, RFC-006 §8.1
-export-bundle vector byte-for-byte, **and the RFC-006 §2 canonical-JSON domain
-self-check** (pinned lexicographic form + out-of-domain rejection). The cited
+export-bundle vector byte-for-byte, **and the RFC-006 §2 canonical-JSON self-check** (pinned lexicographic
+form incl. integer-like keys + number formatting; Unicode served verbatim
+with no normalization; out-of-domain rejection). The cited
 standard is independently reproducible without trusting the reference
 implementation.
 

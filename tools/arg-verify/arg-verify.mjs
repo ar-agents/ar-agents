@@ -473,6 +473,10 @@ function runDomain() {
     [null, "null"],
     [[], "[]"],
     [{}, "{}"],
+    // Numbers: ECMAScript Number→String (shortest round-trip).
+    [1e21, "1e+21"],
+    [-0, "0"],
+    [1.0, "1"],
   ];
   let ok = true;
   for (const [v, expected] of pinned) {
@@ -487,6 +491,17 @@ function runDomain() {
       "domain·lexicographic",
       `${pinned.length} pinned vectors match the normative form (incl. integer-like keys where the producer model is non-conformant)`,
     );
+
+  // Strings as-is, NO Unicode normalization (RFC-006 §2): NFC e-acute
+  // (U+00E9) vs NFD (e + U+0301) MUST canonicalize to their own distinct
+  // bytes — verbatim JSON.stringify, no normalization applied.
+  const nfc = String.fromCodePoint(0xe9);
+  const nfd = "e" + String.fromCodePoint(0x301);
+  canonical(nfc) === JSON.stringify(nfc) &&
+  canonical(nfd) === JSON.stringify(nfd) &&
+  canonical(nfc) !== canonical(nfd)
+    ? pass("domain\u00b7unicode-as-is", "NFC/NFD serialized verbatim, distinct (no normalization)")
+    : fail("domain\u00b7unicode-as-is", "Unicode normalization or escaping divergence");
 
   const sym = Symbol("s");
   const outOfDomain = [
