@@ -408,6 +408,13 @@ export async function solicitarCAE(
 ): Promise<SolicitarCaeResult> {
   const cantReg = opts.cbteHasta - opts.cbteDesde + 1;
 
+  // AFIP RG 5616: <CondicionIVAReceptorId> is mandatory (rejection obs
+  // 10246 if absent). Derive a safe default when the caller didn't pass
+  // one — Consumidor Final for DocTipo 99, otherwise Responsable Inscripto
+  // — so pre-RG-5616 callers keep working; pass it explicitly otherwise.
+  const condicionIvaReceptorId =
+    opts.condicionIvaReceptorId ?? (Number(opts.docTipo) === 99 ? 5 : 1);
+
   const optServiceDates =
     opts.fchServDesde && opts.fchServHasta && opts.fchVtoPago
       ? `<fev1:FchServDesde>${opts.fchServDesde}</fev1:FchServDesde>
@@ -467,6 +474,7 @@ export async function solicitarCAE(
             ${optServiceDates}
             <fev1:MonId>${opts.monId ?? "PES"}</fev1:MonId>
             <fev1:MonCotiz>${formatAmount(opts.monCotiz ?? 1)}</fev1:MonCotiz>
+            <fev1:CondicionIVAReceptorId>${condicionIvaReceptorId}</fev1:CondicionIVAReceptorId>
             ${buildTributosBlock(opts.tributos)}
             ${buildIvaBlock(opts.iva)}
             ${optAsoc}

@@ -93,6 +93,30 @@ export const DocTipo = {
 export type DocTipoCode = (typeof DocTipo)[keyof typeof DocTipo];
 
 /**
+ * Condición frente al IVA del receptor — MANDATORY in FECAESolicitar since
+ * AFIP Resolución General 5616 (request rejected with observación 10246 if
+ * absent). Codes from AFIP's `FEParamGetCondicionIvaReceptor` catalog. For
+ * a Factura C (monotributista emisor) to a walk-in buyer use
+ * `CONSUMIDOR_FINAL` (5) with `DocTipo.CONSUMIDOR_FINAL` + `DocNro 0`.
+ */
+export const CondicionIvaReceptor = {
+  RESPONSABLE_INSCRIPTO: 1,
+  SUJETO_EXENTO: 4,
+  CONSUMIDOR_FINAL: 5,
+  RESPONSABLE_MONOTRIBUTO: 6,
+  SUJETO_NO_CATEGORIZADO: 7,
+  PROVEEDOR_DEL_EXTERIOR: 8,
+  CLIENTE_DEL_EXTERIOR: 9,
+  IVA_LIBERADO_LEY_19640: 10,
+  MONOTRIBUTISTA_SOCIAL: 13,
+  IVA_NO_ALCANZADO: 15,
+  MONOTRIBUTO_TRABAJADOR_INDEPENDIENTE_PROMOVIDO: 16,
+} as const;
+
+export type CondicionIvaReceptorCode =
+  (typeof CondicionIvaReceptor)[keyof typeof CondicionIvaReceptor];
+
+/**
  * Concepto del comprobante. Determines whether the `FchServDesde`,
  * `FchServHasta`, and `FchVtoPago` fields are required:
  *
