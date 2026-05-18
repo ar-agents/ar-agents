@@ -9,6 +9,7 @@
 import type {
   AlicuotaIvaCode,
   CbteTipoCode,
+  CondicionIvaReceptorCode,
   ConceptoCode,
   DocTipoCode,
   MonedaCode,
@@ -102,6 +103,15 @@ export interface SolicitarCaeInput {
   docTipo: DocTipoCode;
   /** Document number for the receiver. Pass `0` for `CONSUMIDOR_FINAL`. */
   docNro: string | number;
+  /**
+   * Condición frente al IVA del receptor (AFIP `CondicionIVAReceptorId`).
+   * MANDATORY since AFIP RG 5616 — omitting it is rejected with observación
+   * 10246. See the `CondicionIvaReceptor` catalog. When omitted the request
+   * builder derives a safe default (DocTipo CONSUMIDOR_FINAL → 5; otherwise
+   * Responsable Inscripto = 1) so existing callers keep working; pass it
+   * explicitly for any other receiver condition.
+   */
+  condicionIvaReceptorId?: CondicionIvaReceptorCode;
   /**
    * Comprobante number range. For single-comprobante calls (the norm),
    * `cbteDesde === cbteHasta`. Get the next number from
