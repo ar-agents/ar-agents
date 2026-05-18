@@ -221,8 +221,217 @@
       }
     ]
   },
+  "exportBundle": {
+    "description": "The real regulator artifact: Vultur /api/society/[slug]/export bundle. Per-society NON-contiguous slice (RFC-006 §4.2 recordsOnly); timestamp column is `createdAt` and the canonical hash material's `ts` := new Date(createdAt).toISOString(). Attestation nested under `.attestation` (RFC-006 §7/§8). A conformant verifier MUST: Ed25519-verify the attestation against its embedded SPKI publicKey; bind attestation↔bundle (chain.societyEventCount === auditEvents.length, society slug/cuit match); recordsOnly-verify every auditEvents row with the createdAt→ts mapping.",
+    "bundle": {
+      "exportedAt": "2026-05-17T10:05:00.000Z",
+      "society": {
+        "denominacion": "DEMO SOCIEDAD IA S.A.",
+        "slug": "demo-sa",
+        "tipo": "SA",
+        "status": "ACTIVE",
+        "cuit": "30715000017",
+        "objeto": "Desarrollo de software",
+        "plan": "pro",
+        "createdAt": "2026-05-01T00:00:00.000Z"
+      },
+      "movements": [],
+      "invoices": [
+        {
+          "cae": "75123456789012",
+          "tipo": "C",
+          "total": 15000
+        }
+      ],
+      "auditEvents": [
+        {
+          "seq": 2,
+          "prevHash": "f42abddc54f1e1714920dd47b15a7bb2ea483af4db4f7b86bc74e68b254d7790",
+          "hash": "4dae2ce71002069b2c12a087c6d3f29b2f2c69badb73077baffefb90a538ec69",
+          "societyId": "soc_demo01",
+          "actor": "mercadopago",
+          "action": "mercadopago.preapproval.create",
+          "meta": {
+            "amount": 15000,
+            "currency": "ARS"
+          },
+          "createdAt": "2026-05-17T10:00:01.000Z"
+        },
+        {
+          "seq": 3,
+          "prevHash": "4dae2ce71002069b2c12a087c6d3f29b2f2c69badb73077baffefb90a538ec69",
+          "hash": "db585d990d40017dabf39fc2ce31632e6bb2838af731d2daaeba911461dd1322",
+          "societyId": "soc_demo01",
+          "actor": "afip",
+          "action": "afip.factura.emitir",
+          "meta": {
+            "cae": "75123456789012",
+            "tipo": "C"
+          },
+          "createdAt": "2026-05-17T10:00:02.000Z"
+        },
+        {
+          "seq": 5,
+          "prevHash": "42956c1f672a70b5743f39fcf80439ac3ed48c672d4239b0257a74503f7b48f0",
+          "hash": "11aeb212ad550b81ce2a7972d9ee75c97dc767233634fefc57461d81680fc556",
+          "societyId": "soc_demo01",
+          "actor": "afip",
+          "action": "afip.factura.emitir",
+          "meta": {
+            "cae": "75123456789099",
+            "tipo": "C"
+          },
+          "createdAt": "2026-05-17T10:00:04.000Z"
+        }
+      ],
+      "ledgerVerification": {
+        "valid": true,
+        "count": 3
+      },
+      "attestation": {
+        "body": {
+          "kind": "vultur.compliance.attestation",
+          "version": 1,
+          "issuedAt": "2026-05-17T10:05:00.000Z",
+          "society": {
+            "id": "cmsoc_demo",
+            "slug": "demo-sa",
+            "denominacion": "DEMO SOCIEDAD IA S.A.",
+            "cuit": "30715000017"
+          },
+          "chain": {
+            "globalHeadSeq": 5,
+            "globalHeadHash": "11aeb212ad550b81ce2a7972d9ee75c97dc767233634fefc57461d81680fc556",
+            "societyEventCount": 3,
+            "verification": {
+              "valid": true,
+              "count": 3
+            }
+          },
+          "mode": "production"
+        },
+        "signature": "sha256:61164118f9e30c77afd3f282dcdf3f289b9408f645062dee0952baf171577a46",
+        "sig": "y+AW4Qapn8Fh2iJZ+EvlippaX/1x93wkEN4OCTfUMpSCDo/wUvvSt0rwc/H2u/mSMNmCfDwAs5NkwkCQPzvcDQ==",
+        "publicKey": "MCowBQYDK2VwAyEABXLzwau38jFXlRf48x+DcJpj6Ezj1kjO+5qJn6V+t84=",
+        "alg": "Ed25519"
+      },
+      "notice": "Secrets (payment tokens, encrypted AFIP credentials) are excluded by design."
+    },
+    "expect": {
+      "attestationValid": true,
+      "societyEventCount": 3,
+      "recordsOnly": {
+        "valid": true,
+        "count": 3
+      }
+    }
+  },
+  "exportBundleTampered": {
+    "description": "auditEvents[1].meta.cae mutated, hash left intact. recordsOnly MUST flag the mutated record; the attestation Ed25519 still verifies (it signs only the head summary) — which is exactly why attestation↔bundle binding is normative.",
+    "bundle": {
+      "exportedAt": "2026-05-17T10:05:00.000Z",
+      "society": {
+        "denominacion": "DEMO SOCIEDAD IA S.A.",
+        "slug": "demo-sa",
+        "tipo": "SA",
+        "status": "ACTIVE",
+        "cuit": "30715000017",
+        "objeto": "Desarrollo de software",
+        "plan": "pro",
+        "createdAt": "2026-05-01T00:00:00.000Z"
+      },
+      "movements": [],
+      "invoices": [
+        {
+          "cae": "75123456789012",
+          "tipo": "C",
+          "total": 15000
+        }
+      ],
+      "auditEvents": [
+        {
+          "seq": 2,
+          "prevHash": "f42abddc54f1e1714920dd47b15a7bb2ea483af4db4f7b86bc74e68b254d7790",
+          "hash": "4dae2ce71002069b2c12a087c6d3f29b2f2c69badb73077baffefb90a538ec69",
+          "societyId": "soc_demo01",
+          "actor": "mercadopago",
+          "action": "mercadopago.preapproval.create",
+          "meta": {
+            "amount": 15000,
+            "currency": "ARS"
+          },
+          "createdAt": "2026-05-17T10:00:01.000Z"
+        },
+        {
+          "seq": 3,
+          "prevHash": "4dae2ce71002069b2c12a087c6d3f29b2f2c69badb73077baffefb90a538ec69",
+          "hash": "db585d990d40017dabf39fc2ce31632e6bb2838af731d2daaeba911461dd1322",
+          "societyId": "soc_demo01",
+          "actor": "afip",
+          "action": "afip.factura.emitir",
+          "meta": {
+            "cae": "00000000000000",
+            "tipo": "C"
+          },
+          "createdAt": "2026-05-17T10:00:02.000Z"
+        },
+        {
+          "seq": 5,
+          "prevHash": "42956c1f672a70b5743f39fcf80439ac3ed48c672d4239b0257a74503f7b48f0",
+          "hash": "11aeb212ad550b81ce2a7972d9ee75c97dc767233634fefc57461d81680fc556",
+          "societyId": "soc_demo01",
+          "actor": "afip",
+          "action": "afip.factura.emitir",
+          "meta": {
+            "cae": "75123456789099",
+            "tipo": "C"
+          },
+          "createdAt": "2026-05-17T10:00:04.000Z"
+        }
+      ],
+      "ledgerVerification": {
+        "valid": true,
+        "count": 3
+      },
+      "attestation": {
+        "body": {
+          "kind": "vultur.compliance.attestation",
+          "version": 1,
+          "issuedAt": "2026-05-17T10:05:00.000Z",
+          "society": {
+            "id": "cmsoc_demo",
+            "slug": "demo-sa",
+            "denominacion": "DEMO SOCIEDAD IA S.A.",
+            "cuit": "30715000017"
+          },
+          "chain": {
+            "globalHeadSeq": 5,
+            "globalHeadHash": "11aeb212ad550b81ce2a7972d9ee75c97dc767233634fefc57461d81680fc556",
+            "societyEventCount": 3,
+            "verification": {
+              "valid": true,
+              "count": 3
+            }
+          },
+          "mode": "production"
+        },
+        "signature": "sha256:61164118f9e30c77afd3f282dcdf3f289b9408f645062dee0952baf171577a46",
+        "sig": "y+AW4Qapn8Fh2iJZ+EvlippaX/1x93wkEN4OCTfUMpSCDo/wUvvSt0rwc/H2u/mSMNmCfDwAs5NkwkCQPzvcDQ==",
+        "publicKey": "MCowBQYDK2VwAyEABXLzwau38jFXlRf48x+DcJpj6Ezj1kjO+5qJn6V+t84=",
+        "alg": "Ed25519"
+      },
+      "notice": "Secrets (payment tokens, encrypted AFIP credentials) are excluded by design."
+    },
+    "expect": {
+      "attestationValid": true,
+      "recordsOnly": {
+        "valid": false,
+        "brokenAtSeq": 3
+      }
+    }
+  },
   "conformance": {
-    "vectorsCount": 10,
+    "vectorsCount": 17,
     "referenceGenerator": "tools/arg-verify/_gen-rfc006-vectors.mjs",
     "independentVerifier": "tools/arg-verify/arg-verify.mjs (vectors)",
     "repo": "https://github.com/ar-agents/ar-agents",

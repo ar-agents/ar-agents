@@ -50,9 +50,41 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // This is a clean-room reimplementation written from the RFC text, NOT a
 // copy of apps/landing/src/lib/audit.ts — that is the point of an
 // independent verifier.
+// RFC-006 §2 domain (normative): JSON data model ONLY. Out-of-domain input
+// (undefined / function / symbol / BigInt / non-finite number / array hole)
+// is REJECTED, not silently serialized — because the canonical string is the
+// signed material, so any value two conformant implementations could
+// serialize differently is a cross-implementation signature-forgery hole
+// (e.g. JSON.stringify drops an `undefined` member; a naïve serializer emits
+// literal `undefined`). Byte-identical to the prior implementation on every
+// valid JSON value (all 31 vectors unaffected); it only ever throws on input
+// the spec now forbids.
 function canonical(value) {
-  if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (value === null) return "null";
+  const t = typeof value;
+  if (t === "number") {
+    if (!Number.isFinite(value))
+      throw new TypeError(
+        `canonical: non-finite number out of domain (RFC-006 §2): ${value}`,
+      );
+    return JSON.stringify(value);
+  }
+  if (t === "string" || t === "boolean") return JSON.stringify(value);
+  if (t === "bigint" || t === "function" || t === "symbol" || t === "undefined")
+    throw new TypeError(
+      `canonical: ${t} is out of domain (RFC-006 §2): not a JSON value`,
+    );
+  if (Array.isArray(value)) {
+    let out = "[";
+    for (let i = 0; i < value.length; i++) {
+      if (!(i in value))
+        throw new TypeError(
+          `canonical: array hole at index ${i} out of domain (RFC-006 §2)`,
+        );
+      out += (i ? "," : "") + canonical(value[i]);
+    }
+    return out + "]";
+  }
   const keys = Object.keys(value).sort();
   return `{${keys
     .map((k) => `${JSON.stringify(k)}:${canonical(value[k])}`)
@@ -183,6 +215,17 @@ const RFC004_GOV = new Set([
   "requires-confirmation",
 ]);
 
+// RFC-006 §8 export mapping (normative): an export record's timestamp column
+// is `createdAt`; the canonical hash material's `ts` is `createdAt` rendered
+// as ISO-8601 UTC. Native links already carry `ts`; `ts ?? createdAt→ISO`
+// makes the verifier accept BOTH the native shape and the real producer
+// export shape with one code path (non-breaking — `ts` wins when present).
+function linkTs(L) {
+  if (L.ts != null) return L.ts;
+  if (L.createdAt != null) return new Date(L.createdAt).toISOString();
+  return undefined;
+}
+
 function chainLinkHash(secret, L) {
   return hmacSha256Hex(
     canonical({
@@ -192,10 +235,29 @@ function chainLinkHash(secret, L) {
       actor: L.actor,
       action: L.action,
       meta: L.meta ?? null,
-      ts: L.ts,
+      ts: linkTs(L),
     }),
     secret,
   );
+}
+
+// RFC-006 §4.2 — per-record (recordsOnly) verification. For a filtered,
+// NON-contiguous slice (e.g. one society's events pulled out of the global
+// chain, as the Ley-25.326 export emits) contiguity/linkage cannot hold;
+// assert only that each stored hash recomputes. Proves each record is
+// unmutated, NOT set-completeness — callers MUST label results recordsOnly.
+function verifyRecordsOnly(events, secret) {
+  for (const e of events) {
+    if (!eqConstTime(chainLinkHash(secret, e), e.hash))
+      return {
+        valid: false,
+        count: events.length,
+        brokenAtSeq: e.seq,
+        reason: "hash mismatch (record tampered)",
+        recordsOnly: true,
+      };
+  }
+  return { valid: true, count: events.length, recordsOnly: true };
 }
 
 function verifyChain(links, secret) {
@@ -331,6 +393,140 @@ function runRfc006(dir) {
           `canonEq=${canonEq} hmacEq=${hmacEq} rfc004verify=${rfc004ok}`,
         );
   }
+
+  // §8 export bundle (the real regulator artifact).
+  if (doc.exportBundle) {
+    const eb = doc.exportBundle.bundle;
+    const att = eb.attestation;
+    const pub = createPublicKey({
+      key: Buffer.from(att.publicKey, "base64"),
+      format: "der",
+      type: "spki",
+    });
+    const attOk = edVerify(
+      null,
+      Buffer.from(canonical(att.body), "utf8"),
+      pub,
+      Buffer.from(att.sig, "base64"),
+    );
+    attOk
+      ? pass("export·attestation", "Ed25519 valid over canonical(body)")
+      : fail("export·attestation", "attestation signature did not verify");
+    const bindOk =
+      att.body.chain.societyEventCount === eb.auditEvents.length &&
+      att.body.society.slug === eb.society.slug &&
+      canonical(att.body.chain.verification) ===
+        canonical(eb.ledgerVerification);
+    bindOk
+      ? pass("export·binding", "attestation ↔ bundle bound (count/identity/verification)")
+      : fail("export·binding", "attestation does not bind to the surrounding bundle");
+    const ro = verifyRecordsOnly(eb.auditEvents, doc.secrets.audit);
+    ro.valid && ro.count === doc.exportBundle.expect.recordsOnly.count
+      ? pass("export·recordsOnly", `${ro.count} record(s) authentic (§4.2 non-contiguous slice)`)
+      : fail("export·recordsOnly", JSON.stringify(ro));
+
+    const tb = doc.exportBundleTampered.bundle;
+    const tAttOk = edVerify(
+      null,
+      Buffer.from(canonical(tb.attestation.body), "utf8"),
+      createPublicKey({
+        key: Buffer.from(tb.attestation.publicKey, "base64"),
+        format: "der",
+        type: "spki",
+      }),
+      Buffer.from(tb.attestation.sig, "base64"),
+    );
+    const tRo = verifyRecordsOnly(tb.auditEvents, doc.secrets.audit);
+    tAttOk && !tRo.valid &&
+    tRo.brokenAtSeq === doc.exportBundleTampered.expect.recordsOnly.brokenAtSeq
+      ? pass(
+          "exportTampered·detected",
+          `attestation still valid but recordsOnly flags seq ${tRo.brokenAtSeq} — proves why §8 binding is normative`,
+        )
+      : fail("exportTampered·detected", JSON.stringify({ tAttOk, tRo }));
+  }
+}
+
+// RFC-006 §2 canonical-JSON self-check. Asserts (a) `canonical()` reproduces
+// the SPEC-correct lexicographic form on pinned vectors — including the
+// integer-like-key case where the producer model `JSON.stringify(sort(v))`
+// is NON-conformant (ECMAScript reorders array-index keys numeric-first; the
+// spec mandates lexicographic). `canonical()` is the conformant reference;
+// the producer divergence is documented in CONFORMANCE.md. And (b) it
+// REJECTS every out-of-domain value rather than emit a forgeable string.
+// CI-enforced via the self-defending `arg-verify` workflow.
+function runDomain() {
+  console.log(`\nRFC-006 §2 (canonical-JSON) — ${DIM}clean-room self-check${RST}`);
+  // [value, expected canonical] — pinned to the normative lexicographic form,
+  // independent of any runtime's object-key enumeration.
+  const pinned = [
+    [{ z: 1, a: 2, m: { y: [3, 2, 1], x: "ü" } }, '{"a":2,"m":{"x":"ü","y":[3,2,1]},"z":1}'],
+    [[null, false, 0, -1, "", "→"], '[null,false,0,-1,"","→"]'],
+    // The integer-like-key case: lexicographic "10" < "2" < "9" < "note".
+    // Producer JSON.stringify(sort(v)) would WRONGLY emit 2,9,10,note.
+    [{ "10": "j", "2": "b", "9": "i", note: "n" }, '{"10":"j","2":"b","9":"i","note":"n"}'],
+    [{ "": "e", "0": "z", a: [{ c: null, b: true }] }, '{"":"e","0":"z","a":[{"b":true,"c":null}]}'],
+    ["plain", '"plain"'],
+    [42, "42"],
+    [-7.5, "-7.5"],
+    [true, "true"],
+    [null, "null"],
+    [[], "[]"],
+    [{}, "{}"],
+    // Numbers: ECMAScript Number→String (shortest round-trip).
+    [1e21, "1e+21"],
+    [-0, "0"],
+    [1.0, "1"],
+  ];
+  let ok = true;
+  for (const [v, expected] of pinned) {
+    const got = canonical(v);
+    if (got !== expected) {
+      ok = false;
+      fail("domain·lexicographic", `want ${expected}\n        got  ${got}`);
+    }
+  }
+  if (ok)
+    pass(
+      "domain·lexicographic",
+      `${pinned.length} pinned vectors match the normative form (incl. integer-like keys where the producer model is non-conformant)`,
+    );
+
+  // Strings as-is, NO Unicode normalization (RFC-006 §2): NFC e-acute
+  // (U+00E9) vs NFD (e + U+0301) MUST canonicalize to their own distinct
+  // bytes — verbatim JSON.stringify, no normalization applied.
+  const nfc = String.fromCodePoint(0xe9);
+  const nfd = "e" + String.fromCodePoint(0x301);
+  canonical(nfc) === JSON.stringify(nfc) &&
+  canonical(nfd) === JSON.stringify(nfd) &&
+  canonical(nfc) !== canonical(nfd)
+    ? pass("domain\u00b7unicode-as-is", "NFC/NFD serialized verbatim, distinct (no normalization)")
+    : fail("domain\u00b7unicode-as-is", "Unicode normalization or escaping divergence");
+
+  const sym = Symbol("s");
+  const outOfDomain = [
+    ["undefined", undefined],
+    ["function", () => 1],
+    ["symbol", sym],
+    ["bigint", 10n],
+    ["NaN", NaN],
+    ["Infinity", Infinity],
+    ["-Infinity", -Infinity],
+    ["array-hole", [1, , 3]],
+    ["object-undefined-member", { a: 1, b: undefined }],
+    ["array-undefined-element", [1, undefined, 3]],
+  ];
+  for (const [name, v] of outOfDomain) {
+    let threw = false;
+    try {
+      canonical(v);
+    } catch {
+      threw = true;
+    }
+    threw
+      ? pass(`domain·reject(${name})`, "rejected (no ambiguous/forgeable output)")
+      : fail(`domain·reject(${name})`, "out-of-domain value was NOT rejected");
+  }
 }
 
 function cmdVectors(args) {
@@ -338,6 +534,7 @@ function cmdVectors(args) {
   const dir = i >= 0 ? resolve(args[i + 1]) : defaultVectorsDir();
   console.log(`arg-verify · conformance vectors\nvectors dir: ${dir}`);
   try {
+    runDomain();
     runRfc004(dir);
     runRfc005(dir);
     runRfc006(dir);
@@ -466,6 +663,109 @@ function cmdAttestation(args) {
   process.exit(0);
 }
 
+// ── `bundle` (verify a real Vultur Ley-25.326 export end-to-end) ────────
+// The artifact a regulator actually downloads:
+//   { exportedAt, society, movements, invoices, auditEvents,
+//     ledgerVerification, attestation:{body,sig,publicKey,...}, notice }
+// `arg-verify attestation` fails on it (attestation is nested, not
+// top-level); `arg-verify chain` fails on it (auditEvents is a
+// NON-contiguous per-society slice keyed by `createdAt`, not `ts`).
+// This command verifies the whole bundle the way RFC-006 §8 specifies:
+//   1. Ed25519-verify the embedded attestation (trust-free, no secret).
+//   2. Bind attestation ↔ surrounding bundle (a valid attestation around
+//      a swapped bundle MUST NOT pass).
+//   3. recordsOnly-verify the auditEvents slice (§4.2) with the
+//      createdAt→ts mapping — needs --secret (HMAC is operator-keyed;
+//      honest skip + clear notice when absent).
+function cmdBundle(args) {
+  const file = args[0];
+  if (!file) {
+    console.error(
+      "usage: arg-verify bundle <vultur-export-SLUG.json> [--secret S] [expectedPubKeyB64]",
+    );
+    process.exit(2);
+  }
+  const si = args.indexOf("--secret");
+  const secret = si >= 0 ? args[si + 1] : process.env.AUDIT_SECRET;
+  const expected = args
+    .slice(1)
+    .find((a, idx) => a !== "--secret" && args[idx] !== "--secret" && !a.startsWith("--"));
+  const b = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const att = b.attestation;
+  if (!att || !att.body || !att.sig || !att.publicKey) {
+    console.error(
+      `${RED}✗${RST} not a Vultur export bundle (missing .attestation{body,sig,publicKey})`,
+    );
+    process.exit(1);
+  }
+
+  // 1 · Ed25519 attestation (trust-free).
+  if (expected && att.publicKey !== expected) {
+    fail("attestation·pubkey", "embedded public key != expected pinned key");
+  } else if (expected) {
+    pass("attestation·pubkey", "matches pinned key");
+  }
+  const pub = createPublicKey({
+    key: Buffer.from(att.publicKey, "base64"),
+    format: "der",
+    type: "spki",
+  });
+  const attOk = edVerify(
+    null,
+    Buffer.from(canonical(att.body), "utf8"),
+    pub,
+    Buffer.from(att.sig, "base64"),
+  );
+  attOk
+    ? pass("attestation·ed25519", "signature valid over canonical(body)")
+    : fail("attestation·ed25519", "signature did NOT verify — altered or forged");
+
+  // 2 · Bind attestation ↔ bundle (defeats valid-attestation-around-swapped-bundle).
+  const c = att.body.chain ?? {};
+  const events = Array.isArray(b.auditEvents) ? b.auditEvents : null;
+  if (!events) fail("bundle·shape", "no auditEvents array");
+  else {
+    c.societyEventCount === events.length
+      ? pass("bundle·bind·count", `societyEventCount=${events.length}`)
+      : fail(
+          "bundle·bind·count",
+          `attestation says ${c.societyEventCount}, bundle has ${events.length}`,
+        );
+  }
+  const aS = att.body.society ?? {};
+  const bS = b.society ?? {};
+  aS.slug === bS.slug && (aS.cuit == null || aS.cuit === bS.cuit)
+    ? pass("bundle·bind·identity", `${aS.slug} / ${aS.cuit ?? "—"}`)
+    : fail("bundle·bind·identity", "attestation society != bundle society");
+  canonical(c.verification ?? null) === canonical(b.ledgerVerification ?? null)
+    ? pass("bundle·bind·verification", "attestation echoes bundle ledgerVerification")
+    : fail("bundle·bind·verification", "attestation.verification != bundle.ledgerVerification");
+
+  // 3 · recordsOnly slice (§4.2) — needs the operator HMAC secret.
+  if (events && secret) {
+    const r = verifyRecordsOnly(events, secret);
+    r.valid
+      ? pass("bundle·recordsOnly", `${r.count} record(s) authentic (non-contiguous slice)`)
+      : fail(
+          "bundle·recordsOnly",
+          `record tampered @seq ${r.brokenAtSeq} (${r.reason})`,
+        );
+  } else if (events) {
+    console.log(
+      `  ${DIM}skip  recordsOnly (no --secret/AUDIT_SECRET; HMAC is operator-keyed. The Ed25519 attestation above is the trust-free guarantee per RFC-006 §7)${RST}`,
+    );
+  }
+
+  if (failures === 0) {
+    console.log(
+      `\n${GREEN}✓ BUNDLE VERIFIED${RST} — ${aS.denominacion ?? "—"} (${aS.slug ?? "—"}) · head seq ${c.globalHeadSeq ?? "?"}`,
+    );
+    process.exit(0);
+  }
+  console.log(`\n${RED}✗ BUNDLE FAILED${RST} — ${failures} check(s) failed`);
+  process.exit(1);
+}
+
 // ── `chain` (verify an RFC-006 ledger) ──────────────────────────────────
 function cmdChain(args) {
   const file = args[0];
@@ -554,6 +854,9 @@ switch (cmd) {
   case "chain":
     cmdChain(rest);
     break;
+  case "bundle":
+    cmdBundle(rest);
+    break;
   case "project":
     cmdProject(rest);
     break;
@@ -566,6 +869,7 @@ switch (cmd) {
         "  node arg-verify.mjs entry <entry.json> [--secret S] [--keys keys.json]",
         "  node arg-verify.mjs attestation <attestation.json> [expectedPubKeyB64]",
         "  node arg-verify.mjs chain <chain.json> --secret S    RFC-006 ledger",
+        "  node arg-verify.mjs bundle <vultur-export-SLUG.json> [--secret S] [pubkeyB64]",
         "  node arg-verify.mjs project <chain.json> --proj-secret P [--secret S --verify]",
         "",
         "Zero dependencies. Offline. RFC-004 (HMAC) · RFC-005 (Ed25519) ·",
