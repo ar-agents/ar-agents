@@ -1,0 +1,35 @@
+# Self-defending standard: every push must independently reproduce the
+# published /arg conformance vectors (RFC-004 HMAC, RFC-005 Ed25519,
+# RFC-006 chain/anchor/projection + §8.1 export bundle). A cited standard
+# is only defensible if its conformance is machine-enforced, not asserted.
+# Zero-dependency on purpose — no pnpm install — so it cannot rot or be
+# weakened by the dependency graph.
+name: arg-verify
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  vectors:
+    runs-on: ubuntu-latest
+    steps:
+      # SHA-pinned to match the repo's supply-chain convention (see ci.yml).
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020 # v4
+        with:
+          node-version: "20"
+
+      - name: Reproduce published conformance vectors (clean-room, offline)
+        run: node tools/arg-verify/arg-verify.mjs vectors
+
+      # The published vectors MUST be exactly what the deterministic
+      # generator emits — guards against a hand-edited vector file that
+      # passes the verifier but no longer matches the reference generator.
+      - name: Published vectors match the deterministic generator
+        run: |
+          node tools/arg-verify/_gen-rfc006-vectors.mjs > /tmp/rfc-006-v1.json
+          diff -u apps/landing/public/test-vectors/rfc-006-v1.json /tmp/rfc-006-v1.json \
+            || { echo "::error::rfc-006-v1.json is out of sync with _gen-rfc006-vectors.mjs (re-run the generator)"; exit 1; }

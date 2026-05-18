@@ -9,7 +9,12 @@
  *   node tools/arg-verify/_gen-rfc006-vectors.mjs > \
  *     apps/landing/public/test-vectors/rfc-006-v1.json
  */
-import { createHmac, createHash } from "node:crypto";
+import {
+  createHmac,
+  createHash,
+  createPrivateKey,
+  sign as edSign,
+} from "node:crypto";
 
 // RFC-004 §3 canonical-JSON (normative).
 function canonical(v) {
@@ -141,6 +146,91 @@ chainMutated[1] = {
 };
 const chainDeleted = [links[0], links[2]].map((l) => ({ ...l })); // seq 1,3
 
+// ── §8 export bundle (the real regulator artifact) ──────────────────────
+// What Vultur's /api/society/[slug]/export actually emits: a per-society
+// NON-contiguous slice (recordsOnly, §4.2) whose timestamp column is
+// `createdAt` (the canonical hash material's `ts` := createdAt as ISO-8601
+// UTC), wrapped with a §7 attestation under `.attestation`. Fixed Ed25519
+// keypair so this vector is byte-reproducible.
+const EXPORT_ED25519 = {
+  privateKey:
+    "MC4CAQAwBQYDK2VwBCIEIFpQhlY4dAnHvp0zbXruA/nsu5ZlxXhnReya+41U+5us",
+  publicKey: "MCowBQYDK2VwAyEABXLzwau38jFXlRf48x+DcJpj6Ezj1kjO+5qJn6V+t84=",
+};
+const SOC = "soc_demo01";
+const ET = (s) => `2026-05-17T10:00:0${s}.000Z`;
+const exportGlobalRaw = [
+  { societyId: null, actor: "system", action: "ledger.genesis", meta: null, ts: ET(0) },
+  { societyId: SOC, actor: "mercadopago", action: "mercadopago.preapproval.create", meta: { amount: 15000, currency: "ARS" }, ts: ET(1) },
+  { societyId: SOC, actor: "afip", action: "afip.factura.emitir", meta: { cae: "75123456789012", tipo: "C" }, ts: ET(2) },
+  { societyId: "soc_other9", actor: "system", action: "org.member.invited", meta: { role: "AUDITOR" }, ts: ET(3) },
+  { societyId: SOC, actor: "afip", action: "afip.factura.emitir", meta: { cae: "75123456789099", tipo: "C" }, ts: ET(4) },
+];
+let exPrev = GENESIS;
+const exportGlobal = exportGlobalRaw.map((r, i) => {
+  const seq = i + 1;
+  const hash = linkHash({ ...r, seq, prevHash: exPrev });
+  const row = { seq, prevHash: exPrev, hash, ...r };
+  exPrev = hash;
+  return row;
+});
+const exportHead = exportGlobal[exportGlobal.length - 1];
+// Society slice with the real export field set (timestamp column = createdAt).
+const exportEvents = exportGlobal
+  .filter((e) => e.societyId === SOC)
+  .map((e) => ({
+    seq: e.seq,
+    prevHash: e.prevHash,
+    hash: e.hash,
+    societyId: e.societyId,
+    actor: e.actor,
+    action: e.action,
+    meta: e.meta,
+    createdAt: e.ts,
+  }));
+const exportLedgerVerification = { valid: true, count: exportEvents.length };
+const exportBody = {
+  kind: "vultur.compliance.attestation",
+  version: 1,
+  issuedAt: "2026-05-17T10:05:00.000Z",
+  society: { id: "cmsoc_demo", slug: "demo-sa", denominacion: "DEMO SOCIEDAD IA S.A.", cuit: "30715000017" },
+  chain: {
+    globalHeadSeq: exportHead.seq,
+    globalHeadHash: exportHead.hash,
+    societyEventCount: exportEvents.length,
+    verification: exportLedgerVerification,
+  },
+  mode: "production",
+};
+const exportMaterial = canonical(exportBody);
+const exportPriv = createPrivateKey({
+  key: Buffer.from(EXPORT_ED25519.privateKey, "base64"),
+  format: "der",
+  type: "pkcs8",
+});
+const exportAttestation = {
+  body: exportBody,
+  signature: `sha256:${hmacHex(AUDIT_SECRET, exportMaterial)}`,
+  sig: edSign(null, Buffer.from(exportMaterial, "utf8"), exportPriv).toString("base64"),
+  publicKey: EXPORT_ED25519.publicKey,
+  alg: "Ed25519",
+};
+const exportBundle = {
+  exportedAt: "2026-05-17T10:05:00.000Z",
+  society: { denominacion: exportBody.society.denominacion, slug: "demo-sa", tipo: "SA", status: "ACTIVE", cuit: exportBody.society.cuit, objeto: "Desarrollo de software", plan: "pro", createdAt: "2026-05-01T00:00:00.000Z" },
+  movements: [],
+  invoices: [{ cae: "75123456789012", tipo: "C", total: 15000 }],
+  auditEvents: exportEvents,
+  ledgerVerification: exportLedgerVerification,
+  attestation: exportAttestation,
+  notice: "Secrets (payment tokens, encrypted AFIP credentials) are excluded by design.",
+};
+// Tampered: a slice record's meta mutated, hash left intact → recordsOnly
+// (§4.2) MUST flag the mutated seq; the attestation Ed25519 still verifies
+// (it signs only the head summary), proving why bundle binding is required.
+const exportBundleTampered = JSON.parse(JSON.stringify(exportBundle));
+exportBundleTampered.auditEvents[1].meta.cae = "00000000000000";
+
 const doc = {
   $schema: "https://ar-agents.ar/test-vectors/rfc-006-v1.schema.json",
   spec: "https://ar-agents.ar/rfcs/006",
@@ -181,9 +271,30 @@ const doc = {
     secret: PROJECTION_SECRET,
     entries: projection,
   },
+  exportBundle: {
+    description:
+      "The real regulator artifact: Vultur /api/society/[slug]/export bundle. Per-society NON-contiguous slice (RFC-006 §4.2 recordsOnly); timestamp column is `createdAt` and the canonical hash material's `ts` := new Date(createdAt).toISOString(). Attestation nested under `.attestation` (RFC-006 §7/§8). A conformant verifier MUST: Ed25519-verify the attestation against its embedded SPKI publicKey; bind attestation↔bundle (chain.societyEventCount === auditEvents.length, society slug/cuit match); recordsOnly-verify every auditEvents row with the createdAt→ts mapping.",
+    bundle: exportBundle,
+    expect: {
+      attestationValid: true,
+      societyEventCount: exportEvents.length,
+      recordsOnly: { valid: true, count: exportEvents.length },
+    },
+  },
+  exportBundleTampered: {
+    description:
+      "auditEvents[1].meta.cae mutated, hash left intact. recordsOnly MUST flag the mutated record; the attestation Ed25519 still verifies (it signs only the head summary) — which is exactly why attestation↔bundle binding is normative.",
+    bundle: exportBundleTampered,
+    expect: { attestationValid: true, recordsOnly: { valid: false, brokenAtSeq: 3 } },
+  },
   conformance: {
     vectorsCount:
-      links.length + anchors.length + projection.length + 2 /* neg */,
+      links.length +
+      anchors.length +
+      projection.length +
+      2 /* neg */ +
+      exportEvents.length +
+      4 /* export: attest + binding + recordsOnly ok + tamper detected */,
     referenceGenerator: "tools/arg-verify/_gen-rfc006-vectors.mjs",
     independentVerifier: "tools/arg-verify/arg-verify.mjs (vectors)",
     repo: "https://github.com/ar-agents/ar-agents",
