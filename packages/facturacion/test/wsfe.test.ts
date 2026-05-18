@@ -6,7 +6,13 @@ import {
   getTiposCbte,
   solicitarCAE,
 } from "../src/wsfe";
-import { CbteTipo, Concepto, DocTipo, AlicuotaIva } from "../src/catalogs";
+import {
+  CbteTipo,
+  Concepto,
+  DocTipo,
+  AlicuotaIva,
+  CondicionIvaReceptor,
+} from "../src/catalogs";
 import {
   FE_DUMMY_OK,
   FE_PARAM_TIPOS_CBTE,
@@ -88,6 +94,47 @@ describe("consultarUltimoAutorizado", () => {
     expect(capturedBody).toContain("<fev1:CbteTipo>6</fev1:CbteTipo>");
     expect(capturedBody).toContain("<fev1:Token>FAKE_TOKEN</fev1:Token>");
     expect(capturedBody).toContain("<fev1:Cuit>20417581015</fev1:Cuit>");
+  });
+});
+
+describe("solicitarCAE — RG 5616 CondicionIVAReceptorId", () => {
+  async function captureBody(extra: Record<string, unknown>) {
+    let body = "";
+    const fetchImpl = vi.fn(async (_u: string, init: RequestInit) => {
+      body = init.body as string;
+      return new Response(FE_SOLICITAR_CAE_APROBADO, { status: 200 });
+    }) as unknown as typeof fetch;
+    await solicitarCAE({
+      ...baseOpts,
+      fetchImpl,
+      ptoVta: 1,
+      cbteTipo: CbteTipo.FACTURA_C,
+      concepto: Concepto.PRODUCTOS,
+      docTipo: DocTipo.CONSUMIDOR_FINAL,
+      docNro: 0,
+      cbteDesde: 1,
+      cbteHasta: 1,
+      cbteFch: "20260518",
+      impTotal: 100,
+      impNeto: 100,
+      impIVA: 0,
+      ...extra,
+    });
+    return body;
+  }
+  it("defaults to Consumidor Final (5) for DocTipo 99 (RG 5616)", async () => {
+    expect(await captureBody({})).toContain(
+      "<fev1:CondicionIVAReceptorId>5</fev1:CondicionIVAReceptorId>",
+    );
+  });
+  it("honours an explicit condicionIvaReceptorId", async () => {
+    expect(
+      await captureBody({
+        condicionIvaReceptorId: CondicionIvaReceptor.RESPONSABLE_INSCRIPTO,
+      }),
+    ).toContain(
+      "<fev1:CondicionIVAReceptorId>1</fev1:CondicionIVAReceptorId>",
+    );
   });
 });
 
