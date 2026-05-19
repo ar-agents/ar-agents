@@ -1,0 +1,12 @@
+{
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/constancia",
+  "version": "0.1.0",
+  "description": "ARCA Constancia de Inscripción — official fiscal document (régimen, monotributo categoría, impuestos, domicilio, actividades) plus the PDF artifact. Browser-backed: drives the public web form (no Clave Fiscal) via the companion afip-constancia skill on browserbase/skills.",
+  "tools": [
+    {
+      "name": "constancia_inscripcion",
+      "description": "CUIT → official ARCA Constancia de Inscripción: parsed fields + the PDF document with its código verificador. Browser-backed (public form, no cert). Use for the PDF artifact or cert-less data; prefer @ar-agents/identity lookup_cuit_afip when a cert is configured and only data is needed."
+    }
+  ]
+}

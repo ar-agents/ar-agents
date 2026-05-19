@@ -75,7 +75,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -195,7 +195,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -510,6 +510,27 @@ importers:
         version: 4.4.3
 
   packages/boletin-oficial:
+    devDependencies:
+      '@types/node':
+        specifier: ^20.19.39
+        version: 20.19.39
+      ai:
+        specifier: ^6.0.175
+        version: 6.0.175(zod@4.4.3)
+      tsup:
+        specifier: ^8.3.5
+        version: 8.5.1(postcss@8.5.14)(tsx@4.21.0)(typescript@5.9.3)
+      typescript:
+        specifier: ^5.9.3
+        version: 5.9.3
+      vitest:
+        specifier: ^2.1.8
+        version: 2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3))(terser@5.47.1)
+      zod:
+        specifier: ^4.4.3
+        version: 4.4.3
+
+  packages/constancia:
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
