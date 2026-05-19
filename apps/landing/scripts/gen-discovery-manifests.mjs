@@ -14,6 +14,7 @@ const MONO_ROOT = resolve(APP_ROOT, "..", "..");                 // ar-agents
 const PKGS_WITH_TOOLS = [
   "identity",
   "identity-attest",
+  "constancia",
   "mi-argentina",
   "firma-digital",
   "gde-tad",
