@@ -70,7 +70,7 @@ When I read the announcement I thought "someone needs to write the
 technical infrastructure connecting that idea to the Argentine state".
 Last Tuesday (May 5) I started building. This is what shipped in a week.
 
-ar-agents/* is 17 npm packages covering 16 of the 17 technical pieces an
+ar-agents/* is 18 npm packages covering 16 of the 17 technical pieces an
 Argentine AI company would need to operate end-to-end:
 
 - Identity (CUIT validation + ARCA padron + Mi Argentina OIDC + RENAPER bypass)
@@ -228,7 +228,7 @@ October).
 
 When the announcement happened I realized this needed technical infra
 that wasn't going to come from the political side. Last Tuesday (May 5)
-I started building it as 17 npm packages under @ar-agents/* covering 16
+I started building it as 18 npm packages under @ar-agents/* covering 16
 of 17 technical pieces an AI corporation would need to operate end-to-end
 in Argentina:
 
@@ -271,7 +271,7 @@ ar-agents: 11 typed Vercel AI SDK 6 toolkits for the Argentine state stack
 **Body**: tech-focused, light on política
 
 ```
-Just shipped this. 17 npm packages turning the entire Argentine state +
+Just shipped this. 18 npm packages turning the entire Argentine state +
 financial stack into typed Vercel AI SDK 6 tools so an LLM agent can
 drive billing/identity/comms/legal flows from prompts.
 
@@ -1070,7 +1070,7 @@ a legal framework for AI agents to incorporate as full corporate entities
 (zero human shareholders/directors/employees). Bill not drafted yet but
 political momentum real.
 
-I shipped the technical implementation in 17 npm packages before the
+I shipped the technical implementation in 18 npm packages before the
 draft hits Congress, plus an RFC with a 3-tier liability framework
 addressing the central legal critique.
 
@@ -1090,7 +1090,7 @@ Open to sharing more if you're curious.
 ```
 Hey Theo — Argentine dev. Built a typed Vercel AI SDK 6 toolkit for the
 entire Argentine state stack (MercadoPago, AFIP electronic invoicing,
-banking, WhatsApp, the official gazette). 17 npm packages, MIT, npm
+banking, WhatsApp, the official gazette). 18 npm packages, MIT, npm
 provenance attestations, Edge Runtime via Web Crypto.
 
 The wrinkle: I positioned it as the reference implementation for a new
@@ -1130,7 +1130,7 @@ Would love your eyes from the agent-ergonomics + AI SDK adoption POV.
 
 ```
 Hi Simon — long-time reader of your blog. Built this and thought it
-might fit your agent-tools beat: 17 npm packages turning the Argentine
+might fit your agent-tools beat: 18 npm packages turning the Argentine
 state + financial stack into typed Vercel AI SDK 6 tools. Each package
 ships AGENTS.md per agents.md convention.
 
@@ -1269,7 +1269,7 @@ gap that's not in your stack is LATAM tax residency, AR-specific banking
 
 Argentina's announcing its own "AI corporation" entity type — separate
 political track, but the broader thesis aligns. I built ar-agents/* —
-17 npm packages covering 16 of 17 technical pieces an Argentine entity
+18 npm packages covering 16 of 17 technical pieces an Argentine entity
 needs to operate end-to-end.
 
 Pitch: ClawBank's @clawbank/banking-mcp + ar-agents/* exposed via
@@ -1294,7 +1294,7 @@ naza@helloastro.co
 ```
 Hi Arjun — congrats on the Agentic LLC launch.
 
-I'm Naza Clemente, building ar-agents — 17 npm packages covering the
+I'm Naza Clemente, building ar-agents — 18 npm packages covering the
 Argentine state and financial stack as typed Vercel AI SDK 6 tools
 (MercadoPago / AFIP electronic invoicing / banking / WhatsApp / gazette
 monitoring).
@@ -1324,7 +1324,7 @@ ar-agents.ar · MIT · github.com/ar-agents/ar-agents
 Hi MIDAO team — saw your /guides/ai-agents and the positioning around
 Marshall Islands DAO LLC for AI entities.
 
-I'm building the AR-jurisdictional equivalent: 17 npm packages covering
+I'm building the AR-jurisdictional equivalent: 18 npm packages covering
 the Argentine state and financial stack, shipped as a reference
 implementation ahead of Argentina's announced corporate-law reform for
 "AI corporations".
@@ -1593,7 +1593,7 @@ peleas tech públicas son malísimas para todos los involucrados.
 **Resumen** (~150 palabras):
 > En abril de 2026 el Ministro Sturzenegger anunció su plan para que Argentina sea la primera jurisdicción con un régimen legal para "sociedades de IA": empresas sin humanos, solo código. La narrativa ya está siendo escrita desde arriba; lo que falta es la capa técnica que hace que esas sociedades — y cualquier developer argentino construyendo agentes — puedan operar contra el Estado.
 >
-> En esta charla muestro `/arg`, una colección de 17 packages npm open-source que cubre AFIP/ARCA, Mercado Pago, WhatsApp, BCRA, Boletín Oficial, IGJ, Firma Digital, Mi Argentina y RENAPER-bypass — todo como tools del Vercel AI SDK 6, todo Edge-Runtime-compatible, todo MIT.
+> En esta charla muestro `/arg`, una colección de 18 packages npm open-source que cubre AFIP/ARCA, Mercado Pago, WhatsApp, BCRA, Boletín Oficial, IGJ, Firma Digital, Mi Argentina y RENAPER-bypass — todo como tools del Vercel AI SDK 6, todo Edge-Runtime-compatible, todo MIT.
 >
 > Vamos a ver el flujo end-to-end: cómo una sociedad-IA ficticia se incorpora, factura, paga monotributo y atiende clientes en menos de 30 segundos de ejecución de agente.
 
@@ -1608,7 +1608,7 @@ peleas tech públicas son malísimas para todos los involucrados.
 **Resumen** (~150 palabras):
 > El Vercel AI SDK 6 te da un slot estándar para tools, pero los detalles fastidiosos de hacer un tool *agent-ergonomic* — idempotencia bajo retries, HITL en operaciones irreversibles, AGENTS.md por package, schemas Zod tipados, manifests machine-readable, Web Crypto en lugar de node:crypto — son todos decisiones de ingeniería que se repiten paquete a paquete.
 >
-> Esta charla disecciona cómo `/arg` resuelve estos patrones en 17 packages npm open-source enfocados en integraciones argentinas. Vamos a ver:
+> Esta charla disecciona cómo `/arg` resuelve estos patrones en 18 packages npm open-source enfocados en integraciones argentinas. Vamos a ver:
 >
 > - Por qué Edge Runtime + Web Crypto = no más bugs de Node-only
 > - Cómo derivar idempotency keys determinísticas para sobrevivir LLM retries
@@ -1628,7 +1628,7 @@ peleas tech públicas son malísimas para todos los involucrados.
 >
 > The political narrative is being built top-down, but the technical substrate that those agent-companies need — Stripe-grade APIs to AFIP, Mercado Pago, WhatsApp, identity providers, the Boletín Oficial — does not exist. There is no "gov.br auth + Pix + Open Finance" equivalent in Argentina.
 >
-> This talk shows `/arg`: a Vercel-native, MIT-licensed npm scope that fills that gap. 17 packages, all built on Vercel AI SDK 6, all Edge-Runtime-compatible, all MCP-native. The talk frames the strategic positioning (open + civilian, distinct from the SIDE/Palantir track) and walks the technical decisions that make Vercel the right platform for this kind of public-sector dev infrastructure.
+> This talk shows `/arg`: a Vercel-native, MIT-licensed npm scope that fills that gap. 18 packages, all built on Vercel AI SDK 6, all Edge-Runtime-compatible, all MCP-native. The talk frames the strategic positioning (open + civilian, distinct from the SIDE/Palantir track) and walks the technical decisions that make Vercel the right platform for this kind of public-sector dev infrastructure.
 
 **Hook line**: "If India has India Stack and Brazil has gov.br, what does Argentina have? Today nothing. Next year, /arg."
 
@@ -1636,7 +1636,7 @@ peleas tech públicas son malísimas para todos los involucrados.
 
 ### Bio reusable
 
-> **Nazareno Clemente** is an Argentine independent developer building the open infrastructure stack for AI agents in Argentina. Author of the `/arg` toolkit (`@ar-agents/*` on npm, 17 packages, MIT). Fiscally registered as monotributista en CABA, currently based in Spain. Previously: built Astro (astro.ar), Publi (publi.ar). X: @nazanazanazanaz. GitHub: @naza00000.
+> **Nazareno Clemente** is an Argentine independent developer building the open infrastructure stack for AI agents in Argentina. Author of the `/arg` toolkit (`@ar-agents/*` on npm, 18 packages, MIT). Fiscally registered as monotributista en CABA, currently based in Spain. Previously: built Astro (astro.ar), Publi (publi.ar). X: @nazanazanazanaz. GitHub: @naza00000.
 
 ### Submission tracking
 
