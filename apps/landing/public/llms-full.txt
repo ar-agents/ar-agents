@@ -1,6 +1,6 @@
 # ar-agents — full reference for LLM crawlers
 
-> Mercado Pago Agent Toolkit for the Vercel AI SDK 6 **plus** open-source infrastructure for Argentine sociedades-IA (AI-only companies, regime announced 28-abr-2026). 5 RFCs (001-005) with frozen test vectors + public certifier + RFC-005 dual-signing live in production. 17 npm packages, 30 cookbook recipes, 107 vitest tests, 5 sociedades on /registro all scoring 100/100 Rating A.
+> Mercado Pago Agent Toolkit for the Vercel AI SDK 6 **plus** open-source infrastructure for Argentine sociedades-IA (AI-only companies, regime announced 28-abr-2026). 5 RFCs (001-005) with frozen test vectors + public certifier + RFC-005 dual-signing live in production. 18 npm packages, 30 cookbook recipes, 107 vitest tests, 5 sociedades on /registro all scoring 100/100 Rating A.
 
 This file is `llms-full.txt`, an extension of [`llms.txt`](/llms.txt) per the [llmstxt.org](https://llmstxt.org) spec. Where `llms.txt` is a short index, `llms-full.txt` carries the deep content an LLM needs to answer questions about the project without re-crawling.
 
