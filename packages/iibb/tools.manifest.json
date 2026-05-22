@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/iibb",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "iibb_calculate_retention",
+      "description": "Pure math: compute IIBB retention amount = base × rate, with optional minimum threshold.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "iibb_calculate_perception",
+      "description": "Pure math: compute IIBB perception amount on a sale.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "iibb_compute_ddjj",
+      "description": "Assemble a monthly DDJJ from income lines + rate-book. Supports LOCAL and CM Article 2 (general).",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "iibb_lookup_padron",
+      "description": "Lookup a CUIT's taxpayer status in a jurisdiction's padrón. Requires an adapter wired for that jurisdiction.",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
+    }
+  ]
+}
