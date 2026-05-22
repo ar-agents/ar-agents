@@ -4,7 +4,7 @@
 
 If you discover a security vulnerability in any `@ar-agents/*` package, please report it privately rather than opening a public GitHub issue.
 
-**Email:** clementenaza@gmail.com
+**Email:** naza@naza.ar
 
 Include in your report:
 - Affected package and version

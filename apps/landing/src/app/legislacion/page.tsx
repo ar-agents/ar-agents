@@ -44,7 +44,7 @@ export default function LegislacionPage() {
           datePublished: "2026-05-11",
           author: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
             email: "naza@naza.ar",
           },
           audience: {
@@ -92,7 +92,7 @@ export default function LegislacionPage() {
           <p style={{ fontSize: 17, lineHeight: 1.55 }}>
             El régimen de sociedades-IA fue anunciado el 28 de abril de
             2026. Esta página resume cinco documentos técnicos
-            (RFC-001 a RFC-005) publicados como infraestructura
+            (RFC-001 a RFC-006) publicados como infraestructura
             open-source que la legislación puede incorporar{" "}
             <em>cite-by-reference</em> (referenciar la norma técnica en
             lugar de transcribirla, como cuando una ley dice
@@ -126,7 +126,7 @@ export default function LegislacionPage() {
             Aviso.
           </strong>{" "}
           Este documento es una propuesta técnica de un desarrollador
-          independiente (Naza,
+          independiente (Nazareno Clemente,
           monotributista). <strong>No constituye opinión jurídica
           profesional</strong> y no reemplaza la revisión por especialistas
           matriculados. La adopción legislativa de cualquier porción de
@@ -173,7 +173,7 @@ export default function LegislacionPage() {
           </p>
           <ul style={{ paddingLeft: 20, margin: 0 }}>
             <li style={{ marginBottom: 6 }}>
-              <strong>Línea 1.</strong> Cinco RFCs publicados, abiertos,
+              <strong>Línea 1.</strong> Seis RFCs publicados, abiertos,
               versionados, con tests automatizados que prueban
               conformidad. Listos para citar.
             </li>
@@ -471,7 +471,7 @@ export default function LegislacionPage() {
         <Section title="9 · Resumen ejecutivo · 3 líneas">
           <ul style={ulStyle}>
             <li style={liStyle}>
-              <strong>Línea 1.</strong> Cuatro RFCs publicados, abiertos,
+              <strong>Línea 1.</strong> Seis RFCs publicados, abiertos,
               versionados, con tests automatizados que prueban
               conformidad. Listos para citar.
             </li>
@@ -491,7 +491,7 @@ export default function LegislacionPage() {
 
         <Section title="10 · Contacto">
           <P>
-            Soy <strong>Naza</strong>, autor de los RFCs y
+            Soy <strong>Nazareno Clemente</strong>, autor de los RFCs y
             mantenedor de la infraestructura. Domicilio en Monte
             Grande, BA. Disponible para reuniones
             técnicas con asesores legislativos, ministerios, o cualquier
@@ -523,6 +523,7 @@ export default function LegislacionPage() {
           <span>ar-agents.ar · MIT + CC-BY-4.0</span>
           <span>
             <Link href="/" style={linkStyle}>/</Link>{" · "}
+            <Link href="/implementacion" style={linkStyle}>/implementacion</Link>{" · "}
             <Link href="/manifiesto" style={linkStyle}>/manifiesto</Link>{" · "}
             <Link href="/sociedades-ia" style={linkStyle}>/sociedades-ia</Link>{" · "}
             <Link href="/auditor" style={linkStyle}>/auditor</Link>{" · "}

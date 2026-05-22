@@ -358,7 +358,7 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>ar-agents / Naza:</strong>{" "}
+                <strong>ar-agents / Nazareno Clemente:</strong>{" "}
                 infraestructura civil-comercial-OSS para que una
                 sociedad-IA argentina opere bajo derecho positivo. 17
                 paquetes npm + 5 RFCs + audit log forense. Sin token. Sin
@@ -367,7 +367,7 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>ar-agents / Naza:</strong>{" "}
+                <strong>ar-agents / Nazareno Clemente:</strong>{" "}
                 civil-commercial-OSS infrastructure for an Argentine
                 AI-corp to operate under positive law. 17 npm packages + 5
                 RFCs + forensic audit log. No token. No yield farming. No

@@ -27,7 +27,7 @@ export default function Rfc004Page() {
       <DocBlock>
         <DocP>
           <strong>Status:</strong> Draft.{" "}
-          <strong>Author:</strong> Naza (
+          <strong>Author:</strong> Nazareno Clemente (
           <a href="mailto:naza@naza.ar" style={{ color: "var(--accent)" }}>
             naza@naza.ar
           </a>

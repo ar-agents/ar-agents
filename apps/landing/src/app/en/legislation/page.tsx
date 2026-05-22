@@ -51,7 +51,7 @@ export default function EnLegislationPage() {
           datePublished: "2026-05-11",
           author: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
             email: "naza@naza.ar",
           },
           audience: {
@@ -267,7 +267,7 @@ export default function EnLegislationPage() {
           <P>
             <strong>Evidentiary clause.</strong> The RFC-004 log is{" "}
             <em>per se</em> admissible evidence in administrative +
-            judicial proceedings per CPCCN Art. 286–287 (electronic
+            judicial proceedings per CPCCN Arts. 286 and 287 (electronic
             signature with key). Cite-by-reference grants probative
             value without regulating cryptography in the statute.
           </P>
@@ -420,7 +420,7 @@ export default function EnLegislationPage() {
 
         <Section title="11 · Contact">
           <P>
-            I am <strong>Naza</strong>, author of the RFCs
+            I am <strong>Nazareno Clemente</strong>, author of the RFCs
             and maintainer of the infrastructure. Available for
             technical meetings with regulators, ministries, comparative-
             law scholars, and any organization considering an AI

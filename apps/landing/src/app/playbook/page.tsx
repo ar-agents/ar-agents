@@ -205,7 +205,7 @@ export default function PlaybookPage() {
         is legally probative.
       </DocP>
       <DocP>
-        Full threat model, 14 explicit threats, 14 explicit mitigations,
+        Full threat model, 18 explicit threats, 18 explicit mitigations,
         what the toolkit covers, what the host is responsible for, what is
         out of scope, at <a href="/security" style={{ color: "var(--accent)" }}>/security</a>.
       </DocP>

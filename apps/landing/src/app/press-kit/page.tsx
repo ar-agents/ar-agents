@@ -13,7 +13,7 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
   { label: "Qué es", value: "Toolkit open-source para construir sociedades-IA argentinas." },
   { label: "Status", value: "17 paquetes en npm, 168 herramientas, MIT, SLSA v1 provenance." },
-  { label: "Autor", value: "Naza, 26 años, monotributista, Buenos Aires." },
+  { label: "Autor", value: "Nazareno Clemente, 26 años, monotributista, Buenos Aires." },
   { label: "Licencia", value: "MIT, copy, fork, comercializar permitido." },
   { label: "Origen", value: "Build privado iniciado nov 2025; npm pública desde may 2026." },
   { label: "Estado régimen", value: "Anuncio Sturzenegger 28-abr-2026; ley estimada H1 2027." },
@@ -26,7 +26,7 @@ const ONE_LINERS_ES = [
   "17 paquetes npm, 168 herramientas, todas auditables. MIT-licensed. Cualquier operador serio puede leer el código línea por línea.",
   "El stack cubre 16 de las 17 piezas operativas que una empresa argentina necesita: identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, AP2, ACP bridge.",
   "RFC-001 es el marco de responsabilidad propuesto: tres capas (operador / proveedor de modelo / autor de librería) que convierten el ataque ¿quién paga si la IA rompe algo? en una conversación contractual concreta.",
-  "El threat model público (14 amenazas explícitas, 14 mitigaciones) está en /security. No esconde nada.",
+  "El threat model público (18 amenazas explícitas, 18 mitigaciones) está en /security. No esconde nada.",
 ];
 
 const CONTACT_BLOCK = [
@@ -34,6 +34,8 @@ const CONTACT_BLOCK = [
   { label: "GitHub", value: "github.com/ar-agents/ar-agents" },
   { label: "npm scope", value: "@ar-agents/* (17 paquetes públicos)" },
   { label: "Sitio", value: "ar-agents.ar" },
+  { label: "Implementación de referencia (PDF firmado Ed25519)", value: "ar-agents.ar/implementacion" },
+  { label: "Reference implementation (Ed25519-signed PDF, EN)", value: "ar-agents.ar/en/implementation" },
   { label: "Carta abierta al Ministro", value: "ar-agents.ar/al-ministro" },
   { label: "RFC-001", value: "ar-agents.ar/rfcs/001" },
   { label: "Threat model", value: "ar-agents.ar/security" },
@@ -286,7 +288,7 @@ export default function PressKitPage() {
         </li>
         <li>
           <a href="/security" style={{ color: "var(--accent)" }}>/security</a>:{" "}
-        threat model con 14 amenazas
+        threat model con 18 amenazas
         </li>
         <li>
           <a href="/incorporar" style={{ color: "var(--accent)" }}>/incorporar</a>:{" "}

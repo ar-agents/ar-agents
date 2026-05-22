@@ -24,16 +24,16 @@ function buildCitations(rfc: RfcMeta, commit: string) {
 
   const bibtex = `@misc{ar-agents-rfc-${rfc.id}-${short},
   title  = {{RFC-${rfc.id}: ${rfc.title}}},
-  author = {{Naza}},
+  author = {{Clemente, Nazareno}},
   year   = {${year}},
   month  = {${rfc.date.slice(5, 7)}},${doi ? `\n  doi    = {${doi}},` : ""}
   url    = {${doiUrl ?? url}},
   note   = {ar-agents Open Infrastructure for Argentine sociedades-IA. Commit ${short}. Canonical: ${canonical}. License: CC-BY-4.0.}
 }`;
 
-  const apa = `Naza (${year}). RFC-${rfc.id}: ${rfc.title} (Version ${short}) [Technical specification]. ar-agents.${doi ? ` https://doi.org/${doi}` : ` ${url}`}`;
+  const apa = `Clemente, N. (${year}). RFC-${rfc.id}: ${rfc.title} (Version ${short}) [Technical specification]. ar-agents.${doi ? ` https://doi.org/${doi}` : ` ${url}`}`;
 
-  const chicago = `Naza. "RFC-${rfc.id}: ${rfc.title}." ar-agents Open Infrastructure for Argentine sociedades-IA. Version ${short} (${rfc.date}).${doi ? ` https://doi.org/${doi}.` : ` ${url}.`}`;
+  const chicago = `Clemente, Nazareno. "RFC-${rfc.id}: ${rfc.title}." ar-agents Open Infrastructure for Argentine sociedades-IA. Version ${short} (${rfc.date}).${doi ? ` https://doi.org/${doi}.` : ` ${url}.`}`;
 
   return { url, canonical, doi, doiUrl, bibtex, apa, chicago };
 }

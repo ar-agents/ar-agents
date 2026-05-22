@@ -21,7 +21,7 @@ export function ImplementacionContent() {
       subtitle="Arquitectura técnica, código operable y cláusulas sugeridas para el proyecto de reforma a la Ley General de Sociedades. Dirigido al equipo redactor del proyecto y a las áreas técnicas del Ministerio."
     >
       <DocP>
-        El 29 de abril de 2026, en el marco de Expo EFI, el Ministerio
+        El 28 de abril de 2026, en el marco de Expo EFI, el Ministerio
         de Desregulación y Transformación del Estado anunció la
         creación de un régimen de Sociedades de Inteligencia Artificial
         mediante reforma a la Ley General de Sociedades (Ley 19.550).
@@ -114,7 +114,7 @@ export function ImplementacionContent() {
 
       <DocH2>Contenido</DocH2>
       <DocP>
-        El documento cubre cinco secciones, autocontenidas:
+        El documento cubre seis secciones más dos anexos:
       </DocP>
       <ol style={{ lineHeight: 1.75, paddingLeft: 22 }}>
         <li>
@@ -152,7 +152,26 @@ export function ImplementacionContent() {
           a las exposiciones doctrinarias de Betania Allo (MDZ) y
           Claudia Guardia (Infobae).
         </li>
+        <li>
+          <strong>Disponibilidad y verificación.</strong> Licencia,
+          contacto, y verificación criptográfica del propio documento
+          (Ed25519, RFC 8032) reproducible offline.
+        </li>
       </ol>
+      <DocP>
+        <strong>Anexo I — Marcos jurisdiccionales comparados:</strong>{" "}
+        Wyoming DAO LLC, Islas Marshall DAO Act, Estonia e-Residency,
+        Singapur VCC, Suiza (asociación civil + Stiftung), Liechtenstein
+        TVTG. Sitúa la propuesta argentina en el mapa internacional.
+      </DocP>
+      <DocP>
+        <strong>Anexo II — Referencias bibliográficas:</strong>{" "}
+        estándares criptográficos (IETF RFC 8032, 2104, 3161, 6962;
+        NIST FIPS 198-1, 186-5), protocolos abiertos (MCP), spec
+        técnica argentina (WSAA, WSFE), marco normativo argentino
+        (Ley 19.550, Ley 25.506) y comparado (Wyoming, Marshall,
+        eIDAS, Liechtenstein TVTG).
+      </DocP>
 
       <DocH2>Resumen ejecutivo del marco propuesto</DocH2>
       <DocP>
@@ -175,6 +194,72 @@ export function ImplementacionContent() {
         de los deberes técnicos esenciales). El régimen no requiere
         residencia argentina del operador y permite incorporación
         remota verificable.
+      </DocP>
+
+      <DocH2>Verificación de integridad</DocH2>
+      <DocP>
+        El PDF está firmado con Ed25519 (RFC 8032) por la misma autoría
+        que lo redacta. El documento no se distribuye como una afirmación
+        de paternidad, se distribuye con una prueba criptográfica de ella,
+        verificable offline sin confiar en este sitio. Es el mismo
+        estándar que la arquitectura propone para las sociedades-IA,
+        aplicado al propio documento que lo propone.
+      </DocP>
+      <div
+        style={{
+          margin: "20px 0 32px",
+          padding: "20px 24px",
+          background: "var(--bg-subtle, rgba(0,0,0,0.03))",
+          borderRadius: 8,
+          fontSize: 13,
+          lineHeight: 1.6,
+          fontFamily:
+            "var(--font-geist-mono), ui-monospace, SFMono-Regular, monospace",
+          overflowX: "auto",
+        }}
+      >
+        <div
+          style={{
+            color: "var(--text-muted)",
+            fontSize: 12,
+            marginBottom: 10,
+            fontFamily:
+              "var(--font-geist-sans), ui-sans-serif, system-ui, sans-serif",
+          }}
+        >
+          Verificación offline (Node 20+, cero dependencias):
+        </div>
+        <pre style={{ margin: 0, whiteSpace: "pre-wrap", wordBreak: "break-all" }}>
+{`curl -fsSL https://ar-agents.ar/implementacion.pdf -o doc.pdf
+curl -fsSL https://ar-agents.ar/implementacion.pdf.sig.json -o doc.pdf.sig.json
+curl -fsSL https://ar-agents.ar/arg-verify.mjs -o arg-verify.mjs
+node arg-verify.mjs file doc.pdf`}</pre>
+      </div>
+      <DocP>
+        El verificador es clean-room, zero-dependency, Node built-ins
+        only (
+        <a
+          href="https://github.com/ar-agents/ar-agents/blob/main/tools/arg-verify/arg-verify.mjs"
+          style={{ color: "var(--accent)", textDecoration: "underline" }}
+        >
+          source en GitHub
+        </a>
+        ). La clave pública vive en{" "}
+        <a
+          href="/.well-known/ar-agents/doc-signing-keys.json"
+          style={{ color: "var(--accent)", textDecoration: "underline" }}
+        >
+          /.well-known/ar-agents/doc-signing-keys.json
+        </a>
+        ; el manifest detached en{" "}
+        <a
+          href="/implementacion.pdf.sig.json"
+          style={{ color: "var(--accent)", textDecoration: "underline" }}
+        >
+          /implementacion.pdf.sig.json
+        </a>
+        . Cualquier alteración del PDF — un byte cambiado — hace fallar
+        las tres comprobaciones (tamaño, SHA-256, firma Ed25519).
       </DocP>
 
       <DocH2>Cita y reuso</DocH2>
@@ -202,8 +287,12 @@ export function ImplementacionContent() {
           background: "var(--bg)",
         }}
       >
+        {/* PDF Open Parameters: pagemode=none collapses the sidebar
+            (thumbnails/bookmarks), zoom=80 sets initial zoom. Honored by
+            Chrome, Edge and Firefox's PDF.js. Safari's PDFKit ignores
+            them but the fallback (sidebar-open / 100%) is still readable. */}
         <iframe
-          src={PDF_URL}
+          src={`${PDF_URL}#pagemode=none&zoom=80`}
           title="Implementación de referencia para sociedades de IA (PDF)"
           style={{
             width: "100%",

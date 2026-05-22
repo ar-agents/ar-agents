@@ -306,7 +306,7 @@ export default function GettingStartedPage() {
           <a href="/security" style={{ color: "var(--accent)" }}>
             /security
           </a>:{" "}
-        threat model con 14 amenazas explícitas.
+        threat model con 18 amenazas explícitas.
         </li>
       </ul>
 

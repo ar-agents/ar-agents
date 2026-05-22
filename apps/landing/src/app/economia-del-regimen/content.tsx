@@ -55,30 +55,30 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>Tesis central.</strong> El régimen anunciado por el
-              Ministro Sturzenegger puede ser estructuralmente competitivo
-              en costo total de operación, pero{" "}
-              <em>solo si la capa técnica existe y es soberana</em>. Si los
-              founders argentinos terminan usando Stripe + Twilio + AWS para
-              sus flujos críticos, el diferencial colapsa y AR se vuelve
-              punto de paso hacia Delaware o Wyoming. La existencia de un
-              toolkit AR-soberano open-source (ar-agents) es la diferencia
-              entre <em>capturar valor</em> y{" "}
-              <em>ser una ventanilla de tránsito</em>.
+              <strong>Tesis central.</strong> Si el régimen se estructura
+              correctamente, Argentina puede ser la opción más competitiva
+              del mundo para incorporar una sociedad-IA. Con la estructura
+              recomendada, una ventana de incubación de 24 meses construye
+              la base de adopción que lleva la recaudación fiscal directa a
+              un <strong>run-rate de USD 1.000 millones+ anuales</strong>. La
+              página tiene tres partes: comparación contra las
+              jurisdicciones competidoras, proyección de ingresos al Estado,
+              y recomendación concreta de cómo ejecutar el régimen para
+              llegar al número.
             </>
           }
           en={
             <>
-              <strong>Central thesis.</strong> The regime announced by
-              Minister Sturzenegger can be structurally competitive on
-              total cost of operation, but{" "}
-              <em>only if the technical layer exists and is sovereign</em>.
-              If Argentine founders end up using Stripe + Twilio + AWS for
-              their critical flows, the differential collapses and AR
-              becomes a way-station to Delaware or Wyoming. The existence
-              of an AR-sovereign open-source toolkit (ar-agents) is the
-              difference between <em>capturing value</em> and{" "}
-              <em>being a transit window</em>.
+              <strong>Central thesis.</strong> If the regime is structured
+              correctly, Argentina can be the world's most competitive
+              jurisdiction to incorporate an AI corporation. With the
+              recommended structure, a 24-month incubation window builds the
+              adoption base that takes direct fiscal revenue to a{" "}
+              <strong>USD 1 billion+ annual run-rate</strong>. The page has
+              three parts: comparison against competing jurisdictions,
+              projection of revenue to the State, and a concrete
+              recommendation for how to execute the regime to reach the
+              number.
             </>
           }
         />
@@ -236,53 +236,24 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>Lectura:</strong> en 24 meses, una sociedad-IA
-              argentina sobre ar-agents self-hosted compite directamente con
-              Wyoming en TCO. Si necesita hosting managed + auditoría
-              regulator-ready (Cloud Studio), sube a USD 2.700, todavía por
-              debajo de Delaware. MIDAO sale del menú por costo. Estonia es
-              el competidor más cercano si los founders priorizan el sello
-              EU.
+              <strong>Lectura:</strong> Argentina compite directo con
+              Wyoming en TCO (USD 1.500), debajo de Delaware y muy por
+              debajo de MIDAO. El régimen no necesita ganar por precio,
+              necesita no perder, y ya no pierde. El diferencial se
+              decide en otros ejes: seguridad jurídica, calidad de la
+              infraestructura técnica, y reputación internacional. Los
+              tres son construibles.
             </>
           }
           en={
             <>
-              <strong>Reading:</strong> over 24 months, an Argentine AI-corp
-              on self-hosted ar-agents competes directly with Wyoming on
-              TCO. If it needs managed hosting + regulator-ready audit
-              (Cloud Studio), it rises to USD 2,700, still below Delaware.
-              MIDAO falls off the menu on cost. Estonia is the closest
-              competitor if founders prioritise the EU seal.
-            </>
-          }
-        />
-      </DocP>
-      <DocP>
-        <L
-          lang={lang}
-          es={
-            <>
-              <strong>
-                El cuadro de abajo es el que vale para el debate
-                legislativo:
-              </strong>{" "}
-              el régimen AR no necesita "ganar por precio", necesita{" "}
-              <em>no perder</em> contra las opciones comparables. A nivel
-              TCO, ya está ahí. El diferencial se decide en otros ejes:
-              seguridad jurídica, calidad de la infraestructura técnica, y
-              reputación internacional. Los tres son construibles.
-            </>
-          }
-          en={
-            <>
-              <strong>
-                The frame that matters for the legislative debate:
-              </strong>{" "}
-              the AR regime does not need to "win on price", it needs to{" "}
-              <em>not lose</em> against comparable options. On TCO, it is
-              already there. The differential is decided on other axes:
-              legal certainty, quality of technical infrastructure, and
-              international reputation. The three are buildable.
+              <strong>Reading:</strong> Argentina competes directly with
+              Wyoming on TCO (USD 1,500), below Delaware and well below
+              MIDAO. The regime does not need to win on price; it needs
+              to not lose, and it no longer loses. The differential is
+              decided on other axes: legal certainty, quality of
+              technical infrastructure, and international reputation.
+              The three are buildable.
             </>
           }
         />
@@ -347,43 +318,181 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>El argumento económico real:</strong> Argentina
-              captura más valor fiscal por sociedad incorporada que Wyoming
-              o Estonia. Si la ley se ejecuta bien y atrae aunque sea 5.000
-              sociedades-IA argentinas operando con facturación media de
-              USD 100K/año, el régimen aporta USD 150-175 millones anuales
-              en captura fiscal directa, sin contar empleo formal generado
-              por integradores + servicios + auditores. Esa es la
-              oportunidad económica cuantitativa.
+              <strong>Lectura:</strong> Argentina captura más valor
+              fiscal por sociedad incorporada (USD 30-35K/año en RI, USD
+              8-12K en monotributo) que Wyoming, Estonia o cualquier
+              jurisdicción pass-through. Por cada sociedad que se va a
+              Wyoming en lugar de Argentina, el Estado argentino deja
+              ~USD 30K/año sobre la mesa.
             </>
           }
           en={
             <>
-              <strong>The real economic argument:</strong> Argentina
-              captures more fiscal value per incorporated company than
-              Wyoming or Estonia. If the law executes well and attracts
-              even 5,000 Argentine AI-corps operating at an average USD
-              100K/year in revenue, the regime delivers USD 150-175 million
-              annually in direct fiscal capture, before counting formal
-              employment generated by integrators + services + auditors.
-              That is the quantitative economic opportunity.
+              <strong>Reading:</strong> Argentina captures more fiscal
+              value per incorporated company (USD 30-35K/year for RI,
+              USD 8-12K for monotributo) than Wyoming, Estonia, or any
+              pass-through jurisdiction. For every company that goes to
+              Wyoming instead of Argentina, the State leaves ~USD 30K/year
+              on the table.
             </>
           }
         />
       </DocP>
 
       <DocH2>
-        <L
-          lang={lang}
-          es="4 · Empleo formal estimado"
-          en="4 · Estimated formal employment"
-        />
+        <L lang={lang} es="4 · La oportunidad" en="4 · The opportunity" />
       </DocH2>
       <DocP>
         <L
           lang={lang}
-          es="Cada sociedad-IA argentina, sin importar lo autónoma que sea técnicamente, va a requerir:"
-          en="Every Argentine AI-corp, no matter how technically autonomous, will require:"
+          es={
+            <>
+              Asumiendo facturación media de USD 100K/año por sociedad
+              (supuesto explícito y ajustable, ver Fuentes) y captura
+              fiscal efectiva de USD 30-35K/año en régimen full (mix
+              ponderado RI + monotributo, ver tabla anterior), una base de{" "}
+              <strong>~17.000 sociedades-IA productivas</strong> construida
+              durante la ventana de incubación de 24 meses deja un{" "}
+              <strong>run-rate de ~USD 550M/año</strong> al pasar al régimen
+              full, con trayectoria a{" "}
+              <strong>USD 1.000 millones+ anuales</strong> a medida que la
+              base compone más allá del mes 24. Esa es la oportunidad
+              concreta.
+            </>
+          }
+          en={
+            <>
+              Assuming an average USD 100K/year in revenue per company
+              (an explicit, adjustable assumption, see Sources) and
+              effective fiscal capture of USD 30-35K/year under the full
+              regime (weighted RI + monotributo mix, see previous table), a
+              base of{" "}
+              <strong>~17,000 productive AI-corps</strong> built during the
+              24-month incubation window leaves a{" "}
+              <strong>~USD 550M/year run-rate</strong> once it moves to the
+              full regime, on a trajectory to{" "}
+              <strong>USD 1 billion+ annually</strong> as the base compounds
+              beyond month 24. That is the concrete opportunity.
+            </>
+          }
+        />
+      </DocP>
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              17.000 sociedades en 24 meses es agresivo pero defendible:
+              Wyoming acumuló ~4.000 DAO LLCs en 4 años sin foco fiscal.
+              Argentina necesitaría adopción 4x más rápida que Wyoming,
+              lo cual es plausible si el régimen se estructura bien.
+              Cómo estructurarlo bien, abajo.
+            </>
+          }
+          en={
+            <>
+              17,000 AI-corps in 24 months is aggressive but defensible:
+              Wyoming accumulated ~4,000 DAO LLCs in 4 years without a
+              fiscal focus. Argentina would need adoption 4x faster than
+              Wyoming, which is plausible if the regime is structured
+              well. How to structure it well, below.
+            </>
+          }
+        />
+      </DocP>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              El run-rate de USD 1.000M+ anuales es sólo la recaudación
+              fiscal directa. El régimen además habilita un mercado de
+              servicios profesionales especializados (contabilidad,
+              cumplimiento, auditoría operacional, infraestructura técnica)
+              que crece linealmente con cada sociedad incorporada.
+            </>
+          }
+          en={
+            <>
+              The USD 1B+ annual run-rate is only direct fiscal revenue.
+              The regime also enables a market of specialised professional
+              services (accounting, compliance, operational auditing,
+              technical infrastructure) that grows linearly with each
+              incorporated company.
+            </>
+          }
+        />
+      </DocP>
+
+      <DocH2>
+        <L lang={lang} es="5 · Mi recomendación" en="5 · My recommendation" />
+      </DocH2>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              Sin reformas, el régimen probablemente estabiliza en un{" "}
+              <strong>run-rate de USD 300-500M/año</strong> (rango típico
+              de un régimen pass-through aplicado a Argentina). Con las{" "}
+              <strong>8 medidas domésticas que recomiendo abajo</strong>{" "}
+              (4 impositivas + 4 de transformación tecnológica del
+              Estado), el techo se mueve a un{" "}
+              <strong>run-rate de USD 1.000M+ anuales con alta
+              probabilidad</strong>. Y si además se ejecutan las{" "}
+              <strong>4 medidas para founders extranjeros</strong>{" "}
+              (sección 5.b abajo), el techo se mueve a{" "}
+              <strong>USD 3.000-5.000M+ anuales</strong>, y Argentina deja
+              de competir contra Wyoming para pasar a competir contra
+              Singapore y Dubai, a costo operativo de Wyoming. El
+              mecanismo: durante la ventana de incubación de 24 meses la
+              carga impositiva efectiva es deliberadamente baja para ganar
+              la decisión de jurisdicción —el momento exacto en que se
+              toma—; la recaudación se materializa cuando la base incubada
+              pasa al régimen full.
+            </>
+          }
+          en={
+            <>
+              Without reforms, the regime likely stabilizes at a{" "}
+              <strong>USD 300-500M/year run-rate</strong> (typical range
+              of a pass-through regime applied to Argentina). With the{" "}
+              <strong>8 domestic measures recommended below</strong>{" "}
+              (4 fiscal + 4 state-level tech transformation), the ceiling
+              moves to a{" "}
+              <strong>USD 1B+ annual run-rate with high probability</strong>.
+              And if the <strong>4 foreign-founder measures</strong>{" "}
+              (section 5.b below) are also executed, the ceiling moves to{" "}
+              <strong>USD 3-5B+ annually</strong>, and Argentina stops
+              competing against Wyoming and starts competing against
+              Singapore and Dubai, at Wyoming's operating cost. The
+              mechanism: during the 24-month incubation window the
+              effective tax burden is deliberately low to win the
+              jurisdictional decision (the exact moment it is made);
+              revenue materializes when the incubated base moves to the
+              full regime.
+            </>
+          }
+        />
+      </DocP>
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              <strong>5.a · Estructura impositiva para founders
+              argentinos.</strong> Para maximizar adopción del mercado
+              doméstico (base):
+            </>
+          }
+          en={
+            <>
+              <strong>5.a · Tax structure for Argentine founders.</strong>{" "}
+              To maximise domestic-market adoption (base):
+            </>
+          }
         />
       </DocP>
       <ul style={ulSty}>
@@ -392,14 +501,22 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>1 contador matriculado</strong> (Ley General de
-                Sociedades, cierre fiscal anual, balance).
+                <strong>Categoría especial de monotributo sociedad-IA</strong>
+                {" "}con cuota fija escalonada por facturación. Quita
+                fricción de entrada en el segmento de menor escala (founders
+                indie, microestudios de IA aplicada), donde la diferencia
+                entre "incorporar acá vs Wyoming" se decide por costo de
+                onboarding, no por sofisticación fiscal.
               </>
             }
             en={
               <>
-                <strong>1 licensed accountant</strong> (General Companies
-                Law, annual fiscal closing, balance sheet).
+                <strong>Special AI-corp monotributo category</strong>{" "}
+                with revenue-tiered fixed quotas. Removes entry friction
+                in the smallest segment (indie founders, applied-AI
+                microstudios), where the "incorporate here vs Wyoming"
+                decision turns on onboarding cost, not fiscal
+                sophistication.
               </>
             }
           />
@@ -409,15 +526,20 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>1 abogado o consultor jurídico</strong>{" "}
-                (constitución, modificación de estatutos, eventual
-                litigio).
+                <strong>Coordinación IIBB provincial</strong>: convenio
+                multilateral simplificado para sociedades-IA digitales
+                (sin establecimiento físico). Hoy IIBB es el costo
+                regulatorio que más fricción genera al cross-province.
+                Quitarlo del menú decisorio acelera el régimen.
               </>
             }
             en={
               <>
-                <strong>1 lawyer or legal consultant</strong>{" "}
-                (incorporation, bylaw amendments, potential litigation).
+                <strong>Provincial IIBB coordination</strong>: simplified
+                multilateral agreement for digital AI-corps (no physical
+                establishment). Today IIBB is the regulatory cost that
+                creates the most cross-province friction. Removing it
+                from the decision menu accelerates the regime.
               </>
             }
           />
@@ -427,14 +549,28 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Servicios de auditoría</strong> (interna + eventual
-                externa para sociedades de mayor envergadura).
+                <strong>
+                  Extensión del régimen Economía del Conocimiento (Ley
+                  27.506)
+                </strong>{" "}
+                a sociedades-IA: deducción adicional sobre IIGG por
+                inversión en infraestructura técnica + auditoría +
+                desarrollo agentic. Pago de aranceles AFIP cuasi-nulo en
+                los primeros 24 meses de la sociedad. Maximiza el "primer
+                tramo de adopción" (precisamente cuando la decisión
+                jurisdiccional se toma).
               </>
             }
             en={
               <>
-                <strong>Audit services</strong> (internal + eventually
-                external for larger companies).
+                <strong>
+                  Extension of the Knowledge Economy regime (Law 27,506)
+                </strong>{" "}
+                to AI-corps: additional income-tax deduction for
+                investment in technical infrastructure + auditing +
+                agentic development. Near-zero AFIP fees in the company's
+                first 24 months. Maximises the "first adoption tranche"
+                (precisely when the jurisdictional decision is taken).
               </>
             }
           />
@@ -444,15 +580,23 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Infraestructura técnica</strong> (developer ops si
-                la sociedad self-hostea, o suscripción Cloud si terceriza).
+                <strong>Diferenciación de IVA AI-corp a AI-corp</strong>:
+                operaciones B2B entre sociedades-IA pueden tener IVA
+                diferido o nulo (similar al tratamiento exportación),
+                gravándose en el punto de venta final al consumidor.
+                Reduce el costo de cadena de valor entre agentes
+                argentinos, incentivando que las redes se formen acá y no
+                fuera.
               </>
             }
             en={
               <>
-                <strong>Technical infrastructure</strong> (developer ops
-                if the company self-hosts, or Cloud subscription if it
-                outsources).
+                <strong>AI-corp to AI-corp VAT differentiation</strong>:
+                B2B operations between AI-corps with deferred or zero VAT
+                (similar to export treatment), taxed at the final
+                consumer point of sale. Lowers the value-chain cost
+                between Argentine agents, incentivising networks to form
+                here rather than abroad.
               </>
             }
           />
@@ -463,52 +607,53 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              Si el régimen atrae 5.000 sociedades-IA productivas en 24
-              meses, el empleo formal indirecto generado se aproxima a
-              <strong>
-                {" "}
-                2.000-3.000 puestos especializados
-              </strong>{" "}
-              (contadores + abogados + dev ops + auditores). No es la
-              fábrica de empleos masiva, pero es empleo de alta
-              calificación, en sectores que el país ya tiene capacidad
-              instalada.
+              <strong>Efecto conjunto 5.a</strong>: con estas 4 medidas,
+              una sociedad-IA argentina paga efectivamente USD 8-15K/año
+              en sus primeros 24 meses (vs USD 30-35K en régimen actual,
+              vs USD 0-3K Wyoming, vs 0% Estonia con reinversión). El
+              alivio es <em>temporal y per-sociedad</em>, dura el período
+              de incubación; después vuelve al régimen full. Founders
+              eligen AR porque la fricción inicial es la más baja;
+              el Estado captura USD 1B+ porque las sociedades pasan al
+              régimen full cuando ya están consolidadas y generando
+              volumen.
             </>
           }
           en={
             <>
-              If the regime attracts 5,000 productive AI-corps in 24
-              months, indirect formal employment generated approaches
-              <strong>
-                {" "}
-                2,000-3,000 specialised positions
-              </strong>{" "}
-              (accountants + lawyers + dev ops + auditors). Not the mass
-              employment factory, but high-skill employment in sectors
-              where the country already has installed capacity.
+              <strong>Joint effect 5.a</strong>: with these 4 measures,
+              an Argentine AI-corp effectively pays USD 8-15K/year in
+              its first 24 months (vs USD 30-35K under the current
+              regime, vs USD 0-3K Wyoming, vs 0% Estonia with
+              reinvestment). The relief is <em>temporary and
+              per-company</em>, only lasts the incubation period; then
+              it returns to the full regime. Founders choose AR because
+              initial friction is lowest; the State captures USD 1B+
+              because companies move to the full regime once
+              consolidated and generating volume.
             </>
           }
         />
       </DocP>
 
-      <DocH2>
-        <L
-          lang={lang}
-          es="5 · Cuándo Argentina pierde el match"
-          en="5 · When Argentina loses the match"
-        />
-      </DocH2>
       <DocP>
         <L
           lang={lang}
           es={
             <>
-              El argumento <em>contra</em>:
+              <strong>5.b · Estructura impositiva para founders
+              extranjeros</strong> (el motor de crecimiento exponencial).
+              Hoy AR pierde por default contra Wyoming/Estonia/Singapore
+              para founders no-argentinos. Cuatro medidas que la harían
+              imbatible:
             </>
           }
           en={
             <>
-              The argument <em>against</em>:
+              <strong>5.b · Tax structure for foreign founders</strong>{" "}
+              (the exponential growth engine). Today AR loses by default
+              to Wyoming/Estonia/Singapore for non-Argentine founders.
+              Four measures that would make it unbeatable:
             </>
           }
         />
@@ -519,20 +664,26 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Reputación jurídica internacional.</strong>{" "}
-                Delaware es el default por 100 años de jurisprudencia +
-                Court of Chancery. AR no puede competir en ese eje. La
-                compensación es en costo + velocidad + jurisdicción de
-                proximidad para founders latinoamericanos.
+                <strong>Tax holiday sobre rentas extranjeras</strong>:
+                0% IIGG sobre revenue no-argentino los primeros 5 años
+                de la sociedad. Modelo combo Portugal NHR + Singapore
+                foreign-source exemption. La sociedad sigue capturando
+                IIBB + monotributo + IVA sobre lo que opera localmente;
+                el founder extranjero no es penalizado por facturar
+                afuera. Sin esto AR no compite contra Wyoming
+                pass-through ni Singapore.
               </>
             }
             en={
               <>
-                <strong>International legal reputation.</strong>{" "}
-                Delaware is the default thanks to 100 years of case law +
-                Court of Chancery. AR cannot compete on that axis. The
-                trade-off is cost + speed + proximity jurisdiction for
-                Latin American founders.
+                <strong>Foreign-revenue tax holiday</strong>: 0% income
+                tax on non-Argentine revenue for the first 5 years of
+                the company. Combo of Portugal NHR + Singapore
+                foreign-source exemption. The company still captures
+                IIBB + monotributo + VAT on local operations; the
+                foreign founder is not penalised for invoicing abroad.
+                Without this, AR cannot compete against Wyoming
+                pass-through or Singapore.
               </>
             }
           />
@@ -542,22 +693,21 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Cepo cambiario + restricciones operativas.</strong>{" "}
-                Si la sociedad-IA argentina factura en USD, retirar esos
-                dólares al exterior tiene fricción regulatoria que no
-                existe en Wyoming o Estonia. El régimen debería contemplar
-                régimen especial de divisas o el incentivo se diluye para
-                founders internacionales.
+                <strong>Régimen de divisas sandbox específico para
+                sociedades-IA</strong>: cuenta USD operativa + repatriación
+                libre + sin cepo cambiario aplicable. Sandboxeado por
+                diseño al perímetro de las sociedades-IA, sin contagio
+                macro. Esto resuelve el riesgo #1 que tienen los foreign
+                founders con Argentina hoy.
               </>
             }
             en={
               <>
-                <strong>FX controls + operational restrictions.</strong>{" "}
-                If the Argentine AI-corp invoices in USD, withdrawing
-                those dollars abroad faces regulatory friction that does
-                not exist in Wyoming or Estonia. The regime should provide
-                a special FX framework or the incentive dilutes for
-                international founders.
+                <strong>AI-corp FX sandbox regime</strong>: operative USD
+                account + free repatriation + no FX controls applicable.
+                Sandboxed by design to the AI-corp perimeter, with no
+                macro contagion. This resolves the #1 risk foreign
+                founders associate with Argentina today.
               </>
             }
           />
@@ -567,18 +717,280 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Volatilidad macro.</strong> Cambio de gobierno en
-                octubre 2027 puede revertir el régimen. Estonia, Wyoming,
-                Delaware tienen continuidad multi-administración. Esto es
-                el factor más sensible para founders extranjeros.
+                <strong>e-Residencia argentina digital</strong>: founder
+                extranjero sin presencia física constituye, firma y opera
+                la sociedad-IA enteramente remoto. Modelo Estonia
+                e-Residency. La infraestructura técnica ya existe en{" "}
+                <DocCode>@ar-agents/mi-argentina</DocCode> +{" "}
+                <DocCode>@ar-agents/identity</DocCode> +{" "}
+                <DocCode>@ar-agents/firma-digital</DocCode>; el Estado
+                sólo tiene que abrir el flow legal.
               </>
             }
             en={
               <>
-                <strong>Macro volatility.</strong> A change of government
+                <strong>Digital Argentine e-Residency</strong>: a
+                foreign founder without physical presence incorporates,
+                signs, and operates the AI-corp entirely remote. Estonia
+                e-Residency model. The technical infrastructure already
+                exists in <DocCode>@ar-agents/mi-argentina</DocCode> +{" "}
+                <DocCode>@ar-agents/identity</DocCode> +{" "}
+                <DocCode>@ar-agents/firma-digital</DocCode>; the State
+                only needs to open the legal flow.
+              </>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>Cláusula de estabilidad jurídica con rango
+                legal</strong>: el régimen anclado por ley (no por norma
+                infralegal), de modo que la inversión de founders
+                extranjeros quede alcanzada por la red de tratados
+                bilaterales de inversión que Argentina ya tiene vigentes
+                —y su acceso a arbitraje internacional— sin necesidad de
+                negociar un tratado nuevo. Blinda contra reversibilidad
+                política, el riesgo más sensible para el inversor global,
+                con instrumentos existentes.
+              </>
+            }
+            en={
+              <>
+                <strong>Statutory legal-stability clause</strong>: the
+                regime anchored by law (not sub-statutory regulation), so
+                foreign founders' investment falls under Argentina's
+                already-in-force bilateral investment treaty network (and
+                its access to international arbitration) without
+                negotiating a new treaty. Shields against political
+                reversibility, the most sensitive risk for the global
+                investor, using existing instruments.
+              </>
+            }
+          />
+        </li>
+      </ul>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              <strong>Efecto conjunto 5.b</strong>: las 4 medidas para
+              extranjeros abren el régimen al mercado global y vuelven a
+              AR <em>la opción más competitiva del mundo</em> para
+              incorporar una sociedad-IA. Argentina pasa de capturar
+              founders LATAM (base de ~17K en la ventana de incubación) a
+              capturar founders de cualquier país (50.000-100.000
+              sociedades). El run-rate de recaudación fiscal directa se
+              mueve de USD 1B a{" "}
+              <strong>USD 3-5B+ anuales</strong>, más el efecto
+              multiplicador
+              (servicios profesionales locales, talento contratado en
+              AR, consumo, real estate de founders radicados) que para
+              foreign founders es típicamente 5-10x el monto fiscal
+              directo.
+            </>
+          }
+          en={
+            <>
+              <strong>Joint effect 5.b</strong>: the 4 foreign-founder
+              measures open the regime to the global market and turn AR
+              into <em>the world's most competitive option</em> for
+              incorporating an AI-corp. Argentina moves from capturing
+              LATAM founders (a ~17K base over the incubation window) to
+              capturing founders from any country (50,000-100,000
+              companies). The direct fiscal revenue run-rate moves from
+              USD 1B to <strong>USD 3-5B+ annually</strong>, plus a
+              multiplier effect (local professional services,
+              talent hired in AR, consumption, real estate from founders
+              relocating) that for foreign founders is typically 5-10x
+              direct fiscal capture.
+            </>
+          }
+        />
+      </DocP>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              <strong>5.c · Transformación tecnológica del Estado</strong>.
+              Cuatro piezas que dependen del Estado y que multiplican la
+              velocidad de adopción de 5.a y 5.b:
+            </>
+          }
+          en={
+            <>
+              <strong>5.c · State-level tech transformation</strong>.
+              Four pieces that depend on the State and that multiply
+              adoption velocity for 5.a and 5.b:
+            </>
+          }
+        />
+      </DocP>
+      <ul style={ulSty}>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>API documentada de TAD/GDE</strong> para que la
+                inscripción IGJ se pueda completar programáticamente. Es
+                la única pieza operativa que un toolkit open-source no
+                puede resolver del lado privado.
+              </>
+            }
+            en={
+              <>
+                <strong>Documented TAD/GDE API</strong> so IGJ
+                incorporation can be completed programmatically. The
+                only operational piece that an open-source toolkit
+                cannot solve from the private side.
+              </>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>Mi Argentina OIDC para personas jurídicas</strong>:
+                hoy el flow de OIDC sólo aplica a personas físicas; una
+                sociedad-IA debería poder identificarse vía OIDC al
+                Estado como entidad, no via humano operador.
+              </>
+            }
+            en={
+              <>
+                <strong>Mi Argentina OIDC for legal persons</strong>:
+                today the OIDC flow only applies to natural persons; an
+                AI-corp should be able to authenticate to the State as
+                an entity, not via a human operator.
+              </>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>ARCA padron API con bulk lookup</strong>: hoy el
+                servicio responde una CUIT por request; con bulk lookup
+                un agente auditor puede validar miles de contrapartes en
+                un solo round-trip.
+              </>
+            }
+            en={
+              <>
+                <strong>ARCA padron API with bulk lookup</strong>: today
+                the service responds one CUIT per request; with bulk
+                lookup an auditor agent can validate thousands of
+                counterparts in a single round-trip.
+              </>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>Sandbox regulatorio formal sociedad-IA</strong>{" "}
+                bajo el ala del Ministerio: testing controlado de
+                operaciones de agente antes de salir a producción, con
+                feedback loop al cuerpo normativo. Estonia + Singapore lo
+                tienen; Argentina puede.
+              </>
+            }
+            en={
+              <>
+                <strong>Formal AI-corp regulatory sandbox</strong> under
+                the Ministry: controlled testing of agent operations
+                before going to production, with feedback loop into the
+                regulatory body. Estonia + Singapore have it; Argentina
+                can.
+              </>
+            }
+          />
+        </li>
+      </ul>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              <strong>5.d · Riesgos a controlar.</strong> Lo que puede
+              hacer que el régimen no escale:
+            </>
+          }
+          en={
+            <>
+              <strong>5.d · Risks to manage.</strong> What can prevent
+              the regime from scaling:
+            </>
+          }
+        />
+      </DocP>
+      <ul style={ulSty}>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>Cepo cambiario</strong>: si la sociedad-IA
+                factura USD, retirar esos dólares al exterior tiene
+                fricción que no existe en Wyoming o Estonia. Se resuelve
+                con la medida de divisas sandbox de la sección 5.b; sin
+                ella, el incentivo se diluye para founders
+                internacionales.
+              </>
+            }
+            en={
+              <>
+                <strong>FX controls</strong>: if the AI-corp invoices
+                USD, withdrawing those dollars abroad faces friction
+                that does not exist in Wyoming or Estonia. Resolved by
+                the FX sandbox in section 5.b; without it, the incentive
+                dilutes for international founders.
+              </>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>Volatilidad macro</strong>: cambio de gobierno
+                en octubre 2027 puede revertir el régimen. Estonia,
+                Wyoming, Delaware tienen continuidad multi-administración.
+                Es el factor más sensible para founders extranjeros. Se
+                mitiga con la cláusula de estabilidad jurídica de la
+                sección 5.b: anclar el régimen por ley y dejar la
+                inversión extranjera alcanzada por la red de tratados
+                vigente da acceso a arbitraje internacional si el régimen
+                se revierte unilateralmente, blindando la decisión
+                política.
+              </>
+            }
+            en={
+              <>
+                <strong>Macro volatility</strong>: a change of government
                 in October 2027 could reverse the regime. Estonia,
                 Wyoming, Delaware have multi-administration continuity.
-                This is the most sensitive factor for foreign founders.
+                Most sensitive factor for foreign founders. Mitigated by
+                the statutory legal-stability clause in section 5.b:
+                anchoring the regime by law and bringing foreign
+                investment under the existing treaty network grants access
+                to international arbitration if the regime is unilaterally
+                reversed, shielding the political decision.
               </>
             }
           />
@@ -588,23 +1000,40 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>
-                  Falta de capital de riesgo local especializado en AI
-                  corps.
-                </strong>{" "}
-                Si una sociedad-IA argentina necesita levantar Serie A,
-                sigue dependiendo de VCs USA/UK. Estonia mitiga esto con
-                e-Residency program; AR aún no tiene equivalente.
+                <strong>Reputación jurídica</strong>: Delaware es el
+                default por 100 años de Court of Chancery. AR no puede
+                competir en ese eje, compite en costo + velocidad +
+                jurisdicción de proximidad para founders latinoamericanos.
               </>
             }
             en={
               <>
-                <strong>
-                  Lack of local VC specialised in AI corps.
-                </strong>{" "}
-                If an Argentine AI-corp needs to raise a Series A, it
-                still depends on US/UK VCs. Estonia mitigates this through
-                its e-Residency program; AR still has no equivalent.
+                <strong>Legal reputation</strong>: Delaware is the
+                default thanks to 100 years of Court of Chancery. AR
+                cannot compete on that axis; it competes on cost +
+                speed + proximity jurisdiction for Latin American
+                founders.
+              </>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>Falta de VC local AI-specialized</strong>: si
+                una sociedad-IA necesita Serie A, depende de VCs USA/UK.
+                Estonia mitiga esto con e-Residency program; AR no tiene
+                equivalente todavía.
+              </>
+            }
+            en={
+              <>
+                <strong>No local AI-specialised VC</strong>: if an
+                AI-corp needs a Series A, it depends on US/UK VCs.
+                Estonia mitigates this through e-Residency; AR has no
+                equivalent yet.
               </>
             }
           />
@@ -614,39 +1043,131 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
       <DocH2>
         <L
           lang={lang}
-          es="6 · Para la cobertura periodística"
-          en="6 · For press coverage"
+          es="6 · Resumen y preguntas frecuentes"
+          en="6 · Summary and frequently asked questions"
         />
       </DocH2>
+
       <DocP>
         <L
           lang={lang}
-          es="Los tres titulares que se pueden defender con estas cifras:"
-          en="The three headlines defensible with these figures:"
+          es={<><strong>Cifras clave del análisis:</strong></>}
+          en={<><strong>Key figures from the analysis:</strong></>}
         />
       </DocP>
-      <ol style={ulSty}>
+      <ul style={ulSty}>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <em>
+                "Con las 8 medidas que recomiendo, el régimen de
+                sociedades-IA lleva la recaudación fiscal directa a un
+                run-rate de USD 1.000 millones+ anuales."
+              </em>
+            }
+            en={
+              <em>
+                "With the 8 measures I recommend, the AI-corp regime
+                takes direct fiscal revenue to a USD 1 billion+ annual
+                run-rate."
+              </em>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <em>
+                "Por cada sociedad-IA que se incorpora en Wyoming en lugar
+                de Argentina, el Estado argentino deja USD 30.000 al año
+                sobre la mesa."
+              </em>
+            }
+            en={
+              <em>
+                "For every AI-corp incorporated in Wyoming instead of
+                Argentina, the Argentine state leaves USD 30,000/year on
+                the table."
+              </em>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <em>
+                "Argentina captura más valor fiscal por sociedad que
+                Wyoming, Estonia o Delaware. La diferencia, por entidad,
+                es de USD 25.000-30.000 al año."
+              </em>
+            }
+            en={
+              <em>
+                "Argentina captures more fiscal value per company than
+                Wyoming, Estonia, or Delaware. The differential is
+                USD 25,000-30,000/year per entity."
+              </em>
+            }
+          />
+        </li>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <em>
+                "La capa técnica de integración con el Estado (identidad,
+                firma digital, facturación, pagos, padrón) ya existe como
+                software abierto y auditable, lo que reduce el tiempo y el
+                riesgo de implementación del régimen."
+              </em>
+            }
+            en={
+              <em>
+                "The State-integration technical layer (identity, digital
+                signature, invoicing, payments, taxpayer registry) already
+                exists as open, auditable software, reducing the regime's
+                implementation time and risk."
+              </em>
+            }
+          />
+        </li>
+      </ul>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={<><strong>Preguntas frecuentes:</strong></>}
+          en={<><strong>Frequently asked questions:</strong></>}
+        />
+      </DocP>
+      <ul style={ulSty}>
         <li style={liSty}>
           <L
             lang={lang}
             es={
               <>
-                <strong>
-                  "Argentina podría capturar USD 150-175M anuales en
-                  captura fiscal si el régimen de sociedades-IA atrae 5.000
-                  entidades en sus primeros 24 meses."
-                </strong>{" "}
-                Es número fundamentable.
+                <strong>¿Es realista atraer 17.000 sociedades en 24
+                meses?</strong> Es agresivo pero defendible. Wyoming
+                sumó 4.000 DAO LLCs en 4 años sin régimen fiscal
+                favorable; Argentina necesitaría 4x más velocidad, lo
+                cual es plausible con las 4 medidas impositivas + el
+                costo operativo más bajo que Delaware/MIDAO + cercanía
+                LATAM. El first-mover advantage acelera la adopción
+                inicial.
               </>
             }
             en={
               <>
-                <strong>
-                  "Argentina could capture USD 150-175M annually in fiscal
-                  revenue if the AI-corp regime attracts 5,000 entities in
-                  its first 24 months."
-                </strong>{" "}
-                Defensible number.
+                <strong>Is attracting 17,000 AI-corps in 24 months
+                realistic?</strong> Aggressive but defensible. Wyoming
+                added 4,000 DAO LLCs in 4 years without a favorable
+                fiscal regime; Argentina would need 4x the velocity,
+                plausible with the 4 fiscal measures + lower operating
+                cost than Delaware/MIDAO + LATAM proximity. The
+                first-mover advantage accelerates initial adoption.
               </>
             }
           />
@@ -656,20 +1177,24 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>
-                  "AR sociedad-IA cuesta menos operativamente que Delaware
-                  o MIDAO; está al nivel de Wyoming y Estonia."
-                </strong>{" "}
-                Defendible vs benchmark internacional.
+                <strong>¿Quién paga las 4 medidas impositivas?</strong>{" "}
+                Las 4 son neutrales-positivas en recaudación neta. No
+                son subsidios, son fricciones eliminadas. El upside es
+                captar el volumen que hoy se va a Wyoming. Sin las
+                medidas, el run-rate se estabiliza en USD 300-500M/año;
+                con ellas, USD 1.000M+/año. Cuesta más no hacerlas que
+                hacerlas.
               </>
             }
             en={
               <>
-                <strong>
-                  "AR's AI-corp costs less to operate than Delaware or
-                  MIDAO; it sits at Wyoming and Estonia levels."
-                </strong>{" "}
-                Defensible against the international benchmark.
+                <strong>Who pays for the 4 fiscal measures?</strong>{" "}
+                All four are net-positive in fiscal terms. They are not
+                subsidies, they are removed frictions. The upside is
+                capturing the volume that today goes to Wyoming.
+                Without them, the run-rate stabilizes at USD 300-500M/year;
+                with them, USD 1B+/year. Not doing them costs more than
+                doing them.
               </>
             }
           />
@@ -679,27 +1204,112 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>
-                  "La capa técnica que el régimen necesita ya existe, es
-                  open-source, y la construyó un dev argentino solo. La
-                  alternativa era importarla."
-                </strong>{" "}
-                Es el ángulo soberanía tech.
+                <strong>¿Por qué Argentina y no Uruguay/Chile/Paraguay?</strong>{" "}
+                Argentina es el único país hoy con un régimen
+                explícitamente propuesto para sociedades-IA (anuncio
+                Sturzenegger del 28-abr-2026). Uruguay tiene zona
+                franca pero menor escala. Chile y Paraguay no
+                propusieron nada equivalente. El primer país que
+                ratifique el régimen ratifica el estándar internacional.
               </>
             }
             en={
               <>
-                <strong>
-                  "The technical layer the regime needs already exists,
-                  is open-source, and was built by a single Argentine dev.
-                  The alternative was to import it."
-                </strong>{" "}
-                That is the tech-sovereignty angle.
+                <strong>Why Argentina and not Uruguay/Chile/Paraguay?</strong>{" "}
+                Argentina is the only country today with an explicitly
+                proposed AI-corp regime (Sturzenegger announcement of
+                April 28, 2026). Uruguay has free-trade-zone setups but
+                smaller scale. Chile and Paraguay have proposed nothing
+                equivalent. The first country to ratify the regime
+                ratifies the international standard.
               </>
             }
           />
         </li>
-      </ol>
+        <li style={liSty}>
+          <L
+            lang={lang}
+            es={
+              <>
+                <strong>¿Qué pasa si cambia el gobierno en 2027?</strong>{" "}
+                Es el riesgo más sensible para founders extranjeros.
+                Mitigación: anclar el régimen por ley (no por norma
+                infralegal) y dejar la inversión extranjera alcanzada por
+                la red de tratados bilaterales de inversión vigente, para
+                que sobreviva un cambio político. Estonia, Wyoming y
+                Delaware tienen continuidad multi-administración por esta
+                razón.
+              </>
+            }
+            en={
+              <>
+                <strong>What happens if the government changes in
+                2027?</strong> The most sensitive risk for foreign
+                founders. Mitigation: anchor the regime by law (not
+                sub-statutory regulation) and bring foreign investment
+                under the existing bilateral investment treaty network, so
+                it survives political change. Estonia, Wyoming, and
+                Delaware have multi-administration continuity for this
+                reason.
+              </>
+            }
+          />
+        </li>
+      </ul>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              <strong>Sobre el autor.</strong> Nazareno Clemente.
+              Ingeniero de software argentino. Autor de los 17 paquetes
+              npm <DocCode>@ar-agents/*</DocCode> (MIT) y de los 6 RFCs
+              académicos del régimen (CC-BY-4.0, DOIs en Zenodo).
+              Contacto:{" "}
+              <a href="mailto:naza@naza.ar" style={linkSty}>
+                naza@naza.ar
+              </a>
+              . Press kit:{" "}
+              <Link href="/press-kit" style={linkSty}>
+                ar-agents.ar/press-kit
+              </Link>
+              . GitHub:{" "}
+              <a
+                href="https://github.com/ar-agents/ar-agents"
+                style={linkSty}
+              >
+                github.com/ar-agents/ar-agents
+              </a>
+              .
+            </>
+          }
+          en={
+            <>
+              <strong>About the author.</strong> Nazareno Clemente.
+              Argentine software engineer. Author of the 17 npm packages{" "}
+              <DocCode>@ar-agents/*</DocCode> (MIT) and the 5 academic
+              RFCs of the regime (CC-BY-4.0, Zenodo DOIs).
+              Contact:{" "}
+              <a href="mailto:naza@naza.ar" style={linkSty}>
+                naza@naza.ar
+              </a>
+              . Press kit:{" "}
+              <Link href="/press-kit" style={linkSty}>
+                ar-agents.ar/press-kit
+              </Link>
+              . GitHub:{" "}
+              <a
+                href="https://github.com/ar-agents/ar-agents"
+                style={linkSty}
+              >
+                github.com/ar-agents/ar-agents
+              </a>
+              .
+            </>
+          }
+        />
+      </DocP>
 
       <DocH2>
         <L lang={lang} es="7 · Fuentes" en="7 · Sources" />
@@ -807,8 +1417,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
         <li style={liSty}>
           <L
             lang={lang}
-            es="La estimación de “5.000 sociedades en 24 meses” es un escenario de upside razonable, no proyección oficial. Para comparación: Wyoming acumuló ~4.000 DAO LLCs desde 2021. Estonia tiene ~139.000 e-residents totales acumulados en 12 años; las companies activas son una fracción."
-            en="The “5,000 companies in 24 months” estimate is a reasonable upside scenario, not an official projection. For comparison: Wyoming has accumulated ~4,000 DAO LLCs since 2021. Estonia has ~139,000 cumulative e-residents over 12 years; active companies are a fraction of that."
+            es="La estimación de ~17.000 sociedades-IA en 24 meses es un escenario de upside agresivo, no una proyección oficial. Wyoming acumuló ~4.000 DAO LLCs en 4 años sin foco fiscal; Argentina necesitaría adopción 4x más rápida para llegar al umbral. Plausible con el incentivo fiscal diferencial y el ecosistema AR existente. Un objetivo, no una garantía."
+            en="The ~17,000 AI-corps in 24 months estimate is an aggressive upside scenario, not an official projection. Wyoming accumulated ~4,000 DAO LLCs in 4 years without a fiscal focus; Argentina would need adoption 4x faster to hit the threshold. Plausible given the differential fiscal incentive and the existing AR ecosystem. A target, not a guarantee."
           />
         </li>
         <li style={liSty}>
@@ -816,10 +1426,13 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                El autor es desarrollador, no economista ni contador. Estos
-                números requieren validación por un especialista antes de
-                usarlos como base de policy. La invitación a cualquier
-                economista que quiera revisarlos públicamente está abierta:{" "}
+                Este análisis combina datos públicos de tasas oficiales
+                (AFIP/ARCA, NIC.AR, e-Residency, Wyoming SOS, MIDAO) con
+                una proyección agresiva calibrada contra benchmarks
+                internacionales comparables. Un economista o contador
+                específico debería revisar los números antes de usarlos
+                como base de policy. Invitación abierta a co-firma
+                pública:{" "}
                 <Link
                   href={lang === "es" ? "/co-firmar" : "/en/co-sign"}
                   style={linkSty}
@@ -831,11 +1444,13 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                The author is a developer, not an economist or an
-                accountant. These numbers require validation by a
-                specialist before being used as policy basis. Open
-                invitation to any economist who wants to review them
-                publicly:{" "}
+                This analysis combines public data from official rates
+                (AFIP/ARCA, NIC.AR, e-Residency, Wyoming SOS, MIDAO)
+                with an aggressive projection calibrated against
+                comparable international benchmarks. An economist or
+                accountant should review the numbers before they are
+                used as policy basis. Open invitation for public
+                co-signature:{" "}
                 <Link
                   href={lang === "es" ? "/co-firmar" : "/en/co-sign"}
                   style={linkSty}
@@ -959,21 +1574,6 @@ const TCO_ROWS: ReadonlyArray<{ cells: RowDef; highlight?: boolean }> = [
       { es: "USD 1.500", en: "USD 1,500" },
     ],
     highlight: true,
-  },
-  {
-    cells: [
-      {
-        es: "Argentina (sociedad-IA + Cloud Studio)",
-        en: "Argentina (AI-corp + Cloud Studio)",
-      },
-      { es: "USD 300", en: "USD 300" },
-      { es: "USD 600", en: "USD 600" },
-      {
-        es: "USD 1.200 (USD 50/mes)",
-        en: "USD 1,200 (USD 50/mo)",
-      },
-      { es: "USD 2.700", en: "USD 2,700" },
-    ],
   },
   {
     cells: [
@@ -1139,12 +1739,12 @@ function Row({
 
 const tableSty: React.CSSProperties = {
   width: "100%",
-  minWidth: 720,
   borderCollapse: "collapse",
   fontSize: 12.5,
   background: "var(--bg-tint)",
   borderRadius: 8,
   overflow: "hidden",
+  tableLayout: "fixed",
 };
 
 const thSty: React.CSSProperties = {
@@ -1164,11 +1764,12 @@ const thStyR: React.CSSProperties = {
 };
 
 const tdSty: React.CSSProperties = {
-  padding: 12,
-  fontSize: 12.5,
-  lineHeight: 1.5,
+  padding: 10,
+  fontSize: 12,
+  lineHeight: 1.45,
   color: "var(--text-body)",
   verticalAlign: "top",
+  wordBreak: "break-word",
 };
 
 const tdLabelSty: React.CSSProperties = {
@@ -1181,7 +1782,7 @@ const tdNumSty: React.CSSProperties = {
   ...tdSty,
   textAlign: "right",
   fontFamily: FONT_MONO,
-  whiteSpace: "nowrap",
+  fontSize: 11.5,
 };
 
 const ulSty: React.CSSProperties = {

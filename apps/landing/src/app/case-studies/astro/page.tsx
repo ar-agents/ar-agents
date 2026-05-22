@@ -23,7 +23,7 @@ export default function AstroCaseStudyPage() {
         <DocP>
           <strong>Disclosure.</strong> Astro and{" "}
           <DocCode>@ar-agents/*</DocCode> are owned by the same person
-          (Naza). Astro is the financial floor that keeps the
+          (Nazareno Clemente). Astro is the financial floor that keeps the
           toolkit&apos;s author employed; the toolkit is the operating
           system the maintainer wants Astro to run on. Treat this as a{" "}
           <em>migration log</em> from a single founder, not a third-party

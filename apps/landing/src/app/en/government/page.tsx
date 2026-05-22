@@ -4,7 +4,7 @@ import { GobiernoContent } from "../../gobierno/content";
 export const metadata: Metadata = {
   title: "For the Argentine state · operational briefing · ar-agents",
   description:
-    "Operational briefing for advisors at the Ministry of Deregulation, Subsec TIC, AAIP and related agencies. Executive summary + technical capabilities + institutional proposal + what we are NOT requesting.",
+    "Operational briefing for advisors at the Ministry of Deregulation and State Transformation, Subsec TIC, AAIP and related agencies. Executive summary + technical capabilities + institutional proposal + what we are NOT requesting.",
   alternates: {
     canonical: "https://ar-agents.ar/en/government",
     languages: {

@@ -77,10 +77,22 @@ const SECTIONS: Section[] = [
     description: "The thinking behind the toolkit, the regime, and the responsibility framework.",
     entries: [
       {
+        url: "/implementacion",
+        label: "/implementacion (es)",
+        description:
+          "Canonical reference implementation document for the bill drafting team. Architecture on preexisting open standards, five suggested operable clauses, Annex I (compared jurisdictional frameworks), Annex II (bibliographic references), Ed25519-signed PDF verifiable offline.",
+      },
+      {
+        url: "/en/implementation",
+        label: "/en/implementation",
+        description:
+          "English mirror of the canonical reference implementation document. Same content, Ed25519-signed EN PDF, for international referees and policy analysts (Wyoming / Singapore / EU).",
+      },
+      {
         url: "/playbook",
         label: "/playbook (en)",
         description:
-          "Flagship narrative document. 16 packages, 168 tools, the Edge-Runtime contract, RFC-001 governance, day-in-the-life of ACME-AI SAS.",
+          "Flagship narrative document. 17 packages, 168 tools, the Edge-Runtime contract, RFC-001 governance, day-in-the-life of ACME-AI SAS.",
       },
       {
         url: "/es/playbook",
@@ -92,7 +104,7 @@ const SECTIONS: Section[] = [
         url: "/sociedades-ia",
         label: "/sociedades-ia",
         description:
-          "Regime alignment: the Sturzenegger 28-abr-2026 announcement, the 17-piece operating surface, the 16/17 we cover today.",
+          "Regime alignment: the Sturzenegger 28-abr-2026 announcement, the 17-piece operating surface, the pieces we cover today. See also: /implementacion for the canonical bill-drafting document.",
       },
       {
         url: "/rfcs/001",
@@ -104,7 +116,7 @@ const SECTIONS: Section[] = [
         url: "/security",
         label: "/security",
         description:
-          "Threat model: 14 explicit threats, 14 explicit mitigations, status per (in-toolkit / host-responsibility / out-of-scope).",
+          "Threat model: 18 explicit threats, 18 explicit mitigations, status per (in-toolkit / host-responsibility / out-of-scope).",
       },
       {
         url: "/architecture",

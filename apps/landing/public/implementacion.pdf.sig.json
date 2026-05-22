@@ -1,0 +1,18 @@
+{
+  "version": 1,
+  "$comment": "Detached Ed25519 signature for implementacion.pdf. Verify with: node arg-verify.mjs file implementacion.pdf",
+  "file": "implementacion.pdf",
+  "language": "es",
+  "sizeBytes": 89737,
+  "sha256": "ffc8f83a2c8a7cb216daf824cdedf2f3cbc431d4ca511afc6a1be057fdbb73cb",
+  "algorithm": "ed25519",
+  "keyId": "nazareno-2026-05-21",
+  "publicKey": "MCowBQYDK2VwAyEANuYqno5bpA746cNukCYPX35eFvhLBwNyONKfzSnODn4",
+  "signature": "HsVSh8DsnOmMuUzqdLCj4kMGQFqHxO6EekR-FWlLAHDLwR9IlAfSRqjwOCUsb0_TtP2Kl-r8jJuOBsvnUQrXCA",
+  "signedAt": "2026-05-22T12:19:54.736Z",
+  "signedBy": {
+    "name": "Nazareno Clemente",
+    "email": "naza@naza.ar"
+  },
+  "keyDirectory": "https://ar-agents.ar/.well-known/ar-agents/doc-signing-keys.json"
+}

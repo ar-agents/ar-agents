@@ -422,8 +422,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
       <p style={{ marginTop: 32, color: "var(--text-muted)" }}>
         <L
           lang={lang}
-          es="Naza, mayo de 2026"
-          en="Naza, May 2026"
+          es="Nazareno Clemente, mayo de 2026"
+          en="Nazareno Clemente, May 2026"
         />
       </p>
     </DocShell>

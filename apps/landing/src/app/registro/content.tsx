@@ -34,7 +34,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "ar-agents (this site, reference implementation)",
     type: "reference-implementation",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://ar-agents.ar",
     rfcConformance: [
       "rfc-001-v1",
@@ -53,7 +53,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "mp-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://mp-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure: {
@@ -67,7 +67,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "cuit-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://cuit-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure: {
@@ -81,7 +81,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "whatsapp-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://whatsapp-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure: {
@@ -95,7 +95,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "bridge-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://bridge-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure: {
@@ -257,8 +257,8 @@ const T = (lang: Lang) => ({
     lang === "es" ? "Disclosure honesto." : "Honest disclosure.",
   disclosureBody1:
     lang === "es"
-      ? " Hoy las 5 entradas listadas son operadas por la misma persona (Naza). "
-      : " Today the 5 listed entries are all operated by the same person (Naza). ",
+      ? " Hoy las 5 entradas listadas son operadas por la misma persona (Nazareno Clemente). "
+      : " Today the 5 listed entries are all operated by the same person (Nazareno Clemente). ",
   disclosureBody2:
     lang === "es"
       ? "Esto NO es un ecosistema multi-operador"

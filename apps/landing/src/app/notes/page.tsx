@@ -23,7 +23,7 @@ const NOTES: ReadonlyArray<NoteIndex> = [
     title: "Shipping spree: 18 rounds in one day",
     date: "2026-05-11",
     summary:
-      "Recap of what shipped in the autonomous 18-round series spurred by the Sturzenegger announcement. 5 RFCs, 30 recipes, 32+ public surfaces, all 5 sociedades scoring 100/100 conformance. Plus what's NOT in the work (regulatory plumbing, real customers, operator outreach).",
+      "Recap of what shipped in the autonomous 18-round series spurred by the Sturzenegger announcement. 6 RFCs, 30 recipes, 32+ public surfaces, all 5 sociedades scoring 100/100 conformance. Plus what's NOT in the work (regulatory plumbing, real customers, operator outreach).",
   },
 ];
 

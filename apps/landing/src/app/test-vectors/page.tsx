@@ -59,7 +59,7 @@ export default function TestVectorsPage() {
           license: "https://creativecommons.org/licenses/by/4.0/",
           creator: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
             email: "naza@naza.ar",
           },
           distribution: [

@@ -5,7 +5,7 @@ import { JsonLd } from "../../json-ld";
 export const metadata: Metadata = {
   title: "Shipping spree: 18 rounds in one day · ar-agents notes",
   description:
-    "Recap of what shipped in the autonomous 18-round series after the Sturzenegger sociedad-IA announcement: 5 RFCs, 30 cookbook recipes, 32+ public surfaces, all 5 sociedades at 100/100 conformance. Plus a list of what's deliberately NOT in the work.",
+    "Recap of what shipped in the autonomous 18-round series after the Sturzenegger sociedad-IA announcement: 6 RFCs, 30 cookbook recipes, 32+ public surfaces, all 5 sociedades at 100/100 conformance. Plus a list of what's deliberately NOT in the work.",
   alternates: {
     canonical:
       "https://ar-agents.ar/notes/2026-05-11-shipping-spree",
@@ -13,7 +13,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "Shipping spree: 18 rounds in one day",
     description:
-      "5 RFCs, 30 recipes, 32+ surfaces, all 5 sociedades 100/100 conformance, in one continuous day.",
+      "6 RFCs, 30 recipes, 32+ surfaces, all 5 sociedades 100/100 conformance, in one continuous day.",
     type: "article",
   },
 };
@@ -29,7 +29,7 @@ export default function NotePage() {
           datePublished: "2026-05-11",
           author: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
             email: "naza@naza.ar",
           },
           url: "https://ar-agents.ar/notes/2026-05-11-shipping-spree",
@@ -89,7 +89,7 @@ export default function NotePage() {
           The 13 days between then and now (today, 11 May) have answered
           that question by shipping the missing pieces. Today alone, in
           18 distinct shipping rounds, the work jumped from &quot;has
-          libraries + has a vision RFC&quot; to &quot;has 5 RFCs, 30
+          libraries + has a vision RFC&quot; to &quot;has 6 RFCs, 30
           recipes, 32 public surfaces, a working certifier, a frozen
           conformance test-vectors corpus, a one-page regulator brief, a
           legislative synthesis in Spanish and English, a public
@@ -107,7 +107,7 @@ export default function NotePage() {
         </P>
         <ul style={ulStyle}>
           <Li>
-            <strong>5 RFCs</strong>{" "}(<A href="/rfcs/001">001</A>,{" "}
+            <strong>6 RFCs</strong>{" "}(<A href="/rfcs/001">001</A>,{" "}
             <A href="/rfcs/002">002</A>, <A href="/rfcs/003">003</A>,{" "}
             <A href="/rfcs/004">004</A>, <A href="/rfcs/005">005</A>)
             covering civil liability, agent discovery, cross-

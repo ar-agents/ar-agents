@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 
 // Compact, keyword-rich meta description (155 char limit for Google snippet
 // truncation). Lead with the umbrella story (open infrastructure for AR
-// sociedades-IA), follow with proof points (17 packages, 5 RFCs, audit log).
+// sociedades-IA), follow with proof points (17 packages, 6 RFCs, audit log).
 const META_DESCRIPTION =
-  "Open-source infrastructure for Argentine AI corporations (sociedades-IA). 17 npm packages, 5 RFCs, a public registry, an HMAC + Ed25519 audit log. MIT + CC-BY-4.0.";
+  "Open-source infrastructure for Argentine AI corporations (sociedades-IA). 17 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. MIT + CC-BY-4.0.";
 
 const SITE_URL = "https://ar-agents.ar";
 
@@ -55,8 +55,8 @@ export const metadata: Metadata = {
     "agent infrastructure",
     "typescript",
   ],
-  authors: [{ name: "Naza", url: "https://github.com/naza00000" }],
-  creator: "Naza",
+  authors: [{ name: "Nazareno Clemente", url: "https://github.com/naza00000" }],
+  creator: "Nazareno Clemente",
   publisher: "ar-agents",
   alternates: {
     canonical: SITE_URL,
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     siteName: "ar-agents",
     title: "ar-agents, open infrastructure for AI corporations in Argentina",
     description:
-      "17 npm packages, 5 RFCs, a public registry, an HMAC + Ed25519 audit log. The technical scaffolding for the Argentine sociedades-IA regime.",
+      "17 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. The technical scaffolding for the Argentine sociedades-IA regime.",
     url: SITE_URL,
     locale: "en_US",
     alternateLocale: ["es_AR"],
@@ -107,7 +107,7 @@ const themeInitScript = `
 //      surface (npm, Glama, MCP Registry) so cross-citation works.
 //   2. WebSite, site-level metadata.
 //   3. Organization, the ar-agents GitHub org.
-//   4. Person, Naza, with sameAs to GitHub + npm + email.
+//   4. Person, Nazareno Clemente, with sameAs to GitHub + npm + email.
 //   5. FAQPage, question/answer pairs that LLMs love quoting verbatim.
 //   6. HowTo, install + first-call sequence with discrete steps.
 //
@@ -127,7 +127,7 @@ const schemaOrgJsonLd = {
       alternateName: ["ar-agents toolkit", "@ar-agents/*"],
       headline: "Open infrastructure for AI corporations in Argentina",
       description:
-        "Open-source technical scaffolding for the proposed Argentine sociedades-IA regime (AI corporations as legal entities). 17 typed npm packages covering the Argentine state + financial stack (identity, signing, money, customer ops, gazette monitoring, corporate registry). 5 RFCs covering three-layer liability framework, agent discovery, cross-jurisdictional reciprocity, operational-log specification, and asymmetric signature upgrade. A public registry of conformant implementations. Audit log signed dual HMAC-SHA256 + Ed25519. MIT (code) + CC-BY-4.0 (specs). Flagship package: @ar-agents/mercadopago with 89 Vercel AI SDK 6 tools.",
+        "Open-source technical scaffolding for the proposed Argentine sociedades-IA regime (AI corporations as legal entities). 17 typed npm packages covering the Argentine state + financial stack (identity, signing, money, customer ops, gazette monitoring, corporate registry). 6 RFCs covering three-layer liability framework, agent discovery, cross-jurisdictional reciprocity, operational-log specification, asymmetric signature upgrade, and ledger projection. A public registry of conformant implementations. Audit log signed dual HMAC-SHA256 + Ed25519. MIT (code) + CC-BY-4.0 (specs). Flagship package: @ar-agents/mercadopago with 89 Vercel AI SDK 6 tools.",
       url: SITE,
       image: SITE + "/opengraph-image",
       applicationCategory: ["DeveloperApplication", "BusinessApplication"],
@@ -245,7 +245,7 @@ const schemaOrgJsonLd = {
     {
       "@type": "Person",
       "@id": SITE + "/#person-naza",
-      name: "Naza",
+      name: "Nazareno Clemente",
       url: "https://github.com/naza00000",
       jobTitle: "Independent developer",
       sameAs: [

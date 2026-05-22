@@ -6,13 +6,13 @@
   "repository": "https://github.com/ar-agents/ar-agents",
   "license": "MIT",
   "maintainer": {
-    "name": "Naza",
+    "name": "Nazareno Clemente",
     "email": "naza@naza.ar"
   },
   "issuer": {
     "jurisdiction": "AR",
     "type": "sociedad-ia-reference-implementation",
-    "operatorName": "Naza",
+    "operatorName": "Nazareno Clemente",
     "supervisionRegime": "rfc-001-v1",
     "denominacion": "ar-agents reference implementation (not a productive sociedad-IA)"
   },

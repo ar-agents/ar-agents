@@ -125,8 +125,8 @@ export function CoFirmarContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="El régimen de sociedades-IA anunciado por Sturzenegger el 28 de abril de 2026 requiere infraestructura técnica + sustento jurídico. La técnica está escrita; el sustento jurídico requiere revisores con matrícula profesional y/o peso académico que el autor original (Naza, dev independiente) no tiene."
-          en="The sociedades-IA regime announced by Sturzenegger on April 28, 2026 requires technical infrastructure + legal grounding. The technical side is written; the legal grounding requires reviewers with a professional license and/or academic weight the original author (Naza, independent dev) doesn't have."
+          es="El régimen de sociedades-IA anunciado por Sturzenegger el 28 de abril de 2026 requiere infraestructura técnica + sustento jurídico. La técnica está escrita; el sustento jurídico requiere revisores con matrícula profesional y/o peso académico que el autor original (Nazareno Clemente, dev independiente) no tiene."
+          en="The sociedades-IA regime announced by Sturzenegger on April 28, 2026 requires technical infrastructure + legal grounding. The technical side is written; the legal grounding requires reviewers with a professional license and/or academic weight the original author (Nazareno Clemente, independent dev) doesn't have."
         />
       </DocP>
 
@@ -568,7 +568,7 @@ export function CoFirmarContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>Naza</strong> ·
+              <strong>Nazareno Clemente</strong> ·
               Monte Grande, Buenos Aires · monotributista categoría A.
               Mail directo:{" "}
               <a href="mailto:naza@naza.ar" style={linkSty}>
@@ -579,7 +579,7 @@ export function CoFirmarContent({ lang }: { lang: Lang }) {
           }
           en={
             <>
-              <strong>Naza</strong> ·
+              <strong>Nazareno Clemente</strong> ·
               Monte Grande, Buenos Aires · monotributista category A.
               Direct email:{" "}
               <a href="mailto:naza@naza.ar" style={linkSty}>

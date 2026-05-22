@@ -110,7 +110,7 @@ const PACKAGE_GRAPH = `flowchart LR
 export const metadata: Metadata = {
   title: "Architecture",
   description:
-    "Canonical reference for the @ar-agents/* stack: 16 packages, 168 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
+    "Canonical reference for the @ar-agents/* stack: 17 packages, 168 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
   alternates: { canonical: "https://ar-agents.ar/architecture" },
 };
 
@@ -255,6 +255,15 @@ const PACKAGES: PackageRow[] = [
     external: "MCP host (Claude Desktop / Cursor / Continue / Cline)",
     notes: "Bundles all 7 tool packages over Model Context Protocol.",
   },
+  {
+    name: "@ar-agents/incorporate",
+    version: "0.1.0",
+    tools: 0,
+    category: "fiscal",
+    external: "AFIP/ARCA + IGJ + RENAPER + Mi Argentina",
+    notes:
+      "Incorporation flow orchestrator: composes identity, mi-argentina, igj, gde-tad and facturacion into a single end-to-end sociedad-IA incorporation pipeline.",
+  },
 ];
 
 const CATEGORY_LABEL: Record<PackageRow["category"], string> = {
@@ -302,7 +311,7 @@ export default function ArchitecturePage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>The 16 packages</DocH2>
+      <DocH2>The 17 packages</DocH2>
 
       <MermaidDiagram
         chart={PACKAGE_GRAPH}

@@ -81,7 +81,7 @@ export default function CitePage() {
         >
           texto sugerido en /legislación
         </a>{" "}
-        propone que la ley argentina cite RFC-001..005 por referencia. El
+        propone que la ley argentina cite RFC-001..006 por referencia. El
         problema obvio: la URL <DocCode>/rfcs/004</DocCode> puede cambiar
       , yo puedo editarla, Vercel puede caerse, GitHub puede mover el
         repo. Una ley no puede depender de eso. La fix es estándar
@@ -142,13 +142,13 @@ Accept: application/json
   "rfc": "004",
   "commit": "9e55f82f12e5b3017f165c7b4f9f144b68868512",
   "title": "Especificación normativa del log operativo",
-  "author": "Naza",
+  "author": "Nazareno Clemente",
   "date": "2026-05-10",
   "doi": "10.5281/zenodo.20159417",
   "url": "https://github.com/ar-agents/ar-agents/blob/9e55f82.../apps/landing/src/app/rfcs/004/page.tsx",
   "bibtex": "@misc{ar-agents-rfc-004-9e55f82, ... }",
-  "apa": "Naza (2026). Especificación normativa del log operativo (Version 9e55f82). ar-agents. https://doi.org/10.5281/zenodo.20159417",
-  "chicago": "Naza. ..."
+  "apa": "Clemente, N. (2026). Especificación normativa del log operativo (Version 9e55f82). ar-agents. https://doi.org/10.5281/zenodo.20159417",
+  "chicago": "Clemente, Nazareno. ..."
 }`}
       </pre>
 
