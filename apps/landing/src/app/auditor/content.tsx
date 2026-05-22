@@ -394,8 +394,8 @@ const T = {
     en: "Code-level breakdown of the log (code + reasoning, 11 sections).",
   },
   s7li4: {
-    es: "Modelo de amenazas, 14 escenarios.",
-    en: "Threat model, 14 scenarios.",
+    es: "Modelo de amenazas, 18 escenarios.",
+    en: "Threat model, 18 scenarios.",
   },
   s7li5: {
     es: "Demo anotado de 5 pasos: hacer una operación, ver cómo queda en el log, intentar manipularla y ver cómo se detecta.",
@@ -470,7 +470,7 @@ const T = {
   },
   s9p2: {
     es: "Esta es una página de un proyecto open-source. No es un documento oficial de ningún organismo. El régimen de sociedades-IA fue anunciado el 28 de abril de 2026 por el Ministerio de Desregulación; al momento de esta publicación, no hay aún ley aprobada. Esta infraestructura existe para que la conversación legislativa tenga un referente técnico concreto que mirar.",
-    en: "This is a page from an open-source project. It is not an official document from any agency. The sociedad-IA regime was announced on April 28, 2026 by the Argentine Ministry of Deregulation; at the time of this publication, there is no enacted law yet. This infrastructure exists so the legislative conversation has a concrete technical reference to look at.",
+    en: "This is a page from an open-source project. It is not an official document from any agency. The sociedad-IA regime was announced on April 28, 2026 by Argentina's Ministry of Deregulation and State Transformation; at the time of this publication, there is no enacted law yet. This infrastructure exists so the legislative conversation has a concrete technical reference to look at.",
   },
 } as const;
 
@@ -493,7 +493,7 @@ const AGENTS_JSON_SAMPLE = `{
     "jurisdiction": "AR",
     "type": "sociedad-ia",
     "operatorCuit": "${SAMPLE_CUIT}",
-    "operatorName": "Naza",
+    "operatorName": "Nazareno Clemente",
     "supervisionRegime": "rfc-001-v1"
   },
   "endpoints": {
@@ -526,7 +526,7 @@ export function AuditorContent({ lang }: { lang: Lang }) {
           datePublished: "2026-05-11",
           author: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
             email: "naza@naza.ar",
           },
           publisher: {

@@ -331,6 +331,22 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             }
           />
         </li>
+        <li>
+          <Link
+            href={lang === "es" ? "/implementacion" : "/en/implementation"}
+            style={linkSty}
+          >
+            <DocCode>
+              {lang === "es" ? "/implementacion" : "/en/implementation"}
+            </DocCode>
+          </Link>:{" "}
+
+          <L
+            lang={lang}
+            es="el documento técnico para el equipo redactor del proyecto de ley. Arquitectura sobre estándares abiertos preexistentes, cinco cláusulas operables sugeridas para el texto, y respuesta a las objeciones jurídicas planteadas en el debate público. MIT, citable, indicado para circular internamente en las áreas técnicas del Ministerio."
+            en="the technical document for the bill drafting team. Architecture on preexisting open standards, five suggested operable clauses for the text, and responses to the legal objections raised in the public debate. MIT, citable, intended for internal circulation in the Ministry's technical areas."
+          />
+        </li>
       </ul>
 
       <DocH2>
@@ -340,8 +356,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Un dato relevante para el debate legislativo: la objeción más previsible al proyecto va a ser que construir la infraestructura técnica para sociedades-IA es caro y lento. La implementación de referencia que adjunto demuestra lo contrario, fue escrita por una sola persona. El régimen no parte de cero, parte de un stack funcional ya disponible bajo licencia MIT."
-          en="A relevant point for the legislative debate: the most predictable objection to the proposal will be that building the technical infrastructure for AI corporations is expensive and slow. The reference implementation enclosed demonstrates the opposite, it was written by a single person. The regime does not start from zero; it starts from a functional stack already available under MIT license."
+          es="Un dato relevante para el debate legislativo: la objeción más previsible al proyecto va a ser que construir la infraestructura técnica para sociedades-IA es caro y lento. La implementación de referencia que adjunto demuestra lo contrario: ya existe, es funcional, está auditada y disponible bajo licencia MIT. El régimen no parte de cero, parte de un stack que ya opera."
+          en="A relevant point for the legislative debate: the most predictable objection to the proposal will be that building the technical infrastructure for AI corporations is expensive and slow. The reference implementation enclosed demonstrates the opposite: it already exists, is functional, audited, and available under MIT license. The regime does not start from zero; it starts from a stack that already operates."
         />
       </DocP>
 

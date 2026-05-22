@@ -18,7 +18,7 @@ export default function Rfc001Page() {
       subtitle="Cómo una sociedad de IA prueba quién es ante el Estado, firma transacciones, recibe notificaciones legales, y deposita impuestos. Implementación de referencia opinionada."
     >
       <p style={{ color: "var(--text-muted)", marginTop: -24 }}>
-        Status: <DocCode>draft-01</DocCode>. Author: Naza. Date:
+        Status: <DocCode>draft-01</DocCode>. Author: Nazareno Clemente. Date:
         2026-05-08. License: CC-BY-4.0. DOI:{" "}
         <a
           href="https://doi.org/10.5281/zenodo.20159396"

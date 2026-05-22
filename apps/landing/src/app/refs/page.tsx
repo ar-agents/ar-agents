@@ -27,7 +27,7 @@ const REFS: ReadonlyArray<Ref> = [
     url: "https://doi.org/10.5281/zenodo.20159396",
     title: "RFC-001: Three-layer civil liability framework for Argentine AI corporations",
     bibtex: `@techreport{clemente2026rfc001,
-  author      = {Naza},
+  author      = {Clemente, Nazareno},
   title       = {{RFC-001}: Three-layer civil liability framework for Argentine AI corporations},
   institution = {ar-agents},
   year        = {2026},
@@ -38,8 +38,8 @@ const REFS: ReadonlyArray<Ref> = [
   url         = {https://doi.org/10.5281/zenodo.20159396},
   note        = {CC-BY-4.0. Canonical: https://ar-agents.ar/rfcs/001}
 }`,
-    apa: `Naza (2026). RFC-001: Three-layer civil liability framework for Argentine AI corporations (Request for Comments No. 001, Version 1). ar-agents. https://doi.org/10.5281/zenodo.20159396`,
-    chicago: `Naza. "RFC-001: Three-layer civil liability framework for Argentine AI corporations." Request for Comments 001, ar-agents, 2026. https://doi.org/10.5281/zenodo.20159396.`,
+    apa: `Clemente, N. (2026). RFC-001: Three-layer civil liability framework for Argentine AI corporations (Request for Comments No. 001, Version 1). ar-agents. https://doi.org/10.5281/zenodo.20159396`,
+    chicago: `Clemente, Nazareno. "RFC-001: Three-layer civil liability framework for Argentine AI corporations." Request for Comments 001, ar-agents, 2026. https://doi.org/10.5281/zenodo.20159396.`,
   },
   {
     id: "rfc-002-v1",
@@ -47,7 +47,7 @@ const REFS: ReadonlyArray<Ref> = [
     url: "https://doi.org/10.5281/zenodo.20159407",
     title: "RFC-002: Agent-discovery-by-default convention",
     bibtex: `@techreport{clemente2026rfc002,
-  author      = {Naza},
+  author      = {Clemente, Nazareno},
   title       = {{RFC-002}: Agent-discovery-by-default convention},
   institution = {ar-agents},
   year        = {2026},
@@ -58,8 +58,8 @@ const REFS: ReadonlyArray<Ref> = [
   url         = {https://doi.org/10.5281/zenodo.20159407},
   note        = {CC-BY-4.0. Canonical: https://ar-agents.ar/rfcs/002}
 }`,
-    apa: `Naza (2026). RFC-002: Agent-discovery-by-default convention (Request for Comments No. 002, Version 1). ar-agents. https://doi.org/10.5281/zenodo.20159407`,
-    chicago: `Naza. "RFC-002: Agent-discovery-by-default convention." Request for Comments 002, ar-agents, 2026. https://doi.org/10.5281/zenodo.20159407.`,
+    apa: `Clemente, N. (2026). RFC-002: Agent-discovery-by-default convention (Request for Comments No. 002, Version 1). ar-agents. https://doi.org/10.5281/zenodo.20159407`,
+    chicago: `Clemente, Nazareno. "RFC-002: Agent-discovery-by-default convention." Request for Comments 002, ar-agents, 2026. https://doi.org/10.5281/zenodo.20159407.`,
   },
   {
     id: "rfc-003-draft",
@@ -67,7 +67,7 @@ const REFS: ReadonlyArray<Ref> = [
     url: "https://doi.org/10.5281/zenodo.20159411",
     title: "RFC-003: Cross-jurisdictional audit-log reciprocity",
     bibtex: `@techreport{clemente2026rfc003,
-  author      = {Naza},
+  author      = {Clemente, Nazareno},
   title       = {{RFC-003}: Cross-jurisdictional audit-log reciprocity},
   institution = {ar-agents},
   year        = {2026},
@@ -78,8 +78,8 @@ const REFS: ReadonlyArray<Ref> = [
   url         = {https://doi.org/10.5281/zenodo.20159411},
   note        = {CC-BY-4.0, draft. Canonical: https://ar-agents.ar/rfcs/003}
 }`,
-    apa: `Naza (2026). RFC-003: Cross-jurisdictional audit-log reciprocity (Request for Comments No. 003, Draft). ar-agents. https://doi.org/10.5281/zenodo.20159411`,
-    chicago: `Naza. "RFC-003: Cross-jurisdictional audit-log reciprocity." Request for Comments 003 (draft), ar-agents, 2026. https://doi.org/10.5281/zenodo.20159411.`,
+    apa: `Clemente, N. (2026). RFC-003: Cross-jurisdictional audit-log reciprocity (Request for Comments No. 003, Draft). ar-agents. https://doi.org/10.5281/zenodo.20159411`,
+    chicago: `Clemente, Nazareno. "RFC-003: Cross-jurisdictional audit-log reciprocity." Request for Comments 003 (draft), ar-agents, 2026. https://doi.org/10.5281/zenodo.20159411.`,
   },
   {
     id: "rfc-004-draft",
@@ -87,7 +87,7 @@ const REFS: ReadonlyArray<Ref> = [
     url: "https://doi.org/10.5281/zenodo.20159417",
     title: "RFC-004: Operational-log specification for AR AI corporations",
     bibtex: `@techreport{clemente2026rfc004,
-  author      = {Naza},
+  author      = {Clemente, Nazareno},
   title       = {{RFC-004}: Operational-log specification for AR AI corporations},
   institution = {ar-agents},
   year        = {2026},
@@ -98,8 +98,8 @@ const REFS: ReadonlyArray<Ref> = [
   url         = {https://doi.org/10.5281/zenodo.20159417},
   note        = {CC-BY-4.0, draft. Canonical: https://ar-agents.ar/rfcs/004}
 }`,
-    apa: `Naza (2026). RFC-004: Operational-log specification for AR AI corporations (Request for Comments No. 004, Draft). ar-agents. https://doi.org/10.5281/zenodo.20159417`,
-    chicago: `Naza. "RFC-004: Operational-log specification for AR AI corporations." Request for Comments 004 (draft), ar-agents, 2026. https://doi.org/10.5281/zenodo.20159417.`,
+    apa: `Clemente, N. (2026). RFC-004: Operational-log specification for AR AI corporations (Request for Comments No. 004, Draft). ar-agents. https://doi.org/10.5281/zenodo.20159417`,
+    chicago: `Clemente, Nazareno. "RFC-004: Operational-log specification for AR AI corporations." Request for Comments 004 (draft), ar-agents, 2026. https://doi.org/10.5281/zenodo.20159417.`,
   },
   {
     id: "rfc-005-draft",
@@ -107,7 +107,7 @@ const REFS: ReadonlyArray<Ref> = [
     url: "https://doi.org/10.5281/zenodo.20159424",
     title: "RFC-005: Asymmetric upgrade for the operational log",
     bibtex: `@techreport{clemente2026rfc005,
-  author      = {Naza},
+  author      = {Clemente, Nazareno},
   title       = {{RFC-005}: Asymmetric upgrade for the operational log},
   institution = {ar-agents},
   year        = {2026},
@@ -118,8 +118,27 @@ const REFS: ReadonlyArray<Ref> = [
   url         = {https://doi.org/10.5281/zenodo.20159424},
   note        = {CC-BY-4.0, draft. Canonical: https://ar-agents.ar/rfcs/005}
 }`,
-    apa: `Naza (2026). RFC-005: Asymmetric upgrade for the operational log (Request for Comments No. 005, Draft). ar-agents. https://doi.org/10.5281/zenodo.20159424`,
-    chicago: `Naza. "RFC-005: Asymmetric upgrade for the operational log." Request for Comments 005 (draft), ar-agents, 2026. https://doi.org/10.5281/zenodo.20159424.`,
+    apa: `Clemente, N. (2026). RFC-005: Asymmetric upgrade for the operational log (Request for Comments No. 005, Draft). ar-agents. https://doi.org/10.5281/zenodo.20159424`,
+    chicago: `Clemente, Nazareno. "RFC-005: Asymmetric upgrade for the operational log." Request for Comments 005 (draft), ar-agents, 2026. https://doi.org/10.5281/zenodo.20159424.`,
+  },
+  {
+    id: "rfc-006-draft",
+    type: "rfc",
+    url: "https://ar-agents.ar/rfcs/006",
+    title: "RFC-006: Hash-chained ledger + external anchoring profile",
+    bibtex: `@techreport{clemente2026rfc006,
+  author      = {Clemente, Nazareno},
+  title       = {{RFC-006}: Hash-chained ledger + external anchoring profile},
+  institution = {ar-agents},
+  year        = {2026},
+  type        = {{Request for Comments}},
+  number      = {006},
+  version     = {draft},
+  url         = {https://ar-agents.ar/rfcs/006},
+  note        = {CC-BY-4.0, draft. Zenodo deposit pending. Canonical: https://ar-agents.ar/rfcs/006}
+}`,
+    apa: `Clemente, N. (2026). RFC-006: Hash-chained ledger + external anchoring profile (Request for Comments No. 006, Draft). ar-agents. https://ar-agents.ar/rfcs/006`,
+    chicago: `Clemente, Nazareno. "RFC-006: Hash-chained ledger + external anchoring profile." Request for Comments 006 (draft), ar-agents, 2026. https://ar-agents.ar/rfcs/006.`,
   },
   {
     id: "test-vectors-rfc-004-v1",
@@ -127,15 +146,15 @@ const REFS: ReadonlyArray<Ref> = [
     url: "https://ar-agents.ar/test-vectors/rfc-004-v1.json",
     title: "RFC-004 v1 conformance test vectors",
     bibtex: `@misc{clemente2026testvectors,
-  author       = {Naza},
+  author       = {Clemente, Nazareno},
   title        = {{RFC-004 v1} conformance test vectors},
   year         = {2026},
   publisher    = {ar-agents},
   howpublished = {\\url{https://ar-agents.ar/test-vectors/rfc-004-v1.json}},
   note         = {Dataset, CC-BY-4.0}
 }`,
-    apa: `Naza (2026). RFC-004 v1 conformance test vectors [Dataset]. ar-agents. https://ar-agents.ar/test-vectors/rfc-004-v1.json`,
-    chicago: `Naza. "RFC-004 v1 conformance test vectors." Dataset, ar-agents, 2026. https://ar-agents.ar/test-vectors/rfc-004-v1.json.`,
+    apa: `Clemente, N. (2026). RFC-004 v1 conformance test vectors [Dataset]. ar-agents. https://ar-agents.ar/test-vectors/rfc-004-v1.json`,
+    chicago: `Clemente, Nazareno. "RFC-004 v1 conformance test vectors." Dataset, ar-agents, 2026. https://ar-agents.ar/test-vectors/rfc-004-v1.json.`,
   },
   {
     id: "ar-agents-toolkit",
@@ -143,22 +162,22 @@ const REFS: ReadonlyArray<Ref> = [
     url: "https://github.com/ar-agents/ar-agents",
     title: "ar-agents: Open-source infrastructure for Argentine AI corporations",
     bibtex: `@software{clemente2026aragents,
-  author       = {Naza},
+  author       = {Clemente, Nazareno},
   title        = {{ar-agents}: Open-source infrastructure for {Argentine} {AI} corporations},
   year         = {2026},
   publisher    = {GitHub},
   url          = {https://github.com/ar-agents/ar-agents},
   note         = {MIT license}
 }`,
-    apa: `Naza (2026). ar-agents: Open-source infrastructure for Argentine AI corporations [Computer software]. GitHub. https://github.com/ar-agents/ar-agents`,
-    chicago: `Naza. ar-agents: Open-source infrastructure for Argentine AI corporations. v0.x, 2026. https://github.com/ar-agents/ar-agents.`,
+    apa: `Clemente, N. (2026). ar-agents: Open-source infrastructure for Argentine AI corporations [Computer software]. GitHub. https://github.com/ar-agents/ar-agents`,
+    chicago: `Clemente, Nazareno. ar-agents: Open-source infrastructure for Argentine AI corporations. v0.x, 2026. https://github.com/ar-agents/ar-agents.`,
   },
 ];
 
 export const metadata: Metadata = {
   title: "/refs · academic citation entries · ar-agents",
   description:
-    "BibTeX, APA, and Chicago citation entries for the five RFCs (each with its own Zenodo DOI), the test-vectors dataset, and the open-source toolkit. For comparative-law scholars, AI-governance researchers, and anyone citing this work in academic literature.",
+    "BibTeX, APA, and Chicago citation entries for the six RFCs (each with its own Zenodo DOI), the test-vectors dataset, and the open-source toolkit. For comparative-law scholars, AI-governance researchers, and anyone citing this work in academic literature.",
   alternates: { canonical: "https://ar-agents.ar/refs" },
 };
 
@@ -200,7 +219,7 @@ export default function RefsPage() {
         </h1>
         <p style={{ fontSize: 16 }}>
           Pre-formatted citation entries for every published artifact:
-          the five RFCs (each deposited on Zenodo with its own DOI),
+          the six RFCs (each deposited on Zenodo with its own DOI),
           the test-vectors dataset, the open-source toolkit. For
           comparative-law scholars + AI-governance researchers + anyone
           citing this work in literature. All under CC-BY-4.0 (specs) or

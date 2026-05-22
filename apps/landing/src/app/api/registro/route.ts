@@ -37,7 +37,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "ar-agents (this site, reference implementation)",
     type: "reference-implementation",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://ar-agents.ar",
     rfcConformance: [
       "rfc-001-v1",
@@ -55,7 +55,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "mp-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://mp-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure:
@@ -67,7 +67,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "cuit-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://cuit-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure:
@@ -79,7 +79,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "whatsapp-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://whatsapp-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure:
@@ -91,7 +91,7 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     name: "bridge-hello demo",
     type: "demo",
     jurisdiction: "AR",
-    operator: "Naza",
+    operator: "Nazareno Clemente",
     publicUrl: "https://bridge-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure:
@@ -151,7 +151,7 @@ export async function GET(req: Request) {
         operatorCuit: filterOperatorCuit,
       },
       disclosure:
-        "Today (2026-05-13) all live entries are operated by the same CUIT (Naza). This is NOT a multi-operator ecosystem, it is the reference implementation + 4 demos by the author. Zero (0) productive sociedades-IA exist because the legal regime has not been enacted yet.",
+        "Today (2026-05-13) all live entries are operated by the same CUIT (Nazareno Clemente). This is NOT a multi-operator ecosystem, it is the reference implementation + 4 demos by the author. Zero (0) productive sociedades-IA exist because the legal regime has not been enacted yet.",
       entries,
     },
     {

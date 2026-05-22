@@ -196,7 +196,7 @@ export const EN = {
   pp_incorporate:
     "Zero-dependency TypeScript client for `ar-agents.ar/api/auto-incorporate`, lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
   pp_mcp:
-    "MCP server bundling all 16 tool-bearing packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
+    "MCP server bundling all 13 tool-bearing packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
 
   // quick start
   quick_h2: "Quick start",
@@ -231,7 +231,7 @@ export const EN = {
     "Sidecar packages cover the rest of the Argentine business stack. @ar-agents/identity (CUIT + AFIP/ARCA padron with monotributo + IVA), @ar-agents/facturacion (factura electronica WSFE), @ar-agents/whatsapp (Business Cloud API), @ar-agents/banking (CBU/CVU + BCRA Central de Deudores), @ar-agents/shipping (Andreani/OCA/Correo Argentino), @ar-agents/identity-attest (HMAC-signed verification orchestrator). Each ships independently.",
   faq_q7: "Is there an MCP server?",
   faq_a7:
-    "Yes. @ar-agents/mcp bundles all 7 packages into one MCP server compatible with Claude Desktop, Cursor, Codeium, Continue, Cline. Listed on Glama and the official MCP Registry as io.github.ar-agents/mcp.",
+    "Yes. @ar-agents/mcp bundles all 13 tool-bearing packages into one MCP server compatible with Claude Desktop, Cursor, Codeium, Continue, Cline. Listed on Glama and the official MCP Registry as io.github.ar-agents/mcp.",
 
   // footer
   footer_by: "MIT ·",
@@ -366,7 +366,7 @@ export const ES: Translations = {
   pp_incorporate:
     "Cliente TypeScript zero-dependency para `ar-agents.ar/api/auto-incorporate`, permite que un agente externo (USA-LLC, ChatGPT, Claude, Gemini) auto-incorpore una sociedad-IA argentina en una sola llamada. Devuelve los archivos generados, la URL de deploy en Vercel y la referencia firmada del audit-log.",
   pp_mcp:
-    "Servidor MCP que bundlea los 16 packages con tools. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
+    "Servidor MCP que bundlea los 13 packages con tools. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
 
   quick_h2: "Inicio rápido",
 
@@ -400,7 +400,7 @@ export const ES: Translations = {
     "Packages sidecar cubren el resto del stack argentino: @ar-agents/identity (CUIT + padrón AFIP/ARCA con monotributo + IVA), @ar-agents/facturacion (factura electrónica WSFE), @ar-agents/whatsapp (Business Cloud API), @ar-agents/banking (CBU/CVU + BCRA Central de Deudores), @ar-agents/shipping (Andreani/OCA/Correo Argentino), @ar-agents/identity-attest (orquestador de verificación HMAC). Cada uno se publica independiente.",
   faq_q7: "¿Hay servidor MCP?",
   faq_a7:
-    "Sí. @ar-agents/mcp bundlea los 7 packages en un único servidor MCP compatible con Claude Desktop, Cursor, Codeium, Continue, Cline. Listado en Glama y en el MCP Registry oficial como io.github.ar-agents/mcp.",
+    "Sí. @ar-agents/mcp bundlea los 13 packages con tools en un único servidor MCP compatible con Claude Desktop, Cursor, Codeium, Continue, Cline. Listado en Glama y en el MCP Registry oficial como io.github.ar-agents/mcp.",
 
   footer_by: "MIT ·",
   footer_report: "reportar un issue",

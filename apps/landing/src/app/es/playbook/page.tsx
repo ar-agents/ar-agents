@@ -208,7 +208,7 @@ export default function PlaybookEsPage() {
         el log es legalmente probatorio.
       </DocP>
       <DocP>
-        Threat model completo, 14 amenazas explícitas, 14 mitigaciones
+        Threat model completo, 18 amenazas explícitas, 18 mitigaciones
         explícitas, qué cubre la librería, qué es responsabilidad del
         host, qué queda fuera de scope, en{" "}
         <a href="/security" style={{ color: "var(--accent)" }}>/security</a>.

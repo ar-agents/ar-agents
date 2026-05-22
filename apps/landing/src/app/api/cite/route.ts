@@ -71,7 +71,7 @@ function buildCitations(rfc: RfcMeta, commit: string) {
 
   const bibtex = `@misc{ar-agents-rfc-${rfc.id}-${short},
   title  = {{RFC-${rfc.id}: ${rfc.title}}},
-  author = {{Naza}},
+  author = {{Clemente, Nazareno}},
   year   = {${year}},
   month  = {${month}},
   doi    = {${rfc.doi}},
@@ -79,9 +79,9 @@ function buildCitations(rfc: RfcMeta, commit: string) {
   note   = {ar-agents Open Infrastructure for Argentine AI corporations. Commit ${short}. Canonical: ${canonical}. License: CC-BY-4.0.}
 }`;
 
-  const apa = `Naza (${year}). RFC-${rfc.id}: ${rfc.title} (Version ${short}) [Technical specification]. ar-agents. ${doiUrl}`;
+  const apa = `Clemente, N. (${year}). RFC-${rfc.id}: ${rfc.title} (Version ${short}) [Technical specification]. ar-agents. ${doiUrl}`;
 
-  const chicago = `Naza. "RFC-${rfc.id}: ${rfc.title}." ar-agents Open Infrastructure for Argentine AI corporations. Version ${short} (${rfc.date}). ${doiUrl}.`;
+  const chicago = `Clemente, Nazareno. "RFC-${rfc.id}: ${rfc.title}." ar-agents Open Infrastructure for Argentine AI corporations. Version ${short} (${rfc.date}). ${doiUrl}.`;
 
   return {
     url,
@@ -140,7 +140,7 @@ export async function GET(req: Request) {
       commit: commitRaw,
       title: rfc.title,
       titleEn: rfc.titleEn,
-      author: "Naza",
+      author: "Nazareno Clemente",
       date: rfc.date,
       license: "CC-BY-4.0",
       doi: cites.doi,

@@ -18,6 +18,11 @@ interface NavItem {
 
 const NAV: ReadonlyArray<NavItem> = [
   {
+    href: { es: "/implementacion", en: "/en/implementation" },
+    label: { es: "Implementación", en: "Implementation" },
+    matchPrefixes: ["/implementacion", "/en/implementation"],
+  },
+  {
     href: { es: "/sociedades-ia", en: "/en/ai-corporations" },
     label: { es: "Tesis", en: "Thesis" },
     matchPrefixes: ["/sociedades-ia", "/en/ai-corporations"],

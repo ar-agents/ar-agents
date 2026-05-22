@@ -22,6 +22,24 @@ const csp = [
   "upgrade-insecure-requests",
 ].join("; ");
 
+// Narrow exception for published PDF artifacts so /implementacion (and any
+// future doc page) can render its own PDF inline via <iframe>. Same-origin
+// only — third-party sites still can't frame our PDFs. The rest of the
+// policy stays strict.
+const cspPdf = [
+  "default-src 'self'",
+  "script-src 'self' 'unsafe-inline'",
+  "style-src 'self' 'unsafe-inline'",
+  "img-src 'self' data: blob:",
+  "font-src 'self' data:",
+  "connect-src 'self'",
+  "object-src 'none'",
+  "base-uri 'self'",
+  "form-action 'self'",
+  "frame-ancestors 'self'",
+  "upgrade-insecure-requests",
+].join("; ");
+
 const securityHeaders = [
   { key: "Content-Security-Policy", value: csp },
   { key: "X-Frame-Options", value: "DENY" },
@@ -53,6 +71,18 @@ const nextConfig: NextConfig = {
       {
         source: "/:path*",
         headers: securityHeaders,
+      },
+      // PDF carve-out: relax frame-ancestors / X-Frame-Options to SAMEORIGIN
+      // so the /implementacion page can render its own published PDF inline
+      // in an <iframe>. Latter rules override the earlier matching headers.
+      // No third-party can frame the PDF (CSP frame-ancestors 'self' still
+      // blocks cross-origin).
+      {
+        source: "/:path*.pdf",
+        headers: [
+          { key: "Content-Security-Policy", value: cspPdf },
+          { key: "X-Frame-Options", value: "SAMEORIGIN" },
+        ],
       },
     ];
   },

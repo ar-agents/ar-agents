@@ -255,7 +255,7 @@ export default function HighlightsPage() {
 
         <Section title="Contact">
           <P>
-            <strong>Naza</strong> · author + maintainer ·
+            <strong>Nazareno Clemente</strong> · author + maintainer ·
             Monte Grande, BA, Argentina.
           </P>
           <P>

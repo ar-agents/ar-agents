@@ -35,6 +35,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
   const audPath = lang === "es" ? "/auditor" : "/en/auditor";
   const manPath = lang === "es" ? "/manifiesto" : "/en/manifesto";
   const minPath = lang === "es" ? "/al-ministro" : "/en/to-the-minister";
+  const implPath = lang === "es" ? "/implementacion" : "/en/implementation";
   const jurPath = lang === "es" ? "/jurisdicciones" : "/en/jurisdictions";
   const cofPath = lang === "es" ? "/co-firmar" : "/en/co-sign";
   const cloudPath = lang === "es" ? "/cloud" : "/en/cloud";
@@ -150,7 +151,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>Naza</strong>, 26 años, monotributista
+              <strong>Nazareno Clemente</strong>, 26 años, monotributista
               categoría A (servicios informáticos),
               domicilio en Monte Grande, Buenos Aires. Sin formación
               jurídica formal. Sin financiamiento estatal, sin
@@ -166,7 +167,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
           }
           en={
             <>
-              <strong>Naza</strong>, 26, monotributista
+              <strong>Nazareno Clemente</strong>, 26, monotributista
               category A (IT services), based in
               Monte Grande, Buenos Aires. No formal legal training. No
               state funding, no private funding, no contracts with
@@ -220,7 +221,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>5 RFCs</strong> publicados bajo CC-BY-4.0,
+                <strong>6 RFCs</strong> publicados bajo CC-BY-4.0,
                 propuestas técnico-normativas que la legislación puede
                 incorporar <em>cite-by-reference</em>. Texto sugerido
                 para articulado en{" "}
@@ -232,7 +233,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>5 RFCs</strong> published under CC-BY-4.0,
+                <strong>6 RFCs</strong> published under CC-BY-4.0,
                 technical-normative proposals that legislation can
                 incorporate <em>cite-by-reference</em>. Suggested text
                 for the articulado at{" "}
@@ -352,7 +353,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Trabajo técnico previo:</strong> los 5 RFCs
+                <strong>Trabajo técnico previo:</strong> los 6 RFCs
                 cubren las decisiones operacionales que cualquier diseño
                 regulatorio del régimen tendría que tomar igual.
                 Estimación honesta: 4-6 meses de definición técnica +
@@ -362,7 +363,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>Prior technical work:</strong> the 5 RFCs cover
+                <strong>Prior technical work:</strong> the 6 RFCs cover
                 the operational decisions any regulatory design would
                 have to make anyway. Honest estimate: 4-6 months of
                 technical definition + peer review already done,
@@ -865,8 +866,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Una ley redactada sin input técnico tiende a fijar definiciones que después complican la implementación: estándares criptográficos obsoletos, asunciones sobre identidad digital que chocan con OIDC/PKCE, requisitos de retención que ignoran cómo funciona realmente un audit log append-only. Los 5 RFCs cubren esas decisiones desde el lado del código. Si llegamos antes que el draft del articulado, evitamos errores costosos de revertir después; si llegamos después, los errores se cristalizan."
-          en="A bill drafted without technical input tends to fix definitions that later complicate implementation: obsolete cryptographic standards, digital-identity assumptions that clash with OIDC/PKCE, retention requirements that ignore how an append-only audit log actually works. The 5 RFCs cover those decisions from the code side. If we get there before the articulado draft, we avoid costly reversals; if we arrive after, the errors crystallize."
+          es="Una ley redactada sin input técnico tiende a fijar definiciones que después complican la implementación: estándares criptográficos obsoletos, asunciones sobre identidad digital que chocan con OIDC/PKCE, requisitos de retención que ignoran cómo funciona realmente un audit log append-only. Los 6 RFCs cubren esas decisiones desde el lado del código. Si llegamos antes que el draft del articulado, evitamos errores costosos de revertir después; si llegamos después, los errores se cristalizan."
+          en="A bill drafted without technical input tends to fix definitions that later complicate implementation: obsolete cryptographic standards, digital-identity assumptions that clash with OIDC/PKCE, retention requirements that ignore how an append-only audit log actually works. The 6 RFCs cover those decisions from the code side. If we get there before the articulado draft, we avoid costly reversals; if we arrive after, the errors crystallize."
         />
       </DocP>
       <DocP>
@@ -881,7 +882,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
         <L lang={lang} es="8 · Contacto" en="8 · Contact" />
       </DocH2>
       <DocP>
-        <strong>Naza</strong>
+        <strong>Nazareno Clemente</strong>
         <br />
         Email:{" "}
         <a href="mailto:naza@naza.ar" style={linkSty}>
@@ -937,10 +938,21 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
       </DocH2>
       <ul style={ulSty}>
         <li style={liSty}>
+          <Link href={implPath} style={linkSty}>
+            {lang === "es" ? "/implementacion" : "/en/implementation"}
+          </Link>:{" "}
+
+          <L
+            lang={lang}
+            es="documento canónico de referencia para el equipo redactor, PDF firmado Ed25519, verificable offline."
+            en="canonical reference document for the bill drafting team, Ed25519-signed PDF, verifiable offline."
+          />
+        </li>
+        <li style={liSty}>
           <Link href={minPath} style={linkSty}>
             {lang === "es" ? "/al-ministro" : "/to-the-minister"}
           </Link>:{" "}
-         
+
           <L
             lang={lang}
             es="carta abierta personal, CC0, 9-may-2026."
@@ -976,8 +988,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
          
           <L
             lang={lang}
-            es="comparativa con Wyoming / Marshall / Estonia / Singapore."
-            en="comparison with Wyoming / Marshall / Estonia / Singapore."
+            es="comparativa con Wyoming / Marshall / Estonia / Singapur / Suiza / Liechtenstein."
+            en="comparison with Wyoming / Marshall / Estonia / Singapore / Switzerland / Liechtenstein."
           />
         </li>
         <li style={liSty}>
@@ -985,14 +997,14 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             /rfcs/001
           </Link>{" "}
           a{" "}
-          <Link href="/rfcs/005" style={linkSty}>
-            /rfcs/005
+          <Link href="/rfcs/006" style={linkSty}>
+            /rfcs/006
           </Link>:{" "}
-         
+
           <L
             lang={lang}
-            es="las 5 specs técnicas."
-            en="the 5 technical specs."
+            es="las 6 specs técnicas."
+            en="the 6 technical specs."
           />
         </li>
         <li style={liSty}>

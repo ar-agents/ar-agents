@@ -26,7 +26,7 @@ export function RfcDisclaimer() {
         Not an IETF RFC.
       </strong>{" "}
       These specs are open-source drafts authored by an independent
-      developer (Naza). The &ldquo;RFC&rdquo; naming follows
+      developer (Nazareno Clemente). The &ldquo;RFC&rdquo; naming follows
       the IETF style (numbered, versioned, status, CC-licensed) but does{" "}
       <strong>not</strong> imply IETF, IRTF, or any standards-body
       endorsement. The documents are technical proposals open to public

@@ -33,7 +33,7 @@ const TIERS: ReadonlyArray<Tier> = [
     status: "available",
     features: [
       { es: "17 packages npm bajo @ar-agents/*", en: "17 npm packages under @ar-agents/*" },
-      { es: "5 RFCs CC-BY-4.0 + test vectors", en: "5 CC-BY-4.0 RFCs + test vectors" },
+      { es: "6 RFCs CC-BY-4.0 + test vectors", en: "6 CC-BY-4.0 RFCs + test vectors" },
       { es: "Reference implementation completa", en: "Complete reference implementation" },
       { es: "Deploy a Vercel / Cloudflare / Deno / cualquier Edge", en: "Deploy to Vercel / Cloudflare / Deno / any Edge" },
       { es: "Documentación + cookbook + AGENTS.md por package", en: "Docs + cookbook + AGENTS.md per package" },
@@ -383,7 +383,7 @@ export function CloudContent({ lang }: { lang: Lang }) {
               ["Resend", "react-email primitives", { es: "Sending pipeline, dashboard, SLA", en: "Sending pipeline, dashboard, SLA" }],
               ["Linear", "CLI primitives, integrations", { es: "Issue tracking SaaS, enterprise SSO", en: "Issue tracking SaaS, enterprise SSO" }],
               ["Cal.com", { es: "Toda la stack open-source", en: "Whole stack open-source" }, { es: "Hosting, white-label, enterprise", en: "Hosting, white-label, enterprise" }],
-              ["ar-agents", { es: "17 npm packages, 5 RFCs, reference impl", en: "17 npm packages, 5 RFCs, reference impl" }, { es: "Studio · Government · Bespoke (esta página)", en: "Studio · Government · Bespoke (this page)" }],
+              ["ar-agents", { es: "17 npm packages, 6 RFCs, reference impl", en: "17 npm packages, 6 RFCs, reference impl" }, { es: "Studio · Government · Bespoke (esta página)", en: "Studio · Government · Bespoke (this page)" }],
             ].map((row, i) => {
               const [name, oss, paid] = row;
               const isAr = name === "ar-agents";

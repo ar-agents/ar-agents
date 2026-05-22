@@ -111,8 +111,8 @@ const ROWS: ReadonlyArray<BilingualRow> = [
   {
     capa: { es: "Spec citable", en: "Citable spec" },
     ar: {
-      es: "RFC-001..005, drafts open-source, CC-BY-4.0. Hoy NO tienen DOI / archivo institucional. Aviso explícito en cada RFC.",
-      en: "RFC-001..005, open-source drafts, CC-BY-4.0. Today NO DOI / institutional archive. Explicit disclaimer on every RFC.",
+      es: "RFC-001..006, drafts open-source, CC-BY-4.0. Hoy NO tienen DOI / archivo institucional. Aviso explícito en cada RFC.",
+      en: "RFC-001..006, open-source drafts, CC-BY-4.0. Today NO DOI / institutional archive. Explicit disclaimer on every RFC.",
     },
     wyoming: {
       es: "Wyoming Statutes Title 17 Chapter 31, ley federal del estado. Citable inmediatamente.",
@@ -157,7 +157,7 @@ const ROWS: ReadonlyArray<BilingualRow> = [
   {
     capa: { es: "Open-source", en: "Open-source" },
     ar: {
-      es: "Todo: 17 packages MIT, 5 RFCs CC-BY-4.0, audit lib reference.",
+      es: "Todo: 17 packages MIT, 6 RFCs CC-BY-4.0, audit lib reference.",
       en: "Everything: 17 MIT packages, 5 CC-BY-4.0 RFCs, reference audit lib.",
     },
     wyoming: {
@@ -224,7 +224,7 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
               ? "https://ar-agents.ar/jurisdicciones"
               : "https://ar-agents.ar/en/jurisdictions",
           datePublished: "2026-05-13",
-          author: { "@type": "Person", name: "Naza" },
+          author: { "@type": "Person", name: "Nazareno Clemente" },
         }}
       />
 

@@ -23,7 +23,7 @@ const FAQS: Q[] = [
   {
     audience: "regulator",
     q: "¿Qué es ar-agents? ¿Es un proyecto del gobierno?",
-    a: 'No. ar-agents es un proyecto open-source civil-comercial, escrito por Naza. Sin financiamiento estatal, sin relación contractual con ningún ministerio. La iniciativa pública relevante es el anuncio Sturzenegger del 28-abr-2026; ar-agents es la implementación de referencia técnica que un proyecto así necesita para operar el día 1. MIT-licensed, públicamente auditable en <a href="https://github.com/ar-agents/ar-agents">github.com/ar-agents/ar-agents</a>.',
+    a: 'No. ar-agents es un proyecto open-source civil-comercial, escrito por Nazareno Clemente. Sin financiamiento estatal, sin relación contractual con ningún ministerio. La iniciativa pública relevante es el anuncio Sturzenegger del 28-abr-2026; ar-agents es la implementación de referencia técnica que un proyecto así necesita para operar el día 1. MIT-licensed, públicamente auditable en <a href="https://github.com/ar-agents/ar-agents">github.com/ar-agents/ar-agents</a>.',
   },
   {
     audience: "regulator",

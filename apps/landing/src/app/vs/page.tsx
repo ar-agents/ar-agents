@@ -93,7 +93,7 @@ const ROWS: Row[] = [
   },
   {
     dimension: "Threat model público",
-    ours: { value: "14 amenazas", tone: "pos" },
+    ours: { value: "18 amenazas", tone: "pos" },
     afipsdk: { value: "No", tone: "neg" },
     handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "Cerrado", tone: "neg" },

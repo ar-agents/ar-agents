@@ -496,8 +496,8 @@ export default function Home() {
               role={lang === "es" ? "Para legisladores" : "For legislators"}
               body={
                 lang === "es"
-                  ? "Síntesis técnica de los 5 RFCs con texto sugerido cite-by-reference. Para quien esté redactando la ley."
-                  : "Technical synthesis of the 5 RFCs with suggested cite-by-reference legislative text. For whoever is drafting the bill."
+                  ? "Síntesis técnica de los 6 RFCs con texto sugerido cite-by-reference. Para quien esté redactando la ley."
+                  : "Technical synthesis of the 6 RFCs with suggested cite-by-reference legislative text. For whoever is drafting the bill."
               }
               cta={lang === "es" ? "Abrir /legislación" : "Open /legislation"}
               href={lang === "es" ? "/legislacion" : "/en/legislation"}
@@ -1307,7 +1307,7 @@ export default function Home() {
                 href="https://github.com/naza00000"
                 style={footerLinkSty}
               >
-                Naza
+                Nazareno Clemente
               </a>
             </span>
             <span style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>

@@ -127,7 +127,7 @@ export function DocShell({ eyebrow, title, subtitle, children }: DocShellProps) 
                 href="https://github.com/naza00000"
                 style={shellLinkSty}
               >
-                Naza
+                Nazareno Clemente
               </a>
             </span>
             <span>

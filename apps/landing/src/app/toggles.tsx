@@ -170,6 +170,7 @@ const ES_TO_EN: Record<string, string> = {
   "/co-firmar": "/en/co-sign",
   "/economia-del-regimen": "/en/regime-economics",
   "/gobierno": "/en/government",
+  "/implementacion": "/en/implementation",
   "/jurisdicciones": "/en/jurisdictions",
   "/legislacion": "/en/legislation",
   "/manifiesto": "/en/manifesto",

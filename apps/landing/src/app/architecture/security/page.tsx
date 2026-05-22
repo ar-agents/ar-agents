@@ -4,7 +4,7 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 export const metadata: Metadata = {
   title: "/architecture/security · what the code actually does to prevent each threat",
   description:
-    "Code-level walkthrough of how each of the 14 threats in /security is mitigated. The companion to /architecture/audit-log, same depth, security side.",
+    "Code-level walkthrough of how each of the 18 threats in /security is mitigated. The companion to /architecture/audit-log, same depth, security side.",
   alternates: {
     canonical: "https://ar-agents.ar/architecture/security",
   },
@@ -250,13 +250,13 @@ export default function ArchitectureSecurityPage() {
           <a href="/security" style={{ color: "var(--accent)" }}>
             /security
           </a>{" "}
-          lists 14 threats × 14 mitigations in tabular form. This page
+          lists 18 threats × 18 mitigations in tabular form. This page
           picks 8 of the highest-stakes mitigations and walks them
           line-by-line: which file the code lives in, what it does, and
           what would mechanically break if it were removed.
         </DocP>
         <DocP>
-          For T1, T2, T3, T5, T6, T9, T11, T12, the rest of the 14 follow
+          For T1, T2, T3, T5, T6, T9, T11, T12, the rest of the 18 follow
           the same pattern; the source is small enough to read end-to-end
           in &lt; 1h.
         </DocP>

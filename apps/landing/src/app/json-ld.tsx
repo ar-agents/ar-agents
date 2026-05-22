@@ -43,7 +43,7 @@ export function HomeJsonLd() {
           sameAs: [REPO_URL, "https://www.npmjs.com/org/ar-agents"],
           founder: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
             email: "naza@naza.ar",
           },
           areaServed: {
@@ -90,7 +90,7 @@ export function HomeJsonLd() {
           aggregateRating: undefined,
           author: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
           },
         }}
       />
@@ -117,7 +117,7 @@ export function SdkJsonLd() {
           downloadUrl: "https://www.npmjs.com/package/@ar-agents/incorporate",
           author: {
             "@type": "Person",
-            name: "Naza",
+            name: "Nazareno Clemente",
           },
         }}
       />
@@ -148,7 +148,7 @@ export function RfcJsonLd({
         datePublished,
         author: {
           "@type": "Person",
-          name: "Naza",
+          name: "Nazareno Clemente",
           email: "naza@naza.ar",
         },
         publisher: {
@@ -248,7 +248,7 @@ export function SociedadesIaJsonLd() {
         url: `${SITE_URL}/sociedades-ia`,
         author: {
           "@type": "Person",
-          name: "Naza",
+          name: "Nazareno Clemente",
         },
         publisher: {
           "@type": "Organization",
@@ -283,9 +283,9 @@ export function SecurityJsonLd() {
         "@type": "TechArticle",
         headline: "Security threat model · ar-agents",
         description:
-          "14 explicit threats, 14 explicit mitigations. STRIDE-inspired threat model for an agent toolkit that moves money in Argentina.",
+          "18 explicit threats, 18 explicit mitigations. STRIDE-inspired threat model for an agent toolkit that moves money in Argentina.",
         url: `${SITE_URL}/security`,
-        author: { "@type": "Person", name: "Naza" },
+        author: { "@type": "Person", name: "Nazareno Clemente" },
         publisher: {
           "@type": "Organization",
           name: "ar-agents",

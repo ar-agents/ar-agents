@@ -88,7 +88,7 @@ Para regulators / journalists: ar-agents.ar/auditor`,
 
 Estimado/a [nombre del asesor],
 
-Me presento: soy Naza, autor de las RFCs y la infraestructura publicada en ar-agents.ar.
+Me presento: soy Nazareno Clemente, autor de las RFCs y la infraestructura publicada en ar-agents.ar.
 
 Después del anuncio del Min. Sturzenegger del 28-abr-2026, dediqué el mes a publicar la infraestructura técnica que un régimen de sociedades-IA necesita para ser operativizable. El resultado:
 
@@ -105,7 +105,7 @@ Adjunto la síntesis técnica de 10 minutos para legisladores: ar-agents.ar/legi
 Quedo disponible para una reunión técnica si encuentran útil el trabajo. Cualquier crítica al diseño es bienvenida vía GitHub Discussions; el proceso es público.
 
 Saludos,
-Naza
+Nazareno Clemente
 naza@naza.ar
 Monte Grande, BA`,
     notes: "Best for: cold outreach to ministerial staff. Argentine Spanish, formal but not stiff. Lead with credentials (CUIT) + the work. Single ask at the end (meeting). Attach NOTHING, link out.",
@@ -122,7 +122,7 @@ I'm writing because you covered [recent piece by them, paste link here].
 
 Argentina announced an "AI corporation" (sociedad-IA) regime on April 28, 2026. I'm not a government employee; I'm a Buenos Aires-based engineer who decided not to wait for the law text and instead published the technical infrastructure such a regime would need.
 
-The result is four RFCs + an open-source reference implementation at ar-agents.ar:
+The result is six RFCs + an open-source reference implementation at ar-agents.ar:
 
 1. RFC-001, Three-layer civil-liability framework (operator / AI corporation / model provider).
 2. RFC-002, Discovery via /.well-known/agents.json. No central registry.
@@ -143,7 +143,7 @@ Spanish (for AR legislators) at: ar-agents.ar/legislacion
 Happy to be a technical source on this. CV/links on request.
 
 Best,
-Naza
+Nazareno Clemente
 naza@naza.ar
 +34 695 63 22 37`,
     notes: "Best for: international press. English. Lead with their recent work (personalize). The 'jurisdiction-agnostic' angle is the international hook. Phone number signals seriousness.",
@@ -170,7 +170,7 @@ El diseño busca explícitamente reconciliar la auditabilidad regulatoria con lo
 Si encuentran útil dialogar sobre el diseño desde la perspectiva de AAIP, quedo a disposición. Toda crítica que mejore el spec beneficia a cualquier operador futuro.
 
 Saludos,
-Naza
+Nazareno Clemente
 naza@naza.ar`,
     notes: "Best for: AAIP staff or analogous data-protection lawyers. Argentine Spanish. Demonstrate that you've already thought about Ley 25.326, that establishes credibility instantly with this audience.",
   },

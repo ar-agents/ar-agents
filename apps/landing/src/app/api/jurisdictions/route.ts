@@ -138,7 +138,7 @@ const ROWS: ReadonlyArray<Row> = [
     layer: "Citable spec",
     argentina: {
       description:
-        "RFC-001..005, open-source drafts, CC-BY-4.0. Today NO DOI / institutional archive. Explicit disclaimer on each RFC. Zenodo archival on roadmap.",
+        "RFC-001..006, open-source drafts, CC-BY-4.0. Today NO DOI / institutional archive. Explicit disclaimer on each RFC. Zenodo archival on roadmap.",
       status: "proposal",
     },
     wyoming: {
@@ -191,7 +191,7 @@ const ROWS: ReadonlyArray<Row> = [
     layer: "Open-source posture",
     argentina: {
       description:
-        "Everything: 17 packages MIT, 5 RFCs CC-BY-4.0, audit lib reference.",
+        "Everything: 17 packages MIT, 6 RFCs CC-BY-4.0, audit lib reference.",
       status: "operational",
     },
     wyoming: {

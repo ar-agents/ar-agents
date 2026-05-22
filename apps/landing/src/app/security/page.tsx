@@ -5,7 +5,7 @@ import { SecurityJsonLd } from "../json-ld";
 export const metadata: Metadata = {
   title: "Security threat model",
   description:
-    "Explicit threat model for the @ar-agents/* stack: 14 attack surfaces, 14 mitigations, what's covered, what's outside scope.",
+    "Explicit threat model for the @ar-agents/* stack: 18 attack surfaces, 18 mitigations, what's covered, what's outside scope. Includes key-compromise, anchor outage, insider-mutation, and cert-rotation rows applicable to sociedades-IA operators.",
   alternates: { canonical: "https://ar-agents.ar/security" },
 };
 
@@ -131,6 +131,38 @@ const THREATS: ThreatRow[] = [
       "Out of scope. MP's fraud team runs the detection; the toolkit's job is to surface their verdict via explainPaymentStatus(). Recipe 13 (anti-fraud middleware) layers additional pre-charge heuristics (CUIT validity, payer history, velocity, BCRA cross-check).",
     status: "out-of-scope",
   },
+  {
+    id: "T15",
+    threat:
+      "Audit-signing Ed25519 private key compromise. The operator's RFC-005 signing key is exfiltrated; attacker forges historical audit entries that verify against the published public key.",
+    mitigation:
+      "RFC-001 §3.2 mandates HSM/KMS custody for sociedades-IA in production (AWS KMS / GCP Cloud HSM / Azure Key Vault / on-prem HSM — never raw filesystem). RFC-005 §6 specifies rotation: emit a `signing-key-rotated` audit entry signed by the OLD key naming the NEW keyId, publish the new key in /.well-known/sociedad-ia/keys with overlapping validFrom window. The RFC-006 anchor sub-chain (see T17) makes post-rotation forgeries detectable because any forged entry breaks reconciliation with the global anchor head.",
+    status: "host-responsibility",
+  },
+  {
+    id: "T16",
+    threat:
+      "Anchor service outage or rollback. The external timestamping target (TSA RFC 3161, opentimestamps, NIST randomness beacon, public-registry endpoint) goes offline or reorgs; attacker exploits the unanchored window to backdate or rewrite entries.",
+    mitigation:
+      "RFC-006 §6 anchor sub-chain is itself HMAC-chained, so a missing anchor leaves a gap but does NOT break the inner ledger — replay-from-genesis still verifies every entry. Recommended host posture is multi-anchor fallback (concurrent posting to ≥2 independent services). `arg-verify bundle` surfaces any unanchored window explicitly in its output so a regulator sees the gap rather than inheriting a false sense of continuity.",
+    status: "host-responsibility",
+  },
+  {
+    id: "T17",
+    threat:
+      "Insider operator mutating audit log within the unanchored TTL. The operador designado (or a compromised insider with write access) modifies a recent audit entry before the next anchor seals it, hiding fraud committed inside that window.",
+    mitigation:
+      "Append-only sink with row-level immutability (Postgres immutable rows / S3 object-lock / Vercel KV version-tag enforcement) blocks in-place mutation at the storage layer. RFC-006 prev-hash chain makes retroactive modification cascade — any altered entry forces re-chaining of every subsequent entry, visible as monotonic-counter discontinuity to the verifier. Hosts running high-value workloads SHOULD anchor on every transaction batch (not just daily) to compress the unanchored window from hours to seconds.",
+    status: "in-toolkit",
+  },
+  {
+    id: "T18",
+    threat:
+      "X.509 / ARCA certificate rotation gap. The production WSAA cert expires without overlap; agent stops issuing factura electrónica mid-day and the audit log shows a gap that looks like compliance failure.",
+    mitigation:
+      "RFC-001 §6.2 documents the renewal calendar: register the next cert ≥30 days before expiry, run a dual-cert overlap window (T-30 → T+0) where both certs are valid against ARCA, switch traffic to the new keyId, retire the old cert after 7 days of successful WSAA tokens. The rotation emits a `cert-rotated` audit entry signed by BOTH keys, anchoring the transition into the audit chain so an auditor can prove key continuity. Currently documented as procedure; automating the rotation cron is an open task (host-responsibility for v1; tracked for in-toolkit promotion).",
+    status: "host-responsibility",
+  },
 ];
 
 const STATUS_LABEL: Record<ThreatRow["status"], string> = {
@@ -150,7 +182,7 @@ export default function SecurityPage() {
     <DocShell
       eyebrow="security · threat model"
       title="Security threat model."
-      subtitle="14 explicit threats, 14 explicit mitigations. What the toolkit covers, what the host is responsible for, what's out of scope. Updated for every release."
+      subtitle="18 explicit threats, 18 explicit mitigations. What the toolkit covers, what the host is responsible for, what's out of scope. Includes the four sociedades-IA operator rows (key compromise, anchor outage, insider mutation, cert rotation). Updated for every release."
     >
       <DocBlock>
         <DocP>
@@ -177,7 +209,7 @@ export default function SecurityPage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>The 14 threats</DocH2>
+      <DocH2>The 18 threats</DocH2>
 
       <div style={{ display: "grid", gap: 12, marginBottom: 32 }}>
         {THREATS.map((t) => (

@@ -25,7 +25,7 @@ const spec = {
       "The endpoints below are all unauthenticated + idempotent in their default verbs (GET). POST endpoints are explicitly marked; some are rate-limited. The audit-log endpoints implement RFC-004 v1; the discovery endpoint implements RFC-002 v1; the auto-incorporate endpoint implements the wizard backing RFC-001 § 6.\n\nMachine-readable schema. Source: https://ar-agents.ar/api/openapi",
     version: "1.0.0",
     contact: {
-      name: "Naza",
+      name: "Nazareno Clemente",
       email: "naza@naza.ar",
       url: "https://ar-agents.ar",
     },

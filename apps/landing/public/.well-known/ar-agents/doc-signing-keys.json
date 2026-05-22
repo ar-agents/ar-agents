@@ -1,0 +1,16 @@
+{
+  "version": 1,
+  "$comment": "Public document-signing keys for ar-agents.ar artifacts (PDFs, specs, attestations).",
+  "keys": [
+    {
+      "keyId": "nazareno-2026-05-21",
+      "algorithm": "ed25519",
+      "publicKey": "MCowBQYDK2VwAyEANuYqno5bpA746cNukCYPX35eFvhLBwNyONKfzSnODn4",
+      "owner": "Nazareno Clemente",
+      "email": "naza@naza.ar",
+      "issuedAt": "2026-05-21T16:44:24.794Z",
+      "purpose": "document-signing",
+      "status": "active"
+    }
+  ]
+}

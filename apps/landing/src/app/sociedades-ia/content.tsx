@@ -222,8 +222,8 @@ const T = {
     en: "If you're drafting the bill, or advising someone who is, the following documents are ready to cite by reference instead of rewriting concepts from scratch:",
   },
   legisLi1: {
-    es: "Síntesis de los 4 RFCs en una sola página, con texto sugerido para el articulado.",
-    en: "Synthesis of the 4 RFCs on a single page, with suggested text for the articulado.",
+    es: "Síntesis de los 6 RFCs en una sola página, con texto sugerido para el articulado.",
+    en: "Synthesis of the 6 RFCs on a single page, with suggested text for the articulado.",
   },
   legisLi2: {
     es: "Marco de responsabilidad civil de 3 capas (operador / sociedad-IA / proveedor de modelo).",
@@ -359,7 +359,7 @@ const AGENT_FLOW = `// Transcripción simulada: una sociedad-IA "ACME-AI SAS" se
 
   → @ar-agents/firma-digital
     firma_inspect_cert({ cert_pem: "<oficial-digital>" })
-      ← cuit: "XXXXXXXXXXX", isOntiIssued: true, commonName: "Naza"
+      ← cuit: "XXXXXXXXXXX", isOntiIssued: true, commonName: "Nazareno Clemente"
     Oficial digital validado.
 
   → @ar-agents/identity
