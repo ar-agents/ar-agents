@@ -839,6 +839,107 @@ function cmdProject(args) {
   process.exit(0);
 }
 
+// ── `file` (detached Ed25519 signature over an arbitrary file) ──────────
+// Verifies a sidecar `<file>.sig.json` manifest against the file's bytes.
+// Used for published artifacts that live outside the RFC-004/005/006 entry
+// shape — e.g. a PDF of the implementation reference, a spec snapshot, an
+// announcement document. The manifest schema is intentionally tiny so a
+// third party can reproduce it with `openssl` if they want to:
+//   {
+//     "file": "<basename>",
+//     "sizeBytes": <int>,
+//     "sha256": "<hex>",
+//     "algorithm": "ed25519",
+//     "keyId": "<id>",
+//     "publicKey": "<base64url SPKI DER>",
+//     "signature": "<base64url Ed25519 over the raw file bytes>",
+//     "signedAt": "<ISO-8601>",
+//     "signedBy": { "name": "...", "email": "..." },
+//     "keyDirectory": "<https URL to a doc-signing-keys.json keyset>"
+//   }
+//
+// The publicKey in the manifest is the trust root; if a caller wants to
+// double-check it against the published keyset (in case the manifest was
+// substituted alongside a forged signature), they can fetch
+// `keyDirectory` and pass `--pubkey-b64url <expected>` to this command.
+function cmdFile(args) {
+  const file = args[0];
+  if (!file || file.startsWith("--")) {
+    console.error(
+      "usage: arg-verify file <file> [--manifest <file.sig.json>] [--pubkey-b64url <expected>]",
+    );
+    process.exit(2);
+  }
+  const mi = args.indexOf("--manifest");
+  const pi = args.indexOf("--pubkey-b64url");
+  const manifestPath = mi >= 0 ? args[mi + 1] : `${file}.sig.json`;
+  const expectedPub = pi >= 0 ? args[pi + 1] : null;
+
+  const fileBytes = readFileSync(resolve(file));
+  const manifest = JSON.parse(readFileSync(resolve(manifestPath), "utf8"));
+
+  if (manifest.algorithm !== "ed25519") {
+    fail("manifest·algorithm", `unsupported algorithm "${manifest.algorithm}" (only ed25519)`);
+    process.exit(1);
+  }
+
+  // 1 · Size + SHA-256 over the raw file bytes (defense against manifest
+  // pointing to a different artifact than the file the user has).
+  if (typeof manifest.sizeBytes === "number") {
+    fileBytes.length === manifest.sizeBytes
+      ? pass("file·size", `${fileBytes.length} bytes`)
+      : fail(
+          "file·size",
+          `manifest sizeBytes=${manifest.sizeBytes} but file has ${fileBytes.length} bytes`,
+        );
+  }
+  const sha = createHash("sha256").update(fileBytes).digest("hex");
+  if (manifest.sha256) {
+    eqConstTime(sha, manifest.sha256)
+      ? pass("file·sha256", `${sha.slice(0, 16)}…`)
+      : fail("file·sha256", `manifest sha256=${manifest.sha256}\n        got            ${sha}`);
+  }
+
+  // 2 · Optional pinned-key check: caller supplied --pubkey-b64url, refuse
+  // any manifest claiming a different one. Defeats key-swap during MITM.
+  if (expectedPub) {
+    eqConstTime(manifest.publicKey, expectedPub)
+      ? pass("file·pinned-key", "manifest publicKey matches the expected pinned key")
+      : fail(
+          "file·pinned-key",
+          `manifest publicKey=${manifest.publicKey}\n        expected         ${expectedPub}`,
+        );
+  }
+
+  // 3 · Ed25519 verify over the raw file bytes.
+  const pub = createPublicKey({
+    key: Buffer.from(manifest.publicKey, "base64url"),
+    format: "der",
+    type: "spki",
+  });
+  const ok = edVerify(
+    null,
+    fileBytes,
+    pub,
+    Buffer.from(manifest.signature, "base64url"),
+  );
+  ok
+    ? pass("file·ed25519", `signature valid · keyId ${manifest.keyId ?? "—"}`)
+    : fail("file·ed25519", "Ed25519 signature did NOT verify — file or manifest tampered");
+
+  if (failures === 0) {
+    const who = manifest.signedBy
+      ? `${manifest.signedBy.name ?? "—"}${manifest.signedBy.email ? ` <${manifest.signedBy.email}>` : ""}`
+      : "—";
+    console.log(
+      `\n${GREEN}✓ FILE VERIFIED${RST} — ${manifest.file ?? file} · signed by ${who} · ${manifest.signedAt ?? "—"}`,
+    );
+    process.exit(0);
+  }
+  console.log(`\n${RED}✗ FILE FAILED${RST} — ${failures} check(s) failed`);
+  process.exit(1);
+}
+
 // ── dispatch ────────────────────────────────────────────────────────────
 const [cmd, ...rest] = process.argv.slice(2);
 switch (cmd) {
@@ -860,6 +961,9 @@ switch (cmd) {
   case "project":
     cmdProject(rest);
     break;
+  case "file":
+    cmdFile(rest);
+    break;
   default:
     console.log(
       [
@@ -871,6 +975,7 @@ switch (cmd) {
         "  node arg-verify.mjs chain <chain.json> --secret S    RFC-006 ledger",
         "  node arg-verify.mjs bundle <vultur-export-SLUG.json> [--secret S] [pubkeyB64]",
         "  node arg-verify.mjs project <chain.json> --proj-secret P [--secret S --verify]",
+        "  node arg-verify.mjs file <file> [--manifest <file.sig.json>] [--pubkey-b64url X]",
         "",
         "Zero dependencies. Offline. RFC-004 (HMAC) · RFC-005 (Ed25519) ·",
         "RFC-006 (hash-chained ledger + anchoring, projects onto RFC-004).",
