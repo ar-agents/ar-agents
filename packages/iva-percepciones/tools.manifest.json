@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/iva-percepciones",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "iva_perception_calculate",
+      "description": "Compute the IVA perception (extra charge added on top of IVA) for a sale invoice. Returns 0 with waiverReason when buyer is exento / monotributista / consumidor final, below mínimo, or has a non-perception certificate.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "iva_perception_build_ddjj",
+      "description": "Aggregate perception results into a monthly SIRE DDJJ with per-regime and per-buyer breakdowns. Pure aggregation.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "iva_perception_submit_ddjj",
+      "description": "Submit an assembled SIRE perception DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+      "sideEffects": "files tax return",
+      "idempotent": true,
+      "requiresConfirmation": true
+    }
+  ]
+}
