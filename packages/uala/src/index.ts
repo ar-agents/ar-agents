@@ -8,10 +8,13 @@
 export {
   type UalaAdapter,
   type UalaApiAdapterOptions,
+  type InMemoryUalaAdapterOptions,
   UnconfiguredUalaAdapter,
   UalaApiAdapter,
+  InMemoryUalaAdapter,
   buildAuthorizeUrl,
   exchangeCodeForToken,
+  refreshAccessToken,
 } from "./adapter";
 
 export {
@@ -45,4 +48,5 @@ export type {
   OAuthAuthorizeArgs,
   OAuthTokenSet,
   OAuthExchangeArgs,
+  OAuthRefreshArgs,
 } from "./types";

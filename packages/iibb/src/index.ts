@@ -10,7 +10,14 @@ export {
 
 export {
   type IibbAdapter,
+  type FetchLike,
+  type HttpPadronAdapterOptions,
+  type AgipPublicAdapterOptions,
+  type ArbaCitAdapterOptions,
   UnconfiguredIibbAdapter,
+  HttpPadronAdapter,
+  AgipPublicAdapter,
+  ArbaCitAdapter,
   AgipAdapter,
   ArbaAdapter,
   ConvenioMultilateralAdapter,

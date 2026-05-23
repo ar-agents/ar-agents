@@ -8,7 +8,10 @@ loaded. Read it once; you will not need to re-read on every call.
 Typed tools for **Ualá Bis** (the merchant-facing API of Ualá, the
 Argentine fintech). Drops into Vercel AI SDK 6+ as a tool collection.
 Adapter pattern: real network adapter (`UalaApiAdapter`) when configured,
-throwing default (`UnconfiguredUalaAdapter`) otherwise.
+in-memory adapter (`InMemoryUalaAdapter`) for tests and dogfood, throwing
+default (`UnconfiguredUalaAdapter`) otherwise. OAuth helpers include
+`buildAuthorizeUrl`, `exchangeCodeForToken`, and (since v0.2)
+`refreshAccessToken` for long-lived marketplace integrations.
 
 ## When to use which tool
 

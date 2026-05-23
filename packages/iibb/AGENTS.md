@@ -13,7 +13,7 @@ Typed tools + pure math for **Ingresos Brutos** (Argentine gross income tax) acr
 | Compute a withholding on an invoice               | `iibb_calculate_retention`    | Pure math. Pass `overrideRate` explicitly.             |
 | Compute a perception on a sale                    | `iibb_calculate_perception`   | Symmetrical to retention in v0.1.                      |
 | Assemble a full monthly DDJJ (local OR CM)        | `iibb_compute_ddjj`           | Returns per-jurisdiction breakdown.                    |
-| Check if a CUIT is registered in a jurisdiction   | `iibb_lookup_padron`          | Requires adapter; defaults throw IibbUnconfiguredError.|
+| Check if a CUIT is registered in a jurisdiction   | `iibb_lookup_padron`          | Real adapter for CABA (`AgipPublicAdapter`) + BSAS (`ArbaCitAdapter`) since v0.2. Other jurisdictions still throw `IibbUnconfiguredError`.|
 
 ## Constraints
 
@@ -42,10 +42,18 @@ Typed tools + pure math for **Ingresos Brutos** (Argentine gross income tax) acr
 - **Activity codes** are NAES (Nomenclador de Actividades Económicas del Sistema Federal de Recaudación). Five or six digits. The package treats them as opaque strings.
 - **Convenio Multilateral** is a 1977 federal-provincial agreement that prevents double taxation when a business operates in multiple jurisdictions. Filing is monthly via Comisión Arbitral.
 
-## What this package does NOT cover (v0.1)
+## Adapters shipped (v0.2)
 
-- CM Articles 6-13 (industry-specific).
+- `AgipPublicAdapter` (CABA) — hits AGIP's public consulta endpoint. No CIT required. Confirms inscription only; rate lookup needs a separate authenticated adapter.
+- `ArbaCitAdapter` (BSAS) — hits ARBA's dfe service. **Requires** a CIT-authenticated fetch wrapper (host wires it; the package never stores credentials).
+- `HttpPadronAdapter` — abstract base. Subclass it for any DGR / provincial regime by providing `buildLookupRequest` + `parseLookupResponse`.
+- `UnconfiguredIibbAdapter` — explicit "throws on every call". Default. Use for tests that only exercise the calc primitives.
+- `ConvenioMultilateralAdapter` — stub. SIRCAR/Comarb is CIT-gated and undocumented enough that hosts with Comarb credentials should subclass `HttpPadronAdapter` directly.
+
+## What this package does NOT cover (v0.2)
+
+- CM Articles 6-13 (industry-specific) — still v0.1 surface; `art_2_general` only.
 - Anual readjustments (Convenio Multilateral CM-03).
 - Régimen Simplificado (the "monotributo" of IIBB for small taxpayers in some jurisdictions).
-- Automatic rate-book loading (the host loads rates).
-- Real DDJJ submission (the adapters are stubs).
+- Automatic rate-book loading (the host loads rates; rates change annually per jurisdiction).
+- Real DDJJ submission (no jurisdiction ships a documented API for upload).
