@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/uala",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Ualá Bis agent toolkit for the Vercel AI SDK 6. Typed tools for payment links, QR cobros, transaction history, payouts, balance + marketplace OAuth. Adapter pattern: pure types out of the box, real API behind a pluggable adapter so unit tests do not call the network.",
   "keywords": [
     "uala",
