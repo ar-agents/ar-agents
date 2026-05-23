@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/sicore",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "sicore_calculate_retention",
+      "description": "Compute the Ganancias retention amount for a single payment per RG 830/00. Honors monthly accumulator + already-retained credit. Returns 0 when supplier is exento or accumulated is below mínimo.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "sicore_calculate_retention_stream",
+      "description": "Walk a chronological stream of payments to ONE supplier in ONE month, returning per-payment retentions with the accumulator advancing.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "sicore_build_ddjj",
+      "description": "Aggregate retention results into a monthly SICORE DDJJ with per-category and per-supplier breakdowns. Pure aggregation, does NOT submit.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "sicore_submit_ddjj",
+      "description": "Submit an assembled SICORE DDJJ to AFIP/ARCA. Throws SicoreUnconfiguredError unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+      "sideEffects": "files tax return",
+      "idempotent": true,
+      "requiresConfirmation": true
+    }
+  ]
+}
