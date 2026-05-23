@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/sicore",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "SICORE / Ganancias retention agent toolkit for the Vercel AI SDK 6 — federal income tax withholding per RG 830/00. Pure calculation helpers for the four most common operation types (services, professional fees, goods purchase, urban rentals): accumulator-aware retention with non-imponible thresholds, inscripto vs no-inscripto regimes, and per-CUIT month aggregation. Adapter pattern for SICORE submission keeps unit tests offline.",
   "keywords": [
     "sicore",
