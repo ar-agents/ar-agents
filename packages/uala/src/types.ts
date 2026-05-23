@@ -129,3 +129,9 @@ export interface OAuthExchangeArgs {
   redirectUri: string;
   code: string;
 }
+
+export interface OAuthRefreshArgs {
+  clientId: string;
+  clientSecret: string;
+  refreshToken: string;
+}

@@ -9,7 +9,7 @@ pnpm add @ar-agents/iibb
 ## What this package does
 
 - **Pure math** for retentions, perceptions, and DDJJ assembly. No network, no I/O. Unit-testable.
-- **Adapter pattern** for jurisdictional portals (AGIP, ARBA, Comisión Arbitral). v0.1 ships stubs (the jurisdictions don't expose documented public APIs yet); real adapters are on the roadmap.
+- **Adapter pattern** for jurisdictional portals (AGIP, ARBA, Comisión Arbitral). Since v0.2: real `AgipPublicAdapter` (CABA, no auth) + `ArbaCitAdapter` (BSAS, host wires CIT-authenticated fetcher). `HttpPadronAdapter` is the abstract base so hosts can subclass for any DGR.
 - **Two regimes**: LOCAL (single jurisdiction) and CONVENIO MULTILATERAL Article 2 (general regime, distribution by coeficiente unificado).
 
 ## What this package does NOT do
@@ -75,6 +75,54 @@ const result = computeDdjj({
 });
 // result.byJurisdiction → [{ jurisdiction: "CABA", ... }, { jurisdiction: "BSAS", ... }]
 // result.cmCoefficients echoes back the input.
+```
+
+## Padrón lookup
+
+CABA — no auth needed:
+
+```ts
+import { iibbTools, AgipPublicAdapter } from "@ar-agents/iibb";
+
+const tools = iibbTools({
+  adapters: { CABA: new AgipPublicAdapter() },
+});
+
+const status = await tools.iibb_lookup_padron.execute({
+  cuit: "20417581015",
+  jurisdiction: "CABA",
+});
+// → { cuit: "...", jurisdiction: "CABA", inscribed: true, regime: "local" } | null
+```
+
+BSAS — host wires a CIT-authenticated fetcher:
+
+```ts
+import { ArbaCitAdapter } from "@ar-agents/iibb";
+
+const authedFetch = async (url, init) =>
+  fetch(url, { ...init, headers: { ...init?.headers, cookie: `JSESSIONID=${process.env.ARBA_CIT_SESSION}` } });
+
+const tools = iibbTools({
+  adapters: { BSAS: new ArbaCitAdapter({ fetch: authedFetch }) },
+});
+```
+
+Any other DGR — subclass `HttpPadronAdapter`:
+
+```ts
+import { HttpPadronAdapter, type JurisdictionCode, type Padron } from "@ar-agents/iibb";
+
+class DgrSantaFeAdapter extends HttpPadronAdapter {
+  readonly jurisdiction: JurisdictionCode = "SF";
+  protected buildLookupRequest(cuit: string) {
+    return { url: `https://api.santafe.gov.ar/iibb/padron/${cuit}` };
+  }
+  protected parseLookupResponse(text: string, cuit: string): Padron | null {
+    const j = JSON.parse(text);
+    return j.activo ? { cuit, jurisdiction: "SF", inscribed: true, regime: "local" } : null;
+  }
+}
 ```
 
 ## Errors

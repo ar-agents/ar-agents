@@ -1,7 +1,7 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/uala",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "tools": [
     {
       "name": "uala_create_payment_link",
