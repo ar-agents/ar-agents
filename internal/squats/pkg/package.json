@@ -1,0 +1,22 @@
+{
+  "name": "PLACEHOLDER",
+  "version": "0.0.1",
+  "description": "Defensive squat — you probably meant @ar-agents (plural). The canonical scope is @ar-agents on npm; install from there: https://ar-agents.ar.",
+  "main": "./index.cjs",
+  "module": "./index.js",
+  "types": "./index.d.ts",
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@naza.ar>",
+  "homepage": "https://ar-agents.ar",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git"
+  },
+  "files": [
+    "index.cjs",
+    "index.js",
+    "index.d.ts",
+    "README.md"
+  ],
+  "publishConfig": { "access": "public" }
+}
