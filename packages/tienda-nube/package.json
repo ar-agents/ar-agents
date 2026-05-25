@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/tienda-nube",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Tienda Nube / Nuvemshop agent toolkit for the Vercel AI SDK 6. Typed tools for products, orders, customers, fulfillment + webhook subscriptions + OAuth. The #2 e-commerce platform in Argentina (100k+ merchants). Adapter pattern: typed read tools out of the box, real API behind a pluggable adapter so unit tests don't call the network.",
   "keywords": [
     "tienda-nube",

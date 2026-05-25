@@ -1,5 +1,25 @@
 # @ar-agents/banking-bcra
 
+## 0.2.0
+
+### Minor Changes
+
+- [`ae82cc9`](https://github.com/ar-agents/ar-agents/commit/ae82cc9c3c3d7ac744d5653ada169505c029c7f5) Thanks [@naza00000](https://github.com/naza00000)! - Second lift wave: the 4 swarm-wave packages now extend `ArAgentsError`
+  from `@ar-agents/core`.
+
+  This brings the family-coherence count to **10 / 26 packages** all
+  emitting the uniform `{ code, retryable, context }` shape that
+  `@ar-agents/core` middleware (`withRetry`, `withMetrics`, …)
+  expects without parsing messages.
+
+  `banking-bcra`, `suss`, and `tienda-nube` already exposed the same
+  field surface; the change is purely the base class. `wscdc` previously
+  used standalone fields (`field`, `status`, `faultCode`); they're kept
+  on the instances and now ALSO mirrored into `context` for cross-package
+  middleware.
+
+  All 106 tests across the 4 packages pass; no public-API changes.
+
 ## 0.1.0
 
 ### Minor Changes
