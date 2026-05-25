@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/inpi",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "INPI (Instituto Nacional de la Propiedad Industrial) agent toolkit for the Vercel AI SDK 6. Search trademarks by denomination, check registration status, look up the Nice classification class. Adapter pattern against INPI's public search portal.",
   "keywords": [
     "inpi",
@@ -25,7 +25,9 @@
     "url": "git+https://github.com/ar-agents/ar-agents.git",
     "directory": "packages/inpi"
   },
-  "bugs": { "url": "https://github.com/ar-agents/ar-agents/issues" },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -72,7 +74,14 @@
     "vitest": "^2.1.8",
     "zod": "^4.4.3"
   },
-  "publishConfig": { "access": "public", "provenance": true },
-  "engines": { "node": ">=20.0.0" },
-  "dependencies": { "@ar-agents/core": "workspace:^" }
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@ar-agents/core": "workspace:^"
+  }
 }

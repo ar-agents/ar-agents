@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/cnv-emisor",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "CNV (Comisión Nacional de Valores) issuer agent toolkit for the Vercel AI SDK 6. Read issuer registry, latest hechos relevantes (material facts), financial-statement filings, and security-prospectus metadata from CNV's public Autopista de Información Financiera (AIF). Adapter pattern keeps unit tests offline.",
   "keywords": [
     "cnv",
@@ -27,7 +27,9 @@
     "url": "git+https://github.com/ar-agents/ar-agents.git",
     "directory": "packages/cnv-emisor"
   },
-  "bugs": { "url": "https://github.com/ar-agents/ar-agents/issues" },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -74,7 +76,14 @@
     "vitest": "^2.1.8",
     "zod": "^4.4.3"
   },
-  "publishConfig": { "access": "public", "provenance": true },
-  "engines": { "node": ">=20.0.0" },
-  "dependencies": { "@ar-agents/core": "workspace:^" }
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@ar-agents/core": "workspace:^"
+  }
 }
