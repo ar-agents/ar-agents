@@ -18,6 +18,7 @@ import type {
   RetentionResult,
   PerceptionInput,
   PerceptionResult,
+  CmRegime,
 } from "./types";
 import { AUTHORITY_BY_JURISDICTION } from "./types";
 import { IibbRateNotFoundError, IibbValidationError } from "./errors";
@@ -76,6 +77,16 @@ export interface ComputeDdjjArgs {
   /** CM-only: pre-computed coeficiente unificado per jurisdiction
    * (sums to 1.0). Required for Article 2 (general regime). */
   cmCoefficients?: Record<string, number> | undefined;
+  /** CM-only: which article governs the apportionment. Defaults to
+   * `art_2_general`. Articles 6 (construction), 8 (transport), and 9
+   * (professional services) are supported as of v0.3; the others are
+   * stubbed with explanatory errors. */
+  cmArticle?: CmRegime | undefined;
+  /** CM-only: jurisdiction of the corporate seat (administración
+   * principal). Required for Articles 6 and 9, where a fraction of the
+   * tax base is attributed to the seat regardless of where revenue was
+   * realized. */
+  seatJurisdiction?: JurisdictionCode | undefined;
 }
 
 /**
@@ -113,7 +124,28 @@ export function computeDdjj(args: ComputeDdjjArgs): DdjjResult {
   if (args.regime === "local") {
     return computeLocalDdjj(args);
   }
-  return computeCmDdjj(args);
+  const article = args.cmArticle ?? "art_2_general";
+  switch (article) {
+    case "art_2_general":
+      return computeCmDdjj(args);
+    case "art_6_construction":
+      return computeCmArticle6Construction(args);
+    case "art_8_transport":
+      return computeCmArticle8Transport(args);
+    case "art_9_professional_services":
+      return computeCmArticle9ProfessionalServices(args);
+    case "art_7_insurance":
+    case "art_10_intermediaries":
+    case "art_11_grain":
+    case "art_12_finance":
+    case "art_13_agro_industrial":
+      throw new IibbValidationError(
+        "cmArticle",
+        `CM Article ${article.split("_")[1] ?? "?"} is recognized but not implemented in v0.3. The general framework (lines + cmCoefficients) does not cleanly model this regime — it needs per-article inputs (premium amounts for insurance, origin/destination for intermediaries, storage volumes for grain, etc.). Compute the apportionment off-package and feed a synthetic local DDJJ per jurisdiction.`,
+      );
+    default:
+      throw new IibbValidationError("cmArticle", `Unknown CM article: ${article}`);
+  }
 }
 
 function computeLocalDdjj(args: ComputeDdjjArgs): DdjjResult {
@@ -235,6 +267,228 @@ function computeCmDdjj(args: ComputeDdjjArgs): DdjjResult {
     },
     byJurisdiction: Array.from(byJur.values()),
     cmCoefficients: args.cmCoefficients,
+  };
+}
+
+// ── CM Article 6 — Construction ──────────────────────────────────
+//
+// Distribution: 10% to the seat jurisdiction, 90% prorated across the
+// jurisdictions where construction work was performed (line.workJurisdiction,
+// falling back to line.jurisdiction). Rate for each jurisdiction is the
+// weighted average of the lines actually realized in it, computed against
+// that jurisdiction's rate-book entries.
+
+function computeCmArticle6Construction(args: ComputeDdjjArgs): DdjjResult {
+  if (!args.seatJurisdiction) {
+    throw new IibbValidationError(
+      "seatJurisdiction",
+      "CM Article 6 (construction) requires seatJurisdiction (10% of base goes to the corporate seat).",
+    );
+  }
+  return apportionFixedSplit(args, {
+    seatShare: 0.1,
+    perJurisdiction: lineToWorkJurisdiction,
+    label: "art_6_construction",
+  });
+}
+
+// ── CM Article 8 — Transport ─────────────────────────────────────
+//
+// Distribution: 100% to the trip's origin jurisdiction
+// (line.originJurisdiction, falling back to line.jurisdiction). No seat
+// component. Coefficients are not used.
+
+function computeCmArticle8Transport(args: ComputeDdjjArgs): DdjjResult {
+  const totalBase = args.lines.reduce(
+    (a, l) => a + l.baseImponibleCentavos,
+    0,
+  );
+  const grouped = new Map<JurisdictionCode, IngresoLine[]>();
+  for (const line of args.lines) {
+    const origin = line.originJurisdiction ?? line.jurisdiction;
+    const arr = grouped.get(origin) ?? [];
+    arr.push(line);
+    grouped.set(origin, arr);
+  }
+
+  const byJur: DdjjJurisdictionSummary[] = [];
+  let totalTax = 0;
+  for (const [jur, lines] of grouped) {
+    let base = 0;
+    let rateNum = 0;
+    for (const line of lines) {
+      const rate = args.rateBook.lookup(jur, line.activityCode, line.dateIso);
+      if (!rate) throw new IibbRateNotFoundError(jur, line.activityCode);
+      base += line.baseImponibleCentavos;
+      rateNum += line.baseImponibleCentavos * rate.rate;
+    }
+    const weightedAlicuota = base > 0 ? rateNum / base : 0;
+    const taxDue = Math.round(base * weightedAlicuota);
+    totalTax += taxDue;
+    byJur.push({
+      jurisdiction: jur,
+      authority: AUTHORITY_BY_JURISDICTION[jur],
+      totalBaseCentavos: base,
+      weightedAlicuota,
+      taxDueCentavos: taxDue,
+      lineCount: lines.length,
+    });
+  }
+
+  return {
+    period: args.period,
+    regime: "cm",
+    filerCode: "CM",
+    totals: { baseCentavos: totalBase, taxDueCentavos: totalTax, lineCount: args.lines.length },
+    byJurisdiction: byJur,
+  };
+}
+
+// ── CM Article 9 — Professional services ─────────────────────────
+//
+// Distribution: 20% to the seat jurisdiction, 80% prorated across the
+// jurisdictions where the service was rendered (line.jurisdiction).
+// Per Comisión Arbitral resolutions, the 80% pool is split by the gross
+// income realized in each jurisdiction (i.e. the line base, not a
+// pre-computed coefficient).
+
+function computeCmArticle9ProfessionalServices(args: ComputeDdjjArgs): DdjjResult {
+  if (!args.seatJurisdiction) {
+    throw new IibbValidationError(
+      "seatJurisdiction",
+      "CM Article 9 (professional services) requires seatJurisdiction (20% of base goes to the corporate seat).",
+    );
+  }
+  return apportionFixedSplit(args, {
+    seatShare: 0.2,
+    perJurisdiction: (line) => line.jurisdiction,
+    label: "art_9_professional_services",
+  });
+}
+
+// ── Shared helper: split base into (seatShare → seat, 1-seatShare → prorated)
+
+interface FixedSplitArgs {
+  seatShare: number;
+  perJurisdiction: (line: IngresoLine) => JurisdictionCode;
+  label: string;
+}
+
+function lineToWorkJurisdiction(line: IngresoLine): JurisdictionCode {
+  return line.workJurisdiction ?? line.jurisdiction;
+}
+
+function apportionFixedSplit(
+  args: ComputeDdjjArgs,
+  split: FixedSplitArgs,
+): DdjjResult {
+  const seat = args.seatJurisdiction!;
+  const totalBase = args.lines.reduce(
+    (a, l) => a + l.baseImponibleCentavos,
+    0,
+  );
+  // Seat slice (deterministic floor for the seat; the remainder
+  // becomes the pool to prorate so total is conserved).
+  const seatBase = Math.round(totalBase * split.seatShare);
+  const poolBase = totalBase - seatBase;
+
+  // Pool: prorate by per-jurisdiction line totals.
+  const lineBaseByJur = new Map<JurisdictionCode, { base: number; lines: IngresoLine[] }>();
+  for (const line of args.lines) {
+    const jur = split.perJurisdiction(line);
+    const entry = lineBaseByJur.get(jur) ?? { base: 0, lines: [] };
+    entry.base += line.baseImponibleCentavos;
+    entry.lines.push(line);
+    lineBaseByJur.set(jur, entry);
+  }
+
+  // Build per-jurisdiction summaries. The seat jurisdiction sums its
+  // poolBase share (if it also realized income) AND its seat allocation.
+  const summaries = new Map<JurisdictionCode, DdjjJurisdictionSummary>();
+  let totalTax = 0;
+  let totalLines = 0;
+
+  const poolDenominator = totalBase > 0 ? totalBase : 1;
+  for (const [jur, info] of lineBaseByJur) {
+    const apportionedFromPool = Math.round(
+      (poolBase * info.base) / poolDenominator,
+    );
+    let rateNum = 0;
+    let rateDen = 0;
+    for (const line of info.lines) {
+      const rate = args.rateBook.lookup(jur, line.activityCode, line.dateIso);
+      if (!rate) throw new IibbRateNotFoundError(jur, line.activityCode);
+      rateNum += line.baseImponibleCentavos * rate.rate;
+      rateDen += line.baseImponibleCentavos;
+    }
+    const weightedAlicuota = rateDen > 0 ? rateNum / rateDen : 0;
+    const taxDue = Math.round(apportionedFromPool * weightedAlicuota);
+    totalTax += taxDue;
+    totalLines += info.lines.length;
+    summaries.set(jur, {
+      jurisdiction: jur,
+      authority: AUTHORITY_BY_JURISDICTION[jur],
+      totalBaseCentavos: apportionedFromPool,
+      weightedAlicuota,
+      taxDueCentavos: taxDue,
+      lineCount: info.lines.length,
+    });
+  }
+
+  // Now add the seat slice. The seat rate uses the seat's representative
+  // rate, which we compute via the seat-jurisdiction rate-book entries
+  // for the most-common activity code in `lines`. If no rate-book entry
+  // exists in the seat for the line's activity, this throws.
+  const repActivity =
+    [...args.lines]
+      .sort(
+        (a, b) =>
+          b.baseImponibleCentavos - a.baseImponibleCentavos,
+      )[0]?.activityCode ?? args.lines[0]?.activityCode;
+  if (!repActivity) {
+    throw new IibbValidationError(
+      "lines",
+      `CM ${split.label} requires at least one income line.`,
+    );
+  }
+  const seatRate = args.rateBook.lookup(seat, repActivity);
+  if (!seatRate) {
+    throw new IibbRateNotFoundError(seat, repActivity);
+  }
+  const seatTax = Math.round(seatBase * seatRate.rate);
+  totalTax += seatTax;
+  const existingSeat = summaries.get(seat);
+  if (existingSeat) {
+    summaries.set(seat, {
+      ...existingSeat,
+      totalBaseCentavos: existingSeat.totalBaseCentavos + seatBase,
+      // Weighted alicuota stays the income-weighted average across the
+      // seat's lines; the seat slice itself was taxed at seatRate.rate.
+      // For an informational field this is acceptable; the taxDueCentavos
+      // is correctly summed.
+      taxDueCentavos: existingSeat.taxDueCentavos + seatTax,
+    });
+  } else {
+    summaries.set(seat, {
+      jurisdiction: seat,
+      authority: AUTHORITY_BY_JURISDICTION[seat],
+      totalBaseCentavos: seatBase,
+      weightedAlicuota: seatRate.rate,
+      taxDueCentavos: seatTax,
+      lineCount: 0,
+    });
+  }
+
+  return {
+    period: args.period,
+    regime: "cm",
+    filerCode: "CM",
+    totals: {
+      baseCentavos: totalBase,
+      taxDueCentavos: totalTax,
+      lineCount: totalLines,
+    },
+    byJurisdiction: Array.from(summaries.values()),
   };
 }
 
