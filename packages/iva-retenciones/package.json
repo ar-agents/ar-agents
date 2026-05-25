@@ -1,0 +1,86 @@
+{
+  "name": "@ar-agents/iva-retenciones",
+  "version": "0.0.0",
+  "description": "IVA retention agent toolkit for the Vercel AI SDK 6 — federal value-added tax retentions per RG 2854/10 (general regime). Pure calculator + DDJJ assembly: per-payment retention math with minimum thresholds, accumulator-aware nuances per supplier, agente-de-retención status checks. Adapter pattern keeps unit tests offline.",
+  "keywords": [
+    "iva",
+    "retenciones",
+    "rg-2854",
+    "afip",
+    "arca",
+    "ar-agents",
+    "argentina",
+    "ai-sdk",
+    "vercel-ai",
+    "agent",
+    "tax"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@naza.ar>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/iva-retenciones",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/iva-retenciones"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "tools.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "validate": "publint && attw --pack .",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "ai": "^6.0.175",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
