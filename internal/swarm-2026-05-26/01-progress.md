@@ -6,39 +6,44 @@ so a fresh session can pick up cleanly.
 
 ## ar-agents catalog state
 
-**25 packages on npm with SLSA provenance.** All currently at v0.1.0
-unless noted; the four bumped to v0.2.0 were in-flight pre-swarm.
+**31 packages on npm with SLSA provenance.** 28 of 31 share the
+`@ar-agents/core` `ArAgentsError` contract.
 
 | Package | Version | Notes |
 |---|---|---|
-| `@ar-agents/agentic-commerce-bridge` | (pre-swarm) | |
-| `@ar-agents/ap2` | (pre-swarm) | |
-| `@ar-agents/banking` | (pre-swarm) | |
-| **`@ar-agents/banking-bcra`** | **0.2.0** | lifted to `@ar-agents/core` |
-| `@ar-agents/boletin-oficial` | (pre-swarm) | |
-| `@ar-agents/constancia` | (pre-swarm) | |
-| **`@ar-agents/core`** | **0.1.0** | NEW: shared error + middleware + HITL |
-| `@ar-agents/facturacion` | (pre-swarm) | |
-| `@ar-agents/firma-digital` | (pre-swarm) | |
-| `@ar-agents/gde-tad` | (pre-swarm) | |
+| **`@ar-agents/aduana`** | **0.2.0** | NEW: ARCA Aduana — despacho lookup + NCM |
+| `@ar-agents/agentic-commerce-bridge` | (pre-swarm) | NOT lifted — no dedicated errors module |
+| **`@ar-agents/anses`** | **0.2.0** | NEW: CUIL status + family allowances + minimo |
+| `@ar-agents/ap2` | (pre-swarm) | NOT lifted — no dedicated errors module |
+| `@ar-agents/banking` | **0.5.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/banking-bcra` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/boletin-oficial` | **0.2.0** | lifted to `@ar-agents/core` |
+| **`@ar-agents/cnv-emisor`** | **0.2.0** | NEW: CNV issuer disclosures (hechos relevantes) |
+| `@ar-agents/constancia` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/core` | **0.1.0** | shared error + middleware + HITL |
+| **`@ar-agents/dnrpa`** | **0.2.0** | NEW: vehicle plate lookups (browser-backed) |
+| `@ar-agents/facturacion` | **0.4.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/firma-digital` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/gde-tad` | **0.3.0** | lifted to `@ar-agents/core` |
 | `@ar-agents/identity` | **0.8.0** | lifted to `@ar-agents/core` |
-| `@ar-agents/identity-attest` | (pre-swarm) | |
-| `@ar-agents/igj` | (pre-swarm) | |
-| `@ar-agents/iibb` | **0.3.0** | lifted; still needs CM Articles 6–13 |
-| `@ar-agents/incorporate` | (pre-swarm) | |
-| **`@ar-agents/iva-percepciones`** | **0.2.0** | lifted to `@ar-agents/core` |
-| **`@ar-agents/iva-retenciones`** | **0.2.0** | lifted to `@ar-agents/core` |
-| `@ar-agents/mcp` | (pre-swarm) | |
-| `@ar-agents/mercadolibre` | (pre-swarm) | |
+| `@ar-agents/identity-attest` | **0.5.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/igj` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/iibb` | **0.4.0** | lifted + CM Articles 6 (construction), 8 (transport), 9 (professional services) |
+| `@ar-agents/incorporate` | (pre-swarm) | not lifted — single-file package |
+| **`@ar-agents/inpi`** | **0.2.0** | NEW: trademark registry search |
+| `@ar-agents/iva-percepciones` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/iva-retenciones` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/mcp` | (pre-swarm) | NOT lifted — no dedicated errors module |
+| `@ar-agents/mercadolibre` | **0.5.0** | lifted to `@ar-agents/core` |
 | `@ar-agents/mercadopago` | **0.18.0** | lifted to `@ar-agents/core` (source of `core`'s primitives) |
-| `@ar-agents/mi-argentina` | (pre-swarm) | |
-| `@ar-agents/shipping` | (pre-swarm) | |
-| **`@ar-agents/sicore`** | **0.2.0** | lifted to `@ar-agents/core` |
-| **`@ar-agents/suss`** | **0.2.0** | lifted to `@ar-agents/core` (first AR payroll lib) |
-| **`@ar-agents/tienda-nube`** | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/mi-argentina` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/shipping` | **0.3.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/sicore` | **0.2.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/suss` | **0.2.0** | lifted to `@ar-agents/core` (first AR payroll lib) |
+| `@ar-agents/tienda-nube` | **0.2.0** | lifted to `@ar-agents/core` |
 | `@ar-agents/uala` | **0.3.0** | lifted to `@ar-agents/core` |
-| `@ar-agents/whatsapp` | (pre-swarm) | |
-| **`@ar-agents/wscdc`** | **0.2.0** | lifted to `@ar-agents/core` (factura validation) |
+| `@ar-agents/whatsapp` | **0.5.0** | lifted to `@ar-agents/core` |
+| `@ar-agents/wscdc` | **0.2.0** | lifted to `@ar-agents/core` (factura validation) |
 
 ## Vultur repo state
 
