@@ -197,7 +197,10 @@ export function signTra(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(
-      `Failed to parse certificate PEM (length=${certPem.length}, has\\n=${certPem.includes("\n")}, startsWith=${JSON.stringify(certPem.slice(0, 30))}): ${msg}`,
+      // Diagnostic intentionally excludes any byte of the PEM itself
+      // (length + has-newline are enough for typical env-var corruption
+      // debugging without leaking cert metadata via error logs).
+      `Failed to parse certificate PEM (length=${certPem.length}, has\\n=${certPem.includes("\n")}): ${msg}`,
     );
   }
   let privateKey: forge.pki.rsa.PrivateKey;
@@ -206,7 +209,9 @@ export function signTra(
   } catch (err) {
     const msg = err instanceof Error ? err.message : String(err);
     throw new Error(
-      `Failed to parse private key PEM (length=${keyPem.length}, has\\n=${keyPem.includes("\n")}, startsWith=${JSON.stringify(keyPem.slice(0, 30))}): ${msg}`,
+      // Same intent as the cert-PEM diagnostic above: never log even
+      // a prefix of the key material.
+      `Failed to parse private key PEM (length=${keyPem.length}, has\\n=${keyPem.includes("\n")}): ${msg}`,
     );
   }
 
