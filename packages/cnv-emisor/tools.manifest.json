@@ -1,0 +1,35 @@
+{
+  "package": "@ar-agents/cnv-emisor",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "cnv_get_issuer",
+      "description": "Look up a CNV issuer by code.",
+      "input": { "code": "issuer code, e.g. YPF" },
+      "returns": "IssuerRecord | null",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    },
+    {
+      "name": "cnv_list_hechos_relevantes",
+      "description": "List material-fact filings.",
+      "input": {
+        "issuerCode": "string",
+        "sinceIso": "ISO 8601 optional",
+        "category": "optional enum",
+        "limit": "1-100"
+      },
+      "returns": "HechoRelevante[]",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    },
+    {
+      "name": "cnv_list_financial_statements",
+      "description": "List quarterly / annual / intermediate financials.",
+      "input": { "issuerCode": "string", "limit": "1-100" },
+      "returns": "FinancialStatementRecord[]",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    }
+  ]
+}

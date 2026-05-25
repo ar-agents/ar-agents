@@ -1,0 +1,14 @@
+{
+  "package": "@ar-agents/dnrpa",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "dnrpa_lookup_dominio",
+      "description": "Look up an Argentine vehicle plate against DNRPA.",
+      "input": { "dominio": "LL000LL or LLL000 plate" },
+      "returns": "DominioLookupResult",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    }
+  ]
+}
