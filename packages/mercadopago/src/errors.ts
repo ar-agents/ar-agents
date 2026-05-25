@@ -2,16 +2,46 @@
  * Base class for any error originating from the Mercado Pago integration. All
  * specific error types extend this. Carries the MP HTTP status, the parsed
  * body when available, and the endpoint that failed for debugging.
+ *
+ * Extends `ArAgentsError` from `@ar-agents/core` so the family contract
+ * (code / retryable / context) is uniform across every `@ar-agents/*`
+ * integration. Existing public properties (`status`, `endpoint`,
+ * `mpResponse`) are preserved on the instance AND mirrored into
+ * `context` for callers using the new contract.
+ *
+ * `code` is derived from the MP error type (e.g. `"mp_auth_failed"`,
+ * `"mp_rate_limited"`, `"mp_overloaded"`); the generic surface uses
+ * `"mp_api_error"`. `retryable` defaults to true for 5xx, 429, and
+ * timeouts; false otherwise.
  */
-export class MercadoPagoError extends Error {
+
+import { ArAgentsError } from "@ar-agents/core";
+
+export class MercadoPagoError extends ArAgentsError {
+  public readonly status: number;
+  public readonly endpoint: string;
+  public readonly mpResponse?: unknown;
+
   constructor(
     message: string,
-    public status: number,
-    public endpoint: string,
-    public mpResponse?: unknown,
+    status: number,
+    endpoint: string,
+    mpResponse?: unknown,
+    init: { code?: string; retryable?: boolean } = {},
   ) {
-    super(message);
+    super(message, {
+      code: init.code ?? "mp_api_error",
+      retryable: init.retryable ?? (status >= 500 || status === 429 || status === 0),
+      context: {
+        status,
+        endpoint,
+        ...(mpResponse !== undefined ? { mpResponse } : {}),
+      },
+    });
     this.name = "MercadoPagoError";
+    this.status = status;
+    this.endpoint = endpoint;
+    if (mpResponse !== undefined) this.mpResponse = mpResponse;
   }
 }
 
@@ -25,6 +55,7 @@ export class MercadoPagoAuthError extends MercadoPagoError {
       401,
       endpoint,
       body,
+      { code: "mp_auth_failed", retryable: false },
     );
     this.name = "MercadoPagoAuthError";
   }
@@ -136,6 +167,7 @@ export class MercadoPagoRateLimitError extends MercadoPagoError {
       429,
       endpoint,
       body,
+      { code: "mp_rate_limited", retryable: true },
     );
     this.name = "MercadoPagoRateLimitError";
   }
@@ -152,6 +184,8 @@ export class MercadoPagoOverloadedError extends MercadoPagoError {
       `Mercado Pago appears overloaded — returned a non-JSON ${status} response for ${endpoint}. Wait a few seconds and retry.`,
       status,
       endpoint,
+      undefined,
+      { code: "mp_overloaded", retryable: true },
     );
     this.name = "MercadoPagoOverloadedError";
   }
@@ -168,6 +202,8 @@ export class MercadoPagoTimeoutError extends MercadoPagoError {
       `Mercado Pago request timed out after ${timeoutMs}ms on ${endpoint}. Increase requestTimeoutMs or check connectivity.`,
       0,
       endpoint,
+      undefined,
+      { code: "mp_timeout", retryable: true },
     );
     this.name = "MercadoPagoTimeoutError";
   }
