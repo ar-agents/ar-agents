@@ -5,11 +5,16 @@
  *   - validation errors (bad input, do NOT retry)
  *   - rate-table errors (no entry for category/status, surface to operator)
  *   - unconfigured errors (adapter not wired, surface to operator)
+ *
+ * `SicoreError` extends `ArAgentsError` from `@ar-agents/core` so the
+ * `@ar-agents/*` family shares one error contract.
  */
 
-export class SicoreError extends Error {
-  constructor(message: string) {
-    super(message);
+import { ArAgentsError } from "@ar-agents/core";
+
+export class SicoreError extends ArAgentsError {
+  constructor(message: string, code = "sicore_error", context: Record<string, unknown> = {}) {
+    super(message, { code, retryable: false, context });
     this.name = "SicoreError";
   }
 }
@@ -18,7 +23,7 @@ export class SicoreError extends Error {
 export class SicoreValidationError extends SicoreError {
   readonly field: string;
   constructor(field: string, message: string) {
-    super(`Invalid ${field}: ${message}`);
+    super(`Invalid ${field}: ${message}`, "validation_failed", { field });
     this.name = "SicoreValidationError";
     this.field = field;
   }
@@ -31,7 +36,11 @@ export class SicoreRateNotFoundError extends SicoreError {
   readonly category: string;
   readonly status: string;
   constructor(category: string, status: string) {
-    super(`No SICORE rate-table entry for category="${category}" status="${status}"`);
+    super(
+      `No SICORE rate-table entry for category="${category}" status="${status}"`,
+      "rate_not_found",
+      { category, status },
+    );
     this.name = "SicoreRateNotFoundError";
     this.category = category;
     this.status = status;
@@ -44,6 +53,8 @@ export class SicoreUnconfiguredError extends SicoreError {
   constructor(operation: string, label = "unconfigured") {
     super(
       `SICORE adapter not configured for "${operation}" (${label}). Wire an adapter (or call the pure calc primitives directly).`,
+      "unconfigured",
+      { operation, label },
     );
     this.name = "SicoreUnconfiguredError";
     this.operation = operation;

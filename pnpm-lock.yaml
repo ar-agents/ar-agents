@@ -75,7 +75,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -195,7 +195,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -751,6 +751,10 @@ importers:
         version: 4.4.3
 
   packages/iibb:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -787,6 +791,10 @@ importers:
         version: 2.1.9(@types/node@20.19.39)(msw@2.14.3(@types/node@20.19.39)(typescript@5.9.3))(terser@5.47.1)
 
   packages/iva-percepciones:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -808,6 +816,10 @@ importers:
         version: 4.4.3
 
   packages/iva-retenciones:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -1014,6 +1026,10 @@ importers:
         version: 4.4.3
 
   packages/sicore:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -1077,6 +1093,10 @@ importers:
         version: 4.4.3
 
   packages/uala:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39

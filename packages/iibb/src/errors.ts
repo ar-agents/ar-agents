@@ -1,11 +1,24 @@
-export class IibbError extends Error {
-  public readonly code: string;
+/**
+ * `IibbError` extends `ArAgentsError` from `@ar-agents/core` so
+ * middleware (withRetry, withMetrics, …) sees the same shape across
+ * every `@ar-agents/*` integration.
+ */
+
+import { ArAgentsError } from "@ar-agents/core";
+
+/** Codes whose `retryable` flag is `true` (transient / server-side). */
+const RETRYABLE_CODES = new Set<string>([]);
+
+export class IibbError extends ArAgentsError {
   public readonly details?: unknown;
 
   constructor(code: string, message: string, details?: unknown) {
-    super(message);
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES.has(code),
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "IibbError";
-    this.code = code;
     if (details !== undefined) this.details = details;
   }
 }
