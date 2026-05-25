@@ -1,12 +1,43 @@
 # @ar-agents/mercadolibre
 
+## 0.5.0
+
+### Minor Changes
+
+- [`15f9b89`](https://github.com/ar-agents/ar-agents/commit/15f9b8974b514f4321f939324fa4d24dac81ba95) Thanks [@naza00000](https://github.com/naza00000)! - Lift sweep — final wave: every remaining OG package now extends
+  `ArAgentsError` from `@ar-agents/core`.
+
+  After this release, **23 of 26 `@ar-agents/*` packages** share the
+  uniform `{ code, retryable, context }` family contract. The three
+  packages still on plain `Error` (`agentic-commerce-bridge`, `ap2`,
+  `mcp`) have no dedicated `errors.ts` module — they throw `Error`
+  inline at the call site; their lift is a deeper refactor tracked
+  separately.
+
+  For all 12 packages here: backward compatible. Public constructors,
+  field names, and `instanceof` checks unchanged. New: `error.retryable`
+  flag wired per code (e.g. `wsfe_service_unavailable: true`,
+  `bcra_rate_limited: true`, `discovery_failed: true`, `ckan_unreachable:
+true`, `fetcher_unreachable: true`, `shipping_carrier_error: true`);
+  non-transient codes default to `retryable: false`.
+
+  One **internal-API** rename in `@ar-agents/whatsapp`: `WhatsAppApiError.code`
+  (previously the Meta numeric error code) is now exposed as
+  `WhatsAppApiError.metaCode` so the family-uniform `code: string`
+  contract (`whatsapp_meta_<n>`) can sit on the same instance. Callers
+  that read `err.code` as a number must migrate to `err.metaCode`; the
+  deserialized webhook event field `event.errors[i].code` is unchanged
+  (still numeric, since it's not a `WhatsAppApiError` instance).
+
+  Family-coherence count after this release: **23 / 26 packages**.
+
 ## 0.4.3 — 2026-05-09
 
 Strategic positioning + outreach-readiness pass. The package as code is unchanged — what changes is everything around it that a marketplace exec, procurement reviewer, or external co-maintainer would read before deciding to engage.
 
 ### Added — Strategic positioning artifacts
 
-- **[`POSITIONING.md`](./POSITIONING.md)** — five-minute strategic doc for a MELI exec. Cites the Q4 2025 earnings call (Szarfsztejn: *"we are developing our own agentic experience inside MercadoLibre"*). Positions explicitly as a Verdi-complement (external sellers + community devs), not a competitor. Three engagement paths spelled out (co-maintain / fork-into-MELI-repo / license).
+- **[`POSITIONING.md`](./POSITIONING.md)** — five-minute strategic doc for a MELI exec. Cites the Q4 2025 earnings call (Szarfsztejn: _"we are developing our own agentic experience inside MercadoLibre"_). Positions explicitly as a Verdi-complement (external sellers + community devs), not a competitor. Three engagement paths spelled out (co-maintain / fork-into-MELI-repo / license).
 - **[RFC 001 — Argentine Agentic Commerce 2027](./docs/rfc-001-argentine-agentic-commerce-2027.md)** — the strategic technical document. 3-layer architecture for LATAM marketplaces to participate in agentic commerce without being disintermediated by ChatGPT Instant Checkout / Anthropic / Gemini. Cites Forrester + Flywheel projections (13–20% of LATAM retail intent will route through agents by 2027). Citation-ready public URL at [`/rfc/001`](https://mercadolibre.ar-agents.ar/rfc/001).
 - **[`README.es.md`](./README.es.md)** — Spanish-first version of the README. AR cultural fit. Linked from the English README header.
 - **[`/integrate` page on the landing](https://mercadolibre.ar-agents.ar/integrate)** — procurement-friendly 3-step adoption path (try / partner / license) with explicit obligations + reversibility per path.
@@ -39,12 +70,12 @@ Vendor-readiness pass. Designed to move adoption probability for risk-averse rev
 
 Real numbers from the live `bridge-hello.ar-agents.ar` deployment (50 runs at concurrency 10, measured from a Buenos Aires client, 2026-05-09 17:30 UTC):
 
-| Endpoint | p50 | p95 | p99 | errors |
-| --- | --- | --- | --- | --- |
-| `GET /.well-known/acp.json` | 44ms | 1253ms | 1349ms | 0/50 |
-| `GET /.well-known/agentic-feed.json` | 30ms | 46ms | 105ms | 0/50 |
-| `GET /api/feed/products` (opt-in) | 31ms | 228ms | 229ms | 0/50 |
-| `POST /api/acp/checkout_sessions` | 167ms | 396ms | 399ms | 0/50 |
+| Endpoint                             | p50   | p95    | p99    | errors |
+| ------------------------------------ | ----- | ------ | ------ | ------ |
+| `GET /.well-known/acp.json`          | 44ms  | 1253ms | 1349ms | 0/50   |
+| `GET /.well-known/agentic-feed.json` | 30ms  | 46ms   | 105ms  | 0/50   |
+| `GET /api/feed/products` (opt-in)    | 31ms  | 228ms  | 229ms  | 0/50   |
+| `POST /api/acp/checkout_sessions`    | 167ms | 396ms  | 399ms  | 0/50   |
 
 The p95 outlier on ACP discovery is one Vercel cold start. Reproducible via `node test/bench/loadtest.mjs`.
 
@@ -108,10 +139,14 @@ meliTools(client, {
   sellerId: 12345,
   hitl: {
     requireConfirmation: async (ctx) => {
-      const ok = await yourApp.askUser({ summary: ctx.summary, severity: ctx.severity });
+      const ok = await yourApp.askUser({
+        summary: ctx.summary,
+        severity: ctx.severity,
+      });
       return ok ? { approve: true } : { approve: false };
     },
-    autoApprove: (ctx) => ctx.kind === "answer_question" && (ctx.input as any).text.length < 200,
+    autoApprove: (ctx) =>
+      ctx.kind === "answer_question" && (ctx.input as any).text.length < 200,
   },
 });
 ```
@@ -129,7 +164,11 @@ See [Cookbook 11](./cookbook/11-human-in-the-loop.md) for production patterns.
 Emit your seller catalog as an Agentic Commerce Protocol-compatible product feed. Lets buyer agents (ChatGPT, Claude, Gemini) discover your MELI listings without crawling.
 
 ```ts
-import { buildFeedPage, iterateFeed, meliItemToFeedProduct } from "@ar-agents/mercadolibre/feed";
+import {
+  buildFeedPage,
+  iterateFeed,
+  meliItemToFeedProduct,
+} from "@ar-agents/mercadolibre/feed";
 
 // Cursor-paginated page (best for HTTP feed endpoints):
 const page = await buildFeedPage(client, sellerId, { limit: 50, cursor });
@@ -144,6 +183,7 @@ const fp = meliItemToFeedProduct(meliItem);
 `FeedProduct` shape is ACP `2026-04-17`-compatible — generic agents see standard fields (id, title, currency, price, images), MELI-specific agents read `vendor_metadata.meli` for richer reasoning (condition, sold_quantity, listing_type_id, tags). Currency is uppercased per ACP spec; prices are major-units. Active-only by default; pass `acceptableStatuses` to override.
 
 `bridge-hello` ships a reference implementation at:
+
 - `/.well-known/agentic-feed.json` — discovery
 - `/api/feed/products?cursor=&limit=` — the feed itself, ETag-cached, ISR 60s
 
@@ -270,8 +310,7 @@ First public release. Production-grade TypeScript SDK for Mercado Libre's
 agent-relevant API surface. Faithful to the docs at
 [developers.mercadolibre.com.ar](https://developers.mercadolibre.com.ar/).
 
-The previous official `mercadolibre/nodejs-sdk` was archived in February
-2022. This package fills that gap with a modern, agent-ergonomic, edge-
+The previous official `mercadolibre/nodejs-sdk` was archived in February 2022. This package fills that gap with a modern, agent-ergonomic, edge-
 runtime-compatible client.
 
 ### What ships in 0.1.0

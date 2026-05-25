@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.10.4
+
+### Patch Changes
+
+- Updated dependencies [[`15f9b89`](https://github.com/ar-agents/ar-agents/commit/15f9b8974b514f4321f939324fa4d24dac81ba95)]:
+  - @ar-agents/whatsapp@0.5.0
+  - @ar-agents/facturacion@0.4.0
+  - @ar-agents/banking@0.5.0
+  - @ar-agents/mi-argentina@0.2.0
+  - @ar-agents/identity-attest@0.5.0
+  - @ar-agents/igj@0.2.0
+  - @ar-agents/gde-tad@0.3.0
+  - @ar-agents/firma-digital@0.2.0
+  - @ar-agents/boletin-oficial@0.2.0
+  - @ar-agents/mercadolibre@0.5.0
+  - @ar-agents/shipping@0.3.0
+
 ## 0.10.3
 
 ### Patch Changes

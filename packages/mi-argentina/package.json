@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/mi-argentina",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Mi Argentina (gov OIDC) as drop-in tools for the Vercel AI SDK. Login-with-Mi-Argentina, PKCE, ID-token JWT verification, userinfo. Web Crypto only — runs on Edge Runtime. Discovery via .well-known. Pluggable state adapter for the OAuth code/state/nonce.",
   "keywords": [
     "mi-argentina",

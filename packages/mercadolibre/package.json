@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/mercadolibre",
-  "version": "0.4.3",
+  "version": "0.5.0",
   "description": "Independent open-source TypeScript SDK + Vercel AI SDK 6 toolkit for the Mercado Libre API. Not affiliated with Mercado Libre S.R.L. Wraps the agent-relevant API surface (items, categories, questions, orders, packs, claims, shipments, reputation, promotions, webhooks) with OAuth coalescing, /myfeeds replay, HITL gates on irreversible operations, and an opt-in ACP product feed generator. Community-built to fill the gap left when `mercadolibre/nodejs-sdk` was archived in February 2022. MERCADOLIBRE® is a registered trademark of Mercado Libre S.R.L.",
   "keywords": [
     "mercadolibre",
@@ -55,9 +55,15 @@
   "types": "./dist/index.d.ts",
   "typesVersions": {
     "*": {
-      "ai-sdk": ["./dist/ai-sdk.d.ts"],
-      "testing": ["./dist/testing.d.ts"],
-      "feed": ["./dist/feed.d.ts"]
+      "ai-sdk": [
+        "./dist/ai-sdk.d.ts"
+      ],
+      "testing": [
+        "./dist/testing.d.ts"
+      ],
+      "feed": [
+        "./dist/feed.d.ts"
+      ]
     }
   },
   "exports": {
@@ -138,7 +144,10 @@
       "name": "ESM",
       "path": "dist/index.js",
       "limit": "60 KB",
-      "ignore": ["node:crypto", "crypto"]
+      "ignore": [
+        "node:crypto",
+        "crypto"
+      ]
     }
   ],
   "peerDependencies": {

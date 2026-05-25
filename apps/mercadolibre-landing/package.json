@@ -1,6 +1,6 @@
 {
   "name": "mercadolibre-landing",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "private": true,
   "description": "Landing for @ar-agents/mercadolibre — production-grade Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",
   "scripts": {
