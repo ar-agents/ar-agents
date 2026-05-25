@@ -1,10 +1,19 @@
 /**
  * Errors emitted by `@ar-agents/identity` adapters and helpers.
  *
- * The base class `IdentityError` carries a machine-readable `code` (suitable
- * for programmatic error handling by agents) and a human-readable `message`
- * (suitable for surfacing to end users). All specific subclasses extend it.
+ * The base class `IdentityError` extends `@ar-agents/core`'s `ArAgentsError`
+ * so callers across the `@ar-agents/*` family can rely on a uniform shape:
+ *
+ *   - `code: string` — machine-readable identifier
+ *   - `retryable: boolean` — whether to backoff + retry
+ *   - `context: Record<string, unknown>` — structured ctx (legacy `details`
+ *     is mirrored here under the `details` key)
+ *
+ * The legacy `details` field is kept for backward compatibility with
+ * existing callers; new code should read `error.context` instead.
  */
+
+import { ArAgentsError } from "@ar-agents/core";
 
 export type IdentityErrorCode =
   | "afip_not_configured"
@@ -14,14 +23,35 @@ export type IdentityErrorCode =
   | "afip_rate_limited"
   | "afip_unknown_error";
 
-export class IdentityError extends Error {
-  constructor(
-    public code: IdentityErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+/**
+ * Per-code retryability hint. Used to populate `ArAgentsError.retryable`
+ * so middleware (e.g. `withRetry` in `@ar-agents/core`) can decide
+ * without parsing error messages.
+ */
+const RETRYABLE_CODES: Record<IdentityErrorCode, boolean> = {
+  afip_not_configured: false,
+  afip_cert_invalid: false,
+  afip_service_unavailable: true,
+  afip_cuit_not_found: false,
+  afip_rate_limited: true,
+  afip_unknown_error: false,
+};
+
+export class IdentityError extends ArAgentsError {
+  /** Narrowed code for jurisdiction-specific switch logic. */
+  override readonly code: IdentityErrorCode;
+  /** Legacy: arbitrary extra info. New code SHOULD read `context` instead. */
+  readonly details?: unknown;
+
+  constructor(code: IdentityErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES[code] ?? false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "IdentityError";
+    this.code = code;
+    this.details = details;
   }
 }
 

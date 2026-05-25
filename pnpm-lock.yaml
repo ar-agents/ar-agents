@@ -75,7 +75,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -195,7 +195,7 @@ importers:
         version: 9.39.4
       eslint-config-next:
         specifier: 16.2.4
-        version: 16.2.4(eslint@9.39.4)(typescript@5.9.3)
+        version: 16.2.4(@typescript-eslint/parser@8.59.2(eslint@9.39.4)(typescript@5.9.3))(eslint@9.39.4)(typescript@5.9.3)
       typescript:
         specifier: ^5
         version: 5.9.3
@@ -669,6 +669,9 @@ importers:
 
   packages/identity:
     dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
       node-forge:
         specifier: ^1.4.0
         version: 1.4.0

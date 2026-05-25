@@ -129,6 +129,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@ar-agents/core": "workspace:^",
     "node-forge": "^1.4.0"
   },
   "bin": {
