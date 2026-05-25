@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/anses",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "ANSES (Administración Nacional de la Seguridad Social) agent toolkit for the Vercel AI SDK 6. Read CUIL status, family-allowance entitlements, and the public reference tables (asignaciones familiares, jubilaciones mínimas) through the Mi ANSES API + open-data endpoints. Adapter pattern keeps unit tests offline.",
   "keywords": [
     "anses",
@@ -26,7 +26,9 @@
     "url": "git+https://github.com/ar-agents/ar-agents.git",
     "directory": "packages/anses"
   },
-  "bugs": { "url": "https://github.com/ar-agents/ar-agents/issues" },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
   "type": "module",
   "main": "./dist/index.cjs",
   "module": "./dist/index.js",
@@ -73,7 +75,14 @@
     "vitest": "^2.1.8",
     "zod": "^4.4.3"
   },
-  "publishConfig": { "access": "public", "provenance": true },
-  "engines": { "node": ">=20.0.0" },
-  "dependencies": { "@ar-agents/core": "workspace:^" }
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@ar-agents/core": "workspace:^"
+  }
 }
