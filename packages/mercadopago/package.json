@@ -191,6 +191,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@ar-agents/core": "workspace:^",
     "qrcode": "^1.5.4"
   }
 }

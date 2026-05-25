@@ -946,6 +946,9 @@ importers:
 
   packages/mercadopago:
     dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
       qrcode:
         specifier: ^1.5.4
         version: 1.5.4
