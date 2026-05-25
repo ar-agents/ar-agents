@@ -1,5 +1,12 @@
 # whatsapp-hello
 
+## 0.1.15
+
+### Patch Changes
+
+- Updated dependencies [[`8c58aa0`](https://github.com/ar-agents/ar-agents/commit/8c58aa061a7579a2854ee4239ceb698c92148f28)]:
+  - @ar-agents/mercadopago@0.18.0
+
 ## 0.1.14
 
 ### Patch Changes
