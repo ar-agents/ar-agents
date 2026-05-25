@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/gde-tad",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) as drop-in tools for the Vercel AI SDK. Notification ingestion via Domicilio Electrónico, trámite tracking, IGJ inscription pre-flight. The 4th pieza for sociedades-IA — RFC-001 § 3.4.",
   "keywords": [
     "tad",
