@@ -2,10 +2,17 @@
  * Error hierarchy for `@ar-agents/gde-tad`.
  */
 
+import { ArAgentsError } from "@ar-agents/core";
+
 /** Base class — all errors thrown by this package extend this. */
-export class GdeTadError extends Error {
+export class GdeTadError extends ArAgentsError {
   constructor(message: string, options?: ErrorOptions) {
-    super(message, options);
+    super(message, {
+      code: "gde_tad_error",
+      retryable: false,
+      context: {},
+      cause: options?.cause,
+    });
     this.name = "GdeTadError";
   }
 }

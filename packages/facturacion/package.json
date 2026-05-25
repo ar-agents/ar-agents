@@ -115,6 +115,7 @@
     }
   ],
   "dependencies": {
+    "@ar-agents/core": "workspace:^",
     "@ar-agents/identity": "workspace:*"
   },
   "peerDependencies": {

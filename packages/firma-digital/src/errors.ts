@@ -12,13 +12,20 @@ export type FirmaDigitalErrorCode =
   | "unsupported_algorithm"
   | "unknown_error";
 
-export class FirmaDigitalError extends Error {
-  constructor(
-    public code: FirmaDigitalErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+import { ArAgentsError } from "@ar-agents/core";
+
+export class FirmaDigitalError extends ArAgentsError {
+  override readonly code: FirmaDigitalErrorCode;
+  readonly details?: unknown;
+
+  constructor(code: FirmaDigitalErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "FirmaDigitalError";
+    this.code = code;
+    this.details = details;
   }
 }

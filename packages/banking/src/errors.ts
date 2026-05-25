@@ -1,10 +1,11 @@
 /**
  * Errors emitted by `@ar-agents/banking` adapters and helpers.
  *
- * The base class `BankingError` carries a machine-readable `code` (suitable
- * for programmatic error handling by agents) and a human-readable `message`
- * (suitable for surfacing to end users).
+ * Extends `ArAgentsError` from `@ar-agents/core` so the family contract
+ * (code / retryable / context) is uniform.
  */
+
+import { ArAgentsError } from "@ar-agents/core";
 
 export type BankingErrorCode =
   | "bcra_not_configured"
@@ -15,14 +16,29 @@ export type BankingErrorCode =
   | "bcra_vars_not_configured"
   | "bcra_vars_unavailable";
 
-export class BankingError extends Error {
-  constructor(
-    public code: BankingErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+const RETRYABLE_CODES: Record<BankingErrorCode, boolean> = {
+  bcra_not_configured: false,
+  bcra_cuit_not_found: false,
+  bcra_service_unavailable: true,
+  bcra_rate_limited: true,
+  bcra_unknown_error: false,
+  bcra_vars_not_configured: false,
+  bcra_vars_unavailable: true,
+};
+
+export class BankingError extends ArAgentsError {
+  override readonly code: BankingErrorCode;
+  readonly details?: unknown;
+
+  constructor(code: BankingErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES[code] ?? false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "BankingError";
+    this.code = code;
+    this.details = details;
   }
 }
 

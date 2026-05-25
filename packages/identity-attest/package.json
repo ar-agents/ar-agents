@@ -148,6 +148,7 @@
     "node": ">=20.0.0"
   },
   "dependencies": {
+    "@ar-agents/core": "workspace:^",
     "jose": "^6.2.3"
   }
 }

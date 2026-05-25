@@ -2,12 +2,17 @@
  * Typed errors for `@ar-agents/identity-attest`. All extend
  * `IdentityAttestError` so callers can do `if (err instanceof IdentityAttestError)`.
  */
-export class IdentityAttestError extends Error {
-  public override readonly cause?: unknown;
+import { ArAgentsError } from "@ar-agents/core";
+
+export class IdentityAttestError extends ArAgentsError {
   constructor(message: string, cause?: unknown) {
-    super(message);
+    super(message, {
+      code: "identity_attest_error",
+      retryable: false,
+      context: {},
+      cause,
+    });
     this.name = "IdentityAttestError";
-    if (cause !== undefined) this.cause = cause;
   }
 }
 

@@ -11,14 +11,29 @@ export type ShippingErrorCode =
   | "shipping_not_supported"
   | "shipping_unknown_error";
 
-export class ShippingError extends Error {
-  constructor(
-    public code: ShippingErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+import { ArAgentsError } from "@ar-agents/core";
+
+const RETRYABLE_CODES: Record<ShippingErrorCode, boolean> = {
+  shipping_not_configured: false,
+  shipping_invalid_input: false,
+  shipping_carrier_error: true,
+  shipping_not_supported: false,
+  shipping_unknown_error: false,
+};
+
+export class ShippingError extends ArAgentsError {
+  override readonly code: ShippingErrorCode;
+  readonly details?: unknown;
+
+  constructor(code: ShippingErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES[code] ?? false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "ShippingError";
+    this.code = code;
+    this.details = details;
   }
 }
 

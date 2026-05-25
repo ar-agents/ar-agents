@@ -489,6 +489,10 @@ importers:
         version: 4.4.3
 
   packages/banking:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -535,6 +539,10 @@ importers:
         version: 4.4.3
 
   packages/boletin-oficial:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -556,6 +564,10 @@ importers:
         version: 4.4.3
 
   packages/constancia:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -599,6 +611,9 @@ importers:
 
   packages/facturacion:
     dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
       '@ar-agents/identity':
         specifier: workspace:*
         version: link:../identity
@@ -624,6 +639,9 @@ importers:
 
   packages/firma-digital:
     dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
       node-forge:
         specifier: ^1.4.0
         version: 1.4.0
@@ -651,6 +669,10 @@ importers:
         version: 4.4.3
 
   packages/gde-tad:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -704,6 +726,9 @@ importers:
 
   packages/identity-attest:
     dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
       jose:
         specifier: ^6.2.3
         version: 6.2.3
@@ -734,6 +759,10 @@ importers:
         version: 4.4.3
 
   packages/igj:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -909,6 +938,10 @@ importers:
         version: 4.4.3
 
   packages/mercadolibre:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@ai-sdk/anthropic':
         specifier: ^3.0.0
@@ -991,6 +1024,10 @@ importers:
         version: 4.4.3
 
   packages/mi-argentina:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -1012,6 +1049,10 @@ importers:
         version: 4.4.3
 
   packages/shipping:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -1133,6 +1174,10 @@ importers:
         version: 4.4.3
 
   packages/whatsapp:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
