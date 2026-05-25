@@ -147,6 +147,18 @@ export interface IngresoLine {
   baseImponibleCentavos: number;
   /** Optional reference (invoice number, transaction id). */
   reference?: string | undefined;
+  /** For CM Article 8 (Transport): origin jurisdiction of the trip — the
+   * full base of this line is attributed there regardless of where the
+   * income lands. Ignored under any other regime. */
+  originJurisdiction?: JurisdictionCode | undefined;
+  /** For CM Article 6 (Construction): jurisdiction where the work was
+   * actually performed. If absent, falls back to `jurisdiction`. The
+   * 90% pool is prorated by total base per work-jurisdiction. */
+  workJurisdiction?: JurisdictionCode | undefined;
+  /** For CM Article 11 (Grain) and Article 13 (Agro/Industrial): where
+   * the goods were stored / processed. The 85% pool is prorated by
+   * total base per storage-jurisdiction. */
+  storageJurisdiction?: JurisdictionCode | undefined;
 }
 
 /** Per-jurisdiction summary of the DDJJ. */
