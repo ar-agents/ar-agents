@@ -1,0 +1,89 @@
+{
+  "name": "@ar-agents/suss",
+  "version": "0.0.0",
+  "description": "SUSS / payroll (Sistema Único de la Seguridad Social) agent toolkit for the Vercel AI SDK 6. Pure calculator for employer-side contributions (jubilación, INSSJP, asignaciones familiares, ART, obra social) per F.931 / SICOSS. Per-employee math + monthly DDJJ aggregation. Adapter pattern for the eventual SICOSS XML upload keeps unit tests offline. No AR-payroll-agent lib exists today; this is v0.1 of that.",
+  "keywords": [
+    "suss",
+    "sicoss",
+    "f931",
+    "payroll",
+    "seguridad-social",
+    "jubilacion",
+    "afip",
+    "arca",
+    "ar-agents",
+    "argentina",
+    "ai-sdk",
+    "vercel-ai",
+    "agent",
+    "tax"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@naza.ar>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/suss",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/suss"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "tools.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "validate": "publint && attw --pack .",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "ai": "^6.0.175",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

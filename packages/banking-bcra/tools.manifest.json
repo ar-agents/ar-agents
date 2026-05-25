@@ -1,0 +1,35 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/banking-bcra",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "bcra_get_debt",
+      "description": "Raw current debt status from BCRA Central de Deudores.",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "bcra_get_debt_summary",
+      "description": "One-shot credit-check: total debt, worst situación, flags, risk band ('clean'|'low'|'watch'|'high').",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "bcra_get_historical_debt",
+      "description": "24-month historical snapshots for trend analysis.",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "bcra_get_bounced_checks",
+      "description": "Bounced-check history (causa, monto, fecha, optional fechaPago).",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
+    }
+  ]
+}

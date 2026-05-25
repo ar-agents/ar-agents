@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/suss",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "suss_calculate_employee_month",
+      "description": "Per-employee monthly aportes + contribuciones per F.931 / SICOSS.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "suss_build_ddjj",
+      "description": "Aggregate per-employee results into the monthly SICOSS DDJJ.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "suss_submit_ddjj",
+      "description": "Submit the SICOSS DDJJ to AFIP. v0.1 throws unless a real adapter is wired.",
+      "sideEffects": "files tax return",
+      "idempotent": true,
+      "requiresConfirmation": true
+    }
+  ]
+}
