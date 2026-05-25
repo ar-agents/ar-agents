@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/wscdc",
-  "version": "0.0.0",
+  "version": "0.1.0",
   "description": "Agent toolkit for AFIP WSCDC (Web Service Constatación de Comprobantes Destinatarios) — validate that a factura received from a supplier was actually issued by AFIP with a real CAE. Pair with @ar-agents/identity for WSAA cert + signature handling.",
   "keywords": [
     "wscdc",
