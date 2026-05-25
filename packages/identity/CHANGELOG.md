@@ -1,5 +1,37 @@
 # Changelog
 
+## 0.8.0
+
+### Minor Changes
+
+- [`ea61bf9`](https://github.com/ar-agents/ar-agents/commit/ea61bf999e540982f6b50443c127f757c15c8d7a) Thanks [@naza00000](https://github.com/naza00000)! - `IdentityError` now extends `ArAgentsError` from `@ar-agents/core`.
+
+  This gives the package a uniform error shape with the rest of the
+  `@ar-agents/*` family so middleware (`withRetry`, `withMetrics`, etc.)
+  can switch on the same `code` / `retryable` / `context` fields across
+  every integration.
+
+  The existing public API is preserved — `new IdentityError(code, message,
+details?)` still works, and `code` is still narrowed to
+  `IdentityErrorCode`. The legacy `details` field is kept on the instance
+  and is also mirrored under `context.details` for new code that reads
+  the `ArAgentsError` contract.
+
+  Per-code retryability defaults are now exposed via `error.retryable`:
+
+  | Code                       | Retryable |
+  | -------------------------- | --------- |
+  | `afip_service_unavailable` | `true`    |
+  | `afip_rate_limited`        | `true`    |
+  | `afip_not_configured`      | `false`   |
+  | `afip_cert_invalid`        | `false`   |
+  | `afip_cuit_not_found`      | `false`   |
+  | `afip_unknown_error`       | `false`   |
+
+  No breaking changes; consumers who handled `IdentityError` via
+  `instanceof` continue to work, and they additionally satisfy
+  `isArAgentsError()`.
+
 ## 0.7.0
 
 ### Minor Changes

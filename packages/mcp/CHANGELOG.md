@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.10.2
+
+### Patch Changes
+
+- Updated dependencies [[`ea61bf9`](https://github.com/ar-agents/ar-agents/commit/ea61bf999e540982f6b50443c127f757c15c8d7a)]:
+  - @ar-agents/identity@0.8.0
+  - @ar-agents/facturacion@0.3.2
+
 ## 0.10.1
 
 ### Patch Changes
