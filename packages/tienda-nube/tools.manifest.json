@@ -1,0 +1,77 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/tienda-nube",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "tienda_nube_get_store",
+      "description": "Retrieve metadata about the bound Tienda Nube store.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_list_products",
+      "description": "Cursor-paginated product list with substring search.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_get_product",
+      "description": "Retrieve a product by id, including all variants.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_list_orders",
+      "description": "List orders with status, payment_status, email, and date filters.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_get_order",
+      "description": "Retrieve a single order by id.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_list_customers",
+      "description": "Cursor-paginated customer list with name+email substring search.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_get_customer",
+      "description": "Retrieve a single customer by id.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_list_webhooks",
+      "description": "List webhook subscriptions for this app on the bound store.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_create_webhook",
+      "description": "Register a webhook subscription. URL must be https://.",
+      "sideEffects": "creates resource",
+      "idempotent": false,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "tienda_nube_delete_webhook",
+      "description": "Delete a webhook subscription by id. Idempotent.",
+      "sideEffects": "irreversible",
+      "idempotent": true,
+      "requiresConfirmation": false
+    }
+  ]
+}

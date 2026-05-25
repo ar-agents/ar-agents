@@ -1,0 +1,79 @@
+{
+  "name": "@ar-agents/core",
+  "version": "0.0.0",
+  "description": "Shared primitives for @ar-agents/* packages: typed error base, tool middleware (compose, withMetrics, withRetry, withTimeout, withApproval HITL gate), telemetry hooks, adapter contract conventions. Zero runtime deps beyond Vercel AI SDK's tool shape.",
+  "keywords": [
+    "ar-agents",
+    "argentina",
+    "ai-sdk",
+    "vercel-ai",
+    "agent",
+    "middleware",
+    "observability",
+    "hitl"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@naza.ar>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/core",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/core"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "CHANGELOG.md",
+    "LICENSE"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "validate": "publint && attw --pack .",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "ai": ">=6.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "ai": "^6.0.175",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}
