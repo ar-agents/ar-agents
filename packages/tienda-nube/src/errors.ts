@@ -1,11 +1,13 @@
 /**
  * Error taxonomy for @ar-agents/tienda-nube.
+ *
+ * Extends `ArAgentsError` from `@ar-agents/core` so the family error
+ * contract (code / retryable / context) is uniform.
  */
 
-export class TiendaNubeError extends Error {
-  readonly code: string;
-  readonly retryable: boolean;
-  readonly context: Record<string, unknown>;
+import { ArAgentsError } from "@ar-agents/core";
+
+export class TiendaNubeError extends ArAgentsError {
   constructor(
     message: string,
     init: {
@@ -15,14 +17,8 @@ export class TiendaNubeError extends Error {
       cause?: unknown;
     },
   ) {
-    super(
-      message,
-      init.cause !== undefined ? ({ cause: init.cause } as ErrorOptions) : undefined,
-    );
+    super(message, init);
     this.name = "TiendaNubeError";
-    this.code = init.code;
-    this.retryable = init.retryable ?? false;
-    this.context = init.context ?? {};
   }
 }
 

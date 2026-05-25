@@ -510,6 +510,10 @@ importers:
         version: 4.4.3
 
   packages/banking-bcra:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -1051,6 +1055,10 @@ importers:
         version: 4.4.3
 
   packages/suss:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -1072,6 +1080,10 @@ importers:
         version: 4.4.3
 
   packages/tienda-nube:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39
@@ -1142,6 +1154,10 @@ importers:
         version: 4.4.3
 
   packages/wscdc:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:^
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39

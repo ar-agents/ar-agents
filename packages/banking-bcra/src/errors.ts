@@ -1,11 +1,14 @@
 /**
  * Error taxonomy for @ar-agents/banking-bcra.
+ *
+ * Extends `ArAgentsError` from `@ar-agents/core` so the family error
+ * contract (code / retryable / context) is uniform across every
+ * `@ar-agents/*` integration.
  */
 
-export class BcraError extends Error {
-  readonly code: string;
-  readonly retryable: boolean;
-  readonly context: Record<string, unknown>;
+import { ArAgentsError } from "@ar-agents/core";
+
+export class BcraError extends ArAgentsError {
   constructor(
     message: string,
     init: {
@@ -15,11 +18,8 @@ export class BcraError extends Error {
       cause?: unknown;
     },
   ) {
-    super(message, init.cause !== undefined ? ({ cause: init.cause } as ErrorOptions) : undefined);
+    super(message, init);
     this.name = "BcraError";
-    this.code = init.code;
-    this.retryable = init.retryable ?? false;
-    this.context = init.context ?? {};
   }
 }
 
