@@ -2,10 +2,18 @@
  * Ualá error model. All public-API errors inherit from `UalaError` so
  * agents (and ar-agents/tool() callers) can `instanceof` dispatch in one
  * branch instead of pattern-matching across cases.
+ *
+ * `UalaError` extends `ArAgentsError` from `@ar-agents/core` so the same
+ * middleware (withRetry, withMetrics, …) treats Ualá errors identically
+ * to errors from every other `@ar-agents/*` package.
  */
 
-export class UalaError extends Error {
-  public readonly code: string;
+import { ArAgentsError } from "@ar-agents/core";
+
+/** Codes whose `retryable` flag is `true` (server-side / transient). */
+const RETRYABLE_CODES = new Set(["api_error"]);
+
+export class UalaError extends ArAgentsError {
   public readonly status?: number | undefined;
   public readonly details?: unknown;
 
@@ -14,9 +22,15 @@ export class UalaError extends Error {
     message: string,
     opts: { status?: number; details?: unknown } = {},
   ) {
-    super(message);
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES.has(code) || (opts.status !== undefined && opts.status >= 500),
+      context: {
+        ...(opts.status !== undefined ? { status: opts.status } : {}),
+        ...(opts.details !== undefined ? { details: opts.details } : {}),
+      },
+    });
     this.name = "UalaError";
-    this.code = code;
     if (opts.status !== undefined) this.status = opts.status;
     if (opts.details !== undefined) this.details = opts.details;
   }
