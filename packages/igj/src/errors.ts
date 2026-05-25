@@ -10,14 +10,30 @@ export type IgjErrorCode =
   | "invalid_query"
   | "unknown_error";
 
-export class IgjError extends Error {
-  constructor(
-    public code: IgjErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+import { ArAgentsError } from "@ar-agents/core";
+
+const RETRYABLE_CODES: Record<IgjErrorCode, boolean> = {
+  fetcher_not_configured: false,
+  ckan_unreachable: true,
+  ckan_invalid_response: false,
+  entity_not_found: false,
+  invalid_query: false,
+  unknown_error: false,
+};
+
+export class IgjError extends ArAgentsError {
+  override readonly code: IgjErrorCode;
+  readonly details?: unknown;
+
+  constructor(code: IgjErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES[code] ?? false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "IgjError";
+    this.code = code;
+    this.details = details;
   }
 }
 

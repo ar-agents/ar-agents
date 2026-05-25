@@ -1,12 +1,23 @@
 // Typed errors for `@ar-agents/mercadolibre`. All client failures funnel
 // through one of these so consumers can `if (err instanceof MeliApiError)`
 // without parsing strings.
+//
+// `MeliError` extends `ArAgentsError` from `@ar-agents/core` so the
+// family contract (code / retryable / context) is uniform across every
+// `@ar-agents/*` integration.
+
+import { ArAgentsError } from "@ar-agents/core";
 
 /** Common base. */
-export abstract class MeliError extends Error {
-  abstract readonly code: string;
-  constructor(message: string) {
-    super(message);
+export abstract class MeliError extends ArAgentsError {
+  abstract override readonly code: string;
+  constructor(message: string, init: { retryable?: boolean; context?: Record<string, unknown>; cause?: unknown } = {}) {
+    super(message, {
+      code: "meli_error",
+      retryable: init.retryable ?? false,
+      context: init.context ?? {},
+      cause: init.cause,
+    });
     this.name = this.constructor.name;
   }
 }

@@ -11,14 +11,31 @@ export type BoErrorCode =
   | "subscription_invalid"
   | "unknown_error";
 
-export class BoError extends Error {
-  constructor(
-    public code: BoErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+import { ArAgentsError } from "@ar-agents/core";
+
+const RETRYABLE_CODES: Record<BoErrorCode, boolean> = {
+  fetcher_not_configured: false,
+  fetcher_unreachable: true,
+  fetcher_unexpected_response: false,
+  norma_not_found: false,
+  invalid_query: false,
+  subscription_invalid: false,
+  unknown_error: false,
+};
+
+export class BoError extends ArAgentsError {
+  override readonly code: BoErrorCode;
+  readonly details?: unknown;
+
+  constructor(code: BoErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES[code] ?? false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "BoError";
+    this.code = code;
+    this.details = details;
   }
 }
 

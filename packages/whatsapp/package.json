@@ -125,5 +125,8 @@
         "./dist/testing.d.ts"
       ]
     }
+  },
+  "dependencies": {
+    "@ar-agents/core": "workspace:^"
   }
 }

@@ -1,10 +1,11 @@
 /**
  * Errors emitted by `@ar-agents/facturacion` adapters and helpers.
  *
- * The base class `FacturacionError` carries a machine-readable `code`
- * (programmatic handling) and a human-readable `message` (end-user surface).
+ * Extends `ArAgentsError` from `@ar-agents/core` so the family contract
+ * (code / retryable / context) is uniform.
  */
 
+import { ArAgentsError } from "@ar-agents/core";
 import type { WsfeError } from "./types";
 
 export type FacturacionErrorCode =
@@ -15,14 +16,28 @@ export type FacturacionErrorCode =
   | "wsfe_service_unavailable"
   | "wsfe_unknown_error";
 
-export class FacturacionError extends Error {
-  constructor(
-    public code: FacturacionErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+const RETRYABLE_CODES: Record<FacturacionErrorCode, boolean> = {
+  wsfe_not_configured: false,
+  wsfe_validation_error: false,
+  wsfe_authentication_failed: false,
+  wsfe_request_rejected: false,
+  wsfe_service_unavailable: true,
+  wsfe_unknown_error: false,
+};
+
+export class FacturacionError extends ArAgentsError {
+  override readonly code: FacturacionErrorCode;
+  readonly details?: unknown;
+
+  constructor(code: FacturacionErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES[code] ?? false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "FacturacionError";
+    this.code = code;
+    this.details = details;
   }
 }
 

@@ -11,14 +11,31 @@ export type ConstanciaErrorCode =
   | "captcha_blocked"
   | "unknown_error";
 
-export class ConstanciaError extends Error {
-  constructor(
-    public code: ConstanciaErrorCode,
-    message: string,
-    public details?: unknown,
-  ) {
-    super(message);
+import { ArAgentsError } from "@ar-agents/core";
+
+const RETRYABLE_CODES: Record<ConstanciaErrorCode, boolean> = {
+  fetcher_not_configured: false,
+  fetcher_unreachable: true,
+  fetcher_unexpected_response: false,
+  cuit_not_found: false,
+  invalid_cuit: false,
+  captcha_blocked: false,
+  unknown_error: false,
+};
+
+export class ConstanciaError extends ArAgentsError {
+  override readonly code: ConstanciaErrorCode;
+  readonly details?: unknown;
+
+  constructor(code: ConstanciaErrorCode, message: string, details?: unknown) {
+    super(message, {
+      code,
+      retryable: RETRYABLE_CODES[code] ?? false,
+      context: details !== undefined ? { details } : {},
+    });
     this.name = "ConstanciaError";
+    this.code = code;
+    this.details = details;
   }
 }
 

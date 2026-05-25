@@ -99,5 +99,8 @@
   },
   "bin": {
     "shipping": "./bin/shipping.js"
+  },
+  "dependencies": {
+    "@ar-agents/core": "workspace:^"
   }
 }

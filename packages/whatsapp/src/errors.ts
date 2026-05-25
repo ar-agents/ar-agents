@@ -8,12 +8,17 @@
  * code paths outside the agent (webhook handlers, batch jobs) the typed
  * errors let you switch on the error class instead of regexing messages.
  */
-export class WhatsAppError extends Error {
-  public override readonly cause?: unknown;
+import { ArAgentsError } from "@ar-agents/core";
+
+export class WhatsAppError extends ArAgentsError {
   constructor(message: string, cause?: unknown) {
-    super(message);
+    super(message, {
+      code: "whatsapp_error",
+      retryable: false,
+      context: {},
+      cause,
+    });
     this.name = "WhatsAppError";
-    if (cause !== undefined) this.cause = cause;
   }
 }
 
@@ -42,16 +47,28 @@ export class WhatsAppNotConfiguredError extends WhatsAppError {
  * Full reference: https://developers.facebook.com/docs/whatsapp/cloud-api/support/error-codes
  */
 export class WhatsAppApiError extends WhatsAppError {
+  /** Meta Graph API error code (numeric). e.g. 131009, 131026. */
+  public readonly metaCode: number;
+  public readonly httpStatus: number;
+  public readonly metaSubcode?: number;
+  public readonly fbtraceId?: string;
+
   constructor(
     message: string,
-    public readonly code: number,
-    public readonly httpStatus: number,
-    public readonly metaSubcode?: number,
-    public readonly fbtraceId?: string,
+    metaCode: number,
+    httpStatus: number,
+    metaSubcode?: number,
+    fbtraceId?: string,
     cause?: unknown,
   ) {
     super(message, cause);
     this.name = "WhatsAppApiError";
+    // ArAgentsError's `code` is a string; this one carries the Meta numeric code.
+    (this as { code: string }).code = `whatsapp_meta_${metaCode}`;
+    this.metaCode = metaCode;
+    this.httpStatus = httpStatus;
+    if (metaSubcode !== undefined) this.metaSubcode = metaSubcode;
+    if (fbtraceId !== undefined) this.fbtraceId = fbtraceId;
   }
 }
 
