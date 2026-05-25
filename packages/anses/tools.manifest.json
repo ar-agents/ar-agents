@@ -1,0 +1,30 @@
+{
+  "package": "@ar-agents/anses",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "anses_get_cuil_status",
+      "description": "Look up a CUIL's ANSES status.",
+      "input": { "cuil": "11-digit CUIL" },
+      "returns": "CuilStatusResult",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    },
+    {
+      "name": "anses_get_family_allowances",
+      "description": "List family-allowance entitlements for a CUIL.",
+      "input": { "cuil": "11-digit CUIL" },
+      "returns": "FamilyAllowanceEntitlement[]",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    },
+    {
+      "name": "anses_get_minimo_jubilatorio",
+      "description": "Haber mínimo jubilatorio for a YYYY-MM period.",
+      "input": { "period": "YYYY-MM" },
+      "returns": "MinimoJubilatorioRecord | null",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    }
+  ]
+}

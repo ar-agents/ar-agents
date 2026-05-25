@@ -1,0 +1,25 @@
+{
+  "package": "@ar-agents/aduana",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "aduana_lookup_despacho",
+      "description": "Look up an ARCA Aduana customs declaration by SUSI/KIM/OM number.",
+      "input": {
+        "kind": "SUSI | KIM | OM",
+        "value": "string (number as printed on the despacho)"
+      },
+      "returns": "DespachoLookupResult",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    },
+    {
+      "name": "aduana_lookup_ncm",
+      "description": "Look up an Argentine NCM tariff code (8 digits).",
+      "input": { "code": "8-digit NCM" },
+      "returns": "NcmLookupResult | {code, found: false}",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    }
+  ]
+}
