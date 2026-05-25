@@ -21,22 +21,22 @@ unless noted; the four bumped to v0.2.0 were in-flight pre-swarm.
 | `@ar-agents/facturacion` | (pre-swarm) | |
 | `@ar-agents/firma-digital` | (pre-swarm) | |
 | `@ar-agents/gde-tad` | (pre-swarm) | |
-| `@ar-agents/identity` | (pre-swarm) | needs lift to core (low-risk minor bump) |
+| `@ar-agents/identity` | **0.8.0** | lifted to `@ar-agents/core` |
 | `@ar-agents/identity-attest` | (pre-swarm) | |
 | `@ar-agents/igj` | (pre-swarm) | |
-| `@ar-agents/iibb` | **0.2.0** | needs CM Articles 6–13 |
+| `@ar-agents/iibb` | **0.3.0** | lifted; still needs CM Articles 6–13 |
 | `@ar-agents/incorporate` | (pre-swarm) | |
-| **`@ar-agents/iva-percepciones`** | **0.1.0** | swarm wave |
-| **`@ar-agents/iva-retenciones`** | **0.1.0** | swarm wave |
+| **`@ar-agents/iva-percepciones`** | **0.2.0** | lifted to `@ar-agents/core` |
+| **`@ar-agents/iva-retenciones`** | **0.2.0** | lifted to `@ar-agents/core` |
 | `@ar-agents/mcp` | (pre-swarm) | |
 | `@ar-agents/mercadolibre` | (pre-swarm) | |
 | `@ar-agents/mercadopago` | (pre-swarm) | best-in-class DX; source of `core`'s primitives |
 | `@ar-agents/mi-argentina` | (pre-swarm) | |
 | `@ar-agents/shipping` | (pre-swarm) | |
-| **`@ar-agents/sicore`** | **0.1.0** | swarm wave: Ganancias retentions |
+| **`@ar-agents/sicore`** | **0.2.0** | lifted to `@ar-agents/core` |
 | **`@ar-agents/suss`** | **0.1.0** | NEW: payroll / SICOSS — first AR lib |
 | **`@ar-agents/tienda-nube`** | **0.1.0** | swarm wave: #2 AR e-commerce |
-| `@ar-agents/uala` | **0.2.0** | swarm wave: InMemoryAdapter + refresh |
+| `@ar-agents/uala` | **0.3.0** | lifted to `@ar-agents/core` |
 | `@ar-agents/whatsapp` | (pre-swarm) | |
 | **`@ar-agents/wscdc`** | **0.1.0** | NEW: factura validation |
 
@@ -102,8 +102,9 @@ In rough order of leverage:
 
 | Item | Effort | Leverage |
 |---|---|---|
-| **Lift identity → @ar-agents/core** | M (1 day, careful minor bump) | Demonstrates family-coherence value of core, elevates 1 of 18 lagging packages |
-| **Same lift for uala + iibb + sicore + iva-*** | M each (~1 day each) | Same logic; could batch as a single sweep |
+| ~~Lift identity → @ar-agents/core~~ | ✅ shipped as identity@0.8.0 | Family-coherence value of core demonstrated |
+| ~~Same lift for uala + iibb + sicore + iva-*~~ | ✅ shipped (uala@0.3 + iibb@0.3 + sicore@0.2 + iva-percepciones@0.2 + iva-retenciones@0.2) | Batched as a single sweep, 127 tests pass |
+| **Lift remaining packages** (mercadopago, whatsapp, facturacion, banking, banking-bcra, suss, tienda-nube, wscdc, mi-argentina, identity-attest, igj, gde-tad, firma-digital, boletin-oficial, constancia, mercadolibre, agentic-commerce-bridge, ap2, incorporate, mcp, shipping) | M-L (sweep) | Completes family-coherence (~20 packages still on plain `Error`) |
 | **iibb v0.3 with CM Articles 6–13** | M-L | Closes the last federal tax-math gap (construction, transport, professional services special regimes) |
 | **`@ar-agents/aduana`** | M-L | AFIP/ARCA Aduana (María); ARCA published new REST API in 2025 |
 | **`@ar-agents/cnv-emisor`** | L | Comisión Nacional de Valores; issuer disclosures |
