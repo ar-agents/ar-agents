@@ -30,7 +30,7 @@ unless noted; the four bumped to v0.2.0 were in-flight pre-swarm.
 | **`@ar-agents/iva-retenciones`** | **0.2.0** | lifted to `@ar-agents/core` |
 | `@ar-agents/mcp` | (pre-swarm) | |
 | `@ar-agents/mercadolibre` | (pre-swarm) | |
-| `@ar-agents/mercadopago` | (pre-swarm) | best-in-class DX; source of `core`'s primitives |
+| `@ar-agents/mercadopago` | **0.18.0** | lifted to `@ar-agents/core` (source of `core`'s primitives) |
 | `@ar-agents/mi-argentina` | (pre-swarm) | |
 | `@ar-agents/shipping` | (pre-swarm) | |
 | **`@ar-agents/sicore`** | **0.2.0** | lifted to `@ar-agents/core` |
@@ -105,7 +105,8 @@ In rough order of leverage:
 | ~~Lift identity → @ar-agents/core~~ | ✅ shipped as identity@0.8.0 | Family-coherence value of core demonstrated |
 | ~~Same lift for uala + iibb + sicore + iva-*~~ | ✅ shipped (uala@0.3 + iibb@0.3 + sicore@0.2 + iva-percepciones@0.2 + iva-retenciones@0.2) | Batched as a single sweep, 127 tests pass |
 | ~~Lift swarm-wave packages~~ | ✅ shipped (banking-bcra@0.2 + suss@0.2 + tienda-nube@0.2 + wscdc@0.2) | Family-coherence count: 10/26 |
-| **Lift remaining OG packages** (mercadopago, whatsapp, facturacion, banking, mi-argentina, identity-attest, igj, gde-tad, firma-digital, boletin-oficial, constancia, mercadolibre, agentic-commerce-bridge, ap2, incorporate, mcp, shipping) | M-L (sweep) | Completes family-coherence (~16 packages remaining) |
+| ~~Lift `@ar-agents/mercadopago`~~ | ✅ shipped as mercadopago@0.18 | Flagship package now on family contract; 328 tests pass; count: 11/26 |
+| **Lift remaining OG packages** (whatsapp, facturacion, banking, mi-argentina, identity-attest, igj, gde-tad, firma-digital, boletin-oficial, constancia, mercadolibre, agentic-commerce-bridge, ap2, incorporate, mcp, shipping) | M-L (sweep) | Completes family-coherence (~15 packages remaining) |
 | **iibb v0.3 with CM Articles 6–13** | M-L | Closes the last federal tax-math gap (construction, transport, professional services special regimes) |
 | **`@ar-agents/aduana`** | M-L | AFIP/ARCA Aduana (María); ARCA published new REST API in 2025 |
 | **`@ar-agents/cnv-emisor`** | L | Comisión Nacional de Valores; issuer disclosures |
