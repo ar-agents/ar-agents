@@ -476,8 +476,8 @@ export default function Home() {
               role={lang === "es" ? "Para developers" : "For developers"}
               body={
                 lang === "es"
-                  ? "17 paquetes npm tipados para Vercel AI SDK 6. Cobrar, validar CUIT, mandar WhatsApp, emitir factura, monitorear el BO."
-                  : "17 typed npm packages for Vercel AI SDK 6. Charge, validate CUIT, send WhatsApp, emit invoice, monitor the gazette."
+                  ? "33 paquetes npm tipados para Vercel AI SDK 6. Cobrar, validar CUIT, mandar WhatsApp, emitir factura, monitorear el BO."
+                  : "33 typed npm packages for Vercel AI SDK 6. Charge, validate CUIT, send WhatsApp, emit invoice, monitor the gazette."
               }
               cta={lang === "es" ? "Ver SDK" : "Browse SDK"}
               href="/sdk"
@@ -532,17 +532,17 @@ export default function Home() {
             }}
           >
             <StatTile
-              n="17"
+              n="33"
               l={lang === "es" ? "Paquetes en npm" : "npm packages"}
               href="https://www.npmjs.com/org/ar-agents"
             />
             <StatTile
-              n="5"
+              n="6"
               l="RFCs (CC-BY-4.0)"
               href="/rfcs/001"
             />
             <StatTile
-              n="168"
+              n="221"
               l={lang === "es" ? "Tools tipadas" : "Typed tools"}
               href="/sdk"
             />
