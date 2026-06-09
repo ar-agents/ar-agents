@@ -22,7 +22,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "/highlights · what ar-agents is, in 90 seconds · ar-agents",
   description:
-    "What ar-agents is, in 90 seconds: open-source infrastructure for Argentine sociedades-IA. 5 RFCs, 30 cookbook recipes, public certifier scoring 100/100. For anyone arriving cold, investor, recruiter, journalist, ally.",
+    "What ar-agents is, in 90 seconds: open-source infrastructure for Argentine sociedades-IA. 6 RFCs, 30 cookbook recipes, public certifier scoring 100/100. For anyone arriving cold, investor, recruiter, journalist, ally.",
   alternates: { canonical: "https://ar-agents.ar/highlights" },
 };
 

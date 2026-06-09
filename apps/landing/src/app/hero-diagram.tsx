@@ -16,8 +16,8 @@ const L = {
   agentLoop: { en: "↳ agent loop", es: "↳ agente" },
   modelVendor: { en: "Sonnet 4.6", es: "Sonnet 4.6" },
   toolCalls: { en: "tool calls", es: "tool-calls" },
-  packagesLabel: { en: "17 packages", es: "17 paquetes" },
-  toolsLabel: { en: "168 typed tools", es: "168 tools tipadas" },
+  packagesLabel: { en: "33 packages", es: "33 paquetes" },
+  toolsLabel: { en: "221 typed tools", es: "221 tools tipadas" },
   sdkLabel: { en: "Vercel AI SDK 6", es: "Vercel AI SDK 6" },
   auditCaption: {
     en: "↓ each tool call is written to a dual-signed audit log (HMAC + Ed25519)",

@@ -224,7 +224,7 @@ export default function Rfc002Page() {
           >
             /.well-known/agents.json
           </a>{" "}
-          ✓, 17 packages, 5+ endpoints, governance object, agentInstructions.
+          ✓, 33 packages, 5+ endpoints, governance object, agentInstructions.
         </Li>
         <Li>
           <a
@@ -242,7 +242,7 @@ export default function Rfc002Page() {
           >
             /api/discovery
           </a>{" "}
-          ✓, JSON aggregator, 168 tools indexed.
+          ✓, JSON aggregator, 221 tools indexed.
         </Li>
         <Li>
           <a

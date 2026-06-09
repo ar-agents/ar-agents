@@ -16,9 +16,9 @@ const geistMono = Geist_Mono({
 
 // Compact, keyword-rich meta description (155 char limit for Google snippet
 // truncation). Lead with the umbrella story (open infrastructure for AR
-// sociedades-IA), follow with proof points (17 packages, 6 RFCs, audit log).
+// sociedades-IA), follow with proof points (33 packages, 6 RFCs, audit log).
 const META_DESCRIPTION =
-  "Open-source infrastructure for Argentine AI corporations (sociedades-IA). 17 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. MIT + CC-BY-4.0.";
+  "Open-source infrastructure for Argentine AI corporations (sociedades-IA). 33 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. MIT + CC-BY-4.0.";
 
 const SITE_URL = "https://ar-agents.ar";
 
@@ -73,7 +73,7 @@ export const metadata: Metadata = {
     siteName: "ar-agents",
     title: "ar-agents, open infrastructure for AI corporations in Argentina",
     description:
-      "17 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. The technical scaffolding for the Argentine sociedades-IA regime.",
+      "33 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. The technical scaffolding for the Argentine sociedades-IA regime.",
     url: SITE_URL,
     locale: "en_US",
     alternateLocale: ["es_AR"],
@@ -127,7 +127,7 @@ const schemaOrgJsonLd = {
       alternateName: ["ar-agents toolkit", "@ar-agents/*"],
       headline: "Open infrastructure for AI corporations in Argentina",
       description:
-        "Open-source technical scaffolding for the proposed Argentine sociedades-IA regime (AI corporations as legal entities). 17 typed npm packages covering the Argentine state + financial stack (identity, signing, money, customer ops, gazette monitoring, corporate registry). 6 RFCs covering three-layer liability framework, agent discovery, cross-jurisdictional reciprocity, operational-log specification, asymmetric signature upgrade, and ledger projection. A public registry of conformant implementations. Audit log signed dual HMAC-SHA256 + Ed25519. MIT (code) + CC-BY-4.0 (specs). Flagship package: @ar-agents/mercadopago with 89 Vercel AI SDK 6 tools.",
+        "Open-source technical scaffolding for the proposed Argentine sociedades-IA regime (AI corporations as legal entities). 33 typed npm packages covering the Argentine state + financial stack (identity, signing, money, customer ops, gazette monitoring, corporate registry). 6 RFCs covering three-layer liability framework, agent discovery, cross-jurisdictional reciprocity, operational-log specification, asymmetric signature upgrade, and ledger projection. A public registry of conformant implementations. Audit log signed dual HMAC-SHA256 + Ed25519. MIT (code) + CC-BY-4.0 (specs). Flagship package: @ar-agents/mercadopago with 89 Vercel AI SDK 6 tools.",
       url: SITE,
       image: SITE + "/opengraph-image",
       applicationCategory: ["DeveloperApplication", "BusinessApplication"],
@@ -220,7 +220,7 @@ const schemaOrgJsonLd = {
       "@type": "WebSite",
       "@id": SITE + "/#website",
       name: "ar-agents",
-      alternateName: "Mercado Pago Agent Toolkit",
+      alternateName: "Infraestructura para sociedades de IA",
       url: SITE,
       inLanguage: ["en", "es"],
       publisher: { "@id": SITE + "/#org-ar-agents" },
@@ -269,7 +269,7 @@ const schemaOrgJsonLd = {
           name: "What is ar-agents?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "ar-agents is a Mercado Pago Agent Toolkit for the Vercel AI SDK 6. It ships 89 typed tools that an LLM agent can call directly to drive Mercado Pago billing flows: subscriptions, payments, refunds, checkout pro, marketplace OAuth, cuotas (installments), QR in-store, 3DS challenge resolution, point-of-sale devices, webhooks. Sidecar packages cover AFIP/ARCA, WhatsApp Business Cloud, banking (CBU/CVU + BCRA), and shipping (Andreani/OCA/Correo Argentino).",
+            text: "ar-agents is open-source infrastructure for Argentina's coming 'sociedades de IA' (AI-corporation) regime: 33 npm packages and 221 typed Vercel AI SDK 6 tools that let an AI agent incorporate and operate as an Argentine company end-to-end — identity (CUIT/ARCA), digital signing, money (Mercado Pago, the flagship package, with 89 tools), e-invoicing (AFIP/ARCA), banking (CBU/CVU + BCRA), WhatsApp Business, shipping (Andreani/OCA/Correo), gazette monitoring (Boletín Oficial), corporate registry (IGJ) — plus 6 RFCs and an HMAC + Ed25519 audit log. MIT (code) + CC-BY-4.0 (specs).",
           },
         },
         {
