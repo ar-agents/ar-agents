@@ -21,8 +21,8 @@ const T = {
     en: "Reference implementation.",
   },
   subtitle: {
-    es: "Cuando exista la sociedad de IA del proyecto Sturzenegger, así se va a integrar con el Estado argentino. Y ya lo publicamos.",
-    en: "When the AI corporation from the Sturzenegger proposal exists, this is how it will integrate with the Argentine state. And we already published it.",
+    es: "El anteproyecto de Sturzenegger ya tiene texto: crea la Sociedad Automatizada (art. 14) y la DAO (art. 258). Así es como se integran con el Estado argentino. Y el código ya está publicado.",
+    en: "Sturzenegger's draft bill now has text: it creates the Sociedad Automatizada (art. 14) and the DAO (art. 258). This is how they integrate with the Argentine state. And the code is already published.",
   },
   h2plan: {
     es: "El plan, en una línea",
@@ -39,11 +39,18 @@ const T = {
         >
           Expo EFI
         </a>
-        ) un proyecto para reformar la Ley de Sociedades Comerciales y
-        crear un nuevo tipo de entidad: <DocCode>sociedad de IA</DocCode>:{" "}
-      una empresa con cero accionistas humanos, cero directores
-        humanos, cero empleados humanos. Solo código que decide, opera y
-        genera ingresos. Pagaría impuestos como cualquier SA o SRL.
+        ) el régimen, y el 28 de mayo de 2026 el Poder Ejecutivo envió al
+        Senado el anteproyecto que reemplaza íntegramente la Ley 19.550.
+        Crea la <DocCode>Sociedad Automatizada</DocCode> (art. 14): una
+        empresa de cualquier tipo que desarrolla su objeto mediante agentes
+        de IA, <strong>sin empleados en relación de dependencia</strong>, y
+        responde con su patrimonio por los daños de sus sistemas. No es
+        &ldquo;cero humanos&rdquo;: conserva un administrador (humano o
+        persona jurídica, art. 88) que configura y supervisa la IA y
+        responde por ello (art. 102). Y crea la <DocCode>DAO</DocCode>{" "}
+        (art. 258), gobernada por smart contracts y tokens, con
+        representante legal humano obligatorio (art. 260). Paga impuestos
+        como cualquier sociedad.
       </>
     ),
     en: (
@@ -56,11 +63,17 @@ const T = {
         >
           Expo EFI
         </a>
-        ) a proposed reform of the Corporate Companies Law that creates a
-        new entity type: <DocCode>sociedad de IA</DocCode>, a company
-        with zero human shareholders, zero human directors, zero human
-        employees. Only code that decides, operates, and generates
-        revenue. It would pay taxes like any S.A. or LLC.
+        ) the regime, and on May 28, 2026 the Executive sent the Senate the
+        draft bill that fully replaces Law 19.550. It creates the{" "}
+        <DocCode>Sociedad Automatizada</DocCode> (art. 14): a company of any
+        type that pursues its purpose through AI agents,{" "}
+        <strong>with no employees</strong>, and answers with its own assets
+        for damages caused by its systems. It is not &ldquo;zero
+        humans&rdquo;: it keeps an administrator (a human or legal person,
+        art. 88) who configures and supervises the AI and is liable for it
+        (art. 102). And it creates the <DocCode>DAO</DocCode> (art. 258),
+        governed by smart contracts and tokens, with a mandatory human legal
+        representative (art. 260). It pays taxes like any company.
       </>
     ),
   },
@@ -136,8 +149,8 @@ const T = {
     en: "If Argentina's first AI corporation needs to pay a consultancy USD 200k to integrate with the state, the experiment dies. If an ar-agents AI corporation can be deployed in a week with npm + Vercel + an ARCA cert, it scales.",
   },
   whyP2: {
-    es: "El timeline político del proyecto es 6-18 meses. El timeline de infrastructure shipeable, ya. La ventana para definir el estándar técnico es ahora, antes de que aparezca el draft del proyecto en Boletín Oficial.",
-    en: "The political timeline of the proposal is 6-18 months. The infrastructure timeline is now. The window to define the technical standard is open today, before a draft of the bill appears in the Official Gazette.",
+    es: "El anteproyecto ya está en el Senado; entra en vigencia a los 180 días de publicarse en el Boletín Oficial (art. 271). El timeline de infraestructura shipeable es ya. La ventana para definir el estándar técnico —cómo se opera una Sociedad Automatizada de forma confiable— es ahora, mientras el texto se debate.",
+    en: "The draft bill is already in the Senate; it takes effect 180 days after publication in the Official Gazette (art. 271). The infrastructure timeline is now. The window to define the technical standard —how a Sociedad Automatizada is operated reliably— is open today, while the text is debated.",
   },
   h2demo: {
     es: "Demo: una sociedad-IA en producción",
@@ -336,8 +349,8 @@ const T = {
     en: "Honest limitations",
   },
   limitsP1: {
-    es: "El proyecto Sturzenegger no tiene texto publicado todavía, todo es retórica + slides + entrevistas. Puede morir en Congreso, cambiar de forma, o terminar siendo otra cosa. El toolkit ar-agents funciona y sirve igual: cubre la integración del Estado argentino para empresas humanas hoy. Si llega la sociedad IA, está listo para ese caso también.",
-    en: "The Sturzenegger proposal has no published text yet, it's rhetoric + slides + interviews. It could die in Congress, change shape, or end up as something else. The ar-agents toolkit works either way: it covers Argentine state integration for human-run companies today. If the AI corporation regime arrives, it's also ready for that case.",
+    es: "El anteproyecto ya tiene articulado (arts. 14, 102, 258-265) y fue enviado al Senado el 1-jun-2026, pero todavía no es ley: puede cambiar en el Congreso, demorarse o no aprobarse. El toolkit ar-agents funciona y sirve igual: cubre la integración con el Estado argentino para empresas humanas hoy. Si el régimen de sociedades automatizadas se aprueba, ya está listo para ese caso también.",
+    en: "The draft bill already has text (arts. 14, 102, 258-265) and was sent to the Senate on June 1, 2026, but it is not law yet: it could change in Congress, be delayed, or not pass. The ar-agents toolkit works either way: it covers Argentine state integration for human-run companies today. If the automated-company regime passes, it's also ready for that case.",
   },
   limitsP2: {
     es: "No hay relación entre ar-agents y los integrantes del gobierno. Esto es infraestructura civil, comercial, abierta, escrita por afuera y para que la use cualquiera.",

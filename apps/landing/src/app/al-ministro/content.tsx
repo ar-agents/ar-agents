@@ -52,26 +52,33 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              El 28 de abril en Expo EFI anunció un proyecto para
-              reformar la Ley de Sociedades Comerciales y crear las{" "}
-              <em>sociedades de inteligencia artificial</em>: empresas
-              con cero accionistas humanos, cero directores humanos,
-              cero empleados humanos, que pagan impuestos como cualquier
-              SA o SRL. Su cifra fue clara, &ldquo;si en 10 años el
-              90% del PBI mundial lo producen agentes de IA, queremos
-              que ese régimen jurídico esté en Argentina&rdquo;.
+              El 28 de abril en Expo EFI anunció el régimen, y el 28 de
+              mayo de 2026 el Poder Ejecutivo envió al Senado el
+              anteproyecto que reemplaza la Ley 19.550. Crea la{" "}
+              <em>Sociedad Automatizada</em> (art. 14): una empresa
+              operada por agentes de IA, sin empleados en relación de
+              dependencia, que responde con su patrimonio y conserva un
+              administrador que configura y supervisa el sistema (art.
+              102). Y la <em>DAO</em> (art. 258), con representante legal
+              humano obligatorio (art. 260). Su cifra fue clara,{" "}
+              &ldquo;si en 10 años el 90% del PBI mundial lo producen
+              agentes de IA, queremos que ese régimen jurídico esté en
+              Argentina&rdquo;.
             </>
           }
           en={
             <>
-              On April 28 at Expo EFI you announced a proposed reform of
-              the Corporate Companies Law to create{" "}
-              <em>sociedades de inteligencia artificial</em>: companies
-              with zero human shareholders, zero human directors, zero
-              human employees, that pay taxes like any S.A. or LLC. Your
-              quote was clear, &ldquo;if in 10 years 90% of global GDP
-              is produced by AI agents, we want that legal regime to be
-              in Argentina&rdquo;.
+              On April 28 at Expo EFI you announced the regime, and on
+              May 28, 2026 the Executive sent the Senate the draft bill
+              that replaces Law 19.550. It creates the{" "}
+              <em>Sociedad Automatizada</em> (art. 14): a company run by
+              AI agents, with no employees, that answers with its own
+              assets and keeps an administrator who configures and
+              supervises the system (art. 102). And the <em>DAO</em>{" "}
+              (art. 258), with a mandatory human legal representative
+              (art. 260). Your quote was clear, &ldquo;if in 10 years 90%
+              of global GDP is produced by AI agents, we want that legal
+              regime to be in Argentina&rdquo;.
             </>
           }
         />
@@ -98,13 +105,13 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>17 paquetes</strong> en el scope{" "}
+                <strong>33 paquetes</strong> en el scope{" "}
                 <DocCode>@ar-agents/*</DocCode> en npm.
               </>
             }
             en={
               <>
-                <strong>17 packages</strong> under the{" "}
+                <strong>33 packages</strong> under the{" "}
                 <DocCode>@ar-agents/*</DocCode> scope on npm.
               </>
             }
@@ -115,14 +122,14 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>168 herramientas</strong> con definiciones de
+                <strong>221 herramientas</strong> con definiciones de
                 tipo verificadas para Vercel AI SDK 6, el toolkit
                 estándar de la industria para agentes.
               </>
             }
             en={
               <>
-                <strong>168 tools</strong> with verified type
+                <strong>221 tools</strong> with verified type
                 definitions for Vercel AI SDK 6, the industry-standard
                 toolkit for agents.
               </>
@@ -380,8 +387,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
         <li style={{ marginBottom: 8 }}>
           <L
             lang={lang}
-            es="Que el ministerio tenga conciencia de que la implementación de referencia existe, antes de que se redacte el borrador del proyecto. Esto evita que el texto legal arrastre supuestos técnicos contradictorios con un stack que ya funciona."
-            en="That the ministry is aware the reference implementation exists, before the bill draft is written. This avoids the legal text dragging in technical assumptions that contradict a stack that already works."
+            es="Que el ministerio sepa que la implementación de referencia existe, mientras el anteproyecto se debate en el Senado. Esto evita que el texto final arrastre supuestos técnicos contradictorios con un stack que ya funciona, y acelera la reglamentación que los arts. 263-264 dejan pendiente."
+            en="That the ministry knows the reference implementation exists, while the draft bill is debated in the Senate. This keeps the final text from dragging in technical assumptions that contradict a stack that already works, and speeds up the regulation that arts. 263-264 leave pending."
           />
         </li>
         <li style={{ marginBottom: 8 }}>
