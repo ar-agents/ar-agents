@@ -472,6 +472,25 @@ export function SociedadesContent({ lang }: { lang: Lang }) {
       <DocH2>{t("h2demo")}</DocH2>
       <DocP>{t("demoIntro")}</DocP>
       <DocBlock>{AGENT_FLOW}</DocBlock>
+      <DocP>
+        {lang === "es" ? (
+          <>
+            Y no es solo un demo simulado:{" "}
+            <a href="/caso-ar-agents" style={linkSty}>
+              nos constituimos a nosotros mismos
+            </a>{" "}
+            con este mismo flujo, y el audit log quedó firmado y verificable.
+          </>
+        ) : (
+          <>
+            And it&apos;s not just a simulated demo:{" "}
+            <a href="/en/ar-agents-case" style={linkSty}>
+              we incorporated ourselves
+            </a>{" "}
+            with this same flow, and the audit log is signed and verifiable.
+          </>
+        )}
+      </DocP>
 
       <DocH2>{t("h2wizard")}</DocH2>
       <DocP>{t("wizardP")}</DocP>
