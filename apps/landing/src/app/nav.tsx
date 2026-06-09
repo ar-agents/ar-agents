@@ -52,6 +52,11 @@ const NAV: ReadonlyArray<NavItem> = [
     label: { es: "Auditoría", en: "Policy" },
     matchPrefixes: ["/auditor", "/en/auditor"],
   },
+  {
+    href: { es: "/precios", en: "/en/pricing" },
+    label: { es: "Precios", en: "Pricing" },
+    matchPrefixes: ["/precios", "/en/pricing"],
+  },
 ];
 
 function isActive(
