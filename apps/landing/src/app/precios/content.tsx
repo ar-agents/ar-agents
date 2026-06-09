@@ -1,4 +1,5 @@
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
+import { SubscribeCTA } from "./subscribe-cta";
 
 /**
  * Shared bilingual content for /precios (ES default) and /en/pricing (EN).
@@ -261,6 +262,7 @@ export function PreciosContent({ lang }: { lang: Lang }) {
 
       <DocH2>{t("h2cta")}</DocH2>
       <DocP>{t("ctaP")}</DocP>
+      <SubscribeCTA lang={lang} />
 
       <DocH2>{t("h2honest")}</DocH2>
       <DocP>{t("honestP")}</DocP>
