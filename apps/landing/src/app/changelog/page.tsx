@@ -4,7 +4,7 @@ import path from "node:path";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
 export const metadata: Metadata = {
-  title: "/changelog · all 17 packages",
+  title: "/changelog · all 33 packages",
   description:
     "Auto-aggregated CHANGELOG entries across every @ar-agents/* package. Newest releases first. SLSA v1 npm provenance attestation tags.",
   alternates: { canonical: "https://ar-agents.ar/changelog" },
