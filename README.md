@@ -1,6 +1,6 @@
 # ar-agents
 
-> **Mercado Pago Agent Toolkit.** Built on Vercel.
+> **Open infrastructure for Argentina's _sociedades de IA_ (AI corporations).** 33 npm packages · 221 typed tools · 6 RFCs · a forensic audit log. Built in Argentina.
 
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ar-agents/ar-agents/badge)](https://scorecard.dev/viewer/?uri=github.com/ar-agents/ar-agents)
@@ -13,9 +13,10 @@
 [![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 [![ar-agents on Glama](https://glama.ai/mcp/servers/ar-agents/ar-agents/badges/score.svg)](https://glama.ai/mcp/servers/ar-agents/ar-agents)
 
-[`@ar-agents/mercadopago`](./packages/mercadopago) is a Mercado Pago Agent
-Toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6 `Experimental_Agent`.
-89 typed tools across the agent-relevant Mercado Pago API surface:
+The flagship package [`@ar-agents/mercadopago`](./packages/mercadopago) is a
+Mercado Pago agent toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6
+`Experimental_Agent` — 89 typed tools across the agent-relevant Mercado Pago
+API surface, one of the 33 packages in the `@ar-agents/*` stack:
 
 > Payments · Subscriptions · Checkout Pro · Marketplace OAuth · Order Management ·
 > Customers · Cards · Cuotas · QR · 3DS · Point devices · Stores+POS ·
@@ -41,10 +42,10 @@ Since Argentina announced a sociedad-IA regime (Sturzenegger,
 28-abr-2026), this repo additionally hosts a complete open-source
 governance scaffolding for AI-only Argentine corporations:
 
-- **5 RFCs (001–005)** — civil liability (3-layer) / discovery / cross-
+- **6 RFCs (001–006)** — civil liability (3-layer) / discovery / cross-
   jurisdictional reciprocity / operational-log wire format / Ed25519
-  asymmetric extension. All CC-BY-4.0. Documents the legislation can
-  cite by reference.
+  asymmetric extension / hash-chained ledger + external anchoring. All
+  CC-BY-4.0. Documents the legislation can cite by reference.
 - **2 frozen test-vectors files** — 7 RFC-004 HMAC vectors + 3 RFC-005
   Ed25519 vectors. Byte-exact deterministic signatures. Reference impl
   passes all 10 (103 vitest tests in 6 files).

@@ -12,7 +12,7 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
 const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
   { label: "Qué es", value: "Toolkit open-source para construir sociedades-IA argentinas." },
-  { label: "Status", value: "17 paquetes en npm, 168 herramientas, MIT, SLSA v1 provenance." },
+  { label: "Status", value: "33 paquetes en npm, 221 herramientas, MIT, SLSA v1 provenance." },
   { label: "Autor", value: "Nazareno Clemente, 26 años, monotributista, Buenos Aires." },
   { label: "Licencia", value: "MIT, copy, fork, comercializar permitido." },
   { label: "Origen", value: "Build privado iniciado nov 2025; npm pública desde may 2026." },
@@ -23,7 +23,7 @@ const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
 
 const ONE_LINERS_ES = [
   "ar-agents es la implementación de referencia open-source para sociedades-IA argentinas, la propuesta del ministro Sturzenegger del 28 de abril de 2026.",
-  "17 paquetes npm, 168 herramientas, todas auditables. MIT-licensed. Cualquier operador serio puede leer el código línea por línea.",
+  "33 paquetes npm, 221 herramientas, todas auditables. MIT-licensed. Cualquier operador serio puede leer el código línea por línea.",
   "El stack cubre 16 de las 17 piezas operativas que una empresa argentina necesita: identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, AP2, ACP bridge.",
   "RFC-001 es el marco de responsabilidad propuesto: tres capas (operador / proveedor de modelo / autor de librería) que convierten el ataque ¿quién paga si la IA rompe algo? en una conversación contractual concreta.",
   "El threat model público (18 amenazas explícitas, 18 mitigaciones) está en /security. No esconde nada.",
@@ -32,7 +32,7 @@ const ONE_LINERS_ES = [
 const CONTACT_BLOCK = [
   { label: "Email", value: "naza@naza.ar" },
   { label: "GitHub", value: "github.com/ar-agents/ar-agents" },
-  { label: "npm scope", value: "@ar-agents/* (17 paquetes públicos)" },
+  { label: "npm scope", value: "@ar-agents/* (33 paquetes públicos)" },
   { label: "Sitio", value: "ar-agents.ar" },
   { label: "Implementación de referencia (PDF firmado Ed25519)", value: "ar-agents.ar/implementacion" },
   { label: "Reference implementation (Ed25519-signed PDF, EN)", value: "ar-agents.ar/en/implementation" },
@@ -45,12 +45,12 @@ const CONTACT_BLOCK = [
 
 const NUMBERS_ES = [
   { label: "Paquetes en npm", value: "17" },
-  { label: "Tools expuestas", value: "168" },
+  { label: "Tools expuestas", value: "221" },
   { label: "Recetas de cookbook", value: "17" },
   { label: "Subpaths de testing", value: "4" },
   { label: "Tests automatizados", value: "300+" },
   { label: "Provenance attestations", value: "SLSA v1, en cada release" },
-  { label: "Tiempo desde primer commit a 17 paquetes", value: "~6 meses" },
+  { label: "Tiempo desde primer commit a 33 paquetes", value: "~6 meses" },
   { label: "Costo upfront para usar", value: "USD 0" },
 ];
 
@@ -227,7 +227,7 @@ export default function PressKitPage() {
         <li>
           <code style={{ fontFamily: FONT_MONO }}>GET /api/discovery</code> +{" "}
           <code style={{ fontFamily: FONT_MONO }}>?format=openapi</code>,
-          inventario de los 16 paquetes + las 168 tools + estos 3 endpoints
+          inventario de los 33 paquetes + las 221 tools + estos 3 endpoints
           como OpenAPI 3.1 stub. Un agente que crawlea el toolkit lo lee y
           decide qué llamar.
         </li>
@@ -251,7 +251,7 @@ export default function PressKitPage() {
       <DocP>
         <strong>El surface de tools:</strong>{" "}
         <DocCode>curl https://ar-agents.ar/api/discovery</DocCode>.
-        JSON machine-readable con los 16 paquetes y las 168 tools listadas
+        JSON machine-readable con los 33 paquetes y las 221 tools listadas
         explícitamente. <DocCode>?format=openapi</DocCode> devuelve un OpenAPI
         3.1.0 stub para auditing tools.
       </DocP>
@@ -284,7 +284,7 @@ export default function PressKitPage() {
         </li>
         <li>
           <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>:{" "}
-        diagrama Mermaid de los 16 paquetes
+        diagrama Mermaid de los 33 paquetes
         </li>
         <li>
           <a href="/security" style={{ color: "var(--accent)" }}>/security</a>:{" "}

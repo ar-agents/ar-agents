@@ -110,7 +110,7 @@ const PACKAGE_GRAPH = `flowchart LR
 export const metadata: Metadata = {
   title: "Architecture",
   description:
-    "Canonical reference for the @ar-agents/* stack: 17 packages, 168 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
+    "Canonical reference for the @ar-agents/* stack: 33 packages, 221 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
   alternates: { canonical: "https://ar-agents.ar/architecture" },
 };
 
@@ -311,7 +311,7 @@ export default function ArchitecturePage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>The 17 packages</DocH2>
+      <DocH2>The 33 packages</DocH2>
 
       <MermaidDiagram
         chart={PACKAGE_GRAPH}
