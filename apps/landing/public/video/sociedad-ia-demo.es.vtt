@@ -8,7 +8,7 @@ la timeline 30fps del video. Licencia: CC0.
 
 1
 00:00:00.000 --> 00:00:07.000
-/arg — Infraestructura abierta para la jurisdicción de agentes argentina.
+ar-agents. Infraestructura abierta para la jurisdicción de agentes argentina.
 
 2
 00:00:07.500 --> 00:00:11.000
@@ -20,11 +20,11 @@ El Ministro Sturzenegger anuncia un nuevo régimen jurídico.
 
 4
 00:00:15.000 --> 00:00:19.000
-Empresas sin humanos: cero accionistas, cero directores, cero empleados.
+Empresas operadas por agentes IA: sin empleados, supervisión humana mínima.
 
 5
 00:00:19.000 --> 00:00:22.500
-Solo código que decide, opera y paga impuestos en Argentina.
+Código que decide, opera y paga impuestos en Argentina.
 
 6
 00:00:22.500 --> 00:00:25.000
@@ -44,11 +44,11 @@ Esto es ese código.
 
 10
 00:00:36.000 --> 00:00:39.000
-17 paquetes en npm.
+33 paquetes en npm.
 
 11
 00:00:39.000 --> 00:00:42.000
-168 herramientas tipadas para el Vercel AI SDK 6.
+221 herramientas tipadas para el Vercel AI SDK 6.
 
 12
 00:00:42.000 --> 00:00:45.000
@@ -56,7 +56,7 @@ Esto es ese código.
 
 13
 00:00:45.500 --> 00:00:50.000
-Un agente Claude recibe una sola consigna —
+Un agente Claude recibe una sola consigna:
 
 14
 00:00:50.000 --> 00:00:55.000
@@ -64,27 +64,27 @@ Un agente Claude recibe una sola consigna —
 
 15
 00:00:55.500 --> 00:01:00.000
-@ar-agents/igj — verifica que el nombre esté libre en IGJ.
+@ar-agents/igj, verifica que el nombre esté libre en IGJ.
 
 16
 00:01:00.500 --> 00:01:06.000
-@ar-agents/identity — valida CUIT y consulta el padrón AFIP / ARCA.
+@ar-agents/identity, valida CUIT y consulta el padrón AFIP / ARCA.
 
 17
 00:01:06.500 --> 00:01:14.000
-@ar-agents/mercadopago — crea customer y suscripción mensual de $50.000.
+@ar-agents/mercadopago, crea customer y suscripción mensual de $50.000.
 
 18
 00:01:14.500 --> 00:01:20.000
-@ar-agents/facturacion — emite la factura electrónica con CAE.
+@ar-agents/facturacion, emite la factura electrónica con CAE.
 
 19
 00:01:20.500 --> 00:01:25.500
-@ar-agents/whatsapp — notifica al cliente con template Business Cloud.
+@ar-agents/whatsapp, notifica al cliente con template Business Cloud.
 
 20
 00:01:26.000 --> 00:01:31.000
-@ar-agents/boletin-oficial — suscribe el CUIT al firehose del BO.
+@ar-agents/boletin-oficial, suscribe el CUIT al firehose del BO.
 
 21
 00:01:31.500 --> 00:01:36.000
@@ -92,15 +92,15 @@ Sociedad-IA operando.
 
 22
 00:01:36.000 --> 00:01:41.000
-12 segundos. 6 paquetes /arg. 0 humanos en el loop.
+12 segundos. 6 paquetes ar-agents. Operación autónoma, supervisión humana mínima.
 
 23
 00:02:10.000 --> 00:02:17.000
-ar-agents.vercel.app
+ar-agents.ar
 
 24
 00:02:17.500 --> 00:02:24.000
-17 paquetes npm · 168 herramientas · MIT · Edge Runtime · CC0 RFCs
+33 paquetes npm · 221 herramientas · MIT · Edge Runtime · CC0 RFCs
 
 25
 00:02:24.500 --> 00:02:30.000

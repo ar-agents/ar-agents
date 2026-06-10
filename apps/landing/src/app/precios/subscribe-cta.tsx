@@ -104,7 +104,7 @@ export function SubscribeCTA({ lang = "es" }: { lang?: Lang }) {
       >
         {state === "loading"
           ? t("Procesando…", "Processing…")
-          : t("Activar El Auditor — USD 199/mes", "Activate The Auditor — USD 199/mo")}
+          : t("Activar El Auditor, USD 199/mes", "Activate The Auditor, USD 199/mo")}
       </button>
       {state === "err" && res ? (
         <span style={{ fontSize: 13, color: "var(--warning, #b45309)" }}>{res.message}</span>

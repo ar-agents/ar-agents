@@ -31,7 +31,7 @@ const SITE = "https://ar-agents.ar";
 
 // All 33 published @ar-agents/* packages (31 ship tools.manifest.json; core +
 // incorporate are libraries without a tool surface). Keep in sync with
-// packages/ — /api/discovery derives its own list dynamically at build time.
+// packages/, /api/discovery derives its own list dynamically at build time.
 const PACKAGES = [
   "@ar-agents/aduana",
   "@ar-agents/agentic-commerce-bridge",

@@ -115,7 +115,7 @@ const themeInitScript = `
 // decide content freshness.
 const SITE = "https://ar-agents.ar";
 const SCHEMA_DATE_CREATED = "2026-05-05";
-const SCHEMA_DATE_MODIFIED = "2026-05-08";
+const SCHEMA_DATE_MODIFIED = "2026-06-10";
 
 const schemaOrgJsonLd = {
   "@context": "https://schema.org",
@@ -269,7 +269,7 @@ const schemaOrgJsonLd = {
           name: "What is ar-agents?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "ar-agents is open-source infrastructure for Argentina's coming 'sociedades de IA' (AI-corporation) regime: 33 npm packages and 221 typed Vercel AI SDK 6 tools that let an AI agent incorporate and operate as an Argentine company end-to-end — identity (CUIT/ARCA), digital signing, money (Mercado Pago, the flagship package, with 89 tools), e-invoicing (AFIP/ARCA), banking (CBU/CVU + BCRA), WhatsApp Business, shipping (Andreani/OCA/Correo), gazette monitoring (Boletín Oficial), corporate registry (IGJ) — plus 6 RFCs and an HMAC + Ed25519 audit log. MIT (code) + CC-BY-4.0 (specs).",
+            text: "ar-agents is open-source infrastructure for Argentina's coming 'sociedades de IA' (AI-corporation) regime: 33 npm packages and 221 typed Vercel AI SDK 6 tools that let an AI agent incorporate and operate as an Argentine company end-to-end, identity (CUIT/ARCA), digital signing, money (Mercado Pago, the flagship package, with 89 tools), e-invoicing (AFIP/ARCA), banking (CBU/CVU + BCRA), WhatsApp Business, shipping (Andreani/OCA/Correo), gazette monitoring (Boletín Oficial), corporate registry (IGJ), plus 6 RFCs and an HMAC + Ed25519 audit log. MIT (code) + CC-BY-4.0 (specs).",
           },
         },
         {
@@ -325,7 +325,7 @@ const schemaOrgJsonLd = {
           name: "Is there a Model Context Protocol (MCP) server?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "Yes. @ar-agents/mcp bundles all 7 ar-agents packages into a single MCP server compatible with Claude Desktop, Cursor, Codeium, Continue, Cline, or any MCP host. Auto-detects which packages to enable from environment variables. Listed on Glama (glama.ai/mcp/servers/ar-agents/ar-agents) and the official MCP Registry (io.github.ar-agents/mcp).",
+            text: "Yes. @ar-agents/mcp bundles the ar-agents toolkit into a single MCP server compatible with Claude Desktop, Cursor, Codeium, Continue, Cline, or any MCP host. Auto-detects which packages to enable from environment variables. Listed on Glama (glama.ai/mcp/servers/ar-agents/ar-agents) and the official MCP Registry (io.github.ar-agents/mcp).",
           },
         },
       ],

@@ -36,7 +36,7 @@ import { clientIp, rateLimit } from "@/lib/ratelimit";
 export const runtime = "edge";
 
 export async function POST(req: Request) {
-  // Incorporation entries are durable KV writes — damp per-IP amplification.
+  // Incorporation entries are durable KV writes, damp per-IP amplification.
   if (!rateLimit("auto-incorporate", clientIp(req), 10, 60 * 60_000)) {
     return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }

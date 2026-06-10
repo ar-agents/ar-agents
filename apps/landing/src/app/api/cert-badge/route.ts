@@ -19,6 +19,8 @@
  */
 
 import { buildSvg, type BadgeState, escapeXml } from "@/lib/badge";
+import { safeExternalUrl } from "@/lib/ssrf";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "edge";
 
@@ -51,6 +53,10 @@ function ratingFor(score: number): string {
 }
 
 export async function GET(req: Request) {
+  if (!rateLimit("cert-badge", clientIp(req), 30, 60_000)) {
+    return svgResponse({ label: "RFC-002", message: "rate limited", color: "#666666" }, 429);
+  }
+
   const { searchParams } = new URL(req.url);
   const url = (searchParams.get("url") || "").trim();
   const sessionId = (searchParams.get("sessionId") || "").trim() || null;
@@ -62,12 +68,8 @@ export async function GET(req: Request) {
     );
   }
 
-  try {
-    const parsed = new URL(url);
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") {
-      throw new Error("invalid scheme");
-    }
-  } catch {
+  // SSRF guard before we make the server-side certifier call.
+  if (!safeExternalUrl(url)) {
     return svgResponse(
       { label: "RFC-002", message: "bad url", color: "#666666" },
       400,

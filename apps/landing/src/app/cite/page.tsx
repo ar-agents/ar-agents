@@ -49,6 +49,9 @@ const KNOWN_RFCS = [
     date: "2026-05-11",
     doi: "10.5281/zenodo.20159424",
   },
+  // RFC-006 is intentionally omitted here: its Zenodo DOI is still pending
+  // (see /refs, which cites it by canonical URL). Add it once the DOI is minted
+  // so the generator never emits a fabricated identifier.
 ];
 
 export const metadata: Metadata = {

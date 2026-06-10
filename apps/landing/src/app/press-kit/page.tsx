@@ -44,7 +44,7 @@ const CONTACT_BLOCK = [
 ];
 
 const NUMBERS_ES = [
-  { label: "Paquetes en npm", value: "17" },
+  { label: "Paquetes en npm", value: "33" },
   { label: "Tools expuestas", value: "221" },
   { label: "Recetas de cookbook", value: "17" },
   { label: "Subpaths de testing", value: "4" },

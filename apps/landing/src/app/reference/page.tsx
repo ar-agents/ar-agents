@@ -172,7 +172,7 @@ const SECTIONS: Section[] = [
         url: "https://www.npmjs.com/org/ar-agents",
         label: "npmjs.com/org/ar-agents",
         external: true,
-        description: "All 17 published packages with SLSA v1 provenance attestations.",
+        description: "All 33 published packages with SLSA v1 provenance attestations.",
       },
     ],
   },

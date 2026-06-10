@@ -20,7 +20,9 @@
     "rfc-001-v1",
     "rfc-002-v1",
     "rfc-003-draft",
-    "rfc-004-draft"
+    "rfc-004-draft",
+    "rfc-005-draft",
+    "rfc-006-draft"
   ],
   "auditEndpoints": {
     "auditRead": "https://ar-agents.ar/api/play/audit/{sessionId}",
@@ -167,7 +169,7 @@
       "primitive": "HMAC-SHA256",
       "storage": "Vercel KV (Upstash, sa-east-1) with in-memory fallback",
       "ttlSeconds": 604800,
-      "ttlNote": "Demo /play sessions expire after 7 days. Business records — incorporations via /api/auto-incorporate and paid El Auditor sessions — are durable (no TTL).",
+      "ttlNote": "Demo /play sessions expire after 7 days. Business records (incorporations via /api/auto-incorporate and paid El Auditor sessions) are durable (no TTL).",
       "verify": "https://ar-agents.ar/verify",
       "publicReadEndpoint": "https://ar-agents.ar/api/play/audit/{sessionId}?verify=1"
     },

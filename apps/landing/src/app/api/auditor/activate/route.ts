@@ -10,22 +10,22 @@ import {
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 /**
- * POST /api/auditor/activate — close the El Auditor money loop.
+ * POST /api/auditor/activate, close the El Auditor money loop.
  *
  * /api/auditor/subscribe creates a Mercado Pago preapproval and hands the
  * payer an init_point. Until this endpoint existed, an authorized payment
- * provisioned NOTHING — MP would charge monthly and ar-agents never knew.
+ * provisioned NOTHING, MP would charge monthly and ar-agents never knew.
  * Activation turns an authorized preapproval into a working product:
  *
  *   1. Verifies the preapproval against MP's API (status must be "authorized").
- *   2. Issues an API key (idempotent — re-activating returns the same key,
+ *   2. Issues an API key (idempotent, re-activating returns the same key,
  *      possession of the preapproval_id is the bearer proof MP gave the payer).
- *   3. Pins the customer's audit session as durable (no 7-day TTL — a paid
+ *   3. Pins the customer's audit session as durable (no 7-day TTL, a paid
  *      proof-of-autonomy log that evaporates is not a product).
  *   4. The key authenticates POST /api/auditor/log for signed durable writes.
  *
  * MP redirects the payer to back_url (/auditor/gracias) with ?preapproval_id=,
- * and that page calls this endpoint — but an agent can also call it directly:
+ * and that page calls this endpoint, but an agent can also call it directly:
  * the whole loop (subscribe → authorize → activate → log) is machine-operable.
  */
 
@@ -134,7 +134,7 @@ export async function POST(req: Request) {
     });
   }
 
-  // Verify the preapproval with MP — the payer must have authorized it.
+  // Verify the preapproval with MP, the payer must have authorized it.
   let mp: {
     id?: string;
     status?: string;
@@ -189,7 +189,7 @@ export async function POST(req: Request) {
 
   // Atomic idempotency claim: only the FIRST concurrent activation sets the
   // mapping (nx). The /auditor/gracias page auto-fires on load and agents
-  // retry on timeout, so concurrent calls for one preapproval are routine —
+  // retry on timeout, so concurrent calls for one preapproval are routine;
   // without this, each would mint a distinct valid key for one paid sub.
   const claimed = await kv.set(
     `${SUB_KEY_PREFIX}${preapprovalId}`,
@@ -216,7 +216,7 @@ export async function POST(req: Request) {
   // Ensure the entitlement exists for the effective key. Creates it on a fresh
   // activation; REPAIRS it if a prior activation crashed after claiming the
   // mapping but before writing the entitlement (which would otherwise leave a
-  // dead key). Idempotent — concurrent losers write identical content.
+  // dead key). Idempotent, concurrent losers write identical content.
   const entitlement: Entitlement = {
     preapprovalId,
     payerEmail: mp.payer_email ?? null,
@@ -228,7 +228,7 @@ export async function POST(req: Request) {
   await kv.set(`${KEY_KEY_PREFIX}${effectiveKey}`, entitlement);
   await pinSession(effectiveSession);
 
-  // Forensic record of the activation itself — masked key, never the secret.
+  // Forensic record of the activation itself, masked key, never the secret.
   const entry = await appendAudit(
     effectiveSession,
     {
@@ -259,7 +259,7 @@ export async function GET() {
       method: "POST",
       purpose:
         "Canjear una suscripción autorizada de Mercado Pago por una API key de El Auditor. Idempotente.",
-      request: { preapprovalId: "string — el preapproval_id que MP devuelve tras autorizar" },
+      request: { preapprovalId: "string, el preapproval_id que MP devuelve tras autorizar" },
       flow: [
         "1. POST /api/auditor/subscribe → checkout.initPoint",
         "2. El pagador autoriza en MP → redirect a /auditor/gracias?preapproval_id=...",

@@ -83,7 +83,7 @@ export default async function Image() {
           }}
         >
           <span>ar-agents.ar/auditor</span>
-          <span style={{ fontSize: 16, color: "#999" }}>RFC-001 · 002 · 003 · 004</span>
+          <span style={{ fontSize: 16, color: "#999" }}>RFC-001 · 002 · 003 · 004 · 005 · 006</span>
         </div>
       </div>
     ),

@@ -5,11 +5,11 @@ import { appendAudit, backend as auditBackend } from "@/lib/audit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 /**
- * POST /api/auditor/log — the thing El Auditor customers actually pay for.
+ * POST /api/auditor/log, the thing El Auditor customers actually pay for.
  *
  * Authenticated (x-api-key issued by /api/auditor/activate) write endpoint:
  * each call appends an HMAC-SHA256 + Ed25519-signed entry to the customer's
- * DURABLE audit session (no TTL — business records don't evaporate). The
+ * DURABLE audit session (no TTL, business records don't evaporate). The
  * session stays publicly readable/verifiable at /api/play/audit/{sessionId}
  * and /dashboard/{sessionId}, which is the point: art. 102 of the
  * anteproyecto makes the administrator's AI-supervision duty non-delegable,
@@ -17,7 +17,7 @@ import { clientIp, rateLimit } from "@/lib/ratelimit";
  * adequate decision procedure (art. 101 business-judgment rule).
  *
  * v1 scope: one audit session per API key (the one provisioned at subscribe/
- * activate time). Writes are key-scoped — a customer can't write into another
+ * activate time). Writes are key-scoped, a customer can't write into another
  * customer's session because the sessionId comes from the entitlement, never
  * from the request body.
  */
@@ -84,7 +84,7 @@ export async function POST(req: Request) {
     );
   }
 
-  // Rate limit per key, not per IP — the key is the customer.
+  // Rate limit per key, not per IP, the key is the customer.
   if (!rateLimit("auditor-log", apiKey, 120, 60_000)) {
     return jsonCors({ ok: false, error: "rate_limited", note: "máx 120/min por key" }, { status: 429 });
   }
@@ -159,7 +159,7 @@ export async function GET() {
       purpose:
         "Escribir entradas firmadas (HMAC-SHA256 + Ed25519) y DURABLES en tu sesión de auditoría de El Auditor. RFC-004 wire format.",
       request: {
-        tool: "string 1-80 — la acción que tu agente ejecutó",
+        tool: "string 1-80, la acción que tu agente ejecutó",
         governance: "audit-logged (default) | requires-confirmation | algorithm-only | mocked-upstream",
         input: "JSON ≤ 8KB",
         output: "JSON ≤ 8KB (opcional)",
@@ -167,7 +167,7 @@ export async function GET() {
         durationMs: "number (opcional)",
       },
       reads: {
-        public: "GET /api/play/audit/{sessionId} — cualquiera puede leer y verificar",
+        public: "GET /api/play/audit/{sessionId}, cualquiera puede leer y verificar",
         verify: "GET /api/play/audit/{sessionId}?verify=1",
         dashboard: "GET /dashboard/{sessionId}",
       },
