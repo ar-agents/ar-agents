@@ -738,6 +738,203 @@ export default function Home() {
           </div>
         </section>
 
+        {/* LIVE DEMO */}
+        <section style={{ marginBottom: 96 }}>
+          {liveOpen ? <LiveChat onClose={closeLive} /> : null}
+          <DemoTerminal />
+        </section>
+
+        {/* OTHER PRIMITIVES */}
+        <section style={{ marginBottom: 80 }}>
+          <h2
+            style={{
+              fontSize: "clamp(24px, 5vw, 32px)",
+              fontWeight: 600,
+              margin: "0 0 8px",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.2,
+              color: "var(--text)",
+            }}
+          >
+            {t.other_h2}
+          </h2>
+          <p
+            style={{
+              color: "var(--text-body)",
+              fontSize: 16,
+              margin: "0 0 32px",
+              lineHeight: 1.6,
+              maxWidth: 720,
+            }}
+          >
+            {t.other_intro_a}{" "}
+            <code style={{ fontFamily: FONT_MONO, color: "var(--text)" }}>
+              @ar-agents/mercadopago
+            </code>
+            {t.other_intro_b}
+          </p>
+          <div style={{ display: "grid", gap: 12 }}>
+            {OTHER_PACKAGES.map((pkg) => (
+              <article
+                key={pkg.name}
+                style={{
+                  background: "var(--bg)",
+                  borderRadius: 8,
+                  padding: 20,
+                  boxShadow: "var(--card-shadow)",
+                }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "baseline",
+                    justifyContent: "space-between",
+                    flexWrap: "wrap",
+                    gap: 8,
+                    marginBottom: 8,
+                  }}
+                >
+                  <h3
+                    style={{
+                      fontSize: 16,
+                      fontWeight: 600,
+                      margin: 0,
+                      fontFamily: FONT_MONO,
+                      letterSpacing: 0,
+                      color: "var(--text)",
+                    }}
+                  >
+                    {pkg.name}
+                  </h3>
+                  <span
+                    style={{
+                      background: "var(--accent-bg)",
+                      color: "var(--accent-text)",
+                      padding: "0 10px",
+                      borderRadius: 9999,
+                      fontSize: 12,
+                      fontFamily: FONT_MONO,
+                      fontWeight: 500,
+                      lineHeight: 1.7,
+                    }}
+                  >
+                    v{pkg.version}
+                  </span>
+                </div>
+                <p
+                  style={{
+                    color: "var(--text-body)",
+                    margin: "0 0 12px",
+                    fontSize: 14,
+                    lineHeight: 1.6,
+                  }}
+                >
+                  {t[pkg.purposeKey]}
+                </p>
+                <div style={{ display: "flex", gap: 14, fontSize: 13 }}>
+                  <a
+                    href={pkg.npm}
+                    style={{
+                      color: "var(--text)",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    {t.other_card_npm}
+                  </a>
+                  <a
+                    href={pkg.github}
+                    style={{
+                      color: "var(--text)",
+                      textDecoration: "underline",
+                    }}
+                  >
+                    {t.other_card_source}
+                  </a>
+                  {pkg.demo && (
+                    <a
+                      href={pkg.demo}
+                      style={{
+                        color: "var(--accent)",
+                        textDecoration: "underline",
+                      }}
+                    >
+                      {t.other_card_demo}
+                    </a>
+                  )}
+                </div>
+              </article>
+            ))}
+          </div>
+        </section>
+
+        {/* COMPOSITION EXAMPLE */}
+        <section style={{ marginBottom: 80 }}>
+          <h2
+            style={{
+              fontSize: "clamp(24px, 5vw, 32px)",
+              fontWeight: 600,
+              margin: "0 0 24px",
+              letterSpacing: "-0.04em",
+              lineHeight: 1.2,
+              color: "var(--text)",
+            }}
+          >
+            {t.comp_h2}
+          </h2>
+          <div
+            style={{
+              background: "var(--bg)",
+              borderRadius: 8,
+              padding: 24,
+              boxShadow: "var(--card-shadow)",
+            }}
+          >
+            <p
+              style={{
+                fontSize: 15,
+                color: "var(--text-body)",
+                margin: "0 0 16px",
+                lineHeight: 1.6,
+              }}
+            >
+              <a
+                href="https://whatsapp-hello.ar-agents.ar"
+                style={{
+                  color: "var(--accent)",
+                  fontWeight: 500,
+                  textDecoration: "underline",
+                }}
+              >
+                whatsapp-hello.ar-agents.ar
+              </a>{" "}
+              {" "}{t.comp_intro_a}
+            </p>
+            <div
+              style={{
+                display: "grid",
+                gridTemplateColumns: "auto 1fr",
+                gap: "8px 16px",
+                fontSize: 13,
+                fontFamily: FONT_MONO,
+                background: "var(--bg-tint)",
+                padding: 16,
+                borderRadius: 6,
+                color: "var(--text-body)",
+                boxShadow: "var(--shadow-border)",
+              }}
+            >
+              <span style={{ color: "var(--text-muted)" }}>{"<"} $5k</span>
+              <span>{t.comp_tier_lt5k}</span>
+              <span style={{ color: "var(--text-muted)" }}>$5k–$50k</span>
+              <span>{t.comp_tier_5k_50k}</span>
+              <span style={{ color: "var(--text-muted)" }}>$50k–$500k</span>
+              <span>{t.comp_tier_50k_500k}</span>
+              <span style={{ color: "var(--text-muted)" }}>{"> "}$500k</span>
+              <span>{t.comp_tier_gt500k}</span>
+            </div>
+          </div>
+        </section>
+
         {/* SECTION FRAMING, the sections below are about the flagship
             package (@ar-agents/mercadopago). Helps the reader who arrived
             for the AI-corporations story understand why a MercadoPago demo
@@ -800,12 +997,6 @@ export default function Home() {
               </>
             )}
           </p>
-        </section>
-
-        {/* LIVE DEMO */}
-        <section style={{ marginBottom: 96 }}>
-          {liveOpen ? <LiveChat onClose={closeLive} /> : null}
-          <DemoTerminal />
         </section>
 
         {/* COMPARISON */}
@@ -1071,197 +1262,6 @@ export default function Home() {
           >
             {QUICK_START}
           </pre>
-        </section>
-
-        {/* OTHER PRIMITIVES */}
-        <section style={{ marginBottom: 80 }}>
-          <h2
-            style={{
-              fontSize: "clamp(24px, 5vw, 32px)",
-              fontWeight: 600,
-              margin: "0 0 8px",
-              letterSpacing: "-0.04em",
-              lineHeight: 1.2,
-              color: "var(--text)",
-            }}
-          >
-            {t.other_h2}
-          </h2>
-          <p
-            style={{
-              color: "var(--text-body)",
-              fontSize: 16,
-              margin: "0 0 32px",
-              lineHeight: 1.6,
-              maxWidth: 720,
-            }}
-          >
-            {t.other_intro_a}{" "}
-            <code style={{ fontFamily: FONT_MONO, color: "var(--text)" }}>
-              @ar-agents/mercadopago
-            </code>
-            {t.other_intro_b}
-          </p>
-          <div style={{ display: "grid", gap: 12 }}>
-            {OTHER_PACKAGES.map((pkg) => (
-              <article
-                key={pkg.name}
-                style={{
-                  background: "var(--bg)",
-                  borderRadius: 8,
-                  padding: 20,
-                  boxShadow: "var(--card-shadow)",
-                }}
-              >
-                <div
-                  style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 8,
-                    marginBottom: 8,
-                  }}
-                >
-                  <h3
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 600,
-                      margin: 0,
-                      fontFamily: FONT_MONO,
-                      letterSpacing: 0,
-                      color: "var(--text)",
-                    }}
-                  >
-                    {pkg.name}
-                  </h3>
-                  <span
-                    style={{
-                      background: "var(--accent-bg)",
-                      color: "var(--accent-text)",
-                      padding: "0 10px",
-                      borderRadius: 9999,
-                      fontSize: 12,
-                      fontFamily: FONT_MONO,
-                      fontWeight: 500,
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    v{pkg.version}
-                  </span>
-                </div>
-                <p
-                  style={{
-                    color: "var(--text-body)",
-                    margin: "0 0 12px",
-                    fontSize: 14,
-                    lineHeight: 1.6,
-                  }}
-                >
-                  {t[pkg.purposeKey]}
-                </p>
-                <div style={{ display: "flex", gap: 14, fontSize: 13 }}>
-                  <a
-                    href={pkg.npm}
-                    style={{
-                      color: "var(--text)",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    {t.other_card_npm}
-                  </a>
-                  <a
-                    href={pkg.github}
-                    style={{
-                      color: "var(--text)",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    {t.other_card_source}
-                  </a>
-                  {pkg.demo && (
-                    <a
-                      href={pkg.demo}
-                      style={{
-                        color: "var(--accent)",
-                        textDecoration: "underline",
-                      }}
-                    >
-                      {t.other_card_demo}
-                    </a>
-                  )}
-                </div>
-              </article>
-            ))}
-          </div>
-        </section>
-
-        {/* COMPOSITION EXAMPLE */}
-        <section style={{ marginBottom: 80 }}>
-          <h2
-            style={{
-              fontSize: "clamp(24px, 5vw, 32px)",
-              fontWeight: 600,
-              margin: "0 0 24px",
-              letterSpacing: "-0.04em",
-              lineHeight: 1.2,
-              color: "var(--text)",
-            }}
-          >
-            {t.comp_h2}
-          </h2>
-          <div
-            style={{
-              background: "var(--bg)",
-              borderRadius: 8,
-              padding: 24,
-              boxShadow: "var(--card-shadow)",
-            }}
-          >
-            <p
-              style={{
-                fontSize: 15,
-                color: "var(--text-body)",
-                margin: "0 0 16px",
-                lineHeight: 1.6,
-              }}
-            >
-              <a
-                href="https://whatsapp-hello.ar-agents.ar"
-                style={{
-                  color: "var(--accent)",
-                  fontWeight: 500,
-                  textDecoration: "underline",
-                }}
-              >
-                whatsapp-hello.ar-agents.ar
-              </a>{" "}
-              {" "}{t.comp_intro_a}
-            </p>
-            <div
-              style={{
-                display: "grid",
-                gridTemplateColumns: "auto 1fr",
-                gap: "8px 16px",
-                fontSize: 13,
-                fontFamily: FONT_MONO,
-                background: "var(--bg-tint)",
-                padding: 16,
-                borderRadius: 6,
-                color: "var(--text-body)",
-                boxShadow: "var(--shadow-border)",
-              }}
-            >
-              <span style={{ color: "var(--text-muted)" }}>{"<"} $5k</span>
-              <span>{t.comp_tier_lt5k}</span>
-              <span style={{ color: "var(--text-muted)" }}>$5k–$50k</span>
-              <span>{t.comp_tier_5k_50k}</span>
-              <span style={{ color: "var(--text-muted)" }}>$50k–$500k</span>
-              <span>{t.comp_tier_50k_500k}</span>
-              <span style={{ color: "var(--text-muted)" }}>{"> "}$500k</span>
-              <span>{t.comp_tier_gt500k}</span>
-            </div>
-          </div>
         </section>
 
         {/* FAQ, visible Q&A so the same content lives in the DOM that the
