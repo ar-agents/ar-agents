@@ -102,7 +102,7 @@ export const EN = {
   hero_h1_l1: "Open infrastructure for AI corporations.",
   hero_h1_l2: "Built in Argentina.",
   hero_sub:
-    "Gives an AI agent everything it needs to operate as an Argentine company: invoice at AFIP, collect with Mercado Pago, validate CUITs, file paperwork. Open-source and ready to use.",
+    "The open standard for the AI companies in Argentina's new regime (art. 14): an agent incorporates, operates and proves a company end to end (AFIP, Mercado Pago, IGJ, WhatsApp and more). The core is open-source and free; the trust layer, The Auditor, is paid. We incorporated ourselves to prove it works.",
   cta_deploy: "Deploy on Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -274,7 +274,7 @@ export const ES: Translations = {
   hero_h1_l1: "Infraestructura abierta para sociedades de IA.",
   hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
-    "Le da a un agente de IA todo lo que necesita para operar como una empresa argentina: facturar en AFIP, cobrar con Mercado Pago, validar CUITs, registrar trámites. Open-source y lista para usar.",
+    "El estándar abierto para las sociedades de IA del nuevo régimen (art. 14): un agente constituye, opera y prueba una empresa argentina de punta a punta (AFIP, Mercado Pago, IGJ, WhatsApp y más). El núcleo es open-source y gratis; la capa de confianza, El Auditor, es paga. Nos constituimos a nosotros mismos para probar que funciona.",
   cta_deploy: "Deployar en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
