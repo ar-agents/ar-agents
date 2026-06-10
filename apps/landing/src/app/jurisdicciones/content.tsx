@@ -206,8 +206,8 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify. Cuatro precedentes legales para entidades algorítmicas. Acá está cómo cada uno resuelve identidad, firma, registro y auditoría, y qué primitivas argentinas ar-agents propone como análogo."
-          : "Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify. Four legal precedents for algorithmic entities. Here is how each one solves identity, signing, registry, and audit, and what Argentine primitives ar-agents proposes as an analogue."
+          ? "Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify. Cuatro precedentes legales para entidades algorítmicas. Cómo cada uno resuelve identidad, firma, registro y auditoría, y qué primitivas argentinas propone ar-agents como análogo."
+          : "Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify. Four legal precedents for algorithmic entities. How each one solves identity, signing, registry, and audit, and what Argentine primitives ar-agents proposes as an analogue."
       }
     >
       <JsonLd
@@ -233,26 +233,24 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              Argentina anunció el régimen de sociedades-IA el 28 de
-              abril de 2026.{" "}
+              Argentina anunció el régimen de sociedades-IA el 28 de abril
+              de 2026.{" "}
               <strong>
                 Ningún otro país tiene exactamente esto
               </strong>
-             , pero cuatro jurisdicciones ya tienen pedazos del
-              problema resueltos. Esta página los enumera para que la
-              conversación legislativa argentina no parta de cero ni
-              invente lo ya inventado.
+             , pero cuatro jurisdicciones ya resolvieron pedazos del
+              problema. Esta página los enumera para que la conversación
+              legislativa argentina no parta de cero.
             </>
           }
           en={
             <>
               Argentina announced the sociedades-IA regime on April 28,
               2026.{" "}
-              <strong>No other country has exactly this</strong>, but
-              four jurisdictions have already solved pieces of the
-              problem. This page enumerates them so the Argentine
-              legislative conversation doesn't start from zero or
-              reinvent what has already been invented.
+              <strong>No other country has exactly this</strong>, but four
+              jurisdictions have already solved pieces of the problem. This
+              page enumerates them so the Argentine legislative conversation
+              doesn't start from zero.
             </>
           }
         />
@@ -359,23 +357,22 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Wyoming (2021).</strong> Modelo: el statute
-                exige un identificador público y machine-resolvable del
-                software que opera la entidad en el documento mismo de
-                constitución. <strong>Aplicación AR:</strong> requerir
-                un <DocCode>manifest.json</DocCode> URL + content hash
-                en la inscripción IGJ. Cita: Wyoming Statutes Title 17
-                §17-31-106.
+                <strong>Wyoming (2021).</strong> Modelo: el statute exige,
+                en el documento mismo de constitución, un identificador
+                público y machine-resolvable del software que opera la
+                entidad. <strong>Aplicación AR:</strong> requerir una URL de{" "}
+                <DocCode>manifest.json</DocCode> + content hash en la
+                inscripción IGJ. Cita: Wyoming Statutes Title 17 §17-31-106.
               </>
             }
             en={
               <>
-                <strong>Wyoming (2021).</strong> Model: the statute
-                requires a public, machine-resolvable identifier of the
-                software operating the entity, on the founding document
-                itself. <strong>AR application:</strong> require a{" "}
-                <DocCode>manifest.json</DocCode> URL + content hash on
-                IGJ registration. Citation: Wyoming Statutes Title 17
+                <strong>Wyoming (2021).</strong> Model: on the founding
+                document itself, the statute requires a public,
+                machine-resolvable identifier of the software operating the
+                entity. <strong>AR application:</strong> require a{" "}
+                <DocCode>manifest.json</DocCode> URL + content hash on IGJ
+                registration. Citation: Wyoming Statutes Title 17
                 §17-31-106.
               </>
             }
@@ -386,26 +383,26 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Estonia (2014+).</strong> Modelo: identidad
-                digital + firma con valor probatorio + registry público
-                abierto, todo interoperable vía X-Road.{" "}
-                <strong>Aplicación AR:</strong> AR ya tiene Firma
-                Digital (Ley 25.506), CUIT/ARCA padrón, IGJ datos
-                abiertos. Falta el equivalente al container ASiC-E + la
-                capa X-Road. ar-agents empieza a llenar esto con{" "}
+                <strong>Estonia (2014+).</strong> Modelo: identidad digital
+                + firma con valor probatorio + registry público abierto,
+                todo interoperable vía X-Road.{" "}
+                <strong>Aplicación AR:</strong> AR ya tiene Firma Digital
+                (Ley 25.506), padrón CUIT/ARCA e IGJ datos abiertos. Falta
+                el equivalente al container ASiC-E y la capa X-Road.
+                ar-agents lo empieza a llenar con{" "}
                 <DocCode>@ar-agents/firma-digital</DocCode> y{" "}
                 <DocCode>@ar-agents/identity</DocCode>.
               </>
             }
             en={
               <>
-                <strong>Estonia (2014+).</strong> Model: digital
-                identity + probative-value signature + open public
-                registry, all interoperable via X-Road.{" "}
+                <strong>Estonia (2014+).</strong> Model: digital identity +
+                probative-value signature + open public registry, all
+                interoperable via X-Road.{" "}
                 <strong>AR application:</strong> AR already has Digital
-                Signature (Law 25.506), CUIT/ARCA registry, IGJ open
-                data. What's missing is the ASiC-E container equivalent
-                + the X-Road layer. ar-agents starts to fill this with{" "}
+                Signature (Law 25.506), CUIT/ARCA registry, and IGJ open
+                data. What's missing is the ASiC-E container equivalent and
+                the X-Road layer. ar-agents starts to fill this with{" "}
                 <DocCode>@ar-agents/firma-digital</DocCode> and{" "}
                 <DocCode>@ar-agents/identity</DocCode>.
               </>
@@ -583,16 +580,16 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
             <>
               Santiago Siri propone <strong>$SAIRI on Base mainnet</strong>{" "}
               como AI agent tokenizado, y WAGMI.law como traductor
-              natural-language → smart contract. Es una pista distinta
-              de la que ar-agents propone:
+              natural-language → smart contract. Es otra pista que la de
+              ar-agents:
             </>
           }
           en={
             <>
               Santiago Siri proposes <strong>$SAIRI on Base mainnet</strong>{" "}
-              as a tokenized AI agent, and WAGMI.law as a
-              natural-language → smart-contract translator. It's a
-              different track from what ar-agents proposes:
+              as a tokenized AI agent, and WAGMI.law as a natural-language →
+              smart-contract translator. It's a different track from
+              ar-agents:
             </>
           }
         />
@@ -721,20 +718,18 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>No tiene casos productivos</strong>. Wyoming
-                tiene ~4,000 DAO LLCs. Estonia tiene 139,000+
-                e-residents. ar-agents tiene 5 deploys del mismo CUIT.
-                La ley necesita ser sancionada y operadores reales
-                necesitan adoptarla.
+                <strong>No tiene casos productivos</strong>. Wyoming tiene
+                ~4,000 DAO LLCs; Estonia, 139,000+ e-residents; ar-agents, 5
+                deploys del mismo CUIT. Falta que la ley se sancione y que
+                operadores reales la adopten.
               </>
             }
             en={
               <>
-                <strong>No productive cases yet</strong>. Wyoming has
-                ~4,000 DAO LLCs. Estonia has 139,000+ e-residents.
-                ar-agents has 5 deploys from the same CUIT. The law
-                needs to be enacted and real operators need to adopt
-                it.
+                <strong>No productive cases yet</strong>. Wyoming has ~4,000
+                DAO LLCs; Estonia, 139,000+ e-residents; ar-agents, 5 deploys
+                from the same CUIT. The law still needs to be enacted and
+                real operators need to adopt it.
               </>
             }
           />

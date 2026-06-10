@@ -55,8 +55,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Para el asesor que recibe este link de Sturzenegger, de Reidel, de Subsec TIC, de AAIP, o de cualquier organismo relacionado con el régimen de sociedades-IA. Está pensado para que lo leas en una sola pasada de 10 minutos y puedas reenviar internamente con confianza."
-          : "For the advisor who receives this link from Sturzenegger, Reidel, Subsec TIC, AAIP, or any agency related to the sociedades-IA regime. Designed to be read in a single 10-minute pass and forwarded internally with confidence."
+          ? "Para el asesor que recibe este link de Sturzenegger, Reidel, Subsec TIC, AAIP, o cualquier organismo del régimen de sociedades-IA. Pensado para leer en una pasada de 10 minutos y reenviar internamente con confianza."
+          : "For the advisor who receives this link from Sturzenegger, Reidel, Subsec TIC, AAIP, or any agency in the sociedades-IA regime. Built to read in one 10-minute pass and forward internally with confidence."
       }
     >
       <JsonLd
@@ -115,27 +115,25 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
               es={
                 <>
                   Estoy disponible para reuniones técnicas de 30 minutos sin
-                  honorarios. Si después de eso el ministerio considera
-                  útil algún acuerdo de soporte o servicios, hay tier
-                  comercial separado en{" "}
+                  honorarios. Si después el ministerio considera útil
+                  algún acuerdo de soporte o servicios, hay un tier
+                  comercial, separado por diseño del código abierto, en{" "}
                   <Link href={cloudPath} style={linkSty}>
                     /cloud
                   </Link>
-                  . El código abierto y el tier comercial son piezas
-                  separadas por diseño.
+                  .
                 </>
               }
               en={
                 <>
                   I'm available for 30-minute technical meetings, no
-                  fees. If the ministry afterward finds a support or
-                  services agreement useful, there's a separate
-                  commercial tier at{" "}
+                  fees. If the ministry later finds a support or
+                  services agreement useful, there's a commercial tier,
+                  separate by design from the open source, at{" "}
                   <Link href={cloudPath} style={linkSty}>
                     /cloud
                   </Link>
-                  . Open source and the commercial tier are separate by
-                  design.
+                  .
                 </>
               }
             />
@@ -154,9 +152,9 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
               <strong>Nazareno Clemente</strong>, 26 años, monotributista
               categoría A (servicios informáticos),
               domicilio en Monte Grande, Buenos Aires. Sin formación
-              jurídica formal. Sin financiamiento estatal, sin
-              financiamiento privado, sin contratos con servicios de
-              inteligencia ni seguridad. Trabajo documentado en{" "}
+              jurídica formal. Sin financiamiento estatal ni privado, sin
+              contratos con servicios de inteligencia ni seguridad.
+              Trabajo documentado en{" "}
               <a href="https://github.com/naza00000" style={linkSty}>
                 github.com/naza00000
               </a>
@@ -170,8 +168,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
               <strong>Nazareno Clemente</strong>, 26, monotributista
               category A (IT services), based in
               Monte Grande, Buenos Aires. No formal legal training. No
-              state funding, no private funding, no contracts with
-              intelligence or security services. Documented work at{" "}
+              state or private funding, no contracts with intelligence or
+              security services. Documented work at{" "}
               <a href="https://github.com/naza00000" style={linkSty}>
                 github.com/naza00000
               </a>
@@ -355,10 +353,9 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
               <>
                 <strong>Trabajo técnico previo:</strong> los 6 RFCs
                 cubren las decisiones operacionales que cualquier diseño
-                regulatorio del régimen tendría que tomar igual.
-                Estimación honesta: 4-6 meses de definición técnica +
-                revisión de pares ya hechos, publicados y abiertos a
-                comentario público en GitHub Discussions.
+                regulatorio tendría que tomar igual. Estimación honesta:
+                4-6 meses de definición técnica + revisión de pares, ya
+                hechos y abiertos a comentario en GitHub Discussions.
               </>
             }
             en={
@@ -366,9 +363,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <strong>Prior technical work:</strong> the 6 RFCs cover
                 the operational decisions any regulatory design would
                 have to make anyway. Honest estimate: 4-6 months of
-                technical definition + peer review already done,
-                published, and open to public comment on GitHub
-                Discussions.
+                technical definition + peer review, already done and open
+                to comment on GitHub Discussions.
               </>
             }
           />
@@ -612,9 +608,9 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <strong>Único maintainer.</strong> Si yo me caigo, el
                 proyecto se ralentiza. Mitigaciones: código MIT en
                 GitHub público con historial completo; npm provenance
-                attestations; roadmap de archivar RFCs en Zenodo (CERN)
-                para preservación 20+ años. Cualquier consultora podría
-                tomar el código y darle continuidad mañana.
+                attestations; archivo de RFCs en Zenodo (CERN) en el
+                roadmap, para preservación 20+ años. Cualquier consultora
+                puede tomar el código y darle continuidad mañana.
               </>
             }
             en={
@@ -623,8 +619,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 project slows. Mitigations: MIT code on public GitHub
                 with full history; npm provenance attestations; Zenodo
                 (CERN) RFC archival on the roadmap for 20+ year
-                preservation. Any consultancy could take the code and
-                give it continuity tomorrow.
+                preservation. Any consultancy can take the code and give
+                it continuity tomorrow.
               </>
             }
           />
@@ -680,10 +676,10 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <Link href={regPath} style={linkSty}>
                   /registro
                 </Link>{" "}
-                es honesto sobre esto. Lo que muestra es la
-                implementación de referencia + 4 demos del autor, no un
-                ecosistema. La ley todavía no existe; los operadores
-                reales aparecen cuando aparezca el régimen.
+                lo dice: muestra la implementación de referencia + 4
+                demos del autor, no un ecosistema. La ley todavía no
+                existe; los operadores reales aparecen cuando aparezca el
+                régimen.
               </>
             }
             en={
@@ -695,10 +691,9 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <Link href={regPath} style={linkSty}>
                   /registry
                 </Link>{" "}
-                is honest about this. It shows the reference
-                implementation + 4 demos by the author, not an
-                ecosystem. The law doesn't exist yet; real operators
-                appear when the regime appears.
+                says so: it shows the reference implementation + 4 demos
+                by the author, not an ecosystem. The law doesn't exist
+                yet; real operators appear when the regime appears.
               </>
             }
           />

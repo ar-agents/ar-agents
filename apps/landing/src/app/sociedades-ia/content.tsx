@@ -31,47 +31,46 @@ const T = {
   planP1: {
     es: (
       <>
-        El Ministro de Desregulación Federico Sturzenegger anunció el 28
-        de abril de 2026 (en{" "}
+        El Ministro de Desregulación Federico Sturzenegger anunció el
+        régimen el 28 de abril de 2026 (en{" "}
         <a
           href="https://www.iprofesional.com/economia/453561-sociedades-de-inteligencia-artificial-inedita-apuesta-de-federico-sturzenegger"
           style={{ color: "inherit", textDecoration: "underline" }}
         >
           Expo EFI
         </a>
-        ) el régimen, y el 1 de junio de 2026 el Poder Ejecutivo envió al
-        Senado el anteproyecto que reemplaza íntegramente la Ley 19.550.
-        Crea la <DocCode>Sociedad Automatizada</DocCode> (art. 14): una
-        empresa de cualquier tipo que desarrolla su objeto mediante agentes
-        de IA, <strong>sin empleados en relación de dependencia</strong>, y
-        responde con su patrimonio por los daños de sus sistemas. No es
-        &ldquo;cero humanos&rdquo;: conserva un administrador (humano o
-        persona jurídica, art. 88) que configura y supervisa la IA y
-        responde por ello (art. 102). Y crea la <DocCode>DAO</DocCode>{" "}
-        (art. 258), gobernada por smart contracts y tokens, con
-        representante legal humano obligatorio (art. 260). Paga impuestos
-        como cualquier sociedad.
+        ). El 1 de junio de 2026 el Poder Ejecutivo envió al Senado el
+        anteproyecto que reemplaza la Ley 19.550. Crea la{" "}
+        <DocCode>Sociedad Automatizada</DocCode> (art. 14): una empresa de
+        cualquier tipo que desarrolla su objeto mediante agentes de IA,{" "}
+        <strong>sin empleados en relación de dependencia</strong>, y responde
+        con su patrimonio por los daños de sus sistemas. No es &ldquo;cero
+        humanos&rdquo;: conserva un administrador (humano o persona jurídica,
+        art. 88) que configura y supervisa la IA, y responde por ello
+        (art. 102). También crea la <DocCode>DAO</DocCode> (art. 258),
+        gobernada por smart contracts y tokens, con representante legal humano
+        obligatorio (art. 260). Paga impuestos como cualquier sociedad.
       </>
     ),
     en: (
       <>
         Argentina's Minister of Deregulation Federico Sturzenegger
-        announced on April 28, 2026 (at{" "}
+        announced the regime on April 28, 2026 (at{" "}
         <a
           href="https://www.iprofesional.com/economia/453561-sociedades-de-inteligencia-artificial-inedita-apuesta-de-federico-sturzenegger"
           style={{ color: "inherit", textDecoration: "underline" }}
         >
           Expo EFI
         </a>
-        ) the regime, and on June 1, 2026 the Executive sent the Senate the
-        draft bill that fully replaces Law 19.550. It creates the{" "}
+        ). On June 1, 2026 the Executive sent the Senate the draft bill that
+        replaces Law 19.550. It creates the{" "}
         <DocCode>Sociedad Automatizada</DocCode> (art. 14): a company of any
         type that pursues its purpose through AI agents,{" "}
         <strong>with no employees</strong>, and answers with its own assets
         for damages caused by its systems. It is not &ldquo;zero
         humans&rdquo;: it keeps an administrator (a human or legal person,
-        art. 88) who configures and supervises the AI and is liable for it
-        (art. 102). And it creates the <DocCode>DAO</DocCode> (art. 258),
+        art. 88) who configures and supervises the AI, and is liable for it
+        (art. 102). It also creates the <DocCode>DAO</DocCode> (art. 258),
         governed by smart contracts and tokens, with a mandatory human legal
         representative (art. 260). It pays taxes like any company.
       </>
@@ -109,8 +108,8 @@ const T = {
     en: "What an AI corporation will need (in code)",
   },
   piecesIntro: {
-    es: "Asumiendo que el proyecto avanza tal cual está planteado, una empresa-agente debería poder hacer todo el ciclo de incorporación + operación sin intervención humana. Mapeo lo que falta para cada paso, y la cobertura actual del toolkit ar-agents:",
-    en: "Assuming the proposal moves forward as drafted, an agent-company should be able to complete the full incorporation + operation cycle without human intervention. Below is what each step requires and the current coverage of the ar-agents toolkit:",
+    es: "Si el proyecto avanza tal cual, una empresa-agente debería hacer todo el ciclo de incorporación y operación sin intervención humana. Acá está lo que pide cada paso y la cobertura actual del toolkit ar-agents:",
+    en: "If the proposal moves forward as drafted, an agent-company should complete the full incorporation and operation cycle without human intervention. Here is what each step requires and the current coverage of the ar-agents toolkit:",
   },
   piecesFooter: {
     es: (
@@ -149,8 +148,8 @@ const T = {
     en: "If Argentina's first AI corporation needs to pay a consultancy USD 200k to integrate with the state, the experiment dies. If an ar-agents AI corporation can be deployed in a week with npm + Vercel + an ARCA cert, it scales.",
   },
   whyP2: {
-    es: "El anteproyecto ya está en el Senado; entra en vigencia a los 180 días de publicarse en el Boletín Oficial (art. 271). El timeline de infraestructura shipeable es ya. La ventana para definir el estándar técnico (cómo se opera una Sociedad Automatizada de forma confiable) es ahora, mientras el texto se debate.",
-    en: "The draft bill is already in the Senate; it takes effect 180 days after publication in the Official Gazette (art. 271). The infrastructure timeline is now. The window to define the technical standard (how a Sociedad Automatizada is operated reliably) is open today, while the text is debated.",
+    es: "El anteproyecto ya está en el Senado y entra en vigencia 180 días después de publicarse en el Boletín Oficial (art. 271). La infraestructura se shipea hoy. La ventana para definir el estándar técnico, cómo se opera una Sociedad Automatizada de forma confiable, es ahora, mientras se debate el texto.",
+    en: "The draft bill is already in the Senate and takes effect 180 days after publication in the Official Gazette (art. 271). The infrastructure ships today. The window to define the technical standard, how a Sociedad Automatizada is operated reliably, is open now, while the text is debated.",
   },
   h2demo: {
     es: "Demo: una sociedad-IA en producción",
@@ -188,19 +187,19 @@ const T = {
         >
           /incorporar
         </a>{" "}
-        genera la configuración de un repo Next.js con las 16 piezas
-        cableadas, corre el pre-flight de IGJ en vivo (mismas reglas que
-        el tool <DocCode>validate_igj_inscription</DocCode>), y emite el
-        bundle listo para deployar a Vercel. Para los devs que prefieren
-        ir directo al template, el código vive en{" "}
+        genera la config de un repo Next.js con las 16 piezas cableadas, corre
+        el pre-flight de IGJ en vivo (mismas reglas que el tool{" "}
+        <DocCode>validate_igj_inscription</DocCode>) y emite el bundle listo
+        para deployar a Vercel. ¿Preferís ir directo al template? El código
+        vive en{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter"
           style={{ color: "inherit", textDecoration: "underline" }}
         >
           apps/sociedad-ia-starter
         </a>
-        . El wizard y los 33 paquetes son gratis; la capa de confianza hosted
-        (el log de auditoría firmado que pide el art. 102) es{" "}
+        . El wizard y los 33 paquetes son gratis. La capa de confianza hosted,
+        el log de auditoría firmado que pide el art. 102, es{" "}
         <a href="/precios" style={{ color: "inherit", textDecoration: "underline" }}>
           El Auditor
         </a>
@@ -216,19 +215,19 @@ const T = {
         >
           /incorporar
         </a>{" "}
-        generates a Next.js repo configuration with the 16 pieces wired
-        up, runs IGJ pre-flight live (same rules as the{" "}
-        <DocCode>validate_igj_inscription</DocCode> tool), and emits a
-        bundle ready to deploy on Vercel. For devs who prefer to start
-        from the template directly, the code lives in{" "}
+        generates a Next.js repo config with the 16 pieces wired up, runs IGJ
+        pre-flight live (same rules as the{" "}
+        <DocCode>validate_igj_inscription</DocCode> tool), and emits a bundle
+        ready to deploy on Vercel. Prefer to start from the template? The code
+        lives in{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter"
           style={{ color: "inherit", textDecoration: "underline" }}
         >
           apps/sociedad-ia-starter
         </a>
-        . The wizard and the 33 packages are free; the hosted trust layer (the
-        signed audit log art. 102 calls for) is{" "}
+        . The wizard and the 33 packages are free. The hosted trust layer, the
+        signed audit log art. 102 calls for, is{" "}
         <a href="/en/pricing" style={{ color: "inherit", textDecoration: "underline" }}>
           The Auditor
         </a>
@@ -241,8 +240,8 @@ const T = {
     en: "Technical documents for legislators",
   },
   legisIntro: {
-    es: "Si estás escribiendo la ley, o asesorando a quien la escribe, los siguientes documentos están listos para citar por referencia en lugar de reescribir conceptos de cero:",
-    en: "If you're drafting the bill, or advising someone who is, the following documents are ready to cite by reference instead of rewriting concepts from scratch:",
+    es: "Si escribís la ley, o asesorás a quien la escribe, estos documentos están listos para citar por referencia, sin reescribir conceptos de cero:",
+    en: "If you're drafting the bill, or advising someone who is, these documents are ready to cite by reference, no rewriting concepts from scratch:",
   },
   legisLi1: {
     es: "Síntesis de los 6 RFCs en una sola página, con texto sugerido para el articulado.",
@@ -359,8 +358,8 @@ const T = {
     en: "Honest limitations",
   },
   limitsP1: {
-    es: "El anteproyecto ya tiene articulado (arts. 14, 102, 258-265) y fue enviado al Senado el 1-jun-2026, pero todavía no es ley: puede cambiar en el Congreso, demorarse o no aprobarse. El toolkit ar-agents funciona y sirve igual: cubre la integración con el Estado argentino para empresas humanas hoy. Si el régimen de sociedades automatizadas se aprueba, ya está listo para ese caso también.",
-    en: "The draft bill already has text (arts. 14, 102, 258-265) and was sent to the Senate on June 1, 2026, but it is not law yet: it could change in Congress, be delayed, or not pass. The ar-agents toolkit works either way: it covers Argentine state integration for human-run companies today. If the automated-company regime passes, it's also ready for that case.",
+    es: "El anteproyecto ya tiene articulado (arts. 14, 102, 258-265) y fue enviado al Senado el 1-jun-2026, pero todavía no es ley: puede cambiar en el Congreso, demorarse o no aprobarse. El toolkit ar-agents sirve igual: hoy cubre la integración con el Estado argentino para empresas humanas. Si el régimen se aprueba, ya está listo para ese caso también.",
+    en: "The draft bill already has text (arts. 14, 102, 258-265) and was sent to the Senate on June 1, 2026, but it is not law yet: it could change in Congress, be delayed, or not pass. The ar-agents toolkit works either way: today it covers Argentine state integration for human-run companies. If the regime passes, it's also ready for that case.",
   },
   limitsP2: {
     es: "No hay relación entre ar-agents y los integrantes del gobierno. Esto es infraestructura civil, comercial, abierta, escrita por afuera y para que la use cualquiera.",

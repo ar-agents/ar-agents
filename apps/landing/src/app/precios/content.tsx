@@ -30,8 +30,8 @@ const T = {
     en: "The standard is free. Trust is the business.",
   },
   subtitle: {
-    es: "ar-agents es una Sociedad Automatizada que constituye y opera Sociedades Automatizadas. El código abierto es la infraestructura; lo que se cobra es la capa que vuelve a tu empresa-agente bancable, asegurable y auditable ante el Estado.",
-    en: "ar-agents is an automated company that incorporates and operates automated companies. The open source is the infrastructure; what we bill is the layer that makes your agent-company bankable, insurable, and auditable before the state.",
+    es: "ar-agents es una Sociedad Automatizada que constituye y opera Sociedades Automatizadas. El código abierto es la infraestructura. Lo pago es la capa que vuelve a tu empresa-agente bancable, asegurable y auditable ante el Estado.",
+    en: "ar-agents is an automated company that incorporates and operates automated companies. The open source is the infrastructure. The paid part is the layer that makes your agent-company bankable, insurable, and auditable before the state.",
   },
   h2model: { es: "Cómo funciona el modelo", en: "How the model works" },
   modelP: {
@@ -44,10 +44,10 @@ const T = {
           /incorporar
         </a>{" "}
         y el audit log self-hosted. Con eso constituís y operás una Sociedad
-        Automatizada por tu cuenta, sin pagarnos un peso. Lo que se cobra es la
-        capa hosted que <strong>asume responsabilidad</strong>: auditoría
-        peritable, representación legal y cumplimiento. Esa capa un fork no la
-        puede copiar, porque no es código, es confianza con respaldo.
+        Automatizada por tu cuenta, sin pagarnos un peso. Lo pago es la capa
+        hosted que <strong>asume responsabilidad</strong>: auditoría peritable,
+        representación legal y cumplimiento. Un fork no la puede copiar, porque
+        no es código: es confianza con respaldo.
       </>
     ),
     en: (
@@ -58,17 +58,17 @@ const T = {
           /incorporar
         </a>{" "}
         wizard, and the self-hosted audit log. With that you incorporate and
-        run an automated company on your own, paying us nothing. What's billed
+        run an automated company on your own, paying us nothing. The paid part
         is the hosted layer that <strong>bears liability</strong>: court-grade
-        auditing, legal representation, and compliance. A fork can't copy that
-        layer, because it isn't code, it's backed trust.
+        auditing, legal representation, and compliance. A fork can't copy it,
+        because it isn't code: it's backed trust.
       </>
     ),
   },
   h2table: { es: "Productos", en: "Products" },
   tableIntro: {
-    es: "Cada producto pago tiene un anclaje legal en el anteproyecto, y se contrata por API o MCP, para que tu empresa-agente lo active sola.",
-    en: "Every paid product has a legal anchor in the draft bill, and is contracted via API or MCP, so your agent-company can turn it on by itself.",
+    es: "Cada producto pago tiene un anclaje legal en el anteproyecto. Se contrata por API o MCP, así tu empresa-agente lo activa sola.",
+    en: "Every paid product has a legal anchor in the draft bill. It's contracted via API or MCP, so your agent-company turns it on by itself.",
   },
   h2auditor: { es: "El Auditor (producto estrella)", en: "The Auditor (flagship)" },
   auditorP1: {
@@ -76,25 +76,24 @@ const T = {
       <>
         El anteproyecto deja al administrador{" "}
         <strong>personalmente responsable</strong> por lo que hace la IA
-        (art. 102), y solo lo protege si actuó &ldquo;con arreglo a un
+        (art. 102). Solo lo protege si actuó &ldquo;con arreglo a un
         procedimiento de decisión adecuado&rdquo; (art. 101, regla de
         discrecionalidad empresarial). El Auditor es esa prueba: un registro de
-        decisiones append-only, firmado (RFC-004), con upgrade a firma
-        asimétrica para que el regulador verifique sin tu clave (RFC-005), y
-        anclado para que valga incluso si el operador es el adversario
-        (RFC-006).
+        decisiones append-only y firmado (RFC-004). La firma asimétrica deja que
+        el regulador verifique sin tu clave (RFC-005). El anclaje hace que valga
+        incluso si el operador es el adversario (RFC-006).
       </>
     ),
     en: (
       <>
         The draft bill leaves the administrator{" "}
-        <strong>personally liable</strong> for what the AI does (art. 102), and
+        <strong>personally liable</strong> for what the AI does (art. 102). It
         only protects them if they acted &ldquo;through an adequate
         decision-making procedure&rdquo; (art. 101, the business-judgment rule).
         The Auditor is that proof: an append-only, signed decision log
-        (RFC-004), with an asymmetric-signature upgrade so a regulator can
-        verify without your key (RFC-005), anchored so it holds even when the
-        operator is the adversary (RFC-006).
+        (RFC-004). An asymmetric signature lets a regulator verify without your
+        key (RFC-005). Anchoring makes it hold even when the operator is the
+        adversary (RFC-006).
       </>
     ),
   },
@@ -103,9 +102,9 @@ const T = {
       <>
         El log self-hosted es gratis (RFC-004 abierto). Lo pago es la versión{" "}
         <strong>hosted, anclada y certificada</strong>, con acceso de lectura
-        para tu auditor o el regulador. Y porque la ley se aplica de pleno
-        derecho a todas las sociedades existentes (art. 272), el comprador no
-        es solo la empresa-agente nueva: es cualquier empresa que use IA en su
+        para tu auditor o el regulador. La ley se aplica de pleno derecho a
+        todas las sociedades existentes (art. 272). Así que el comprador no es
+        solo la empresa-agente nueva: es cualquier empresa que use IA en su
         gestión. Vivo en{" "}
         <a href="/auditor" style={linkSty}>
           /auditor
@@ -117,10 +116,10 @@ const T = {
       <>
         The self-hosted log is free (RFC-004 is open). What's paid is the{" "}
         <strong>hosted, anchored, certified</strong> version, with read access
-        for your auditor or the regulator. And because the law applies by
-        operation of law to all existing companies (art. 272), the buyer isn't
-        only the new agent-company: it's any company that uses AI in its
-        management. Live at{" "}
+        for your auditor or the regulator. The law applies by operation of law
+        to all existing companies (art. 272). So the buyer isn't only the new
+        agent-company: it's any company that uses AI in its management. Live
+        at{" "}
         <a href="/auditor" style={linkSty}>
           /auditor
         </a>
@@ -135,9 +134,9 @@ const T = {
         El anteproyecto no permite cero humanos: toda sociedad necesita un
         administrador (art. 88) y la DAO un representante legal humano
         (art. 260). Pero la <em>operación</em> sí es 100% autónoma (art. 14:
-        sin empleados, los agentes hacen todo). Nosotros automatizamos ese rol
-        humano mínimo como servicio, vos firmás como autor, no operás. La
-        empresa-agente contrata El Auditor, su representante y su cumplimiento{" "}
+        sin empleados, los agentes hacen todo). Automatizamos ese rol humano
+        mínimo como servicio. Vos firmás como autor, no operás. La empresa-agente
+        contrata El Auditor, su representante y su cumplimiento{" "}
         <strong>por API, sola</strong>:
       </>
     ),
@@ -147,7 +146,7 @@ const T = {
         administrator (art. 88) and a DAO needs a human legal representative
         (art. 260). But the <em>operation</em> is 100% autonomous (art. 14: no
         employees, the agents do everything). We automate that minimal human
-        role as a service, you sign as the author, you don't operate. The
+        role as a service. You sign as the author, you don't operate. The
         agent-company contracts The Auditor, its representative, and its
         compliance <strong>over the API, by itself</strong>:
       </>
@@ -186,8 +185,8 @@ const T = {
   },
   h2honest: { es: "Nota honesta", en: "Honest note" },
   honestP: {
-    es: "Estos son precios de lanzamiento, en acceso anticipado. El checkout en vivo se conecta dogfoodeando nuestro propio @ar-agents/mercadopago (MP Subscriptions); hasta entonces el alta es por contacto. La capa abierta no cambia: el código y los RFCs son y van a seguir siendo gratis (MIT + CC-BY-4.0).",
-    en: "These are launch prices, in early access. Live checkout ships by dogfooding our own @ar-agents/mercadopago (MP Subscriptions); until then onboarding is by contact. The open layer doesn't change: the code and the RFCs are and will stay free (MIT + CC-BY-4.0).",
+    es: "Estos son precios de lanzamiento, en acceso anticipado. El checkout en vivo dogfoodea nuestro propio @ar-agents/mercadopago (MP Subscriptions). Hasta entonces, el alta es por contacto. La capa abierta no cambia: el código y los RFCs siguen gratis (MIT + CC-BY-4.0).",
+    en: "These are launch prices, in early access. Live checkout dogfoods our own @ar-agents/mercadopago (MP Subscriptions). Until then, onboarding is by contact. The open layer doesn't change: the code and the RFCs stay free (MIT + CC-BY-4.0).",
   },
 } as const;
 

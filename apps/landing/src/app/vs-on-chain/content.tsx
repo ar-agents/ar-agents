@@ -288,8 +288,8 @@ const T = (lang: Lang) => ({
       : "We do not compete with on-chain experiments. We are a different track.",
   subtitle:
     lang === "es"
-      ? "Santi Siri propone $SAIRI en Base mainnet + WAGMI.law como traductor natural-language → smart contract. Es una pista interesante. ar-agents es otra: civil-comercial-OSS para que una sociedad-IA argentina opere bajo derecho positivo. Las dos pueden coexistir. Esta página explica el por qué."
-      : "Santi Siri proposes $SAIRI on Base mainnet + WAGMI.law as a natural-language → smart-contract translator. It is an interesting track. ar-agents is a different one: civil-commercial-OSS for an Argentine AI-corp to operate under positive law. The two can coexist. This page explains why.",
+      ? "Santi Siri propone $SAIRI en Base mainnet + WAGMI.law como traductor natural-language → smart contract. Es una pista interesante. ar-agents es otra: civil-comercial-OSS para que una sociedad-IA argentina opere bajo derecho positivo. Las dos pueden coexistir. Esta página explica por qué."
+      : "Santi Siri proposes $SAIRI on Base mainnet + WAGMI.law as a natural-language → smart-contract translator. It is an interesting track. ar-agents is another: civil-commercial-OSS for an Argentine AI-corp to operate under positive law. The two can coexist. This page explains why.",
 });
 
 export function VsOnChainContent({ lang }: { lang: Lang }) {
@@ -360,7 +360,7 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
               <>
                 <strong>ar-agents / Nazareno Clemente:</strong>{" "}
                 infraestructura civil-comercial-OSS para que una
-                sociedad-IA argentina opere bajo derecho positivo. 17
+                sociedad-IA argentina opere bajo derecho positivo. 33
                 paquetes npm + 6 RFCs + audit log forense. Sin token. Sin
                 yield farming. Sin DeFi.
               </>
@@ -369,7 +369,7 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
               <>
                 <strong>ar-agents / Nazareno Clemente:</strong>{" "}
                 civil-commercial-OSS infrastructure for an Argentine
-                AI-corp to operate under positive law. 33 npm packages + 5
+                AI-corp to operate under positive law. 33 npm packages + 6
                 RFCs + forensic audit log. No token. No yield farming. No
                 DeFi.
               </>
@@ -436,20 +436,20 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
               <>
                 <strong>Audiencias distintas.</strong> ar-agents apunta a
                 founders argentinos que quieren incorporar una sociedad-IA
-                para <em>operar legalmente</em> en AR, facturar, contratar
-                servicios, abrir cuenta bancaria, cumplir LPDP. $SAIRI
-                apunta a crypto-natives + traders que quieren upside de un
-                AI agent tokenizado.
+                para <em>operar legalmente</em> en AR: facturar, contratar
+                servicios, abrir cuenta bancaria, cumplir LPDP. $SAIRI apunta
+                a crypto-natives y traders que buscan upside de un AI agent
+                tokenizado.
               </>
             }
             en={
               <>
                 <strong>Different audiences.</strong> ar-agents targets
                 Argentine founders who want to incorporate an AI-corp to{" "}
-                <em>operate legally</em> in AR, invoice, contract
-                services, open a bank account, comply with the data
-                protection law. $SAIRI targets crypto-natives + traders
-                seeking upside from a tokenised AI agent.
+                <em>operate legally</em> in AR: invoice, contract services,
+                open a bank account, comply with the data protection law.
+                $SAIRI targets crypto-natives and traders seeking upside from
+                a tokenised AI agent.
               </>
             }
           />
@@ -481,21 +481,21 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Tiempos distintos.</strong> El régimen Sturzenegger
-                es debate legislativo prospectivo (2026-2027). $SAIRI ya
-                existe on-chain hoy. Quien necesita un AI agent
-                económicamente activo <em>ya</em>, va a on-chain. Quien
-                quiere una entidad legal argentina con CUIT facturando a
-                clientes locales, espera (o construye) la sociedad-IA.
+                es un debate legislativo prospectivo (2026-2027). $SAIRI ya
+                existe on-chain. Quien necesita un AI agent económicamente
+                activo <em>ya</em> va on-chain. Quien quiere una entidad
+                legal argentina con CUIT facturando a clientes locales
+                espera, o construye, la sociedad-IA.
               </>
             }
             en={
               <>
-                <strong>Different timelines.</strong> The Sturzenegger
-                regime is a prospective legislative debate (2026-2027).
-                $SAIRI exists on-chain today. Whoever needs an
-                economically active AI agent <em>now</em> goes on-chain.
-                Whoever wants an Argentine legal entity with a CUIT
-                invoicing local clients waits for (or builds) the AI-corp.
+                <strong>Different timelines.</strong> The Sturzenegger regime
+                is a prospective legislative debate (2026-2027). $SAIRI
+                exists on-chain today. Whoever needs an economically active
+                AI agent <em>now</em> goes on-chain. Whoever wants an
+                Argentine legal entity with a CUIT invoicing local clients
+                waits for, or builds, the AI-corp.
               </>
             }
           />
@@ -583,32 +583,32 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              Si el Ministerio está mirando $SAIRI como referencia para
-              construir el régimen, vale la pena distinguir:{" "}
+              Si el Ministerio mira $SAIRI como referencia para construir el
+              régimen, conviene distinguir:{" "}
               <strong>
-                el régimen de sociedades-IA que se diseñe no debería pensar
-                en $SAIRI como caso típico
+                el régimen que se diseñe no debería tomar $SAIRI como caso
+                típico
               </strong>
               . $SAIRI es un experimento de AI corp tokenizada sin
-              jurisdicción. El caso típico de una sociedad-IA argentina va
-              a ser otra cosa: una empresa con CUIT que tiene un agente
-              como órgano de gobierno operativo, opera en pesos o USD
-              oficial, paga impuestos, factura.
+              jurisdicción. El caso típico de una sociedad-IA argentina es
+              otro: una empresa con CUIT que tiene un agente como órgano de
+              gobierno operativo, opera en pesos o USD oficial, paga
+              impuestos y factura.
             </>
           }
           en={
             <>
-              If the Ministry is looking at $SAIRI as a reference to build
-              the regime, it is worth distinguishing:{" "}
+              If the Ministry looks at $SAIRI as a reference to build the
+              regime, it's worth distinguishing:{" "}
               <strong>
-                the AI-corp regime being designed should not treat $SAIRI
-                as the typical case
+                the regime being designed should not take $SAIRI as the
+                typical case
               </strong>
               . $SAIRI is an experiment in a tokenised AI corp with no
-              jurisdiction. The typical Argentine AI-corp will look
-              different: a company with a CUIT that has an agent as its
-              operational governance body, operates in pesos or official
-              USD, pays taxes, invoices.
+              jurisdiction. The typical Argentine AI-corp is different: a
+              company with a CUIT that has an agent as its operational
+              governance body, operates in pesos or official USD, pays
+              taxes, and invoices.
             </>
           }
         />
@@ -618,22 +618,21 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              ar-agents apunta a ese caso típico, no al experimento
-              on-chain. Ambos pueden coexistir gracias a RFC-003
-              (cross-jurisdictional reciprocity), pero el régimen debería
-              diseñarse para el caso típico, para que sea{" "}
-              <em>adoptable</em> por founders argentinos que hoy
-              constituyen SAS o pasan por Stripe Atlas.
+              ar-agents apunta a ese caso típico, no al experimento on-chain.
+              Ambos coexisten gracias a RFC-003 (cross-jurisdictional
+              reciprocity), pero el régimen debería diseñarse para el caso
+              típico, para que sea <em>adoptable</em> por founders argentinos
+              que hoy constituyen SAS o pasan por Stripe Atlas.
             </>
           }
           en={
             <>
               ar-agents targets that typical case, not the on-chain
-              experiment. Both can coexist thanks to RFC-003
+              experiment. Both coexist thanks to RFC-003
               (cross-jurisdictional reciprocity), but the regime should be
-              designed for the typical case, so that it is{" "}
-              <em>adoptable</em> by Argentine founders who today
-              incorporate a SAS or go through Stripe Atlas.
+              designed for the typical case, so it is <em>adoptable</em> by
+              Argentine founders who today incorporate a SAS or go through
+              Stripe Atlas.
             </>
           }
         />
