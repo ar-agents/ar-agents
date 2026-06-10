@@ -122,7 +122,7 @@ The architecture described in section 2 is implemented and published as free sof
 ### What exists and is verifiable
 
 - **Open source code** at `github.com/ar-agents/ar-agents`, MIT license.
-- **17 packages published on npm** under the `@ar-agents/*` scope:
+- **33 packages published on npm** under the `@ar-agents/*` scope:
   - `@ar-agents/identity`, CUIT validation and queries to ARCA's tax registry
   - `@ar-agents/facturacion`, invoice issuance with CAE via WSFE
   - `@ar-agents/mercadopago`, recurring subscriptions and collections

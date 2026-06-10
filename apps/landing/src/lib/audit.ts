@@ -160,14 +160,44 @@ function isKvWired(): boolean {
 
 const KEY_PREFIX = "play:audit:";
 const ENTRY_TTL_SECONDS = 7 * 24 * 60 * 60; // 7 days
+/**
+ * Redis SET of sessionIds that must never expire. Demo/play sessions keep the
+ * 7-day TTL (noise control); business records — incorporations, paid El
+ * Auditor sessions — are durable. A public proof link that 404s after a week
+ * is forensically useless, which defeats the whole product.
+ */
+const DURABLE_SET = "play:audit:durable-sessions";
 
 function key(sessionId: string): string {
   return `${KEY_PREFIX}${sessionId}`;
 }
 
+async function isDurable(sessionId: string): Promise<boolean> {
+  try {
+    return Boolean(await kv.sismember(DURABLE_SET, sessionId));
+  } catch {
+    return false;
+  }
+}
+
+/**
+ * Mark an existing session as durable: clears any pending TTL and registers
+ * it so later non-durable appends can't re-impose one. Idempotent.
+ */
+export async function pinSession(sessionId: string): Promise<void> {
+  if (!isKvWired()) return;
+  try {
+    await kv.sadd(DURABLE_SET, sessionId);
+    await kv.persist(key(sessionId));
+  } catch {
+    // KV down — nothing to pin; next durable append retries.
+  }
+}
+
 export async function appendAudit(
   sessionId: string,
   partial: Omit<AuditEntry, "id" | "sessionId" | "ts" | "hmac">,
+  opts?: { durable?: boolean },
 ): Promise<AuditEntry> {
   const id = `${new Date().toISOString()}-${crypto.randomUUID().slice(0, 8)}`;
   const entry: AuditEntry = {
@@ -196,7 +226,12 @@ export async function appendAudit(
   if (isKvWired()) {
     try {
       await kv.rpush(key(sessionId), entry);
-      await kv.expire(key(sessionId), ENTRY_TTL_SECONDS);
+      if (opts?.durable) {
+        await kv.sadd(DURABLE_SET, sessionId);
+        await kv.persist(key(sessionId));
+      } else if (!(await isDurable(sessionId))) {
+        await kv.expire(key(sessionId), ENTRY_TTL_SECONDS);
+      }
     } catch {
       // KV down, fall through to in-memory so the demo doesn't break.
       const arr = memStore.get(sessionId) ?? [];

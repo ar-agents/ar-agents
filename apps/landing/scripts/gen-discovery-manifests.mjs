@@ -4,32 +4,34 @@
 //
 // Wired into the landing's build via package.json scripts.prebuild.
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { resolve, dirname } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const HERE = dirname(fileURLToPath(import.meta.url));            // apps/landing/scripts
 const APP_ROOT = resolve(HERE, "..");                            // apps/landing
 const MONO_ROOT = resolve(APP_ROOT, "..", "..");                 // ar-agents
-const PKGS_WITH_TOOLS = [
-  "identity",
-  "identity-attest",
-  "constancia",
-  "mi-argentina",
-  "firma-digital",
-  "gde-tad",
-  "mercadopago",
-  "mercadolibre",
-  "whatsapp",
-  "banking",
-  "facturacion",
-  "shipping",
-  "igj",
-  "boletin-oficial",
-  "ap2",
-  "agentic-commerce-bridge",
-  "mcp",
-];
+
+// Discover every package that ships a tools.manifest.json instead of keeping a
+// hand-maintained list — the hardcoded list froze at 17 packages while the repo
+// grew to 31 manifests, so /api/discovery under-reported the real surface.
+function listPkgsWithTools() {
+  const fromSource = resolve(MONO_ROOT, "packages");
+  if (existsSync(fromSource)) {
+    return readdirSync(fromSource)
+      .filter((d) => existsSync(resolve(fromSource, d, "tools.manifest.json")))
+      .sort();
+  }
+  const fromNodeModules = resolve(APP_ROOT, "node_modules", "@ar-agents");
+  if (existsSync(fromNodeModules)) {
+    return readdirSync(fromNodeModules)
+      .filter((d) => existsSync(resolve(fromNodeModules, d, "tools.manifest.json")))
+      .sort();
+  }
+  throw new Error("Cannot locate packages/ or node_modules/@ar-agents to enumerate manifests.");
+}
+
+const PKGS_WITH_TOOLS = listPkgsWithTools();
 
 // On Vercel monorepo deploys the landing root is uploaded with the workspace
 // packages symlinked into node_modules; tools.manifest.json is reachable via
