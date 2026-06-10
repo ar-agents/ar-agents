@@ -47,7 +47,7 @@ const T = {
         Automatizada por tu cuenta, sin pagarnos un peso. Lo que se cobra es la
         capa hosted que <strong>asume responsabilidad</strong>: auditoría
         peritable, representación legal y cumplimiento. Esa capa un fork no la
-        puede copiar — porque no es código, es confianza con respaldo.
+        puede copiar, porque no es código, es confianza con respaldo.
       </>
     ),
     en: (
@@ -61,14 +61,14 @@ const T = {
         run an automated company on your own, paying us nothing. What's billed
         is the hosted layer that <strong>bears liability</strong>: court-grade
         auditing, legal representation, and compliance. A fork can't copy that
-        layer — because it isn't code, it's backed trust.
+        layer, because it isn't code, it's backed trust.
       </>
     ),
   },
   h2table: { es: "Productos", en: "Products" },
   tableIntro: {
-    es: "Cada producto pago tiene un anclaje legal en el anteproyecto, y se contrata por API o MCP — para que tu empresa-agente lo active sola.",
-    en: "Every paid product has a legal anchor in the draft bill, and is contracted via API or MCP — so your agent-company can turn it on by itself.",
+    es: "Cada producto pago tiene un anclaje legal en el anteproyecto, y se contrata por API o MCP, para que tu empresa-agente lo active sola.",
+    en: "Every paid product has a legal anchor in the draft bill, and is contracted via API or MCP, so your agent-company can turn it on by itself.",
   },
   h2auditor: { es: "El Auditor (producto estrella)", en: "The Auditor (flagship)" },
   auditorP1: {
@@ -136,7 +136,7 @@ const T = {
         administrador (art. 88) y la DAO un representante legal humano
         (art. 260). Pero la <em>operación</em> sí es 100% autónoma (art. 14:
         sin empleados, los agentes hacen todo). Nosotros automatizamos ese rol
-        humano mínimo como servicio — vos firmás como autor, no operás. La
+        humano mínimo como servicio, vos firmás como autor, no operás. La
         empresa-agente contrata El Auditor, su representante y su cumplimiento{" "}
         <strong>por API, sola</strong>:
       </>
@@ -147,7 +147,7 @@ const T = {
         administrator (art. 88) and a DAO needs a human legal representative
         (art. 260). But the <em>operation</em> is 100% autonomous (art. 14: no
         employees, the agents do everything). We automate that minimal human
-        role as a service — you sign as the author, you don't operate. The
+        role as a service, you sign as the author, you don't operate. The
         agent-company contracts The Auditor, its representative, and its
         compliance <strong>over the API, by itself</strong>:
       </>
@@ -211,27 +211,31 @@ const PRODUCTS: ReadonlyArray<Product> = [
     name: { es: "El Auditor", en: "The Auditor" },
     free: { es: "Log self-hosted (RFC-004)", en: "Self-hosted log (RFC-004)" },
     paid: { es: "Pro USD 199/mes · Enterprise a medida", en: "Pro USD 199/mo · Enterprise custom" },
-    hook: { es: "Art. 102 — el administrador responde por la IA", en: "Art. 102 — the administrator is liable for the AI" },
+    hook: { es: "Art. 102, el administrador responde por la IA", en: "Art. 102, the administrator is liable for the AI" },
   },
   {
     name: { es: "Representante & Cumplimiento", en: "Representative & Compliance" },
-    free: { es: "—", en: "—" },
+    free: { es: "Solo pago", en: "Paid only" },
     paid: { es: "A medida, con seguro", en: "Custom, insured" },
-    hook: { es: "Arts. 260/264 — representante humano + oficial de cumplimiento", en: "Arts. 260/264 — human rep + compliance officer" },
+    hook: { es: "Arts. 260/264, representante humano + oficial de cumplimiento", en: "Arts. 260/264, human rep + compliance officer" },
   },
 ];
 
-const AGENT_BUY = `// Tu Sociedad Automatizada contrata El Auditor sola, por API. Sin humanos.
+const AGENT_BUY = `// Tu Sociedad Automatizada contrata El Auditor sola, por API.
 
 ▶ agent: Para cumplir el art. 102 necesito un registro de decisiones peritable.
 
   → POST https://ar-agents.ar/api/auditor/subscribe
-      { plan: "pro", entity_cuit: "30-XXXXXXXX-X", anchor: "rfc-006" }
-    ← { ok: true, plan: "pro", logEndpoint: "https://...",
-        verifyUrl: "https://ar-agents.ar/auditor/<sessionId>" }
+      { payerEmail: "ops@miempresa.ai", plan: "mensual", entityCuit: "30-XXXXXXXX-X" }
+    ← { ok: true, subscription: { plan: "mensual", priceUsd: 199 },
+        checkout: { initPoint: "https://mercadopago..." },
+        activation: { endpoint: ".../api/auditor/activate" } }
 
-  → cada decisión del agente se firma (RFC-004) y se ancla (RFC-006)
-    automáticamente; el regulador verifica con clave pública (RFC-005).
+  → tras autorizar el pago: POST /api/auditor/activate { preapprovalId }
+    ← { ok: true, apiKey: "arag_live_..." }
+
+  → cada decisión: POST /api/auditor/log con header x-api-key
+    se firma (RFC-004/005) y se ancla (RFC-006); el regulador verifica solo.
 
 ✓ El Auditor activo. La empresa opera sola; la prueba de que operó
   bien queda firmada. Vos sos el autor, no el operador.`;

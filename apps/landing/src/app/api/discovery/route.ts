@@ -70,17 +70,34 @@ type DiscoveryDoc = {
     description: string;
     schema?: string;
   }>;
+  commercial: {
+    model: string;
+    pricing: string;
+    products: Array<{
+      name: string;
+      description: string;
+      priceUsdMonthly: number;
+      subscribe: string;
+      agentPurchasable: boolean;
+      flow: string[];
+    }>;
+    caseStudy: string;
+  };
 };
+
+// Strip em dashes from served descriptions (the published npm package source
+// still has them; we never ship one in the site's own served JSON).
+const noDash = (s?: string) => s?.replace(/\s*—\s*/g, ", ");
 
 function buildDiscoveryDoc(): DiscoveryDoc {
   const packages = MANIFESTS.map((m) => ({
     name: m.package,
     version: m.version,
-    description: m.description,
+    description: noDash(m.description),
     repository: `${REPO_URL}/tree/main/packages/${m.package.replace("@ar-agents/", "")}`,
     npm: `https://www.npmjs.com/package/${m.package}`,
     toolCount: m.tools.length,
-    tools: m.tools.map((t) => ({ name: t.name, description: t.description })),
+    tools: m.tools.map((t) => ({ name: t.name, description: noDash(t.description) })),
   }));
   const totalTools = packages.reduce((acc, p) => acc + p.toolCount, 0);
   const endpoints: DiscoveryDoc["endpoints"] = [
@@ -134,6 +151,37 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       description:
         "RFC 4180 CSV export of the session's audit log. UTF-8 BOM for Excel compatibility. Columns: ts, tool, governance, durationMs, errored, hmac, input, output. content-disposition attachment with filename ar-agents-audit-{prefix}-{YYYYMMDD}.csv. 60s cache.",
     },
+    {
+      name: "auditor_subscribe",
+      url: `${SITE_URL}/api/auditor/subscribe`,
+      method: "POST",
+      description:
+        "Subscribe to El Auditor (the paid hosted proof-of-autonomy product, USD 199/mo, settled in ARS via Mercado Pago). Returns a Mercado Pago checkout init_point. GET the same URL for the machine-readable pricing + flow. Legal hook: art. 102.",
+      schema: `${SITE_URL}/api/auditor/subscribe`,
+    },
+    {
+      name: "auditor_activate",
+      url: `${SITE_URL}/api/auditor/activate`,
+      method: "POST",
+      description:
+        "Exchange an authorized Mercado Pago preapproval_id for an El Auditor API key (idempotent). Step 3 of the autonomous purchase flow.",
+      schema: `${SITE_URL}/api/auditor/activate`,
+    },
+    {
+      name: "auditor_log",
+      url: `${SITE_URL}/api/auditor/log`,
+      method: "POST",
+      description:
+        "Write a signed (HMAC-SHA256 + Ed25519), durable, publicly-verifiable audit entry to your El Auditor session. Authenticated with x-api-key. The product an agent pays for.",
+      schema: `${SITE_URL}/api/auditor/log`,
+    },
+    {
+      name: "auditor_status",
+      url: `${SITE_URL}/api/auditor/status`,
+      method: "GET",
+      description:
+        "Check your El Auditor subscription status (active / paused / cancelled) and your audit session URLs. Authenticated with x-api-key.",
+    },
   ];
   return {
     $schema: `${SITE_URL}/schemas/discovery.v1.json`,
@@ -141,6 +189,27 @@ function buildDiscoveryDoc(): DiscoveryDoc {
     packages,
     totalTools,
     endpoints,
+    commercial: {
+      model: "open-core: the standard is free, trust is a service",
+      pricing: `${SITE_URL}/precios`,
+      products: [
+        {
+          name: "El Auditor",
+          description:
+            "Hosted proof-of-autonomy (RFC-004/005/006). Durable, signed, publicly-verifiable audit log. Legal hook: art. 102 (non-delegable AI-supervision duty).",
+          priceUsdMonthly: 199,
+          subscribe: `${SITE_URL}/api/auditor/subscribe`,
+          agentPurchasable: true,
+          flow: [
+            "POST /api/auditor/subscribe -> checkout.initPoint",
+            "payer authorizes on Mercado Pago",
+            "POST /api/auditor/activate { preapprovalId } -> apiKey",
+            "POST /api/auditor/log (x-api-key) -> signed durable entries",
+          ],
+        },
+      ],
+      caseStudy: `${SITE_URL}/caso-ar-agents`,
+    },
   };
 }
 
@@ -171,7 +240,7 @@ function buildOpenApiDoc() {
         post: {
           operationId: `${m.package.replace("@ar-agents/", "")}_${t.name}`,
           tags: [m.package],
-          summary: t.description?.slice(0, 100) ?? t.name,
+          summary: noDash(t.description)?.slice(0, 100) ?? t.name,
           "x-package": m.package,
           "x-package-version": m.version,
           "x-requires-confirmation": HITL_TOOLS.has(t.name),
@@ -197,7 +266,7 @@ function buildOpenApiDoc() {
       summary:
         "Self-incorporate an Argentine sociedad-IA programmatically. Returns generated source files + Vercel deploy URL + legal checklist + signed audit reference.",
       "x-runtime": "edge",
-      "x-rate-limited": false,
+      "x-rate-limited": true,
       requestBody: {
         content: {
           "application/json": {
@@ -241,6 +310,93 @@ function buildOpenApiDoc() {
         { name: "sessionId", in: "path", required: true, schema: { type: "string" } },
         { name: "verify", in: "query", required: false, schema: { type: "string", enum: ["1"] } },
       ],
+    },
+  };
+  // El Auditor, the paid product. The autonomous-purchase flow MUST be on the
+  // OpenAPI surface that ai-plugin.json points agents to, or the recursive
+  // agent-buyer thesis is undiscoverable by the book.
+  paths["/api/auditor/subscribe"] = {
+    get: {
+      operationId: "auditor_subscribe_describe",
+      summary: "Machine-readable El Auditor pricing + purchase flow.",
+      "x-product": "El Auditor",
+      "x-price-usd-monthly": 199,
+    },
+    post: {
+      operationId: "auditor_subscribe",
+      summary:
+        "Subscribe to El Auditor (USD 199/mo, ARS via Mercado Pago). Returns a checkout init_point. Legal hook: art. 102.",
+      "x-runtime": "edge",
+      "x-rate-limited": true,
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["payerEmail"],
+              properties: {
+                payerEmail: { type: "string", format: "email" },
+                plan: { type: "string", enum: ["mensual", "anual"], default: "mensual" },
+                sessionId: { type: "string" },
+                entityCuit: { type: "string", maxLength: 13 },
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+  paths["/api/auditor/activate"] = {
+    post: {
+      operationId: "auditor_activate",
+      summary: "Exchange an authorized Mercado Pago preapproval_id for an El Auditor API key (idempotent).",
+      "x-runtime": "edge",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["preapprovalId"],
+              properties: { preapprovalId: { type: "string" } },
+            },
+          },
+        },
+      },
+    },
+  };
+  paths["/api/auditor/log"] = {
+    post: {
+      operationId: "auditor_log",
+      summary:
+        "Write a signed (HMAC + Ed25519), durable, publicly-verifiable audit entry. Auth: x-api-key. The product agents pay for.",
+      "x-runtime": "edge",
+      "x-auth": "x-api-key",
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: {
+              type: "object",
+              required: ["tool", "input"],
+              properties: {
+                tool: { type: "string", maxLength: 80 },
+                governance: {
+                  type: "string",
+                  enum: ["algorithm-only", "audit-logged", "mocked-upstream", "requires-confirmation"],
+                },
+                input: {},
+                output: {},
+              },
+            },
+          },
+        },
+      },
+    },
+  };
+  paths["/api/auditor/status"] = {
+    get: {
+      operationId: "auditor_status",
+      summary: "Check your El Auditor subscription status. Auth: x-api-key.",
+      "x-auth": "x-api-key",
     },
   };
 

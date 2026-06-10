@@ -24,7 +24,7 @@ body {
   --tracking-tight: -0.022em;
   --tracking-display: -0.035em;
 
-  /* Semantic colors — shared across dark/light. */
+  /* Semantic colors, shared across dark/light. */
   --success: #10b981;
   --success-bg: rgba(16, 185, 129, 0.15);
   --warning: #f59e0b;
@@ -136,7 +136,7 @@ pre {
 
 /* Prevent <pre>/wide-content from forcing parent flex children to expand
    past the viewport. Without `min-width: 0` + an explicit cap, flex items
-   default to `min-width: auto` and grow to fit content — which on mobile
+   default to `min-width: auto` and grow to fit content, which on mobile
    means a long unbroken code block can push the whole page horizontally. */
 body > main,
 body > nav {
@@ -175,7 +175,7 @@ button:focus-visible {
   }
 }
 
-/* Headings balance their wrapping on supporting browsers — avoids
+/* Headings balance their wrapping on supporting browsers, avoids
    awkward one-word last lines. Falls back gracefully. */
 h1, h2, h3 {
   text-wrap: balance;

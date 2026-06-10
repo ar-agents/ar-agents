@@ -46,7 +46,7 @@ const T = {
       <>
         Si Argentina va a alojar empresas operadas por agentes de IA, alguien
         tiene que construir la capa que las constituye y las opera. Nosotros la
-        construimos — y la prueba más honesta de que funciona es{" "}
+        construimos, y la prueba más honesta de que funciona es{" "}
         <strong>usarla con nosotros mismos</strong>. ar-agents es el caso #1 de
         su propio producto.
       </>
@@ -54,14 +54,14 @@ const T = {
     en: (
       <>
         If Argentina is going to host companies run by AI agents, someone has to
-        build the layer that incorporates and operates them. We built it — and
+        build the layer that incorporates and operates them. We built it, and
         the most honest proof that it works is{" "}
         <strong>using it on ourselves</strong>. ar-agents is its own product's
         case #1.
       </>
     ),
   },
-  h2const: { es: "Paso 1 — La constitución", en: "Step 1 — Incorporation" },
+  h2const: { es: "Paso 1: La constitución", en: "Step 1: Incorporation" },
   constP: {
     es: (
       <>
@@ -97,15 +97,14 @@ const T = {
       </>
     ),
   },
-  h2oper: { es: "Paso 2 — La operación", en: "Step 2 — Operation" },
+  h2oper: { es: "Paso 2: La operación", en: "Step 2: Operation" },
   operP: {
     es: (
       <>
         Después nos suscribimos a nuestro propio{" "}
         <a href="/precios" style={linkSty}>
           El Auditor
-        </a>{" "}
-        — por API, sin humanos en el medio. Porque el art. 102 deja al
+        </a>, por API, sin humanos en el medio. Porque el art. 102 deja al
         administrador responsable por lo que hace la IA, y El Auditor es la
         prueba firmada de que operó con un procedimiento adecuado. Una empresa
         que vende auditoría de autonomía, auditándose a sí misma.
@@ -116,15 +115,14 @@ const T = {
         Then we subscribed to our own{" "}
         <a href="/en/pricing" style={linkSty}>
           The Auditor
-        </a>{" "}
-        — over the API, no humans in the loop. Because art. 102 leaves the
+        </a>, over the API, no humans in the loop. Because art. 102 leaves the
         administrator liable for what the AI does, and The Auditor is the signed
         proof that it operated through an adequate procedure. A company that
         sells autonomy auditing, auditing itself.
       </>
     ),
   },
-  h2prueba: { es: "Paso 3 — La prueba (firmada y verificable)", en: "Step 3 — The proof (signed & verifiable)" },
+  h2prueba: { es: "Paso 3: La prueba (firmada y verificable)", en: "Step 3: The proof (signed & verifiable)" },
   pruebaP: {
     es: (
       <>
@@ -132,8 +130,7 @@ const T = {
         HMAC-SHA256 + Ed25519. No te pedimos que nos creas:{" "}
         <a href={DASHBOARD} style={linkSty}>
           verificalo vos mismo
-        </a>{" "}
-        — el regulador, un periodista o un competidor pueden confirmar que el log
+        </a>. El regulador, un periodista o un competidor pueden confirmar que el log
         no fue alterado, sin nuestra clave (RFC-005).
       </>
     ),
@@ -143,8 +140,7 @@ const T = {
         Ed25519. Don't take our word for it:{" "}
         <a href={DASHBOARD} style={linkSty}>
           verify it yourself
-        </a>{" "}
-        — a regulator, a journalist, or a competitor can confirm the log wasn't
+        </a>. A regulator, a journalist, or a competitor can confirm the log wasn't
         tampered with, without our key (RFC-005).
       </>
     ),
@@ -157,7 +153,7 @@ const T = {
         <em>operación</em> es 100% autónoma (art. 14, sin empleados), pero toda
         sociedad conserva un administrador / representante de registro (arts. 88
         y 260). El de ar-agents es{" "}
-        <strong>Nazareno Clemente</strong> — autor, no operador. Ese rol mínimo
+        <strong>Nazareno Clemente</strong>, autor, no operador. Ese rol mínimo
         es, además, uno de los servicios que ar-agents vende: la empresa-agente
         opera sola, y nosotros somos el ancla humana que la ley pide.
       </>
@@ -167,7 +163,7 @@ const T = {
         Legal honesty: the regime doesn't allow zero humans. The{" "}
         <em>operation</em> is 100% autonomous (art. 14, no employees), but every
         company keeps an administrator / legal representative of record (arts. 88
-        and 260). ar-agents' is <strong>Nazareno Clemente</strong> — author, not
+        and 260). ar-agents' is <strong>Nazareno Clemente</strong>, author, not
         operator. That minimal role is also one of the services ar-agents sells:
         the agent-company runs itself, and we are the human anchor the law
         requires.

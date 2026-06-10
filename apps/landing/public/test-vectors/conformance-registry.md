@@ -7,7 +7,7 @@ verifier, then add a row here with a link to your test run.
 - **Standard:** RFC-004 (HMAC operational log) · RFC-005 (Ed25519 asymmetric
   upgrade) · RFC-006 (hash-chained ledger + external anchoring profile,
   projects onto RFC-004).
-- **Independent verifier:** `tools/arg-verify/arg-verify.mjs` — zero
+- **Independent verifier:** `tools/arg-verify/arg-verify.mjs`: zero
   dependency, offline, clean-room (does not import any implementation).
 - **How to reproduce every claim below:**
   `node tools/arg-verify/arg-verify.mjs vectors`
@@ -21,10 +21,10 @@ trust a green row and see precisely what a partial row does not yet cover.
 | Implementation | RFC-004 | RFC-005 | RFC-006 | Verified by | Date | Evidence |
 |---|---|---|---|---|---|---|
 | **`arg-verify` (clean-room verifier)** | ✓ 10/10 | ✓ 4/4 | ✓ 12/12 | self (independent reimplementation vs published vectors) | 2026-05-17 | `arg-verify vectors` → `ALL VECTORS PASS` |
-| **`/arg` reference impl** — `apps/landing/src/lib/{audit,ed25519}.ts` | ✓ | ✓ | n/a (per-entry reference, not the chain profile) | published vectors + repo `apps/landing/test/rfc-00{4,5}-vectors.test.ts` | 2026-05-17 | byte-exact vectors reproduced clean-room by `arg-verify` |
+| **`/arg` reference impl**, `apps/landing/src/lib/{audit,ed25519}.ts` | ✓ | ✓ | n/a (per-entry reference, not the chain profile) | published vectors + repo `apps/landing/test/rfc-00{4,5}-vectors.test.ts` | 2026-05-17 | byte-exact vectors reproduced clean-room by `arg-verify` |
 | **Vultur `@vultur/core`** (flagship producer) | ✓ via RFC-006 §5 projection | ✗ encoding/endpoint divergence | ◐ profile-conformant by design; runtime export check pending | code inspection + `rfc-006-v1.json` derived from `@vultur/core/{audit,anchor}.ts`; projection proven by `arg-verify` | 2026-05-17 | see notes |
 
-### Vultur `@vultur/core` — precise status
+### Vultur `@vultur/core`: precise status
 
 - **RFC-004: ✓ via projection.** Vultur's native model is a hash-chain, not
   per-entry RFC-004 records, so it does **not** pass RFC-004 vectors
@@ -45,8 +45,8 @@ trust a green row and see precisely what a partial row does not yet cover.
   vectors model is derived directly from `@vultur/core/{audit,anchor}.ts`
   (link payload `{seq,prevHash,societyId,actor,action,meta,ts}`, HMAC chain,
   anchor sub-chain), and `arg-verify` reproduces every value. Full runtime
-  conformance — running a real Vultur chain/attestation export through
-  `arg-verify chain` / `arg-verify project` — is pending an exported fixture
+  conformance, running a real Vultur chain/attestation export through
+  `arg-verify chain` / `arg-verify project`: is pending an exported fixture
   (the live secret + export are out of scope of this verifier by design;
   zero-trust verification needs only the export, not the running system).
 

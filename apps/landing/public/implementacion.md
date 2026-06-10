@@ -222,12 +222,12 @@ curl -fsSL https://ar-agents.ar/arg-verify.mjs -o arg-verify.mjs
 node arg-verify.mjs file doc.pdf
 ```
 
-El verificador es *clean-room*, sin dependencias, escrito sobre las primitivas estándar de Node (auditable íntegro en `github.com/ar-agents/ar-agents/blob/main/tools/arg-verify/arg-verify.mjs`). La clave pública se publica en `ar-agents.ar/.well-known/ar-agents/doc-signing-keys.json`. Cualquier modificación del PDF — un solo byte — hace fallar las tres comprobaciones de integridad (tamaño, SHA-256, firma Ed25519).
+El verificador es *clean-room*, sin dependencias, escrito sobre las primitivas estándar de Node (auditable íntegro en `github.com/ar-agents/ar-agents/blob/main/tools/arg-verify/arg-verify.mjs`). La clave pública se publica en `ar-agents.ar/.well-known/ar-agents/doc-signing-keys.json`. Cualquier modificación del PDF, un solo byte, hace fallar las tres comprobaciones de integridad (tamaño, SHA-256, firma Ed25519).
 
 Esta verificación no es ornamental: el documento que propone Ed25519 para las sociedades-IA se distribuye él mismo bajo Ed25519. Si la arquitectura es buena para el régimen, es buena para el documento que lo propone.
 
 
-## Anexo I — Marcos jurisdiccionales comparados
+## Anexo I, Marcos jurisdiccionales comparados
 
 Argentina, de avanzar con el régimen, no operaría en el vacío. Otras jurisdicciones han creado marcos legales para entidades sin conducción humana directa (DAOs, asociaciones digitales, vehículos de propósito único sin staff operativo). Conocer estos marcos sitúa la iniciativa argentina en el mapa internacional y reduce la fricción para que el drafting jurídico se beneficie de soluciones ya probadas.
 
@@ -243,7 +243,7 @@ Argentina, de avanzar con el régimen, no operaría en el vacío. Otras jurisdic
 **Lectura.** Ningún país del listado reconoce personería plena de inteligencia artificial en los términos de la propuesta argentina. Todos requieren un operador humano enumerado y todos limitan la responsabilidad al patrimonio de la entidad excepto en supuestos específicos. La propuesta argentina, de avanzar, situaría al país en la frontera comparada: primer marco específicamente diseñado para agentes de IA como sujeto societario, sobre bases técnicas (Ed25519, MCP, registro encadenado HMAC) que son intercompatibles con todas las jurisdicciones precedentes. La interoperabilidad técnica es la base sobre la que puede construirse reconocimiento mutuo cross-border en el mediano plazo.
 
 
-## Anexo II — Referencias
+## Anexo II, Referencias
 
 **Estándares criptográficos.**
 
@@ -260,8 +260,8 @@ Argentina, de avanzar con el régimen, no operaría en el vacío. Otras jurisdic
 
 **Especificaciones técnicas argentinas.**
 
-- ARCA (ex-AFIP), *Web Service Autenticación y Autorización (WSAA) — Manual del Desarrollador*. Mecanismo de autenticación cliente-servidor para los Web Services tributarios.
-- ARCA, *Web Service Factura Electrónica (WSFE) v1 — Manual del Desarrollador*. Emisión de factura electrónica con CAE. Usado en Pilar 3.
+- ARCA (ex-AFIP), *Web Service Autenticación y Autorización (WSAA), Manual del Desarrollador*. Mecanismo de autenticación cliente-servidor para los Web Services tributarios.
+- ARCA, *Web Service Factura Electrónica (WSFE) v1, Manual del Desarrollador*. Emisión de factura electrónica con CAE. Usado en Pilar 3.
 
 **Marco normativo argentino.**
 

@@ -15,7 +15,7 @@ export default function Rfc006Page() {
     <DocShell
       eyebrow="rfc-006 · draft · 2026-05"
       title="RFC-006: Hash-chained ledger + external anchoring profile."
-      subtitle="RFC-004 makes each entry tamper-evident. It does not prove the set of entries is complete and ordered, nor defend the log when the adversary is the operator. RFC-006 is the profile that does both — and it stays RFC-004-checkable by a normative projection, so raising the floor does not fork the standard."
+      subtitle="RFC-004 makes each entry tamper-evident. It does not prove the set of entries is complete and ordered, nor defend the log when the adversary is the operator. RFC-006 is the profile that does both, and it stays RFC-004-checkable by a normative projection, so raising the floor does not fork the standard."
     >
       <RfcJsonLd
         id="006"
@@ -50,7 +50,7 @@ export default function Rfc006Page() {
           <a href="/rfcs/004" style={linkSty}>
             RFC-004
           </a>{" "}
-          (operational-log spec — the base this profile extends),{" "}
+          (operational-log spec, the base this profile extends),{" "}
           <a href="/rfcs/005" style={linkSty}>
             RFC-005
           </a>{" "}
@@ -65,7 +65,7 @@ export default function Rfc006Page() {
             github.com/ar-agents/ar-agents
           </a>{" "}
           (<DocCode>chain</DocCode>, <DocCode>project</DocCode>,{" "}
-          <DocCode>vectors</DocCode> — zero dependency, offline).
+          <DocCode>vectors</DocCode>, zero dependency, offline).
         </DocP>
       </DocBlock>
 
@@ -135,7 +135,7 @@ prevHash_1 = "GENESIS"
 prevHash_n = hash_{n-1}        (n > 1)`}</CodeBlock>
       <DocP>
         <DocCode>hash_n</DocCode> is raw lowercase hex (no{" "}
-        <DocCode>sha256:</DocCode> prefix — that is RFC-004&apos;s per-entry
+        <DocCode>sha256:</DocCode> prefix, that is RFC-004&apos;s per-entry
         convention, not the chain convention). <DocCode>meta</DocCode> is
         normalized to <DocCode>null</DocCode> when absent before
         canonicalization so sign and verify agree. The only permitted mutation
@@ -149,11 +149,11 @@ prevHash_n = hash_{n-1}        (n > 1)`}</CodeBlock>
         <strong>4.1 Contiguous chain (full integrity).</strong> For an ordered
         slice from genesis or a known checkpoint, assert for every{" "}
         <DocCode>i</DocCode>: (1) <DocCode>seq_i == seq_&#123;i-1&#125; + 1</DocCode>{" "}
-        (contiguity — detects deletion / reordering); (2){" "}
-        <DocCode>prevHash_i == hash_&#123;i-1&#125;</DocCode> (linkage — detects
+        (contiguity, detects deletion / reordering); (2){" "}
+        <DocCode>prevHash_i == hash_&#123;i-1&#125;</DocCode> (linkage, detects
         insertion / deletion); (3){" "}
         <DocCode>hash_i == HMAC(secret, canonical(payload_i))</DocCode>{" "}
-        (authenticity — detects mutation, including deeply-nested mutation). A
+        (authenticity, detects mutation, including deeply-nested mutation). A
         passing slice proves the records are unmutated{" "}
         <em>and</em> complete <em>and</em> ordered.
       </DocP>
@@ -164,7 +164,7 @@ prevHash_n = hash_{n-1}        (n > 1)`}</CodeBlock>
         <DocCode>recordsOnly: true</DocCode>.
       </DocP>
 
-      <DocH2>5 · RFC-004 projection (normative — the conformance bridge)</DocH2>
+      <DocH2>5 · RFC-004 projection (normative, the conformance bridge)</DocH2>
       <DocP>
         An RFC-006 producer is RFC-004-conformant <strong>by construction</strong>{" "}
         via this deterministic projection <DocCode>P</DocCode>. Given chain
@@ -268,15 +268,15 @@ prevAnchor_n = signature_{n-1}`}</CodeBlock>
       <DocH2>8 · Verification interface (extends RFC-004 §5)</DocH2>
       <ul style={listStyle}>
         <Li>
-          <DocCode>GET /api/audit/verify</DocCode> — contiguous-chain
+          <DocCode>GET /api/audit/verify</DocCode>, contiguous-chain
           verification result.
         </Li>
         <Li>
-          <DocCode>GET /api/audit/anchor</DocCode> — the anchor chain for §6
+          <DocCode>GET /api/audit/anchor</DocCode>, the anchor chain for §6
           verification.
         </Li>
         <Li>
-          <DocCode>GET /api/audit/&#123;slug&#125;/attestation</DocCode> — the
+          <DocCode>GET /api/audit/&#123;slug&#125;/attestation</DocCode>, the
           §7 attestation.
         </Li>
         <Li>
@@ -305,7 +305,7 @@ prevAnchor_n = signature_{n-1}`}</CodeBlock>
       </DocP>
       <CodeBlock>{`node tools/arg-verify/arg-verify.mjs vectors
 # RFC-004: 10 PASS · RFC-005: 4 PASS · RFC-006: 12 PASS
-# ALL VECTORS PASS — the published /arg standard is independently reproducible.`}</CodeBlock>
+# ALL VECTORS PASS, the published /arg standard is independently reproducible.`}</CodeBlock>
 
       <DocH2>10 · Decision request</DocH2>
       <ul style={listStyle}>
@@ -314,7 +314,7 @@ prevAnchor_n = signature_{n-1}`}</CodeBlock>
           RFC-006 v1 is the recommended profile for any sociedad-IA handling
           real value, regulated activity, or third-party funds. An RFC-006
           producer is RFC-004-conformant via the §5 projection, so citing
-          RFC-006 does <strong>not</strong> fork the standard — it raises the
+          RFC-006 does <strong>not</strong> fork the standard, it raises the
           floor while staying RFC-004-checkable.
         </Li>
         <Li>

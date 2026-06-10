@@ -12,7 +12,7 @@ export const metadata: Metadata = {
     type: "video.other",
     title: "Una sociedad-IA en producción, demo ar-agents",
     description:
-      "2:30 · 6 paquetes · 0 humanos en el loop. Implementación de referencia para el régimen de sociedades-IA de Sturzenegger.",
+      "2:30 · 6 paquetes · operación autónoma, supervisión humana mínima. Implementación de referencia para el régimen de sociedades-IA de Sturzenegger.",
     url: "https://ar-agents.ar/video",
     videos: [
       {
@@ -30,7 +30,7 @@ export default function VideoPage() {
     <DocShell
       eyebrow="demo en video"
       title="Una sociedad-IA en producción."
-      subtitle="2:30 · 6 paquetes · 0 humanos en el loop. Un agente Claude ejecutando el ciclo completo: constituir → CUIT → MP → factura → WhatsApp → BO. Datos mock, paquetes reales."
+      subtitle="2:30 · 6 paquetes · operación autónoma, supervisión humana mínima. Un agente Claude ejecutando el ciclo completo: constituir → CUIT → MP → factura → WhatsApp → BO. Datos mock, paquetes reales."
     >
       <div
         style={{

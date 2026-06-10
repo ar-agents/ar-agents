@@ -1,14 +1,14 @@
 # ar-agents
 
-> Open infrastructure for Argentina's **sociedades de IA** — AI-operated companies under the Anteproyecto de Ley General de Sociedades (art. 14 "Sociedad Automatizada", sent to the Senate 1-jun-2026, not yet law). 33 npm packages, 221 typed tools, hosted endpoints, 6 RFCs (001..006), conformance test vectors, public certifier. MIT + CC-BY-4.0, SLSA-provenanced. Every tool call lands in an HMAC-SHA256 + Ed25519-signed audit log persisted to Vercel KV.
+> Open infrastructure for Argentina's **sociedades de IA**, AI-operated companies under the Anteproyecto de Ley General de Sociedades (art. 14 "Sociedad Automatizada", sent to the Senate 1-jun-2026, not yet law). 33 npm packages, 221 typed tools, hosted endpoints, 6 RFCs (001..006), conformance test vectors, public certifier. MIT + CC-BY-4.0, SLSA-provenanced. Every tool call lands in an HMAC-SHA256 + Ed25519-signed audit log persisted to Vercel KV.
 
 The toolkit covers the operating pieces an Argentine business needs (identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, tax engines). RFC-001 proposes a three-layer liability framework. RFC-004 normatively pins down the operational-log wire format with 7 frozen conformance vectors at `/test-vectors/rfc-004-v1.json`. RFC-006 adds hash-chain + anchoring so the log defends itself even against its own operator. The human-facing demo at `/play` is operable in 30 seconds with zero setup, and an external orchestrator can self-incorporate an AR sociedad-IA programmatically via `POST /api/auto-incorporate` (or the typed npm client `@ar-agents/incorporate`).
 
 ## Paid products (an agent can buy these autonomously)
 
 - [Pricing](https://ar-agents.ar/precios) ([en](https://ar-agents.ar/en/pricing)): open-core model. The standard is free; trust is a service.
-- **El Auditor** — hosted proof-of-autonomy (RFC-004/005/006), USD 199/mo. Legal hook: art. 102 (the administrator answers for the AI; this signed log is the evidence of an adequate decision procedure, art. 101). `GET https://ar-agents.ar/api/auditor/subscribe` for the machine-readable contract, `POST` to subscribe (returns a Mercado Pago checkout `init_point`). After the payer authorizes, `POST /api/auditor/activate` with the `preapproval_id` returns an API key; write signed durable entries via `POST /api/auditor/log` with header `x-api-key`.
-- [Case study: ar-agents incorporated itself](https://ar-agents.ar/caso-ar-agents) ([en](https://ar-agents.ar/en/ar-agents-case)) — the recursive dogfood: this company constituted itself and subscribed to its own audit layer. Public verifiable session: [/dashboard/ar-agents-sociedad-automatizada](https://ar-agents.ar/dashboard/ar-agents-sociedad-automatizada).
+- **El Auditor**, hosted proof-of-autonomy (RFC-004/005/006), USD 199/mo. Legal hook: art. 102 (the administrator answers for the AI; this signed log is the evidence of an adequate decision procedure, art. 101). `GET https://ar-agents.ar/api/auditor/subscribe` for the machine-readable contract, `POST` to subscribe (returns a Mercado Pago checkout `init_point`). After the payer authorizes, `POST /api/auditor/activate` with the `preapproval_id` returns an API key; write signed durable entries via `POST /api/auditor/log` with header `x-api-key`.
+- [Case study: ar-agents incorporated itself](https://ar-agents.ar/caso-ar-agents) ([en](https://ar-agents.ar/en/ar-agents-case)), the recursive dogfood: this company constituted itself and subscribed to its own audit layer. Public verifiable session: [/dashboard/ar-agents-sociedad-automatizada](https://ar-agents.ar/dashboard/ar-agents-sociedad-automatizada).
 
 ## Start here
 
@@ -27,7 +27,7 @@ The toolkit covers the operating pieces an Argentine business needs (identity, b
 - [RFC-002](https://ar-agents.ar/rfcs/002): agent-discovery-by-default. /.well-known/agents.json convention.
 - [RFC-003](https://ar-agents.ar/rfcs/003): cross-jurisdictional audit-log reciprocity envelope.
 - [RFC-004](https://ar-agents.ar/rfcs/004): canonical operational-log wire format. The document legislation can cite.
-- [RFC-005](https://ar-agents.ar/rfcs/005): Ed25519 asymmetric upgrade path. **SHIPPED + VERIFIED LIVE** — production `/api/play` entries carry both `hmac` and `signature` fields. Live confirmation: 3/3 HMAC + 3/3 Ed25519 verified.
+- [RFC-005](https://ar-agents.ar/rfcs/005): Ed25519 asymmetric upgrade path. **SHIPPED + VERIFIED LIVE**, production `/api/play` entries carry both `hmac` and `signature` fields. Live confirmation: 3/3 HMAC + 3/3 Ed25519 verified.
 - [RFC-006](https://ar-agents.ar/rfcs/006): hash-chain + external anchoring. Defends the log when the operator is the adversary.
 - [Test vectors](https://ar-agents.ar/test-vectors): RFC-004 v1 (7 vectors) + RFC-005 v1 (3 vectors). Reference impl passes all 10 (107 vitest tests in 6 files, including 4 dual-sign regression tests).
 - [Auditor's brief](https://ar-agents.ar/auditor): 1-page Spanish-first regulator-facing summary. Print-friendly.
@@ -38,7 +38,7 @@ The toolkit covers the operating pieces an Argentine business needs (identity, b
 - [Compliance certifier](https://ar-agents.ar/certifier): paste any URL, score 0-100 against RFC-002 + RFC-004 + RFC-005. Programmatic API at /api/certifier.
 - [Glossary](https://ar-agents.ar/glossary): 21 alphabetized term definitions across concepts/protocols/specs/tools.
 - [Outreach templates](https://ar-agents.ar/share): copy-paste social + email drafts for sharing ar-agents with regulators, journalists, ministry asesores.
-- [Academic references](https://ar-agents.ar/refs): BibTeX, APA, Chicago citations for the 4 RFCs + datasets + toolkit.
+- [Academic references](https://ar-agents.ar/refs): BibTeX, APA, Chicago citations for the 6 RFCs + datasets + toolkit.
 - [Timeline](https://ar-agents.ar/timeline): visual chronology from the Sturzenegger 28-abr-2026 announcement onwards.
 - [Architecture / audit-log deep-dive](https://ar-agents.ar/architecture/audit-log): 11-section code-level breakdown.
 - [Architecture / security model](https://ar-agents.ar/architecture/security): code-level threat walkthrough (T1-T14).
@@ -56,35 +56,35 @@ The toolkit covers the operating pieces an Argentine business needs (identity, b
 
 ## Hosted HTTP API (call directly, no SDK required)
 
-- `POST /api/auto-incorporate` — one-call sociedad-IA incorporation. JSON body. Returns config files + deploy URL + signed audit ref.
-- `POST /api/play` — live agent loop. 12 mocked-but-realistic tools. Streaming SSE.
-- `GET  /api/play/audit/{sessionId}` — full audit timeline read.
-- `GET  /api/play/audit/{sessionId}?verify=1` — HMAC-verified audit log read.
-- `GET  /api/play/audit/{sessionId}/csv` — RFC-4180 CSV export with UTF-8 BOM.
-- `GET  /api/play/audit-stream/{sessionId}` — Server-Sent Events live stream.
-- `POST /api/play/tamper-demo` — read-only forensic-proof (educational).
-- `GET  /api/badge/{sessionId}` — 24px shields.io-style SVG verification badge for embeds.
-- `GET  /api/cert-badge?url={baseUrl}` — shields.io-style live RFC-002+004 conformance badge for any URL.
-- `GET  /api/discovery` — machine-readable inventory. `?format=openapi` returns OpenAPI 3.1 stub.
-- `GET  /api/openapi` — full OpenAPI 3.1 schema for all public endpoints.
-- `GET  /api/openapi.yaml` — YAML mirror of the above.
-- `GET  /api/certifier?url={baseUrl}` — score any sociedad-IA's RFC-002/004/005 conformance 0-100 (~11 checks).
-- `GET  /api/conformance-history?url={baseUrl}` — KV-backed time-series of cert scores. POST to append.
-- `GET  /api/auto-monitor` — Vercel cron-driven daily poll of all /registro entries.
-- `GET  /api/audit-summary/{sessionId}` — per-session aggregates (governance breakdown, latency quantiles, anomaly flags).
-- `GET  /api/rfc-003-envelope?sessionId={id}&counterpart={url}` — generate the RFC-003 cross-jurisdictional envelope.
+- `POST /api/auto-incorporate`: one-call sociedad-IA incorporation. JSON body. Returns config files + deploy URL + signed audit ref.
+- `POST /api/play`: live agent loop. 12 mocked-but-realistic tools. Streaming SSE.
+- `GET  /api/play/audit/{sessionId}`: full audit timeline read.
+- `GET  /api/play/audit/{sessionId}?verify=1`: HMAC-verified audit log read.
+- `GET  /api/play/audit/{sessionId}/csv`: RFC-4180 CSV export with UTF-8 BOM.
+- `GET  /api/play/audit-stream/{sessionId}`: Server-Sent Events live stream.
+- `POST /api/play/tamper-demo`: read-only forensic-proof (educational).
+- `GET  /api/badge/{sessionId}`: 24px shields.io-style SVG verification badge for embeds.
+- `GET  /api/cert-badge?url={baseUrl}`: shields.io-style live RFC-002+004 conformance badge for any URL.
+- `GET  /api/discovery`: machine-readable inventory. `?format=openapi` returns OpenAPI 3.1 stub.
+- `GET  /api/openapi`: full OpenAPI 3.1 schema for all public endpoints.
+- `GET  /api/openapi.yaml`: YAML mirror of the above.
+- `GET  /api/certifier?url={baseUrl}`: score any sociedad-IA's RFC-002/004/005 conformance 0-100 (~11 checks).
+- `GET  /api/conformance-history?url={baseUrl}`: KV-backed time-series of cert scores. POST to append.
+- `GET  /api/auto-monitor`: Vercel cron-driven daily poll of all /registro entries.
+- `GET  /api/audit-summary/{sessionId}`: per-session aggregates (governance breakdown, latency quantiles, anomaly flags).
+- `GET  /api/rfc-003-envelope?sessionId={id}&counterpart={url}`: generate the RFC-003 cross-jurisdictional envelope.
 
 ## Well-known endpoints (RFC-002 + RFC-004 § 5 + RFC-005 § 4)
 
-- [/.well-known/agents.json](https://ar-agents.ar/.well-known/agents.json) — discovery manifest with issuer.jurisdiction, rfcConformance, auditEndpoints.
-- [/.well-known/sociedad-ia/verify-key?challenge=HEX](https://ar-agents.ar/.well-known/sociedad-ia/verify-key?challenge=deadbeefdeadbeef) — RFC-004 § 5 challenge-response key-possession proof.
-- [/.well-known/sociedad-ia/keys](https://ar-agents.ar/.well-known/sociedad-ia/keys) — RFC-005 § 4 Ed25519 public-keys publication.
+- [/.well-known/agents.json](https://ar-agents.ar/.well-known/agents.json), discovery manifest with issuer.jurisdiction, rfcConformance, auditEndpoints.
+- [/.well-known/sociedad-ia/verify-key?challenge=HEX](https://ar-agents.ar/.well-known/sociedad-ia/verify-key?challenge=deadbeefdeadbeef), RFC-004 § 5 challenge-response key-possession proof.
+- [/.well-known/sociedad-ia/keys](https://ar-agents.ar/.well-known/sociedad-ia/keys), RFC-005 § 4 Ed25519 public-keys publication.
 
 ## Discovery (machine-readable, agent-crawlable)
 
-- [/.well-known/ai-plugin.json](https://ar-agents.ar/.well-known/ai-plugin.json) — OpenAI plugin spec.
-- [/.well-known/agents.json](https://ar-agents.ar/.well-known/agents.json) — agents.md convention. Lists endpoints, packages, governance primitives, per-agent operating instructions.
-- [/.well-known/security.txt](https://ar-agents.ar/.well-known/security.txt) — RFC 9116 disclosure policy.
+- [/.well-known/ai-plugin.json](https://ar-agents.ar/.well-known/ai-plugin.json), OpenAI plugin spec.
+- [/.well-known/agents.json](https://ar-agents.ar/.well-known/agents.json), agents.md convention. Lists endpoints, packages, governance primitives, per-agent operating instructions.
+- [/.well-known/security.txt](https://ar-agents.ar/.well-known/security.txt), RFC 9116 disclosure policy.
 
 ## Press + outreach
 
