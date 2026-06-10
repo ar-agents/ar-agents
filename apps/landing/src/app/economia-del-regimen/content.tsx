@@ -449,8 +449,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               Singapore y Dubai, a costo operativo de Wyoming. El
               mecanismo: durante la ventana de incubación de 24 meses la
               carga impositiva efectiva es deliberadamente baja para ganar
-              la decisión de jurisdicción —el momento exacto en que se
-              toma—; la recaudación se materializa cuando la base incubada
+              la decisión de jurisdicción (el momento exacto en que se
+              toma); la recaudación se materializa cuando la base incubada
               pasa al régimen full.
             </>
           }
@@ -751,7 +751,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
                 infralegal), de modo que la inversión de founders
                 extranjeros quede alcanzada por la red de tratados
                 bilaterales de inversión que Argentina ya tiene vigentes
-                —y su acceso a arbitraje internacional— sin necesidad de
+                (y su acceso a arbitraje internacional) sin necesidad de
                 negociar un tratado nuevo. Blinda contra reversibilidad
                 política, el riesgo más sensible para el inversor global,
                 con instrumentos existentes.

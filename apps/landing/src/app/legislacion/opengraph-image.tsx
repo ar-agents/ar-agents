@@ -54,7 +54,7 @@ export default async function Image() {
             marginBottom: 40,
           }}
         >
-          Cuatro RFCs publicados (responsabilidad, descubrimiento,
+          Seis RFCs publicados (responsabilidad, descubrimiento,
           reciprocidad, log operativo) con texto sugerido para el
           articulado. La ley fija v1; los RFCs evolucionan en su propio
           gobierno público. Para quien esté redactando la ley de
@@ -73,6 +73,8 @@ export default async function Image() {
           <div style={{ background: "#fafafa", padding: "10px 14px", borderRadius: 6 }}>RFC-002</div>
           <div style={{ background: "#fafafa", padding: "10px 14px", borderRadius: 6 }}>RFC-003</div>
           <div style={{ background: "#fafafa", padding: "10px 14px", borderRadius: 6 }}>RFC-004</div>
+          <div style={{ background: "#fafafa", padding: "10px 14px", borderRadius: 6 }}>RFC-005</div>
+          <div style={{ background: "#fafafa", padding: "10px 14px", borderRadius: 6 }}>RFC-006</div>
         </div>
         <div style={{ flex: 1 }} />
         <div

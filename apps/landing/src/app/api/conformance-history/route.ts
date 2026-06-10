@@ -32,6 +32,8 @@
 
 import { kv } from "@vercel/kv";
 import { NextResponse } from "next/server";
+import { safeExternalUrl } from "@/lib/ssrf";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "nodejs";
 
@@ -68,14 +70,10 @@ function urlKey(url: string): string {
   return `${KEY_PREFIX}${b64}`;
 }
 
+// Delegates to the shared SSRF guard so a bot can't make us fetch internal
+// hosts or mint a KV key per arbitrary URL.
 function isValidUrl(u: string): URL | null {
-  try {
-    const p = new URL(u);
-    if (p.protocol !== "https:" && p.protocol !== "http:") return null;
-    return p;
-  } catch {
-    return null;
-  }
+  return safeExternalUrl(u);
 }
 
 async function readHistory(url: string): Promise<Point[]> {
@@ -145,6 +143,11 @@ export async function GET(req: Request): Promise<Response> {
   const url = (searchParams.get("url") || "").trim();
   const refresh = searchParams.get("refresh") === "1";
 
+  // refresh=1 fetches the certifier (~11 sub-fetches) and writes KV. Cap it.
+  if (refresh && !rateLimit("conformance-refresh", clientIp(req), 10, 60_000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   if (!url) {
     return NextResponse.json(
       { error: "Missing required query parameter: url" },
@@ -182,6 +185,12 @@ export async function GET(req: Request): Promise<Response> {
 }
 
 export async function POST(req: Request): Promise<Response> {
+  // POST mints a KV key per URL + runs the certifier. Cap per IP so a bot
+  // can't fan out KV keys or amplify outbound fetches.
+  if (!rateLimit("conformance-post", clientIp(req), 10, 60_000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   const reqUrl = new URL(req.url);
   let url = (reqUrl.searchParams.get("url") || "").trim();
   if (!url) {

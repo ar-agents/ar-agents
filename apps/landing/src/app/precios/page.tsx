@@ -4,7 +4,7 @@ import { PreciosContent } from "./content";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Modelo open-core de ar-agents: el núcleo (33 paquetes, RFCs, wizard) es gratis; la capa de confianza hosted —El Auditor (art. 102), representación y cumplimiento (arts. 260/264)— es paga y operable por agente vía API.",
+    "Modelo open-core de ar-agents: el núcleo (33 paquetes, RFCs, wizard) es gratis; la capa de confianza hosted, con El Auditor (art. 102) y representación y cumplimiento (arts. 260/264), es paga y operable por agente vía API.",
   alternates: {
     canonical: "https://ar-agents.ar/precios",
     languages: {

@@ -39,7 +39,7 @@ const T = {
         >
           Expo EFI
         </a>
-        ) el régimen, y el 28 de mayo de 2026 el Poder Ejecutivo envió al
+        ) el régimen, y el 1 de junio de 2026 el Poder Ejecutivo envió al
         Senado el anteproyecto que reemplaza íntegramente la Ley 19.550.
         Crea la <DocCode>Sociedad Automatizada</DocCode> (art. 14): una
         empresa de cualquier tipo que desarrolla su objeto mediante agentes
@@ -63,7 +63,7 @@ const T = {
         >
           Expo EFI
         </a>
-        ) the regime, and on May 28, 2026 the Executive sent the Senate the
+        ) the regime, and on June 1, 2026 the Executive sent the Senate the
         draft bill that fully replaces Law 19.550. It creates the{" "}
         <DocCode>Sociedad Automatizada</DocCode> (art. 14): a company of any
         type that pursues its purpose through AI agents,{" "}
@@ -149,8 +149,8 @@ const T = {
     en: "If Argentina's first AI corporation needs to pay a consultancy USD 200k to integrate with the state, the experiment dies. If an ar-agents AI corporation can be deployed in a week with npm + Vercel + an ARCA cert, it scales.",
   },
   whyP2: {
-    es: "El anteproyecto ya está en el Senado; entra en vigencia a los 180 días de publicarse en el Boletín Oficial (art. 271). El timeline de infraestructura shipeable es ya. La ventana para definir el estándar técnico —cómo se opera una Sociedad Automatizada de forma confiable— es ahora, mientras el texto se debate.",
-    en: "The draft bill is already in the Senate; it takes effect 180 days after publication in the Official Gazette (art. 271). The infrastructure timeline is now. The window to define the technical standard —how a Sociedad Automatizada is operated reliably— is open today, while the text is debated.",
+    es: "El anteproyecto ya está en el Senado; entra en vigencia a los 180 días de publicarse en el Boletín Oficial (art. 271). El timeline de infraestructura shipeable es ya. La ventana para definir el estándar técnico (cómo se opera una Sociedad Automatizada de forma confiable) es ahora, mientras el texto se debate.",
+    en: "The draft bill is already in the Senate; it takes effect 180 days after publication in the Official Gazette (art. 271). The infrastructure timeline is now. The window to define the technical standard (how a Sociedad Automatizada is operated reliably) is open today, while the text is debated.",
   },
   h2demo: {
     es: "Demo: una sociedad-IA en producción",
@@ -199,6 +199,11 @@ const T = {
         >
           apps/sociedad-ia-starter
         </a>
+        . El wizard y los 33 paquetes son gratis; la capa de confianza hosted
+        (el log de auditoría firmado que pide el art. 102) es{" "}
+        <a href="/precios" style={{ color: "inherit", textDecoration: "underline" }}>
+          El Auditor
+        </a>
         .
       </>
     ),
@@ -221,6 +226,11 @@ const T = {
           style={{ color: "inherit", textDecoration: "underline" }}
         >
           apps/sociedad-ia-starter
+        </a>
+        . The wizard and the 33 packages are free; the hosted trust layer (the
+        signed audit log art. 102 calls for) is{" "}
+        <a href="/en/pricing" style={{ color: "inherit", textDecoration: "underline" }}>
+          The Auditor
         </a>
         .
       </>

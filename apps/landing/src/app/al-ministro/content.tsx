@@ -52,8 +52,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              El 28 de abril en Expo EFI anunció el régimen, y el 28 de
-              mayo de 2026 el Poder Ejecutivo envió al Senado el
+              El 28 de abril en Expo EFI anunció el régimen, y el 1 de
+              junio de 2026 el Poder Ejecutivo envió al Senado el
               anteproyecto que reemplaza la Ley 19.550. Crea la{" "}
               <em>Sociedad Automatizada</em> (art. 14): una empresa
               operada por agentes de IA, sin empleados en relación de
@@ -69,7 +69,7 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
           en={
             <>
               On April 28 at Expo EFI you announced the regime, and on
-              May 28, 2026 the Executive sent the Senate the draft bill
+              June 1, 2026 the Executive sent the Senate the draft bill
               that replaces Law 19.550. It creates the{" "}
               <em>Sociedad Automatizada</em> (art. 14): a company run by
               AI agents, with no employees, that answers with its own

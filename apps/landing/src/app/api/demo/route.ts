@@ -22,6 +22,7 @@
 
 import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
 import { z } from "zod";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "edge";
 export const maxDuration = 30;
@@ -233,6 +234,16 @@ function sanitize(messages: AnyMsg[]): UIMessage[] {
 }
 
 export async function POST(req: Request) {
+  // Every call streams real Claude tokens through the AI Gateway = real money.
+  // Without a limit a bot drains the gateway balance (and a negative balance
+  // 402s everything, including the live chat). 20/min/IP is generous for a demo.
+  if (!rateLimit("demo", clientIp(req), 20, 60_000)) {
+    return new Response(JSON.stringify({ error: "rate_limited" }), {
+      status: 429,
+      headers: { "content-type": "application/json", "retry-after": "60" },
+    });
+  }
+
   // Body-size guard before parse so a 10 MB payload never reaches JSON.parse.
   const cl = req.headers.get("content-length");
   if (cl && Number(cl) > MAX_BODY_BYTES) {

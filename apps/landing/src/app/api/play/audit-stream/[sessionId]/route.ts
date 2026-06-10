@@ -39,7 +39,7 @@ const KEEPALIVE_INTERVAL_MS = 15_000;
 const MAX_UPTIME_MS = 5 * 60 * 1000; // 5 minutes; clients reconnect.
 
 export async function GET(
-  _req: Request,
+  req: Request,
   ctx: { params: Promise<{ sessionId: string }> },
 ) {
   const { sessionId } = await ctx.params;
@@ -54,6 +54,15 @@ export async function GET(
   const startedAt = Date.now();
   let sentIds = new Set<string>();
   let lastKeepAliveAt = Date.now();
+  // Hoisted so cancel() and the abort listener can clear it. Previously the
+  // interval was scoped inside start(), so a client disconnect left it polling
+  // KV every 2s until the 5-min cap, leaking timers + KV reads at scale.
+  let interval: ReturnType<typeof setInterval> | undefined;
+  const stop = () => {
+    if (interval) clearInterval(interval);
+    interval = undefined;
+  };
+  req.signal.addEventListener("abort", stop);
 
   const stream = new ReadableStream({
     async start(controller) {
@@ -87,7 +96,7 @@ export async function GET(
       // keep-alive every KEEPALIVE_INTERVAL_MS, terminate after
       // MAX_UPTIME_MS. Clients reconnect via EventSource for longer
       // sessions.
-      const interval = setInterval(async () => {
+      interval = setInterval(async () => {
         try {
           const entries = await readAudit(sessionId);
           const newOnes: AuditEntry[] = [];
@@ -125,17 +134,18 @@ export async function GET(
                 }),
               ),
             );
-            clearInterval(interval);
+            stop();
             controller.close();
           }
-        } catch (err) {
-          controller.enqueue(
-            encoder.encode(
-              sseLine("error", {
-                message: err instanceof Error ? err.message : String(err),
-              }),
-            ),
-          );
+        } catch {
+          // The controller is likely closed (client disconnected). Stop polling
+          // instead of trying to enqueue into a dead stream every tick.
+          stop();
+          try {
+            controller.close();
+          } catch {
+            // already closed
+          }
         }
       }, TICK_INTERVAL_MS);
 
@@ -144,8 +154,9 @@ export async function GET(
       // GC sweep.)
     },
     cancel() {
-      // No-op, the interval is cleared above when we close, and the
-      // stream's natural GC handles abandonment.
+      // Client disconnected (EventSource closed / navigated away). Clear the
+      // poll loop so we stop reading KV for a stream nobody is listening to.
+      stop();
     },
   });
 

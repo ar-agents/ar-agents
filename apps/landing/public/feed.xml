@@ -2,23 +2,23 @@
 <feed xmlns="http://www.w3.org/2005/Atom">
   <title>ar-agents · /arg</title>
   <subtitle>Open-source infrastructure for Argentine sociedades-IA</subtitle>
-  <link href="https://ar-agents.vercel.app/feed.xml" rel="self" type="application/atom+xml"/>
-  <link href="https://ar-agents.vercel.app/" rel="alternate" type="text/html"/>
-  <id>https://ar-agents.vercel.app/</id>
+  <link href="https://ar-agents.ar/feed.xml" rel="self" type="application/atom+xml"/>
+  <link href="https://ar-agents.ar/" rel="alternate" type="text/html"/>
+  <id>https://ar-agents.ar/</id>
   <updated>2026-05-11T16:00:00Z</updated>
   <author>
     <name>Nazareno Clemente</name>
     <email>naza@helloastro.co</email>
-    <uri>https://ar-agents.vercel.app/</uri>
+    <uri>https://ar-agents.ar/</uri>
   </author>
-  <icon>https://ar-agents.vercel.app/icon.png</icon>
-  <logo>https://ar-agents.vercel.app/icon.png</logo>
+  <icon>https://ar-agents.ar/icon.png</icon>
+  <logo>https://ar-agents.ar/icon.png</logo>
   <rights>MIT (code) · CC-BY-4.0 (specs)</rights>
 
   <entry>
     <title>Conformance badge SVG + JSON schemas + custom OG images</title>
-    <id>https://ar-agents.vercel.app/feed/round-6</id>
-    <link href="https://ar-agents.vercel.app/api/cert-badge?url=https://ar-agents.vercel.app" rel="alternate"/>
+    <id>https://ar-agents.ar/feed/round-6</id>
+    <link href="https://ar-agents.ar/api/cert-badge?url=https://ar-agents.ar" rel="alternate"/>
     <updated>2026-05-11T15:30:00Z</updated>
     <published>2026-05-11T15:30:00Z</published>
     <summary type="html">
@@ -30,9 +30,9 @@
   </entry>
 
   <entry>
-    <title>/certifier — verify any sociedad-IA in seconds (reference impl: 100/100)</title>
-    <id>https://ar-agents.vercel.app/feed/round-5</id>
-    <link href="https://ar-agents.vercel.app/certifier" rel="alternate"/>
+    <title>/certifier, verify any sociedad-IA in seconds (reference impl: 100/100)</title>
+    <id>https://ar-agents.ar/feed/round-5</id>
+    <link href="https://ar-agents.ar/certifier" rel="alternate"/>
     <updated>2026-05-11T14:30:00Z</updated>
     <published>2026-05-11T14:30:00Z</published>
     <summary type="html">
@@ -45,35 +45,35 @@
 
   <entry>
     <title>RFC-004 conformance vectors + /legislación + /registro + OpenAPI 3.1</title>
-    <id>https://ar-agents.vercel.app/feed/round-4</id>
-    <link href="https://ar-agents.vercel.app/rfcs/004" rel="alternate"/>
+    <id>https://ar-agents.ar/feed/round-4</id>
+    <link href="https://ar-agents.ar/rfcs/004" rel="alternate"/>
     <updated>2026-05-11T13:00:00Z</updated>
     <published>2026-05-11T13:00:00Z</published>
     <summary type="html">
       Round 4: 7 frozen RFC-004 conformance vectors with hex-exact HMAC values
-      (/test-vectors/rfc-004-v1.json). /legislación — Spanish synthesis with suggested
-      cite-by-reference legislative text. /registro — public list of known implementations.
+      (/test-vectors/rfc-004-v1.json). /legislación, Spanish synthesis with suggested
+      cite-by-reference legislative text. /registro, public list of known implementations.
       OpenAPI 3.1 schema at /api/openapi. 11 new vitest tests (96 total).
     </summary>
   </entry>
 
   <entry>
     <title>RFC-004 (operational-log spec) + /auditor + cookbook recipe 25</title>
-    <id>https://ar-agents.vercel.app/feed/round-3</id>
-    <link href="https://ar-agents.vercel.app/rfcs/004" rel="alternate"/>
+    <id>https://ar-agents.ar/feed/round-3</id>
+    <link href="https://ar-agents.ar/rfcs/004" rel="alternate"/>
     <updated>2026-05-11T11:00:00Z</updated>
     <published>2026-05-11T11:00:00Z</published>
     <summary type="html">
-      Round 3: RFC-004 normative operational-log specification. /auditor — Spanish-first
-      1-page regulator-facing brief. Cookbook recipe 25 — quarterly compliance report
+      Round 3: RFC-004 normative operational-log specification. /auditor, Spanish-first
+      1-page regulator-facing brief. Cookbook recipe 25, quarterly compliance report
       generator. The documents legislation can cite + the function ops teams can run.
     </summary>
   </entry>
 
   <entry>
     <title>/data-room + /codegen + /architecture/security + RFC-003 + recipe 24</title>
-    <id>https://ar-agents.vercel.app/feed/round-2</id>
-    <link href="https://ar-agents.vercel.app/data-room" rel="alternate"/>
+    <id>https://ar-agents.ar/feed/round-2</id>
+    <link href="https://ar-agents.ar/data-room" rel="alternate"/>
     <updated>2026-05-10T22:00:00Z</updated>
     <published>2026-05-10T22:00:00Z</published>
     <summary type="html">
@@ -85,8 +85,8 @@
 
   <entry>
     <title>/architecture/audit-log + /walkthrough + /embed + CSV export + recipe 23</title>
-    <id>https://ar-agents.vercel.app/feed/round-1</id>
-    <link href="https://ar-agents.vercel.app/architecture/audit-log" rel="alternate"/>
+    <id>https://ar-agents.ar/feed/round-1</id>
+    <link href="https://ar-agents.ar/architecture/audit-log" rel="alternate"/>
     <updated>2026-05-10T20:00:00Z</updated>
     <published>2026-05-10T20:00:00Z</published>
     <summary type="html">
@@ -97,13 +97,13 @@
   </entry>
 
   <entry>
-    <title>17 npm packages live + landing site with RFC-001 + RFC-002</title>
-    <id>https://ar-agents.vercel.app/feed/launch</id>
-    <link href="https://ar-agents.vercel.app/" rel="alternate"/>
+    <title>33 npm packages live + landing site with RFC-001 + RFC-002</title>
+    <id>https://ar-agents.ar/feed/launch</id>
+    <link href="https://ar-agents.ar/" rel="alternate"/>
     <updated>2026-05-05T00:00:00Z</updated>
     <published>2026-05-05T00:00:00Z</published>
     <summary type="html">
-      Initial launch: 17 published npm packages covering MercadoPago, AFIP/ARCA identity,
+      Initial launch: 33 published npm packages covering MercadoPago, AFIP/ARCA identity,
       banking, WhatsApp, facturación, shipping, GDE/TAD, BCRA, IGJ, BoletínOficial,
       MercadoLibre, AP2, ACP, MCP. RFC-001 three-layer liability framework. RFC-002
       agent-discovery convention. Live demos at ar-agents-{mp,cuit,whatsapp,bridge}-hello.vercel.app.

@@ -31,6 +31,7 @@ export function ActivateClient() {
   const preapprovalId = params.get("preapproval_id")?.trim() || "";
   const [state, setState] = useState<State>({ phase: "loading" });
   const [copied, setCopied] = useState(false);
+  const [retryNonce, setRetryNonce] = useState(0);
 
   useEffect(() => {
     if (!preapprovalId) {
@@ -38,7 +39,13 @@ export function ActivateClient() {
       return;
     }
     let cancelled = false;
-    (async () => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    // MP can lag flipping the preapproval to "authorized" after the redirect.
+    // Auto-retry with backoff so a paid customer isn't dead-ended on "pending";
+    // the activate endpoint is idempotent, so retries are safe.
+    const DELAYS = [3000, 5000, 8000, 13000, 20000];
+
+    const attempt = async (n: number) => {
       try {
         const r = await fetch("/api/auditor/activate", {
           method: "POST",
@@ -59,17 +66,23 @@ export function ActivateClient() {
         }
         if (j?.error === "not_authorized_yet") {
           setState({ phase: "pending", note: j.note ?? "" });
+          if (n < DELAYS.length) {
+            timer = setTimeout(() => void attempt(n + 1), DELAYS[n]);
+          }
           return;
         }
         setState({ phase: "error", note: j?.note || j?.message || j?.error || "unknown" });
       } catch {
         if (!cancelled) setState({ phase: "error", note: "network" });
       }
-    })();
+    };
+
+    void attempt(0);
     return () => {
       cancelled = true;
+      if (timer) clearTimeout(timer);
     };
-  }, [preapprovalId]);
+  }, [preapprovalId, retryNonce]);
 
   const box: CSSProperties = {
     fontFamily: FONT_SANS,
@@ -92,10 +105,27 @@ export function ActivateClient() {
   }
   if (state.phase === "pending") {
     return (
-      <p style={box}>
-        Tu suscripción todavía figura <strong>pendiente</strong> en Mercado Pago. {state.note}{" "}
-        Recargá esta página después de autorizar.
-      </p>
+      <div style={box}>
+        <p style={{ margin: "0 0 12px" }}>
+          Tu suscripción todavía figura <strong>pendiente</strong> en Mercado Pago. {state.note}{" "}
+          Estamos reintentando solos cada pocos segundos; en cuanto la autorices, tu API key aparece acá.
+        </p>
+        <button
+          onClick={() => setRetryNonce((n) => n + 1)}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 8,
+            border: "1px solid var(--accent)",
+            background: "var(--accent)",
+            color: "var(--bg)",
+            fontWeight: 600,
+            fontSize: 14,
+            cursor: "pointer",
+          }}
+        >
+          Reintentar ahora
+        </button>
+      </div>
     );
   }
   if (state.phase === "error") {
@@ -118,7 +148,7 @@ export function ActivateClient() {
   return (
     <div style={box}>
       <p style={{ margin: "0 0 14px" }}>
-        ✓ <strong>El Auditor está activo.</strong> Esta es tu API key — guardala (recargar esta
+        ✓ <strong>El Auditor está activo.</strong> Esta es tu API key, guardala (recargar esta
         página con el mismo preapproval_id la vuelve a mostrar, pero tratala como un secreto):
       </p>
       <div
@@ -185,7 +215,7 @@ export function ActivateClient() {
         <a href={state.verifyUrl} style={{ color: "var(--accent)" }}>
           verificación criptográfica
         </a>
-        . Cada entrada queda firmada HMAC-SHA256 + Ed25519 — la prueba del procedimiento de
+        . Cada entrada queda firmada HMAC-SHA256 + Ed25519, la prueba del procedimiento de
         decisión adecuado (arts. 101/102 del anteproyecto).
       </p>
     </div>

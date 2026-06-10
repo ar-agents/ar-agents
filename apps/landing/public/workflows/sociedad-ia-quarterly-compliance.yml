@@ -1,4 +1,4 @@
-# Quarterly compliance report — generates a self-disclosure JSON for
+# Quarterly compliance report, generates a self-disclosure JSON for
 # AFIP/ARCA, AAIP, or any regulator request, on the 1st of each quarter.
 #
 # Drop this file into your sociedad-IA repo at:
@@ -17,14 +17,14 @@
 #      tamper-evidence + posts a digest to a Slack webhook.
 #
 # Secrets you need set on the repo:
-#   AUDIT_HMAC_SECRET            — same secret your prod uses (for report sig)
-#   SLACK_WEBHOOK_URL            — optional, for digest post
-#   AR_AGENTS_BASE_URL           — optional, defaults to ar-agents.ar
-#   SOCIEDAD_DENOMINACION        — required, e.g. "Mi Sociedad-IA SAS"
-#   SOCIEDAD_OPERATOR_CUIT       — required, e.g. "20-12345678-9"
+#   AUDIT_HMAC_SECRET           : same secret your prod uses (for report sig)
+#   SLACK_WEBHOOK_URL           : optional, for digest post
+#   AR_AGENTS_BASE_URL          : optional, defaults to ar-agents.ar
+#   SOCIEDAD_DENOMINACION       : required, e.g. "Mi Sociedad-IA SAS"
+#   SOCIEDAD_OPERATOR_CUIT      : required, e.g. "20-12345678-9"
 #
 # Variables you need set on the repo:
-#   QUARTER_SESSION_IDS          — newline-separated list of sessionIds
+#   QUARTER_SESSION_IDS         : newline-separated list of sessionIds
 
 name: sociedad-ia-quarterly-compliance
 
@@ -113,7 +113,7 @@ jobs:
 
           cat config.json
 
-      - name: Run recipe 25 — generate report
+      - name: Run recipe 25, generate report
         env:
           AUDIT_HMAC_SECRET: ${{ secrets.AUDIT_HMAC_SECRET }}
         run: |

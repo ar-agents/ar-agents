@@ -4,7 +4,7 @@ import { SociedadesContent } from "./content";
 export const metadata: Metadata = {
   title: "Sociedades de IA",
   description:
-    "Implementación de referencia de sociedades de IA en Argentina. Cómo una empresa 100% IA se incorpora, factura, paga monotributo, atiende clientes, usando ar-agents.",
+    "Implementación de referencia de sociedades de IA en Argentina. Cómo una empresa operada por agentes de IA se incorpora, factura, paga monotributo, atiende clientes, usando ar-agents.",
   alternates: {
     canonical: "https://ar-agents.ar/sociedades-ia",
     languages: {

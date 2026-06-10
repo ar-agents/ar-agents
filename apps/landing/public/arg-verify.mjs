@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 /**
- * arg-verify — independent conformance + verification tool for the /arg
+ * arg-verify - independent conformance + verification tool for the /arg
  * operational-log standard (RFC-004 HMAC, RFC-005 Ed25519).
  *
  * ZERO dependencies. Node built-ins only. Does not import /arg or Vultur
@@ -19,7 +19,7 @@
  * The point of (1): the cited standard is only worth citing if anyone can
  * independently reproduce its conformance vectors without trusting us.
  * The point of (3): the flagship implementation (Vultur) emits a different
- * artifact than the RFC entry shape — see CONFORMANCE.md. This tool checks
+ * artifact than the RFC entry shape - see CONFORMANCE.md. This tool checks
  * both so the divergence is measurable, not hand-waved.
  *
  * Usage:
@@ -48,11 +48,11 @@ const HERE = dirname(fileURLToPath(import.meta.url));
 // Keys sorted lexicographically at every level; arrays positional; the
 // `hmac` and `signature` fields stripped by the caller before signing.
 // This is a clean-room reimplementation written from the RFC text, NOT a
-// copy of apps/landing/src/lib/audit.ts — that is the point of an
+// copy of apps/landing/src/lib/audit.ts - that is the point of an
 // independent verifier.
 // RFC-006 §2 domain (normative): JSON data model ONLY. Out-of-domain input
 // (undefined / function / symbol / BigInt / non-finite number / array hole)
-// is REJECTED, not silently serialized — because the canonical string is the
+// is REJECTED, not silently serialized - because the canonical string is the
 // signed material, so any value two conformant implementations could
 // serialize differently is a cross-implementation signature-forgery hole
 // (e.g. JSON.stringify drops an `undefined` member; a naïve serializer emits
@@ -135,7 +135,7 @@ function defaultVectorsDir() {
 }
 
 function runRfc004(dir) {
-  console.log(`\nRFC-004 (HMAC-SHA256 operational log) — ${DIM}rfc-004-v1.json${RST}`);
+  console.log(`\nRFC-004 (HMAC-SHA256 operational log) - ${DIM}rfc-004-v1.json${RST}`);
   const doc = JSON.parse(readFileSync(join(dir, "rfc-004-v1.json"), "utf8"));
   const secret = doc.secret;
   const hmacById = new Map();
@@ -170,7 +170,7 @@ function runRfc004(dir) {
 }
 
 function runRfc005(dir) {
-  console.log(`\nRFC-005 (Ed25519 asymmetric upgrade) — ${DIM}rfc-005-v1.json${RST}`);
+  console.log(`\nRFC-005 (Ed25519 asymmetric upgrade) - ${DIM}rfc-005-v1.json${RST}`);
   const doc = JSON.parse(readFileSync(join(dir, "rfc-005-v1.json"), "utf8"));
   const kp = doc.keypair;
   const priv = createPrivateKey({
@@ -219,7 +219,7 @@ const RFC004_GOV = new Set([
 // is `createdAt`; the canonical hash material's `ts` is `createdAt` rendered
 // as ISO-8601 UTC. Native links already carry `ts`; `ts ?? createdAt→ISO`
 // makes the verifier accept BOTH the native shape and the real producer
-// export shape with one code path (non-breaking — `ts` wins when present).
+// export shape with one code path (non-breaking - `ts` wins when present).
 function linkTs(L) {
   if (L.ts != null) return L.ts;
   if (L.createdAt != null) return new Date(L.createdAt).toISOString();
@@ -241,11 +241,11 @@ function chainLinkHash(secret, L) {
   );
 }
 
-// RFC-006 §4.2 — per-record (recordsOnly) verification. For a filtered,
+// RFC-006 §4.2 - per-record (recordsOnly) verification. For a filtered,
 // NON-contiguous slice (e.g. one society's events pulled out of the global
 // chain, as the Ley-25.326 export emits) contiguity/linkage cannot hold;
 // assert only that each stored hash recomputes. Proves each record is
-// unmutated, NOT set-completeness — callers MUST label results recordsOnly.
+// unmutated, NOT set-completeness - callers MUST label results recordsOnly.
 function verifyRecordsOnly(events, secret) {
   for (const e of events) {
     if (!eqConstTime(chainLinkHash(secret, e), e.hash))
@@ -340,7 +340,7 @@ function verifyRfc004Entry(entry, secret) {
 
 function runRfc006(dir) {
   console.log(
-    `\nRFC-006 (hash-chained ledger + anchoring + RFC-004 projection) — ${DIM}rfc-006-v1.json${RST}`,
+    `\nRFC-006 (hash-chained ledger + anchoring + RFC-004 projection) - ${DIM}rfc-006-v1.json${RST}`,
   );
   const doc = JSON.parse(readFileSync(join(dir, "rfc-006-v1.json"), "utf8"));
   const aSec = doc.secrets.audit;
@@ -441,14 +441,14 @@ function runRfc006(dir) {
     tRo.brokenAtSeq === doc.exportBundleTampered.expect.recordsOnly.brokenAtSeq
       ? pass(
           "exportTampered·detected",
-          `attestation still valid but recordsOnly flags seq ${tRo.brokenAtSeq} — proves why §8 binding is normative`,
+          `attestation still valid but recordsOnly flags seq ${tRo.brokenAtSeq} - proves why §8 binding is normative`,
         )
       : fail("exportTampered·detected", JSON.stringify({ tAttOk, tRo }));
   }
 }
 
 // RFC-006 §2 canonical-JSON self-check. Asserts (a) `canonical()` reproduces
-// the SPEC-correct lexicographic form on pinned vectors — including the
+// the SPEC-correct lexicographic form on pinned vectors - including the
 // integer-like-key case where the producer model `JSON.stringify(sort(v))`
 // is NON-conformant (ECMAScript reorders array-index keys numeric-first; the
 // spec mandates lexicographic). `canonical()` is the conformant reference;
@@ -456,8 +456,8 @@ function runRfc006(dir) {
 // REJECTS every out-of-domain value rather than emit a forgeable string.
 // CI-enforced via the self-defending `arg-verify` workflow.
 function runDomain() {
-  console.log(`\nRFC-006 §2 (canonical-JSON) — ${DIM}clean-room self-check${RST}`);
-  // [value, expected canonical] — pinned to the normative lexicographic form,
+  console.log(`\nRFC-006 §2 (canonical-JSON) - ${DIM}clean-room self-check${RST}`);
+  // [value, expected canonical] - pinned to the normative lexicographic form,
   // independent of any runtime's object-key enumeration.
   const pinned = [
     [{ z: 1, a: 2, m: { y: [3, 2, 1], x: "ü" } }, '{"a":2,"m":{"x":"ü","y":[3,2,1]},"z":1}'],
@@ -494,7 +494,7 @@ function runDomain() {
 
   // Strings as-is, NO Unicode normalization (RFC-006 §2): NFC e-acute
   // (U+00E9) vs NFD (e + U+0301) MUST canonicalize to their own distinct
-  // bytes — verbatim JSON.stringify, no normalization applied.
+  // bytes - verbatim JSON.stringify, no normalization applied.
   const nfc = String.fromCodePoint(0xe9);
   const nfd = "e" + String.fromCodePoint(0x301);
   canonical(nfc) === JSON.stringify(nfc) &&
@@ -547,7 +547,7 @@ function cmdVectors(args) {
   }
   console.log(
     failures === 0
-      ? `\n${GREEN}ALL VECTORS PASS${RST} — the published /arg standard is independently reproducible.\n`
+      ? `\n${GREEN}ALL VECTORS PASS${RST} - the published ar-agents standard is independently reproducible.\n`
       : `\n${RED}${failures} CHECK(S) FAILED${RST}\n`,
   );
   process.exit(failures === 0 ? 0 : 1);
@@ -574,7 +574,7 @@ function cmdEntry(args) {
     const got = hmacSha256Hex(material, secret);
     eqConstTime(want, got)
       ? pass("hmac", "RFC-004 §3 HMAC-SHA256 over canonical form")
-      : fail("hmac", "HMAC does not match — entry altered or wrong secret");
+      : fail("hmac", "HMAC does not match - entry altered or wrong secret");
   } else if (entry.hmac && !secret) {
     console.log(`  ${DIM}skip  hmac (no --secret / AUDIT_HMAC_SECRET given)${RST}`);
   }
@@ -646,15 +646,15 @@ function cmdAttestation(args) {
     Buffer.from(att.sig, "base64"),
   );
   if (!ok) {
-    console.error(`${RED}✗ INVALID${RST} — attestation was altered or forged`);
+    console.error(`${RED}✗ INVALID${RST} - attestation was altered or forged`);
     process.exit(1);
   }
   const s = att.body.society ?? {};
   const c = att.body.chain ?? {};
   console.log(`${GREEN}✓ VALID${RST} vultur.compliance.attestation`);
-  console.log(`  society:    ${s.denominacion ?? "—"} (${s.slug ?? "—"})`);
-  console.log(`  cuit:       ${s.cuit ?? "—"}`);
-  console.log(`  issuedAt:   ${att.body.issuedAt ?? "—"}`);
+  console.log(`  society:    ${s.denominacion ?? "-"} (${s.slug ?? "-"})`);
+  console.log(`  cuit:       ${s.cuit ?? "-"}`);
+  console.log(`  issuedAt:   ${att.body.issuedAt ?? "-"}`);
   console.log(`  chainHead:  seq ${c.globalHeadSeq ?? "?"} · ${c.globalHeadHash ?? "?"}`);
   console.log(`  ledgerOK:   ${c.verification?.valid ?? "?"}`);
   console.log(
@@ -675,7 +675,7 @@ function cmdAttestation(args) {
 //   2. Bind attestation ↔ surrounding bundle (a valid attestation around
 //      a swapped bundle MUST NOT pass).
 //   3. recordsOnly-verify the auditEvents slice (§4.2) with the
-//      createdAt→ts mapping — needs --secret (HMAC is operator-keyed;
+//      createdAt→ts mapping - needs --secret (HMAC is operator-keyed;
 //      honest skip + clear notice when absent).
 function cmdBundle(args) {
   const file = args[0];
@@ -718,7 +718,7 @@ function cmdBundle(args) {
   );
   attOk
     ? pass("attestation·ed25519", "signature valid over canonical(body)")
-    : fail("attestation·ed25519", "signature did NOT verify — altered or forged");
+    : fail("attestation·ed25519", "signature did NOT verify - altered or forged");
 
   // 2 · Bind attestation ↔ bundle (defeats valid-attestation-around-swapped-bundle).
   const c = att.body.chain ?? {};
@@ -735,13 +735,13 @@ function cmdBundle(args) {
   const aS = att.body.society ?? {};
   const bS = b.society ?? {};
   aS.slug === bS.slug && (aS.cuit == null || aS.cuit === bS.cuit)
-    ? pass("bundle·bind·identity", `${aS.slug} / ${aS.cuit ?? "—"}`)
+    ? pass("bundle·bind·identity", `${aS.slug} / ${aS.cuit ?? "-"}`)
     : fail("bundle·bind·identity", "attestation society != bundle society");
   canonical(c.verification ?? null) === canonical(b.ledgerVerification ?? null)
     ? pass("bundle·bind·verification", "attestation echoes bundle ledgerVerification")
     : fail("bundle·bind·verification", "attestation.verification != bundle.ledgerVerification");
 
-  // 3 · recordsOnly slice (§4.2) — needs the operator HMAC secret.
+  // 3 · recordsOnly slice (§4.2) - needs the operator HMAC secret.
   if (events && secret) {
     const r = verifyRecordsOnly(events, secret);
     r.valid
@@ -758,11 +758,11 @@ function cmdBundle(args) {
 
   if (failures === 0) {
     console.log(
-      `\n${GREEN}✓ BUNDLE VERIFIED${RST} — ${aS.denominacion ?? "—"} (${aS.slug ?? "—"}) · head seq ${c.globalHeadSeq ?? "?"}`,
+      `\n${GREEN}✓ BUNDLE VERIFIED${RST} - ${aS.denominacion ?? "-"} (${aS.slug ?? "-"}) · head seq ${c.globalHeadSeq ?? "?"}`,
     );
     process.exit(0);
   }
-  console.log(`\n${RED}✗ BUNDLE FAILED${RST} — ${failures} check(s) failed`);
+  console.log(`\n${RED}✗ BUNDLE FAILED${RST} - ${failures} check(s) failed`);
   process.exit(1);
 }
 
@@ -787,10 +787,10 @@ function cmdChain(args) {
   }
   const r = verifyChain(links, secret);
   if (r.valid) {
-    console.log(`${GREEN}✓ VALID${RST} RFC-006 chain — ${r.count} link(s), contiguous + linked + authentic`);
+    console.log(`${GREEN}✓ VALID${RST} RFC-006 chain - ${r.count} link(s), contiguous + linked + authentic`);
     process.exit(0);
   }
-  console.error(`${RED}✗ INVALID${RST} RFC-006 chain — broke at seq ${r.brokenAtSeq}: ${r.reason}`);
+  console.error(`${RED}✗ INVALID${RST} RFC-006 chain - broke at seq ${r.brokenAtSeq}: ${r.reason}`);
   process.exit(1);
 }
 
@@ -842,7 +842,7 @@ function cmdProject(args) {
 // ── `file` (detached Ed25519 signature over an arbitrary file) ──────────
 // Verifies a sidecar `<file>.sig.json` manifest against the file's bytes.
 // Used for published artifacts that live outside the RFC-004/005/006 entry
-// shape — e.g. a PDF of the implementation reference, a spec snapshot, an
+// shape - e.g. a PDF of the implementation reference, a spec snapshot, an
 // announcement document. The manifest schema is intentionally tiny so a
 // third party can reproduce it with `openssl` if they want to:
 //   {
@@ -924,19 +924,19 @@ function cmdFile(args) {
     Buffer.from(manifest.signature, "base64url"),
   );
   ok
-    ? pass("file·ed25519", `signature valid · keyId ${manifest.keyId ?? "—"}`)
-    : fail("file·ed25519", "Ed25519 signature did NOT verify — file or manifest tampered");
+    ? pass("file·ed25519", `signature valid · keyId ${manifest.keyId ?? "-"}`)
+    : fail("file·ed25519", "Ed25519 signature did NOT verify - file or manifest tampered");
 
   if (failures === 0) {
     const who = manifest.signedBy
-      ? `${manifest.signedBy.name ?? "—"}${manifest.signedBy.email ? ` <${manifest.signedBy.email}>` : ""}`
-      : "—";
+      ? `${manifest.signedBy.name ?? "-"}${manifest.signedBy.email ? ` <${manifest.signedBy.email}>` : ""}`
+      : "-";
     console.log(
-      `\n${GREEN}✓ FILE VERIFIED${RST} — ${manifest.file ?? file} · signed by ${who} · ${manifest.signedAt ?? "—"}`,
+      `\n${GREEN}✓ FILE VERIFIED${RST} - ${manifest.file ?? file} · signed by ${who} · ${manifest.signedAt ?? "-"}`,
     );
     process.exit(0);
   }
-  console.log(`\n${RED}✗ FILE FAILED${RST} — ${failures} check(s) failed`);
+  console.log(`\n${RED}✗ FILE FAILED${RST} - ${failures} check(s) failed`);
   process.exit(1);
 }
 
@@ -967,7 +967,7 @@ switch (cmd) {
   default:
     console.log(
       [
-        "arg-verify — independent verifier for the /arg operational-log standard",
+        "arg-verify - independent verifier for the ar-agents operational-log standard",
         "",
         "  node arg-verify.mjs vectors [--vectors-dir DIR]      RFC-004/005/006 vectors",
         "  node arg-verify.mjs entry <entry.json> [--secret S] [--keys keys.json]",

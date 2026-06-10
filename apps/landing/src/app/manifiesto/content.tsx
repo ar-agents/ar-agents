@@ -52,8 +52,9 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               que Argentina sea el primer país con un régimen jurídico
               para{" "}
               <DocCode>sociedades de inteligencia artificial</DocCode>:
-              empresas sin humanos, solo código que decide, opera y paga
-              impuestos. Su proyección:{" "}
+              empresas operadas por agentes de IA, sin empleados, donde el
+              código decide, opera y paga impuestos, con supervisión humana
+              mínima. Su proyección:{" "}
               <em>
                 50 millones de habitantes y 500 millones de agentes IA
                 incorporados acá
@@ -66,9 +67,9 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               In April 2026, Argentina's Minister of Deregulation{" "}
               <strong>Federico Sturzenegger</strong> announced his plan
               to make Argentina the first country with a legal regime for{" "}
-              <DocCode>AI corporations</DocCode>: companies with no
-              humans, only code that decides, operates, and pays taxes.
-              His projection:{" "}
+              <DocCode>AI corporations</DocCode>: companies operated by AI
+              agents, with no employees, where code decides, operates, and
+              pays taxes, under minimal human supervision. His projection:{" "}
               <em>
                 50 million inhabitants and 500 million AI agents
                 incorporated here

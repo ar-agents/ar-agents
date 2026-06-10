@@ -19,7 +19,7 @@ import { JsonLd } from "../../json-ld";
 export const metadata: Metadata = {
   title: "/en/legislation · technical synthesis for AI-corporation regimes · ar-agents",
   description:
-    "English-language synthesis of the four RFCs (liability, discovery, reciprocity, operational log) backing Argentina's proposed sociedad-IA regime. Suggested cite-by-reference legislative text. For international press + comparative-law scholars + regulators in adjacent jurisdictions.",
+    "English-language synthesis of the six RFCs (liability, discovery, reciprocity, operational log) backing Argentina's proposed sociedad-IA regime. Suggested cite-by-reference legislative text. For international press + comparative-law scholars + regulators in adjacent jurisdictions.",
   alternates: {
     canonical: "https://ar-agents.ar/en/legislation",
     languages: {
@@ -30,7 +30,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "/en/legislation · technical synthesis for AI-corporation regimes",
     description:
-      "English-language synthesis of the four RFCs backing Argentina's proposed sociedad-IA regime.",
+      "English-language synthesis of the six RFCs backing Argentina's proposed sociedad-IA regime.",
     url: "https://ar-agents.ar/en/legislation",
     type: "article",
     locale: "en_US",
@@ -98,8 +98,8 @@ export default function EnLegislationPage() {
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.55 }}>
             Argentina announced a sociedad-IA regime on 28 April 2026.
-            This page synthesizes four open-source technical documents
-            (RFC-001 through RFC-004) published as <em>infrastructure</em>
+            This page synthesizes six open-source technical documents
+            (RFC-001 through RFC-006) published as <em>infrastructure</em>
             the legislation can adopt by reference instead of rewriting
             from scratch. Each section maps an RFC to a suggested
             legislative paragraph + flags what the RFCs do NOT solve.
@@ -367,7 +367,7 @@ export default function EnLegislationPage() {
         <Section title="9 · Three-line executive summary">
           <ul style={ulStyle}>
             <li style={liStyle}>
-              <strong>Line 1.</strong> Four RFCs published, open,
+              <strong>Line 1.</strong> Six RFCs published, open,
               versioned, with automated tests proving conformance.
               Ready to cite.
             </li>
