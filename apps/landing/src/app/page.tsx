@@ -582,7 +582,7 @@ export default function Home() {
               fontWeight: 600,
             }}
           >
-            {lang === "es" ? "Paquete insignia" : "Flagship package"}
+            {lang === "es" ? "Núcleo open-source · paquete insignia" : "Open-source core · flagship package"}
           </p>
           <h2
             style={{
@@ -605,8 +605,21 @@ export default function Home() {
             }}
           >
             {lang === "es"
-              ? "89 tools tipadas para Vercel AI SDK 6. Idempotencia determinística, HITL programático en operaciones irreversibles, verificación de webhook HMAC. La pieza más madura del stack, usada en demos productivos y referenciada por el resto del toolkit."
-              : "89 typed tools for Vercel AI SDK 6. Deterministic idempotency, programmatic HITL on irreversible operations, HMAC webhook verification. The most mature piece of the stack, used in productive demos and referenced by the rest of the toolkit."}
+              ? "89 tools tipadas para Vercel AI SDK 6. Idempotencia determinística, HITL programático en operaciones irreversibles, verificación de webhook HMAC. La pieza más madura del núcleo open-source (33 paquetes), referenciada por el resto del toolkit. "
+              : "89 typed tools for Vercel AI SDK 6. Deterministic idempotency, programmatic HITL on irreversible operations, HMAC webhook verification. The deepest piece of the open-source core (33 packages), referenced by the rest of the toolkit. "}
+            {lang === "es" ? (
+              <>
+                El núcleo es gratis; la capa de confianza paga es{" "}
+                <a href="/precios" style={{ color: "var(--accent)", textDecoration: "underline" }}>El Auditor</a>, y la dogfoodeamos:{" "}
+                <a href="/caso-ar-agents" style={{ color: "var(--accent)", textDecoration: "underline" }}>nos constituimos a nosotros mismos</a> como Sociedad Automatizada.
+              </>
+            ) : (
+              <>
+                The core is free; the paid trust layer is{" "}
+                <a href="/en/pricing" style={{ color: "var(--accent)", textDecoration: "underline" }}>The Auditor</a>, and we dogfood it:{" "}
+                <a href="/en/ar-agents-case" style={{ color: "var(--accent)", textDecoration: "underline" }}>we incorporated ourselves</a> as a Sociedad Automatizada.
+              </>
+            )}
           </p>
         </section>
 
