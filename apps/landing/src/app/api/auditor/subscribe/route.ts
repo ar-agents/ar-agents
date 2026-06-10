@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { jsonCors, preflight } from "@/lib/cors";
 import { z } from "zod";
 import { appendAudit, backend as auditBackend, isSessionIdValid } from "@/lib/audit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
@@ -40,7 +40,14 @@ const Body = z.object({
   plan: z.enum(["mensual", "anual"]).default("mensual"),
   sessionId: z.string().optional(),
   entityCuit: z.string().max(13).optional(),
-  externalReference: z.string().max(120).optional(),
+  // Must satisfy isSessionIdValid: it becomes the MP external_reference, which
+  // activate later reads back AS the sessionId. A non-conforming value would
+  // make activate fall to a fresh UUID, orphaning this subscription's signed
+  // audit entry from the customer's activated session.
+  externalReference: z
+    .string()
+    .regex(/^[A-Za-z0-9_-]{8,64}$/)
+    .optional(),
 });
 
 function arsAmount(plan: PlanId): number {
@@ -64,19 +71,19 @@ function auditUrls(sessionId: string) {
 export async function POST(req: Request) {
   // Abuse damping: each accepted call creates an MP preapproval + KV writes.
   if (!rateLimit("auditor-subscribe", clientIp(req), 5, 60_000)) {
-    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+    return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }
 
   let raw: unknown;
   try {
     raw = await req.json();
   } catch {
-    return NextResponse.json({ error: "bad_json" }, { status: 400 });
+    return jsonCors({ error: "bad_json" }, { status: 400 });
   }
 
   const parsed = Body.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json(
+    return jsonCors(
       { error: "invalid_input", details: parsed.error.format() },
       { status: 400 },
     );
@@ -99,7 +106,7 @@ export async function POST(req: Request) {
       input: { plan, payerEmail: input.payerEmail, entityCuit: input.entityCuit },
       output: { earlyAccess: true, priceUsd: PLANS[plan].usd },
     });
-    return NextResponse.json(
+    return jsonCors(
       {
         ok: true,
         earlyAccess: true,
@@ -154,7 +161,7 @@ export async function POST(req: Request) {
         output: { mpStatus: res.status, mpMessage: message },
         errored: true,
       });
-      return NextResponse.json(
+      return jsonCors(
         { ok: false, error: "mp_error", status: res.status, message },
         { status: 502, headers: { "x-play-session": sessionId } },
       );
@@ -173,7 +180,7 @@ export async function POST(req: Request) {
       output: { error: message },
       errored: true,
     });
-    return NextResponse.json(
+    return jsonCors(
       { ok: false, error: "mp_network_error", message },
       { status: 502, headers: { "x-play-session": sessionId } },
     );
@@ -193,7 +200,7 @@ export async function POST(req: Request) {
     output: { preapprovalId: mp.id, status: mp.status },
   });
 
-  return NextResponse.json(
+  return jsonCors(
     {
       ok: true,
       subscription: {
@@ -226,7 +233,7 @@ export async function POST(req: Request) {
 // subscribe El Auditor (agents.md ergonomics).
 export async function GET() {
   const mpReady = Boolean(process.env.MERCADOPAGO_ACCESS_TOKEN?.trim());
-  return NextResponse.json(
+  return jsonCors(
     {
       endpoint: "/api/auditor/subscribe",
       method: "POST",
@@ -260,12 +267,5 @@ export async function GET() {
 }
 
 export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      Allow: "POST, GET, OPTIONS",
-      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+  return preflight();
 }

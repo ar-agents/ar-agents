@@ -21,6 +21,10 @@ import { MANIFESTS as RAW_MANIFESTS } from "./manifests.generated";
 type Tool = {
   name: string;
   description?: string;
+  // The generated manifests use `input`; keep `inputSchema` as a fallback for
+  // any hand-written manifest. Reading only `inputSchema` (the old code) made
+  // every OpenAPI requestBody schema come out empty.
+  input?: unknown;
   inputSchema?: unknown;
 };
 
@@ -172,7 +176,7 @@ function buildOpenApiDoc() {
           "x-package-version": m.version,
           "x-requires-confirmation": HITL_TOOLS.has(t.name),
           requestBody: {
-            content: { "application/json": { schema: t.inputSchema ?? {} } },
+            content: { "application/json": { schema: t.input ?? t.inputSchema ?? {} } },
           },
           responses: {
             "200": {

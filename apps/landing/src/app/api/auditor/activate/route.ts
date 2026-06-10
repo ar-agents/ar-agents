@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { jsonCors, preflight } from "@/lib/cors";
 import { z } from "zod";
 import { kv } from "@vercel/kv";
 import {
@@ -89,18 +89,18 @@ function logUsage(apiKeyHint: string) {
 
 export async function POST(req: Request) {
   if (!rateLimit("auditor-activate", clientIp(req), 10, 60_000)) {
-    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+    return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }
 
   let raw: unknown;
   try {
     raw = await req.json();
   } catch {
-    return NextResponse.json({ ok: false, error: "bad_json" }, { status: 400 });
+    return jsonCors({ ok: false, error: "bad_json" }, { status: 400 });
   }
   const parsed = Body.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json(
+    return jsonCors(
       { ok: false, error: "invalid_input", details: parsed.error.format() },
       { status: 400 },
     );
@@ -109,18 +109,23 @@ export async function POST(req: Request) {
 
   const mpToken = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
   if (!mpToken) {
-    return NextResponse.json(
+    return jsonCors(
       { ok: false, error: "not_configured", note: "MP no está configurado en este deploy." },
       { status: 503 },
     );
   }
 
-  // Idempotent re-activation: same preapproval → same key.
-  const existing = await kv.get<{ apiKey: string; sessionId: string }>(
+  // Idempotent re-activation: same preapproval → same key. Validate the stored
+  // shape (a poisoned/legacy value must not slip through and re-issue a key).
+  const existing = await kv.get<{ apiKey?: unknown; sessionId?: unknown }>(
     `${SUB_KEY_PREFIX}${preapprovalId}`,
   );
-  if (existing?.apiKey) {
-    return NextResponse.json({
+  if (
+    existing &&
+    typeof existing.apiKey === "string" &&
+    typeof existing.sessionId === "string"
+  ) {
+    return jsonCors({
       ok: true,
       alreadyActive: true,
       apiKey: existing.apiKey,
@@ -143,7 +148,7 @@ export async function POST(req: Request) {
     });
     const json = (await res.json().catch(() => ({}))) as Record<string, unknown>;
     if (!res.ok) {
-      return NextResponse.json(
+      return jsonCors(
         {
           ok: false,
           error: "mp_error",
@@ -155,14 +160,14 @@ export async function POST(req: Request) {
     }
     mp = json as typeof mp;
   } catch (e) {
-    return NextResponse.json(
+    return jsonCors(
       { ok: false, error: "mp_network_error", message: e instanceof Error ? e.message : "" },
       { status: 502 },
     );
   }
 
   if (mp.status !== "authorized") {
-    return NextResponse.json(
+    return jsonCors(
       {
         ok: false,
         error: "not_authorized_yet",
@@ -181,43 +186,74 @@ export async function POST(req: Request) {
       ? mp.external_reference
       : crypto.randomUUID();
   const apiKey = newApiKey();
+
+  // Atomic idempotency claim: only the FIRST concurrent activation sets the
+  // mapping (nx). The /auditor/gracias page auto-fires on load and agents
+  // retry on timeout, so concurrent calls for one preapproval are routine —
+  // without this, each would mint a distinct valid key for one paid sub.
+  const claimed = await kv.set(
+    `${SUB_KEY_PREFIX}${preapprovalId}`,
+    { apiKey, sessionId },
+    { nx: true },
+  );
+
+  let effectiveKey = apiKey;
+  let effectiveSession = sessionId;
+  if (!claimed) {
+    // Lost the race (or a prior activation already claimed). Adopt the winner's
+    // key + session so we return the ONE key that exists, never a second.
+    const winner = await kv.get<{ apiKey?: unknown; sessionId?: unknown }>(
+      `${SUB_KEY_PREFIX}${preapprovalId}`,
+    );
+    if (winner && typeof winner.apiKey === "string" && typeof winner.sessionId === "string") {
+      effectiveKey = winner.apiKey;
+      effectiveSession = winner.sessionId;
+    }
+    // else (pathological: claim failed yet nothing readable) → keep our own
+    // values and write them below; a working key beats a stuck request.
+  }
+
+  // Ensure the entitlement exists for the effective key. Creates it on a fresh
+  // activation; REPAIRS it if a prior activation crashed after claiming the
+  // mapping but before writing the entitlement (which would otherwise leave a
+  // dead key). Idempotent — concurrent losers write identical content.
   const entitlement: Entitlement = {
     preapprovalId,
     payerEmail: mp.payer_email ?? null,
     plan: mp.reason ?? null,
-    sessionId,
+    sessionId: effectiveSession,
     createdAt: new Date().toISOString(),
     status: "active",
   };
-  await kv.set(`${KEY_KEY_PREFIX}${apiKey}`, entitlement);
-  await kv.set(`${SUB_KEY_PREFIX}${preapprovalId}`, { apiKey, sessionId });
-  await pinSession(sessionId);
+  await kv.set(`${KEY_KEY_PREFIX}${effectiveKey}`, entitlement);
+  await pinSession(effectiveSession);
 
   // Forensic record of the activation itself — masked key, never the secret.
   const entry = await appendAudit(
-    sessionId,
+    effectiveSession,
     {
       tool: "auditor_activate",
       governance: "audit-logged",
       input: { preapprovalId },
-      output: { plan: entitlement.plan, apiKey: maskKey(apiKey), durable: true },
+      output: { plan: entitlement.plan, apiKey: maskKey(effectiveKey), durable: true },
     },
     { durable: true },
   );
 
-  return NextResponse.json({
+  return jsonCors({
     ok: true,
-    apiKey,
+    alreadyActive: !claimed,
+    apiKey: effectiveKey,
     note: "Guardá esta key. Autentica POST /api/auditor/log (header x-api-key).",
     subscription: { preapprovalId, plan: entitlement.plan, status: "active" },
-    audit: { backend: auditBackend(), entry, ...auditUrls(sessionId) },
-    log: logUsage(apiKey),
+    audit: { backend: auditBackend(), entry, ...auditUrls(effectiveSession) },
+    log: logUsage(effectiveKey),
   });
 }
 
 // Machine-readable self-description (agents.md ergonomics).
 export async function GET() {
-  return NextResponse.json(
+  return jsonCors(
     {
       endpoint: "/api/auditor/activate",
       method: "POST",
@@ -241,12 +277,5 @@ export async function GET() {
 }
 
 export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      Allow: "POST, GET, OPTIONS",
-      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+  return preflight();
 }

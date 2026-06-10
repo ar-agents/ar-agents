@@ -9,6 +9,26 @@
 
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
+// Cap the Map so a flood of distinct IPs/keys can't grow it unboundedly on a
+// long-lived isolate (millions of agents → OOM). Over cap: sweep expired
+// buckets first; if still over, evict oldest-inserted (Map preserves insertion
+// order) — a benign reset of stale limits, never a correctness issue.
+const MAX_BUCKETS = 50_000;
+
+function evictIfNeeded(now: number): void {
+  if (buckets.size < MAX_BUCKETS) return;
+  for (const [k, b] of buckets) {
+    if (now >= b.resetAt) buckets.delete(k);
+  }
+  if (buckets.size < MAX_BUCKETS) return;
+  const overflow = buckets.size - MAX_BUCKETS + 1;
+  let i = 0;
+  for (const k of buckets.keys()) {
+    if (i++ >= overflow) break;
+    buckets.delete(k);
+  }
+}
+
 export function clientIp(req: Request): string {
   const fwd = req.headers.get("x-forwarded-for");
   if (fwd) return fwd.split(",")[0]!.trim();
@@ -29,6 +49,7 @@ export function rateLimit(
   const k = `${scope}:${id}`;
   const b = buckets.get(k);
   if (!b || now >= b.resetAt) {
+    evictIfNeeded(now);
     buckets.set(k, { count: 1, resetAt: now + windowMs });
     return true;
   }
