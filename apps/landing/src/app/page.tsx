@@ -559,6 +559,185 @@ export default function Home() {
           </div>
         </header>
 
+        {/* THE MODEL, open-core + El Auditor + recursive proof. Leads the page
+            with what ar-agents IS now, before the technical deep-dive below. */}
+        <section
+          style={{
+            marginTop: 8,
+            marginBottom: 72,
+            padding: "44px 0",
+            borderTop: "1px solid var(--border-color)",
+            borderBottom: "1px solid var(--border-color)",
+          }}
+        >
+          <p
+            style={{
+              fontSize: 11,
+              fontFamily: FONT_MONO,
+              textTransform: "uppercase",
+              letterSpacing: "0.1em",
+              color: "var(--text-muted)",
+              margin: "0 0 12px",
+              fontWeight: 600,
+            }}
+          >
+            {lang === "es" ? "El modelo · open-core" : "The model · open-core"}
+          </p>
+          <h2
+            style={{
+              fontSize: "clamp(26px, 5vw, 38px)",
+              fontWeight: 600,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.12,
+              color: "var(--text)",
+              margin: "0 0 14px",
+              maxWidth: 760,
+            }}
+          >
+            {lang === "es"
+              ? "El estándar es gratis. La confianza es el negocio."
+              : "The standard is free. Trust is the business."}
+          </h2>
+          <p
+            style={{
+              color: "var(--text-body)",
+              fontSize: "clamp(15px, 2.4vw, 18px)",
+              lineHeight: 1.55,
+              maxWidth: 720,
+              margin: "0 0 32px",
+            }}
+          >
+            {lang === "es"
+              ? "ar-agents es la capa abierta para constituir y operar una Sociedad Automatizada (art. 14). El núcleo es open-source y se usa gratis; lo que cobramos es la capa de confianza que la ley vuelve obligatoria."
+              : "ar-agents is the open layer to incorporate and operate a Sociedad Automatizada (art. 14). The core is open-source and free to use; what we charge for is the trust layer the law makes mandatory."}
+          </p>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(248px, 1fr))",
+              gap: 14,
+            }}
+          >
+            {/* Pillar 1, free core */}
+            <a
+              href="/sdk"
+              style={{
+                display: "block",
+                padding: "20px 20px 18px",
+                background: "var(--bg-tint)",
+                borderRadius: 10,
+                boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontFamily: FONT_MONO,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "var(--text-muted)",
+                  marginBottom: 8,
+                  fontWeight: 600,
+                }}
+              >
+                {lang === "es" ? "Núcleo abierto · gratis" : "Open core · free"}
+              </div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>
+                {lang === "es" ? "33 paquetes, 6 RFCs, wizard" : "33 packages, 6 RFCs, wizard"}
+              </div>
+              <p style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.5, margin: "0 0 12px" }}>
+                {lang === "es"
+                  ? "Las integraciones soberanas (AFIP, Mercado Pago, IGJ, WhatsApp, factura) y el wizard que constituye la sociedad. MIT + CC-BY-4.0."
+                  : "The sovereign integrations (AFIP, Mercado Pago, IGJ, WhatsApp, invoicing) and the wizard that incorporates the company. MIT + CC-BY-4.0."}
+              </p>
+              <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 500, textDecoration: "underline" }}>
+                {lang === "es" ? "Ver SDK" : "Browse SDK"} →
+              </span>
+            </a>
+
+            {/* Pillar 2, El Auditor, paid, emphasized */}
+            <a
+              href={lang === "es" ? "/precios" : "/en/pricing"}
+              style={{
+                display: "block",
+                padding: "20px 20px 18px",
+                background: "var(--accent-bg)",
+                borderRadius: 10,
+                boxShadow: "inset 0 0 0 1px var(--accent)",
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontFamily: FONT_MONO,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "var(--accent-text)",
+                  marginBottom: 8,
+                  fontWeight: 700,
+                }}
+              >
+                {lang === "es" ? "El Auditor · pago" : "The Auditor · paid"}
+              </div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>
+                {lang === "es" ? "Prueba de autonomía, USD 199/mes" : "Proof-of-autonomy, USD 199/mo"}
+              </div>
+              <p style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.5, margin: "0 0 12px" }}>
+                {lang === "es"
+                  ? "Log de decisiones firmado (HMAC + Ed25519), durable y verificable por cualquiera. El art. 102 hace responsable al administrador; esta es la prueba."
+                  : "Signed decision log (HMAC + Ed25519), durable and verifiable by anyone. Art. 102 makes the administrator liable; this is the evidence."}
+              </p>
+              <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600, textDecoration: "underline" }}>
+                {lang === "es" ? "Ver precios" : "See pricing"} →
+              </span>
+            </a>
+
+            {/* Pillar 3, recursive proof */}
+            <a
+              href={lang === "es" ? "/caso-ar-agents" : "/en/ar-agents-case"}
+              style={{
+                display: "block",
+                padding: "20px 20px 18px",
+                background: "var(--bg-tint)",
+                borderRadius: 10,
+                boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
+                textDecoration: "none",
+                color: "inherit",
+              }}
+            >
+              <div
+                style={{
+                  fontSize: 11,
+                  fontFamily: FONT_MONO,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.08em",
+                  color: "var(--text-muted)",
+                  marginBottom: 8,
+                  fontWeight: 600,
+                }}
+              >
+                {lang === "es" ? "La prueba · dogfood" : "The proof · dogfood"}
+              </div>
+              <div style={{ fontSize: 17, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>
+                {lang === "es" ? "Nos constituimos a nosotros mismos" : "We incorporated ourselves"}
+              </div>
+              <p style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.5, margin: "0 0 12px" }}>
+                {lang === "es"
+                  ? "ar-agents se constituyó como Sociedad Automatizada y corre sobre su propia capa. La prueba es pública y la verificás vos mismo."
+                  : "ar-agents incorporated itself as a Sociedad Automatizada and runs on its own layer. The proof is public and you verify it yourself."}
+              </p>
+              <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 500, textDecoration: "underline" }}>
+                {lang === "es" ? "Ver el caso" : "See the case"} →
+              </span>
+            </a>
+          </div>
+        </section>
+
         {/* SECTION FRAMING, the sections below are about the flagship
             package (@ar-agents/mercadopago). Helps the reader who arrived
             for the AI-corporations story understand why a MercadoPago demo
