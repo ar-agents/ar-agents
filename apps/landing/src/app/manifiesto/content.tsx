@@ -35,8 +35,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Si Argentina va a alojar 500 millones de agentes IA pagando impuestos acá, alguien tiene que escribir el código que los conecta al Estado. Que sea código abierto. Que sea bueno. Que sea acá."
-          : "If Argentina is going to host 500 million AI agents paying taxes here, someone has to write the code that connects them to the state. Let it be open source. Let it be good. Let it be here."
+          ? "Si Argentina va a alojar 500 millones de agentes IA pagando impuestos acá, alguien tiene que escribir el código que los conecta al Estado. Que sea abierto. Que sea acá."
+          : "If Argentina is going to host 500 million AI agents paying taxes here, someone has to write the code that connects them to the state. Let it be open. Let it be here."
       }
     >
       <DocH2>
@@ -52,9 +52,9 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               que Argentina sea el primer país con un régimen jurídico
               para{" "}
               <DocCode>sociedades de inteligencia artificial</DocCode>:
-              empresas operadas por agentes de IA, sin empleados, donde el
-              código decide, opera y paga impuestos, con supervisión humana
-              mínima. Su proyección:{" "}
+              empresas operadas por agentes de IA, sin empleados, con
+              supervisión humana mínima. El código opera y paga impuestos.
+              Su proyección:{" "}
               <em>
                 50 millones de habitantes y 500 millones de agentes IA
                 incorporados acá
@@ -68,8 +68,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               <strong>Federico Sturzenegger</strong> announced his plan
               to make Argentina the first country with a legal regime for{" "}
               <DocCode>AI corporations</DocCode>: companies operated by AI
-              agents, with no employees, where code decides, operates, and
-              pays taxes, under minimal human supervision. His projection:{" "}
+              agents, with no employees, under minimal human supervision.
+              The code operates and pays taxes. His projection:{" "}
               <em>
                 50 million inhabitants and 500 million AI agents
                 incorporated here
@@ -138,8 +138,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>ar-agents</strong> es la apuesta de que esa
-              infraestructura tiene que ser <strong>abierta</strong>,{" "}
+              <strong>ar-agents</strong> apuesta a que esa
+              infraestructura sea <strong>abierta</strong>,{" "}
               <strong>civil</strong>,{" "}
               <strong>de calidad productiva</strong> y{" "}
               <strong>
@@ -153,8 +153,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
           }
           en={
             <>
-              <strong>ar-agents</strong> is the bet that this
-              infrastructure has to be <strong>open</strong>,{" "}
+              <strong>ar-agents</strong> bets that this
+              infrastructure should be <strong>open</strong>,{" "}
               <strong>civilian</strong>,{" "}
               <strong>production-grade</strong>, and{" "}
               <strong>
@@ -393,8 +393,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               </a>
               . Explica qué le puede servir del stack, qué no estoy
               pidiendo (contratos, subsidios, reuniones), y la propuesta
-              de working group AAIF para hacer el perfil técnico de las
-              sociedades-IA un estándar internacional neutral. CC0,
+              de working group AAIF para volver el perfil técnico de las
+              sociedades-IA un estándar internacional neutral. CC0:
               copiá, traducí, citá.
             </>
           }

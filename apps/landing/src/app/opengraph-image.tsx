@@ -87,9 +87,9 @@ export default function OpengraphImage() {
               letterSpacing: "-0.5px",
             }}
           >
-            Un agente constituye, opera y prueba una empresa argentina de punta a
-            punta. Núcleo open-source gratis; El Auditor, la capa de confianza
-            paga.
+            Una Sociedad Automatizada opera con agentes de IA, no con empleados.
+            El código es abierto. El Auditor, la prueba firmada de que opera
+            bien, es el producto pago.
           </div>
         </div>
 

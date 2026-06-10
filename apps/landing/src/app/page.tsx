@@ -608,8 +608,8 @@ export default function Home() {
             }}
           >
             {lang === "es"
-              ? "ar-agents es la capa abierta para constituir y operar una Sociedad Automatizada (art. 14). El núcleo es open-source y se usa gratis; lo que cobramos es la capa de confianza que la ley vuelve obligatoria."
-              : "ar-agents is the open layer to incorporate and operate a Sociedad Automatizada (art. 14). The core is open-source and free to use; what we charge for is the trust layer the law makes mandatory."}
+              ? "El código es abierto y gratis. La confianza es un servicio pago. Lo probamos con nuestra propia empresa."
+              : "The code is open and free. Trust is a paid service. We prove it with our own company."}
           </p>
 
           <div
@@ -689,8 +689,8 @@ export default function Home() {
               </div>
               <p style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.5, margin: "0 0 12px" }}>
                 {lang === "es"
-                  ? "Log de decisiones firmado (HMAC + Ed25519), durable y verificable por cualquiera. El art. 102 hace responsable al administrador; esta es la prueba."
-                  : "Signed decision log (HMAC + Ed25519), durable and verifiable by anyone. Art. 102 makes the administrator liable; this is the evidence."}
+                  ? "Cada decisión queda en un log firmado (HMAC + Ed25519) que cualquiera puede verificar. El art. 102 hace responsable al humano. Este log es su defensa."
+                  : "Every decision lands in a signed log (HMAC + Ed25519) that anyone can verify. Art. 102 makes the human liable. This log is the defense."}
               </p>
               <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 600, textDecoration: "underline" }}>
                 {lang === "es" ? "Ver precios" : "See pricing"} →
@@ -728,8 +728,8 @@ export default function Home() {
               </div>
               <p style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.5, margin: "0 0 12px" }}>
                 {lang === "es"
-                  ? "ar-agents se constituyó como Sociedad Automatizada y corre sobre su propia capa. La prueba es pública y la verificás vos mismo."
-                  : "ar-agents incorporated itself as a Sociedad Automatizada and runs on its own layer. The proof is public and you verify it yourself."}
+                  ? "ar-agents se constituyó como Sociedad Automatizada y usa su propio Auditor. La prueba es pública."
+                  : "ar-agents incorporated itself as a Sociedad Automatizada and uses its own Auditor. The proof is public."}
               </p>
               <span style={{ fontSize: 13, color: "var(--accent)", fontWeight: 500, textDecoration: "underline" }}>
                 {lang === "es" ? "Ver el caso" : "See the case"} →
