@@ -21,14 +21,22 @@ import type { AuditEntry } from "./audit";
 
 const enc = new TextEncoder();
 
-/** Canonical-JSON serializer (mirror of audit.ts). */
-function canonical(value: unknown): string {
+/**
+ * Canonical-JSON serializer — MUST stay byte-identical to audit.ts's copy
+ * (same depth bound, same `undefined`-key skipping), or HMAC and Ed25519 would
+ * sign over different inputs. Change both together.
+ */
+const CANONICAL_MAX_DEPTH = 64;
+function canonical(value: unknown, depth = 0): string {
+  if (depth > CANONICAL_MAX_DEPTH) throw new Error("canonical: max nesting depth exceeded");
   if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (Array.isArray(value)) return `[${value.map((v) => canonical(v, depth + 1)).join(",")}]`;
   const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
+  const keys = Object.keys(obj)
+    .filter((k) => obj[k] !== undefined)
+    .sort();
   return `{${keys
-    .map((k) => `${JSON.stringify(k)}:${canonical(obj[k])}`)
+    .map((k) => `${JSON.stringify(k)}:${canonical(obj[k], depth + 1)}`)
     .join(",")}}`;
 }
 
