@@ -2,7 +2,7 @@ import { jsonCors, preflight } from "@/lib/cors";
 import { z } from "zod";
 import { kv } from "@vercel/kv";
 import { appendAudit, backend as auditBackend } from "@/lib/audit";
-import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { rateLimit } from "@/lib/ratelimit";
 
 /**
  * POST /api/auditor/log, the thing El Auditor customers actually pay for.

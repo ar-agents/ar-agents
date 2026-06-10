@@ -52,7 +52,7 @@ export async function GET(
 
   const encoder = new TextEncoder();
   const startedAt = Date.now();
-  let sentIds = new Set<string>();
+  const sentIds = new Set<string>();
   let lastKeepAliveAt = Date.now();
   // Hoisted so cancel() and the abort listener can clear it. Previously the
   // interval was scoped inside start(), so a client disconnect left it polling
