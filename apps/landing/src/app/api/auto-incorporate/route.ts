@@ -11,7 +11,7 @@
  * and is unit-tested. This route is just HTTP plumbing + audit log.
  */
 
-import { NextResponse } from "next/server";
+import { jsonCors, preflight } from "@/lib/cors";
 import {
   appendAudit,
   backend as auditBackend,
@@ -38,19 +38,19 @@ export const runtime = "edge";
 export async function POST(req: Request) {
   // Incorporation entries are durable KV writes — damp per-IP amplification.
   if (!rateLimit("auto-incorporate", clientIp(req), 10, 60 * 60_000)) {
-    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+    return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }
 
   let raw: unknown;
   try {
     raw = await req.json();
   } catch {
-    return NextResponse.json({ error: "bad_json" }, { status: 400 });
+    return jsonCors({ error: "bad_json" }, { status: 400 });
   }
 
   const parsed = Body.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json(
+    return jsonCors(
       { error: "invalid_input", details: parsed.error.format() },
       { status: 400 },
     );
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
 
   const validation = validate(input);
   if (!validation.valid) {
-    return NextResponse.json(
+    return jsonCors(
       {
         ok: false,
         validation,
@@ -109,7 +109,7 @@ export async function POST(req: Request) {
     { durable: true },
   );
 
-  return NextResponse.json(
+  return jsonCors(
     {
       ok: true,
       sociedad: {
@@ -154,7 +154,7 @@ export async function GET() {
   // The real call is POST; we surface this via Allow header so HTTP-aware
   // clients + conformance scanners read it correctly. Cache aggressively
   // because the doc body is stable.
-  return NextResponse.json(
+  return jsonCors(
     {
       endpoint: "/api/auto-incorporate",
       method: "POST",
@@ -185,12 +185,5 @@ export async function GET() {
 }
 
 export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      Allow: "POST, OPTIONS",
-      "Access-Control-Allow-Methods": "POST, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type",
-    },
-  });
+  return preflight();
 }

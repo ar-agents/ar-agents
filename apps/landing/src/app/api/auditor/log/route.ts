@@ -1,4 +1,4 @@
-import { NextResponse } from "next/server";
+import { jsonCors, preflight } from "@/lib/cors";
 import { z } from "zod";
 import { kv } from "@vercel/kv";
 import { appendAudit, backend as auditBackend } from "@/lib/audit";
@@ -52,14 +52,33 @@ function tooBig(value: unknown): boolean {
   try {
     return new TextEncoder().encode(JSON.stringify(value) ?? "").length > MAX_FIELD_BYTES;
   } catch {
+    // BigInt / circular / unstringifiable → reject as "too big" rather than
+    // letting it reach the signer (which would degrade to an unsigned entry).
     return true;
   }
+}
+
+// Reject pathologically deep payloads with a clean 400 instead of writing an
+// unsigned entry (the canonical signer bounds depth at 64 and would otherwise
+// drop the HMAC). Iterative, so checking depth can't itself overflow.
+const MAX_DEPTH = 48;
+function tooDeep(value: unknown): boolean {
+  const stack: Array<{ v: unknown; d: number }> = [{ v: value, d: 0 }];
+  while (stack.length) {
+    const { v, d } = stack.pop()!;
+    if (v === null || typeof v !== "object") continue;
+    if (d > MAX_DEPTH) return true;
+    for (const child of Array.isArray(v) ? v : Object.values(v as Record<string, unknown>)) {
+      stack.push({ v: child, d: d + 1 });
+    }
+  }
+  return false;
 }
 
 export async function POST(req: Request) {
   const apiKey = req.headers.get("x-api-key")?.trim();
   if (!apiKey || !/^arag_live_[0-9a-f]{48}$/.test(apiKey)) {
-    return NextResponse.json(
+    return jsonCors(
       { ok: false, error: "unauthorized", note: "Header x-api-key requerido (emitida por /api/auditor/activate)." },
       { status: 401 },
     );
@@ -67,32 +86,38 @@ export async function POST(req: Request) {
 
   // Rate limit per key, not per IP — the key is the customer.
   if (!rateLimit("auditor-log", apiKey, 120, 60_000)) {
-    return NextResponse.json({ ok: false, error: "rate_limited", note: "máx 120/min por key" }, { status: 429 });
+    return jsonCors({ ok: false, error: "rate_limited", note: "máx 120/min por key" }, { status: 429 });
   }
 
   const ent = await kv.get<Entitlement>(`${KEY_KEY_PREFIX}${apiKey}`);
   if (!ent || ent.status !== "active") {
-    return NextResponse.json({ ok: false, error: "unauthorized" }, { status: 401 });
+    return jsonCors({ ok: false, error: "unauthorized" }, { status: 401 });
   }
 
   let raw: unknown;
   try {
     raw = await req.json();
   } catch {
-    return NextResponse.json({ ok: false, error: "bad_json" }, { status: 400 });
+    return jsonCors({ ok: false, error: "bad_json" }, { status: 400 });
   }
   const parsed = Body.safeParse(raw);
   if (!parsed.success) {
-    return NextResponse.json(
+    return jsonCors(
       { ok: false, error: "invalid_input", details: parsed.error.format() },
       { status: 400 },
     );
   }
   const body = parsed.data;
   if (tooBig(body.input) || tooBig(body.output)) {
-    return NextResponse.json(
+    return jsonCors(
       { ok: false, error: "payload_too_large", note: `input/output ≤ ${MAX_FIELD_BYTES} bytes c/u` },
       { status: 413 },
+    );
+  }
+  if (tooDeep(body.input) || tooDeep(body.output)) {
+    return jsonCors(
+      { ok: false, error: "payload_too_deep", note: `anidamiento ≤ ${MAX_DEPTH} niveles` },
+      { status: 400 },
     );
   }
 
@@ -109,7 +134,7 @@ export async function POST(req: Request) {
     { durable: true },
   );
 
-  return NextResponse.json(
+  return jsonCors(
     {
       ok: true,
       entry,
@@ -126,7 +151,7 @@ export async function POST(req: Request) {
 
 // Machine-readable self-description (agents.md ergonomics).
 export async function GET() {
-  return NextResponse.json(
+  return jsonCors(
     {
       endpoint: "/api/auditor/log",
       method: "POST",
@@ -155,12 +180,5 @@ export async function GET() {
 }
 
 export async function OPTIONS() {
-  return new Response(null, {
-    status: 204,
-    headers: {
-      Allow: "POST, GET, OPTIONS",
-      "Access-Control-Allow-Methods": "POST, GET, OPTIONS",
-      "Access-Control-Allow-Headers": "Content-Type, x-api-key",
-    },
-  });
+  return preflight();
 }

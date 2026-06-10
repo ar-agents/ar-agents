@@ -55,13 +55,39 @@ function bytesToHex(bytes: ArrayBuffer): string {
     .join("");
 }
 
-/** Canonical-JSON-stringify for stable HMAC inputs (object-key sorted). */
-function canonical(value: unknown): string {
+/** Thrown when an entry nests deeper than CANONICAL_MAX_DEPTH. Caught at the
+ *  call sites so a hostile payload degrades gracefully instead of 500ing. */
+export class CanonicalDepthError extends Error {
+  constructor() {
+    super("canonical: max nesting depth exceeded");
+    this.name = "CanonicalDepthError";
+  }
+}
+
+// Bounds recursion so a deeply-nested payload can't blow the (smaller-on-Edge)
+// call stack. 64 is far past any legitimate audit entry; the zod layer in the
+// public write paths rejects over-deep input before it ever reaches here.
+const CANONICAL_MAX_DEPTH = 64;
+
+/**
+ * Canonical-JSON-stringify for stable HMAC inputs (object-key sorted).
+ *
+ * Mirrors JSON.stringify semantics in two ways that matter for verification:
+ *  - `undefined` object values are SKIPPED (JSON drops them, and KV stores the
+ *    entry as JSON — so signing over a key that the round-trip drops would make
+ *    a legitimate entry verify as "tampered").
+ *  - depth is bounded (see CanonicalDepthError).
+ * `ed25519.ts` keeps an identical copy; change both together.
+ */
+function canonical(value: unknown, depth = 0): string {
+  if (depth > CANONICAL_MAX_DEPTH) throw new CanonicalDepthError();
   if (value === null || typeof value !== "object") return JSON.stringify(value);
-  if (Array.isArray(value)) return `[${value.map(canonical).join(",")}]`;
+  if (Array.isArray(value)) return `[${value.map((v) => canonical(v, depth + 1)).join(",")}]`;
   const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
-  return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical(obj[k])}`).join(",")}}`;
+  const keys = Object.keys(obj)
+    .filter((k) => obj[k] !== undefined)
+    .sort();
+  return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical(obj[k], depth + 1)}`).join(",")}}`;
 }
 
 export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string | null> {
@@ -91,12 +117,18 @@ export async function verifyEntry(entry: AuditEntry): Promise<boolean> {
   const stripped = { ...entry } as Record<string, unknown>;
   delete stripped.hmac;
   delete stripped.signature;
-  return crypto.subtle.verify(
-    "HMAC",
-    key,
-    sigBytes,
-    enc.encode(canonical(stripped)),
-  );
+  try {
+    return await crypto.subtle.verify(
+      "HMAC",
+      key,
+      sigBytes,
+      enc.encode(canonical(stripped)),
+    );
+  } catch {
+    // A poisoned/over-deep stored entry must read as "not verified", never
+    // 500 the public read endpoint.
+    return false;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -207,7 +239,15 @@ export async function appendAudit(
     ...partial,
     hmac: null,
   };
-  entry.hmac = await signEntry(entry);
+  // A hostile/unstringifiable payload (over-deep nesting → CanonicalDepthError,
+  // BigInt, circular ref) must degrade to an unsigned entry, never 500 the
+  // whole write. The public write paths reject these at the zod layer first;
+  // this is the belt-and-suspenders so no caller can crash appendAudit.
+  try {
+    entry.hmac = await signEntry(entry);
+  } catch {
+    entry.hmac = null;
+  }
   // RFC-005 v1: also compute Ed25519 signature if AUDIT_ED25519_PRIVATE_KEY
   // is set. The signature is verifiable offline by anyone holding the
   // public key from /.well-known/sociedad-ia/keys (RFC-005 § 4). Dynamic
@@ -224,8 +264,10 @@ export async function appendAudit(
     }
   }
   if (isKvWired()) {
+    let pushed = false;
     try {
       await kv.rpush(key(sessionId), entry);
+      pushed = true;
       if (opts?.durable) {
         await kv.sadd(DURABLE_SET, sessionId);
         await kv.persist(key(sessionId));
@@ -233,10 +275,26 @@ export async function appendAudit(
         await kv.expire(key(sessionId), ENTRY_TTL_SECONDS);
       }
     } catch {
-      // KV down, fall through to in-memory so the demo doesn't break.
-      const arr = memStore.get(sessionId) ?? [];
-      arr.push(entry);
-      memStore.set(sessionId, arr);
+      if (!pushed) {
+        // rpush itself failed → the write never landed in KV. Use in-memory so
+        // the entry isn't lost outright (demo/PR-preview path).
+        const arr = memStore.get(sessionId) ?? [];
+        arr.push(entry);
+        memStore.set(sessionId, arr);
+      } else if (opts?.durable) {
+        // The entry DID land but durability bookkeeping failed — it may carry a
+        // stale TTL from an earlier non-durable append. A paid record must not
+        // silently expire, so best-effort re-pin; membership in DURABLE_SET also
+        // makes the next append (or pinSession) repair it.
+        try {
+          await kv.sadd(DURABLE_SET, sessionId);
+          await kv.persist(key(sessionId));
+        } catch {
+          // Leave it; DURABLE_SET membership is the recovery signal.
+        }
+      }
+      // non-durable + pushed + expire-failed: entry persists without a TTL,
+      // which is safe (no data loss; it just won't auto-expire).
     }
   } else {
     const arr = memStore.get(sessionId) ?? [];
