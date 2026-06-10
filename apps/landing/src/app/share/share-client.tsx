@@ -16,7 +16,7 @@ const SNIPPETS: ReadonlyArray<Snippet> = [
     id: "twitter-1-launch",
     audience: "twitter",
     title: "Tweet · launch announcement",
-    body: `Argentina anunció sociedades-IA el 28-abr. Publiqué 4 RFCs + infraestructura open-source que la ley puede citar:
+    body: `Argentina anunció sociedades-IA el 28-abr. Publiqué 6 RFCs + infraestructura open-source que la ley puede citar:
 
 · RFC-001, responsabilidad civil (3 capas)
 · RFC-002, descubrimiento
@@ -62,7 +62,7 @@ La impl de referencia pasa los 7 (96 tests).`,
 
 Decidí no esperar a que se publique el texto del proyecto de ley. La infraestructura técnica para que las sociedades-IA funcionen ya existe, había que escribirla.
 
-Publiqué 4 RFCs que cubren las cuatro decisiones clave que toda legislación de este tipo necesita resolver:
+Publiqué 6 RFCs que cubren las cuatro decisiones clave que toda legislación de este tipo necesita resolver:
 
 → Responsabilidad civil (RFC-001): tres capas, según la clase de governance asignada a cada acción.
 → Descubrimiento (RFC-002): cada sociedad-IA publica su info en /.well-known/agents.json. Sin registro central, sin permiso.
@@ -92,7 +92,7 @@ Me presento: soy Nazareno Clemente, autor de las RFCs y la infraestructura publi
 
 Después del anuncio del Min. Sturzenegger del 28-abr-2026, dediqué el mes a publicar la infraestructura técnica que un régimen de sociedades-IA necesita para ser operativizable. El resultado:
 
-· 4 RFCs (responsabilidad civil, descubrimiento, reciprocidad cross-jurisdiccional, log operativo), listos para citar por referencia en el articulado de la ley.
+· 6 RFCs (responsabilidad civil, descubrimiento, reciprocidad cross-jurisdiccional, log operativo), listos para citar por referencia en el articulado de la ley.
 · Especificación normativa del log con vectores de conformidad deterministas. Cualquier biblioteca pasa o no pasa los vectores; sin ambigüedad.
 · Certificador público que score 0-100 cualquier URL en 10 segundos contra las RFCs.
 · Implementación de referencia (open-source) que se auto-certifica 100/100.

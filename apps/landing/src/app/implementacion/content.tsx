@@ -159,13 +159,13 @@ export function ImplementacionContent() {
         </li>
       </ol>
       <DocP>
-        <strong>Anexo I — Marcos jurisdiccionales comparados:</strong>{" "}
+        <strong>Anexo I, Marcos jurisdiccionales comparados:</strong>{" "}
         Wyoming DAO LLC, Islas Marshall DAO Act, Estonia e-Residency,
         Singapur VCC, Suiza (asociación civil + Stiftung), Liechtenstein
         TVTG. Sitúa la propuesta argentina en el mapa internacional.
       </DocP>
       <DocP>
-        <strong>Anexo II — Referencias bibliográficas:</strong>{" "}
+        <strong>Anexo II, Referencias bibliográficas:</strong>{" "}
         estándares criptográficos (IETF RFC 8032, 2104, 3161, 6962;
         NIST FIPS 198-1, 186-5), protocolos abiertos (MCP), spec
         técnica argentina (WSAA, WSFE), marco normativo argentino
@@ -258,7 +258,7 @@ node arg-verify.mjs file doc.pdf`}</pre>
         >
           /implementacion.pdf.sig.json
         </a>
-        . Cualquier alteración del PDF — un byte cambiado — hace fallar
+        . Cualquier alteración del PDF, un byte cambiado, hace fallar
         las tres comprobaciones (tamaño, SHA-256, firma Ed25519).
       </DocP>
 

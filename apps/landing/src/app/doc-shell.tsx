@@ -107,6 +107,7 @@ export function DocShell({ eyebrow, title, subtitle, children }: DocShellProps) 
             <a href="/rfcs/001" style={shellLinkSty}>spec</a>
             <a href="/registro" style={shellLinkSty}>registry</a>
             <a href="/auditor" style={shellLinkSty}>auditor</a>
+            <a href="/precios" style={shellLinkSty}>precios</a>
             <a href="/legislacion" style={shellLinkSty}>legislación</a>
             <a href="/sdk" style={shellLinkSty}>sdk</a>
             <a href="/faq" style={shellLinkSty}>faq</a>

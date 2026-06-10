@@ -135,9 +135,9 @@ export default function HighlightsPage() {
             marginBottom: 40,
           }}
         >
-          <Stat n="5" l="RFCs" href="/rfcs/001" />
+          <Stat n="6" l="RFCs" href="/rfcs/001" />
           <Stat n="30" l="Recipes" href="/examples" />
-          <Stat n="17" l="npm packages" href="https://www.npmjs.com/org/ar-agents" />
+          <Stat n="33" l="npm packages" href="https://www.npmjs.com/org/ar-agents" />
           <Stat n="103" l="vitest tests" />
           <Stat n="14" l="HTTP APIs" />
           <Stat n="5/5" l="Sociedades A" href="/registro" />

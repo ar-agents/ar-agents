@@ -3,7 +3,7 @@ import Link from "next/link";
 import { JsonLd } from "../json-ld";
 
 /**
- * /legislacion, Single Spanish-language synthesis of all 4 RFCs aimed
+ * /legislacion, Single Spanish-language synthesis of all 6 RFCs aimed
  * at someone drafting the AR sociedad-IA legislation.
  *
  * Different from /auditor (investigation/forensics) and from
@@ -20,12 +20,12 @@ import { JsonLd } from "../json-ld";
 export const metadata: Metadata = {
   title: "/legislación · síntesis técnica para legisladores · ar-agents",
   description:
-    "Síntesis de los 4 RFCs publicados (responsabilidad, descubrimiento, reciprocidad, log operativo) con sugerencias de texto legislativo cite-by-reference. Para quien esté redactando la ley de sociedades-IA: aquí está la infraestructura técnica de referencia + cómo incorporarla sin reinventarla.",
+    "Síntesis de los 6 RFCs publicados (responsabilidad, descubrimiento, reciprocidad, log operativo) con sugerencias de texto legislativo cite-by-reference. Para quien esté redactando la ley de sociedades-IA: aquí está la infraestructura técnica de referencia + cómo incorporarla sin reinventarla.",
   alternates: { canonical: "https://ar-agents.ar/legislacion" },
   openGraph: {
     title: "/legislación · síntesis técnica para legisladores",
     description:
-      "Síntesis de los 4 RFCs publicados con sugerencias de texto legislativo cite-by-reference. Para quien esté redactando la ley de sociedades-IA.",
+      "Síntesis de los 6 RFCs publicados con sugerencias de texto legislativo cite-by-reference. Para quien esté redactando la ley de sociedades-IA.",
     url: "https://ar-agents.ar/legislacion",
     type: "article",
   },

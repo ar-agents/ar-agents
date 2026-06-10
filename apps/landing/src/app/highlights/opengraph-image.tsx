@@ -64,9 +64,9 @@ export default async function Image() {
             marginBottom: 28,
           }}
         >
-          <Stat n="5" l="RFCs" />
+          <Stat n="6" l="RFCs" />
           <Stat n="30" l="recipes" />
-          <Stat n="17" l="packages" />
+          <Stat n="33" l="packages" />
           <Stat n="103" l="tests" />
           <Stat n="5/5" l="sociedades A" />
         </div>

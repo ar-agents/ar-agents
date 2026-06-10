@@ -28,7 +28,7 @@ export async function GET(
   if (!isSessionIdValid(sessionId)) {
     return NextResponse.json(
       { error: "invalid_session_id" },
-      { status: 400 },
+      { status: 400, headers: { "access-control-allow-origin": "*" } },
     );
   }
   const url = new URL(req.url);
@@ -49,6 +49,20 @@ export async function GET(
     headers: {
       "cache-control":
         "public, max-age=10, s-maxage=30, stale-while-revalidate=60",
+      // The product promise is "publicly verifiable by anyone": a third party's
+      // browser tool must be able to fetch + verify this cross-origin.
+      "access-control-allow-origin": "*",
+    },
+  });
+}
+
+export async function OPTIONS() {
+  return new Response(null, {
+    status: 204,
+    headers: {
+      "access-control-allow-origin": "*",
+      "access-control-allow-methods": "GET, OPTIONS",
+      "access-control-allow-headers": "Content-Type",
     },
   });
 }

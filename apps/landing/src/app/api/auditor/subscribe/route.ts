@@ -4,7 +4,7 @@ import { appendAudit, backend as auditBackend, isSessionIdValid } from "@/lib/au
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 /**
- * POST /api/auditor/subscribe — sell "El Auditor" (hosted proof-of-autonomy,
+ * POST /api/auditor/subscribe, sell "El Auditor" (hosted proof-of-autonomy,
  * RFC-004/005/006) by creating a Mercado Pago subscription (preapproval) and
  * provisioning a signed audit session.
  *
@@ -18,7 +18,7 @@ import { clientIp, rateLimit } from "@/lib/ratelimit";
  * (AUDITOR_PRICE_ARS_*) so it can track the USD peg without a redeploy and
  * without the flaky-on-Edge BCRA rate call on the checkout hot path.
  *
- * Gating: with no MERCADOPAGO_ACCESS_TOKEN the endpoint still works — it
+ * Gating: with no MERCADOPAGO_ACCESS_TOKEN the endpoint still works, it
  * returns an "early access" response and provisions a real signed audit
  * session (that IS the product), so it deploys safely before MP is wired.
  */
@@ -29,8 +29,8 @@ const SITE = "https://ar-agents.ar";
 const MP_PREAPPROVAL_URL = "https://api.mercadopago.com/preapproval";
 
 const PLANS = {
-  mensual: { usd: 199, arsDefault: 249000, frequency: 1, frequencyType: "months", label: "El Auditor Pro — mensual" },
-  anual: { usd: 1990, arsDefault: 2490000, frequency: 12, frequencyType: "months", label: "El Auditor Pro — anual" },
+  mensual: { usd: 199, arsDefault: 249000, frequency: 1, frequencyType: "months", label: "El Auditor Pro, mensual" },
+  anual: { usd: 1990, arsDefault: 2490000, frequency: 12, frequencyType: "months", label: "El Auditor Pro, anual" },
 } as const;
 
 type PlanId = keyof typeof PLANS;
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
   const mpToken = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
 
   // ── Early-access fallback (no MP token). Still provision a real, signed
-  //    audit session — proof-of-autonomy is the product. No charge.
+  //    audit session, proof-of-autonomy is the product. No charge.
   if (!mpToken) {
     const entry = await appendAudit(sessionId, {
       tool: "auditor_subscribe",
@@ -121,11 +121,14 @@ export async function POST(req: Request) {
     );
   }
 
-  // ── Live path: create the MP preapproval. Landmines honored — back_url must
+  // ── Live path: create the MP preapproval. Landmines honored, back_url must
   //    be HTTPS; payer_email must differ from the seller account; status
   //    "pending" returns an init_point the payer opens to authorize.
   const amount = arsAmount(plan);
   const backUrl = process.env.AUDITOR_BACK_URL?.trim() || `${SITE}/auditor/gracias`;
+  // notification_url closes the lifecycle loop: MP calls it on cancel/pause/auth
+  // so /api/auditor/webhook can revoke access. Without it, churn is invisible.
+  const notificationUrl = process.env.AUDITOR_WEBHOOK_URL?.trim() || `${SITE}/api/auditor/webhook`;
   const externalReference = input.externalReference || sessionId;
 
   let mp: { id?: string; init_point?: string; status?: string };
@@ -141,6 +144,7 @@ export async function POST(req: Request) {
         external_reference: externalReference,
         payer_email: input.payerEmail,
         back_url: backUrl,
+        notification_url: notificationUrl,
         status: "pending",
         auto_recurring: {
           frequency: PLANS[plan].frequency,
@@ -237,9 +241,9 @@ export async function GET() {
     {
       endpoint: "/api/auditor/subscribe",
       method: "POST",
-      product: "El Auditor — hosted proof-of-autonomy (RFC-004/005/006)",
+      product: "El Auditor, hosted proof-of-autonomy (RFC-004/005/006)",
       legalHook:
-        "art. 102 — el administrador responde por la IA; este registro firmado es la prueba del procedimiento de decisión adecuado (art. 101).",
+        "art. 102, el administrador responde por la IA; este registro firmado es la prueba del procedimiento de decisión adecuado (art. 101).",
       pricing: {
         mensual: { usd: PLANS.mensual.usd },
         anual: { usd: PLANS.anual.usd },

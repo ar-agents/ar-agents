@@ -48,3 +48,27 @@ jobs:
 
       - name: Check bundle size budgets
         run: pnpm -r --filter "./packages/*" run size
+
+  # The landing app (every API route, lib/audit, lib/ratelimit, the money layer)
+  # was never gated by CI — a type error or broken edge route only surfaced at
+  # Vercel build time. This job typechecks + lints + tests it on every push.
+  landing:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5  # v4
+      - uses: pnpm/action-setup@fc06bc1257f339d1d5d8b3a19a8cae5388b55320  # v5.0.0
+      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020  # v4
+        with:
+          node-version: "20"
+          cache: pnpm
+      - name: Install
+        run: pnpm install --frozen-lockfile
+      # Workspace deps must be built before the landing typechecks against them.
+      - name: Build packages
+        run: pnpm -r --filter "./packages/*" run build
+      - name: Typecheck landing
+        run: pnpm --filter ar-agents-landing run typecheck
+      - name: Lint landing
+        run: pnpm --filter ar-agents-landing run lint
+      - name: Test landing
+        run: pnpm --filter ar-agents-landing run test

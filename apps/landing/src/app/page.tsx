@@ -1163,6 +1163,11 @@ export default function Home() {
               </p>
               <ul style={footerListSty}>
                 <li>
+                  <a href={lang === "es" ? "/precios" : "/en/pricing"} style={footerLinkSty}>
+                    {lang === "es" ? "Precios · El Auditor" : "Pricing · The Auditor"}
+                  </a>
+                </li>
+                <li>
                   <a href="/cloud" style={footerLinkSty}>
                     {lang === "es" ? "Cloud (comercial)" : "Cloud (commercial)"}
                   </a>

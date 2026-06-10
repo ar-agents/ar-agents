@@ -13,6 +13,7 @@
  */
 
 import { NextResponse } from "next/server";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "edge";
 
@@ -60,10 +61,36 @@ async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Respon
   }
 }
 
+// SSRF guard: this endpoint fetches a user-supplied URL server-side (~11 sub
+// -fetches), so it must refuse internal/loopback/metadata targets and odd
+// ports. Best-effort on Edge (no DNS resolution): blocks literal private IPs
+// and obvious internal hostnames. Pair with rate limiting.
+function isPrivateHost(host: string): boolean {
+  const h = host.toLowerCase();
+  if (h === "localhost" || h.endsWith(".local") || h.endsWith(".internal")) return true;
+  if (h === "metadata.google.internal") return true;
+  // IPv6 loopback / unique-local
+  if (h === "::1" || h === "[::1]" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("[fc") || h.startsWith("[fd")) return true;
+  // IPv4 literals
+  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
+  if (m) {
+    const [a, b] = [Number(m[1]), Number(m[2])];
+    if (a === 10 || a === 127 || a === 0) return true;
+    if (a === 192 && b === 168) return true;
+    if (a === 169 && b === 254) return true; // link-local + cloud metadata
+    if (a === 172 && b >= 16 && b <= 31) return true;
+    if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
+  }
+  return false;
+}
+
 function isValidUrl(u: string): URL | null {
   try {
     const parsed = new URL(u);
     if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
+    if (isPrivateHost(parsed.hostname)) return null;
+    // Only standard web ports (or none). Blocks probing of internal services.
+    if (parsed.port && parsed.port !== "80" && parsed.port !== "443") return null;
     return parsed;
   } catch {
     return null;
@@ -611,6 +638,11 @@ function summarizeRfcConformance(
 }
 
 export async function GET(req: Request): Promise<Response> {
+  // Each call fans out to ~11 server-side fetches of a user URL. Cap per IP.
+  if (!rateLimit("certifier", clientIp(req), 12, 60_000)) {
+    return NextResponse.json({ error: "rate_limited" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(req.url);
   const url = (searchParams.get("url") || "").trim();
   const sessionId = (searchParams.get("sessionId") || "").trim() || null;

@@ -3,13 +3,13 @@ import { Suspense } from "react";
 import { ActivateClient } from "./activate-client";
 
 /**
- * /auditor/gracias — Mercado Pago back_url for El Auditor subscriptions.
+ * /auditor/gracias, Mercado Pago back_url for El Auditor subscriptions.
  * Exchanges the ?preapproval_id= for an API key (POST /api/auditor/activate)
  * and shows the 60-second quickstart. noindex: it's a transactional page.
  */
 
 export const metadata: Metadata = {
-  title: "El Auditor — suscripción activada · ar-agents",
+  title: "El Auditor, suscripción activada · ar-agents",
   description:
     "Activación de El Auditor: canjeá tu suscripción autorizada de Mercado Pago por una API key y escribí tu primer registro firmado.",
   robots: { index: false, follow: false },

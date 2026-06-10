@@ -136,7 +136,7 @@ const THREATS: ThreatRow[] = [
     threat:
       "Audit-signing Ed25519 private key compromise. The operator's RFC-005 signing key is exfiltrated; attacker forges historical audit entries that verify against the published public key.",
     mitigation:
-      "RFC-001 §3.2 mandates HSM/KMS custody for sociedades-IA in production (AWS KMS / GCP Cloud HSM / Azure Key Vault / on-prem HSM — never raw filesystem). RFC-005 §6 specifies rotation: emit a `signing-key-rotated` audit entry signed by the OLD key naming the NEW keyId, publish the new key in /.well-known/sociedad-ia/keys with overlapping validFrom window. The RFC-006 anchor sub-chain (see T17) makes post-rotation forgeries detectable because any forged entry breaks reconciliation with the global anchor head.",
+      "RFC-001 §3.2 mandates HSM/KMS custody for sociedades-IA in production (AWS KMS / GCP Cloud HSM / Azure Key Vault / on-prem HSM, never raw filesystem). RFC-005 §6 specifies rotation: emit a `signing-key-rotated` audit entry signed by the OLD key naming the NEW keyId, publish the new key in /.well-known/sociedad-ia/keys with overlapping validFrom window. The RFC-006 anchor sub-chain (see T17) makes post-rotation forgeries detectable because any forged entry breaks reconciliation with the global anchor head.",
     status: "host-responsibility",
   },
   {
@@ -144,7 +144,7 @@ const THREATS: ThreatRow[] = [
     threat:
       "Anchor service outage or rollback. The external timestamping target (TSA RFC 3161, opentimestamps, NIST randomness beacon, public-registry endpoint) goes offline or reorgs; attacker exploits the unanchored window to backdate or rewrite entries.",
     mitigation:
-      "RFC-006 §6 anchor sub-chain is itself HMAC-chained, so a missing anchor leaves a gap but does NOT break the inner ledger — replay-from-genesis still verifies every entry. Recommended host posture is multi-anchor fallback (concurrent posting to ≥2 independent services). `arg-verify bundle` surfaces any unanchored window explicitly in its output so a regulator sees the gap rather than inheriting a false sense of continuity.",
+      "RFC-006 §6 anchor sub-chain is itself HMAC-chained, so a missing anchor leaves a gap but does NOT break the inner ledger, replay-from-genesis still verifies every entry. Recommended host posture is multi-anchor fallback (concurrent posting to ≥2 independent services). `arg-verify bundle` surfaces any unanchored window explicitly in its output so a regulator sees the gap rather than inheriting a false sense of continuity.",
     status: "host-responsibility",
   },
   {
@@ -152,7 +152,7 @@ const THREATS: ThreatRow[] = [
     threat:
       "Insider operator mutating audit log within the unanchored TTL. The operador designado (or a compromised insider with write access) modifies a recent audit entry before the next anchor seals it, hiding fraud committed inside that window.",
     mitigation:
-      "Append-only sink with row-level immutability (Postgres immutable rows / S3 object-lock / Vercel KV version-tag enforcement) blocks in-place mutation at the storage layer. RFC-006 prev-hash chain makes retroactive modification cascade — any altered entry forces re-chaining of every subsequent entry, visible as monotonic-counter discontinuity to the verifier. Hosts running high-value workloads SHOULD anchor on every transaction batch (not just daily) to compress the unanchored window from hours to seconds.",
+      "Append-only sink with row-level immutability (Postgres immutable rows / S3 object-lock / Vercel KV version-tag enforcement) blocks in-place mutation at the storage layer. RFC-006 prev-hash chain makes retroactive modification cascade, any altered entry forces re-chaining of every subsequent entry, visible as monotonic-counter discontinuity to the verifier. Hosts running high-value workloads SHOULD anchor on every transaction batch (not just daily) to compress the unanchored window from hours to seconds.",
     status: "in-toolkit",
   },
   {

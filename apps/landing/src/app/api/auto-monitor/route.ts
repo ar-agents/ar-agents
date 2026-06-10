@@ -48,17 +48,22 @@ interface TargetResult {
 }
 
 export async function GET(req: Request): Promise<Response> {
-  // Vercel cron sends an Authorization: Bearer header with the CRON_SECRET
-  // if configured. Honor that if set; otherwise allow public for now.
+  // Fail-closed: each run fans out to ~5x11 outbound fetches, so it must not be
+  // publicly triggerable. Vercel cron sends Authorization: Bearer <CRON_SECRET>.
+  // If CRON_SECRET is unset we refuse rather than serve it open to anyone.
   const cronSecret = process.env.CRON_SECRET?.trim();
-  if (cronSecret) {
-    const authHeader = req.headers.get("authorization");
-    if (authHeader !== `Bearer ${cronSecret}`) {
-      return NextResponse.json(
-        { error: "Unauthorized. Vercel cron must send Authorization: Bearer ${CRON_SECRET}." },
-        { status: 401 },
-      );
-    }
+  if (!cronSecret) {
+    return NextResponse.json(
+      { error: "Disabled: set CRON_SECRET to enable the monitor (fail-closed)." },
+      { status: 503 },
+    );
+  }
+  const authHeader = req.headers.get("authorization");
+  if (authHeader !== `Bearer ${cronSecret}`) {
+    return NextResponse.json(
+      { error: "Unauthorized. Send Authorization: Bearer <CRON_SECRET>." },
+      { status: 401 },
+    );
   }
 
   const startAll = Date.now();
