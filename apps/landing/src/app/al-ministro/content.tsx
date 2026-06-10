@@ -87,8 +87,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Mi intención es informarle que he desarrollado la capa técnica que ese régimen va a necesitar. Cuando leí el anuncio, empecé a construirla de inmediato. Esto es lo que hay hoy, públicamente, en npm y en GitHub, bajo licencia MIT:"
-          en="My intention is to inform you that I have developed the technical layer that regime will need. When I read your announcement, I started building it immediately. This is what exists today, publicly, on npm and GitHub, under MIT license:"
+          es="Le escribo para contarle que desarrollé la capa técnica que ese régimen va a necesitar. Cuando leí el anuncio, empecé a construirla de inmediato. Esto es lo que hay hoy, público, en npm y GitHub, bajo licencia MIT:"
+          en="I'm writing to tell you I've built the technical layer that regime will need. When I read your announcement, I started right away. This is what exists today, publicly, on npm and GitHub, under MIT license:"
         />
       </DocP>
 
@@ -198,23 +198,23 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              La pieza que falta, {" "}
+              Falta una pieza:{" "}
               <DocCode>@ar-agents/gde-tad</DocCode> completo, integrado
-              con la inscripción real en IGJ, depende de que el Estado
+              con la inscripción real en IGJ. Depende de que el Estado
               abra una API documentada para TAD. Hoy hay un adapter
               funcional para el pre-flight de inscripciones y para el
-              inbox del Domicilio Electrónico Constituido, pero no se
-              puede presentar el acta de constitución programáticamente.
-              Si la reforma de Ley de Sociedades pasa por el Congreso
-              con un mandato técnico de exposición programática de TAD,
-              el ciclo se cierra.
+              inbox del Domicilio Electrónico Constituido, pero el acta de
+              constitución no se puede presentar programáticamente. Si la
+              reforma de Ley de Sociedades pasa por el Congreso con un
+              mandato técnico de exposición programática de TAD, el ciclo
+              se cierra.
             </>
           }
           en={
             <>
-              The missing piece, {" "}
+              One piece is missing:{" "}
               <DocCode>@ar-agents/gde-tad</DocCode> complete, integrated
-              with real IGJ registration, depends on the state opening
+              with real IGJ registration. It depends on the state opening
               a documented API for TAD. Today there is a functional
               adapter for incorporation pre-flight and for the
               Electronic Domicile inbox, but the constitutive deed
@@ -237,8 +237,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Le escribo porque estoy totalmente alineado con la propuesta de tratar a Argentina como una jurisdicción experimental para agentes IA. Para que el plan sea un éxito es necesario que la implementación de referencia exista y sea verificable. Si una empresa de cualquier país del mundo evalúa si vale la pena incorporarse en Argentina, va a buscar dos cosas: el texto legal, y el código que conecta una empresa-agente con el Estado argentino. El texto legal depende del gobierno pero el código puede escribirlo cualquier ciudadano capacitado. Eso mismo es lo que hice."
-          en="I'm writing because I am fully aligned with the proposal of treating Argentina as an experimental jurisdiction for AI agents. For the plan to succeed, the reference implementation needs to exist and be verifiable. If a company from anywhere in the world evaluates whether to incorporate in Argentina, they'll look for two things: the legal text, and the code that connects an agent-company to the Argentine state. The legal text depends on the government, but the code can be written by any qualified citizen. That is exactly what I did."
+          es="Le escribo porque estoy alineado con la propuesta de tratar a Argentina como una jurisdicción experimental para agentes IA. Para que el plan funcione, la implementación de referencia tiene que existir y ser verificable. Una empresa de cualquier país que evalúe incorporarse en Argentina va a buscar dos cosas: el texto legal y el código que conecta una empresa-agente con el Estado. El texto legal depende del gobierno. El código puede escribirlo cualquier ciudadano capacitado. Eso es lo que hice."
+          en="I'm writing because I'm aligned with the proposal of treating Argentina as an experimental jurisdiction for AI agents. For the plan to work, the reference implementation has to exist and be verifiable. A company from any country weighing whether to incorporate in Argentina will look for two things: the legal text and the code that connects an agent-company to the state. The legal text depends on the government. The code can be written by any qualified citizen. That is what I did."
         />
       </DocP>
 
@@ -350,8 +350,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
 
           <L
             lang={lang}
-            es="el documento técnico para el equipo redactor del proyecto de ley. Arquitectura sobre estándares abiertos preexistentes, cinco cláusulas operables sugeridas para el texto, y respuesta a las objeciones jurídicas planteadas en el debate público. MIT, citable, indicado para circular internamente en las áreas técnicas del Ministerio."
-            en="the technical document for the bill drafting team. Architecture on preexisting open standards, five suggested operable clauses for the text, and responses to the legal objections raised in the public debate. MIT, citable, intended for internal circulation in the Ministry's technical areas."
+            es="el documento técnico para el equipo redactor. Arquitectura sobre estándares abiertos preexistentes, cinco cláusulas operables sugeridas para el texto, y respuesta a las objeciones jurídicas del debate público. MIT, citable, para circular en las áreas técnicas del Ministerio."
+            en="the technical document for the bill drafting team. Architecture on preexisting open standards, five suggested operable clauses for the text, and answers to the legal objections from the public debate. MIT, citable, for circulation in the Ministry's technical areas."
           />
         </li>
       </ul>
@@ -363,8 +363,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Un dato relevante para el debate legislativo: la objeción más previsible al proyecto va a ser que construir la infraestructura técnica para sociedades-IA es caro y lento. La implementación de referencia que adjunto demuestra lo contrario: ya existe, es funcional, está auditada y disponible bajo licencia MIT. El régimen no parte de cero, parte de un stack que ya opera."
-          en="A relevant point for the legislative debate: the most predictable objection to the proposal will be that building the technical infrastructure for AI corporations is expensive and slow. The reference implementation enclosed demonstrates the opposite: it already exists, is functional, audited, and available under MIT license. The regime does not start from zero; it starts from a stack that already operates."
+          es="Un dato para el debate legislativo: la objeción más previsible al proyecto será que construir la infraestructura técnica para sociedades-IA es caro y lento. La implementación de referencia que adjunto demuestra lo contrario. Ya existe, es funcional, está auditada y disponible bajo licencia MIT. El régimen no parte de cero, parte de un stack que ya opera."
+          en="A point for the legislative debate: the most predictable objection to the bill will be that building the technical infrastructure for AI corporations is expensive and slow. The reference implementation enclosed shows the opposite. It already exists, is functional, audited, and available under MIT license. The regime does not start from zero; it starts from a stack that already operates."
         />
       </DocP>
 
@@ -387,22 +387,22 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
         <li style={{ marginBottom: 8 }}>
           <L
             lang={lang}
-            es="Que el ministerio sepa que la implementación de referencia existe, mientras el anteproyecto se debate en el Senado. Esto evita que el texto final arrastre supuestos técnicos contradictorios con un stack que ya funciona, y acelera la reglamentación que los arts. 263-264 dejan pendiente."
-            en="That the ministry knows the reference implementation exists, while the draft bill is debated in the Senate. This keeps the final text from dragging in technical assumptions that contradict a stack that already works, and speeds up the regulation that arts. 263-264 leave pending."
+            es="Que el ministerio sepa que la implementación de referencia existe, mientras el anteproyecto se debate en el Senado. Así el texto final no arrastra supuestos técnicos que contradigan un stack que ya funciona, y se acelera la reglamentación que los arts. 263-264 dejan pendiente."
+            en="That the ministry knows the reference implementation exists while the draft bill is debated in the Senate. That way the final text doesn't drag in technical assumptions that contradict a stack that already works, and the regulation that arts. 263-264 leave pending moves faster."
           />
         </li>
         <li style={{ marginBottom: 8 }}>
           <L
             lang={lang}
-            es="Que TAD (Trámites a Distancia) eventualmente exponga una API documentada para inscripciones, sin esto, la última pieza no cierra. Esto es algo con lo que puedo ayudar también."
-            en="That TAD (Trámites a Distancia) eventually exposes a documented API for registrations, without this, the last piece does not close. This is something I can also help with."
+            es="Que TAD (Trámites a Distancia) exponga una API documentada para inscripciones. Sin eso, la última pieza no cierra. Puedo ayudar con esto también."
+            en="That TAD (Trámites a Distancia) expose a documented API for registrations. Without it, the last piece doesn't close. I can help with this too."
           />
         </li>
         <li>
           <L
             lang={lang}
-            es="Si algún equipo técnico (Subsecretaría TIC, equipo Sandbox, u otro equipo) considera útil leer el RFC-001 y comentar, agradezco comentarios públicos en GitHub."
-            en="If any technical team (Subsec TIC, the Sandbox team, or another team) finds it useful to read RFC-001 and comment, public comments on GitHub are welcome."
+            es="Si algún equipo técnico (Subsecretaría TIC, Sandbox, u otro) considera útil leer el RFC-001 y comentar, agradezco comentarios públicos en GitHub."
+            en="If any technical team (Subsec TIC, the Sandbox team, or another) finds it useful to read RFC-001 and comment, public comments on GitHub are welcome."
           />
         </li>
       </ul>

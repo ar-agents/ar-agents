@@ -159,8 +159,8 @@ export function CloudContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Self-hostear ar-agents es gratis y siempre lo será. Pero hostear un audit log firmado con SLA, residencia de datos AR, rotación de claves, dashboards regulator-ready y soporte 24/7 es trabajo serio. Si tu sociedad-IA prefiere consumir eso como servicio, hay tier para vos."
-          : "Self-hosting ar-agents is free and always will be. But hosting a signed audit log with SLA, AR data residency, key rotation, regulator-ready dashboards, and 24/7 support is serious work. If your AI corporation prefers to consume that as a service, there's a tier for you."
+          ? "Self-hostear ar-agents es gratis y siempre lo será. Operar un audit log firmado con SLA, residencia de datos AR, rotación de claves, dashboards regulator-ready y soporte 24/7 es otra cosa. Si tu sociedad-IA prefiere consumir eso como servicio, hay un tier para vos."
+          : "Self-hosting ar-agents is free and always will be. Running a signed audit log with SLA, AR data residency, key rotation, regulator-ready dashboards, and 24/7 support is another thing. If your AI corporation prefers to consume that as a service, there's a tier for you."
       }
     >
       <DocP>
@@ -193,26 +193,26 @@ export function CloudContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>Modelo open-core.</strong> La librería + RFCs +
+              <strong>Modelo open-core.</strong> La librería, los RFCs y la
               reference implementation están bajo MIT + CC-BY-4.0, gratis
-              para siempre. Lo que se cobra es la operación: hosting con
-              SLA, custodia de claves criptográficas, residencia de datos
-              en territorio argentino, integraciones con sistemas legacy,
-              y soporte contractual. Es el mismo modelo de Vercel sobre
-              Next.js, Resend sobre nodemailer, Supabase sobre Postgres,
-              Linear sobre el repo público de su CLI.
+              para siempre. Se cobra la operación: hosting con SLA, custodia
+              de claves criptográficas, residencia de datos en territorio
+              argentino, integraciones con sistemas legacy y soporte
+              contractual. Es el modelo de Vercel sobre Next.js, Resend
+              sobre nodemailer, Supabase sobre Postgres, Linear sobre el
+              repo público de su CLI.
             </>
           }
           en={
             <>
-              <strong>Open-core model.</strong> The library + RFCs +
-              reference implementation are under MIT + CC-BY-4.0, free
+              <strong>Open-core model.</strong> The library, the RFCs, and
+              the reference implementation are under MIT + CC-BY-4.0, free
               forever. What's charged is operation: hosting with SLA,
               cryptographic key custody, data residency in Argentine
               territory, legacy-system integrations, and contractual
-              support. Same model as Vercel over Next.js, Resend over
-              nodemailer, Supabase over Postgres, Linear over their
-              public CLI repo.
+              support. It's the model of Vercel over Next.js, Resend over
+              nodemailer, Supabase over Postgres, Linear over their public
+              CLI repo.
             </>
           }
         />
@@ -245,21 +245,20 @@ export function CloudContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Credibilidad regulatoria.</strong> Un asesor del
-                Ministerio no puede recomendar adoptar una stack que un
-                único proveedor controla cerradamente. Open source = el
-                Estado puede fork-earla y seguir adelante si el
-                mantenedor desaparece. Esa continuidad es <em>la</em>{" "}
-                razón por la que es viable legislar sobre la infra.
+                Ministerio no puede recomendar una stack que controla un
+                único proveedor cerrado. Si es open source, el Estado puede
+                fork-earla y seguir si el mantenedor desaparece. Esa
+                continuidad es <em>la</em> razón por la que es viable
+                legislar sobre la infra.
               </>
             }
             en={
               <>
-                <strong>Regulatory credibility.</strong> A Ministry
-                advisor can't recommend adopting a stack a single
-                vendor controls closedly. Open source = the state can
-                fork it and keep going if the maintainer disappears.
-                That continuity is <em>the</em> reason it's viable to
-                legislate over the infrastructure.
+                <strong>Regulatory credibility.</strong> A Ministry advisor
+                can't recommend a stack one closed vendor controls. If it's
+                open source, the state can fork it and keep going if the
+                maintainer disappears. That continuity is <em>the</em>{" "}
+                reason it's viable to legislate over the infrastructure.
               </>
             }
           />
@@ -269,21 +268,19 @@ export function CloudContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Adopción amplia.</strong> Si fuera cerrada,
-                ninguna sociedad-IA sin recursos para licenciar podría
-                usarla. Como es open, el ecosistema entero la puede
-                adoptar; los que pagan son los que necesitan SLA,
-                residencia o auditoría, no los que pueden ensamblar
-                todo ellos mismos.
+                <strong>Adopción amplia.</strong> Si fuera cerrada, ninguna
+                sociedad-IA sin presupuesto de licencia podría usarla. Open,
+                la adopta todo el ecosistema. Pagan los que necesitan SLA,
+                residencia o auditoría, no los que pueden ensamblarlo solos.
               </>
             }
             en={
               <>
-                <strong>Broad adoption.</strong> If it were closed, no
-                AI corporation without licensing budget could use it.
-                Open lets the whole ecosystem adopt; payers are those
-                who need SLA, residency, or auditing, not those who
-                can assemble it themselves.
+                <strong>Broad adoption.</strong> If it were closed, no AI
+                corporation without a licensing budget could use it. Open,
+                the whole ecosystem adopts it. Payers are those who need
+                SLA, residency, or auditing, not those who can assemble it
+                themselves.
               </>
             }
           />
@@ -294,21 +291,19 @@ export function CloudContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Defensividad contra captura.</strong> Si una
-                consultora grande (Globant, Accenture, BGH) decide
-                entrar al espacio, pueden ofrecer servicios sobre el
-                código abierto pero no pueden cerrarlo. El moat real
-                es la velocidad de evolución del maintainer + el
-                dashboard cerrado, no la licencia.
+                consultora grande (Globant, Accenture, BGH) entra al
+                espacio, puede ofrecer servicios sobre el código abierto,
+                pero no puede cerrarlo. El moat es la velocidad de evolución
+                del maintainer y el dashboard cerrado, no la licencia.
               </>
             }
             en={
               <>
-                <strong>Defensibility against capture.</strong> If a
-                large consultancy (Globant, Accenture, BGH) decides to
-                enter, they can offer services over the open code but
-                can't close it. The real moat is the maintainer's
-                evolution speed + the closed dashboard, not the
-                license.
+                <strong>Defensibility against capture.</strong> If a large
+                consultancy (Globant, Accenture, BGH) enters, it can offer
+                services over the open code but can't close it. The moat is
+                the maintainer's evolution speed and the closed dashboard,
+                not the license.
               </>
             }
           />
@@ -423,20 +418,18 @@ export function CloudContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              Hoy (2026-05-13) el proyecto está en{" "}
-              <strong>etapa pre-revenue</strong>: la librería está
-              publicada, el ecosistema regulatorio aún se está armando,
-              y la plataforma comercial está en diseño. La estrategia
-              de revenue es secuencial:
+              Hoy (2026-05-13) el proyecto está{" "}
+              <strong>pre-revenue</strong>: la librería está publicada, el
+              ecosistema regulatorio se está armando, y la plataforma
+              comercial está en diseño. El revenue llega en secuencia:
             </>
           }
           en={
             <>
-              Today (2026-05-13) the project is in{" "}
-              <strong>pre-revenue stage</strong>: the library is
-              published, the regulatory ecosystem is still forming, and
-              the commercial platform is in design. The revenue
-              strategy is sequential:
+              Today (2026-05-13) the project is{" "}
+              <strong>pre-revenue</strong>: the library is published, the
+              regulatory ecosystem is forming, and the commercial platform
+              is in design. Revenue arrives in sequence:
             </>
           }
         />
@@ -579,9 +572,9 @@ export function CloudContent({ lang }: { lang: Lang }) {
                 <strong>
                   Government tier depende de variables que no controlo.
                 </strong>{" "}
-                La ley puede no sancionarse, el ministerio puede
-                decidir tercerizar a Globant, el régimen puede mutar. El
-                modelo comercial respeta esa incertidumbre.
+                La ley puede no sancionarse, el ministerio puede tercerizar
+                a Globant, el régimen puede mutar. El modelo comercial
+                respeta esa incertidumbre.
               </>
             }
             en={
@@ -589,9 +582,9 @@ export function CloudContent({ lang }: { lang: Lang }) {
                 <strong>
                   Government tier depends on variables I don't control.
                 </strong>{" "}
-                The law may not pass, the ministry may decide to
-                outsource to Globant, the regime may mutate. The
-                commercial model respects that uncertainty.
+                The law may not pass, the ministry may outsource to Globant,
+                the regime may mutate. The commercial model respects that
+                uncertainty.
               </>
             }
           />

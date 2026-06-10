@@ -102,7 +102,7 @@ export const EN = {
   hero_h1_l1: "Open infrastructure for AI corporations.",
   hero_h1_l2: "Built in Argentina.",
   hero_sub:
-    "The open standard for the AI companies in Argentina's new regime (art. 14): an agent incorporates, operates and proves a company end to end (AFIP, Mercado Pago, IGJ, WhatsApp and more). The core is open-source and free; the trust layer, The Auditor, is paid. We incorporated ourselves to prove it works.",
+    "A Sociedad Automatizada runs on AI agents, not employees (art. 14). ar-agents is the open-source code to incorporate and operate one. The Auditor, the signed proof it operates correctly, is the paid product.",
   cta_deploy: "Deploy on Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -274,7 +274,7 @@ export const ES: Translations = {
   hero_h1_l1: "Infraestructura abierta para sociedades de IA.",
   hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
-    "El estándar abierto para las sociedades de IA del nuevo régimen (art. 14): un agente constituye, opera y prueba una empresa argentina de punta a punta (AFIP, Mercado Pago, IGJ, WhatsApp y más). El núcleo es open-source y gratis; la capa de confianza, El Auditor, es paga. Nos constituimos a nosotros mismos para probar que funciona.",
+    "Una Sociedad Automatizada opera con agentes de IA, no con empleados (art. 14). ar-agents es el código abierto para constituirla y operarla. El Auditor, la prueba firmada de que opera bien, es el producto pago.",
   cta_deploy: "Deployar en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",

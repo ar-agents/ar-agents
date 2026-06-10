@@ -37,8 +37,8 @@ const T = {
     en: "We incorporated ourselves.",
   },
   subtitle: {
-    es: "ar-agents es una Sociedad Automatizada que fabrica Sociedades Automatizadas. Para probarlo, nos corrimos a nosotros mismos por nuestro propio pipeline: nos constituimos, nos suscribimos a nuestro propio Auditor, y dejamos todo firmado y verificable por cualquiera.",
-    en: "ar-agents is an automated company that builds automated companies. To prove it, we ran ourselves through our own pipeline: we incorporated, we subscribed to our own Auditor, and we left everything signed and verifiable by anyone.",
+    es: "ar-agents es una Sociedad Automatizada que fabrica Sociedades Automatizadas. Para probarlo, nos corrimos por nuestro propio pipeline: nos constituimos, nos suscribimos a nuestro Auditor, y dejamos todo firmado y verificable por cualquiera.",
+    en: "ar-agents is an automated company that builds automated companies. To prove it, we ran ourselves through our own pipeline: we incorporated, subscribed to our own Auditor, and left everything signed and verifiable by anyone.",
   },
   h2tesis: { es: "La tesis, en una línea", en: "The thesis, in one line" },
   tesisP: {
@@ -74,10 +74,10 @@ const T = {
         El wizard generó el kit real (4 archivos: <DocCode>package.json</DocCode>,{" "}
         <DocCode>lib/agent.ts</DocCode>, <DocCode>.env.example</DocCode>,{" "}
         <DocCode>README.md</DocCode>), corrió el pre-flight de IGJ y firmó la
-        primera entrada de auditoría. Con una <strong>limitación honesta</strong>{" "}
-        que el propio sistema marcó: el régimen todavía no está sancionado
-        (estimado H1 2027), así que esto es la implementación de referencia + un
-        demo vivo, no una inscripción real todavía.
+        primera entrada de auditoría. El propio sistema marcó una{" "}
+        <strong>limitación honesta</strong>: el régimen todavía no está
+        sancionado (estimado H1 2027). Así que esto es la implementación de
+        referencia y un demo vivo, no una inscripción real todavía.
       </>
     ),
     en: (
@@ -91,9 +91,10 @@ const T = {
         generated the real kit (4 files: <DocCode>package.json</DocCode>,{" "}
         <DocCode>lib/agent.ts</DocCode>, <DocCode>.env.example</DocCode>,{" "}
         <DocCode>README.md</DocCode>), ran the IGJ pre-flight, and signed the
-        first audit entry. With an <strong>honest limitation</strong> the system
-        itself flagged: the regime isn't enacted yet (est. H1 2027), so this is
-        the reference implementation + a live demo, not a real registration yet.
+        first audit entry. The system itself flagged an{" "}
+        <strong>honest limitation</strong>: the regime isn't enacted yet (est.
+        H1 2027). So this is the reference implementation and a live demo, not a
+        real registration yet.
       </>
     ),
   },
@@ -104,10 +105,10 @@ const T = {
         Después nos suscribimos a nuestro propio{" "}
         <a href="/precios" style={linkSty}>
           El Auditor
-        </a>, por API, sin humanos en el medio. Porque el art. 102 deja al
-        administrador responsable por lo que hace la IA, y El Auditor es la
-        prueba firmada de que operó con un procedimiento adecuado. Una empresa
-        que vende auditoría de autonomía, auditándose a sí misma.
+        </a>, por API, sin humanos en el medio. El art. 102 deja al administrador
+        responsable por lo que hace la IA. El Auditor es la prueba firmada de que
+        operó con un procedimiento adecuado. Una empresa que vende auditoría de
+        autonomía, auditándose a sí misma.
       </>
     ),
     en: (
@@ -115,8 +116,8 @@ const T = {
         Then we subscribed to our own{" "}
         <a href="/en/pricing" style={linkSty}>
           The Auditor
-        </a>, over the API, no humans in the loop. Because art. 102 leaves the
-        administrator liable for what the AI does, and The Auditor is the signed
+        </a>, over the API, no humans in the loop. Art. 102 leaves the
+        administrator liable for what the AI does. The Auditor is the signed
         proof that it operated through an adequate procedure. A company that
         sells autonomy auditing, auditing itself.
       </>
@@ -154,8 +155,8 @@ const T = {
         sociedad conserva un administrador / representante de registro (arts. 88
         y 260). El de ar-agents es{" "}
         <strong>Nazareno Clemente</strong>, autor, no operador. Ese rol mínimo
-        es, además, uno de los servicios que ar-agents vende: la empresa-agente
-        opera sola, y nosotros somos el ancla humana que la ley pide.
+        es, además, uno de los servicios que ar-agents vende. La empresa-agente
+        opera sola; nosotros somos el ancla humana que la ley pide.
       </>
     ),
     en: (
@@ -164,16 +165,15 @@ const T = {
         <em>operation</em> is 100% autonomous (art. 14, no employees), but every
         company keeps an administrator / legal representative of record (arts. 88
         and 260). ar-agents' is <strong>Nazareno Clemente</strong>, author, not
-        operator. That minimal role is also one of the services ar-agents sells:
-        the agent-company runs itself, and we are the human anchor the law
-        requires.
+        operator. That minimal role is also one of the services ar-agents sells.
+        The agent-company runs itself; we are the human anchor the law requires.
       </>
     ),
   },
   h2limits: { es: "Limitaciones honestas", en: "Honest limitations" },
   limitsP: {
-    es: "El régimen de sociedades automatizadas todavía no es ley (anteproyecto en el Senado, vigencia estimada a 180 días de publicarse, ~H1 2027). Esto es una implementación de referencia + un demo verificable, no una empresa inscripta. El día que la ley salga, el mismo flujo inscribe de verdad. El audit log vive 7 días en cache; el snapshot de arriba es permanente y el flujo es re-ejecutable.",
-    en: "The automated-company regime isn't law yet (draft bill in the Senate, taking effect ~180 days after publication, ~H1 2027). This is a reference implementation + a verifiable demo, not a registered company. The day the law passes, the same flow registers for real. The audit log lives 7 days in cache; the snapshot above is permanent and the flow is re-runnable.",
+    es: "El régimen de sociedades automatizadas todavía no es ley (anteproyecto en el Senado, vigencia estimada a 180 días de publicarse, ~H1 2027). Esto es una implementación de referencia y un demo verificable, no una empresa inscripta. El día que la ley salga, el mismo flujo inscribe de verdad. El audit log vive 7 días en cache. El snapshot de arriba es permanente y el flujo es re-ejecutable.",
+    en: "The automated-company regime isn't law yet (draft bill in the Senate, taking effect ~180 days after publication, ~H1 2027). This is a reference implementation and a verifiable demo, not a registered company. The day the law passes, the same flow registers for real. The audit log lives 7 days in cache. The snapshot above is permanent and the flow is re-runnable.",
   },
 } as const;
 
