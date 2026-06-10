@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { z } from "zod";
 import { appendAudit, backend as auditBackend, isSessionIdValid } from "@/lib/audit";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 /**
  * POST /api/auditor/subscribe — sell "El Auditor" (hosted proof-of-autonomy,
@@ -61,6 +62,11 @@ function auditUrls(sessionId: string) {
 }
 
 export async function POST(req: Request) {
+  // Abuse damping: each accepted call creates an MP preapproval + KV writes.
+  if (!rateLimit("auditor-subscribe", clientIp(req), 5, 60_000)) {
+    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+  }
+
   let raw: unknown;
   try {
     raw = await req.json();
@@ -203,6 +209,13 @@ export async function POST(req: Request) {
         initPoint: mp.init_point,
         note: "El primer pago requiere abrir este link y autorizar con tarjeta + CVV.",
       },
+      activation: {
+        endpoint: `${SITE}/api/auditor/activate`,
+        method: "POST",
+        body: { preapprovalId: mp.id },
+        note:
+          "Una vez autorizado el checkout, este POST devuelve tu API key para POST /api/auditor/log (entradas firmadas durables). MP también te redirige a /auditor/gracias, que lo hace solo.",
+      },
       audit: { backend: auditBackend(), entry, ...auditUrls(sessionId) },
     },
     { headers: { "x-play-session": sessionId, "x-audit-backend": auditBackend() } },
@@ -232,6 +245,12 @@ export async function GET() {
         entityCuit: "opcional",
       },
       live: mpReady,
+      flow: [
+        "1. POST acá → checkout.initPoint de Mercado Pago",
+        "2. El pagador autoriza → redirect a /auditor/gracias?preapproval_id=...",
+        "3. POST /api/auditor/activate { preapprovalId } → API key",
+        "4. POST /api/auditor/log (header x-api-key) → entradas firmadas DURABLES, públicamente verificables",
+      ],
       note: mpReady
         ? "Live: devuelve un checkout init_point de Mercado Pago."
         : "Early access: MP sin configurar; devuelve una sesión de auditoría provisionada.",

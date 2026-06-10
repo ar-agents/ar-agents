@@ -20,7 +20,7 @@ import { JsonLd } from "../json-ld";
 
 type Lang = "es" | "en";
 
-const SAMPLE_SESSION_ID = "demo-public-ar-001";
+const SAMPLE_SESSION_ID = "ar-agents-sociedad-automatizada";
 const SAMPLE_CUIT = "XX-XXXXXXXX-X";
 
 const T = {
