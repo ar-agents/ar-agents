@@ -31,10 +31,16 @@ import {
   slugFor,
   validate,
 } from "@/lib/incorporate";
+import { clientIp, rateLimit } from "@/lib/ratelimit";
 
 export const runtime = "edge";
 
 export async function POST(req: Request) {
+  // Incorporation entries are durable KV writes — damp per-IP amplification.
+  if (!rateLimit("auto-incorporate", clientIp(req), 10, 60 * 60_000)) {
+    return NextResponse.json({ ok: false, error: "rate_limited" }, { status: 429 });
+  }
+
   let raw: unknown;
   try {
     raw = await req.json();
@@ -84,18 +90,24 @@ export async function POST(req: Request) {
     envVars.map((v) => v.name).join(","),
   )}`;
 
-  const auditEntry = await appendAudit(sessionId, {
-    tool: "auto_incorporate",
-    governance: "audit-logged",
-    input: {
-      denominacion: input.denominacion,
-      tipo: input.tipo,
-      capitalSocial: input.capitalSocial,
-      objeto: input.objeto.slice(0, 200),
-      piezas,
+  // Incorporation acts are business records, not demo noise: durable, so the
+  // public proof link survives past the 7-day demo TTL.
+  const auditEntry = await appendAudit(
+    sessionId,
+    {
+      tool: "auto_incorporate",
+      governance: "audit-logged",
+      input: {
+        denominacion: input.denominacion,
+        tipo: input.tipo,
+        capitalSocial: input.capitalSocial,
+        objeto: input.objeto.slice(0, 200),
+        piezas,
+      },
+      output: { slug, valid: validation.valid, files: Object.keys(config) },
     },
-    output: { slug, valid: validation.valid, files: Object.keys(config) },
-  });
+    { durable: true },
+  );
 
   return NextResponse.json(
     {

@@ -191,7 +191,7 @@ export default function NotePage() {
             <A href="/share">/share</A> (6 prepared social + email
             templates),{" "}
             <A href="/timeline">/timeline</A> (visual chronology),{" "}
-            <A href="/audit-explorer/demo-public-ar-001">/audit-explorer/{`{sessionId}`}</A>{" "}
+            <A href="/audit-explorer/ar-agents-sociedad-automatizada">/audit-explorer/{`{sessionId}`}</A>{" "}
             (forensic per-session view),{" "}
             <A href="/feed.xml">/feed.xml</A> (Atom feed of shipping
             rounds),{" "}

@@ -1,49 +1,58 @@
 # ar-agents
 
-> Open-source toolkit and reference implementation for Argentine **sociedades-IA** — AI-only companies under Argentina's proposed regime (anuncio Sturzenegger 28-abr-2026). 18 npm packages, 169 tools, 8 hosted endpoints, 4 RFCs (001..004), conformance test vectors, public certifier. MIT + CC-BY-4.0, SLSA-provenanced. Every tool call lands in an HMAC-SHA256-signed audit log persisted to Vercel KV.
+> Open infrastructure for Argentina's **sociedades de IA** — AI-operated companies under the Anteproyecto de Ley General de Sociedades (art. 14 "Sociedad Automatizada", sent to the Senate 1-jun-2026, not yet law). 33 npm packages, 221 typed tools, hosted endpoints, 6 RFCs (001..006), conformance test vectors, public certifier. MIT + CC-BY-4.0, SLSA-provenanced. Every tool call lands in an HMAC-SHA256 + Ed25519-signed audit log persisted to Vercel KV.
 
-The toolkit covers 16 of the 17 operating pieces an Argentine business needs (identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD). RFC-001 proposes a three-layer liability framework. RFC-004 normatively pins down the operational-log wire format with 7 frozen conformance vectors at `/test-vectors/rfc-004-v1.json`. The companion human-facing demo at `/play` is operable in 30 seconds with zero setup, and an external orchestrator can self-incorporate an AR sociedad-IA programmatically via `POST /api/auto-incorporate` (or the typed npm client `@ar-agents/incorporate`).
+The toolkit covers the operating pieces an Argentine business needs (identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, tax engines). RFC-001 proposes a three-layer liability framework. RFC-004 normatively pins down the operational-log wire format with 7 frozen conformance vectors at `/test-vectors/rfc-004-v1.json`. RFC-006 adds hash-chain + anchoring so the log defends itself even against its own operator. The human-facing demo at `/play` is operable in 30 seconds with zero setup, and an external orchestrator can self-incorporate an AR sociedad-IA programmatically via `POST /api/auto-incorporate` (or the typed npm client `@ar-agents/incorporate`).
+
+## Paid products (an agent can buy these autonomously)
+
+- [Pricing](https://ar-agents.ar/precios) ([en](https://ar-agents.ar/en/pricing)): open-core model. The standard is free; trust is a service.
+- **El Auditor** — hosted proof-of-autonomy (RFC-004/005/006), USD 199/mo. Legal hook: art. 102 (the administrator answers for the AI; this signed log is the evidence of an adequate decision procedure, art. 101). `GET https://ar-agents.ar/api/auditor/subscribe` for the machine-readable contract, `POST` to subscribe (returns a Mercado Pago checkout `init_point`). After the payer authorizes, `POST /api/auditor/activate` with the `preapproval_id` returns an API key; write signed durable entries via `POST /api/auditor/log` with header `x-api-key`.
+- [Case study: ar-agents incorporated itself](https://ar-agents.ar/caso-ar-agents) ([en](https://ar-agents.ar/en/ar-agents-case)) — the recursive dogfood: this company constituted itself and subscribed to its own audit layer. Public verifiable session: [/dashboard/ar-agents-sociedad-automatizada](https://ar-agents.ar/dashboard/ar-agents-sociedad-automatizada).
 
 ## Start here
 
-- [Reference index](https://ar-agents.vercel.app/reference): every URL, endpoint, package, well-known well in one page. The fastest way to crawl the whole surface.
-- [Live agent demo](https://ar-agents.vercel.app/play): 12-tool sociedad-IA agent. Streaming via Vercel AI Gateway. Zero setup.
-- [Auto-incorporation API](https://ar-agents.vercel.app/api/auto-incorporate): one POST → generated source files + Vercel deploy URL + signed audit-log reference. Idempotent.
-- [SDK docs](https://ar-agents.vercel.app/sdk): @ar-agents/incorporate, zero-dep TS client, ~4KB.
-- [Architecture](https://ar-agents.vercel.app/architecture): 16 packages, Mermaid diagrams, the Edge-Runtime composition contract.
-- [Cookbook](https://ar-agents.vercel.app/examples): 26 production patterns.
-- [Data room](https://ar-agents.vercel.app/data-room): live npm + GitHub numbers, auto-refreshed every 6h.
+- [Reference index](https://ar-agents.ar/reference): every URL, endpoint, package, well-known well in one page. The fastest way to crawl the whole surface.
+- [Live agent demo](https://ar-agents.ar/play): 12-tool sociedad-IA agent. Streaming via Vercel AI Gateway. Zero setup.
+- [Auto-incorporation API](https://ar-agents.ar/api/auto-incorporate): one POST → generated source files + Vercel deploy URL + signed audit-log reference. Idempotent.
+- [SDK docs](https://ar-agents.ar/sdk): @ar-agents/incorporate, zero-dep TS client, ~4KB.
+- [Architecture](https://ar-agents.ar/architecture): 16 packages, Mermaid diagrams, the Edge-Runtime composition contract.
+- [Cookbook](https://ar-agents.ar/examples): 26 production patterns.
+- [Data room](https://ar-agents.ar/data-room): live npm + GitHub numbers, auto-refreshed every 6h.
 
 ## Governance
 
-- [Playbook (en)](https://ar-agents.vercel.app/playbook) · [Playbook (es)](https://ar-agents.vercel.app/es/playbook): flagship narrative. The single doc that explains the toolkit, the regime, the operating model.
-- [RFC-001](https://ar-agents.vercel.app/rfcs/001): three-layer liability framework (operator / model provider / library author). Includes the audit-log probative-value contract (§ 9).
-- [RFC-002](https://ar-agents.vercel.app/rfcs/002): agent-discovery-by-default. /.well-known/agents.json convention.
-- [RFC-003](https://ar-agents.vercel.app/rfcs/003): cross-jurisdictional audit-log reciprocity envelope.
-- [RFC-004](https://ar-agents.vercel.app/rfcs/004): canonical operational-log wire format. The document legislation can cite.
-- [RFC-005](https://ar-agents.vercel.app/rfcs/005): Ed25519 asymmetric upgrade path. **SHIPPED + VERIFIED LIVE** — production `/api/play` entries carry both `hmac` and `signature` fields. Live confirmation: 3/3 HMAC + 3/3 Ed25519 verified.
-- [Test vectors](https://ar-agents.vercel.app/test-vectors): RFC-004 v1 (7 vectors) + RFC-005 v1 (3 vectors). Reference impl passes all 10 (107 vitest tests in 6 files, including 4 dual-sign regression tests).
-- [Auditor's brief](https://ar-agents.vercel.app/auditor): 1-page Spanish-first regulator-facing summary. Print-friendly.
-- [Legislative synthesis](https://ar-agents.vercel.app/legislacion): Spanish synthesis of all 5 RFCs with suggested cite-by-reference legislative text. English mirror at /en/legislation.
-- [Registry of known implementations](https://ar-agents.vercel.app/registro): public list of sociedades-IA implementing the RFCs. Self-listed via PR. Live cert-badges per entry.
-- [Compliance certifier](https://ar-agents.vercel.app/certifier): paste any URL, score 0-100 against RFC-002 + RFC-004 + RFC-005. Programmatic API at /api/certifier.
-- [Glossary](https://ar-agents.vercel.app/glossary): 21 alphabetized term definitions across concepts/protocols/specs/tools.
-- [Outreach templates](https://ar-agents.vercel.app/share): copy-paste social + email drafts for sharing ar-agents with regulators, journalists, ministry asesores.
-- [Academic references](https://ar-agents.vercel.app/refs): BibTeX, APA, Chicago citations for the 4 RFCs + datasets + toolkit.
-- [Timeline](https://ar-agents.vercel.app/timeline): visual chronology from the Sturzenegger 28-abr-2026 announcement onwards.
-- [Architecture / audit-log deep-dive](https://ar-agents.vercel.app/architecture/audit-log): 11-section code-level breakdown.
-- [Architecture / security model](https://ar-agents.vercel.app/architecture/security): code-level threat walkthrough (T1-T14).
-- [Security threat model](https://ar-agents.vercel.app/security): 14 explicit threats, 14 explicit mitigations. STRIDE + OWASP LLM Top 10.
-- [Verify any audit log](https://ar-agents.vercel.app/verify): paste a session id, get an independent server-side HMAC re-verification report.
-- [Audit explorer](https://ar-agents.vercel.app/audit-explorer/demo-public-ar-001): forensic per-session view with governance bar, tool usage, latency quantiles, mini-timeline.
-- [Operational status](https://ar-agents.vercel.app/status): live state of every subsystem (KV, HMAC, AI Gateway, ARCA, MP, WhatsApp, BCRA). Refreshed every 30s. Live RFC-002+004 self-cert badge.
-- [Jurisdiction comparison](https://ar-agents.vercel.app/jurisdicciones): side-by-side of AR proposal vs Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify, EU AI Act Art. 50. Honest delta of what each precedent has that ar-agents does not (yet).
-- [Immutable citation generator](https://ar-agents.vercel.app/cite): pick an RFC + commit hash, get BibTeX / APA / Chicago citations anchored to GitHub commit. Programmatic API at GET /api/cite. For legislators citing the spec in articulado.
-- [Government briefing](https://ar-agents.vercel.app/gobierno): operational 10-min briefing for ministry advisors. Distinct from /al-ministro (personal letter): this is the structured one-page-scroll a staffer forwards internally.
-- [Cloud (commercial tier)](https://ar-agents.vercel.app/cloud): the open-core model. Self-host stays free forever; Studio/Government/Bespoke tiers cover managed hosting, SLA, AR data residency, key custody. Answers "how does this monetize if everything is open-source?".
-- [Co-sign an RFC](https://ar-agents.vercel.app/co-firmar): open invitation to academic / juridical co-authors of the 5 RFCs. CC-BY-4.0, no commercial commitment, co-authorship cited formally via /cite.
-- [Dashboard index](https://ar-agents.vercel.app/dashboard): per-session forensic model + link to public demo session /dashboard/demo-public-ar-001.
-- [Feed](https://ar-agents.vercel.app/feed.xml): Atom feed of shipping rounds.
+- [Playbook (en)](https://ar-agents.ar/playbook) · [Playbook (es)](https://ar-agents.ar/es/playbook): flagship narrative. The single doc that explains the toolkit, the regime, the operating model.
+- [RFC-001](https://ar-agents.ar/rfcs/001): three-layer liability framework (operator / model provider / library author). Includes the audit-log probative-value contract (§ 9).
+- [RFC-002](https://ar-agents.ar/rfcs/002): agent-discovery-by-default. /.well-known/agents.json convention.
+- [RFC-003](https://ar-agents.ar/rfcs/003): cross-jurisdictional audit-log reciprocity envelope.
+- [RFC-004](https://ar-agents.ar/rfcs/004): canonical operational-log wire format. The document legislation can cite.
+- [RFC-005](https://ar-agents.ar/rfcs/005): Ed25519 asymmetric upgrade path. **SHIPPED + VERIFIED LIVE** — production `/api/play` entries carry both `hmac` and `signature` fields. Live confirmation: 3/3 HMAC + 3/3 Ed25519 verified.
+- [RFC-006](https://ar-agents.ar/rfcs/006): hash-chain + external anchoring. Defends the log when the operator is the adversary.
+- [Test vectors](https://ar-agents.ar/test-vectors): RFC-004 v1 (7 vectors) + RFC-005 v1 (3 vectors). Reference impl passes all 10 (107 vitest tests in 6 files, including 4 dual-sign regression tests).
+- [Auditor's brief](https://ar-agents.ar/auditor): 1-page Spanish-first regulator-facing summary. Print-friendly.
+- [Legislative synthesis](https://ar-agents.ar/legislacion): Spanish synthesis of all 6 RFCs with suggested cite-by-reference legislative text. English mirror at /en/legislation.
+- [Sociedades de IA thesis](https://ar-agents.ar/sociedades-ia): the central page on the art. 14 regime and how ar-agents maps to the real articulado (arts. 14/88/101/102/258-265).
+- [Open letter to the minister](https://ar-agents.ar/al-ministro): public letter to Federico Sturzenegger offering the technical layer while the anteproyecto is debated in the Senate.
+- [Registry of known implementations](https://ar-agents.ar/registro): public list of sociedades-IA implementing the RFCs. Self-listed via PR. Live cert-badges per entry.
+- [Compliance certifier](https://ar-agents.ar/certifier): paste any URL, score 0-100 against RFC-002 + RFC-004 + RFC-005. Programmatic API at /api/certifier.
+- [Glossary](https://ar-agents.ar/glossary): 21 alphabetized term definitions across concepts/protocols/specs/tools.
+- [Outreach templates](https://ar-agents.ar/share): copy-paste social + email drafts for sharing ar-agents with regulators, journalists, ministry asesores.
+- [Academic references](https://ar-agents.ar/refs): BibTeX, APA, Chicago citations for the 4 RFCs + datasets + toolkit.
+- [Timeline](https://ar-agents.ar/timeline): visual chronology from the Sturzenegger 28-abr-2026 announcement onwards.
+- [Architecture / audit-log deep-dive](https://ar-agents.ar/architecture/audit-log): 11-section code-level breakdown.
+- [Architecture / security model](https://ar-agents.ar/architecture/security): code-level threat walkthrough (T1-T14).
+- [Security threat model](https://ar-agents.ar/security): 14 explicit threats, 14 explicit mitigations. STRIDE + OWASP LLM Top 10.
+- [Verify any audit log](https://ar-agents.ar/verify): paste a session id, get an independent server-side HMAC re-verification report.
+- [Audit explorer](https://ar-agents.ar/audit-explorer/ar-agents-sociedad-automatizada): forensic per-session view with governance bar, tool usage, latency quantiles, mini-timeline.
+- [Operational status](https://ar-agents.ar/status): live state of every subsystem (KV, HMAC, AI Gateway, ARCA, MP, WhatsApp, BCRA). Refreshed every 30s. Live RFC-002+004 self-cert badge.
+- [Jurisdiction comparison](https://ar-agents.ar/jurisdicciones): side-by-side of AR proposal vs Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify, EU AI Act Art. 50. Honest delta of what each precedent has that ar-agents does not (yet).
+- [Immutable citation generator](https://ar-agents.ar/cite): pick an RFC + commit hash, get BibTeX / APA / Chicago citations anchored to GitHub commit. Programmatic API at GET /api/cite. For legislators citing the spec in articulado.
+- [Government briefing](https://ar-agents.ar/gobierno): operational 10-min briefing for ministry advisors. Distinct from /al-ministro (personal letter): this is the structured one-page-scroll a staffer forwards internally.
+- [Cloud (commercial tier)](https://ar-agents.ar/cloud): the open-core model. Self-host stays free forever; Studio/Government/Bespoke tiers cover managed hosting, SLA, AR data residency, key custody. Answers "how does this monetize if everything is open-source?".
+- [Co-sign an RFC](https://ar-agents.ar/co-firmar): open invitation to academic / juridical co-authors of the 6 RFCs. CC-BY-4.0, no commercial commitment, co-authorship cited formally via /cite.
+- [Dashboard index](https://ar-agents.ar/dashboard): per-session forensic model + link to the public durable session /dashboard/ar-agents-sociedad-automatizada.
+- [Feed](https://ar-agents.ar/feed.xml): Atom feed of shipping rounds.
 
 ## Hosted HTTP API (call directly, no SDK required)
 
@@ -67,26 +76,26 @@ The toolkit covers 16 of the 17 operating pieces an Argentine business needs (id
 
 ## Well-known endpoints (RFC-002 + RFC-004 § 5 + RFC-005 § 4)
 
-- [/.well-known/agents.json](https://ar-agents.vercel.app/.well-known/agents.json) — discovery manifest with issuer.jurisdiction, rfcConformance, auditEndpoints.
-- [/.well-known/sociedad-ia/verify-key?challenge=HEX](https://ar-agents.vercel.app/.well-known/sociedad-ia/verify-key?challenge=deadbeefdeadbeef) — RFC-004 § 5 challenge-response key-possession proof.
-- [/.well-known/sociedad-ia/keys](https://ar-agents.vercel.app/.well-known/sociedad-ia/keys) — RFC-005 § 4 Ed25519 public-keys publication.
+- [/.well-known/agents.json](https://ar-agents.ar/.well-known/agents.json) — discovery manifest with issuer.jurisdiction, rfcConformance, auditEndpoints.
+- [/.well-known/sociedad-ia/verify-key?challenge=HEX](https://ar-agents.ar/.well-known/sociedad-ia/verify-key?challenge=deadbeefdeadbeef) — RFC-004 § 5 challenge-response key-possession proof.
+- [/.well-known/sociedad-ia/keys](https://ar-agents.ar/.well-known/sociedad-ia/keys) — RFC-005 § 4 Ed25519 public-keys publication.
 
 ## Discovery (machine-readable, agent-crawlable)
 
-- [/.well-known/ai-plugin.json](https://ar-agents.vercel.app/.well-known/ai-plugin.json) — OpenAI plugin spec.
-- [/.well-known/agents.json](https://ar-agents.vercel.app/.well-known/agents.json) — agents.md convention. Lists endpoints, packages, governance primitives, per-agent operating instructions.
-- [/.well-known/security.txt](https://ar-agents.vercel.app/.well-known/security.txt) — RFC 9116 disclosure policy.
+- [/.well-known/ai-plugin.json](https://ar-agents.ar/.well-known/ai-plugin.json) — OpenAI plugin spec.
+- [/.well-known/agents.json](https://ar-agents.ar/.well-known/agents.json) — agents.md convention. Lists endpoints, packages, governance primitives, per-agent operating instructions.
+- [/.well-known/security.txt](https://ar-agents.ar/.well-known/security.txt) — RFC 9116 disclosure policy.
 
 ## Press + outreach
 
-- [Press kit](https://ar-agents.vercel.app/press-kit): one-pager + verifiable numbers + citable quotes (es).
-- [vs alternatives](https://ar-agents.vercel.app/vs): comparison table with AfipSDK, handrolled, consultoría.
+- [Press kit](https://ar-agents.ar/press-kit): one-pager + verifiable numbers + citable quotes (es).
+- [vs alternatives](https://ar-agents.ar/vs): comparison table with AfipSDK, handrolled, consultoría.
 
 ## Code
 
-- [github.com/ar-agents/ar-agents](https://github.com/ar-agents/ar-agents): monorepo. 18 packages, 28 cookbook recipes, 5 demo apps, 1 starter template, 5 RFCs, 4 JSON schemas, 2 frozen test-vectors files, 103 vitest tests across 6 files. CITATION.cff at repo root.
-- [npmjs.com/org/ar-agents](https://www.npmjs.com/org/ar-agents): all 18 published packages with SLSA v1 provenance.
-- [Quarterly compliance workflow template](https://ar-agents.vercel.app/workflows/sociedad-ia-quarterly-compliance.yml): drop-in GitHub Actions workflow that generates a self-disclosure JSON every quarter, signed with your AUDIT_HMAC_SECRET, retained 5 years.
+- [github.com/ar-agents/ar-agents](https://github.com/ar-agents/ar-agents): monorepo. 33 packages, cookbook recipes, demo apps, 1 starter template, 6 RFCs, JSON schemas, frozen test-vectors files. CITATION.cff at repo root.
+- [npmjs.com/org/ar-agents](https://www.npmjs.com/org/ar-agents): all 33 published packages with SLSA v1 provenance.
+- [Quarterly compliance workflow template](https://ar-agents.ar/workflows/sociedad-ia-quarterly-compliance.yml): drop-in GitHub Actions workflow that generates a self-disclosure JSON every quarter, signed with your AUDIT_HMAC_SECRET, retained 5 years.
 
 ## Install
 

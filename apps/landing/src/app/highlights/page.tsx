@@ -84,7 +84,7 @@ export default function HighlightsPage() {
             Argentina announced a regime for AI-only companies on{" "}
             <strong>28 April 2026</strong>. We&apos;ve built the
             technical scaffolding so the legislation has something to
-            cite. Five RFCs, 30 cookbook recipes, a public certifier,
+            cite. Six RFCs, 30 cookbook recipes, a public certifier,
             test vectors with deterministic signatures, a registry
             where every implementation scores 100/100.
           </p>

@@ -40,7 +40,7 @@ interface Certification {
   notes: string[];
 }
 
-const SAMPLE_SESSION_ID_FOR_VERIFY = "demo-public-ar-001";
+const SAMPLE_SESSION_ID_FOR_VERIFY = "ar-agents-sociedad-automatizada";
 const FETCH_TIMEOUT_MS = 8000;
 
 async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {

@@ -4,9 +4,429 @@
 /* eslint-disable */
 export const MANIFESTS = [
   {
+    "package": "@ar-agents/aduana",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "aduana_lookup_despacho",
+        "description": "Look up an ARCA Aduana customs declaration by SUSI/KIM/OM number.",
+        "input": {
+          "kind": "SUSI | KIM | OM",
+          "value": "string (number as printed on the despacho)"
+        },
+        "returns": "DespachoLookupResult",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      },
+      {
+        "name": "aduana_lookup_ncm",
+        "description": "Look up an Argentine NCM tariff code (8 digits).",
+        "input": {
+          "code": "8-digit NCM"
+        },
+        "returns": "NcmLookupResult | {code, found: false}",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/agentic-commerce-bridge",
+    "version": "5.0.0",
+    "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP). LLM-buyer-facing checkout sessions, signed webhooks, /.well-known/acp.json discovery, AR-fiscal compliance (auto-issued AFIP/ARCA factura). Infrastructure package — no LLM tool surface.",
+    "tools": []
+  },
+  {
+    "package": "@ar-agents/anses",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "anses_get_cuil_status",
+        "description": "Look up a CUIL's ANSES status.",
+        "input": {
+          "cuil": "11-digit CUIL"
+        },
+        "returns": "CuilStatusResult",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      },
+      {
+        "name": "anses_get_family_allowances",
+        "description": "List family-allowance entitlements for a CUIL.",
+        "input": {
+          "cuil": "11-digit CUIL"
+        },
+        "returns": "FamilyAllowanceEntitlement[]",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      },
+      {
+        "name": "anses_get_minimo_jubilatorio",
+        "description": "Haber mínimo jubilatorio for a YYYY-MM period.",
+        "input": {
+          "period": "YYYY-MM"
+        },
+        "returns": "MinimoJubilatorioRecord | null",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/ap2",
+    "version": "0.2.0",
+    "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
+    "tools": []
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/banking",
+    "version": "0.5.0",
+    "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
+    "tools": [
+      {
+        "name": "get_bcra_variable",
+        "description": "Fetch the time series for a specific BCRA Principales Variables indicator by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional "
+      },
+      {
+        "name": "get_cer",
+        "description": "Convenience: fetch the latest CER (Coeficiente de Estabilización de Referencia, BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. US"
+      },
+      {
+        "name": "get_reservas_bcra",
+        "description": "Convenience: fetch the latest BCRA international reserves (Reservas Internacionales, variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the lates"
+      },
+      {
+        "name": "get_usd_oficial",
+        "description": "Convenience: fetch the latest USD oficial cotización (Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks"
+      },
+      {
+        "name": "get_uva",
+        "description": "Convenience: fetch the latest UVA (Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the use"
+      },
+      {
+        "name": "list_banks",
+        "description": "Return the full list of known Argentine banks with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a work",
+        "input": {},
+        "output": "{ banks: BankInfo[] }"
+      },
+      {
+        "name": "list_bcra_variables",
+        "description": "List all BCRA Principales Variables (monetary indicators) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorist"
+      },
+      {
+        "name": "list_psps",
+        "description": "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers — Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need",
+        "input": {},
+        "output": "{ psps: BankInfo[] }"
+      },
+      {
+        "name": "lookup_bank_by_code",
+        "description": "Look up the Argentine bank or PSP (payment service provider) by its 3-digit BCRA-assigned entity code. PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal name, sho",
+        "input": {
+          "code": "string"
+        },
+        "output": "{ code, found, entity }"
+      },
+      {
+        "name": "lookup_credit_situation",
+        "description": "Look up the BCRA Central de Deudores credit situation for an Argentine CUIT. Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irr",
+        "input": {
+          "cuit": "string"
+        },
+        "output": "BcraDeudaResult & { worstSituationDescription }"
+      },
+      {
+        "name": "validate_cbu",
+        "description": "Validate an Argentine CBU (Clave Bancaria Uniforme, traditional bank account) or CVU (Clave Virtual Uniforme, fintech wallet account) via the BCRA dual mod-10 check-digit algorithm. PURE FUNCTION: no ",
+        "input": {
+          "cbu": "string"
+        },
+        "output": "CbuParseResult"
+      }
+    ],
+    "name": "@ar-agents/banking",
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 11
+    }
+  },
+  {
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/banking-bcra",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "bcra_get_debt",
+        "description": "Raw current debt status from BCRA Central de Deudores.",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "bcra_get_debt_summary",
+        "description": "One-shot credit-check: total debt, worst situación, flags, risk band ('clean'|'low'|'watch'|'high').",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "bcra_get_historical_debt",
+        "description": "24-month historical snapshots for trend analysis.",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "bcra_get_bounced_checks",
+        "description": "Bounced-check history (causa, monto, fecha, optional fechaPago).",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/boletin-oficial",
+    "version": "0.1.0",
+    "description": "Boletín Oficial de la República Argentina — search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",
+    "tools": [
+      {
+        "name": "bo_search",
+        "description": "Full-text search the Boletín Oficial archive. Filter by organismo, fecha range, keyword. Returns ranked normas with summary + publication date."
+      },
+      {
+        "name": "bo_get_norma",
+        "description": "Fetch a single norma by its BO id. Returns the full body + metadata (issuing organism, date, sumario)."
+      },
+      {
+        "name": "bo_today",
+        "description": "Fetch all normas published in today's Boletín Oficial. Useful for the morning operating loop on a sociedad-IA."
+      },
+      {
+        "name": "bo_subscribe",
+        "description": "Subscribe to BO updates by CUIT, organismo, or keyword. Notifications are dispatched via the configured webhook."
+      },
+      {
+        "name": "bo_list_subscriptions",
+        "description": "List all active BO subscriptions for the current tenant."
+      },
+      {
+        "name": "bo_unsubscribe",
+        "description": "Cancel a BO subscription by id. Used by the agent to retire stale watch criteria."
+      }
+    ]
+  },
+  {
+    "package": "@ar-agents/cnv-emisor",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "cnv_get_issuer",
+        "description": "Look up a CNV issuer by code.",
+        "input": {
+          "code": "issuer code, e.g. YPF"
+        },
+        "returns": "IssuerRecord | null",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      },
+      {
+        "name": "cnv_list_hechos_relevantes",
+        "description": "List material-fact filings.",
+        "input": {
+          "issuerCode": "string",
+          "sinceIso": "ISO 8601 optional",
+          "category": "optional enum",
+          "limit": "1-100"
+        },
+        "returns": "HechoRelevante[]",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      },
+      {
+        "name": "cnv_list_financial_statements",
+        "description": "List quarterly / annual / intermediate financials.",
+        "input": {
+          "issuerCode": "string",
+          "limit": "1-100"
+        },
+        "returns": "FinancialStatementRecord[]",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/constancia",
+    "version": "0.1.0",
+    "description": "ARCA Constancia de Inscripción — official fiscal document (régimen, monotributo categoría, impuestos, domicilio, actividades) plus the PDF artifact. Browser-backed: drives the public web form (no Clave Fiscal) via the companion afip-constancia skill on browserbase/skills.",
+    "tools": [
+      {
+        "name": "constancia_inscripcion",
+        "description": "CUIT → official ARCA Constancia de Inscripción: parsed fields + the PDF document with its código verificador. Browser-backed (public form, no cert). Use for the PDF artifact or cert-less data; prefer @ar-agents/identity lookup_cuit_afip when a cert is configured and only data is needed."
+      }
+    ]
+  },
+  {
+    "package": "@ar-agents/dnrpa",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "dnrpa_lookup_dominio",
+        "description": "Look up an Argentine vehicle plate against DNRPA.",
+        "input": {
+          "dominio": "LL000LL or LLL000 plate"
+        },
+        "returns": "DominioLookupResult",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/facturacion",
+    "version": "0.4.0",
+    "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
+    "tools": [
+      {
+        "name": "consultar_factura_emitida",
+        "description": "Consultar los detalles completos de una factura ya emitida (CAE, fecha, importes, doc receptor). USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de datos, o estás migrando de ",
+        "input": {
+          "ptoVta": "number?",
+          "cbteTipo": "number",
+          "cbteNro": "number"
+        },
+        "output": "ConsultarComprobanteResult"
+      },
+      {
+        "name": "consultar_ultimo_comprobante",
+        "description": "Consultar el último número de comprobante autorizado para un (PtoVta, CbteTipo) — i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener",
+        "input": {
+          "ptoVta": "number?",
+          "cbteTipo": "number"
+        },
+        "output": "{ ptoVta, cbteTipo, cbteNro, proximoNumero, tipoComprobanteDescripcion }"
+      },
+      {
+        "name": "emitir_factura",
+        "description": "Emitir una factura electrónica vía AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el CAE (14 dígitos), su fecha de vencimiento, y el núm",
+        "input": "SolicitarCaeInput",
+        "output": "SolicitarCaeResult & { ok, tipoComprobanteDescripcion }"
+      },
+      {
+        "name": "health_check_afip",
+        "description": "Health check de AFIP WSFE — devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
+        "input": {},
+        "output": "DummyResult & { ok }"
+      },
+      {
+        "name": "obtener_alicuotas_iva",
+        "description": "Listar las alícuotas de IVA disponibles según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Prefe",
+        "input": {},
+        "output": "{ items: CatalogItem[] }"
+      },
+      {
+        "name": "obtener_cotizacion",
+        "description": "Obtener la cotización oficial AFIP de una moneda extranjera vs ARS. REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el monCotiz a usar e",
+        "input": {
+          "monId": "string"
+        },
+        "output": "{ monId, cotiz, fchCotiz }"
+      },
+      {
+        "name": "obtener_tipos_comprobante",
+        "description": "Listar los tipos de comprobante disponibles según AFIP (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no es",
+        "input": {},
+        "output": "{ items: CatalogItem[] }"
+      },
+      {
+        "name": "obtener_tipos_concepto",
+        "description": "Listar los tipos de concepto: Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
+        "input": {},
+        "output": "{ items: CatalogItem[] }"
+      },
+      {
+        "name": "obtener_tipos_documento",
+        "description": "Listar los tipos de documento que AFIP acepta (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
+        "input": {},
+        "output": "{ items: CatalogItem[] }"
+      },
+      {
+        "name": "obtener_tipos_moneda",
+        "description": "Listar las monedas que WSFE acepta para emitir facturas (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: roun",
+        "input": {},
+        "output": "{ items: CatalogItem[] }"
+      }
+    ],
+    "name": "@ar-agents/facturacion",
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 10
+    }
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/firma-digital",
+    "version": "0.1.0",
+    "description": "AR digital signature primitives — PKCS#7/CMS verification with AC-Raíz/ONTI trust-anchor heuristic and certificate fingerprint pinning.",
+    "tools": [
+      {
+        "name": "firma_inspect_cert",
+        "description": "Inspect an X.509 certificate (subject, issuer, validity, fingerprint, AKI/SKI, key usage). Use before trusting any cert in a verification chain."
+      },
+      {
+        "name": "firma_verify_chain",
+        "description": "Verify an X.509 chain of trust against a configurable AR trust anchor (defaults to AC-Raíz / ONTI heuristic). Returns the chain depth + the trust-anchor identity."
+      },
+      {
+        "name": "firma_is_onti_issued",
+        "description": "Predicate: does this certificate ultimately chain to an ONTI-issued AC-Raíz root? Use to gate operations that require state-issued PKI identity."
+      },
+      {
+        "name": "firma_verify_cms_signature",
+        "description": "Verify a PKCS#7/CMS detached or attached signature against a payload. Returns the signer chain + claim of authenticity."
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/gde-tad",
+    "version": "0.3.0",
+    "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
+    "tools": [
+      {
+        "name": "get_critical_notifications",
+        "description": "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana."
+      },
+      {
+        "name": "list_domicilio_inbox",
+        "description": "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona, con severidad calculada (critical/important/info) por organismo + asunto + deadline."
+      },
+      {
+        "name": "list_mis_tramites",
+        "description": "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Read-only."
+      },
+      {
+        "name": "validate_igj_inscription",
+        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+      }
+    ],
+    "name": "@ar-agents/gde-tad",
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 4
+    }
+  },
+  {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity",
-    "version": "0.7.0",
+    "version": "0.8.0",
     "factory": "identityTools",
     "tools": [
       {
@@ -65,7 +485,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity-attest",
-    "version": "0.4.2",
+    "version": "0.5.0",
     "factory": "identityAttestTools",
     "tools": [
       {
@@ -146,101 +566,504 @@ export const MANIFESTS = [
   },
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/constancia",
+    "package": "@ar-agents/igj",
     "version": "0.1.0",
-    "description": "ARCA Constancia de Inscripción — official fiscal document (régimen, monotributo categoría, impuestos, domicilio, actividades) plus the PDF artifact. Browser-backed: drives the public web form (no Clave Fiscal) via the companion afip-constancia skill on browserbase/skills.",
+    "description": "Inspección General de Justicia (IGJ) public registry primitives — search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",
     "tools": [
       {
-        "name": "constancia_inscripcion",
-        "description": "CUIT → official ARCA Constancia de Inscripción: parsed fields + the PDF document with its código verificador. Browser-backed (public form, no cert). Use for the PDF artifact or cert-less data; prefer @ar-agents/identity lookup_cuit_afip when a cert is configured and only data is needed."
+        "name": "igj_search_entities",
+        "description": "Full-text search the IGJ corporate registry by name. Returns a paginated list with denominación, CUIT, tipo societario, status."
+      },
+      {
+        "name": "igj_get_entity",
+        "description": "Fetch a single IGJ-registered entity by CUIT or registry number. Includes inscripción/baja status, last update."
+      },
+      {
+        "name": "igj_get_domicilios",
+        "description": "List the registered domicilios (legal/real/fiscal) for an IGJ entity. Useful for verifying counterparties before contracting."
+      },
+      {
+        "name": "igj_get_autoridades",
+        "description": "Fetch the registered authorities (directorio, sindicatura, gerencia) for an entity, with start/end dates of their mandate."
+      },
+      {
+        "name": "igj_get_balances",
+        "description": "List filed balance-sheet metadata for an entity. Includes filing date and the period covered (the actual balance-sheet PDFs are not yet exposed via the public CKAN)."
+      },
+      {
+        "name": "igj_get_asambleas",
+        "description": "List filed shareholder/partner asambleas for an entity (date, type, registered minutes ID)."
       }
     ]
   },
   {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/mi-argentina",
-    "version": "0.1.0",
-    "description": "Mi Argentina (gov OIDC) as drop-in tools for the Vercel AI SDK. PKCE login, ID-token JWT verification with JWKS caching, userinfo, refresh.",
-    "tools": [
-      {
-        "name": "mi_argentina_start_login",
-        "description": "Start an OIDC login flow against Mi Argentina. Returns the authorize URL + state/nonce for replay protection."
-      },
-      {
-        "name": "mi_argentina_complete_login",
-        "description": "Exchange the OIDC code for an ID token + access token. Verifies the JWT signature against the cached JWKS."
-      },
-      {
-        "name": "mi_argentina_get_user_profile",
-        "description": "Fetch the authenticated user's profile (DNI, name, contact info) from the Mi Argentina userinfo endpoint."
-      },
-      {
-        "name": "mi_argentina_verify_id_token",
-        "description": "Verify an ID token JWT against Mi Argentina's published JWKS. Use to validate identity claims from upstream services."
-      },
-      {
-        "name": "mi_argentina_refresh_token",
-        "description": "Refresh an expired access token using a refresh token. Maintains long-lived sessions without forcing re-login."
-      }
-    ]
-  },
-  {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/firma-digital",
-    "version": "0.1.0",
-    "description": "AR digital signature primitives — PKCS#7/CMS verification with AC-Raíz/ONTI trust-anchor heuristic and certificate fingerprint pinning.",
-    "tools": [
-      {
-        "name": "firma_inspect_cert",
-        "description": "Inspect an X.509 certificate (subject, issuer, validity, fingerprint, AKI/SKI, key usage). Use before trusting any cert in a verification chain."
-      },
-      {
-        "name": "firma_verify_chain",
-        "description": "Verify an X.509 chain of trust against a configurable AR trust anchor (defaults to AC-Raíz / ONTI heuristic). Returns the chain depth + the trust-anchor identity."
-      },
-      {
-        "name": "firma_is_onti_issued",
-        "description": "Predicate: does this certificate ultimately chain to an ONTI-issued AC-Raíz root? Use to gate operations that require state-issued PKI identity."
-      },
-      {
-        "name": "firma_verify_cms_signature",
-        "description": "Verify a PKCS#7/CMS detached or attached signature against a payload. Returns the signer chain + claim of authenticity."
-      }
-    ]
-  },
-  {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/gde-tad",
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/iibb",
     "version": "0.2.0",
-    "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
     "tools": [
       {
-        "name": "get_critical_notifications",
-        "description": "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana."
+        "name": "iibb_calculate_retention",
+        "description": "Pure math: compute IIBB retention amount = base × rate, with optional minimum threshold.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "list_domicilio_inbox",
-        "description": "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona, con severidad calculada (critical/important/info) por organismo + asunto + deadline."
+        "name": "iibb_calculate_perception",
+        "description": "Pure math: compute IIBB perception amount on a sale.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "list_mis_tramites",
-        "description": "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Read-only."
+        "name": "iibb_compute_ddjj",
+        "description": "Assemble a monthly DDJJ from income lines + rate-book. Supports LOCAL and CM Article 2 (general).",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "validate_igj_inscription",
-        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+        "name": "iibb_lookup_padron",
+        "description": "Lookup a CUIT's taxpayer status in a jurisdiction's padrón. Real adapters ship for CABA (AgipPublicAdapter, no auth) and BSAS (ArbaCitAdapter, host-supplied CIT fetcher). Other jurisdictions: subclass HttpPadronAdapter.",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
       }
+    ]
+  },
+  {
+    "package": "@ar-agents/inpi",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "inpi_search_trademark",
+        "description": "Search INPI trademarks by denomination substring.",
+        "input": {
+          "q": "substring (min 2 chars)",
+          "niceClass": "optional 1-45",
+          "status": "optional enum",
+          "limit": "1-100"
+        },
+        "returns": "SearchResult",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      },
+      {
+        "name": "inpi_get_trademark",
+        "description": "Look up one trademark by acta.",
+        "input": {
+          "acta": "string"
+        },
+        "returns": "TrademarkRecord | null",
+        "sideEffect": "none (read-only)",
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/iva-percepciones",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "iva_perception_calculate",
+        "description": "Compute the IVA perception (extra charge added on top of IVA) for a sale invoice. Returns 0 with waiverReason when buyer is exento / monotributista / consumidor final, below mínimo, or has a non-perception certificate.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "iva_perception_build_ddjj",
+        "description": "Aggregate perception results into a monthly SIRE DDJJ with per-regime and per-buyer breakdowns. Pure aggregation.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "iva_perception_submit_ddjj",
+        "description": "Submit an assembled SIRE perception DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "sideEffects": "files tax return",
+        "idempotent": true,
+        "requiresConfirmation": true
+      }
+    ]
+  },
+  {
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/iva-retenciones",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "iva_retention_calculate",
+        "description": "Compute the IVA retention amount on a payment to a supplier per RG 2854/10. Returns 0 with waiverReason when supplier is exempt/monotributista, below mínimo, or has a non-retention certificate.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "iva_retention_build_ddjj",
+        "description": "Aggregate retention results into a monthly SIRE DDJJ with per-regime and per-supplier breakdowns. Pure aggregation.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "iva_retention_submit_ddjj",
+        "description": "Submit an assembled SIRE retention DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "sideEffects": "files tax return",
+        "idempotent": true,
+        "requiresConfirmation": true
+      }
+    ]
+  },
+  {
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/mcp",
+    "version": "0.9.0",
+    "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package — exposes the underlying tool surface via stdio transport.",
+    "tools": []
+  },
+  {
+    "$schema": "https://ar-agents.ar/schema/tools-manifest.json",
+    "package": "@ar-agents/mercadolibre",
+    "version": "0.1.0",
+    "description": "Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",
+    "site_ids": [
+      "MLA",
+      "MLB",
+      "MLM",
+      "MLC",
+      "MCO",
+      "MPE",
+      "MLU"
     ],
-    "name": "@ar-agents/gde-tad",
-    "meta": {
-      "generated_by": "scripts/regen-manifests.mjs",
-      "tool_count": 4
-    }
+    "tools": [
+      {
+        "name": "list_my_items",
+        "summary": "List the configured seller's listings (active, paused, or closed).",
+        "input": {
+          "status": {
+            "type": "enum",
+            "values": [
+              "active",
+              "paused",
+              "closed",
+              "all"
+            ],
+            "optional": true
+          },
+          "search": {
+            "type": "string",
+            "optional": true,
+            "description": "Free-text filter applied to title."
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50,
+            "max": 100
+          }
+        },
+        "output": {
+          "items": {
+            "type": "array",
+            "of": "ItemSummary"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "get_item",
+        "summary": "Fetch a single listing by id.",
+        "input": {
+          "itemId": {
+            "type": "string",
+            "description": "Site-prefixed item id, e.g. MLA1402155766."
+          }
+        },
+        "output": "Item",
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "create_item",
+        "summary": "Create a new listing.",
+        "input": "ItemCreateRequest",
+        "output": {
+          "id": "string",
+          "status": "string",
+          "permalink": "string"
+        },
+        "side_effects": "creates a real listing on MELI",
+        "rate_limit_class": "write",
+        "preconditions": [
+          "category_id must exist for the configured site",
+          "listing_type_id must be valid for the seller's reputation level"
+        ]
+      },
+      {
+        "name": "update_item_price_or_stock",
+        "summary": "Update price and/or available_quantity on an existing listing.",
+        "input": {
+          "itemId": "string",
+          "price": {
+            "type": "number",
+            "optional": true
+          },
+          "available_quantity": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": "ItemSummary",
+        "side_effects": "modifies the listing",
+        "rate_limit_class": "write",
+        "idempotent": true,
+        "notes": "available_quantity = 0 auto-pauses the listing."
+      },
+      {
+        "name": "categorize_listing_and_plan_attributes",
+        "summary": "Predict the category for a free-text title and return the required attributes.",
+        "input": {
+          "title": "string",
+          "siteId": {
+            "type": "string",
+            "optional": true,
+            "description": "Defaults to the toolkit's configured site."
+          }
+        },
+        "output": {
+          "predicted": {
+            "category_id": "string",
+            "name": "string",
+            "path": "array<string>"
+          },
+          "requiredAttributeIds": "array<string>",
+          "technicalSpecs": "TechnicalSpecResponse"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "list_unanswered_questions",
+        "summary": "List questions on the seller's listings that haven't been answered.",
+        "input": {
+          "itemId": {
+            "type": "string",
+            "optional": true
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50
+          }
+        },
+        "output": {
+          "questions": "array<Question>",
+          "total": "number"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "answer_question",
+        "summary": "Post an answer to a question.",
+        "input": {
+          "questionId": "number",
+          "text": {
+            "type": "string",
+            "max_length": 2000
+          }
+        },
+        "output": {
+          "id": "number",
+          "text": "string",
+          "status": "string"
+        },
+        "side_effects": "writes a public answer visible on the listing",
+        "rate_limit_class": "write"
+      },
+      {
+        "name": "classify_question_spam",
+        "summary": "Heuristic spam classifier — labels a question as spam, borderline, or ham.",
+        "input": {
+          "questionText": "string",
+          "askerProfile": {
+            "account_age_days": {
+              "type": "number",
+              "optional": true
+            },
+            "answered_questions": {
+              "type": "number",
+              "optional": true
+            }
+          },
+          "recentQuestionsByThisAsker": {
+            "type": "array<string>",
+            "optional": true
+          }
+        },
+        "output": {
+          "label": {
+            "type": "enum",
+            "values": [
+              "spam",
+              "borderline",
+              "ham"
+            ]
+          },
+          "score": {
+            "type": "number",
+            "range": "0..1"
+          },
+          "features": "QuestionSpamFeatures"
+        },
+        "side_effects": "none — pure local function, no MELI call",
+        "rate_limit_class": "none"
+      },
+      {
+        "name": "list_recent_orders",
+        "summary": "List the seller's recent orders.",
+        "input": {
+          "status": {
+            "type": "enum",
+            "values": [
+              "paid",
+              "confirmed",
+              "cancelled",
+              "invalid",
+              "all"
+            ],
+            "optional": true
+          },
+          "dateFrom": {
+            "type": "ISO8601",
+            "optional": true
+          },
+          "dateTo": {
+            "type": "ISO8601",
+            "optional": true
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50
+          }
+        },
+        "output": {
+          "orders": "array<OrderSummary>",
+          "total": "number"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "defaults": "if no status, returns paid + confirmed; if no dateFrom, returns last 24h"
+      },
+      {
+        "name": "get_order",
+        "summary": "Fetch a single order with full detail (items, payments, buyer billing).",
+        "input": {
+          "orderId": "number"
+        },
+        "output": "Order",
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "list_open_claims",
+        "summary": "List open claims/disputes/mediations for the seller, sorted by due_date ASC.",
+        "input": {
+          "stage": {
+            "type": "enum",
+            "values": [
+              "claim",
+              "dispute",
+              "mediation"
+            ],
+            "optional": true
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50
+          }
+        },
+        "output": {
+          "claims": "array<Claim>",
+          "total": "number"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "defend_claim",
+        "summary": "Defend a claim — uploads N evidences in parallel + optional message.",
+        "input": {
+          "claimId": "number",
+          "evidences": "array<{ evidence_type, text?, file_id? }>",
+          "message": {
+            "type": "string",
+            "optional": true
+          }
+        },
+        "output": {
+          "claim": "Claim",
+          "uploadedEvidences": "array<{ type: EvidenceType }>",
+          "messagePosted": "{ message: string } | null"
+        },
+        "side_effects": "uploads evidences + posts a message visible to the buyer + MELI mediator",
+        "rate_limit_class": "write"
+      },
+      {
+        "name": "get_seller_reputation",
+        "summary": "Read the seller's reputation (thermometer + metrics + pre-evaluated alerts).",
+        "input": {
+          "sellerId": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": {
+          "level_id": {
+            "type": "enum",
+            "values": [
+              "5_green",
+              "4_light_green",
+              "3_yellow",
+              "2_orange",
+              "1_red"
+            ]
+          },
+          "metrics": "SellerReputationMetrics",
+          "alerts": "array<ReputationAlert>"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      },
+      {
+        "name": "list_promotion_candidates",
+        "summary": "List items eligible for current MELI promotions (discount % suggested by MELI).",
+        "input": {
+          "sellerId": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": {
+          "candidates": "array<PromotionCandidate>"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read"
+      }
+    ]
   },
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/mercadopago",
-    "version": "0.17.2",
+    "version": "0.18.0",
     "factory": "mercadoPagoTools",
     "tools": [
       {
@@ -900,564 +1723,37 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.ar/schema/tools-manifest.json",
-    "package": "@ar-agents/mercadolibre",
+    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/mi-argentina",
     "version": "0.1.0",
-    "description": "Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",
-    "site_ids": [
-      "MLA",
-      "MLB",
-      "MLM",
-      "MLC",
-      "MCO",
-      "MPE",
-      "MLU"
-    ],
+    "description": "Mi Argentina (gov OIDC) as drop-in tools for the Vercel AI SDK. PKCE login, ID-token JWT verification with JWKS caching, userinfo, refresh.",
     "tools": [
       {
-        "name": "list_my_items",
-        "summary": "List the configured seller's listings (active, paused, or closed).",
-        "input": {
-          "status": {
-            "type": "enum",
-            "values": [
-              "active",
-              "paused",
-              "closed",
-              "all"
-            ],
-            "optional": true
-          },
-          "search": {
-            "type": "string",
-            "optional": true,
-            "description": "Free-text filter applied to title."
-          },
-          "limit": {
-            "type": "number",
-            "optional": true,
-            "default": 50,
-            "max": 100
-          }
-        },
-        "output": {
-          "items": {
-            "type": "array",
-            "of": "ItemSummary"
-          },
-          "total": {
-            "type": "number"
-          }
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
+        "name": "mi_argentina_start_login",
+        "description": "Start an OIDC login flow against Mi Argentina. Returns the authorize URL + state/nonce for replay protection."
       },
       {
-        "name": "get_item",
-        "summary": "Fetch a single listing by id.",
-        "input": {
-          "itemId": {
-            "type": "string",
-            "description": "Site-prefixed item id, e.g. MLA1402155766."
-          }
-        },
-        "output": "Item",
-        "side_effects": "none",
-        "rate_limit_class": "read"
+        "name": "mi_argentina_complete_login",
+        "description": "Exchange the OIDC code for an ID token + access token. Verifies the JWT signature against the cached JWKS."
       },
       {
-        "name": "create_item",
-        "summary": "Create a new listing.",
-        "input": "ItemCreateRequest",
-        "output": {
-          "id": "string",
-          "status": "string",
-          "permalink": "string"
-        },
-        "side_effects": "creates a real listing on MELI",
-        "rate_limit_class": "write",
-        "preconditions": [
-          "category_id must exist for the configured site",
-          "listing_type_id must be valid for the seller's reputation level"
-        ]
+        "name": "mi_argentina_get_user_profile",
+        "description": "Fetch the authenticated user's profile (DNI, name, contact info) from the Mi Argentina userinfo endpoint."
       },
       {
-        "name": "update_item_price_or_stock",
-        "summary": "Update price and/or available_quantity on an existing listing.",
-        "input": {
-          "itemId": "string",
-          "price": {
-            "type": "number",
-            "optional": true
-          },
-          "available_quantity": {
-            "type": "number",
-            "optional": true
-          }
-        },
-        "output": "ItemSummary",
-        "side_effects": "modifies the listing",
-        "rate_limit_class": "write",
-        "idempotent": true,
-        "notes": "available_quantity = 0 auto-pauses the listing."
+        "name": "mi_argentina_verify_id_token",
+        "description": "Verify an ID token JWT against Mi Argentina's published JWKS. Use to validate identity claims from upstream services."
       },
       {
-        "name": "categorize_listing_and_plan_attributes",
-        "summary": "Predict the category for a free-text title and return the required attributes.",
-        "input": {
-          "title": "string",
-          "siteId": {
-            "type": "string",
-            "optional": true,
-            "description": "Defaults to the toolkit's configured site."
-          }
-        },
-        "output": {
-          "predicted": {
-            "category_id": "string",
-            "name": "string",
-            "path": "array<string>"
-          },
-          "requiredAttributeIds": "array<string>",
-          "technicalSpecs": "TechnicalSpecResponse"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "list_unanswered_questions",
-        "summary": "List questions on the seller's listings that haven't been answered.",
-        "input": {
-          "itemId": {
-            "type": "string",
-            "optional": true
-          },
-          "limit": {
-            "type": "number",
-            "optional": true,
-            "default": 50
-          }
-        },
-        "output": {
-          "questions": "array<Question>",
-          "total": "number"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "answer_question",
-        "summary": "Post an answer to a question.",
-        "input": {
-          "questionId": "number",
-          "text": {
-            "type": "string",
-            "max_length": 2000
-          }
-        },
-        "output": {
-          "id": "number",
-          "text": "string",
-          "status": "string"
-        },
-        "side_effects": "writes a public answer visible on the listing",
-        "rate_limit_class": "write"
-      },
-      {
-        "name": "classify_question_spam",
-        "summary": "Heuristic spam classifier — labels a question as spam, borderline, or ham.",
-        "input": {
-          "questionText": "string",
-          "askerProfile": {
-            "account_age_days": {
-              "type": "number",
-              "optional": true
-            },
-            "answered_questions": {
-              "type": "number",
-              "optional": true
-            }
-          },
-          "recentQuestionsByThisAsker": {
-            "type": "array<string>",
-            "optional": true
-          }
-        },
-        "output": {
-          "label": {
-            "type": "enum",
-            "values": [
-              "spam",
-              "borderline",
-              "ham"
-            ]
-          },
-          "score": {
-            "type": "number",
-            "range": "0..1"
-          },
-          "features": "QuestionSpamFeatures"
-        },
-        "side_effects": "none — pure local function, no MELI call",
-        "rate_limit_class": "none"
-      },
-      {
-        "name": "list_recent_orders",
-        "summary": "List the seller's recent orders.",
-        "input": {
-          "status": {
-            "type": "enum",
-            "values": [
-              "paid",
-              "confirmed",
-              "cancelled",
-              "invalid",
-              "all"
-            ],
-            "optional": true
-          },
-          "dateFrom": {
-            "type": "ISO8601",
-            "optional": true
-          },
-          "dateTo": {
-            "type": "ISO8601",
-            "optional": true
-          },
-          "limit": {
-            "type": "number",
-            "optional": true,
-            "default": 50
-          }
-        },
-        "output": {
-          "orders": "array<OrderSummary>",
-          "total": "number"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read",
-        "defaults": "if no status, returns paid + confirmed; if no dateFrom, returns last 24h"
-      },
-      {
-        "name": "get_order",
-        "summary": "Fetch a single order with full detail (items, payments, buyer billing).",
-        "input": {
-          "orderId": "number"
-        },
-        "output": "Order",
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "list_open_claims",
-        "summary": "List open claims/disputes/mediations for the seller, sorted by due_date ASC.",
-        "input": {
-          "stage": {
-            "type": "enum",
-            "values": [
-              "claim",
-              "dispute",
-              "mediation"
-            ],
-            "optional": true
-          },
-          "limit": {
-            "type": "number",
-            "optional": true,
-            "default": 50
-          }
-        },
-        "output": {
-          "claims": "array<Claim>",
-          "total": "number"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "defend_claim",
-        "summary": "Defend a claim — uploads N evidences in parallel + optional message.",
-        "input": {
-          "claimId": "number",
-          "evidences": "array<{ evidence_type, text?, file_id? }>",
-          "message": {
-            "type": "string",
-            "optional": true
-          }
-        },
-        "output": {
-          "claim": "Claim",
-          "uploadedEvidences": "array<{ type: EvidenceType }>",
-          "messagePosted": "{ message: string } | null"
-        },
-        "side_effects": "uploads evidences + posts a message visible to the buyer + MELI mediator",
-        "rate_limit_class": "write"
-      },
-      {
-        "name": "get_seller_reputation",
-        "summary": "Read the seller's reputation (thermometer + metrics + pre-evaluated alerts).",
-        "input": {
-          "sellerId": {
-            "type": "number",
-            "optional": true
-          }
-        },
-        "output": {
-          "level_id": {
-            "type": "enum",
-            "values": [
-              "5_green",
-              "4_light_green",
-              "3_yellow",
-              "2_orange",
-              "1_red"
-            ]
-          },
-          "metrics": "SellerReputationMetrics",
-          "alerts": "array<ReputationAlert>"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "list_promotion_candidates",
-        "summary": "List items eligible for current MELI promotions (discount % suggested by MELI).",
-        "input": {
-          "sellerId": {
-            "type": "number",
-            "optional": true
-          }
-        },
-        "output": {
-          "candidates": "array<PromotionCandidate>"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
+        "name": "mi_argentina_refresh_token",
+        "description": "Refresh an expired access token using a refresh token. Maintains long-lived sessions without forcing re-login."
       }
     ]
   },
   {
-    "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/whatsapp",
-    "version": "0.4.0",
-    "tools": [
-      {
-        "name": "mark_whatsapp_read"
-      },
-      {
-        "name": "send_whatsapp_buttons"
-      },
-      {
-        "name": "send_whatsapp_list"
-      },
-      {
-        "name": "send_whatsapp_media"
-      },
-      {
-        "name": "send_whatsapp_template"
-      },
-      {
-        "name": "send_whatsapp_text"
-      }
-    ],
-    "adapters": [
-      {
-        "name": "WhatsAppClient",
-        "kind": "transport",
-        "purpose": "HTTP client over Meta Graph API for WhatsApp Cloud."
-      }
-    ],
-    "webhooks": [
-      {
-        "name": "parseWebhookEvent",
-        "purpose": "Parse Meta's nested webhook envelope into a normalized event (single)."
-      },
-      {
-        "name": "parseWebhookEvents",
-        "purpose": "Parse all events from a batched webhook payload (Meta can send 3+ status updates per POST)."
-      },
-      {
-        "name": "verifyWebhookSignature",
-        "purpose": "HMAC-SHA256 verification of X-Hub-Signature-256 header. Pass RAW body."
-      },
-      {
-        "name": "verifyWebhookSubscription",
-        "purpose": "Handle Meta's GET handshake with hub.challenge / hub.verify_token."
-      }
-    ],
-    "errors": [
-      "WhatsAppError",
-      "WhatsAppNotConfiguredError",
-      "WhatsAppApiError",
-      "WhatsAppRecipientNotOnPlatformError",
-      "WhatsAppOutsideWindowError",
-      "WhatsAppWebhookSignatureError"
-    ],
-    "name": "@ar-agents/whatsapp",
-    "meta": {
-      "generated_by": "scripts/regen-manifests.mjs",
-      "tool_count": 6
-    }
-  },
-  {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/banking",
-    "version": "0.4.0",
-    "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
-    "tools": [
-      {
-        "name": "get_bcra_variable",
-        "description": "Fetch the time series for a specific BCRA Principales Variables indicator by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional "
-      },
-      {
-        "name": "get_cer",
-        "description": "Convenience: fetch the latest CER (Coeficiente de Estabilización de Referencia, BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. US"
-      },
-      {
-        "name": "get_reservas_bcra",
-        "description": "Convenience: fetch the latest BCRA international reserves (Reservas Internacionales, variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the lates"
-      },
-      {
-        "name": "get_usd_oficial",
-        "description": "Convenience: fetch the latest USD oficial cotización (Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks"
-      },
-      {
-        "name": "get_uva",
-        "description": "Convenience: fetch the latest UVA (Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the use"
-      },
-      {
-        "name": "list_banks",
-        "description": "Return the full list of known Argentine banks with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a work",
-        "input": {},
-        "output": "{ banks: BankInfo[] }"
-      },
-      {
-        "name": "list_bcra_variables",
-        "description": "List all BCRA Principales Variables (monetary indicators) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorist"
-      },
-      {
-        "name": "list_psps",
-        "description": "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers — Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need",
-        "input": {},
-        "output": "{ psps: BankInfo[] }"
-      },
-      {
-        "name": "lookup_bank_by_code",
-        "description": "Look up the Argentine bank or PSP (payment service provider) by its 3-digit BCRA-assigned entity code. PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal name, sho",
-        "input": {
-          "code": "string"
-        },
-        "output": "{ code, found, entity }"
-      },
-      {
-        "name": "lookup_credit_situation",
-        "description": "Look up the BCRA Central de Deudores credit situation for an Argentine CUIT. Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irr",
-        "input": {
-          "cuit": "string"
-        },
-        "output": "BcraDeudaResult & { worstSituationDescription }"
-      },
-      {
-        "name": "validate_cbu",
-        "description": "Validate an Argentine CBU (Clave Bancaria Uniforme, traditional bank account) or CVU (Clave Virtual Uniforme, fintech wallet account) via the BCRA dual mod-10 check-digit algorithm. PURE FUNCTION: no ",
-        "input": {
-          "cbu": "string"
-        },
-        "output": "CbuParseResult"
-      }
-    ],
-    "name": "@ar-agents/banking",
-    "meta": {
-      "generated_by": "scripts/regen-manifests.mjs",
-      "tool_count": 11
-    }
-  },
-  {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/facturacion",
-    "version": "0.3.0",
-    "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
-    "tools": [
-      {
-        "name": "consultar_factura_emitida",
-        "description": "Consultar los detalles completos de una factura ya emitida (CAE, fecha, importes, doc receptor). USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de datos, o estás migrando de ",
-        "input": {
-          "ptoVta": "number?",
-          "cbteTipo": "number",
-          "cbteNro": "number"
-        },
-        "output": "ConsultarComprobanteResult"
-      },
-      {
-        "name": "consultar_ultimo_comprobante",
-        "description": "Consultar el último número de comprobante autorizado para un (PtoVta, CbteTipo) — i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener",
-        "input": {
-          "ptoVta": "number?",
-          "cbteTipo": "number"
-        },
-        "output": "{ ptoVta, cbteTipo, cbteNro, proximoNumero, tipoComprobanteDescripcion }"
-      },
-      {
-        "name": "emitir_factura",
-        "description": "Emitir una factura electrónica vía AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el CAE (14 dígitos), su fecha de vencimiento, y el núm",
-        "input": "SolicitarCaeInput",
-        "output": "SolicitarCaeResult & { ok, tipoComprobanteDescripcion }"
-      },
-      {
-        "name": "health_check_afip",
-        "description": "Health check de AFIP WSFE — devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
-        "input": {},
-        "output": "DummyResult & { ok }"
-      },
-      {
-        "name": "obtener_alicuotas_iva",
-        "description": "Listar las alícuotas de IVA disponibles según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Prefe",
-        "input": {},
-        "output": "{ items: CatalogItem[] }"
-      },
-      {
-        "name": "obtener_cotizacion",
-        "description": "Obtener la cotización oficial AFIP de una moneda extranjera vs ARS. REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el monCotiz a usar e",
-        "input": {
-          "monId": "string"
-        },
-        "output": "{ monId, cotiz, fchCotiz }"
-      },
-      {
-        "name": "obtener_tipos_comprobante",
-        "description": "Listar los tipos de comprobante disponibles según AFIP (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no es",
-        "input": {},
-        "output": "{ items: CatalogItem[] }"
-      },
-      {
-        "name": "obtener_tipos_concepto",
-        "description": "Listar los tipos de concepto: Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
-        "input": {},
-        "output": "{ items: CatalogItem[] }"
-      },
-      {
-        "name": "obtener_tipos_documento",
-        "description": "Listar los tipos de documento que AFIP acepta (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
-        "input": {},
-        "output": "{ items: CatalogItem[] }"
-      },
-      {
-        "name": "obtener_tipos_moneda",
-        "description": "Listar las monedas que WSFE acepta para emitir facturas (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: roun",
-        "input": {},
-        "output": "{ items: CatalogItem[] }"
-      }
-    ],
-    "name": "@ar-agents/facturacion",
-    "meta": {
-      "generated_by": "scripts/regen-manifests.mjs",
-      "tool_count": 10
-    }
-  },
-  {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/shipping",
-    "version": "0.2.0",
+    "version": "0.3.0",
     "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",
     "tools": [
       {
@@ -1533,88 +1829,290 @@ export const MANIFESTS = [
     }
   },
   {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/igj",
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/sicore",
     "version": "0.1.0",
-    "description": "Inspección General de Justicia (IGJ) public registry primitives — search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",
     "tools": [
       {
-        "name": "igj_search_entities",
-        "description": "Full-text search the IGJ corporate registry by name. Returns a paginated list with denominación, CUIT, tipo societario, status."
+        "name": "sicore_calculate_retention",
+        "description": "Compute the Ganancias retention amount for a single payment per RG 830/00. Honors monthly accumulator + already-retained credit. Returns 0 when supplier is exento or accumulated is below mínimo.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "igj_get_entity",
-        "description": "Fetch a single IGJ-registered entity by CUIT or registry number. Includes inscripción/baja status, last update."
+        "name": "sicore_calculate_retention_stream",
+        "description": "Walk a chronological stream of payments to ONE supplier in ONE month, returning per-payment retentions with the accumulator advancing.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "igj_get_domicilios",
-        "description": "List the registered domicilios (legal/real/fiscal) for an IGJ entity. Useful for verifying counterparties before contracting."
+        "name": "sicore_build_ddjj",
+        "description": "Aggregate retention results into a monthly SICORE DDJJ with per-category and per-supplier breakdowns. Pure aggregation, does NOT submit.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "igj_get_autoridades",
-        "description": "Fetch the registered authorities (directorio, sindicatura, gerencia) for an entity, with start/end dates of their mandate."
-      },
-      {
-        "name": "igj_get_balances",
-        "description": "List filed balance-sheet metadata for an entity. Includes filing date and the period covered (the actual balance-sheet PDFs are not yet exposed via the public CKAN)."
-      },
-      {
-        "name": "igj_get_asambleas",
-        "description": "List filed shareholder/partner asambleas for an entity (date, type, registered minutes ID)."
+        "name": "sicore_submit_ddjj",
+        "description": "Submit an assembled SICORE DDJJ to AFIP/ARCA. Throws SicoreUnconfiguredError unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "sideEffects": "files tax return",
+        "idempotent": true,
+        "requiresConfirmation": true
       }
     ]
   },
   {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/boletin-oficial",
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/suss",
     "version": "0.1.0",
-    "description": "Boletín Oficial de la República Argentina — search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",
     "tools": [
       {
-        "name": "bo_search",
-        "description": "Full-text search the Boletín Oficial archive. Filter by organismo, fecha range, keyword. Returns ranked normas with summary + publication date."
+        "name": "suss_calculate_employee_month",
+        "description": "Per-employee monthly aportes + contribuciones per F.931 / SICOSS.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "bo_get_norma",
-        "description": "Fetch a single norma by its BO id. Returns the full body + metadata (issuing organism, date, sumario)."
+        "name": "suss_build_ddjj",
+        "description": "Aggregate per-employee results into the monthly SICOSS DDJJ.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
       },
       {
-        "name": "bo_today",
-        "description": "Fetch all normas published in today's Boletín Oficial. Useful for the morning operating loop on a sociedad-IA."
-      },
-      {
-        "name": "bo_subscribe",
-        "description": "Subscribe to BO updates by CUIT, organismo, or keyword. Notifications are dispatched via the configured webhook."
-      },
-      {
-        "name": "bo_list_subscriptions",
-        "description": "List all active BO subscriptions for the current tenant."
-      },
-      {
-        "name": "bo_unsubscribe",
-        "description": "Cancel a BO subscription by id. Used by the agent to retire stale watch criteria."
+        "name": "suss_submit_ddjj",
+        "description": "Submit the SICOSS DDJJ to AFIP. v0.1 throws unless a real adapter is wired.",
+        "sideEffects": "files tax return",
+        "idempotent": true,
+        "requiresConfirmation": true
       }
     ]
   },
   {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/ap2",
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/tienda-nube",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "tienda_nube_get_store",
+        "description": "Retrieve metadata about the bound Tienda Nube store.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_list_products",
+        "description": "Cursor-paginated product list with substring search.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_get_product",
+        "description": "Retrieve a product by id, including all variants.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_list_orders",
+        "description": "List orders with status, payment_status, email, and date filters.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_get_order",
+        "description": "Retrieve a single order by id.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_list_customers",
+        "description": "Cursor-paginated customer list with name+email substring search.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_get_customer",
+        "description": "Retrieve a single customer by id.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_list_webhooks",
+        "description": "List webhook subscriptions for this app on the bound store.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_create_webhook",
+        "description": "Register a webhook subscription. URL must be https://.",
+        "sideEffects": "creates resource",
+        "idempotent": false,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "tienda_nube_delete_webhook",
+        "description": "Delete a webhook subscription by id. Idempotent.",
+        "sideEffects": "irreversible",
+        "idempotent": true,
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/uala",
     "version": "0.2.0",
-    "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
-    "tools": []
+    "tools": [
+      {
+        "name": "uala_create_payment_link",
+        "description": "Create a Ualá payment link the payer can complete on the web or via the Ualá app.",
+        "sideEffects": "creates resource",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "uala_get_payment_link",
+        "description": "Fetch the current state of a previously-created payment link.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "uala_cancel_payment_link",
+        "description": "Revoke an open payment link so it can no longer be paid.",
+        "sideEffects": "irreversible",
+        "idempotent": true,
+        "requiresConfirmation": true
+      },
+      {
+        "name": "uala_list_transactions",
+        "description": "List Ualá account transactions in chronological order.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "uala_get_transaction",
+        "description": "Fetch a single transaction by id.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "uala_get_balance",
+        "description": "Get the current available + pending balance.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "uala_create_payout",
+        "description": "Initiate a payout from the Ualá account to a CBU.",
+        "sideEffects": "moves money",
+        "idempotent": true,
+        "requiresConfirmation": true
+      },
+      {
+        "name": "uala_get_payout",
+        "description": "Fetch the current state of a previously-created payout.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      }
+    ]
   },
   {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/agentic-commerce-bridge",
-    "version": "5.0.0",
-    "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP). LLM-buyer-facing checkout sessions, signed webhooks, /.well-known/acp.json discovery, AR-fiscal compliance (auto-issued AFIP/ARCA factura). Infrastructure package — no LLM tool surface.",
-    "tools": []
+    "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
+    "package": "@ar-agents/whatsapp",
+    "version": "0.5.0",
+    "tools": [
+      {
+        "name": "mark_whatsapp_read"
+      },
+      {
+        "name": "send_whatsapp_buttons"
+      },
+      {
+        "name": "send_whatsapp_list"
+      },
+      {
+        "name": "send_whatsapp_media"
+      },
+      {
+        "name": "send_whatsapp_template"
+      },
+      {
+        "name": "send_whatsapp_text"
+      }
+    ],
+    "adapters": [
+      {
+        "name": "WhatsAppClient",
+        "kind": "transport",
+        "purpose": "HTTP client over Meta Graph API for WhatsApp Cloud."
+      }
+    ],
+    "webhooks": [
+      {
+        "name": "parseWebhookEvent",
+        "purpose": "Parse Meta's nested webhook envelope into a normalized event (single)."
+      },
+      {
+        "name": "parseWebhookEvents",
+        "purpose": "Parse all events from a batched webhook payload (Meta can send 3+ status updates per POST)."
+      },
+      {
+        "name": "verifyWebhookSignature",
+        "purpose": "HMAC-SHA256 verification of X-Hub-Signature-256 header. Pass RAW body."
+      },
+      {
+        "name": "verifyWebhookSubscription",
+        "purpose": "Handle Meta's GET handshake with hub.challenge / hub.verify_token."
+      }
+    ],
+    "errors": [
+      "WhatsAppError",
+      "WhatsAppNotConfiguredError",
+      "WhatsAppApiError",
+      "WhatsAppRecipientNotOnPlatformError",
+      "WhatsAppOutsideWindowError",
+      "WhatsAppWebhookSignatureError"
+    ],
+    "name": "@ar-agents/whatsapp",
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 6
+    }
   },
   {
-    "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
-    "package": "@ar-agents/mcp",
-    "version": "0.9.0",
-    "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package — exposes the underlying tool surface via stdio transport.",
-    "tools": []
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/wscdc",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "wscdc_validate_comprobante",
+        "description": "Validate that a received factura was actually issued by AFIP with a real CAE. Returns resultado='A' (approved), 'N' (rejected — likely forged or wrong data), or 'O' (observed — exists but a non-key field differs).",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "wscdc_health",
+        "description": "Ping the AFIP WSCDC service (Dummy operation). Returns AppServer/DbServer/AuthServer statuses.",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      }
+    ]
   }
 ] as const;

@@ -87,7 +87,7 @@ export default function LegislacionPage() {
               letterSpacing: "-0.01em",
             }}
           >
-            Cinco RFCs listos para citar en el articulado.
+            Seis RFCs listos para citar en el articulado.
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.55 }}>
             El régimen de sociedades-IA fue anunciado el 28 de abril de

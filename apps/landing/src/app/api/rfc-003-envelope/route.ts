@@ -54,7 +54,7 @@ function expiresInDays(days: number): string {
 
 export async function GET(req: Request): Promise<Response> {
   const { searchParams } = new URL(req.url);
-  const sessionId = (searchParams.get("sessionId") || "demo-public-ar-001").trim();
+  const sessionId = (searchParams.get("sessionId") || "ar-agents-sociedad-automatizada").trim();
   const counterpart = (searchParams.get("counterpart") || "").trim();
   const counterpartSession = (searchParams.get("counterpartSession") || "").trim();
   const linkType = (searchParams.get("linkType") || "manual").trim() as Envelope["externalReferences"][0]["linkType"];
