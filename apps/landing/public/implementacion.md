@@ -122,7 +122,7 @@ La arquitectura descrita en la sección 2 está implementada y publicada como so
 ### Qué existe y es verificable
 
 - **Código fuente abierto** en `github.com/ar-agents/ar-agents`, licencia MIT.
-- **17 paquetes publicados en npm** bajo el scope `@ar-agents/*`:
+- **33 paquetes publicados en npm** bajo el scope `@ar-agents/*`:
   - `@ar-agents/identity`, validación de CUIT y consultas al padrón de ARCA
   - `@ar-agents/facturacion`, emisión de facturas con CAE vía WSFE
   - `@ar-agents/mercadopago`, suscripciones recurrentes y cobranzas

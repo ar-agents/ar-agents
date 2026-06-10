@@ -12,7 +12,7 @@ import { DocCode, DocH2, DocP, DocShell } from "../doc-shell";
  * without a sessionId).
  */
 
-const DEMO_SESSION_ID = "demo-public-ar-001";
+const DEMO_SESSION_ID = "ar-agents-sociedad-automatizada";
 
 export const metadata: Metadata = {
   title: "Dashboard · forensic per-session view · ar-agents",
@@ -115,8 +115,8 @@ export default function DashboardIndexPage() {
           independiente.
         </li>
         <li style={liSty}>
-          <a href="/audit-explorer/demo-public-ar-001" style={linkSty}>
-            /audit-explorer/demo-public-ar-001
+          <a href="/audit-explorer/ar-agents-sociedad-automatizada" style={linkSty}>
+            /audit-explorer/ar-agents-sociedad-automatizada
           </a>:{" "}
         vista alternativa: governance bar + tool usage + mini-timeline.
         </li>

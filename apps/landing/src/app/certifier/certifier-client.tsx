@@ -58,7 +58,7 @@ const RFC_CONFORMANCE_COLOR: Record<Certification["rfcConformance"]["rfc-002-v1"
 
 export function CertifierClient() {
   const [url, setUrl] = useState("https://ar-agents.ar");
-  const [sessionId, setSessionId] = useState("demo-public-ar-001");
+  const [sessionId, setSessionId] = useState("ar-agents-sociedad-automatizada");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cert, setCert] = useState<Certification | null>(null);
@@ -149,12 +149,12 @@ export function CertifierClient() {
           />
         </label>
         <label style={labelStyle}>
-          Sample sessionId (optional, defaults to demo-public-ar-001)
+          Sample sessionId (optional, defaults to ar-agents-sociedad-automatizada)
           <input
             type="text"
             value={sessionId}
             onChange={(e) => setSessionId(e.target.value)}
-            placeholder="demo-public-ar-001"
+            placeholder="ar-agents-sociedad-automatizada"
             style={inputStyle}
           />
         </label>

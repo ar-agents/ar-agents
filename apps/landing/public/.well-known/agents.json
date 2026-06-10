@@ -76,32 +76,89 @@
   "packages": {
     "scope": "@ar-agents",
     "registry": "https://www.npmjs.com",
-    "count": 17,
+    "count": 33,
+    "toolCount": 221,
+    "fullInventory": "https://ar-agents.ar/api/discovery",
     "list": [
-      "@ar-agents/identity",
-      "@ar-agents/identity-attest",
-      "@ar-agents/mi-argentina",
+      "@ar-agents/aduana",
+      "@ar-agents/agentic-commerce-bridge",
+      "@ar-agents/anses",
+      "@ar-agents/ap2",
+      "@ar-agents/banking",
+      "@ar-agents/banking-bcra",
+      "@ar-agents/boletin-oficial",
+      "@ar-agents/cnv-emisor",
+      "@ar-agents/constancia",
+      "@ar-agents/core",
+      "@ar-agents/dnrpa",
+      "@ar-agents/facturacion",
       "@ar-agents/firma-digital",
       "@ar-agents/gde-tad",
-      "@ar-agents/mercadopago",
-      "@ar-agents/mercadolibre",
-      "@ar-agents/banking",
-      "@ar-agents/facturacion",
+      "@ar-agents/identity",
+      "@ar-agents/identity-attest",
       "@ar-agents/igj",
-      "@ar-agents/boletin-oficial",
-      "@ar-agents/whatsapp",
-      "@ar-agents/shipping",
-      "@ar-agents/agentic-commerce-bridge",
-      "@ar-agents/ap2",
+      "@ar-agents/iibb",
+      "@ar-agents/incorporate",
+      "@ar-agents/inpi",
+      "@ar-agents/iva-percepciones",
+      "@ar-agents/iva-retenciones",
       "@ar-agents/mcp",
-      "@ar-agents/incorporate"
+      "@ar-agents/mercadolibre",
+      "@ar-agents/mercadopago",
+      "@ar-agents/mi-argentina",
+      "@ar-agents/shipping",
+      "@ar-agents/sicore",
+      "@ar-agents/suss",
+      "@ar-agents/tienda-nube",
+      "@ar-agents/uala",
+      "@ar-agents/whatsapp",
+      "@ar-agents/wscdc"
     ]
+  },
+  "commercial": {
+    "model": "open-core: the standard is free, trust is a service",
+    "pricing": "https://ar-agents.ar/precios",
+    "products": [
+      {
+        "name": "El Auditor",
+        "description": "Hosted proof-of-autonomy (RFC-004/005/006). Durable signed audit log with public verification. Legal hook: art. 102 of the Anteproyecto (non-delegable AI supervision duty).",
+        "priceUsdMonthly": 199,
+        "subscribe": "https://ar-agents.ar/api/auditor/subscribe",
+        "agentPurchasable": true
+      }
+    ],
+    "caseStudy": "https://ar-agents.ar/caso-ar-agents"
   },
   "rfcs": [
     {
       "id": "RFC-001",
       "title": "Three-layer liability framework for AR sociedad-IA",
       "url": "https://ar-agents.ar/rfcs/001"
+    },
+    {
+      "id": "RFC-002",
+      "title": "Agent-discovery-by-default (/.well-known/agents.json)",
+      "url": "https://ar-agents.ar/rfcs/002"
+    },
+    {
+      "id": "RFC-003",
+      "title": "Cross-jurisdictional audit-log reciprocity envelope",
+      "url": "https://ar-agents.ar/rfcs/003"
+    },
+    {
+      "id": "RFC-004",
+      "title": "Canonical operational-log wire format",
+      "url": "https://ar-agents.ar/rfcs/004"
+    },
+    {
+      "id": "RFC-005",
+      "title": "Ed25519 asymmetric signature upgrade",
+      "url": "https://ar-agents.ar/rfcs/005"
+    },
+    {
+      "id": "RFC-006",
+      "title": "Hash-chain + external anchoring",
+      "url": "https://ar-agents.ar/rfcs/006"
     }
   ],
   "governance": {
@@ -110,6 +167,7 @@
       "primitive": "HMAC-SHA256",
       "storage": "Vercel KV (Upstash, sa-east-1) with in-memory fallback",
       "ttlSeconds": 604800,
+      "ttlNote": "Demo /play sessions expire after 7 days. Business records — incorporations via /api/auto-incorporate and paid El Auditor sessions — are durable (no TTL).",
       "verify": "https://ar-agents.ar/verify",
       "publicReadEndpoint": "https://ar-agents.ar/api/play/audit/{sessionId}?verify=1"
     },
