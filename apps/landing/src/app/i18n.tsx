@@ -102,7 +102,7 @@ export const EN = {
   hero_h1_l1: "Open infrastructure for AI corporations.",
   hero_h1_l2: "Built in Argentina.",
   hero_sub:
-    "A Sociedad Automatizada runs on AI agents, not employees (art. 14). ar-agents is the open-source code to incorporate and operate one. The Auditor, the signed proof it operates correctly, is the paid product.",
+    "A Sociedad Automatizada runs on AI agents, not employees. ar-agents is the open-source code to incorporate and operate one.",
   cta_deploy: "Deploy on Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -274,7 +274,7 @@ export const ES: Translations = {
   hero_h1_l1: "Infraestructura abierta para sociedades de IA.",
   hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
-    "Una Sociedad Automatizada opera con agentes de IA, no con empleados (art. 14). ar-agents es el código abierto para constituirla y operarla. El Auditor, la prueba firmada de que opera bien, es el producto pago.",
+    "Una Sociedad Automatizada opera con agentes de IA, no con empleados. ar-agents es el código abierto para constituirla y operarla.",
   cta_deploy: "Deployar en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
