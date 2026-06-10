@@ -157,8 +157,8 @@ export const EN = {
     "deterministic idempotency by default · programmatic HITL on 8 irreversible ops",
 
   // other primitives
-  other_h2: "Other AR primitives in this monorepo",
-  other_intro_a: "Same approach, applied to the rest of the stack an Argentine business needs. Each ships independently to npm and composes with",
+  other_h2: "The toolkit: one package per piece of the stack",
+  other_intro_a: "Every piece of the stack an Argentine business needs, as an independent npm package. They compose with each other and with the flagship,",
   other_intro_b: ".",
   other_card_npm: "npm",
   other_card_source: "source",
@@ -328,8 +328,8 @@ export const ES: Translations = {
   whats_safety_d:
     "idempotencia determinística por default · HITL programático en 8 ops irreversibles",
 
-  other_h2: "Otros primitivos AR en este monorepo",
-  other_intro_a: "El mismo enfoque, aplicado al resto del stack que un negocio argentino necesita. Cada package se publica solo en npm y compone con",
+  other_h2: "El toolkit: un paquete por pieza del stack",
+  other_intro_a: "Cada pieza del stack que un negocio argentino necesita, como package independiente en npm. Componen entre sí y con el insignia,",
   other_intro_b: ".",
   other_card_npm: "npm",
   other_card_source: "código",
