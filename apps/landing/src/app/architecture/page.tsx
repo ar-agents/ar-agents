@@ -284,15 +284,71 @@ const CATEGORY_COLOR: Record<PackageRow["category"], string> = {
   infra: "#64748b",
 };
 
-const TOTAL_TOOLS = PACKAGES.reduce((acc, p) => acc + p.tools, 0);
-const PUBLISHED_PACKAGES = PACKAGES.length;
+// Honest maturity per package. live = works out of the box or pure logic;
+// adapter = real client shipped, defaults to unconfigured until you wire creds;
+// preview = mock-only today, live adapter still to come. Source of truth for
+// the badge so the breadth never reads as more than the code delivers.
+type Maturity = "live" | "adapter" | "preview";
+const MATURITY: Record<string, Maturity> = {
+  "@ar-agents/identity": "adapter",
+  "@ar-agents/identity-attest": "live",
+  "@ar-agents/mi-argentina": "live",
+  "@ar-agents/firma-digital": "live",
+  "@ar-agents/gde-tad": "preview",
+  "@ar-agents/mercadopago": "live",
+  "@ar-agents/mercadolibre": "live",
+  "@ar-agents/banking": "adapter",
+  "@ar-agents/facturacion": "adapter",
+  "@ar-agents/igj": "adapter",
+  "@ar-agents/boletin-oficial": "adapter",
+  "@ar-agents/whatsapp": "live",
+  "@ar-agents/shipping": "adapter",
+  "@ar-agents/agentic-commerce-bridge": "live",
+  "@ar-agents/mcp": "live",
+  "@ar-agents/incorporate": "live",
+};
+const MATURITY_STYLE: Record<Maturity, { label: string; color: string; bg: string }> = {
+  live: { label: "live", color: "#067a3e", bg: "rgba(6,122,62,0.10)" },
+  adapter: { label: "adapter", color: "#9a6700", bg: "rgba(154,103,0,0.10)" },
+  preview: { label: "preview", color: "#6b6b6b", bg: "rgba(107,107,107,0.12)" },
+};
+
+function MaturityBadge({ name }: { name: string }) {
+  const m = MATURITY[name];
+  if (!m) return null;
+  const s = MATURITY_STYLE[m];
+  return (
+    <span
+      style={{
+        fontFamily: FONT_MONO,
+        fontSize: 10,
+        fontWeight: 600,
+        color: s.color,
+        background: s.bg,
+        borderRadius: 4,
+        padding: "1px 6px",
+        textTransform: "uppercase",
+        letterSpacing: "0.04em",
+      }}
+    >
+      {s.label}
+    </span>
+  );
+}
+
+// Canonical totals (match /api/discovery, agents.json, every other surface).
+// The grid below diagrams the core packages by category; the full set is the
+// 33 published packages / 221 tools.
+const PUBLISHED_PACKAGES = 33;
+const CANONICAL_TOOLS = 221;
+const CORE_SHOWN = PACKAGES.length;
 
 export default function ArchitecturePage() {
   return (
     <DocShell
       eyebrow="architecture · 2026-05"
       title="Architecture."
-      subtitle={`${PUBLISHED_PACKAGES} packages, ${TOTAL_TOOLS} tools, one Edge-Runtime composition contract.`}
+      subtitle={`${PUBLISHED_PACKAGES} packages, ${CANONICAL_TOOLS} tools, one Edge-Runtime composition contract.`}
     >
       <DocBlock>
         <DocP>
@@ -312,6 +368,15 @@ export default function ArchitecturePage() {
       </DocBlock>
 
       <DocH2>The 33 packages</DocH2>
+
+      <DocP>
+        The {CORE_SHOWN} core packages are diagrammed below by category; the full
+        set is {PUBLISHED_PACKAGES} packages on npm. Each carries an honest
+        maturity badge: <strong>live</strong> works out of the box or is pure
+        logic, <strong>adapter</strong> ships a real client that defaults to
+        unconfigured until you wire credentials, and <strong>preview</strong> is
+        mock-only today with the live adapter still to come.
+      </DocP>
 
       <MermaidDiagram
         chart={PACKAGE_GRAPH}
@@ -377,6 +442,9 @@ export default function ArchitecturePage() {
                         }}
                       >
                         v{p.version}
+                      </span>
+                      <span style={{ marginLeft: 8 }}>
+                        <MaturityBadge name={p.name} />
                       </span>
                     </div>
                     <div

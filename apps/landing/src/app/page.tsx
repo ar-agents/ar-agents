@@ -345,6 +345,19 @@ export default function Home() {
           >
             {t.hero_sub}
           </p>
+          <p
+            style={{
+              color: "var(--text-muted)",
+              fontSize: 13,
+              margin: "12px 0 0",
+              maxWidth: 680,
+              lineHeight: 1.5,
+            }}
+          >
+            {lang === "es"
+              ? "Anteproyecto de Ley General de Sociedades enviado al Senado el 1-jun-2026. Todavía no es ley."
+              : "Draft General Companies Law sent to the Senate on Jun 1, 2026. Not yet law."}
+          </p>
           <div
             style={{
               marginTop: 28,

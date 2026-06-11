@@ -90,7 +90,7 @@ export interface Attestation {
   sig: string;
   signature: string;
   publicKey: string;
-  alg: "ed25519";
+  alg: "Ed25519";
 }
 
 export interface AttestationResult {
@@ -136,7 +136,7 @@ export async function buildAttestation(slug: string): Promise<AttestationResult 
   );
   const sig = bytesToB64(new Uint8Array(sigBytes));
   return {
-    attestation: { body, sig, signature: sig, publicKey: pub, alg: "ed25519" },
+    attestation: { body, sig, signature: sig, publicKey: pub, alg: "Ed25519" },
     events,
   };
 }
