@@ -280,12 +280,26 @@ prevAnchor_n = signature_{n-1}`}</CodeBlock>
           §7 attestation.
         </Li>
         <Li>
+          <DocCode>GET /api/audit/&#123;slug&#125;/bundle</DocCode>, the §8
+          export bundle: chain slice + RFC-004 entries + attestation, the
+          artifact a regulator downloads and verifies offline.
+        </Li>
+        <Li>
           A <strong>projection export</strong> emitting{" "}
           <DocCode>P(L)</DocCode> so a regulator runs RFC-004 tooling
           unchanged. RFC-006 v1.1 normative-izes the exact route; v1 requires
           only that such an export exists and is documented.
         </Li>
       </ul>
+      <DocP>
+        These endpoints are <strong>live on this deployment</strong>: every
+        durable audit entry also lands as a link in the global hash chain, the
+        head is sealed into the signed anchor chain, and any society slice
+        exports as a bundle verifiable offline with{" "}
+        <DocCode>node arg-verify.mjs bundle &lt;file&gt;</DocCode>, no trust in
+        this server required. The implementation is conformance-tested in CI
+        against the frozen vectors below.
+      </DocP>
 
       <DocH2>9 · Conformance test vectors</DocH2>
       <DocP>
