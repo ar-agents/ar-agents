@@ -212,8 +212,9 @@ export default function PlaybookPage() {
 
       <DocH2>5 · A day in the life of ACME-AI SAS</DocH2>
       <DocP>
-        ACME-AI is an Argentine company with no humans. It is code running
-        on Vercel. Every morning it wakes up (cron) and does its job:
+        ACME-AI is an Argentine company operated by AI agents, with a human
+        administrator on record (art. 102). It is code running on Vercel. Every
+        morning it wakes up (cron) and does its job:
       </DocP>
       <DocP>
         <strong>08:00.</strong> Reads the Boletín Oficial. ARCA published

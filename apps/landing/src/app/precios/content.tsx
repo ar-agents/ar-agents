@@ -99,8 +99,9 @@ const T = {
         procedimiento de decisión adecuado&rdquo; (art. 101, regla de
         discrecionalidad empresarial). El Auditor es esa prueba: un registro de
         decisiones append-only y firmado (RFC-004). La firma asimétrica deja que
-        el regulador verifique sin tu clave (RFC-005). El anclaje hace que valga
-        incluso si el operador es el adversario (RFC-006).
+        el regulador verifique sin tu clave (RFC-005). El anclaje lo vuelve
+        tamper-evidente: cualquiera guarda un anchor y, desde ahí, nadie
+        reescribe el pasado sin que se note (RFC-006).
       </>
     ),
     en: (
@@ -111,8 +112,8 @@ const T = {
         decision-making procedure&rdquo; (art. 101, the business-judgment rule).
         The Auditor is that proof: an append-only, signed decision log
         (RFC-004). An asymmetric signature lets a regulator verify without your
-        key (RFC-005). Anchoring makes it hold even when the operator is the
-        adversary (RFC-006).
+        key (RFC-005). Anchoring makes it tamper-evident: anyone keeps an anchor
+        and, from that point on, no one rewrites the past unnoticed (RFC-006).
       </>
     ),
   },

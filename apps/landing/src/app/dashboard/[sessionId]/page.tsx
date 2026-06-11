@@ -7,6 +7,7 @@ import {
   readAudit,
   verifySession,
 } from "@/lib/audit";
+import { readAnchors, readHead } from "@/lib/ledger";
 import { LiveTimeline } from "./live-timeline";
 import { TamperDemo } from "./tamper-demo";
 
@@ -48,6 +49,11 @@ export default async function DashboardPage({
   const entries = await readAudit(sessionId);
   const verification = await verifySession(sessionId);
   const backend = auditBackend();
+  const [anchors, head] = await Promise.all([
+    readAnchors().catch(() => []),
+    readHead().catch(() => null),
+  ]);
+  const lastAnchor = anchors.length ? anchors[anchors.length - 1] : null;
 
   return (
     <main
@@ -67,6 +73,13 @@ export default async function DashboardPage({
           backend={backend}
           verification={verification}
           entryCount={entries.length}
+        />
+
+        <ProofBundle
+          sessionId={sessionId}
+          anchorCount={anchors.length}
+          headSeq={head?.seq ?? null}
+          lastAnchorTs={lastAnchor?.ts ?? null}
         />
 
         <h2
@@ -92,7 +105,7 @@ export default async function DashboardPage({
         <TamperDemo />
 
         <ShareBar sessionId={sessionId} />
-        <Footer />
+        <Footer sessionId={sessionId} />
       </div>
 
       {/* JSON-LD for crawlers + AI assistants summarizing the URL */}
@@ -215,7 +228,7 @@ function VerificationCard({
   } else if (verification.total === 0) {
     title = "Sin entradas todavía";
     detail =
-      "Los tool calls en /play o /api/auto-incorporate van a aparecer acá. La sesión expira automáticamente en 7 días.";
+      "Los tool calls en /play o /api/auto-incorporate van a aparecer acá. Las sesiones del playground expiran a los 7 días; las de El Auditor (pagas) se retienen sin vencimiento.";
     titleColor = "#666";
     bg = "#fafafa";
   } else {
@@ -340,6 +353,102 @@ function Metric({
   );
 }
 
+function ProofBundle({
+  sessionId,
+  anchorCount,
+  headSeq,
+  lastAnchorTs,
+}: {
+  sessionId: string;
+  anchorCount: number;
+  headSeq: number | null;
+  lastAnchorTs: string | null;
+}) {
+  const bundle = `${SITE_URL}/api/audit/${sessionId}/bundle`;
+  const attestation = `${SITE_URL}/api/audit/${sessionId}/attestation`;
+  const cmd = `curl -s ${bundle} > bundle.json
+curl -s ${SITE_URL}/arg-verify.mjs -o arg-verify.mjs
+node arg-verify.mjs bundle bundle.json`;
+  return (
+    <section
+      style={{
+        marginTop: 24,
+        padding: 20,
+        background: "#fafafa",
+        borderRadius: 8,
+        boxShadow: SHADOW_BORDER,
+        display: "grid",
+        gap: 12,
+      }}
+    >
+      <div
+        style={{
+          fontSize: 11,
+          fontFamily: FONT_MONO,
+          color: "#666",
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          fontWeight: 600,
+        }}
+      >
+        Verificá vos mismo (RFC-006)
+      </div>
+      <p style={{ margin: 0, fontSize: 14, color: "#4d4d4d", lineHeight: 1.5 }}>
+        Cada decisión queda en una cadena de hash sellada en anchors firmados.
+        Bajá el bundle y verificalo offline con el verificador independiente. La
+        firma Ed25519 se chequea con la clave pública, sin confiar en este
+        servidor. Y una vez que guardás un anchor de{" "}
+        <code style={{ fontFamily: FONT_MONO, fontSize: 12 }}>/api/audit/anchor</code>,
+        no podemos reescribir nada por debajo de ese punto sin que tu copia lo
+        delate.
+      </p>
+      <div
+        style={{
+          fontFamily: FONT_MONO,
+          fontSize: 12,
+          color: anchorCount > 0 ? "#067a3e" : "#9a6700",
+          background: anchorCount > 0 ? "rgba(6,122,62,0.08)" : "rgba(154,103,0,0.08)",
+          borderRadius: 6,
+          padding: "8px 12px",
+        }}
+      >
+        {anchorCount > 0
+          ? `anclado · cadena sellada hasta seq ${headSeq ?? "?"} · ${anchorCount} anchor${anchorCount === 1 ? "" : "s"}${lastAnchorTs ? ` · último ${lastAnchorTs}` : ""}`
+          : "sin anclar todavía · POST /api/audit/anchor sella el head actual"}
+      </div>
+      <pre
+        style={{
+          margin: 0,
+          padding: 14,
+          background: "#0a0a0a",
+          color: "#ededed",
+          borderRadius: 6,
+          fontSize: 12,
+          lineHeight: 1.6,
+          fontFamily: FONT_MONO,
+          overflowX: "auto",
+        }}
+      >
+        {cmd}
+      </pre>
+      <div style={{ display: "flex", gap: 16, flexWrap: "wrap", fontSize: 13 }}>
+        <a href={bundle} style={{ color: "#0072f5", fontFamily: FONT_MONO }}>
+          export bundle (§8)
+        </a>
+        <a href={attestation} style={{ color: "#0072f5", fontFamily: FONT_MONO }}>
+          attestation (Ed25519)
+        </a>
+        <a href={`${SITE_URL}/api/audit/anchor`} style={{ color: "#0072f5", fontFamily: FONT_MONO }}>
+          anchor chain
+        </a>
+        <a href={`${SITE_URL}/api/audit/verify`} style={{ color: "#0072f5", fontFamily: FONT_MONO }}>
+          chain verify
+        </a>
+      </div>
+    </section>
+  );
+}
+
 function ShareBar({ sessionId }: { sessionId: string }) {
   const url = `${SITE_URL}/dashboard/${sessionId}`;
   const json = `${SITE_URL}/api/play/audit/${sessionId}?verify=1`;
@@ -401,7 +510,7 @@ function ShareBar({ sessionId }: { sessionId: string }) {
   );
 }
 
-function Footer() {
+function Footer({ sessionId }: { sessionId: string }) {
   return (
     <footer
       style={{
@@ -414,7 +523,7 @@ function Footer() {
       Esta página es la implementación de RFC-001 § 9.2, el log es legalmente
       probatorio cuando el HMAC está cableado y el backend es persistente
       (Vercel KV en producción). Cualquier tercero puede{" "}
-      <a href={`/api/play/audit/${"sessionId"}?verify=1`} style={{ color: "#0072f5" }}>
+      <a href={`/api/play/audit/${sessionId}?verify=1`} style={{ color: "#0072f5" }}>
         re-verificarlo
       </a>{" "}
       sin acceso a la clave. Más:{" "}

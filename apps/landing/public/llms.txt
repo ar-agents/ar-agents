@@ -16,7 +16,7 @@ The toolkit covers the operating pieces an Argentine business needs (identity, b
 - [Live agent demo](https://ar-agents.ar/play): 12-tool sociedad-IA agent. Streaming via Vercel AI Gateway. Zero setup.
 - [Auto-incorporation API](https://ar-agents.ar/api/auto-incorporate): one POST → generated source files + Vercel deploy URL + signed audit-log reference. Idempotent.
 - [SDK docs](https://ar-agents.ar/sdk): @ar-agents/incorporate, zero-dep TS client, ~4KB.
-- [Architecture](https://ar-agents.ar/architecture): 16 packages, Mermaid diagrams, the Edge-Runtime composition contract.
+- [Architecture](https://ar-agents.ar/architecture): 33 packages, Mermaid diagrams, the Edge-Runtime composition contract.
 - [Cookbook](https://ar-agents.ar/examples): 26 production patterns.
 - [Data room](https://ar-agents.ar/data-room): live npm + GitHub numbers, auto-refreshed every 6h.
 

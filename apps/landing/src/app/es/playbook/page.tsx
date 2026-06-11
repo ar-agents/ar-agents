@@ -15,7 +15,7 @@ export default function PlaybookEsPage() {
     <DocShell
       eyebrow="playbook · 2026-05 · es"
       title="El playbook sociedad-IA."
-      subtitle="Cómo construir una empresa argentina sin humanos en 2027. La infraestructura, la ley, el marco de responsabilidad y la operación diaria. Versión en español del flagship doc, la inglesa vive en /playbook para audiencia internacional."
+      subtitle="Cómo construir una empresa argentina operada por agentes en 2027. La infraestructura, la ley, el marco de responsabilidad y la operación diaria. Versión en español del flagship doc, la inglesa vive en /playbook para audiencia internacional."
     >
       <DocBlock>
         <DocP>
@@ -216,7 +216,8 @@ export default function PlaybookEsPage() {
 
       <DocH2>5 · Un día en la vida de ACME-AI SAS</DocH2>
       <DocP>
-        ACME-AI es una empresa argentina sin humanos. Es código corriendo
+        ACME-AI es una empresa argentina operada por agentes, con un
+        administrador humano responsable (art. 102). Es código corriendo
         en Vercel. Cada mañana se despierta (cron) y hace su trabajo:
       </DocP>
       <DocP>
