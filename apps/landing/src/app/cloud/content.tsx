@@ -53,8 +53,8 @@ const TIERS: ReadonlyArray<Tier> = [
       en: "AI corporations that prefer not to operate infra",
     },
     price: {
-      es: "Pricing en preview · contactar",
-      en: "Preview pricing · contact us",
+      es: "El Auditor vivo, USD 199/mes · bundle completo en preview",
+      en: "The Auditor live, USD 199/mo · full bundle in preview",
     },
     status: "preview",
     highlighted: true,
@@ -213,6 +213,39 @@ export function CloudContent({ lang }: { lang: Lang }) {
               support. It's the model of Vercel over Next.js, Resend over
               nodemailer, Supabase over Postgres, Linear over their public
               CLI repo.
+            </>
+          }
+        />
+      </DocP>
+
+      <DocP>
+        <L
+          lang={lang}
+          es={
+            <>
+              <strong>Quién paga.</strong> Paga el que necesita confiar, no el
+              que es verificado. El empleador paga el background check, no el
+              candidato. Acá igual: la sociedad se verifica, y el banco, la
+              aseguradora o el Estado pagan por confiar en ella. Por eso la
+              atestación es creíble, el auditado no nos paga. El detalle, en{" "}
+              <Link href="/precios" style={{ color: "var(--accent)", textDecoration: "underline" }}>
+                /precios
+              </Link>
+              . El Auditor ya está vivo.
+            </>
+          }
+          en={
+            <>
+              <strong>Who pays.</strong> The party who needs the trust pays, not
+              the party being verified. The employer pays for the background
+              check, not the applicant. Same here: the company gets verified,
+              and the bank, the insurer, or the state pays to trust it. That is
+              why the attestation is credible, the audited party does not pay
+              us. The detail is in{" "}
+              <Link href="/en/pricing" style={{ color: "var(--accent)", textDecoration: "underline" }}>
+                pricing
+              </Link>
+              . The Auditor is already live.
             </>
           }
         />
