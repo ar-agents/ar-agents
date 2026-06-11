@@ -3,12 +3,21 @@ import { kv } from "@vercel/kv";
 /**
  * RFC-006 live implementation: hash-chained ledger + signed anchor chain.
  *
- * This is the piece that makes the audit log hold even when the operator
- * (us) is the adversary. Every durable audit entry also lands as a link in a
- * global hash chain (each link commits to the previous one), and the chain
- * head is periodically sealed into an HMAC-signed anchor chain that is
- * publicly served. Truncating or rewriting history breaks the chain or
- * contradicts an already-witnessed anchor.
+ * Every durable audit entry also lands as a link in a global hash chain (each
+ * link commits to the previous one), and the head is sealed into an
+ * HMAC-signed anchor chain that is publicly served. This makes history
+ * TAMPER-EVIDENT TO WITNESSES: once a third party has fetched and retained an
+ * anchor (GET /api/audit/anchor), we cannot truncate or rewrite anything at or
+ * below that headSeq without contradicting the anchor they hold.
+ *
+ * HONEST SCOPE: the anchor chain is signed with OUR OWN AUDIT_HMAC_SECRET, so
+ * this is NOT, on its own, proof against the operator. An operator who holds
+ * the secret can recompute a fully self-consistent fake history. The real
+ * guarantee comes from EXTERNAL witnesses retaining anchors, plus the
+ * out-of-band-pinned Ed25519 public key. Committing anchor digests to an
+ * external public timestamper (OpenTimestamps / a transparency log) to make it
+ * operator-proof WITHOUT relying on witnesses is tracked as the next step; do
+ * not claim "operator-adversary-proof" until that ships.
  *
  * CONFORMANCE IS THE SPEC: the shapes and hashes here MUST match the frozen
  * test vectors (public/test-vectors/rfc-006-v1.json) and the independent
@@ -222,35 +231,57 @@ const HEAD_KEY = "ledger:head";
 const ANCHORS_KEY = "ledger:anchors";
 const ANCHOR_HEAD_KEY = "ledger:anchors:head";
 const LOCK_KEY = "ledger:lock";
-const ANCHOR_EVERY_MS = 10 * 60 * 1000; // seal the head at most every 10 min
 
 function secretOrNull(): string | null {
   return process.env.AUDIT_HMAC_SECRET?.trim() || null;
 }
 
+/**
+ * Mutual-exclusion lock with a UNIQUE token + compare-and-delete release, so a
+ * holder whose work outran the px expiry cannot delete a lock another writer
+ * has since acquired (the classic "expiry + unconditional del" fork bug). The
+ * critical section is kept short (no anchoring on this path), so px:15000 is a
+ * generous ceiling over a handful of KV round-trips.
+ */
 async function withLock<T>(fn: () => Promise<T>): Promise<T | null> {
-  for (let i = 0; i < 4; i++) {
-    const got = await kv.set(LOCK_KEY, "1", { nx: true, px: 4000 });
+  const token = `${crypto.randomUUID()}`;
+  for (let i = 0; i < 5; i++) {
+    const got = await kv.set(LOCK_KEY, token, { nx: true, px: 15000 });
     if (got) {
       try {
         return await fn();
       } finally {
         try {
-          await kv.del(LOCK_KEY);
+          // Compare-and-delete: only release if we still own the lock.
+          if ((await kv.get<string>(LOCK_KEY)) === token) await kv.del(LOCK_KEY);
         } catch {
-          // lock expires on its own
+          // lock expires on its own via px
         }
       }
     }
-    await new Promise((r) => setTimeout(r, 150 * (i + 1)));
+    await new Promise((r) => setTimeout(r, 200 * (i + 1)));
   }
   return null;
+}
+
+/**
+ * The authoritative head is the LIST TAIL, never a separate key that can
+ * desync from it on a partial write.
+ */
+async function tailLink(): Promise<ChainLink | null> {
+  const t = await kv.lrange<ChainLink>(LINKS_KEY, -1, -1);
+  return Array.isArray(t) && t.length && t[0] && typeof t[0].seq === "number" ? t[0] : null;
 }
 
 /**
  * Append a link to the global chain. Best-effort by design: the caller
  * (appendAudit) must never fail because chaining failed. Returns the link or
  * null when the secret/KV/lock is unavailable.
+ *
+ * The list tail is the single source of truth for the head: seq and prevHash
+ * are derived from it inside the lock, so a partial write (rpush landed, HEAD
+ * cache write did not) self-heals on the next append instead of forking the
+ * chain. HEAD_KEY is only a read cache for the GET endpoints.
  */
 export async function appendLink(input: {
   societyId: string | null;
@@ -263,10 +294,10 @@ export async function appendLink(input: {
   if (!secret) return null;
 
   return withLock(async () => {
-    let head = (await kv.get<{ seq: number; hash: string }>(HEAD_KEY)) ?? null;
+    let tail = await tailLink();
 
     // First write seeds the genesis link, matching the frozen vectors' model.
-    if (!head || typeof head.seq !== "number" || typeof head.hash !== "string") {
+    if (!tail) {
       const g: Omit<ChainLink, "hash"> = {
         seq: 1,
         prevHash: "GENESIS",
@@ -278,13 +309,12 @@ export async function appendLink(input: {
       };
       const genesis: ChainLink = { ...g, hash: await chainLinkHash(secret, g) };
       await kv.rpush(LINKS_KEY, genesis);
-      head = { seq: genesis.seq, hash: genesis.hash };
-      await kv.set(HEAD_KEY, head);
+      tail = genesis;
     }
 
     const base: Omit<ChainLink, "hash"> = {
-      seq: head.seq + 1,
-      prevHash: head.hash,
+      seq: tail.seq + 1,
+      prevHash: tail.hash,
       societyId: input.societyId,
       actor: input.actor,
       action: input.action,
@@ -294,26 +324,17 @@ export async function appendLink(input: {
     const link: ChainLink = { ...base, hash: await chainLinkHash(secret, base) };
     await kv.rpush(LINKS_KEY, link);
     await kv.set(HEAD_KEY, { seq: link.seq, hash: link.hash });
-
-    await maybeAnchor(secret);
+    // Anchoring is intentionally OFF this hot path (it would inflate lock-hold
+    // time toward the px expiry and risk a fork). POST /api/audit/anchor and
+    // the scheduled sealer create anchors out of band.
     return link;
   });
 }
 
-/** Seal the current head into the anchor chain if the last anchor is stale. */
-async function maybeAnchor(secret: string): Promise<void> {
-  try {
-    const last = await kv.get<{ seq: number; sig: string; ts: string }>(ANCHOR_HEAD_KEY);
-    if (last && Date.now() - new Date(last.ts).getTime() < ANCHOR_EVERY_MS) return;
-    await createAnchorInternal(secret);
-  } catch {
-    // anchoring is best-effort on the hot path; POST /api/audit/anchor repairs
-  }
-}
-
 async function createAnchorInternal(secret: string): Promise<Anchor | null> {
-  const head = await kv.get<{ seq: number; hash: string }>(HEAD_KEY);
-  if (!head) return null;
+  const tail = await tailLink();
+  if (!tail) return null;
+  const head = { seq: tail.seq, hash: tail.hash };
   const aHead = (await kv.get<{ seq: number; sig: string; ts: string }>(ANCHOR_HEAD_KEY)) ?? {
     seq: 0,
     sig: "GENESIS",
@@ -358,6 +379,10 @@ export async function readAnchors(): Promise<Anchor[]> {
 }
 
 export async function readHead(): Promise<{ seq: number; hash: string } | null> {
+  // Source of truth is the list tail; fall back to the HEAD_KEY cache only if
+  // the tail read is unavailable.
+  const tail = await tailLink();
+  if (tail) return { seq: tail.seq, hash: tail.hash };
   return (await kv.get<{ seq: number; hash: string }>(HEAD_KEY)) ?? null;
 }
 
