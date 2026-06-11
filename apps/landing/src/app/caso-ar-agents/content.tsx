@@ -105,7 +105,7 @@ const T = {
         Después nos suscribimos a nuestro propio{" "}
         <a href="/precios" style={linkSty}>
           El Auditor
-        </a>, por API, sin humanos en el medio. El art. 102 deja al administrador
+        </a>, por API, operada por agentes. El art. 102 deja al administrador
         responsable por lo que hace la IA. El Auditor es la prueba firmada de que
         operó con un procedimiento adecuado. Una empresa que vende auditoría de
         autonomía, auditándose a sí misma.
@@ -116,7 +116,7 @@ const T = {
         Then we subscribed to our own{" "}
         <a href="/en/pricing" style={linkSty}>
           The Auditor
-        </a>, over the API, no humans in the loop. Art. 102 leaves the
+        </a>, over the API, operated by agents. Art. 102 leaves the
         administrator liable for what the AI does. The Auditor is the signed
         proof that it operated through an adequate procedure. A company that
         sells autonomy auditing, auditing itself.
