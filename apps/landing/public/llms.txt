@@ -72,6 +72,10 @@ The toolkit covers the operating pieces an Argentine business needs (identity, b
 - `GET  /api/conformance-history?url={baseUrl}`: KV-backed time-series of cert scores. POST to append.
 - `GET  /api/auto-monitor`: Vercel cron-driven daily poll of all /registro entries.
 - `GET  /api/audit-summary/{sessionId}`: per-session aggregates (governance breakdown, latency quantiles, anomaly flags).
+- `GET  /api/audit/verify`: RFC-006 global hash-chain + anchor-chain verification (live).
+- `GET  /api/audit/anchor`: RFC-006 signed anchor chain; POST seals the current head (anyone can witness).
+- `GET  /api/audit/{slug}/attestation`: Ed25519-signed compliance attestation, offline-verifiable with arg-verify.mjs.
+- `GET  /api/audit/{slug}/bundle`: RFC-006 §8 export bundle (chain slice + entries + attestation), the regulator artifact, offline-verifiable.
 - `GET  /api/rfc-003-envelope?sessionId={id}&counterpart={url}`: generate the RFC-003 cross-jurisdictional envelope.
 
 ## Well-known endpoints (RFC-002 + RFC-004 § 5 + RFC-005 § 4)

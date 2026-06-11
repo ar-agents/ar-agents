@@ -296,6 +296,25 @@ export async function appendAudit(
       // non-durable + pushed + expire-failed: entry persists without a TTL,
       // which is safe (no data loss; it just won't auto-expire).
     }
+    // RFC-006: business records also land as links in the global hash chain,
+    // so history cannot be truncated or rewritten without breaking the chain
+    // or contradicting a published anchor. Best-effort by design: chaining
+    // failure must never fail the write. Dynamic import keeps the ledger off
+    // cold paths that never log durable entries.
+    if (opts?.durable && pushed) {
+      try {
+        const { appendLink } = await import("./ledger");
+        await appendLink({
+          societyId: sessionId,
+          actor: "ar-agents-hosted",
+          action: entry.tool,
+          meta: { governance: entry.governance, entryId: entry.id },
+          ts: entry.ts,
+        });
+      } catch {
+        // POST /api/audit/anchor or the next durable write repairs coverage.
+      }
+    }
   } else {
     const arr = memStore.get(sessionId) ?? [];
     arr.push(entry);
