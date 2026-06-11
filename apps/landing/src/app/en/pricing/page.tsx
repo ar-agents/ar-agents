@@ -4,7 +4,7 @@ import { PreciosContent } from "../../precios/content";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "ar-agents open-core model: the core (33 packages, RFCs, wizard) is free; the hosted trust layer, with The Auditor (art. 102) and representation and compliance (arts. 260/264), is paid and agent-operable via API.",
+    "ar-agents open-core model: the code is free forever; you pay for the managed trust layer. Fair rule: the party who needs the trust pays (bank, insurer, state), not the verified company. The Auditor, live, USD 199/mo.",
   alternates: {
     canonical: "https://ar-agents.ar/en/pricing",
     languages: {
