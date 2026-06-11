@@ -5,13 +5,13 @@ import { SubscribeCTA } from "./subscribe-cta";
  * Shared bilingual content for /precios (ES default) and /en/pricing (EN).
  * Server component. Receives `lang` and renders the matching column of T.
  *
- * Commercial model: OPEN CORE + paid trust layer.
- *  - Free  : the 33 @ar-agents/* packages (MIT), the RFCs (CC-BY-4.0), the
- *            self-serve wizard at /incorporar, the self-hosted audit log.
- *  - Paid  : hosted, liability-bearing services, each with a legal hook in the
- *            anteproyecto de Ley General de Sociedades (art. 102 / 260 / 264).
- * Every paid product is operable by an agent via API/MCP, so a Sociedad
- * Automatizada can contract it without humans in the loop.
+ * Commercial model (v2, fairness-tested + Vercel/Rauch-shaped): OPEN CORE +
+ * paid managed trust layer. The rule: the party who NEEDS the trust pays, not
+ * the party being verified. The open core is MIT/CC-BY-4.0 forever and never
+ * relicensed. We monetize the managed substrate (hosted, anchored, independent
+ * attestation; a legally-required human role) the buyer cannot safely self-
+ * provide, never access to the spec. El Auditor is live; the rest is labelled
+ * honestly (a medida / en camino).
  */
 
 type Lang = "es" | "en";
@@ -30,47 +30,66 @@ const T = {
     en: "The standard is free. Trust is the business.",
   },
   subtitle: {
-    es: "ar-agents es una Sociedad Automatizada que constituye y opera Sociedades Automatizadas. El código abierto es la infraestructura. Lo pago es la capa que vuelve a tu empresa-agente bancable, asegurable y auditable ante el Estado.",
-    en: "ar-agents is an automated company that incorporates and operates automated companies. The open source is the infrastructure. The paid part is the layer that makes your agent-company bankable, insurable, and auditable before the state.",
+    es: "El código es abierto y portable. Corrés todo gratis, para siempre. Pagás la capa operada que un regulador, un banco o una contraparte confían. No cobramos el código. Cobramos la confianza que no podés auto-emitir.",
+    en: "The code is open and portable. Run it all for free, forever. You pay for the managed layer a regulator, a bank, or a counterparty trusts. We do not charge for the code. We charge for the trust you cannot self-issue.",
   },
   h2model: { es: "Cómo funciona el modelo", en: "How the model works" },
   modelP: {
     es: (
       <>
-        El núcleo es abierto y gratis: los paquetes{" "}
-        <DocCode>@ar-agents/*</DocCode> en npm (MIT), los RFCs (CC-BY-4.0), el
-        wizard de{" "}
+        El núcleo es abierto: los paquetes <DocCode>@ar-agents/*</DocCode> en
+        npm (MIT), los RFCs (CC-BY-4.0) y el wizard de{" "}
         <a href="/incorporar" style={linkSty}>
           /incorporar
-        </a>{" "}
-        y el audit log self-hosted. Con eso constituís y operás una Sociedad
-        Automatizada por tu cuenta, sin pagarnos un peso. Lo pago es la capa
-        hosted que <strong>asume responsabilidad</strong>: auditoría peritable,
-        representación legal y cumplimiento. Un fork no la puede copiar, porque
-        no es código: es confianza con respaldo.
+        </a>
+        . Con eso constituís y operás una Sociedad Automatizada por tu cuenta,
+        sin pagarnos nada. Lo pago es la capa hosted que asume responsabilidad:
+        un log de auditoría firmado e independiente, un rol humano que la ley
+        exige, y la atestación que una contraparte necesita. Un fork no la
+        copia, porque no es código. Es confianza con respaldo.
       </>
     ),
     en: (
       <>
-        The core is open and free: the <DocCode>@ar-agents/*</DocCode> packages
-        on npm (MIT), the RFCs (CC-BY-4.0), the{" "}
+        The core is open: the <DocCode>@ar-agents/*</DocCode> packages on npm
+        (MIT), the RFCs (CC-BY-4.0), and the{" "}
         <a href="/incorporar" style={linkSty}>
           /incorporar
         </a>{" "}
-        wizard, and the self-hosted audit log. With that you incorporate and
-        run an automated company on your own, paying us nothing. The paid part
-        is the hosted layer that <strong>bears liability</strong>: court-grade
-        auditing, legal representation, and compliance. A fork can't copy it,
-        because it isn't code: it's backed trust.
+        wizard. With that you incorporate and run an automated company on your
+        own, paying us nothing. The paid part is the hosted layer that bears
+        liability: a signed, independent audit log, a human role the law
+        requires, and the attestation a counterparty needs. A fork cannot copy
+        it, because it is not code. It is backed trust.
       </>
     ),
   },
-  h2table: { es: "Productos", en: "Products" },
-  tableIntro: {
-    es: "Cada producto pago tiene un anclaje legal en el anteproyecto. Se contrata por API o MCP, así tu empresa-agente lo activa sola.",
-    en: "Every paid product has a legal anchor in the draft bill. It's contracted via API or MCP, so your agent-company turns it on by itself.",
+  h2fair: { es: "Quién paga, y por qué es justo", en: "Who pays, and why it's fair" },
+  fairP: {
+    es: (
+      <>
+        Regla simple: paga el que <strong>necesita confiar</strong>, no el que
+        es verificado. El empleador paga el background check, no el candidato. El
+        prestamista paga el buró, no quien pide el crédito. Acá igual: la
+        sociedad se verifica, y el banco, la aseguradora o el Estado pagan por
+        poder confiar en ella. Nadie paga de más. Y por eso la atestación es
+        creíble: el auditado no nos paga, así que no tenemos incentivo para
+        mirar para otro lado.
+      </>
+    ),
+    en: (
+      <>
+        Simple rule: the party who <strong>needs the trust</strong> pays, not the
+        party being verified. The employer pays for the background check, not the
+        applicant. The lender pays the bureau, not the borrower. Same here: the
+        company gets verified, and the bank, the insurer, or the state pays to be
+        able to trust it. No one overpays. And that is why the attestation is
+        credible: the audited party does not pay us, so we have no incentive to
+        look the other way.
+      </>
+    ),
   },
-  h2auditor: { es: "El Auditor (producto estrella)", en: "The Auditor (flagship)" },
+  h2auditor: { es: "El Auditor (vivo)", en: "The Auditor (live)" },
   auditorP1: {
     es: (
       <>
@@ -100,12 +119,12 @@ const T = {
   auditorP2: {
     es: (
       <>
-        El log self-hosted es gratis (RFC-004 abierto). Lo pago es la versión{" "}
-        <strong>hosted, anclada y certificada</strong>, con acceso de lectura
-        para tu auditor o el regulador. La ley se aplica de pleno derecho a
-        todas las sociedades existentes (art. 272). Así que el comprador no es
-        solo la empresa-agente nueva: es cualquier empresa que use IA en su
-        gestión. Vivo en{" "}
+        El log self-hosted es gratis (RFC-004 abierto). Lo pago es la versión
+        hosted, anclada y certificada, USD 199/mes, con acceso de lectura para
+        tu auditor o el regulador. La ley se aplica de pleno derecho a todas las
+        sociedades existentes (art. 272). Así que el comprador no es solo la
+        empresa-agente nueva: es cualquier empresa que use IA en su gestión.
+        Vivo en{" "}
         <a href="/auditor" style={linkSty}>
           /auditor
         </a>
@@ -114,16 +133,37 @@ const T = {
     ),
     en: (
       <>
-        The self-hosted log is free (RFC-004 is open). What's paid is the{" "}
-        <strong>hosted, anchored, certified</strong> version, with read access
-        for your auditor or the regulator. The law applies by operation of law
-        to all existing companies (art. 272). So the buyer isn't only the new
-        agent-company: it's any company that uses AI in its management. Live
+        The self-hosted log is free (RFC-004 is open). What is paid is the
+        hosted, anchored, certified version, USD 199/mo, with read access for
+        your auditor or the regulator. The law applies by operation of law to
+        all existing companies (art. 272). So the buyer is not only the new
+        agent-company: it is any company that uses AI in its management. Live
         at{" "}
         <a href="/auditor" style={linkSty}>
           /auditor
         </a>
         .
+      </>
+    ),
+  },
+  h2selfhost: { es: "Corré todo vos mismo", en: "Run it all yourself" },
+  selfhostP: {
+    es: (
+      <>
+        El núcleo es MIT (los paquetes) y CC-BY-4.0 (los RFCs), para siempre. No
+        relicenciamos nunca, y el spec va a un hogar neutral: es un bien público.
+        Cualquiera puede correr el log y verificar las firmas, incluso un
+        competidor. Eso es lo que lo vuelve confiable. Pagás la versión operada
+        que un regulador acepta, no el derecho a usar el código.
+      </>
+    ),
+    en: (
+      <>
+        The core is MIT (the packages) and CC-BY-4.0 (the RFCs), forever. We
+        never relicense, and the spec goes to a neutral home: it is a public
+        good. Anyone can run the log and verify the signatures, even a
+        competitor. That is what makes it trustworthy. You pay for the managed
+        version a regulator accepts, not for the right to use the code.
       </>
     ),
   },
@@ -136,8 +176,7 @@ const T = {
         (art. 260). Pero la <em>operación</em> sí es 100% autónoma (art. 14:
         sin empleados, los agentes hacen todo). Automatizamos ese rol humano
         mínimo como servicio. Vos firmás como autor, no operás. La empresa-agente
-        contrata El Auditor, su representante y su cumplimiento{" "}
-        <strong>por API, sola</strong>:
+        contrata El Auditor por API, sola:
       </>
     ),
     en: (
@@ -146,9 +185,8 @@ const T = {
         administrator (art. 88) and a DAO needs a human legal representative
         (art. 260). But the <em>operation</em> is 100% autonomous (art. 14: no
         employees, the agents do everything). We automate that minimal human
-        role as a service. You sign as the author, you don't operate. The
-        agent-company contracts The Auditor, its representative, and its
-        compliance <strong>over the API, by itself</strong>:
+        role as a service. You sign as the author, you do not operate. The
+        agent-company contracts The Auditor over the API, by itself:
       </>
     ),
   },
@@ -156,69 +194,88 @@ const T = {
   ctaP: {
     es: (
       <>
-        El núcleo open-source ya está vivo. La capa paga abre en acceso
-        anticipado para las primeras Sociedades Automatizadas: escribinos a{" "}
+        El Auditor ya cobra y opera. El representante y el cumplimiento son a
+        medida (hablanos). La API de verificación está en camino. Para empezar,
+        escribinos a{" "}
         <a href="mailto:naza@naza.ar" style={linkSty}>
           naza@naza.ar
         </a>{" "}
-        o entrá por{" "}
-        <a href="/incorporar" style={linkSty}>
-          /incorporar
-        </a>
-        .
+        o activá El Auditor acá:
       </>
     ),
     en: (
       <>
-        The open-source core is already live. The paid layer opens in early
-        access for the first automated companies: write to{" "}
+        The Auditor already charges and operates. Representative and compliance
+        are custom (talk to us). The verification API is on the way. To start,
+        write to{" "}
         <a href="mailto:naza@naza.ar" style={linkSty}>
           naza@naza.ar
         </a>{" "}
-        or start at{" "}
-        <a href="/incorporar" style={linkSty}>
-          /incorporar
-        </a>
-        .
+        or turn on The Auditor here:
       </>
     ),
   },
   h2honest: { es: "Nota honesta", en: "Honest note" },
   honestP: {
-    es: "Estos son precios de lanzamiento, en acceso anticipado. El checkout en vivo dogfoodea nuestro propio @ar-agents/mercadopago (MP Subscriptions). Hasta entonces, el alta es por contacto. La capa abierta no cambia: el código y los RFCs siguen gratis (MIT + CC-BY-4.0).",
-    en: "These are launch prices, in early access. Live checkout dogfoods our own @ar-agents/mercadopago (MP Subscriptions). Until then, onboarding is by contact. The open layer doesn't change: the code and the RFCs stay free (MIT + CC-BY-4.0).",
+    es: "Lo único cobrando hoy es El Auditor, USD 199/mes, vía nuestro propio @ar-agents/mercadopago. El representante y el cumplimiento se contratan por contacto. La API de verificación todavía no está construida. El núcleo abierto no cambia ni cambiará: el código y los RFCs siguen gratis (MIT + CC-BY-4.0).",
+    en: "The only thing charging today is The Auditor, USD 199/mo, via our own @ar-agents/mercadopago. Representative and compliance are contracted by contact. The verification API is not built yet. The open core does not change and will not: the code and the RFCs stay free (MIT + CC-BY-4.0).",
   },
 } as const;
 
-interface Product {
-  lead?: boolean;
+type Status = "free" | "live" | "custom" | "soon";
+
+interface Layer {
   name: { es: string; en: string };
-  free: { es: string; en: string };
-  paid: { es: string; en: string };
-  hook: { es: string; en: string };
+  payer: { es: string; en: string };
+  status: Status;
+  fair: { es: string; en: string };
 }
 
-const PRODUCTS: ReadonlyArray<Product> = [
+const LAYERS: ReadonlyArray<Layer> = [
   {
-    name: { es: "Constitución", en: "Incorporation" },
-    free: { es: "Wizard self-serve (DIY)", en: "Self-serve wizard (DIY)" },
-    paid: { es: "Gestionada: USD 500 setup + USD 99/mes", en: "Managed: USD 500 setup + USD 99/mo" },
-    hook: { es: "Constituimos y mantenemos el compliance al día", en: "We incorporate and keep compliance current" },
+    name: { es: "Núcleo abierto", en: "Open core" },
+    payer: { es: "Nadie", en: "No one" },
+    status: "free",
+    fair: {
+      es: "33 paquetes (MIT) + 6 RFCs (CC-BY-4.0) + wizard. El estándar no se cobra. Self-hosteable.",
+      en: "33 packages (MIT) + 6 RFCs (CC-BY-4.0) + wizard. The standard is not charged. Self-hostable.",
+    },
   },
   {
-    lead: true,
     name: { es: "El Auditor", en: "The Auditor" },
-    free: { es: "Log self-hosted (RFC-004)", en: "Self-hosted log (RFC-004)" },
-    paid: { es: "Pro USD 199/mes · Enterprise a medida", en: "Pro USD 199/mo · Enterprise custom" },
-    hook: { es: "Art. 102, el administrador responde por la IA", en: "Art. 102, the administrator is liable for the AI" },
+    payer: { es: "La sociedad", en: "The company" },
+    status: "live",
+    fair: {
+      es: "Self-hosteás el log gratis. Pagás la firma independiente y el anclaje, no el código (art. 102).",
+      en: "Self-host the log for free. You pay for the independent signature and anchoring, not the code (art. 102).",
+    },
   },
   {
-    name: { es: "Representante & Cumplimiento", en: "Representative & Compliance" },
-    free: { es: "Solo pago", en: "Paid only" },
-    paid: { es: "A medida, con seguro", en: "Custom, insured" },
-    hook: { es: "Arts. 260/264, representante humano + oficial de cumplimiento", en: "Arts. 260/264, human rep + compliance officer" },
+    name: { es: "Representante + cumplimiento", en: "Representative + compliance" },
+    payer: { es: "La sociedad", en: "The company" },
+    status: "custom",
+    fair: {
+      es: "La ley exige un humano, la IA no puede (arts. 260/264). Cuesta una fracción de un oficial de cumplimiento.",
+      en: "The law requires a human, the AI cannot (arts. 260/264). It costs a fraction of a compliance officer.",
+    },
+  },
+  {
+    name: { es: "Verificación", en: "Verification" },
+    payer: { es: "Banco / aseguradora / Estado", en: "Bank / insurer / state" },
+    status: "soon",
+    fair: {
+      es: "Paga el que necesita confiar. La sociedad se verifica gratis. Como un background check.",
+      en: "The party who needs the trust pays. The company is verified for free. Like a background check.",
+    },
   },
 ];
+
+const STATUS_LABEL: Record<Status, { es: string; en: string }> = {
+  free: { es: "gratis", en: "free" },
+  live: { es: "vivo · USD 199/mes", en: "live · USD 199/mo" },
+  custom: { es: "a medida", en: "custom" },
+  soon: { es: "en camino", en: "on the way" },
+};
 
 const AGENT_BUY = `// Tu Sociedad Automatizada contrata El Auditor sola, por API.
 
@@ -251,13 +308,16 @@ export function PreciosContent({ lang }: { lang: Lang }) {
       <DocH2>{t("h2model")}</DocH2>
       <DocP>{t("modelP")}</DocP>
 
-      <DocH2>{t("h2table")}</DocH2>
-      <DocP>{t("tableIntro")}</DocP>
-      <PreciosTable lang={lang} />
+      <DocH2>{t("h2fair")}</DocH2>
+      <DocP>{t("fairP")}</DocP>
+      <FairnessTable lang={lang} />
 
       <DocH2>{t("h2auditor")}</DocH2>
       <DocP>{t("auditorP1")}</DocP>
       <DocP>{t("auditorP2")}</DocP>
+
+      <DocH2>{t("h2selfhost")}</DocH2>
+      <DocP>{t("selfhostP")}</DocP>
 
       <DocH2>{t("h2autonomo")}</DocH2>
       <DocP>{t("autonomoP")}</DocP>
@@ -273,18 +333,18 @@ export function PreciosContent({ lang }: { lang: Lang }) {
   );
 }
 
-function PreciosTable({ lang }: { lang: Lang }) {
+function FairnessTable({ lang }: { lang: Lang }) {
   const headers =
     lang === "es"
-      ? { prod: "Producto", free: "Gratis", paid: "Pago", hook: "Anclaje legal" }
-      : { prod: "Product", free: "Free", paid: "Paid", hook: "Legal anchor" };
+      ? { layer: "Capa", payer: "Quién paga", status: "Estado", fair: "Por qué es justo" }
+      : { layer: "Layer", payer: "Who pays", status: "Status", fair: "Why it's fair" };
 
   return (
     <div style={{ overflowX: "auto", margin: "16px 0 24px" }}>
       <table
         style={{
           width: "100%",
-          minWidth: 640,
+          minWidth: 680,
           borderCollapse: "collapse",
           fontSize: 13,
           background: "var(--bg-tint)",
@@ -294,49 +354,41 @@ function PreciosTable({ lang }: { lang: Lang }) {
       >
         <thead>
           <tr>
-            <th style={th}>{headers.prod}</th>
-            <th style={th}>{headers.free}</th>
-            <th style={th}>{headers.paid}</th>
-            <th style={th}>{headers.hook}</th>
+            <th style={th}>{headers.layer}</th>
+            <th style={th}>{headers.payer}</th>
+            <th style={th}>{headers.status}</th>
+            <th style={th}>{headers.fair}</th>
           </tr>
         </thead>
         <tbody>
-          {PRODUCTS.map((p) => (
-            <tr
-              key={p.name.en}
-              style={{ borderTop: "1px solid var(--border-color)" }}
-            >
-              <td style={{ ...td, color: "var(--text)", fontWeight: 600 }}>
-                {p.name[lang]}
-                {p.lead ? (
+          {LAYERS.map((l) => {
+            const live = l.status === "live";
+            const free = l.status === "free";
+            return (
+              <tr key={l.name.en} style={{ borderTop: "1px solid var(--border-color)" }}>
+                <td style={{ ...td, color: "var(--text)", fontWeight: 600 }}>{l.name[lang]}</td>
+                <td style={{ ...td, color: "var(--text-muted)" }}>{l.payer[lang]}</td>
+                <td style={td}>
                   <span
                     style={{
-                      marginLeft: 8,
-                      padding: "1px 7px",
+                      padding: "1px 8px",
                       borderRadius: 9999,
-                      fontSize: 10,
+                      fontSize: 10.5,
                       fontFamily: FONT_MONO_VAR,
-                      textTransform: "uppercase",
-                      letterSpacing: "0.04em",
-                      background: "var(--accent)",
-                      color: "var(--bg)",
+                      whiteSpace: "nowrap",
+                      letterSpacing: "0.02em",
+                      background: live ? "var(--accent)" : "transparent",
+                      color: live ? "var(--bg)" : free ? "var(--text-body)" : "var(--text-muted)",
+                      boxShadow: live ? "none" : "inset 0 0 0 1px var(--border-color)",
                     }}
                   >
-                    {lang === "es" ? "estrella" : "flagship"}
+                    {STATUS_LABEL[l.status][lang]}
                   </span>
-                ) : null}
-              </td>
-              <td style={{ ...td, color: "var(--text-muted)" }}>
-                {p.free[lang]}
-              </td>
-              <td style={{ ...td, color: "var(--text)", fontWeight: 500 }}>
-                {p.paid[lang]}
-              </td>
-              <td style={{ ...td, fontFamily: FONT_MONO_VAR, fontSize: 11.5 }}>
-                {p.hook[lang]}
-              </td>
-            </tr>
-          ))}
+                </td>
+                <td style={{ ...td }}>{l.fair[lang]}</td>
+              </tr>
+            );
+          })}
         </tbody>
       </table>
     </div>
