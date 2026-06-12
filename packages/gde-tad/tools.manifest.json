@@ -6,19 +6,19 @@
   "tools": [
     {
       "name": "get_critical_notifications",
-      "description": "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana."
+      "description": "List only critical DEC notifications (notificaciones críticas del DEC), ordenadas por fecha de respuesta más cercana. Use this in the agent's morning loop to know what MUST be answered today/this week"
     },
     {
       "name": "list_domicilio_inbox",
-      "description": "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona, con severidad calculada (critical/important/info) por organismo + asunto + deadline."
+      "description": "List electronic-domicile notifications (notificaciones del Domicilio Electrónico Constituido, DEC) de una sociedad/persona. Cada notificación incluye organismo, asunto, fecha de notificación, fecha de"
     },
     {
       "name": "list_mis_tramites",
-      "description": "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Read-only."
+      "description": "List TAD case files where the company/person is a party (expedientes y trámites en TAD). Útil para reporting, due diligence, y para el agente saber qué tiene en curso vs. qué resolvió. Read-only, no i"
     },
     {
       "name": "validate_igj_inscription",
-      "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+      "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Catches the ~30% of rejections that are mechanical (denominación reservada, capital bajo el mínimo, aportes que no suman, CUIT i"
     }
   ],
   "name": "@ar-agents/gde-tad",

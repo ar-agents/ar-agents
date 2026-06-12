@@ -5,28 +5,28 @@
   "tools": [
     {
       "name": "bcra_get_debt",
-      "description": "Raw current debt status from BCRA Central de Deudores.",
+      "description": "Raw current debt status from the BCRA Central de Deudores (consultar deudas en el BCRA): one row per entidad reporting, with situación 1-6, monto, judicial/fraude/refinanciación flags. Returns BcraNot",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "bcra_get_debt_summary",
-      "description": "One-shot credit-check: total debt, worst situación, flags, risk band ('clean'|'low'|'watch'|'high').",
+      "description": "One-shot credit check for a CUIT (consultar deudores BCRA, riesgo crediticio): total reported debt (centavos), worst situación across entidades, judicial/fraude/refinanciación flags, plus a risk band ",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "bcra_get_historical_debt",
-      "description": "24-month historical snapshots for trend analysis.",
+      "description": "24-month debt history for a CUIT (historial de deudas BCRA). Use for trend analysis ('has this taxpayer been deteriorating?') or to confirm a one-off vs a chronic pattern.",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "bcra_get_bounced_checks",
-      "description": "Bounced-check history (causa, monto, fecha, optional fechaPago).",
+      "description": "Bounced-check history for a CUIT (cheques rechazados) (causa de rechazo + monto + fecha + whether subsequently paid). Independent of the Central de Deudores debt status, a clean debt record + bounced ",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false

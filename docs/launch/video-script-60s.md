@@ -22,7 +22,7 @@
 | 0:40 | `lookup_credit_situation` | mocked-upstream pill | "Cruza con BCRA Central de Deudores antes de decidir." |
 | 0:46 | `mp_create_subscription` + `send_whatsapp_text` | audit-logged pill | "Si está al día, crea la suscripción de Mercado Pago y manda el link por WhatsApp. Cada llamada queda en el audit log con timestamp HMAC-firmado." |
 | 0:54 | open audit entry | expand the JSON inputs/outputs | "Reproducible. Auditable. RFC-001 § 9." |
-| 0:58 | back to home | scroll to `/architecture` link | "33 paquetes en npm, 221 tools. MIT. SLSA v1 provenance. Listo para complementar la ley el día uno." |
+| 0:58 | back to home | scroll to `/architecture` link | "36 paquetes en npm, 235 tools. MIT. SLSA v1 provenance. Listo para complementar la ley el día uno." |
 | 1:05 | end | URL highlighted | "ar-agents.ar/play" |
 
 ## Production notes

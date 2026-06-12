@@ -1,7 +1,7 @@
 {
   "$schema": "https://agents.md/schema/agents.v1.json",
   "name": "ar-agents",
-  "description": "Open infrastructure for Argentina's sociedades de IA: AI-operated companies under the Anteproyecto de Ley General de Sociedades (art. 14, Sociedad Automatizada; sent to the Senate 1-jun-2026, not yet law). 33 npm packages, 221 typed tools, 6 RFCs, hosted endpoints.",
+  "description": "Open infrastructure for Argentina's sociedades de IA: AI-operated companies under the Anteproyecto de Ley General de Sociedades (art. 14, Sociedad Automatizada; sent to the Senate 1-jun-2026, not yet law). 36 npm packages, 235 typed tools, 6 RFCs, hosted endpoints.",
   "homepage": "https://ar-agents.ar",
   "repository": "https://github.com/ar-agents/ar-agents",
   "license": "MIT",
@@ -78,8 +78,8 @@
   "packages": {
     "scope": "@ar-agents",
     "registry": "https://www.npmjs.com",
-    "count": 33,
-    "toolCount": 221,
+    "count": 36,
+    "toolCount": 235,
     "fullInventory": "https://ar-agents.ar/api/discovery",
     "list": [
       "@ar-agents/aduana",

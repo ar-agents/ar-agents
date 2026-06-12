@@ -1,9 +1,9 @@
 /**
  * Drop-in tool collection for Vercel AI SDK 6+.
  *
- * Two tools — that's the whole WSCDC surface:
- *   - `wscdc_validate_comprobante`  — the real one
- *   - `wscdc_health`                — Dummy() probe for status checks
+ * Two tools, that's the whole WSCDC surface:
+ *   - `wscdc_validate_comprobante` , the real one
+ *   - `wscdc_health`               , Dummy() probe for status checks
  *
  * The adapter is required for both (there's nothing to validate
  * locally). Default `UnconfiguredWscdcAdapter` throws, so an agent
@@ -53,7 +53,7 @@ export function wscdcTools(opts: WscdcToolsOptions = {}) {
   const allTools = {
     wscdc_validate_comprobante: tool({
       description:
-        "Validate that a factura received from a supplier was actually issued by AFIP with a real CAE. Use this BEFORE ingesting any received factura into accounts payable. Returns resultado='A' (approved), 'N' (not approved — likely forged or wrong data), or 'O' (observed — exists in AFIP but a non-key field differs). Requires a WSAA-authenticated WSCDC adapter; throws WscdcUnconfiguredError otherwise.",
+        "Verify a received invoice's CAE against AFIP (constatar comprobante, verificar CAE de una factura recibida): confirms it was actually issued by AFIP. Use this BEFORE ingesting any received factura into accounts payable. Returns resultado='A' (approved), 'N' (not approved, likely forged or wrong data), or 'O' (observed, exists in AFIP but a non-key field differs). Requires a WSAA-authenticated WSCDC adapter; throws WscdcUnconfiguredError otherwise.",
       inputSchema: z.object({
         cbteModo: cbteModoEnum,
         cuitEmisor: cuitSchema,

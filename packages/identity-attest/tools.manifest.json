@@ -6,7 +6,7 @@
   "tools": [
     {
       "name": "check_verification_status",
-      "description": "Check whether a verification is still pending, completed, expired, or failed. Use this between user turns when waiting for the user to click a magic link.",
+      "description": "Check verification status (estado de la verificación): pending, completed, expired, or failed. Use this between user turns when waiting for the user to click a magic link.",
       "input": {
         "request_id": "string"
       },
@@ -22,7 +22,7 @@
     },
     {
       "name": "get_attestation",
-      "description": "Fetch the signed attestation for a completed verification. Returns null if not yet verified. The attestation includes trust_level (0-1), method, subject, claims, and a signature you can persist for au",
+      "description": "Fetch the signed attestation for a completed verification (obtener la atestación firmada). Returns null if not yet verified. The attestation includes trust_level (0-1), method, subject, claims, and a ",
       "input": {
         "request_id": "string"
       },
@@ -30,7 +30,7 @@
     },
     {
       "name": "list_verification_methods",
-      "description": "List all verification methods the host app has registered (with trust levels). Use to know what options are available before calling request_identity_verification.",
+      "description": "List available verification methods (métodos de verificación disponibles) the host app has registered (with trust levels). Use to know what options are available before calling request_identity_verifi",
       "input": {},
       "output": {
         "count": "number",
@@ -39,7 +39,7 @@
     },
     {
       "name": "request_identity_verification",
-      "description": "Start a verification flow to prove the user controls a phone, email, or other identity asset. Returns a request_id you'll use to check status, plus a verification_url (for magic-link flows) or instruc",
+      "description": "Start an identity verification flow (verificar identidad, enviar código de verificación) to prove the user controls a phone, email, or other identity asset. Returns a request_id you'll use to check st",
       "input": {
         "method": "string (e.g. whatsapp_otp, email_magic_link)",
         "subject_type": "phone | email | oauth | dni | cuit | custom",
@@ -58,7 +58,7 @@
     },
     {
       "name": "submit_otp_code",
-      "description": "Submit the OTP code the user dictated back to you (after they received it via WhatsApp/SMS/Email). Returns the signed attestation if correct, throws InvalidOtpCodeError if wrong (with attempts remaini",
+      "description": "Submit the OTP verification code (ingresar código de verificación) the user dictated back to you (after they received it via WhatsApp/SMS/Email). Returns the signed attestation if correct, throws Inva",
       "input": {
         "request_id": "string",
         "code": "string (extract just the digits)"

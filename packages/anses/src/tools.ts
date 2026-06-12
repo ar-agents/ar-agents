@@ -30,7 +30,7 @@ export function ansesTools(opts: AnsesToolsOptions = {}) {
   return {
     anses_get_cuil_status: tool({
       description:
-        "Look up a CUIL's ANSES status — activo / jubilado / pensionado / desempleado_con_subsidio / desempleado_sin_subsidio / inactivo / fallecido. Returns last-reported employer (for `activo`) and last-activity period. `{found: false}` for unknown CUILs is a valid answer.",
+        "Look up a CUIL's ANSES status (consultar situación en ANSES), activo / jubilado / pensionado / desempleado_con_subsidio / desempleado_sin_subsidio / inactivo / fallecido. Returns last-reported employer (for `activo`) and last-activity period. `{found: false}` for unknown CUILs is a valid answer.",
       inputSchema: z.object({
         cuil: z
           .string()
@@ -44,7 +44,7 @@ export function ansesTools(opts: AnsesToolsOptions = {}) {
 
     anses_get_family_allowances: tool({
       description:
-        "List the family-allowance entitlements ANSES has on file for this CUIL: AUH (per-child), AUE (pregnancy), SUAF (formal workers), Pensión No Contributiva, Tarjeta Alimentar. Each entitlement carries the beneficiary count and current monthly amount in centavos.",
+        "List family-allowance entitlements ANSES has on file for a CUIL (asignaciones familiares): AUH (per-child), AUE (pregnancy), SUAF (formal workers), Pensión No Contributiva, Tarjeta Alimentar. Each entitlement carries the beneficiary count and current monthly amount in centavos.",
       inputSchema: z.object({
         cuil: z.string().describe("11-digit CUIL."),
       }),

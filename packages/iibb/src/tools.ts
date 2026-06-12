@@ -2,7 +2,7 @@
  * Drop-in tool collection for Vercel AI SDK 6+. Pair with an Agent.
  *
  * The tool layer leans heavily on the pure calc primitives in calc.ts
- * (computeDdjj, calculateRetention) — the adapter is only required for
+ * (computeDdjj, calculateRetention), the adapter is only required for
  * `iibb_lookup_padron`. Agents that only need to assemble DDJJ data and
  * compute retentions can run with the default UnconfiguredIibbAdapter.
  */
@@ -89,7 +89,7 @@ export function iibbTools(opts: IibbToolsOptions = {}) {
   const allTools = {
     iibb_calculate_retention: tool({
       description:
-        "Calculate the IIBB retention amount on a base imponible in a given jurisdiction. Pure math: amount = base × rate (fraction), unless base < minimumThresholdCentavos. Pass `overrideRate` explicitly (the rate-book lookup belongs to compute_ddjj).",
+        "Calculate the IIBB gross-receipts retention (calcular retención de Ingresos Brutos) on a base imponible in a given jurisdiction. Pure math: amount = base × rate (fraction), unless base < minimumThresholdCentavos. Pass `overrideRate` explicitly (the rate-book lookup belongs to compute_ddjj).",
       inputSchema: z.object({
         jurisdiction: jurisdictionEnum.describe(
           "The jurisdiction whose retention regime applies.",
@@ -126,7 +126,7 @@ export function iibbTools(opts: IibbToolsOptions = {}) {
 
     iibb_calculate_perception: tool({
       description:
-        "Calculate the IIBB perception amount on a base imponible in a given jurisdiction. Symmetrical to retention in v0.1; some jurisdictions add a fixed component which will be refined as rate-books grow.",
+        "Calculate the IIBB perception (calcular percepción de Ingresos Brutos) on a base imponible in a given jurisdiction. Symmetrical to retention in v0.1; some jurisdictions add a fixed component which will be refined as rate-books grow.",
       inputSchema: z.object({
         jurisdiction: jurisdictionEnum,
         activityCode: z.string().min(1),
@@ -139,7 +139,7 @@ export function iibbTools(opts: IibbToolsOptions = {}) {
 
     iibb_compute_ddjj: tool({
       description:
-        "Assemble a monthly IIBB DDJJ from raw income lines + a rate-book. Supports the LOCAL regime (single jurisdiction) and the CM general regime (Article 2, requires cmCoefficients). Returns per-jurisdiction breakdown + totals. Does NOT submit; submission is the adapter's job.",
+        "Assemble a monthly IIBB tax return (armar la DDJJ mensual de Ingresos Brutos) from raw income lines + a rate-book. Supports the LOCAL regime (single jurisdiction) and the CM general regime (Article 2, requires cmCoefficients). Returns per-jurisdiction breakdown + totals. Does NOT submit; submission is the adapter's job.",
       inputSchema: z.object({
         period: z
           .string()
@@ -183,7 +183,7 @@ export function iibbTools(opts: IibbToolsOptions = {}) {
 
     iibb_lookup_padron: tool({
       description:
-        "Look up a CUIT's taxpayer status in a specific jurisdiction's padrón. Returns null if not registered. Throws IibbUnconfiguredError if the adapter for that jurisdiction is not wired (the default in v0.1 for AGIP/ARBA/COMARB).",
+        "Look up a CUIT in a jurisdiction's IIBB registry (consultar padrón de Ingresos Brutos). Returns null if not registered. Throws IibbUnconfiguredError if the adapter for that jurisdiction is not wired (the default in v0.1 for AGIP/ARBA/COMARB).",
       inputSchema: z.object({
         cuit: z
           .string()

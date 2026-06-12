@@ -4,7 +4,7 @@
  * Four tools: three direct passthroughs (debt / historical /
  * cheques) + one helper that fetches debt + returns the summarized
  * roll-up + a risk band. The helper is what most agents want
- * day-to-day — the raw entries are exposed for cases where the
+ * day-to-day, the raw entries are exposed for cases where the
  * agent does its own scoring.
  */
 import { tool } from "ai";
@@ -39,14 +39,14 @@ export function bcraTools(opts: BcraToolsOptions = {}) {
   const allTools = {
     bcra_get_debt: tool({
       description:
-        "Raw current debt status from the BCRA Central de Deudores: one row per entidad reporting, with situación 1-6, monto, judicial/fraude/refinanciación flags. Returns BcraNotFoundError for CUITs the BCRA has no records on — treat as 'clean' rather than as an error.",
+        "Raw current debt status from the BCRA Central de Deudores (consultar deudas en el BCRA): one row per entidad reporting, with situación 1-6, monto, judicial/fraude/refinanciación flags. Returns BcraNotFoundError for CUITs the BCRA has no records on, treat as 'clean' rather than as an error.",
       inputSchema: z.object({ cuit: cuitSchema }),
       execute: async ({ cuit }) => adapter.getDebt(cuit),
     }),
 
     bcra_get_debt_summary: tool({
       description:
-        "One-shot credit-check answer for a CUIT: total reported debt (centavos), worst situación across entidades, judicial/fraude/refinanciación flags, plus a risk band ('clean' | 'low' | 'watch' | 'high') for direct gating. The right tool for 'should we extend credit to this CUIT?'.",
+        "One-shot credit check for a CUIT (consultar deudores BCRA, riesgo crediticio): total reported debt (centavos), worst situación across entidades, judicial/fraude/refinanciación flags, plus a risk band ('clean' | 'low' | 'watch' | 'high') for direct gating. The right tool for 'should we extend credit to this CUIT?'.",
       inputSchema: z.object({ cuit: cuitSchema }),
       execute: async ({ cuit }) => {
         const raw = await adapter.getDebt(cuit);
@@ -57,14 +57,14 @@ export function bcraTools(opts: BcraToolsOptions = {}) {
 
     bcra_get_historical_debt: tool({
       description:
-        "24-month historical snapshots of a CUIT's reported debt. Use for trend analysis ('has this taxpayer been deteriorating?') or to confirm a one-off vs a chronic pattern.",
+        "24-month debt history for a CUIT (historial de deudas BCRA). Use for trend analysis ('has this taxpayer been deteriorating?') or to confirm a one-off vs a chronic pattern.",
       inputSchema: z.object({ cuit: cuitSchema }),
       execute: async ({ cuit }) => adapter.getHistoricalDebt(cuit),
     }),
 
     bcra_get_bounced_checks: tool({
       description:
-        "Bounced-check history for a CUIT (causa de rechazo + monto + fecha + whether subsequently paid). Independent of the Central de Deudores debt status — a clean debt record + bounced checks still flags a risk.",
+        "Bounced-check history for a CUIT (cheques rechazados) (causa de rechazo + monto + fecha + whether subsequently paid). Independent of the Central de Deudores debt status, a clean debt record + bounced checks still flags a risk.",
       inputSchema: z.object({ cuit: cuitSchema }),
       execute: async ({ cuit }) => adapter.getBouncedChecks(cuit),
     }),

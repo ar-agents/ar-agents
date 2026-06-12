@@ -33,7 +33,7 @@ export interface BankingToolsOptions {
    * BCRA Principales Variables backend (tipo de cambio, CER, UVA,
    * reservas, etc.). When omitted, returns "not configured" via
    * `UnconfiguredBcraVarsAdapter`. Pass `new BcraVarsPublicApiAdapter()`
-   * to enable — no auth required.
+   * to enable, no auth required.
    */
   bcraVars?: BcraVarsAdapter;
   /**
@@ -64,37 +64,37 @@ export type BankingToolName =
  */
 const DEFAULT_DESCRIPTIONS: Record<BankingToolName, string> = {
   validate_cbu:
-    "Validate an Argentine CBU (Clave Bancaria Uniforme, traditional bank account) or CVU (Clave Virtual Uniforme, fintech wallet account) via the BCRA dual mod-10 check-digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency, free. Returns whether the input is mathematically valid PLUS the bank/PSP identification (e.g., '007 → Banco Galicia', '0000031 → Mercado Pago'), the branch code, and the account number. USE THIS WHEN: the user pastes a CBU/CVU and you need to detect typos, identify the issuing bank/wallet, or extract the account components before submitting a transfer or alias setup. Always call this BEFORE any transfer-related action — invalid CBUs cause hard failures downstream and chargebacks. Distinguishes CBU vs CVU automatically via the entity-code prefix.",
+    "Validate an Argentine CBU or CVU bank account number (validar CBU, validar CVU). CBU = Clave Bancaria Uniforme (traditional bank account), CVU = Clave Virtual Uniforme (fintech wallet account), checked via the BCRA dual mod-10 check-digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency, free. Returns whether the input is mathematically valid PLUS the bank/PSP identification (e.g., '007 → Banco Galicia', '0000031 → Mercado Pago'), the branch code, and the account number. USE THIS WHEN: the user pastes a CBU/CVU and you need to detect typos, identify the issuing bank/wallet, or extract the account components before submitting a transfer or alias setup. Always call this BEFORE any transfer-related action, invalid CBUs cause hard failures downstream and chargebacks. Distinguishes CBU vs CVU automatically via the entity-code prefix.",
 
   lookup_bank_by_code:
-    "Look up the Argentine bank or PSP (payment service provider) by its 3-digit BCRA-assigned entity code. PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal name, short brand name, and kind (cbu = traditional bank, cvu = fintech). USE THIS WHEN: you have a bank code (e.g., from a CBU you've already parsed, from a user's input dropdown, from a transaction record) and need its human-readable name. For CVU prefixes (0000031 etc.), pass the 7-digit prefix; for traditional banks pass the 3-digit code. Returns null when the code isn't in the lookup table — the table is BCRA-published but updated periodically, so newer fintechs may be missing.",
+    "Identify the Argentine bank or PSP behind an entity code (de qué banco es este CBU, código de entidad BCRA). PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal name, short brand name, and kind (cbu = traditional bank, cvu = fintech). USE THIS WHEN: you have a bank code (e.g., from a CBU you've already parsed, from a user's input dropdown, from a transaction record) and need its human-readable name. For CVU prefixes (0000031 etc.), pass the 7-digit prefix; for traditional banks pass the 3-digit code. Returns null when the code isn't in the lookup table, the table is BCRA-published but updated periodically, so newer fintechs may be missing.",
 
   list_banks:
-    "Return the full list of known Argentine banks with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a workflow. Sorted by BCRA code. Returns array of `{ code, name, shortName, kind }`.",
+    "List Argentine banks (listar bancos argentinos) with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a workflow. Sorted by BCRA code. Returns array of `{ code, name, shortName, kind }`.",
 
   list_psps:
-    "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers — Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need to render a dropdown of fintech wallets for the user to pick from, or need to enumerate PSPs for a workflow. Returns array of `{ code, name, shortName, kind }` where `code` is the 7-digit CVU prefix.",
+    "List Argentine fintech wallets / PSPs (listar billeteras virtuales, Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need to render a dropdown of fintech wallets for the user to pick from, or need to enumerate PSPs for a workflow. Returns array of `{ code, name, shortName, kind }` where `code` is the 7-digit CVU prefix.",
 
   lookup_credit_situation:
-    "Look up the BCRA Central de Deudores credit situation for an Argentine CUIT. Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irrecoverable, 6=irrecoverable by admin disposition), total outstanding debt across all entities, and per-entity breakdown. USE THIS WHEN: the user is assessing counterparty risk before extending credit, factoring invoices, or onboarding a B2B supplier. DO NOT USE for routine billing decisions — Mercado Pago handles credit risk on the SaaS's behalf for normal subscription flows. REQUIRES: a `BcraDeudaAdapter` configured at app boot. The default `BcraPublicApiAdapter` hits BCRA's public REST API (no auth required). When NOT configured, returns `{ available: false, error: <setup instructions> }` instead of crashing — surface the error verbatim. ALWAYS call `validate_cuit` (from @ar-agents/identity) first to confirm format before hitting BCRA.",
+    "Check a CUIT's credit standing in the BCRA Central de Deudores (consultar deudores BCRA, situación crediticia). Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irrecoverable, 6=irrecoverable by admin disposition), total outstanding debt across all entities, and per-entity breakdown. USE THIS WHEN: the user is assessing counterparty risk before extending credit, factoring invoices, or onboarding a B2B supplier. DO NOT USE for routine billing decisions, Mercado Pago handles credit risk on the SaaS's behalf for normal subscription flows. REQUIRES: a `BcraDeudaAdapter` configured at app boot. The default `BcraPublicApiAdapter` hits BCRA's public REST API (no auth required). When NOT configured, returns `{ available: false, error: <setup instructions> }` instead of crashing, surface the error verbatim. ALWAYS call `validate_cuit` (from @ar-agents/identity) first to confirm format before hitting BCRA.",
 
   list_bcra_variables:
-    "List all BCRA Principales Variables (monetary indicators) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorista USD, Tasa de Política Monetaria, BADLAR, CER día, UVA día, Inflación mensual / interanual. USE THIS WHEN: the user wants to discover what indicators are available, or asks 'qué variables publica el BCRA'. Returns array of `{ idVariable, descripcion, valor, fecha, cadencia }`.",
+    "List BCRA monetary indicators (principales variables del BCRA) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorista USD, Tasa de Política Monetaria, BADLAR, CER día, UVA día, Inflación mensual / interanual. USE THIS WHEN: the user wants to discover what indicators are available, or asks 'qué variables publica el BCRA'. Returns array of `{ idVariable, descripcion, valor, fecha, cadencia }`.",
 
   get_bcra_variable:
-    "Fetch the time series for a specific BCRA Principales Variables indicator by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional `from`/`to` ISO dates filter the range. Returns `{ idVariable, datapoints: [{ fecha, valor }, ...] }`. PREFER the convenience tools (`get_usd_oficial`, `get_uva`, `get_cer`, `get_reservas_bcra`) when the user asks for one of those specifically — they pre-fill the id.",
+    "Fetch the historical series of a BCRA indicator (serie histórica de una variable del BCRA) by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional `from`/`to` ISO dates filter the range. Returns `{ idVariable, datapoints: [{ fecha, valor }, ...] }`. PREFER the convenience tools (`get_usd_oficial`, `get_uva`, `get_cer`, `get_reservas_bcra`) when the user asks for one of those specifically, they pre-fill the id.",
 
   get_usd_oficial:
-    "Convenience: fetch the latest USD oficial cotización (Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks 'a cuánto está el dólar oficial', 'cotización USD', 'tipo de cambio'. Pass `lookback_days` to control the time window (default 30).",
+    "Get the official USD exchange rate (dólar oficial, a cuánto está el dólar, cotización USD; Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks 'a cuánto está el dólar oficial', 'cotización USD', 'tipo de cambio'. Pass `lookback_days` to control the time window (default 30).",
 
   get_uva:
-    "Convenience: fetch the latest UVA (Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the user asks about UVA value, mortgage adjustments, or inflation-linked instruments. Returns the latest value + date + recent datapoints.",
+    "Get the current UVA value (valor UVA hoy; Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the user asks about UVA value, mortgage adjustments, or inflation-linked instruments. Returns the latest value + date + recent datapoints.",
 
   get_cer:
-    "Convenience: fetch the latest CER (Coeficiente de Estabilización de Referencia, BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. USE THIS WHEN: the user asks about CER, contract adjustments, or 'ajuste por inflación'.",
+    "Get the current CER coefficient (coeficiente CER hoy, ajuste por inflación; BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. USE THIS WHEN: the user asks about CER, contract adjustments, or 'ajuste por inflación'.",
 
   get_reservas_bcra:
-    "Convenience: fetch the latest BCRA international reserves (Reservas Internacionales, variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the latest value + date + recent datapoints. Reservas are reported in millions of USD.",
+    "Get BCRA international reserves (reservas del BCRA, Reservas Internacionales; variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the latest value + date + recent datapoints. Reservas are reported in millions of USD.",
 };
 
 /**
@@ -102,7 +102,7 @@ const DEFAULT_DESCRIPTIONS: Record<BankingToolName, string> = {
  * into `Experimental_Agent`'s `tools` option, or merge with other tool sets
  * (e.g., from `@ar-agents/identity` and `@ar-agents/mercadopago`).
  *
- * @example Algorithm-only (default — BCRA lookup returns "not configured")
+ * @example Algorithm-only (default, BCRA lookup returns "not configured")
  * ```ts
  * import { Experimental_Agent as Agent, stepCountIs } from "ai";
  * import { bankingTools } from "@ar-agents/banking";

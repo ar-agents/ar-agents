@@ -77,7 +77,7 @@ export function sicoreTools(opts: SicoreToolsOptions = {}) {
   const allTools = {
     sicore_calculate_retention: tool({
       description:
-        "Calculate the SICORE retention amount for a single payment to a supplier. Implements the RG 830/00 rule: retention is on the MONTHLY ACCUMULATED amount (passed via accumulatedMonthCentavos), minus what's already been retained this month (alreadyRetainedThisMonthCentavos). Returns 0 when the supplier is exento or the accumulated is below the minimum. Inputs are centavos integers; rates are fractions.",
+        "Calculate the SICORE income-tax retention on a supplier payment (calcular retención de Ganancias SICORE). Implements the RG 830/00 rule: retention is on the MONTHLY ACCUMULATED amount (passed via accumulatedMonthCentavos), minus what's already been retained this month (alreadyRetainedThisMonthCentavos). Returns 0 when the supplier is exento or the accumulated is below the minimum. Inputs are centavos integers; rates are fractions.",
       inputSchema: retentionInputSchema,
       execute: async (input) => {
         const args: RetentionInput = {
@@ -103,7 +103,7 @@ export function sicoreTools(opts: SicoreToolsOptions = {}) {
 
     sicore_calculate_retention_stream: tool({
       description:
-        "Walk a chronological stream of payments to ONE supplier in ONE month and return the retention per payment, with the accumulator advancing automatically. Use this when reconciling a supplier's invoices for the month — the tool does the bookkeeping so the agent does not have to track running totals.",
+        "Walk a chronological stream of payments to ONE supplier in ONE month and return the retention per payment, with the accumulator advancing automatically. Use this when reconciling a supplier's invoices for the month, the tool does the bookkeeping so the agent does not have to track running totals.",
       inputSchema: z.object({
         payments: z
           .array(
@@ -124,7 +124,7 @@ export function sicoreTools(opts: SicoreToolsOptions = {}) {
 
     sicore_build_ddjj: tool({
       description:
-        "Assemble the monthly SICORE DDJJ from a list of retention results. Returns totals + per-category + per-supplier breakdowns ready for filing. Pure aggregation; does NOT submit.",
+        "Assemble the monthly SICORE return (armar la DDJJ SICORE) from a list of retention results. Returns totals + per-category + per-supplier breakdowns ready for filing. Pure aggregation; does NOT submit.",
       inputSchema: z.object({
         period: z.string().regex(/^\d{4}-\d{2}$/),
         agentCuit: cuitSchema,
@@ -147,7 +147,7 @@ export function sicoreTools(opts: SicoreToolsOptions = {}) {
 
     sicore_submit_ddjj: tool({
       description:
-        "Submit an assembled SICORE DDJJ to AFIP/ARCA. Throws SicoreUnconfiguredError unless the host wired a real submission adapter. Confirmation gate REQUIRED in the host UI before invoking — this files a tax return.",
+        "Submit an assembled SICORE return to AFIP/ARCA (presentar la DDJJ SICORE). Throws SicoreUnconfiguredError unless the host wired a real submission adapter. Confirmation gate REQUIRED in the host UI before invoking, this files a tax return.",
       inputSchema: z.object({
         ddjj: z.unknown().describe("Result of sicore_build_ddjj."),
       }),

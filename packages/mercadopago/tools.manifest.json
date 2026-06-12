@@ -10,7 +10,7 @@
     },
     {
       "name": "calculate_installments",
-      "description": "Calculate cuotas (installments) options for a given amount. THE killer Argentine feature — returns options like '12 cuotas sin interés de $X' (recommended_message field) which you should surface VERBA",
+      "description": "Calculate installment options for an amount (calcular cuotas, cuotas sin interés). THE killer Argentine feature, returns options like '12 cuotas sin interés de $X' (recommended_message field) which yo",
       "input": {
         "amount_ars": "number positive",
         "payment_method_id": "string? (e.g. visa, master, naranja)",
@@ -23,7 +23,7 @@
     },
     {
       "name": "cancel_order",
-      "description": "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture. **IRREVERSIBLE — confi",
+      "description": "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead, cancel only works pre-capture. **IRREVERSIBLE, confirm",
       "input": {
         "order_id": "string"
       },
@@ -34,7 +34,7 @@
     },
     {
       "name": "cancel_payment",
-      "description": "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE — confi",
+      "description": "Cancel a pending or in_process Mercado Pago payment (cancelar un pago pendiente); only works before approval. Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment tha",
       "input": {
         "payment_id": "string"
       },
@@ -46,15 +46,15 @@
     },
     {
       "name": "cancel_point_payment_intent",
-      "description": "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERS"
+      "description": "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN', once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERSI"
     },
     {
       "name": "cancel_qr_payment",
-      "description": "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE — but low-stakes since the QR has not been pai"
+      "description": "Cancel a pending QR order on a POS (cancelar un QR pendiente). Necessary if the buyer never scans, otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE, but low-stakes sinc"
     },
     {
       "name": "cancel_subscription",
-      "description": "Cancel an active Mercado Pago subscription. After cancellation, MP will not charge the customer again. This action is irreversible — confirm with the user before calling.",
+      "description": "Cancel an active Mercado Pago subscription (cancelar suscripción, dar de baja). After cancellation, MP will not charge the customer again. This action is irreversible, confirm with the user before cal",
       "input": {
         "subscription_id": "string"
       },
@@ -79,7 +79,7 @@
     },
     {
       "name": "capture_payment",
-      "description": "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY —",
+      "description": "Capture an authorized credit-card payment (capturar un pago autorizado) that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional p",
       "input": {
         "payment_id": "string",
         "amount_ars": "number? (partial capture)"
@@ -92,11 +92,11 @@
     },
     {
       "name": "charge_saved_card",
-      "description": "Charge a previously-saved card for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Mercado Pago does NOT support CVV-"
+      "description": "Charge a previously-saved card (cobrar con tarjeta guardada) for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Merc"
     },
     {
       "name": "compute_marketplace_fee",
-      "description": "PURE HELPER (no network) — given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payme"
+      "description": "PURE HELPER (no network), given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_paymen"
     },
     {
       "name": "confirm_3ds_challenge",
@@ -104,7 +104,7 @@
     },
     {
       "name": "create_customer",
-      "description": "Create a Mercado Pago customer record so the buyer can save cards for future charges. Idempotent on email — if a customer with that email exists, MP returns it instead of creating a duplicate. Use fin",
+      "description": "Create a Mercado Pago customer record (crear cliente en Mercado Pago) so the buyer can save cards for future charges. Idempotent on email, if a customer with that email exists, MP returns it instead o",
       "input": {
         "email": "string",
         "first_name": "string?",
@@ -121,7 +121,7 @@
     },
     {
       "name": "create_customer_card",
-      "description": "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform — agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard "
+      "description": "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform, agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard w"
     },
     {
       "name": "create_order",
@@ -148,7 +148,7 @@
     },
     {
       "name": "create_payment",
-      "description": "Create a one-time payment. Two flows: (a) with a card token from MP frontend Cardform — for transparent checkout; (b) without token, for non-card methods like 'account_money', 'rapipago', 'pagofacil'.",
+      "description": "Create a one-time Mercado Pago payment (crear un pago, cobrar con Mercado Pago). Two flows: (a) with a card token from MP frontend Cardform, for transparent checkout; (b) without token, for non-card m",
       "input": {
         "amount_ars": "number positive",
         "payment_method_id": "string (visa | master | naranja | account_money | rapipago | ...)",
@@ -173,7 +173,7 @@
     },
     {
       "name": "create_payment_preference",
-      "description": "Create a Mercado Pago Checkout Pro preference and get back a payment URL (init_point) to send to the customer. THIS is the recommended way for an agent to take a payment when you only have a payer ema",
+      "description": "Create a Mercado Pago Checkout Pro payment link (crear link de pago, cobrar por Mercado Pago) and get back a payment URL (init_point) to send to the customer. THIS is the recommended way for an agent ",
       "input": {
         "items": "array of {title, quantity, unit_price, description?, picture_url?}",
         "payer_email": "string?",
@@ -192,7 +192,7 @@
     },
     {
       "name": "create_point_payment_intent",
-      "description": "Create a payment intent on a physical Point device — the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait f"
+      "description": "Create a payment intent on a physical Point device, the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait fo"
     },
     {
       "name": "create_pos",
@@ -200,7 +200,7 @@
     },
     {
       "name": "create_qr_payment",
-      "description": "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS"
+      "description": "Generate a dynamic in-store payment QR (cobrar con QR de Mercado Pago) for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc., interop is mandated by Transferenc"
     },
     {
       "name": "create_store",
@@ -208,7 +208,7 @@
     },
     {
       "name": "create_subscription",
-      "description": "Create a Mercado Pago recurring subscription. Returns an init_point URL where the customer must complete the FIRST payment with their card and CVV (this is a hard MP requirement; agents cannot bypass ",
+      "description": "Create a Mercado Pago recurring subscription (crear suscripción, cobro recurrente con Mercado Pago). Returns an init_point URL where the customer must complete the FIRST payment with their card and CV",
       "input": {
         "customer_email": "string (email; cannot equal seller email)",
         "amount_ars": "number (positive)",
@@ -225,7 +225,7 @@
     },
     {
       "name": "create_subscription_plan",
-      "description": "Create a REUSABLE subscription plan (preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscribe_to_plan. Use plans for S"
+      "description": "Create a reusable subscription plan (crear plan de suscripción; preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscri"
     },
     {
       "name": "create_webhook",
@@ -233,7 +233,7 @@
     },
     {
       "name": "delete_customer_card",
-      "description": "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE — confirm with the user before calling. The customer must re-enter card data (PAN + ",
+      "description": "Delete a saved card from a customer (eliminar tarjeta guardada). Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE, confirm with the user before calling. The customer must",
       "input": {
         "customer_id": "string",
         "card_id": "string"
@@ -250,23 +250,23 @@
     },
     {
       "name": "delete_store",
-      "description": "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes — delete those first."
+      "description": "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes, delete those first."
     },
     {
       "name": "delete_webhook",
-      "description": "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE — confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subs"
+      "description": "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE, confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subsc"
     },
     {
       "name": "explain_payment_status",
-      "description": "PURE HELPER (no network) — given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's crypt"
+      "description": "PURE HELPER (no network), given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's crypti"
     },
     {
       "name": "find_applicable_promos",
-      "description": "PURE HELPER (no network, sub-ms) — returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30"
+      "description": "PURE HELPER (no network, sub-ms), returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30 "
     },
     {
       "name": "find_customer_by_email",
-      "description": "Find an existing customer by email address. Returns the customer object if found, or null. Use before create_customer to avoid duplicate records.",
+      "description": "Find an existing Mercado Pago customer by email (buscar cliente por email). Returns the customer object if found, or null. Use before create_customer to avoid duplicate records.",
       "input": {
         "email": "string"
       },
@@ -284,7 +284,7 @@
     },
     {
       "name": "get_account_info",
-      "description": "Get info about the Mercado Pago account that owns the access token: site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the right acc",
+      "description": "Get info about the connected Mercado Pago account (información de la cuenta): site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the",
       "input": {},
       "output": {
         "account_id": "string",
@@ -301,7 +301,7 @@
     },
     {
       "name": "get_customer_card",
-      "description": "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ — useful before charge_saved_card to confirm the card is still valid."
+      "description": "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ, useful before charge_saved_card to confirm the card is still valid."
     },
     {
       "name": "get_dispute",
@@ -309,7 +309,7 @@
     },
     {
       "name": "get_merchant_order",
-      "description": "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference — one Order can have multiple partial Payments (r"
+      "description": "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference, one Order can have multiple partial Payments (re"
     },
     {
       "name": "get_order",
@@ -321,7 +321,7 @@
     },
     {
       "name": "get_payment",
-      "description": "Fetch a single payment by ID. Use to confirm status after webhook arrives, or to inspect details (status_detail explains rejections).",
+      "description": "Fetch a Mercado Pago payment by ID (consultar un pago). Use to confirm status after webhook arrives, or to inspect details (status_detail explains rejections).",
       "input": {
         "payment_id": "string"
       },
@@ -329,7 +329,7 @@
     },
     {
       "name": "get_payment_preference",
-      "description": "Fetch a Checkout Pro preference by ID. Returns the preference config and current init_point URLs. Use to inspect a previously-created link.",
+      "description": "Fetch a Checkout Pro preference / payment link by ID (consultar un link de pago). Returns the preference config and current init_point URLs. Use to inspect a previously-created link.",
       "input": {
         "preference_id": "string"
       },
@@ -345,7 +345,7 @@
     },
     {
       "name": "get_refund",
-      "description": "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ — useful to verify a refund processed or to reconcile partial-refund history."
+      "description": "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ, useful to verify a refund processed or to reconcile partial-refund history."
     },
     {
       "name": "get_settlement",
@@ -361,7 +361,7 @@
     },
     {
       "name": "get_subscription_status",
-      "description": "Check the current status of a Mercado Pago subscription. Use this to confirm the customer completed the first payment (status becomes 'authorized') or to inspect the next charge date.",
+      "description": "Check the status of a Mercado Pago subscription (consultar estado de una suscripción). Use this to confirm the customer completed the first payment (status becomes 'authorized') or to inspect the next",
       "input": {
         "subscription_id": "string (MP preapproval ID)"
       },
@@ -403,11 +403,11 @@
     },
     {
       "name": "list_bank_accounts",
-      "description": "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array — the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settl"
+      "description": "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array, the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settle"
     },
     {
       "name": "list_customer_cards",
-      "description": "List the saved cards for a customer. Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_payment calls to charge a ",
+      "description": "List a customer's saved cards (listar tarjetas guardadas). Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_paym",
       "input": {
         "customer_id": "string"
       },
@@ -423,15 +423,15 @@
     },
     {
       "name": "list_issuers",
-      "description": "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments — issuer-specific "
+      "description": "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments, issuer-specific p"
     },
     {
       "name": "list_payment_disputes",
-      "description": "List all disputes / chargebacks raised against a payment. Read-only — resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when th"
+      "description": "List all disputes / chargebacks raised against a payment. Read-only, resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when the"
     },
     {
       "name": "list_payment_methods",
-      "description": "List all payment methods enabled for the seller's MP account (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.). Use to validate which methods you can offer the custom",
+      "description": "List the payment methods enabled for the seller's Mercado Pago account (medios de pago disponibles) (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.). Use to validate",
       "input": {},
       "output": {
         "count": "number",
@@ -440,7 +440,7 @@
     },
     {
       "name": "list_point_devices",
-      "description": "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS — these are actual terminals at brick-and-mortar shops. Returns each device's id "
+      "description": "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS, these are actual terminals at brick-and-mortar shops. Returns each device's id ("
     },
     {
       "name": "list_pos",
@@ -448,7 +448,7 @@
     },
     {
       "name": "list_refunds",
-      "description": "List all refunds for a given payment. Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
+      "description": "List all refunds for a payment (listar reembolsos de un pago). Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
       "input": {
         "payment_id": "string"
       },
@@ -460,11 +460,11 @@
     },
     {
       "name": "list_settlements",
-      "description": "List settlements (release_money) — i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation repo"
+      "description": "List settlements (release_money), i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation repor"
     },
     {
       "name": "list_settlements_all",
-      "description": "Collect ALL settlements matching a filter — auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports."
+      "description": "Collect ALL settlements matching a filter, auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports."
     },
     {
       "name": "list_stores",
@@ -472,7 +472,7 @@
     },
     {
       "name": "list_subscription_payments",
-      "description": "List the auto-charge attempts (authorized_payments) under a subscription. Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge."
+      "description": "List the auto-charges under a subscription (cobros de una suscripción; authorized_payments). Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge."
     },
     {
       "name": "list_subscription_plans",
@@ -501,7 +501,7 @@
     },
     {
       "name": "oauth_exchange_code",
-      "description": "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response** — refresh_token is long-liv",
+      "description": "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response**, refresh_token is long-live",
       "input": {
         "code": "string",
         "redirect_uri": "string (must EXACTLY match the URL used in oauth_authorize_url)"
@@ -515,7 +515,7 @@
     },
     {
       "name": "oauth_refresh_token",
-      "description": "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken — pe",
+      "description": "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken, per",
       "input": {
         "refresh_token": "string"
       },
@@ -527,7 +527,7 @@
     },
     {
       "name": "pause_subscription",
-      "description": "Pause an authorized Mercado Pago subscription. Charges stop until resumed. Only works on subscriptions in 'authorized' status.",
+      "description": "Pause an authorized Mercado Pago subscription (pausar suscripción). Charges stop until resumed. Only works on subscriptions in 'authorized' status.",
       "input": {
         "subscription_id": "string"
       },
@@ -539,7 +539,7 @@
     },
     {
       "name": "refund_payment",
-      "description": "Refund an approved payment. Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to prevent double-refunds on retries. **IRREVERSIBLE AND M",
+      "description": "Refund an approved Mercado Pago payment (reembolsar un pago, hacer una devolución). Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to",
       "input": {
         "payment_id": "string",
         "amount_ars": "number? (omit for full refund)"
@@ -554,11 +554,11 @@
     },
     {
       "name": "register_bank_account",
-      "description": "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance — this endpoint may not work for all accounts. If it fails with 403, redirect the "
+      "description": "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance, this endpoint may not work for all accounts. If it fails with 403, redirect the u"
     },
     {
       "name": "resume_subscription",
-      "description": "Resume a paused Mercado Pago subscription. Charges resume on the next scheduled date. Only works on subscriptions in 'paused' status.",
+      "description": "Resume a paused Mercado Pago subscription (reactivar suscripción). Charges resume on the next scheduled date. Only works on subscriptions in 'paused' status.",
       "input": {
         "subscription_id": "string"
       },
@@ -574,7 +574,7 @@
     },
     {
       "name": "search_payments",
-      "description": "Search payments with filters. Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful charges in a date range. Returns",
+      "description": "Search Mercado Pago payments with filters (buscar pagos). Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful char",
       "input": {
         "external_reference": "string?",
         "status": "string?",
@@ -593,7 +593,7 @@
     },
     {
       "name": "search_payments_all",
-      "description": "Collect ALL payments matching a filter — auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to ca"
+      "description": "Collect ALL payments matching a filter, auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to cap"
     },
     {
       "name": "search_subscriptions",
@@ -601,15 +601,15 @@
     },
     {
       "name": "subscribe_to_plan",
-      "description": "Subscribe a customer to an existing reusable plan. Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when you have fixed tiers."
+      "description": "Subscribe a customer to an existing plan (suscribir un cliente a un plan). Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when y"
     },
     {
       "name": "update_customer",
-      "description": "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch — fields you don't send remain unchanged. Use to keep customer records in sync (e"
+      "description": "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch, fields you don't send remain unchanged. Use to keep customer records in sync (e."
     },
     {
       "name": "update_merchant_order",
-      "description": "Update a merchant_order — typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle."
+      "description": "Update a merchant_order, typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle."
     },
     {
       "name": "update_order",
@@ -643,7 +643,7 @@
     },
     {
       "name": "update_subscription_plan",
-      "description": "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated — only NEW subscribers get the new pricing."
+      "description": "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated, only NEW subscribers get the new pricing."
     },
     {
       "name": "update_webhook",
@@ -651,7 +651,7 @@
     },
     {
       "name": "validate_tax_id",
-      "description": "PURE HELPER (no network, sub-ms) — validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC struct"
+      "description": "PURE HELPER (no network, sub-ms), validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC structu"
     }
   ],
   "name": "@ar-agents/mercadopago",

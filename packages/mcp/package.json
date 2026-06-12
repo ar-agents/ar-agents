@@ -130,7 +130,7 @@
     "@ar-agents/mi-argentina": "workspace:*",
     "@ar-agents/shipping": "workspace:*",
     "@ar-agents/whatsapp": "workspace:*",
-    "@modelcontextprotocol/sdk": "^1.0.0"
+    "@modelcontextprotocol/sdk": "^1.29.0"
   },
   "peerDependencies": {
     "ai": ">=6.0.0",

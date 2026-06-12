@@ -20,7 +20,7 @@ narrativa ya está siendo escrita desde arriba; lo que falta es la capa
 técnica que hace que esas sociedades — y cualquier developer argentino
 construyendo agentes — puedan operar contra el Estado.
 
-En esta charla muestro ar-agents, una colección de 33 packages npm (221 herramientas)
+En esta charla muestro ar-agents, una colección de 36 packages npm (235 herramientas)
 open-source que cubre AFIP/ARCA, Mercado Pago, WhatsApp, BCRA, Boletín
 Oficial, IGJ, Firma Digital, Mi Argentina y RENAPER-bypass — todo como
 tools del Vercel AI SDK 6, todo Edge-Runtime-compatible, todo MIT.
@@ -92,7 +92,7 @@ not exist. There is no "gov.br auth + Pix + Open Finance" equivalent in
 Argentina.
 
 This talk shows ar-agents: a Vercel-native, MIT-licensed npm scope that
-fills that gap. 33 packages (221 typed tools), all built on Vercel AI SDK 6, all
+fills that gap. 36 packages (235 typed tools), all built on Vercel AI SDK 6, all
 Edge-Runtime-compatible, all MCP-native. The talk frames the strategic
 positioning (open + civilian, distinct from the SIDE/Palantir track)
 and walks the technical decisions that make Vercel the right platform

@@ -23,20 +23,20 @@ import { parseWebhookEvent, verifyWebhookSignature } from "./webhook";
  * + opaque (callers can't accidentally extract sensitive data from the key).
  *
  * **Length-prefix encoding to prevent boundary collisions.** Previously
- * joined parts with `|` — but `["a", "b|c"]` and `["a|b", "c"]` would
+ * joined parts with `|`, but `["a", "b|c"]` and `["a|b", "c"]` would
  * canonicalize to the same string and collide. An attacker controlling
  * `external_reference` (often passed through to user-supplied fields)
  * could craft a value that collides with a future legitimate transaction.
  * Length-prefix (`<len>:<value>` joined by `|`) makes collisions impossible
  * because the `:` is part of the protocol, not the data.
  *
- * **Async** — uses Web Crypto so it works in Edge Runtime.
+ * **Async**, uses Web Crypto so it works in Edge Runtime.
  */
 async function deterministicIdempotencyKey(
   ...parts: Array<string | number | undefined>
 ): Promise<string> {
   const filtered = parts.filter((p) => p !== undefined && p !== null).map(String);
-  // Length-prefix encoding: `<n>:<part0>|<n>:<part1>|...` — boundary-safe.
+  // Length-prefix encoding: `<n>:<part0>|<n>:<part1>|...`, boundary-safe.
   const payload = filtered.map((p) => `${p.length}:${p}`).join("|");
   return (await sha256Hex(payload)).slice(0, 32);
 }
@@ -45,7 +45,7 @@ export interface MercadoPagoToolsOptions {
   /** State adapter for persisting subscription records. */
   state: SubscriptionStateAdapter;
   /**
-   * Default back_url used when callers don't supply one. MUST be HTTPS — MP
+   * Default back_url used when callers don't supply one. MUST be HTTPS, MP
    * rejects http:// and localhost back URLs even in sandbox.
    */
   backUrl: string;
@@ -57,7 +57,7 @@ export interface MercadoPagoToolsOptions {
   descriptions?: Partial<Record<ToolName, string>>;
   /**
    * Default notification webhook URL used when callers don't supply one.
-   * Optional — MP falls back to dashboard config if not set.
+   * Optional, MP falls back to dashboard config if not set.
    */
   notificationUrl?: string;
   /**
@@ -71,7 +71,7 @@ export interface MercadoPagoToolsOptions {
   /**
    * OAuth credentials for the marketplace flow. Required for
    * `oauth_exchange_code` and `oauth_refresh_token` (the secret cannot be
-   * passed by the agent — it's a server-side secret). If omitted, those
+   * passed by the agent, it's a server-side secret). If omitted, those
    * tools return `{ available: false }` with setup instructions.
    */
   oauth?: {
@@ -79,25 +79,25 @@ export interface MercadoPagoToolsOptions {
     clientSecret: string;
   };
   /**
-   * v0.10 — Audit logger. When passed, every state-mutating tool call
+   * v0.10, Audit logger. When passed, every state-mutating tool call
    * automatically emits an audit entry with operation/actor/inputHash/
    * resourceId/outcome/duration. Read-only tools (get/search/list) skip
    * audit logging.
    */
   audit?: import("./audit").AuditLogger;
   /**
-   * v0.10 — Logical actor for audit entries (e.g., "agent:billing-bot",
+   * v0.10, Logical actor for audit entries (e.g., "agent:billing-bot",
    * "user:42"). Defaults to the AuditLogger's defaultActor.
    */
   auditActor?: string;
   /**
-   * v0.10 — Webhook deduplication for handle_webhook tool. Caches
+   * v0.10, Webhook deduplication for handle_webhook tool. Caches
    * processed (topic, dataId, requestId) tuples to short-circuit MP's
    * retries (which fire on 5xx and can deliver the same event 5+ times).
    */
   webhookDedup?: import("./webhook-dedup").WebhookDedup;
   /**
-   * v0.15 — Programmatic Human-In-The-Loop gate for irreversible /
+   * v0.15, Programmatic Human-In-The-Loop gate for irreversible /
    * money-moving operations. When set, every call to one of the gated
    * tools (cancel_payment, capture_payment, refund_payment,
    * delete_customer_card, cancel_qr_payment, cancel_order,
@@ -128,7 +128,7 @@ export interface MercadoPagoToolsOptions {
    * ```
    *
    * If omitted (default), the description-based HITL is the only line of
-   * defense — fine for trusted/internal agents, NOT recommended for
+   * defense, fine for trusted/internal agents, NOT recommended for
    * untrusted-input agents (anything reading from a public webhook).
    */
   requireConfirmation?: (
@@ -220,139 +220,139 @@ type ToolName =
   | "update_order"
   | "capture_order"
   | "cancel_order"
-  // v0.6 — Account / Balance / Movements / Settlements
+  // v0.6, Account / Balance / Movements / Settlements
   | "get_account_balance"
   | "list_account_movements"
   | "list_settlements"
   | "get_settlement"
-  // v0.6 — 3DS analyzer (pure)
+  // v0.6, 3DS analyzer (pure)
   | "analyze_payment_3ds"
-  // v0.6 — Test cards (pure)
+  // v0.6, Test cards (pure)
   | "get_test_cards"
-  // v0.7 — Customer + Card extensions
+  // v0.7, Customer + Card extensions
   | "get_customer"
   | "update_customer"
   | "create_customer_card"
   | "get_customer_card"
-  // v0.7 — Subscription / Plan / Refund / Preference extensions
+  // v0.7, Subscription / Plan / Refund / Preference extensions
   | "get_subscription_plan"
   | "update_subscription"
   | "search_subscriptions"
   | "get_refund"
   | "update_payment_preference"
-  // v0.7 — Merchant Orders
+  // v0.7, Merchant Orders
   | "get_merchant_order"
   | "search_merchant_orders"
   | "update_merchant_order"
-  // v0.7 — Stores + POS CRUD completion
+  // v0.7, Stores + POS CRUD completion
   | "get_store"
   | "update_store"
   | "delete_store"
   | "get_pos"
   | "update_pos"
   | "delete_pos"
-  // v0.7 — Bank Accounts
+  // v0.7, Bank Accounts
   | "list_bank_accounts"
   | "register_bank_account"
-  // v0.7 — Point Devices físicos
+  // v0.7, Point Devices físicos
   | "list_point_devices"
   | "update_point_device_mode"
   | "create_point_payment_intent"
   | "get_point_payment_intent"
   | "cancel_point_payment_intent"
-  // v0.7 — Pure helpers
+  // v0.7, Pure helpers
   | "compute_marketplace_fee"
   | "explain_payment_status"
-  // v0.9 — Health check + observability
+  // v0.9, Health check + observability
   | "mp_health_check"
-  // v0.10 — AR issuer cuotas promos (pure helper)
+  // v0.10, AR issuer cuotas promos (pure helper)
   | "find_applicable_promos"
-  // v0.10 — 3DS challenge resolution (combined poll-and-resolve)
+  // v0.10, 3DS challenge resolution (combined poll-and-resolve)
   | "confirm_3ds_challenge"
-  // v0.10 — Auto-paginate variants (collect-all)
+  // v0.10, Auto-paginate variants (collect-all)
   | "search_payments_all"
   | "list_settlements_all"
-  // v0.11 — TaxID validation cross-LATAM (pure)
+  // v0.11, TaxID validation cross-LATAM (pure)
   | "validate_tax_id";
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   // ── Subscriptions ────────────────────────────────────────────────────────
   create_subscription:
-    "Create a Mercado Pago recurring subscription. Returns an init_point URL where the customer must complete the FIRST payment with their card and CVV (this is a hard MP requirement; agents cannot bypass it). After they pay, MP will auto-charge at the configured frequency without further intervention.",
+    "Create a Mercado Pago recurring subscription (crear suscripción, cobro recurrente con Mercado Pago). Returns an init_point URL where the customer must complete the FIRST payment with their card and CVV (this is a hard MP requirement; agents cannot bypass it). After they pay, MP will auto-charge at the configured frequency without further intervention.",
   get_subscription_status:
-    "Check the current status of a Mercado Pago subscription. Use this to confirm the customer completed the first payment (status becomes 'authorized') or to inspect the next charge date.",
+    "Check the status of a Mercado Pago subscription (consultar estado de una suscripción). Use this to confirm the customer completed the first payment (status becomes 'authorized') or to inspect the next charge date.",
   cancel_subscription:
-    "Cancel an active Mercado Pago subscription. After cancellation, MP will not charge the customer again. This action is irreversible — confirm with the user before calling.",
+    "Cancel an active Mercado Pago subscription (cancelar suscripción, dar de baja). After cancellation, MP will not charge the customer again. This action is irreversible, confirm with the user before calling.",
   pause_subscription:
-    "Pause an authorized Mercado Pago subscription. Charges stop until resumed. Only works on subscriptions in 'authorized' status.",
+    "Pause an authorized Mercado Pago subscription (pausar suscripción). Charges stop until resumed. Only works on subscriptions in 'authorized' status.",
   resume_subscription:
-    "Resume a paused Mercado Pago subscription. Charges resume on the next scheduled date. Only works on subscriptions in 'paused' status.",
+    "Resume a paused Mercado Pago subscription (reactivar suscripción). Charges resume on the next scheduled date. Only works on subscriptions in 'paused' status.",
 
   // ── Payments ─────────────────────────────────────────────────────────────
   create_payment:
-    "Create a one-time payment. Two flows: (a) with a card token from MP frontend Cardform — for transparent checkout; (b) without token, for non-card methods like 'account_money', 'rapipago', 'pagofacil'. For most agent flows where you only have a payer email and want to send them a payment link, use create_payment_preference instead (Checkout Pro hosted form). Returns the Payment object with status — typically 'approved' for account_money and 'pending' for tickets.",
+    "Create a one-time Mercado Pago payment (crear un pago, cobrar con Mercado Pago). Two flows: (a) with a card token from MP frontend Cardform, for transparent checkout; (b) without token, for non-card methods like 'account_money', 'rapipago', 'pagofacil'. For most agent flows where you only have a payer email and want to send them a payment link, use create_payment_preference instead (Checkout Pro hosted form). Returns the Payment object with status, typically 'approved' for account_money and 'pending' for tickets.",
   get_payment:
-    "Fetch a single payment by ID. Use to confirm status after webhook arrives, or to inspect details (status_detail explains rejections).",
+    "Fetch a Mercado Pago payment by ID (consultar un pago). Use to confirm status after webhook arrives, or to inspect details (status_detail explains rejections).",
   search_payments:
-    "Search payments with filters. Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful charges in a date range. Returns paginated results.",
+    "Search Mercado Pago payments with filters (buscar pagos). Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful charges in a date range. Returns paginated results.",
   cancel_payment:
-    "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE — confirm with the user before calling. Surface the payment_id, amount, payer_email, and current status, ask 'sí, cancelá' (or equivalent), then proceed.**",
+    "Cancel a pending or in_process Mercado Pago payment (cancelar un pago pendiente); only works before approval. Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE, confirm with the user before calling. Surface the payment_id, amount, payer_email, and current status, ask 'sí, cancelá' (or equivalent), then proceed.**",
   capture_payment:
-    "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY — confirm the amount with the user before calling.**",
+    "Capture an authorized credit-card payment (capturar un pago autorizado) that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY, confirm the amount with the user before calling.**",
 
   // ── Refunds ──────────────────────────────────────────────────────────────
   refund_payment:
-    "Refund an approved payment. Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to prevent double-refunds on retries. **IRREVERSIBLE AND MOVES MONEY — confirm with the user before calling. Restate the payment_id, the refund amount (full vs partial), and ask explicit confirmation. Mercado Pago does not support 'undo refund' — once issued, the buyer's bank releases the funds.**",
+    "Refund an approved Mercado Pago payment (reembolsar un pago, hacer una devolución). Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to prevent double-refunds on retries. **IRREVERSIBLE AND MOVES MONEY, confirm with the user before calling. Restate the payment_id, the refund amount (full vs partial), and ask explicit confirmation. Mercado Pago does not support 'undo refund', once issued, the buyer's bank releases the funds.**",
   list_refunds:
-    "List all refunds for a given payment. Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
+    "List all refunds for a payment (listar reembolsos de un pago). Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
 
   // ── Checkout Pro ─────────────────────────────────────────────────────────
   create_payment_preference:
-    "Create a Mercado Pago Checkout Pro preference and get back a payment URL (init_point) to send to the customer. THIS is the recommended way for an agent to take a payment when you only have a payer email — the buyer enters card data on MP's hosted form (no PCI scope needed). Supports cuotas configuration, payment method exclusions, back URLs after success/failure/pending. In sandbox, use sandbox_init_point from the response.",
+    "Create a Mercado Pago Checkout Pro payment link (crear link de pago, cobrar por Mercado Pago) and get back a payment URL (init_point) to send to the customer. THIS is the recommended way for an agent to take a payment when you only have a payer email, the buyer enters card data on MP's hosted form (no PCI scope needed). Supports cuotas configuration, payment method exclusions, back URLs after success/failure/pending. In sandbox, use sandbox_init_point from the response.",
   get_payment_preference:
-    "Fetch a Checkout Pro preference by ID. Returns the preference config and current init_point URLs. Use to inspect a previously-created link.",
+    "Fetch a Checkout Pro preference / payment link by ID (consultar un link de pago). Returns the preference config and current init_point URLs. Use to inspect a previously-created link.",
 
   // ── Customers + Cards ────────────────────────────────────────────────────
   create_customer:
-    "Create a Mercado Pago customer record so the buyer can save cards for future charges. Idempotent on email — if a customer with that email exists, MP returns it instead of creating a duplicate. Use find_customer_by_email first if you're unsure.",
+    "Create a Mercado Pago customer record (crear cliente en Mercado Pago) so the buyer can save cards for future charges. Idempotent on email, if a customer with that email exists, MP returns it instead of creating a duplicate. Use find_customer_by_email first if you're unsure.",
   find_customer_by_email:
-    "Find an existing customer by email address. Returns the customer object if found, or null. Use before create_customer to avoid duplicate records.",
+    "Find an existing Mercado Pago customer by email (buscar cliente por email). Returns the customer object if found, or null. Use before create_customer to avoid duplicate records.",
   list_customer_cards:
-    "List the saved cards for a customer. Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_payment calls to charge a saved card.",
+    "List a customer's saved cards (listar tarjetas guardadas). Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_payment calls to charge a saved card.",
   delete_customer_card:
-    "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE — confirm with the user before calling. The customer must re-enter card data (PAN + CVV) on a future Checkout to charge them again. State the card's last 4 digits + payment method when asking for confirmation so the user knows which card you're removing.**",
+    "Delete a saved card from a customer (eliminar tarjeta guardada). Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE, confirm with the user before calling. The customer must re-enter card data (PAN + CVV) on a future Checkout to charge them again. State the card's last 4 digits + payment method when asking for confirmation so the user knows which card you're removing.**",
 
   // ── Payment Methods + Installments ───────────────────────────────────────
   list_payment_methods:
-    "List all payment methods enabled for the seller's MP account (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.). Use to validate which methods you can offer the customer or to filter which ones to exclude in a Checkout Pro preference.",
+    "List the payment methods enabled for the seller's Mercado Pago account (medios de pago disponibles) (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.). Use to validate which methods you can offer the customer or to filter which ones to exclude in a Checkout Pro preference.",
   calculate_installments:
-    "Calculate cuotas (installments) options for a given amount. THE killer Argentine feature — returns options like '12 cuotas sin interés de $X' (recommended_message field) which you should surface VERBATIM to the user. Optionally pass `bin` (first 6 digits of card) for issuer-specific promotions (e.g., Naranja's interest-free deals). Use before create_payment to let the user pick installments knowingly.",
+    "Calculate installment options for an amount (calcular cuotas, cuotas sin interés). THE killer Argentine feature, returns options like '12 cuotas sin interés de $X' (recommended_message field) which you should surface VERBATIM to the user. Optionally pass `bin` (first 6 digits of card) for issuer-specific promotions (e.g., Naranja's interest-free deals). Use before create_payment to let the user pick installments knowingly.",
 
   // ── Account ──────────────────────────────────────────────────────────────
   get_account_info:
-    "Get info about the Mercado Pago account that owns the access token: site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the right account before taking actions.",
+    "Get info about the connected Mercado Pago account (información de la cuenta): site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the right account before taking actions.",
 
   // ── Saved-card charging (v0.3) ───────────────────────────────────────────
   charge_saved_card:
-    "Charge a previously-saved card for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Mercado Pago does NOT support CVV-less charges via the public API — every charge needs CVV. Idempotent on (card_id, amount, external_reference): retries dedupe automatically. Returns the resulting Payment.",
+    "Charge a previously-saved card (cobrar con tarjeta guardada) for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Mercado Pago does NOT support CVV-less charges via the public API, every charge needs CVV. Idempotent on (card_id, amount, external_reference): retries dedupe automatically. Returns the resulting Payment.",
 
   // ── QR in-store (v0.3) ───────────────────────────────────────────────────
   create_qr_payment:
-    "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS external_id (use create_pos to set one up first if needed). Returns the qr_data string + a base64 PNG data URL ready to display. The QR expires in `expires_in_seconds` (default 600). MP fires `point_integration_wh` then `payment` webhooks when scanned.",
+    "Generate a dynamic in-store payment QR (cobrar con QR de Mercado Pago) for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc., interop is mandated by Transferencias 3.0). Requires a pre-configured POS external_id (use create_pos to set one up first if needed). Returns the qr_data string + a base64 PNG data URL ready to display. The QR expires in `expires_in_seconds` (default 600). MP fires `point_integration_wh` then `payment` webhooks when scanned.",
   cancel_qr_payment:
-    "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE — but low-stakes since the QR has not been paid yet. Confirm before calling if the user is mid-flow.**",
+    "Cancel a pending QR order on a POS (cancelar un QR pendiente). Necessary if the buyer never scans, otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE, but low-stakes since the QR has not been paid yet. Confirm before calling if the user is mid-flow.**",
 
   // ── Subscription Plans (v0.4) ────────────────────────────────────────────
   create_subscription_plan:
-    "Create a REUSABLE subscription plan (preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscribe_to_plan. Use plans for SaaS-style billing (Básico/Pro/Enterprise tiers). For per-customer custom amounts, use create_subscription directly.",
+    "Create a reusable subscription plan (crear plan de suscripción; preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscribe_to_plan. Use plans for SaaS-style billing (Básico/Pro/Enterprise tiers). For per-customer custom amounts, use create_subscription directly.",
   list_subscription_plans:
     "List all subscription plans defined for this MP account. Useful before create_subscription_plan to check if one already exists, or for surfacing options to a customer.",
   update_subscription_plan:
-    "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated — only NEW subscribers get the new pricing.",
+    "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated, only NEW subscribers get the new pricing.",
   subscribe_to_plan:
-    "Subscribe a customer to an existing reusable plan. Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when you have fixed tiers.",
+    "Subscribe a customer to an existing plan (suscribir un cliente a un plan). Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when you have fixed tiers.",
   list_subscription_payments:
-    "List the auto-charge attempts (authorized_payments) under a subscription. Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge.",
+    "List the auto-charges under a subscription (cobros de una suscripción; authorized_payments). Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge.",
 
   // ── Stores + POS (v0.4) ──────────────────────────────────────────────────
   create_store:
@@ -364,9 +364,9 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   list_pos:
     "List all POSes for the seller (or filtered by store_id). Use to find an existing POS before create_qr_payment, or to surface options.",
 
-  // ── Disputes (v0.4 — read-only) ──────────────────────────────────────────
+  // ── Disputes (v0.4, read-only) ──────────────────────────────────────────
   list_payment_disputes:
-    "List all disputes / chargebacks raised against a payment. Read-only — resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when they need to respond.",
+    "List all disputes / chargebacks raised against a payment. Read-only, resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when they need to respond.",
   get_dispute:
     "Get details of a specific dispute including reason, amount, resolution status. Read-only.",
 
@@ -374,7 +374,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   list_identification_types:
     "List valid identification types for the seller's site. AR returns: DNI, CI, LE, LC, Otro, Pasaporte, CUIT, CUIL with their min/max length. Useful to validate an identification before passing to create_payment.",
   list_issuers:
-    "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments — issuer-specific promos (e.g., Naranja Galicia 6 cuotas sin interés) only appear when the issuer is identified.",
+    "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments, issuer-specific promos (e.g., Naranja Galicia 6 cuotas sin interés) only appear when the issuer is identified.",
 
   // ── Webhooks management (v0.4) ───────────────────────────────────────────
   list_webhooks:
@@ -384,23 +384,23 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   update_webhook:
     "Update a webhook's URL or topic. Useful when you change deployment URLs without resubscribing from scratch.",
   delete_webhook:
-    "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE — confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subscribing requires a new create_webhook call.**",
+    "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE, confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subscribing requires a new create_webhook call.**",
 
   // ── Webhook handler combo (v0.5) ─────────────────────────────────────────
   handle_webhook:
-    "Process an incoming MP webhook in ONE call: verify the HMAC-SHA256 signature, parse the event, and (optionally) auto-fetch the underlying resource (Payment, Subscription, Order). Returns the structured event PLUS the full resource. USE THIS in your webhook endpoint INSTEAD of chaining verify_webhook_signature + parse_webhook_event + get_payment manually. Pass the raw request body, x-signature header, x-request-id header, and your MP webhook secret. SAFE: returns { verified: false } when signature mismatches — caller should respond 401 and stop processing. WHEN auto_fetch is true (default), the resource is fetched as the SAME MP user the client is configured for (so for marketplace integrations, instantiate a per-seller client).",
+    "Process an incoming MP webhook in ONE call: verify the HMAC-SHA256 signature, parse the event, and (optionally) auto-fetch the underlying resource (Payment, Subscription, Order). Returns the structured event PLUS the full resource. USE THIS in your webhook endpoint INSTEAD of chaining verify_webhook_signature + parse_webhook_event + get_payment manually. Pass the raw request body, x-signature header, x-request-id header, and your MP webhook secret. SAFE: returns { verified: false } when signature mismatches, caller should respond 401 and stop processing. WHEN auto_fetch is true (default), the resource is fetched as the SAME MP user the client is configured for (so for marketplace integrations, instantiate a per-seller client).",
 
   // ── OAuth Marketplace (v0.5) ─────────────────────────────────────────────
   oauth_authorize_url:
-    "Build the URL the SELLER (third-party MP account) visits to authorize your marketplace app. Pass the seller's redirect uri (must be whitelisted in MP dev panel) and an opaque state token (CSRF protection — bind it to the user's session). PURE FUNCTION: no network. The seller approves, MP redirects them to your `redirect_uri?code=...&state=...`. Then call oauth_exchange_code with the code.",
+    "Build the URL the SELLER (third-party MP account) visits to authorize your marketplace app. Pass the seller's redirect uri (must be whitelisted in MP dev panel) and an opaque state token (CSRF protection, bind it to the user's session). PURE FUNCTION: no network. The seller approves, MP redirects them to your `redirect_uri?code=...&state=...`. Then call oauth_exchange_code with the code.",
   oauth_exchange_code:
-    "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response** — refresh_token is long-lived and the only way to keep the integration alive past 6h. Use the access_token to instantiate a per-seller MercadoPagoClient for marketplace flows.",
+    "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response**, refresh_token is long-lived and the only way to keep the integration alive past 6h. Use the access_token to instantiate a per-seller MercadoPagoClient for marketplace flows.",
   oauth_refresh_token:
-    "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken — persist the new refresh_token (MP often returns the same value, but always replace).",
+    "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken, persist the new refresh_token (MP often returns the same value, but always replace).",
 
-  // ── Order Management API (v0.5 — modern Order API) ───────────────────────
+  // ── Order Management API (v0.5, modern Order API) ───────────────────────
   create_order:
-    "Create a new Order via MP's modern Order Management API. DIFFERENT from create_payment_preference: Order is a transactional entity with explicit lifecycle (created → processed → captured/canceled), supports MANUAL CAPTURE (auth-only, capture later — for ride-share, hotels, marketplaces) and aggregates multiple payments into one Order. Use Preference (Checkout Pro) for simple hosted pay-links; use Order when you need auth-only or multi-payment-per-order semantics. For marketplace splits, set marketplace + marketplace_fee + collector_id (the SELLER's MP user_id from oauth_exchange_code).",
+    "Create a new Order via MP's modern Order Management API. DIFFERENT from create_payment_preference: Order is a transactional entity with explicit lifecycle (created → processed → captured/canceled), supports MANUAL CAPTURE (auth-only, capture later, for ride-share, hotels, marketplaces) and aggregates multiple payments into one Order. Use Preference (Checkout Pro) for simple hosted pay-links; use Order when you need auth-only or multi-payment-per-order semantics. For marketplace splits, set marketplace + marketplace_fee + collector_id (the SELLER's MP user_id from oauth_exchange_code).",
   get_order:
     "Fetch an Order by ID. Returns the Order with its lifecycle status and any attached payments/refunds.",
   update_order:
@@ -408,7 +408,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   capture_order:
     "Capture a previously-authorized Order (only for orders created with capture_mode='manual'). Captures up to the originally-authorized amount; pass amount for partial capture. Common use: ride-share marks ride complete → capture; hotel checks-out guest → capture.",
   cancel_order:
-    "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture. **IRREVERSIBLE — confirm with the user. State the order_id, total_amount, and current status before asking 'sí, cancelá'. The buyer's hold is released to their bank within 24-72h depending on issuer.**",
+    "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead, cancel only works pre-capture. **IRREVERSIBLE, confirm with the user. State the order_id, total_amount, and current status before asking 'sí, cancelá'. The buyer's hold is released to their bank within 24-72h depending on issuer.**",
 
   // ── Account / Balance / Movements / Settlements (v0.6) ───────────────────
   get_account_balance:
@@ -416,27 +416,27 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   list_account_movements:
     "List wallet movements (incoming payments, transfers, refunds, holdings) for the active MP account. Filter by date range with `from`/`to` (ISO 8601). Useful for monthly conciliation or 'show me what came in this month' workflows.",
   list_settlements:
-    "List settlements (release_money) — i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation reports. Filter by date range and status.",
+    "List settlements (release_money), i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation reports. Filter by date range and status.",
   get_settlement:
     "Get details of a single settlement: amount, date_scheduled, date_processed, bank_account info (CBU + bank name).",
 
-  // ── 3DS analyzer (v0.6 — pure) ───────────────────────────────────────────
+  // ── 3DS analyzer (v0.6, pure) ───────────────────────────────────────────
   analyze_payment_3ds:
     "Pure local analyzer for a Payment's 3DS (Strong Customer Authentication) state. Pass a payment_id (string) and the tool fetches the Payment then derives { status: 'not_required'|'frictionless'|'challenge_required'|'rejected'|'unknown', mode, challengeUrl, description }. USE THIS after every create_payment for credit cards: when challengeUrl !== null, you MUST redirect the buyer there before the payment can complete. Without 3DS, payments stay in 'pending' indefinitely if the issuer demanded a challenge.",
 
-  // ── Test cards (v0.6 — pure) ─────────────────────────────────────────────
+  // ── Test cards (v0.6, pure) ─────────────────────────────────────────────
   get_test_cards:
-    "Pure helper that returns the official MP test cards for AR (MLA): VISA/Mastercard/Amex credit + debit, with the 'magic' holder names that route the payment to specific status_detail values (APRO=approved, OTHE=rejected, CONT=pending, FUND=insufficient_amount, etc.). USE WHEN you need to demo a payment flow without a real card, or to script integration tests. Pure data — no network call.",
+    "Pure helper that returns the official MP test cards for AR (MLA): VISA/Mastercard/Amex credit + debit, with the 'magic' holder names that route the payment to specific status_detail values (APRO=approved, OTHE=rejected, CONT=pending, FUND=insufficient_amount, etc.). USE WHEN you need to demo a payment flow without a real card, or to script integration tests. Pure data, no network call.",
 
   // ── Customer + Card extensions (v0.7) ────────────────────────────────────
   get_customer:
     "Get a customer by id. Returns full Customer object: email, first_name, last_name, identification, address, default_card, registered cards. PURE READ. USE WHEN you have the customer_id from a previous create_customer / find_customer_by_email / payment.payer.id and want the full record.",
   update_customer:
-    "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch — fields you don't send remain unchanged. Use to keep customer records in sync (e.g., shipping address changes) or to set a default card for charge_saved_card.",
+    "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch, fields you don't send remain unchanged. Use to keep customer records in sync (e.g., shipping address changes) or to set a default card for charge_saved_card.",
   create_customer_card:
-    "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform — agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard with id usable in charge_saved_card. Persists across charges (no need to re-tokenize each time).",
+    "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform, agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard with id usable in charge_saved_card. Persists across charges (no need to re-tokenize each time).",
   get_customer_card:
-    "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ — useful before charge_saved_card to confirm the card is still valid.",
+    "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ, useful before charge_saved_card to confirm the card is still valid.",
 
   // ── Subscription / Plan / Refund / Preference extensions (v0.7) ─────────
   get_subscription_plan:
@@ -446,17 +446,17 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   search_subscriptions:
     "Search subscriptions across the seller's account. Filter by status (pending/authorized/paused/cancelled), payer_email, external_reference, or preapproval_plan_id (to find all subscribers of a plan). Paginated. USE WHEN you need to enumerate active subscribers, audit cancellations, or find a subscription by external reference.",
   get_refund:
-    "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ — useful to verify a refund processed or to reconcile partial-refund history.",
+    "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ, useful to verify a refund processed or to reconcile partial-refund history.",
   update_payment_preference:
     "Update a Checkout Pro preference (notification_url, back_urls, items, payer info, payment_methods exclusion list). Only works on preferences NOT yet paid. Common use: regenerate the link with a new notification_url after deployment, or change items if the buyer requested adjustments before paying.",
 
   // ── Merchant Orders (v0.7) ────────────────────────────────────────────────
   get_merchant_order:
-    "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference — one Order can have multiple partial Payments (retries, installments). USE THIS in webhooks with topic='merchant_order' to get the aggregate paid_amount, refunded_amount, and shipping status in one call.",
+    "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference, one Order can have multiple partial Payments (retries, installments). USE THIS in webhooks with topic='merchant_order' to get the aggregate paid_amount, refunded_amount, and shipping status in one call.",
   search_merchant_orders:
     "Search merchant_orders by preference_id, external_reference, or status. Paginated. Returns up to 50 per page. USE WHEN you have a preference_id and want all its derived merchant_orders, or when reconciling 'which payments belong to which preference'.",
   update_merchant_order:
-    "Update a merchant_order — typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle.",
+    "Update a merchant_order, typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle.",
 
   // ── Stores + POS CRUD completion (v0.7) ──────────────────────────────────
   get_store:
@@ -464,7 +464,7 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   update_store:
     "Update a store's properties (name, location, business_hours, external_id). MP merges the patch.",
   delete_store:
-    "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes — delete those first.",
+    "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes, delete those first.",
   get_pos:
     "Fetch a POS by id. Returns: name, store_id, category, external_id, qr_template (if configured). PURE READ. Use when you need to find the external_id for create_qr_payment.",
   update_pos:
@@ -474,49 +474,49 @@ const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
 
   // ── Bank Accounts (v0.7) ─────────────────────────────────────────────────
   list_bank_accounts:
-    "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array — the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settlements when the user asks 'a qué cuenta me deposita MP'.",
+    "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array, the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settlements when the user asks 'a qué cuenta me deposita MP'.",
   register_bank_account:
-    "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance — this endpoint may not work for all accounts. If it fails with 403, redirect the user to https://www.mercadopago.com.ar/banking/dashboard.",
+    "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance, this endpoint may not work for all accounts. If it fails with 403, redirect the user to https://www.mercadopago.com.ar/banking/dashboard.",
 
   // ── Point Devices físicos (v0.7) ─────────────────────────────────────────
   list_point_devices:
-    "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS — these are actual terminals at brick-and-mortar shops. Returns each device's id (serial), operating_mode (PDV vs STANDALONE), and pos_id (when bound to a logical POS). Filter by pos_id to find devices for a specific cash register.",
+    "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS, these are actual terminals at brick-and-mortar shops. Returns each device's id (serial), operating_mode (PDV vs STANDALONE), and pos_id (when bound to a logical POS). Filter by pos_id to find devices for a specific cash register.",
   update_point_device_mode:
     "Switch a Point device's operating_mode between 'PDV' (bound to a logical POS, takes payments triggered through that POS) and 'STANDALONE' (works independently, accepts any payment). PDV is for cash-register integrations; STANDALONE is for free-form retail. Affects how payments hit the device.",
   create_point_payment_intent:
-    "Create a payment intent on a physical Point device — the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait for point_integration_wh webhook. **AMOUNT IS IN CENTAVOS**, NOT pesos (Point API differs from Payments API): 100 = $1, 1000 = $10, 10000 = $100.",
+    "Create a payment intent on a physical Point device, the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait for point_integration_wh webhook. **AMOUNT IS IN CENTAVOS**, NOT pesos (Point API differs from Payments API): 100 = $1, 1000 = $10, 10000 = $100.",
   get_point_payment_intent:
     "Get the current state of a Point payment intent (OPEN, PROCESSING, FINISHED, CANCELED, ERROR). USE in polling loops if you can't wait for the webhook. When state=FINISHED, the intent.payment.id is the resulting Payment id usable with get_payment.",
   cancel_point_payment_intent:
-    "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERSIBLE — confirm with the cashier/operator before calling. State the device_id and amount.**",
+    "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN', once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERSIBLE, confirm with the cashier/operator before calling. State the device_id and amount.**",
 
   // ── Pure helpers (v0.7) ──────────────────────────────────────────────────
   compute_marketplace_fee:
-    "PURE HELPER (no network) — given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payment_preference. USE WHEN your platform takes a commission and you need to compute the exact fee per transaction. Examples: { percent: 5, minArs: 50, maxArs: 5000 } for percentage with floor + cap; { flatArs: 200, percent: 2 } for fixed + percentage.",
+    "PURE HELPER (no network), given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payment_preference. USE WHEN your platform takes a commission and you need to compute the exact fee per transaction. Examples: { percent: 5, minArs: 50, maxArs: 5000 } for percentage with floor + cap; { flatArs: 200, percent: 2 } for fixed + percentage.",
   explain_payment_status:
-    "PURE HELPER (no network) — given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's cryptic status_detail codes to plain Spanish + actionable guidance ('reintentar con otra tarjeta' vs 'esperar webhook' vs 'estado final'). USE THIS instead of having to memorize 30+ status_detail codes — surface summary + recommendedAction directly to the user.",
+    "PURE HELPER (no network), given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's cryptic status_detail codes to plain Spanish + actionable guidance ('reintentar con otra tarjeta' vs 'esperar webhook' vs 'estado final'). USE THIS instead of having to memorize 30+ status_detail codes, surface summary + recommendedAction directly to the user.",
 
-  // ── v0.9 — Health check + observability ──────────────────────────────────
+  // ── v0.9, Health check + observability ──────────────────────────────────
   mp_health_check:
-    "Liveness probe against MP. Returns { ok, latencyMs, userId, circuit }. USE THIS as the first call in long-running agent workflows to verify (a) network path to MP is up, (b) accessToken is valid, (c) MP is responding. Circuit-breaker state included when configured — surface to ops dashboards. Returns ok=false instead of throwing — safe to call in monitoring loops without try/catch.",
+    "Liveness probe against MP. Returns { ok, latencyMs, userId, circuit }. USE THIS as the first call in long-running agent workflows to verify (a) network path to MP is up, (b) accessToken is valid, (c) MP is responding. Circuit-breaker state included when configured, surface to ops dashboards. Returns ok=false instead of throwing, safe to call in monitoring loops without try/catch.",
 
-  // ── v0.10 — AR issuer cuotas promos (pure) ───────────────────────────────
+  // ── v0.10, AR issuer cuotas promos (pure) ───────────────────────────────
   find_applicable_promos:
-    "PURE HELPER (no network, sub-ms) — returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30 program AND issuer-specific deals (Naranja con Galicia los jueves, Santander Amex en supermercados los martes, etc.). USE THIS BEFORE checkout to surface 'pagá en 12 cuotas sin interés con tu Galicia' hints to the buyer — drives conversion. Returns an array of CuotasPromo objects; the `description` field is in Spanish and ALWAYS surface verbatim. Catalog updated quarterly.",
+    "PURE HELPER (no network, sub-ms), returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30 program AND issuer-specific deals (Naranja con Galicia los jueves, Santander Amex en supermercados los martes, etc.). USE THIS BEFORE checkout to surface 'pagá en 12 cuotas sin interés con tu Galicia' hints to the buyer, drives conversion. Returns an array of CuotasPromo objects; the `description` field is in Spanish and ALWAYS surface verbatim. Catalog updated quarterly.",
 
-  // ── v0.10 — 3DS challenge resolution ────────────────────────────────────
+  // ── v0.10, 3DS challenge resolution ────────────────────────────────────
   confirm_3ds_challenge:
     "After the buyer completes a 3DS challenge (redirected back from challengeUrl), call this to poll MP and confirm whether the payment is now resolved. Polls get_payment up to N times with exponential backoff. Returns { payment, threeDs, resolved, attempts }. USE THIS as the FINAL step in the 3DS flow (after analyze_payment_3ds detected a challenge_required). Without confirming, the payment stays in 'pending' indefinitely from the buyer's perspective.",
 
-  // ── v0.10 — Auto-paginate variants ──────────────────────────────────────
+  // ── v0.10, Auto-paginate variants ──────────────────────────────────────
   search_payments_all:
-    "Collect ALL payments matching a filter — auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to cap; without it, MP traversal is bounded by the toolkit's internal max (10,000 items) to prevent runaway iterations. USE WHEN the agent needs to enumerate everything (e.g., monthly reconciliation 'all approved payments in March'). For agent flows that only need 'first N matches', pass `max_items` directly.",
+    "Collect ALL payments matching a filter, auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to cap; without it, MP traversal is bounded by the toolkit's internal max (10,000 items) to prevent runaway iterations. USE WHEN the agent needs to enumerate everything (e.g., monthly reconciliation 'all approved payments in March'). For agent flows that only need 'first N matches', pass `max_items` directly.",
   list_settlements_all:
-    "Collect ALL settlements matching a filter — auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports.",
+    "Collect ALL settlements matching a filter, auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports.",
 
-  // ── v0.11 — TaxID validation cross-LATAM (pure) ──────────────────────────
+  // ── v0.11, TaxID validation cross-LATAM (pure) ──────────────────────────
   validate_tax_id:
-    "PURE HELPER (no network, sub-ms) — validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC structure), CL (RUT with K digit), CO (NIT modulo-11), UY (RUT 12-digit checksum), PE (RUC 11-digit + prefix validation). Returns { valid, normalized, formatted, type, country, error }. USE THIS BEFORE submitting buyer identification to MP — invalid tax IDs cause 4xx rejections. Surface the Spanish error verbatim.",
+    "PURE HELPER (no network, sub-ms), validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC structure), CL (RUT with K digit), CO (NIT modulo-11), UY (RUT 12-digit checksum), PE (RUC 11-digit + prefix validation). Returns { valid, normalized, formatted, type, country, error }. USE THIS BEFORE submitting buyer identification to MP, invalid tax IDs cause 4xx rejections. Surface the Spanish error verbatim.",
 };
 
 /**
@@ -562,7 +562,7 @@ function buildAllTools(
 ): ToolSet {
   return {
     // ─────────────────────────────────────────────────────────────────────────
-    // Subscriptions (v0.1 — kept identical for backward compatibility)
+    // Subscriptions (v0.1, kept identical for backward compatibility)
     // ─────────────────────────────────────────────────────────────────────────
 
     create_subscription: tool({
@@ -585,7 +585,7 @@ function buildAllTools(
             frequencyType: "months",
             backUrl: options.backUrl,
             ...(external_reference !== undefined ? { externalReference: external_reference } : {}),
-            // Deterministic idempotency — if the LLM retries this tool call
+            // Deterministic idempotency, if the LLM retries this tool call
             // with the same inputs (e.g., timeout + retry), MP returns the
             // EXISTING subscription instead of creating a duplicate.
             idempotencyKey: await deterministicIdempotencyKey(
@@ -703,16 +703,16 @@ function buildAllTools(
         identification: z.object({
           type: z.enum(["DNI", "CUIT", "CUIL"]),
           number: z.string(),
-        }).optional().describe("Payer identification — required for some payment types in AR"),
+        }).optional().describe("Payer identification, required for some payment types in AR"),
         statement_descriptor: z.string().max(13).optional().describe("Shows on buyer's card statement (max 13 chars)"),
-        // v0.11 — fraud scoring enrichment fields
+        // v0.11, fraud scoring enrichment fields
         additional_info: z
           .object({
             ip_address: z
               .string()
               .optional()
               .describe(
-                "Buyer's IP address (from req.headers X-Forwarded-For). STRONGLY RECOMMENDED for card payments — improves MP fraud scoring confidence and reduces false-positive rejections (3-5x lower per RG 5286/2023).",
+                "Buyer's IP address (from req.headers X-Forwarded-For). STRONGLY RECOMMENDED for card payments, improves MP fraud scoring confidence and reduces false-positive rejections (3-5x lower per RG 5286/2023).",
               ),
             referral_url: z.string().url().optional().describe("Page the buyer came from"),
             payer: z
@@ -732,7 +732,7 @@ function buildAllTools(
                 registration_date: z
                   .string()
                   .optional()
-                  .describe("ISO 8601 — when the buyer registered on YOUR platform"),
+                  .describe("ISO 8601, when the buyer registered on YOUR platform"),
                 authentication_type: z.string().optional(),
                 is_prime_user: z.boolean().optional(),
                 is_first_purchase_online: z.boolean().optional(),
@@ -778,7 +778,7 @@ function buildAllTools(
             ? { additionalInfo: input.additional_info as never }
             : {}),
           ...(options.notificationUrl !== undefined ? { notificationUrl: options.notificationUrl } : {}),
-          // Deterministic idempotency key — safe to retry, same inputs always
+          // Deterministic idempotency key, safe to retry, same inputs always
           // produce the same key (MP dedupes on its side).
           idempotencyKey: await deterministicIdempotencyKey(
             "create_payment",
@@ -960,13 +960,13 @@ function buildAllTools(
         external_reference: z.string().optional(),
         max_installments: z.number().int().min(1).max(24).optional().describe("Limit max cuotas offered. Defaults to MP account config."),
         statement_descriptor: z.string().max(13).optional(),
-        excluded_payment_types: z.array(z.enum(["credit_card", "debit_card", "ticket", "atm", "bank_transfer"])).optional().describe("Block payment types — e.g., ['ticket'] to disable Rapipago/Pago Fácil"),
+        excluded_payment_types: z.array(z.enum(["credit_card", "debit_card", "ticket", "atm", "bank_transfer"])).optional().describe("Block payment types, e.g., ['ticket'] to disable Rapipago/Pago Fácil"),
       }),
       execute: async (input) => {
         // Deterministic idempotency at the request layer: if the LLM
         // retries this tool with the same items + payer + external_ref,
         // MP returns the EXISTING preference instead of creating a duplicate
-        // (which would have the same init_point — same buyer, same link).
+        // (which would have the same init_point, same buyer, same link).
         const idemKey = await deterministicIdempotencyKey(
           "create_payment_preference",
           input.external_reference ?? input.payer_email ?? "",
@@ -1196,7 +1196,7 @@ function buildAllTools(
       inputSchema: z.object({
         customer_id: z.string().describe("MP customer id (from create_customer / find_customer_by_email)"),
         card_id: z.string().describe("Saved card id (from list_customer_cards)"),
-        security_code: z.string().regex(/^\d{3,4}$/).describe("CVV — 3 digits (Visa/Master) or 4 (Amex). User must provide this each charge in AR."),
+        security_code: z.string().regex(/^\d{3,4}$/).describe("CVV, 3 digits (Visa/Master) or 4 (Amex). User must provide this each charge in AR."),
         amount_ars: z.number().positive(),
         description: z.string().min(1).max(255),
         installments: z.number().int().min(1).max(24).optional().describe("Default 1. Use calculate_installments first to pick a valid count."),
@@ -1247,7 +1247,7 @@ function buildAllTools(
         title: z.string().min(1).max(80).describe("Display title shown when scanning"),
         description: z.string().max(255).optional(),
         external_reference: z.string().optional(),
-        notification_url: z.string().url().optional().describe("Webhook URL — falls back to dashboard config if omitted"),
+        notification_url: z.string().url().optional().describe("Webhook URL, falls back to dashboard config if omitted"),
         expires_in_seconds: z.number().int().min(60).max(3600).optional().describe("Default 600 (10 min)"),
       }),
       execute: async (input) => {
@@ -1552,7 +1552,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // Disputes (v0.4 — read-only)
+    // Disputes (v0.4, read-only)
     // ─────────────────────────────────────────────────────────────────────────
 
     list_payment_disputes: tool({
@@ -1711,7 +1711,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.5 — Webhook handler combo
+    // v0.5, Webhook handler combo
     // ─────────────────────────────────────────────────────────────────────────
 
     handle_webhook: tool({
@@ -1787,7 +1787,7 @@ function buildAllTools(
             resource: null,
           };
         }
-        // Webhook dedup — MP retries the same notification 5+ times on 5xx
+        // Webhook dedup, MP retries the same notification 5+ times on 5xx
         // responses. Without dedup, every retry re-runs the agent's downstream
         // side effects (re-charge confirmations, re-emit emails, double-update
         // state). The WebhookDedup adapter keys on (topic, dataId, requestId)
@@ -1845,7 +1845,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.5 — OAuth Marketplace flow
+    // v0.5, OAuth Marketplace flow
     // ─────────────────────────────────────────────────────────────────────────
 
     oauth_authorize_url: tool({
@@ -1882,7 +1882,7 @@ function buildAllTools(
           available: true,
           url,
           next_step:
-            "Redirect the seller to `url`. After approval MP sends them to redirect_uri?code=...&state=... — verify state matches, then call oauth_exchange_code with the code.",
+            "Redirect the seller to `url`. After approval MP sends them to redirect_uri?code=...&state=..., verify state matches, then call oauth_exchange_code with the code.",
         };
       },
     }),
@@ -1971,7 +1971,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.5 — Order Management API
+    // v0.5, Order Management API
     // ─────────────────────────────────────────────────────────────────────────
 
     create_order: tool({
@@ -1998,7 +1998,7 @@ function buildAllTools(
           .enum(["automatic", "manual"])
           .optional()
           .describe(
-            "'automatic' charges immediately; 'manual' authorizes only — capture later via capture_order.",
+            "'automatic' charges immediately; 'manual' authorizes only, capture later via capture_order.",
           ),
         notification_url: z.string().url().optional(),
         marketplace: z
@@ -2111,7 +2111,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.6 — Account / Balance / Movements / Settlements
+    // v0.6, Account / Balance / Movements / Settlements
     // ─────────────────────────────────────────────────────────────────────────
 
     get_account_balance: tool({
@@ -2176,7 +2176,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.6 — 3DS analyzer (combined: fetch payment + analyze)
+    // v0.6, 3DS analyzer (combined: fetch payment + analyze)
     // ─────────────────────────────────────────────────────────────────────────
 
     analyze_payment_3ds: tool({
@@ -2197,7 +2197,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.6 — Test cards (pure)
+    // v0.6, Test cards (pure)
     // ─────────────────────────────────────────────────────────────────────────
 
     get_test_cards: tool({
@@ -2214,7 +2214,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.7 — Customer + Card extensions
+    // v0.7, Customer + Card extensions
     // ─────────────────────────────────────────────────────────────────────────
 
     get_customer: tool({
@@ -2280,7 +2280,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.7 — Subscription / Plan / Refund / Preference extensions
+    // v0.7, Subscription / Plan / Refund / Preference extensions
     // ─────────────────────────────────────────────────────────────────────────
 
     get_subscription_plan: tool({
@@ -2361,7 +2361,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.7 — Merchant Orders
+    // v0.7, Merchant Orders
     // ─────────────────────────────────────────────────────────────────────────
 
     get_merchant_order: tool({
@@ -2431,7 +2431,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.7 — Stores + POS CRUD completion
+    // v0.7, Stores + POS CRUD completion
     // ─────────────────────────────────────────────────────────────────────────
 
     get_store: tool({
@@ -2509,7 +2509,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.7 — Bank Accounts
+    // v0.7, Bank Accounts
     // ─────────────────────────────────────────────────────────────────────────
 
     list_bank_accounts: tool({
@@ -2537,7 +2537,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.7 — Point Devices físicos
+    // v0.7, Point Devices físicos
     // ─────────────────────────────────────────────────────────────────────────
 
     list_point_devices: tool({
@@ -2617,7 +2617,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────────
-    // v0.7 — Pure helpers
+    // v0.7, Pure helpers
     // ─────────────────────────────────────────────────────────────────────────
 
     compute_marketplace_fee: tool({
@@ -2677,7 +2677,7 @@ function buildAllTools(
           .min(1)
           .optional()
           .describe(
-            "If provided, fetches the Payment first. RECOMMENDED PATH for agents — pass the id and let the lib fetch.",
+            "If provided, fetches the Payment first. RECOMMENDED PATH for agents, pass the id and let the lib fetch.",
           ),
         // Loose object kept for advanced manual callers that have already
         // fetched a Payment from another path. LLMs should prefer payment_id.
@@ -2696,7 +2696,7 @@ function buildAllTools(
           .passthrough()
           .optional()
           .describe(
-            "ADVANCED — pass a pre-fetched Payment object to skip the network call. LLMs: use payment_id instead.",
+            "ADVANCED, pass a pre-fetched Payment object to skip the network call. LLMs: use payment_id instead.",
           ),
       }),
       execute: async ({ payment_id, payment }) => {
@@ -2722,7 +2722,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────
-    // v0.10 — AR issuer promos (pure)
+    // v0.10, AR issuer promos (pure)
     // ─────────────────────────────────────────────────────────────────────
 
     find_applicable_promos: tool({
@@ -2760,7 +2760,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────
-    // v0.10 — 3DS challenge resolution (poll-and-confirm)
+    // v0.10, 3DS challenge resolution (poll-and-confirm)
     // ─────────────────────────────────────────────────────────────────────
 
     confirm_3ds_challenge: tool({
@@ -2779,7 +2779,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────
-    // v0.10 — Auto-paginate variants (collect-all)
+    // v0.10, Auto-paginate variants (collect-all)
     // ─────────────────────────────────────────────────────────────────────
 
     search_payments_all: tool({
@@ -2832,7 +2832,7 @@ function buildAllTools(
     }),
 
     // ─────────────────────────────────────────────────────────────────────
-    // v0.11 — TaxID validation cross-LATAM (pure)
+    // v0.11, TaxID validation cross-LATAM (pure)
     // ─────────────────────────────────────────────────────────────────────
 
     validate_tax_id: tool({
@@ -2871,7 +2871,7 @@ function buildAllTools(
  * returns `{ ok: false, reason: "Confirmation declined", operation, args }`
  * instead of executing.
  *
- * If the callback throws, the error propagates — let the agent handle it
+ * If the callback throws, the error propagates, let the agent handle it
  * (so connection issues surfacing to the user are distinguishable from
  * declined confirmations).
  */

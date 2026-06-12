@@ -46,7 +46,7 @@ export default function PlaybookPage() {
           >
             github.com/ar-agents/ar-agents
           </a>:{" "}
-        33 packages, 221 tools, 4 testing subpaths, 17 cookbook recipes.
+        36 packages, 235 tools, 4 testing subpaths, 17 cookbook recipes.
           Open source. MIT-licensed. SLSA-provenanced.
         </DocP>
       </DocBlock>

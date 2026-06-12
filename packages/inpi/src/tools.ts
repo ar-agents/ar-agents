@@ -19,7 +19,7 @@ export function inpiTools(opts: InpiToolsOptions = {}) {
   return {
     inpi_search_trademark: tool({
       description:
-        "Search INPI trademarks by denomination substring (case insensitive). Returns the matching registrations with their Nice class, status (presentada/publicada/oposicion/concedida/rechazada/abandonada/extinguida/en_renovacion), holder, and key dates. Optional filters by Nice class (1-45) and status. Use this BEFORE filing a new mark to spot conflicts.",
+        "Search INPI trademarks by name (buscar marcas registradas en INPI), case-insensitive substring. Returns the matching registrations with their Nice class, status (presentada/publicada/oposicion/concedida/rechazada/abandonada/extinguida/en_renovacion), holder, and key dates. Optional filters by Nice class (1-45) and status. Use this BEFORE filing a new mark to spot conflicts.",
       inputSchema: z.object({
         q: z
           .string()
@@ -56,7 +56,7 @@ export function inpiTools(opts: InpiToolsOptions = {}) {
 
     inpi_get_trademark: tool({
       description:
-        "Look up a single INPI trademark by its acta (registration number, e.g. '3792456'). Returns the full record or null if not found.",
+        "Look up an INPI trademark by registration number (consultar una marca por acta) (registration number, e.g. '3792456'). Returns the full record or null if not found.",
       inputSchema: z.object({
         acta: z.string().min(1).describe("INPI registration number / acta."),
       }),

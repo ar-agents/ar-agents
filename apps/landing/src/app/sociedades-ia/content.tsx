@@ -230,7 +230,7 @@ const T = {
         >
           apps/sociedad-ia-starter
         </a>
-        . El wizard y los 33 paquetes son gratis. La capa de confianza hosted,
+        . El wizard y los 36 paquetes son gratis. La capa de confianza hosted,
         el log de auditoría firmado que pide el art. 102, es{" "}
         <a href="/precios" style={{ color: "inherit", textDecoration: "underline" }}>
           El Auditor
@@ -258,7 +258,7 @@ const T = {
         >
           apps/sociedad-ia-starter
         </a>
-        . The wizard and the 33 packages are free. The hosted trust layer, the
+        . The wizard and the 36 packages are free. The hosted trust layer, the
         signed audit log art. 102 calls for, is{" "}
         <a href="/en/pricing" style={{ color: "inherit", textDecoration: "underline" }}>
           The Auditor

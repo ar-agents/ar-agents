@@ -1232,7 +1232,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           es={
             <>
               <strong>Sobre el autor.</strong> Nazareno Clemente.
-              Ingeniero de software argentino. Autor de los 33 paquetes
+              Ingeniero de software argentino. Autor de los 36 paquetes
               npm <DocCode>@ar-agents/*</DocCode> (MIT) y de los 6 RFCs
               académicos del régimen (CC-BY-4.0, DOIs en Zenodo).
               Contacto:{" "}
@@ -1256,7 +1256,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           en={
             <>
               <strong>About the author.</strong> Nazareno Clemente.
-              Argentine software engineer. Author of the 33 npm packages{" "}
+              Argentine software engineer. Author of the 36 npm packages{" "}
               <DocCode>@ar-agents/*</DocCode> (MIT) and the 5 academic
               RFCs of the regime (CC-BY-4.0, Zenodo DOIs).
               Contact:{" "}

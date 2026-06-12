@@ -4,15 +4,17 @@
   "tools": [
     {
       "name": "cnv_get_issuer",
-      "description": "Look up a CNV issuer by code.",
-      "input": { "code": "issuer code, e.g. YPF" },
+      "description": "Look up a CNV-registered securities issuer (consultar emisora CNV) by their stable code (e.g. 'YPF', 'GGAL', 'TXAR'). Returns denominación, CUIT, categoría, sector classification, and active status. R",
+      "input": {
+        "code": "issuer code, e.g. YPF"
+      },
       "returns": "IssuerRecord | null",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     },
     {
       "name": "cnv_list_hechos_relevantes",
-      "description": "List material-fact filings.",
+      "description": "List 'hechos relevantes' (material facts) filed by an issuer in the CNV AIF. Filter by category (asamblea / dividendo / estado_financiero / oferta_publica / cambio_control / garantia / otro) and/or si",
       "input": {
         "issuerCode": "string",
         "sinceIso": "ISO 8601 optional",
@@ -25,8 +27,11 @@
     },
     {
       "name": "cnv_list_financial_statements",
-      "description": "List quarterly / annual / intermediate financials.",
-      "input": { "issuerCode": "string", "limit": "1-100" },
+      "description": "List financial statements filed with CNV (estados financieros presentados en CNV): annual / quarterly / intermediate, in the AIF. Each entry carries the period end, submitted timestamp, kind, and AIF ",
+      "input": {
+        "issuerCode": "string",
+        "limit": "1-100"
+      },
       "returns": "FinancialStatementRecord[]",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false

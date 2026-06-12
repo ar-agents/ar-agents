@@ -21,7 +21,7 @@ El plan está. La capa técnica no.
 Es la infraestructura abierta para que esas sociedades — y cualquier
 agente argentino — operen contra el Estado.
 
-33 packages npm, 221 herramientas. Vercel AI SDK 6 + MCP. MIT.
+36 packages npm, 235 herramientas. Vercel AI SDK 6 + MCP. MIT.
 
 ar-agents.ar
 

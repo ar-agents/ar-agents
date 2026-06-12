@@ -3,12 +3,12 @@
  *
  * The 4 tools are split by mutability:
  *   - **read-only** (`list_domicilio_inbox`, `list_mis_tramites`,
- *     `get_critical_notifications`) — safe to call repeatedly; results
+ *     `get_critical_notifications`), safe to call repeatedly; results
  *     drive the agent's situational awareness loop.
- *   - **algorithm-only** (`validate_igj_inscription`) — pure preflight,
+ *   - **algorithm-only** (`validate_igj_inscription`), pure preflight,
  *     no network. Use freely.
  *
- * Write operations (filing trámites) are intentionally NOT exposed yet —
+ * Write operations (filing trámites) are intentionally NOT exposed yet -
  * the legal liability surface is too large until RFC-001 § 3.4 lands.
  * This is the moat: nobody else has even shipped this much.
  */
@@ -75,7 +75,7 @@ export function gdeTadTools(options: GdeTadToolsOptions = {}) {
   return {
     list_domicilio_inbox: tool({
       description:
-        "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona. Cada notificación incluye organismo, asunto, fecha de notificación, fecha de respuesta (si aplica), cuerpo y severidad calculada (critical/important/info). Use this BEFORE making any major decision so you know if there's a binding deadline pending.",
+        "List electronic-domicile notifications (notificaciones del Domicilio Electrónico Constituido, DEC) de una sociedad/persona. Cada notificación incluye organismo, asunto, fecha de notificación, fecha de respuesta (si aplica), cuerpo y severidad calculada (critical/important/info). Use this BEFORE making any major decision so you know if there's a binding deadline pending.",
       inputSchema: z.object({ cuit: cuitSchema }),
       execute: async ({ cuit }) => {
         const result = await domicilio.list(normalizeCuit(cuit));
@@ -91,14 +91,14 @@ export function gdeTadTools(options: GdeTadToolsOptions = {}) {
 
     list_mis_tramites: tool({
       description:
-        "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Útil para reporting, due diligence, y para el agente saber qué tiene en curso vs. qué resolvió. Read-only — no inicia ni modifica trámites.",
+        "List TAD case files where the company/person is a party (expedientes y trámites en TAD). Útil para reporting, due diligence, y para el agente saber qué tiene en curso vs. qué resolvió. Read-only, no inicia ni modifica trámites.",
       inputSchema: z.object({ cuit: cuitSchema }),
       execute: async ({ cuit }) => tramites.list(normalizeCuit(cuit)),
     }),
 
     get_critical_notifications: tool({
       description:
-        "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana. Use this in the agent's morning loop to know what MUST be answered today/this week. Returns an empty list if the DEC inbox is empty or only has informational notices.",
+        "List only critical DEC notifications (notificaciones críticas del DEC), ordenadas por fecha de respuesta más cercana. Use this in the agent's morning loop to know what MUST be answered today/this week. Returns an empty list if the DEC inbox is empty or only has informational notices.",
       inputSchema: z.object({ cuit: cuitSchema }),
       execute: async ({ cuit }) => {
         const inbox = await domicilio.list(normalizeCuit(cuit));
@@ -118,7 +118,7 @@ export function gdeTadTools(options: GdeTadToolsOptions = {}) {
 
     validate_igj_inscription: tool({
       description:
-        "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Catches the ~30% of rejections that are mechanical (denominación reservada, capital bajo el mínimo, aportes que no suman, CUIT inválido, sede incompleta). No network — pure algorithm. Run this BEFORE submitting via TAD to save 5–10 working days per round-trip.",
+        "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Catches the ~30% of rejections that are mechanical (denominación reservada, capital bajo el mínimo, aportes que no suman, CUIT inválido, sede incompleta). No network, pure algorithm. Run this BEFORE submitting via TAD to save 5–10 working days per round-trip.",
       inputSchema: sociedadInputSchema,
       execute: async (input) =>
         validateIgjInscription(input as IgjInscriptionInput),

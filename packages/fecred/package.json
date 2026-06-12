@@ -1,0 +1,92 @@
+{
+  "name": "@ar-agents/fecred",
+  "version": "0.1.0",
+  "description": "Agent toolkit for AFIP/ARCA WSFECred (Factura de Credito Electronica MiPyME): check if a counterparty is obligated to the FCE regime, list received FCEs, and accept or reject them. Pair with @ar-agents/identity for WSAA cert + signature handling.",
+  "keywords": [
+    "fecred",
+    "wsfecred",
+    "factura-de-credito-electronica",
+    "fce",
+    "mipyme",
+    "afip",
+    "arca",
+    "factura-electronica",
+    "argentina",
+    "ai-sdk",
+    "vercel-ai",
+    "agent",
+    "ar-agents",
+    "sociedades-ia"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@naza.ar>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/fecred",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/fecred"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
+  },
+  "files": [
+    "dist",
+    "README.md",
+    "AGENTS.md",
+    "CHANGELOG.md",
+    "LICENSE",
+    "tools.manifest.json"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "test:coverage": "vitest run --coverage",
+    "typecheck": "tsc --noEmit",
+    "validate": "publint && attw --pack .",
+    "clean": "rm -rf dist"
+  },
+  "peerDependencies": {
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "ai": "^6.0.175",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8",
+    "zod": "^4.4.3"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "dependencies": {
+    "@ar-agents/core": "workspace:^"
+  }
+}
