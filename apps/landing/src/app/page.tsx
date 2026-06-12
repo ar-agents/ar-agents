@@ -1528,6 +1528,9 @@ export default function Home() {
                 npm
               </a>
               <a href="/feed.xml" style={footerLinkSty}>RSS</a>
+              <a href="/privacy" style={footerLinkSty}>
+                {lang === "es" ? "Privacidad" : "Privacy"}
+              </a>
               <a
                 href="https://github.com/ar-agents/ar-agents/issues"
                 style={footerLinkSty}
