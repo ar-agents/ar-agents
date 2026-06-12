@@ -90,7 +90,7 @@ export function Outro() {
           maxWidth: 1200,
         }}
       >
-        17 paquetes npm · 168 herramientas · MIT · Edge Runtime · CC0 RFCs
+        33 paquetes npm · 221 herramientas · MIT · Edge Runtime · CC0 RFCs
       </div>
 
       <div
