@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/constancia",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ARCA (ex-AFIP) Constancia de Inscripción: the official, legally-citable fiscal document, including the PDF artifact, as a typed tool for AI agents on the Vercel AI SDK. Browser-backed: drives the public web form (no Clave Fiscal) behind a stable adapter contract. The piece the SOAP padrón webservices can't give you.",
   "keywords": [
     "constancia-inscripcion",
