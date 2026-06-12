@@ -84,6 +84,18 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
         ],
       },
+      // Agent discovery: advertise the machine-readable surfaces to any
+      // agent that inspects response headers (emerging agent-ready pattern).
+      {
+        source: "/",
+        headers: [
+          {
+            key: "Link",
+            value:
+              '<https://ar-agents.ar/llms.txt>; rel="llms-txt", <https://ar-agents.ar/.well-known/agents.json>; rel="agent-manifest", <https://ar-agents.ar/.well-known/mcp/server-card.json>; rel="mcp-server"',
+          },
+        ],
+      },
     ];
   },
 };
