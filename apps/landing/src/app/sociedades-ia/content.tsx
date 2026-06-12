@@ -47,9 +47,11 @@ const T = {
         con su patrimonio por los daños de sus sistemas. No es &ldquo;cero
         humanos&rdquo;: conserva un administrador (humano o persona jurídica,
         art. 88) que configura y supervisa la IA, y responde por ello
-        (art. 102). También crea la <DocCode>DAO</DocCode> (art. 258),
-        gobernada por smart contracts y tokens, con representante legal humano
-        obligatorio (art. 260). Paga impuestos como cualquier sociedad.
+        (art. 102). También crea la{" "}
+        <DocCode>Sociedad Descentralizada Autónoma Operativa (D.A.O.)</DocCode>{" "}
+        (art. 258), gobernada por smart contracts y tokens, con representante
+        legal humano obligatorio (art. 260) y miembros identificados ante
+        requerimiento de autoridad. Paga impuestos como cualquier sociedad.
       </>
     ),
     en: (
@@ -70,9 +72,11 @@ const T = {
         for damages caused by its systems. It is not &ldquo;zero
         humans&rdquo;: it keeps an administrator (a human or legal person,
         art. 88) who configures and supervises the AI, and is liable for it
-        (art. 102). It also creates the <DocCode>DAO</DocCode> (art. 258),
-        governed by smart contracts and tokens, with a mandatory human legal
-        representative (art. 260). It pays taxes like any company.
+        (art. 102). It also creates the{" "}
+        <DocCode>Sociedad Descentralizada Autónoma Operativa (D.A.O.)</DocCode>{" "}
+        (art. 258), governed by smart contracts and tokens, with a mandatory
+        human legal representative (art. 260) and members identifiable on
+        authority request. It pays taxes like any company.
       </>
     ),
   },
@@ -100,6 +104,34 @@ const T = {
           incorporated here, producing for the world and paying taxes in
           our country.&rdquo;
         </em>
+      </>
+    ),
+  },
+  globalDebate: {
+    es: (
+      <>
+        El debate ya es global. Milei y Sturzenegger defendieron el régimen en
+        una columna en el Financial Times. Yuval Harari respondió en el mismo
+        diario que no hay que darle personería jurídica a agentes de IA, y
+        Mustafa Suleyman (CEO de Microsoft AI) lo respaldó. La crítica central
+        es la rendición de cuentas: quién responde, quién es el dueño, qué hizo
+        el agente. Eso es exactamente lo que esta infraestructura resuelve en
+        código: administrador humano identificado (RFC-001), miembros con KYC,
+        y un registro de decisiones firmado y verificable offline (RFC-004/006).
+        La respuesta a la crítica no es un argumento. Es un audit log.
+      </>
+    ),
+    en: (
+      <>
+        The debate is now global. Milei and Sturzenegger defended the regime in
+        a Financial Times column. Yuval Harari replied in the same paper that
+        AI agents should not get legal personhood, and Mustafa Suleyman
+        (Microsoft AI CEO) backed him. The core critique is accountability: who
+        answers, who owns it, what did the agent do. That is exactly what this
+        infrastructure solves in code: an identified human administrator
+        (RFC-001), KYC&apos;d members, and a signed decision log verifiable
+        offline (RFC-004/006). The answer to the critique is not an argument.
+        It is an audit log.
       </>
     ),
   },
@@ -466,6 +498,7 @@ export function SociedadesContent({ lang }: { lang: Lang }) {
       <DocH2>{t("h2plan")}</DocH2>
       <DocP>{t("planP1")}</DocP>
       <DocP>{t("planQuote")}</DocP>
+      <DocP>{t("globalDebate")}</DocP>
 
       <DocH2>{t("h2pieces")}</DocH2>
       <DocP>{t("piecesIntro")}</DocP>
