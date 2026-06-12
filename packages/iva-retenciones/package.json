@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/iva-retenciones",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "IVA retention agent toolkit for the Vercel AI SDK 6. Federal value-added tax retentions per RG 2854/10 (general regime). Pure calculator + DDJJ assembly: per-payment retention math with minimum thresholds, accumulator-aware nuances per supplier, agente-de-retención status checks. Adapter pattern keeps unit tests offline.",
   "keywords": [
     "iva",

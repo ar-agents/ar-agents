@@ -1,6 +1,6 @@
 {
   "name": "whatsapp-hello",
-  "version": "0.1.17",
+  "version": "0.1.18",
   "private": true,
   "description": "Reference app: combines @ar-agents/identity + @ar-agents/mercadopago + @ar-agents/whatsapp into a billing assistant for SaaS argentinos. Receives WhatsApp messages, validates CUIT, manages MP subscriptions, replies via WhatsApp.",
   "scripts": {
