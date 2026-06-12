@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/iva-percepciones",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "IVA perception agent toolkit for the Vercel AI SDK 6. Federal value-added tax perceptions per RG 2408/08 (general regime) and the most common sub-regimes. Pure calculator + DDJJ assembly: per-invoice perception math with minimum thresholds, agente-de-percepción status checks, accumulator-aware nuances. Adapter pattern keeps unit tests offline.",
   "keywords": [
     "iva",

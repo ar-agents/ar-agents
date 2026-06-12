@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/fecred",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Agent toolkit for AFIP/ARCA WSFECred (Factura de Credito Electronica MiPyME): check if a counterparty is obligated to the FCE regime, list received FCEs, and accept or reject them. Pair with @ar-agents/identity for WSAA cert + signature handling.",
   "keywords": [
     "fecred",

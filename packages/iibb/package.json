@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/iibb",
-  "version": "0.4.0",
+  "version": "0.4.1",
   "description": "Ingresos Brutos (Argentine gross income tax) agent toolkit for the Vercel AI SDK 6. Pure calculation helpers for retention + perception + DDJJ assembly across CABA (AGIP), Provincia de Buenos Aires (ARBA) and Convenio Multilateral (CM-05). Adapter pattern: pure math out of the box, real jurisdictional API behind a pluggable adapter so unit tests do not call the network.",
   "keywords": [
     "iibb",

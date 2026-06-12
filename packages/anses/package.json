@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/anses",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "ANSES (Administración Nacional de la Seguridad Social) agent toolkit for the Vercel AI SDK 6. Read CUIL status, family-allowance entitlements, and the public reference tables (asignaciones familiares, jubilaciones mínimas) through the Mi ANSES API + open-data endpoints. Adapter pattern keeps unit tests offline.",
   "keywords": [
     "anses",

@@ -1,5 +1,26 @@
 # Changelog
 
+## 0.10.6
+
+### Patch Changes
+
+- Frontier release: new packages x402 (HTTP 402 agent payments), bind (BIND APIBANK), fecred (AFIP WSFECred FCE MiPyME). BiasBusters description audit across the toolkit (EN+ES task phrasing). MCP SDK 1.29.
+
+- Updated dependencies []:
+  - @ar-agents/banking@0.5.1
+  - @ar-agents/boletin-oficial@0.2.1
+  - @ar-agents/facturacion@0.4.1
+  - @ar-agents/firma-digital@0.2.2
+  - @ar-agents/gde-tad@0.3.2
+  - @ar-agents/identity@0.8.1
+  - @ar-agents/identity-attest@0.5.2
+  - @ar-agents/igj@0.2.2
+  - @ar-agents/mercadolibre@0.5.1
+  - @ar-agents/mercadopago@0.18.2
+  - @ar-agents/mi-argentina@0.2.2
+  - @ar-agents/shipping@0.3.2
+  - @ar-agents/whatsapp@0.5.1
+
 ## 0.10.5
 
 ### Patch Changes

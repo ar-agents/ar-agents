@@ -1,5 +1,19 @@
 # sociedad-ia-starter
 
+## 0.1.6
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/banking@0.5.1
+  - @ar-agents/boletin-oficial@0.2.1
+  - @ar-agents/facturacion@0.4.1
+  - @ar-agents/gde-tad@0.3.2
+  - @ar-agents/identity@0.8.1
+  - @ar-agents/igj@0.2.2
+  - @ar-agents/mercadopago@0.18.2
+  - @ar-agents/whatsapp@0.5.1
+
 ## 0.1.5
 
 ### Patch Changes

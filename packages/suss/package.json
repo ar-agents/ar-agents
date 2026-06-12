@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/suss",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "SUSS / payroll (Sistema Único de la Seguridad Social) agent toolkit for the Vercel AI SDK 6. Pure calculator for employer-side contributions (jubilación, INSSJP, asignaciones familiares, ART, obra social) per F.931 / SICOSS. Per-employee math + monthly DDJJ aggregation. Adapter pattern for the eventual SICOSS XML upload keeps unit tests offline. No AR-payroll-agent lib exists today; this is v0.1 of that.",
   "keywords": [
     "suss",
