@@ -111,6 +111,7 @@ export function DocShell({ eyebrow, title, subtitle, children }: DocShellProps) 
             <a href="/legislacion" style={shellLinkSty}>legislación</a>
             <a href="/sdk" style={shellLinkSty}>sdk</a>
             <a href="/faq" style={shellLinkSty}>faq</a>
+            <a href="/privacy" style={shellLinkSty}>privacy</a>
           </div>
           <div
             style={{
