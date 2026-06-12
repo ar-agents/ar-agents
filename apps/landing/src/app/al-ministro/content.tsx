@@ -105,13 +105,13 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>33 paquetes</strong> en el scope{" "}
+                <strong>36 paquetes</strong> en el scope{" "}
                 <DocCode>@ar-agents/*</DocCode> en npm.
               </>
             }
             en={
               <>
-                <strong>33 packages</strong> under the{" "}
+                <strong>36 packages</strong> under the{" "}
                 <DocCode>@ar-agents/*</DocCode> scope on npm.
               </>
             }
@@ -122,14 +122,14 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>221 herramientas</strong> con definiciones de
+                <strong>235 herramientas</strong> con definiciones de
                 tipo verificadas para Vercel AI SDK 6, el toolkit
                 estándar de la industria para agentes.
               </>
             }
             en={
               <>
-                <strong>221 tools</strong> with verified type
+                <strong>235 tools</strong> with verified type
                 definitions for Vercel AI SDK 6, the industry-standard
                 toolkit for agents.
               </>

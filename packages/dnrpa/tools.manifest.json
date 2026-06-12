@@ -4,8 +4,10 @@
   "tools": [
     {
       "name": "dnrpa_lookup_dominio",
-      "description": "Look up an Argentine vehicle plate against DNRPA.",
-      "input": { "dominio": "LL000LL or LLL000 plate" },
+      "description": "Look up an Argentine vehicle plate (dominio/patente) against DNRPA. Accepts both new Mercosur format (LL000LL like 'AB123CD') and the old Argentine format (LLL000 like 'FFF123'). Returns marca/modelo/",
+      "input": {
+        "dominio": "LL000LL or LLL000 plate"
+      },
       "returns": "DominioLookupResult",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false

@@ -4,7 +4,7 @@
   "tools": [
     {
       "name": "inpi_search_trademark",
-      "description": "Search INPI trademarks by denomination substring.",
+      "description": "Search INPI trademarks by name (buscar marcas registradas en INPI), case-insensitive substring. Returns the matching registrations with their Nice class, status (presentada/publicada/oposicion/concedi",
       "input": {
         "q": "substring (min 2 chars)",
         "niceClass": "optional 1-45",
@@ -17,8 +17,10 @@
     },
     {
       "name": "inpi_get_trademark",
-      "description": "Look up one trademark by acta.",
-      "input": { "acta": "string" },
+      "description": "Look up an INPI trademark by registration number (consultar una marca por acta) (registration number, e.g. '3792456'). Returns the full record or null if not found.",
+      "input": {
+        "acta": "string"
+      },
       "returns": "TrademarkRecord | null",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false

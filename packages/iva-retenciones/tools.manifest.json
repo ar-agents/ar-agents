@@ -5,21 +5,21 @@
   "tools": [
     {
       "name": "iva_retention_calculate",
-      "description": "Compute the IVA retention amount on a payment to a supplier per RG 2854/10. Returns 0 with waiverReason when supplier is exempt/monotributista, below mínimo, or has a non-retention certificate.",
+      "description": "Compute the VAT retention on a supplier payment (calcular retención de IVA) per RG 2854/10. Returns 0 with `waiverReason` when the supplier is exento / monotributista, when the IVA component is below ",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "iva_retention_build_ddjj",
-      "description": "Aggregate retention results into a monthly SIRE DDJJ with per-regime and per-supplier breakdowns. Pure aggregation.",
+      "description": "Assemble the monthly SIRE retention return (armar DDJJ SIRE de retenciones de IVA) with per-regime and per-supplier breakdowns. Pure aggregation.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "iva_retention_submit_ddjj",
-      "description": "Submit an assembled SIRE retention DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+      "description": "Submit an assembled SIRE retention return to AFIP/ARCA (presentar DDJJ de retenciones de IVA). Throws unless the host wired a real adapter. Files a tax return, confirmation gate required.",
       "sideEffects": "files tax return",
       "idempotent": true,
       "requiresConfirmation": true

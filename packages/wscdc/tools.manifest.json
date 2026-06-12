@@ -5,14 +5,14 @@
   "tools": [
     {
       "name": "wscdc_validate_comprobante",
-      "description": "Validate that a received factura was actually issued by AFIP with a real CAE. Returns resultado='A' (approved), 'N' (rejected — likely forged or wrong data), or 'O' (observed — exists but a non-key field differs).",
+      "description": "Verify a received invoice's CAE against AFIP (constatar comprobante, verificar CAE de una factura recibida): confirms it was actually issued by AFIP. Use this BEFORE ingesting any received factura int",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "wscdc_health",
-      "description": "Ping the AFIP WSCDC service (Dummy operation). Returns AppServer/DbServer/AuthServer statuses.",
+      "description": "Ping the AFIP WSCDC service (Dummy operation). Returns AppServer/DbServer/AuthServer statuses. Use to confirm WSCDC is reachable + your WSAA token still works before a batch validation flow.",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false

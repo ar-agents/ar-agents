@@ -41,14 +41,14 @@ export function tiendaNubeTools(opts: TiendaNubeToolsOptions = {}) {
   const allTools = {
     tienda_nube_get_store: tool({
       description:
-        "Retrieve metadata about the Tienda Nube store this adapter is bound to (denominación, currency, country, language, contact email).",
+        "Get info about the Tienda Nube store (datos de la tienda) this adapter is bound to (denominación, currency, country, language, contact email).",
       inputSchema: z.object({}).strict(),
       execute: async () => adapter.getStore(),
     }),
 
     tienda_nube_list_products: tool({
       description:
-        "List products on the store with optional substring search + paginated results. Use `publishedOnly: true` to skip drafts. Returns `hasMore: true` when at least one more page exists.",
+        "List Tienda Nube products (listar productos de la tienda) with optional substring search + paginated results. Use `publishedOnly: true` to skip drafts. Returns `hasMore: true` when at least one more page exists.",
       inputSchema: z.object({
         q: z.string().optional(),
         publishedOnly: z.boolean().optional(),
@@ -59,14 +59,14 @@ export function tiendaNubeTools(opts: TiendaNubeToolsOptions = {}) {
     }),
 
     tienda_nube_get_product: tool({
-      description: "Retrieve a single product by id, including all variants.",
+      description: "Get a Tienda Nube product by id (consultar un producto), including all variants.",
       inputSchema: z.object({ id: tnIdSchema }),
       execute: async ({ id }) => adapter.getProduct(id),
     }),
 
     tienda_nube_list_orders: tool({
       description:
-        "List orders with status / payment_status / email filters + ISO 8601 date ranges. Reverse-chronological. The `paymentStatus: \"paid\"` filter is the typical AR e-commerce inbox.",
+        "List Tienda Nube orders (listar ventas, órdenes de la tienda) with status / payment_status / email filters + ISO 8601 date ranges. Reverse-chronological. The `paymentStatus: \"paid\"` filter is the typical AR e-commerce inbox.",
       inputSchema: z.object({
         sinceIso: z.string().optional(),
         untilIso: z.string().optional(),
@@ -83,13 +83,13 @@ export function tiendaNubeTools(opts: TiendaNubeToolsOptions = {}) {
 
     tienda_nube_get_order: tool({
       description:
-        "Retrieve a single order by id. Includes contact email + name + addresses + per-line products.",
+        "Get a Tienda Nube order by id (consultar una orden). Includes contact email + name + addresses + per-line products.",
       inputSchema: z.object({ id: tnIdSchema }),
       execute: async ({ id }) => adapter.getOrder(id),
     }),
 
     tienda_nube_list_customers: tool({
-      description: "List customers with optional substring search across name + email.",
+      description: "List Tienda Nube customers (listar clientes) with optional substring search across name + email.",
       inputSchema: z.object({
         q: z.string().optional(),
         page: z.number().int().min(1).optional(),
@@ -99,7 +99,7 @@ export function tiendaNubeTools(opts: TiendaNubeToolsOptions = {}) {
     }),
 
     tienda_nube_get_customer: tool({
-      description: "Retrieve a single customer by id, including default_address + total_spent.",
+      description: "Get a Tienda Nube customer by id (consultar un cliente), including default_address + total_spent.",
       inputSchema: z.object({ id: tnIdSchema }),
       execute: async ({ id }) => adapter.getCustomer(id),
     }),

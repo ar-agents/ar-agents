@@ -13,7 +13,7 @@ Three drafts. Send each independently; they're not a sequence.
 **To:** vía formulario público en `https://fsturzenegger.com.ar/contacto` (Sturzenegger crowdsourcea públicamente).
 **Cc/Twitter handle:** `@fedesturze`.
 
-**Subject:** Implementación de referencia open-source para sociedades de IA — 33 paquetes ya publicados en npm
+**Subject:** Implementación de referencia open-source para sociedades de IA — 36 paquetes ya publicados en npm
 
 ```
 Federico, buenas tardes.
@@ -26,7 +26,7 @@ pueda incorporarse en menos de 30 minutos.
 
 El stack está publicado en npm con licencia MIT y SLSA v1 provenance:
 
-  • 33 paquetes que cubren las 17 piezas operativas de una empresa
+  • 36 paquetes que cubren las 17 piezas operativas de una empresa
     argentina (CUIT, padrón ARCA, factura electrónica WSFE, BCRA Central
     de Deudores, Mercado Pago, WhatsApp, Boletín Oficial, IGJ, GDE/TAD).
   • Marco de responsabilidad de tres capas (RFC-001) para responder
@@ -116,8 +116,8 @@ el debate político y se redacta el proyecto, terminé de publicar —el
 8 de mayo— la implementación de referencia técnica open-source que
 cualquier sociedad-IA argentina necesitaría el día 1 del régimen.
 
-  • 33 paquetes en npm, MIT-licensed, SLSA v1 provenance.
-  • 221 herramientas que cubren las 17 piezas de una empresa argentina:
+  • 36 paquetes en npm, MIT-licensed, SLSA v1 provenance.
+  • 235 herramientas que cubren las 17 piezas de una empresa argentina:
     factura electrónica AFIP/ARCA, padrón ARCA, BCRA Central de
     Deudores, Mercado Pago, WhatsApp, Boletín Oficial, IGJ, GDE/TAD.
   • Una sociedad-IA simulada en vivo: ar-agents.ar/play

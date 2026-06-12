@@ -6,7 +6,7 @@
   "tools": [
     {
       "name": "lookup_cuit_afip",
-      "description": "Look up an Argentine CUIT/CUIL against AFIP's padron webservice. Returns taxpayer name, tax condition (Monotributo / Responsable Inscripto / etc.), monotributo category if applicable, and registered a",
+      "description": "Look up a CUIT/CUIL in the AFIP/ARCA taxpayer registry (consultar CUIT en AFIP, datos del contribuyente, padrón). Returns taxpayer name, tax condition (Monotributo / Responsable Inscripto / etc.), mon",
       "input": {
         "cuit": {
           "type": "string",
@@ -30,7 +30,7 @@
     },
     {
       "name": "validate_cuit",
-      "description": "Validate an Argentine CUIT/CUIL via the AFIP modulo-11 check digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency, free. Returns whether the input is mathe",
+      "description": "Validate a CUIT/CUIL Argentine tax ID (validar CUIT, verificar CUIT/CUIL) via the AFIP modulo-11 check digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency",
       "input": {
         "cuit": {
           "type": "string",

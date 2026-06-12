@@ -114,9 +114,9 @@ export default function OpengraphImage() {
               fontWeight: 500,
             }}
           >
-            <span>33 packages</span>
+            <span>36 packages</span>
             <span>·</span>
-            <span>221 tools</span>
+            <span>235 tools</span>
             <span>·</span>
             <span>6 RFCs</span>
             <span>·</span>

@@ -57,7 +57,7 @@ export function ivaRetentionTools(opts: IvaRetentionToolsOptions = {}) {
   const allTools = {
     iva_retention_calculate: tool({
       description:
-        "Compute the IVA retention amount on a payment to a supplier per RG 2854/10. Returns 0 with `waiverReason` when the supplier is exento / monotributista, when the IVA component is below the mínimo, or when a non-retention certificate is on file. Rate is applied to the IVA component of the comprobante (NOT to the net or total).",
+        "Compute the VAT retention on a supplier payment (calcular retención de IVA) per RG 2854/10. Returns 0 with `waiverReason` when the supplier is exento / monotributista, when the IVA component is below the mínimo, or when a non-retention certificate is on file. Rate is applied to the IVA component of the comprobante (NOT to the net or total).",
       inputSchema: z.object({
         regime: regimeEnum,
         operationType: operationTypeEnum,
@@ -93,7 +93,7 @@ export function ivaRetentionTools(opts: IvaRetentionToolsOptions = {}) {
 
     iva_retention_build_ddjj: tool({
       description:
-        "Aggregate retention results into a monthly SIRE DDJJ with per-regime and per-supplier breakdowns. Pure aggregation.",
+        "Assemble the monthly SIRE retention return (armar DDJJ SIRE de retenciones de IVA) with per-regime and per-supplier breakdowns. Pure aggregation.",
       inputSchema: z.object({
         period: z.string().regex(/^\d{4}-\d{2}$/),
         agentCuit: cuitSchema,
@@ -116,7 +116,7 @@ export function ivaRetentionTools(opts: IvaRetentionToolsOptions = {}) {
 
     iva_retention_submit_ddjj: tool({
       description:
-        "Submit an assembled SIRE retention DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "Submit an assembled SIRE retention return to AFIP/ARCA (presentar DDJJ de retenciones de IVA). Throws unless the host wired a real adapter. Files a tax return, confirmation gate required.",
       inputSchema: z.object({ ddjj: z.unknown() }),
       execute: async ({ ddjj }) =>
         adapter.submitDdjj(

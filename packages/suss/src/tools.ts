@@ -63,7 +63,7 @@ export function sussTools(opts: SussToolsOptions = {}) {
   const allTools = {
     suss_calculate_employee_month: tool({
       description:
-        "Calculate the monthly aportes (employee-side) + contribuciones (employer-side) for one employee per F.931 / SICOSS. Returns the structured breakdown (jubilación, INSSJP, obra social, asignaciones familiares, FNE, ART) + the vector totals AFIP expects on the submission. Inputs in ARS centavos integers.",
+        "Calculate monthly payroll social-security amounts for one employee (calcular aportes y contribuciones) per F.931 / SICOSS. Returns the structured breakdown (jubilación, INSSJP, obra social, asignaciones familiares, FNE, ART) + the vector totals AFIP expects on the submission. Inputs in ARS centavos integers.",
       inputSchema: z.object({
         employee: employeeInputSchema,
         employerRegime: regimeEnum.optional(),
@@ -82,7 +82,7 @@ export function sussTools(opts: SussToolsOptions = {}) {
 
     suss_build_ddjj: tool({
       description:
-        "Aggregate per-employee monthly results into the monthly SICOSS DDJJ with vector totals (Seguridad Social, Obra Social, ART) + per-employee detail. Pure aggregation, does NOT submit. Accepts either pre-computed results or raw employee inputs (computed inline).",
+        "Assemble the monthly SICOSS return (armar la DDJJ SICOSS, F.931) from per-employee results with vector totals (Seguridad Social, Obra Social, ART) + per-employee detail. Pure aggregation, does NOT submit. Accepts either pre-computed results or raw employee inputs (computed inline).",
       inputSchema: z.object({
         period: z.string().regex(/^\d{4}-\d{2}$/),
         employerCuit: cuitSchema,
@@ -108,7 +108,7 @@ export function sussTools(opts: SussToolsOptions = {}) {
 
     suss_submit_ddjj: tool({
       description:
-        "Submit a SICOSS DDJJ to AFIP. v0.1 ships only the contract — the real upload (fixed-width F.931 / SI.AP.RE web service) requires a custom adapter; throws SussUnconfiguredError otherwise. Confirmation gate REQUIRED before invoking — this files a tax return.",
+        "Submit a SICOSS return to AFIP (presentar la DDJJ SICOSS, F.931). v0.1 ships only the contract, the real upload (fixed-width F.931 / SI.AP.RE web service) requires a custom adapter; throws SussUnconfiguredError otherwise. Confirmation gate REQUIRED before invoking, this files a tax return.",
       inputSchema: z.object({ ddjj: z.unknown() }),
       execute: async ({ ddjj }) =>
         adapter.submitDdjj(

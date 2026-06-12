@@ -30,9 +30,9 @@ const EVENTS: ReadonlyArray<Event> = [
   {
     date: "2026-05-05",
     kind: "milestone",
-    title: "Initial launch · 33 npm packages + landing site",
+    title: "Initial launch · 36 npm packages + landing site",
     detail:
-      "ar-agents published as open-source infrastructure: 33 packages covering MercadoPago, AFIP/ARCA, banking, WhatsApp, factura, shipping, GDE/TAD, BCRA, IGJ, BO, ML. Landing site + first wave of demos live.",
+      "ar-agents published as open-source infrastructure: 36 packages covering MercadoPago, AFIP/ARCA, banking, WhatsApp, factura, shipping, GDE/TAD, BCRA, IGJ, BO, ML. Landing site + first wave of demos live.",
     refs: [
       { label: "Repo", href: "https://github.com/ar-agents/ar-agents" },
       { label: "npm org", href: "https://www.npmjs.com/org/ar-agents" },

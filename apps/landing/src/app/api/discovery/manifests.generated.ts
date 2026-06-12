@@ -9,7 +9,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "aduana_lookup_despacho",
-        "description": "Look up an ARCA Aduana customs declaration by SUSI/KIM/OM number.",
+        "description": "Look up an Argentine customs declaration (consultar despacho aduanero) by its SUSI, KIM, or OM number. Returns current status (registrado / canalizado_verde / naranja / rojo / libre_disponibilidad / a",
         "input": {
           "kind": "SUSI | KIM | OM",
           "value": "string (number as printed on the despacho)"
@@ -20,7 +20,7 @@ export const MANIFESTS = [
       },
       {
         "name": "aduana_lookup_ncm",
-        "description": "Look up an Argentine NCM tariff code (8 digits).",
+        "description": "Look up an Argentine NCM tariff code (consultar posición arancelaria NCM). Returns the official description, whether it is currently in force, and its AEC (Mercosur common external tariff) + DIE (impo",
         "input": {
           "code": "8-digit NCM"
         },
@@ -43,7 +43,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "anses_get_cuil_status",
-        "description": "Look up a CUIL's ANSES status.",
+        "description": "Look up a CUIL's ANSES status (consultar situación en ANSES), activo / jubilado / pensionado / desempleado_con_subsidio / desempleado_sin_subsidio / inactivo / fallecido. Returns last-reported employe",
         "input": {
           "cuil": "11-digit CUIL"
         },
@@ -53,7 +53,7 @@ export const MANIFESTS = [
       },
       {
         "name": "anses_get_family_allowances",
-        "description": "List family-allowance entitlements for a CUIL.",
+        "description": "List family-allowance entitlements ANSES has on file for a CUIL (asignaciones familiares): AUH (per-child), AUE (pregnancy), SUAF (formal workers), Pensión No Contributiva, Tarjeta Alimentar. Each ent",
         "input": {
           "cuil": "11-digit CUIL"
         },
@@ -63,7 +63,7 @@ export const MANIFESTS = [
       },
       {
         "name": "anses_get_minimo_jubilatorio",
-        "description": "Haber mínimo jubilatorio for a YYYY-MM period.",
+        "description": "Look up the haber mínimo jubilatorio (minimum monthly pension) for a given period, returned in ARS centavos. Use to compare against an actual jubilación amount or to populate compliance UIs.",
         "input": {
           "period": "YYYY-MM"
         },
@@ -88,43 +88,43 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "get_bcra_variable",
-        "description": "Fetch the time series for a specific BCRA Principales Variables indicator by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional "
+        "description": "Fetch the historical series of a BCRA indicator (serie histórica de una variable del BCRA) by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, infl"
       },
       {
         "name": "get_cer",
-        "description": "Convenience: fetch the latest CER (Coeficiente de Estabilización de Referencia, BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. US"
+        "description": "Get the current CER coefficient (coeficiente CER hoy, ajuste por inflación; BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. USE TH"
       },
       {
         "name": "get_reservas_bcra",
-        "description": "Convenience: fetch the latest BCRA international reserves (Reservas Internacionales, variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the lates"
+        "description": "Get BCRA international reserves (reservas del BCRA, Reservas Internacionales; variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the latest value"
       },
       {
         "name": "get_usd_oficial",
-        "description": "Convenience: fetch the latest USD oficial cotización (Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks"
+        "description": "Get the official USD exchange rate (dólar oficial, a cuánto está el dólar, cotización USD; Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily dat"
       },
       {
         "name": "get_uva",
-        "description": "Convenience: fetch the latest UVA (Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the use"
+        "description": "Get the current UVA value (valor UVA hoy; Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: "
       },
       {
         "name": "list_banks",
-        "description": "Return the full list of known Argentine banks with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a work",
+        "description": "List Argentine banks (listar bancos argentinos) with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a wo",
         "input": {},
         "output": "{ banks: BankInfo[] }"
       },
       {
         "name": "list_bcra_variables",
-        "description": "List all BCRA Principales Variables (monetary indicators) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorist"
+        "description": "List BCRA monetary indicators (principales variables del BCRA) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio May"
       },
       {
         "name": "list_psps",
-        "description": "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers — Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need",
+        "description": "List Argentine fintech wallets / PSPs (listar billeteras virtuales, Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need to render a dropdown of fintech ",
         "input": {},
         "output": "{ psps: BankInfo[] }"
       },
       {
         "name": "lookup_bank_by_code",
-        "description": "Look up the Argentine bank or PSP (payment service provider) by its 3-digit BCRA-assigned entity code. PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal name, sho",
+        "description": "Identify the Argentine bank or PSP behind an entity code (de qué banco es este CBU, código de entidad BCRA). PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal nam",
         "input": {
           "code": "string"
         },
@@ -132,7 +132,7 @@ export const MANIFESTS = [
       },
       {
         "name": "lookup_credit_situation",
-        "description": "Look up the BCRA Central de Deudores credit situation for an Argentine CUIT. Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irr",
+        "description": "Check a CUIT's credit standing in the BCRA Central de Deudores (consultar deudores BCRA, situación crediticia). Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 da",
         "input": {
           "cuit": "string"
         },
@@ -140,7 +140,7 @@ export const MANIFESTS = [
       },
       {
         "name": "validate_cbu",
-        "description": "Validate an Argentine CBU (Clave Bancaria Uniforme, traditional bank account) or CVU (Clave Virtual Uniforme, fintech wallet account) via the BCRA dual mod-10 check-digit algorithm. PURE FUNCTION: no ",
+        "description": "Validate an Argentine CBU or CVU bank account number (validar CBU, validar CVU). CBU = Clave Bancaria Uniforme (traditional bank account), CVU = Clave Virtual Uniforme (fintech wallet account), checke",
         "input": {
           "cbu": "string"
         },
@@ -160,29 +160,78 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "bcra_get_debt",
-        "description": "Raw current debt status from BCRA Central de Deudores.",
+        "description": "Raw current debt status from the BCRA Central de Deudores (consultar deudas en el BCRA): one row per entidad reporting, with situación 1-6, monto, judicial/fraude/refinanciación flags. Returns BcraNot",
         "sideEffects": "network read",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "bcra_get_debt_summary",
-        "description": "One-shot credit-check: total debt, worst situación, flags, risk band ('clean'|'low'|'watch'|'high').",
+        "description": "One-shot credit check for a CUIT (consultar deudores BCRA, riesgo crediticio): total reported debt (centavos), worst situación across entidades, judicial/fraude/refinanciación flags, plus a risk band ",
         "sideEffects": "network read",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "bcra_get_historical_debt",
-        "description": "24-month historical snapshots for trend analysis.",
+        "description": "24-month debt history for a CUIT (historial de deudas BCRA). Use for trend analysis ('has this taxpayer been deteriorating?') or to confirm a one-off vs a chronic pattern.",
         "sideEffects": "network read",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "bcra_get_bounced_checks",
-        "description": "Bounced-check history (causa, monto, fecha, optional fechaPago).",
+        "description": "Bounced-check history for a CUIT (cheques rechazados) (causa de rechazo + monto + fecha + whether subsequently paid). Independent of the Central de Deudores debt status, a clean debt record + bounced ",
         "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/bind",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "bind_list_accounts",
+        "description": "List the BIND bank accounts visible to the configured credentials, with balances and CBUs.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "bind_get_movements",
+        "description": "Get the movements (transactions) of a BIND bank account with date filters and pagination.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "bind_get_cbu_owner",
+        "description": "Check who owns a CBU, CVU, or alias before paying.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "bind_create_transfer",
+        "description": "Transfer pesos from a BIND bank account to a CBU, CVU, or alias. Irreversible once completed.",
+        "sideEffects": "irreversible",
+        "idempotent": true,
+        "requiresConfirmation": true
+      },
+      {
+        "name": "bind_create_debin",
+        "description": "Create a DEBIN request to collect pesos from a buyer's account; the buyer approves it on their side.",
+        "sideEffects": "creates resource",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "bind_get_echeqs",
+        "description": "List echeqs (electronic checks) for a BIND account filtered by status and perspective.",
+        "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       }
@@ -196,27 +245,27 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "bo_search",
-        "description": "Full-text search the Boletín Oficial archive. Filter by organismo, fecha range, keyword. Returns ranked normas with summary + publication date."
+        "description": "Search the Argentine Boletín Oficial (buscar en el Boletín Oficial). Returns a list of normas (laws, decrees, resoluciones, sociedades, contracting, judicial notices) matching free-text query + option"
       },
       {
         "name": "bo_get_norma",
-        "description": "Fetch a single norma by its BO id. Returns the full body + metadata (issuing organism, date, sumario)."
+        "description": "Fetch a single norma from the Boletín Oficial by id (consultar una norma). Returns the title, organismo, full text, fecha de publicación, and any CUITs mentioned. USE THIS WHEN: you have an id (from `"
       },
       {
         "name": "bo_today",
-        "description": "Fetch all normas published in today's Boletín Oficial. Useful for the morning operating loop on a sociedad-IA."
+        "description": "Fetch today's Boletín Oficial publications (qué salió hoy en el Boletín Oficial), optionally filtered by sección. USE THIS WHEN: the user wants a daily summary of newly-published norms, e.g. `qué publ"
       },
       {
         "name": "bo_subscribe",
-        "description": "Subscribe to BO updates by CUIT, organismo, or keyword. Notifications are dispatched via the configured webhook."
+        "description": "Subscribe to Boletín Oficial alerts (suscribirse a alertas del Boletín Oficial). The matcher fires whenever a new norma matches the criteria, keyword, CUIT, organismo, sección, or tipo. USE THIS WHEN:"
       },
       {
         "name": "bo_list_subscriptions",
-        "description": "List all active BO subscriptions for the current tenant."
+        "description": "List active Boletín Oficial subscriptions (listar suscripciones). USE THIS WHEN: the user wants to see what they've subscribed to. Pass `owner_id` to scope to a specific user/tenant."
       },
       {
         "name": "bo_unsubscribe",
-        "description": "Cancel a BO subscription by id. Used by the agent to retire stale watch criteria."
+        "description": "Remove a Boletín Oficial subscription by id (cancelar una suscripción). USE THIS WHEN: the user wants to stop a previous bo_subscribe."
       }
     ]
   },
@@ -226,7 +275,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "cnv_get_issuer",
-        "description": "Look up a CNV issuer by code.",
+        "description": "Look up a CNV-registered securities issuer (consultar emisora CNV) by their stable code (e.g. 'YPF', 'GGAL', 'TXAR'). Returns denominación, CUIT, categoría, sector classification, and active status. R",
         "input": {
           "code": "issuer code, e.g. YPF"
         },
@@ -236,7 +285,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cnv_list_hechos_relevantes",
-        "description": "List material-fact filings.",
+        "description": "List 'hechos relevantes' (material facts) filed by an issuer in the CNV AIF. Filter by category (asamblea / dividendo / estado_financiero / oferta_publica / cambio_control / garantia / otro) and/or si",
         "input": {
           "issuerCode": "string",
           "sinceIso": "ISO 8601 optional",
@@ -249,7 +298,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cnv_list_financial_statements",
-        "description": "List quarterly / annual / intermediate financials.",
+        "description": "List financial statements filed with CNV (estados financieros presentados en CNV): annual / quarterly / intermediate, in the AIF. Each entry carries the period end, submitted timestamp, kind, and AIF ",
         "input": {
           "issuerCode": "string",
           "limit": "1-100"
@@ -268,7 +317,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "constancia_inscripcion",
-        "description": "CUIT → official ARCA Constancia de Inscripción: parsed fields + the PDF document with its código verificador. Browser-backed (public form, no cert). Use for the PDF artifact or cert-less data; prefer @ar-agents/identity lookup_cuit_afip when a cert is configured and only data is needed."
+        "description": "Get the official AFIP/ARCA registration certificate for a CUIT (constancia de inscripción, obtené la Constancia de Inscripción de ARCA, ex-AFIP): el régimen (monotributo + categoría / responsable insc"
       }
     ]
   },
@@ -278,7 +327,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "dnrpa_lookup_dominio",
-        "description": "Look up an Argentine vehicle plate against DNRPA.",
+        "description": "Look up an Argentine vehicle plate (dominio/patente) against DNRPA. Accepts both new Mercosur format (LL000LL like 'AB123CD') and the old Argentine format (LLL000 like 'FFF123'). Returns marca/modelo/",
         "input": {
           "dominio": "LL000LL or LLL000 plate"
         },
@@ -296,7 +345,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "consultar_factura_emitida",
-        "description": "Consultar los detalles completos de una factura ya emitida (CAE, fecha, importes, doc receptor). USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de datos, o estás migrando de ",
+        "description": "Look up an already-issued invoice (consultar factura emitida, verificar un CAE propio): CAE, fecha, importes, doc receptor. USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de ",
         "input": {
           "ptoVta": "number?",
           "cbteTipo": "number",
@@ -306,7 +355,7 @@ export const MANIFESTS = [
       },
       {
         "name": "consultar_ultimo_comprobante",
-        "description": "Consultar el último número de comprobante autorizado para un (PtoVta, CbteTipo) — i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener",
+        "description": "Get the last authorized invoice number (consultar último comprobante autorizado) para un (PtoVta, CbteTipo), i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE ",
         "input": {
           "ptoVta": "number?",
           "cbteTipo": "number"
@@ -315,25 +364,25 @@ export const MANIFESTS = [
       },
       {
         "name": "emitir_factura",
-        "description": "Emitir una factura electrónica vía AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el CAE (14 dígitos), su fecha de vencimiento, y el núm",
+        "description": "Issue an electronic invoice and get its CAE (emitir factura electrónica, facturar) via AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el",
         "input": "SolicitarCaeInput",
         "output": "SolicitarCaeResult & { ok, tipoComprobanteDescripcion }"
       },
       {
         "name": "health_check_afip",
-        "description": "Health check de AFIP WSFE — devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
+        "description": "Health check de AFIP WSFE, devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
         "input": {},
         "output": "DummyResult & { ok }"
       },
       {
         "name": "obtener_alicuotas_iva",
-        "description": "Listar las alícuotas de IVA disponibles según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Prefe",
+        "description": "List VAT rates (alícuotas de IVA) según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Preferí `Al",
         "input": {},
         "output": "{ items: CatalogItem[] }"
       },
       {
         "name": "obtener_cotizacion",
-        "description": "Obtener la cotización oficial AFIP de una moneda extranjera vs ARS. REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el monCotiz a usar e",
+        "description": "Get the official AFIP exchange rate (cotización oficial de moneda extranjera vs ARS). REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el",
         "input": {
           "monId": "string"
         },
@@ -341,25 +390,25 @@ export const MANIFESTS = [
       },
       {
         "name": "obtener_tipos_comprobante",
-        "description": "Listar los tipos de comprobante disponibles según AFIP (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no es",
+        "description": "List AFIP voucher types (tipos de comprobante) (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no están en l",
         "input": {},
         "output": "{ items: CatalogItem[] }"
       },
       {
         "name": "obtener_tipos_concepto",
-        "description": "Listar los tipos de concepto: Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
+        "description": "List concept types (tipos de concepto): Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
         "input": {},
         "output": "{ items: CatalogItem[] }"
       },
       {
         "name": "obtener_tipos_documento",
-        "description": "Listar los tipos de documento que AFIP acepta (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
+        "description": "List AFIP document types (tipos de documento) (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
         "input": {},
         "output": "{ items: CatalogItem[] }"
       },
       {
         "name": "obtener_tipos_moneda",
-        "description": "Listar las monedas que WSFE acepta para emitir facturas (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: roun",
+        "description": "List currencies accepted for invoicing (tipos de moneda) (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: rou",
         "input": {},
         "output": "{ items: CatalogItem[] }"
       }
@@ -371,6 +420,48 @@ export const MANIFESTS = [
     }
   },
   {
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/fecred",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "fecred_check_obligation",
+        "description": "Check if an invoice to a given CUIT must be a Factura de Credito Electronica MiPyME (FCE). Returns obligado plus montoDesde, the live regime threshold from AFIP.",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "fecred_list_received",
+        "description": "List FCEs received (or emitted) by the represented CUIT, with state filters. estadoCmp='Recepcionado' lists FCEs awaiting acceptance or rejection.",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "fecred_accept_invoice",
+        "description": "Accept a received electronic credit invoice (FCE) and its cuenta corriente balance. Irreversible legal act: the FCE becomes a negotiable credit title.",
+        "sideEffects": "network write",
+        "idempotent": false,
+        "requiresConfirmation": true
+      },
+      {
+        "name": "fecred_reject_invoice",
+        "description": "Reject a received electronic credit invoice (FCE) with at least one justified motivo de rechazo. Irreversible legal act, only valid inside the legal acceptance window.",
+        "sideEffects": "network write",
+        "idempotent": false,
+        "requiresConfirmation": true
+      },
+      {
+        "name": "fecred_health",
+        "description": "Ping the AFIP WSFECred service (dummy operation). Returns appServer/dbServer/authServer statuses.",
+        "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/firma-digital",
     "version": "0.1.0",
@@ -378,19 +469,19 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "firma_inspect_cert",
-        "description": "Inspect an X.509 certificate (subject, issuer, validity, fingerprint, AKI/SKI, key usage). Use before trusting any cert in a verification chain."
+        "description": "Inspect an Argentine Firma Digital X.509 certificate (inspeccionar certificado de firma digital, PEM-encoded) and return its subject, issuer, validity window, CUIT (when embedded), public-key info, an"
       },
       {
         "name": "firma_verify_chain",
-        "description": "Verify an X.509 chain of trust against a configurable AR trust anchor (defaults to AC-Raíz / ONTI heuristic). Returns the chain depth + the trust-anchor identity."
+        "description": "Verify an X.509 certificate chain (verificar cadena de certificados; PEM bundle, leaf → root), checks issuer-by-subject linking, RSA signatures, validity window. Returns valid/reason + per-cert trace."
       },
       {
         "name": "firma_is_onti_issued",
-        "description": "Predicate: does this certificate ultimately chain to an ONTI-issued AC-Raíz root? Use to gate operations that require state-issued PKI identity."
+        "description": "Check if a cert was issued under Argentine Firma Digital (¿es un certificado de firma digital argentina? AC-Raíz / ONTI ecosystem); quick yes/no. Heuristic-based on issuer DN attributes. PURE FUNCTION"
       },
       {
         "name": "firma_verify_cms_signature",
-        "description": "Verify a PKCS#7/CMS detached or attached signature against a payload. Returns the signer chain + claim of authenticity."
+        "description": "Verify a digitally signed document (verificar firma digital de un documento): detached PKCS#7 / CMS signature against a payload (e.g., `firma.p7s` produced by an AR signing tool). Returns valid/reason"
       }
     ]
   },
@@ -402,19 +493,19 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "get_critical_notifications",
-        "description": "Filtra solo las notificaciones de severidad 'critical' del DEC, ordenadas por fecha de respuesta más cercana."
+        "description": "List only critical DEC notifications (notificaciones críticas del DEC), ordenadas por fecha de respuesta más cercana. Use this in the agent's morning loop to know what MUST be answered today/this week"
       },
       {
         "name": "list_domicilio_inbox",
-        "description": "Lista las notificaciones del Domicilio Electrónico Constituido (DEC) de una sociedad/persona, con severidad calculada (critical/important/info) por organismo + asunto + deadline."
+        "description": "List electronic-domicile notifications (notificaciones del Domicilio Electrónico Constituido, DEC) de una sociedad/persona. Cada notificación incluye organismo, asunto, fecha de notificación, fecha de"
       },
       {
         "name": "list_mis_tramites",
-        "description": "Lista los expedientes/trámites en TAD donde la sociedad/persona es parte. Read-only."
+        "description": "List TAD case files where the company/person is a party (expedientes y trámites en TAD). Útil para reporting, due diligence, y para el agente saber qué tiene en curso vs. qué resolvió. Read-only, no i"
       },
       {
         "name": "validate_igj_inscription",
-        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Pure algorithm — no network, no auth."
+        "description": "Pre-flight validator para una inscripción IGJ (SAS/SRL/SA/SOCIEDAD-IA). Catches the ~30% of rejections that are mechanical (denominación reservada, capital bajo el mínimo, aportes que no suman, CUIT i"
       }
     ],
     "name": "@ar-agents/gde-tad",
@@ -431,7 +522,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "lookup_cuit_afip",
-        "description": "Look up an Argentine CUIT/CUIL against AFIP's padron webservice. Returns taxpayer name, tax condition (Monotributo / Responsable Inscripto / etc.), monotributo category if applicable, and registered a",
+        "description": "Look up a CUIT/CUIL in the AFIP/ARCA taxpayer registry (consultar CUIT en AFIP, datos del contribuyente, padrón). Returns taxpayer name, tax condition (Monotributo / Responsable Inscripto / etc.), mon",
         "input": {
           "cuit": {
             "type": "string",
@@ -455,7 +546,7 @@ export const MANIFESTS = [
       },
       {
         "name": "validate_cuit",
-        "description": "Validate an Argentine CUIT/CUIL via the AFIP modulo-11 check digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency, free. Returns whether the input is mathe",
+        "description": "Validate a CUIT/CUIL Argentine tax ID (validar CUIT, verificar CUIT/CUIL) via the AFIP modulo-11 check digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency",
         "input": {
           "cuit": {
             "type": "string",
@@ -490,7 +581,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "check_verification_status",
-        "description": "Check whether a verification is still pending, completed, expired, or failed. Use this between user turns when waiting for the user to click a magic link.",
+        "description": "Check verification status (estado de la verificación): pending, completed, expired, or failed. Use this between user turns when waiting for the user to click a magic link.",
         "input": {
           "request_id": "string"
         },
@@ -506,7 +597,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_attestation",
-        "description": "Fetch the signed attestation for a completed verification. Returns null if not yet verified. The attestation includes trust_level (0-1), method, subject, claims, and a signature you can persist for au",
+        "description": "Fetch the signed attestation for a completed verification (obtener la atestación firmada). Returns null if not yet verified. The attestation includes trust_level (0-1), method, subject, claims, and a ",
         "input": {
           "request_id": "string"
         },
@@ -514,7 +605,7 @@ export const MANIFESTS = [
       },
       {
         "name": "list_verification_methods",
-        "description": "List all verification methods the host app has registered (with trust levels). Use to know what options are available before calling request_identity_verification.",
+        "description": "List available verification methods (métodos de verificación disponibles) the host app has registered (with trust levels). Use to know what options are available before calling request_identity_verifi",
         "input": {},
         "output": {
           "count": "number",
@@ -523,7 +614,7 @@ export const MANIFESTS = [
       },
       {
         "name": "request_identity_verification",
-        "description": "Start a verification flow to prove the user controls a phone, email, or other identity asset. Returns a request_id you'll use to check status, plus a verification_url (for magic-link flows) or instruc",
+        "description": "Start an identity verification flow (verificar identidad, enviar código de verificación) to prove the user controls a phone, email, or other identity asset. Returns a request_id you'll use to check st",
         "input": {
           "method": "string (e.g. whatsapp_otp, email_magic_link)",
           "subject_type": "phone | email | oauth | dni | cuit | custom",
@@ -542,7 +633,7 @@ export const MANIFESTS = [
       },
       {
         "name": "submit_otp_code",
-        "description": "Submit the OTP code the user dictated back to you (after they received it via WhatsApp/SMS/Email). Returns the signed attestation if correct, throws InvalidOtpCodeError if wrong (with attempts remaini",
+        "description": "Submit the OTP verification code (ingresar código de verificación) the user dictated back to you (after they received it via WhatsApp/SMS/Email). Returns the signed attestation if correct, throws Inva",
         "input": {
           "request_id": "string",
           "code": "string (extract just the digits)"
@@ -572,27 +663,27 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "igj_search_entities",
-        "description": "Full-text search the IGJ corporate registry by name. Returns a paginated list with denominación, CUIT, tipo societario, status."
+        "description": "Search IGJ-registered Argentine entities (buscar sociedades en IGJ; sociedades, asociaciones, fundaciones) via the public CKAN open data at datos.jus.gob.ar. Returns matching entities + a `coverageNot"
       },
       {
         "name": "igj_get_entity",
-        "description": "Fetch a single IGJ-registered entity by CUIT or registry number. Includes inscripción/baja status, last update."
+        "description": "Fetch a single IGJ entity by its dataset id (consultar una entidad IGJ). Returns the entity record including razón social, CUIT (when present), tipo de entidad, fecha de inscripción, matrícula. Return"
       },
       {
         "name": "igj_get_domicilios",
-        "description": "List the registered domicilios (legal/real/fiscal) for an IGJ entity. Useful for verifying counterparties before contracting."
+        "description": "Fetch the registered domicilios (addresses) for an IGJ entity by its id. Multiple domicilios may exist (legal, fiscal, real). USE THIS WHEN: the user wants the registered address of a sociedad/asociac"
       },
       {
         "name": "igj_get_autoridades",
-        "description": "Fetch the registered authorities (directorio, sindicatura, gerencia) for an entity, with start/end dates of their mandate."
+        "description": "Fetch the registered authorities (directors, officers, trustees) of an IGJ entity. Includes nombre, cargo, fecha de designación, and inferred genre when available. USE THIS WHEN: the user asks who is "
       },
       {
         "name": "igj_get_balances",
-        "description": "List filed balance-sheet metadata for an entity. Includes filing date and the period covered (the actual balance-sheet PDFs are not yet exposed via the public CKAN)."
+        "description": "Fetch the balances (financial reports) filed at IGJ for an entity. Includes cierre de ejercicio, número de ejercicio, fecha de presentación. USE THIS WHEN: the user wants to know if a sociedad is up t"
       },
       {
         "name": "igj_get_asambleas",
-        "description": "List filed shareholder/partner asambleas for an entity (date, type, registered minutes ID)."
+        "description": "Fetch the registered asambleas (meetings) of an IGJ entity. Includes tipo (ordinaria/extraordinaria) and fecha. USE THIS WHEN: you want to know when a sociedad held its last asamblea or track the cale"
       }
     ]
   },
@@ -603,28 +694,28 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "iibb_calculate_retention",
-        "description": "Pure math: compute IIBB retention amount = base × rate, with optional minimum threshold.",
+        "description": "Calculate the IIBB gross-receipts retention (calcular retención de Ingresos Brutos) on a base imponible in a given jurisdiction. Pure math: amount = base × rate (fraction), unless base < minimumThresh",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "iibb_calculate_perception",
-        "description": "Pure math: compute IIBB perception amount on a sale.",
+        "description": "Calculate the IIBB perception (calcular percepción de Ingresos Brutos) on a base imponible in a given jurisdiction. Symmetrical to retention in v0.1; some jurisdictions add a fixed component which wil",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "iibb_compute_ddjj",
-        "description": "Assemble a monthly DDJJ from income lines + rate-book. Supports LOCAL and CM Article 2 (general).",
+        "description": "Assemble a monthly IIBB tax return (armar la DDJJ mensual de Ingresos Brutos) from raw income lines + a rate-book. Supports the LOCAL regime (single jurisdiction) and the CM general regime (Article 2,",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "iibb_lookup_padron",
-        "description": "Lookup a CUIT's taxpayer status in a jurisdiction's padrón. Real adapters ship for CABA (AgipPublicAdapter, no auth) and BSAS (ArbaCitAdapter, host-supplied CIT fetcher). Other jurisdictions: subclass HttpPadronAdapter.",
+        "description": "Look up a CUIT in a jurisdiction's IIBB registry (consultar padrón de Ingresos Brutos). Returns null if not registered. Throws IibbUnconfiguredError if the adapter for that jurisdiction is not wired (",
         "sideEffects": "network read",
         "idempotent": true,
         "requiresConfirmation": false
@@ -637,7 +728,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "inpi_search_trademark",
-        "description": "Search INPI trademarks by denomination substring.",
+        "description": "Search INPI trademarks by name (buscar marcas registradas en INPI), case-insensitive substring. Returns the matching registrations with their Nice class, status (presentada/publicada/oposicion/concedi",
         "input": {
           "q": "substring (min 2 chars)",
           "niceClass": "optional 1-45",
@@ -650,7 +741,7 @@ export const MANIFESTS = [
       },
       {
         "name": "inpi_get_trademark",
-        "description": "Look up one trademark by acta.",
+        "description": "Look up an INPI trademark by registration number (consultar una marca por acta) (registration number, e.g. '3792456'). Returns the full record or null if not found.",
         "input": {
           "acta": "string"
         },
@@ -667,21 +758,21 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "iva_perception_calculate",
-        "description": "Compute the IVA perception (extra charge added on top of IVA) for a sale invoice. Returns 0 with waiverReason when buyer is exento / monotributista / consumidor final, below mínimo, or has a non-perception certificate.",
+        "description": "Compute the VAT perception for a sale invoice (calcular percepción de IVA, the extra charge added on top of IVA). Returns 0 with a `waiverReason` when the buyer is exento / monotributista / consumidor",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "iva_perception_build_ddjj",
-        "description": "Aggregate perception results into a monthly SIRE DDJJ with per-regime and per-buyer breakdowns. Pure aggregation.",
+        "description": "Assemble the monthly SIRE perception return (armar DDJJ SIRE de percepciones de IVA) with per-regime and per-buyer breakdowns. Pure aggregation.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "iva_perception_submit_ddjj",
-        "description": "Submit an assembled SIRE perception DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "description": "Submit an assembled SIRE perception return (presentar DDJJ de percepciones de IVA). Throws unless the host wired a real adapter. Files a tax return, confirmation gate required.",
         "sideEffects": "files tax return",
         "idempotent": true,
         "requiresConfirmation": true
@@ -695,21 +786,21 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "iva_retention_calculate",
-        "description": "Compute the IVA retention amount on a payment to a supplier per RG 2854/10. Returns 0 with waiverReason when supplier is exempt/monotributista, below mínimo, or has a non-retention certificate.",
+        "description": "Compute the VAT retention on a supplier payment (calcular retención de IVA) per RG 2854/10. Returns 0 with `waiverReason` when the supplier is exento / monotributista, when the IVA component is below ",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "iva_retention_build_ddjj",
-        "description": "Aggregate retention results into a monthly SIRE DDJJ with per-regime and per-supplier breakdowns. Pure aggregation.",
+        "description": "Assemble the monthly SIRE retention return (armar DDJJ SIRE de retenciones de IVA) with per-regime and per-supplier breakdowns. Pure aggregation.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "iva_retention_submit_ddjj",
-        "description": "Submit an assembled SIRE retention DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "description": "Submit an assembled SIRE retention return to AFIP/ARCA (presentar DDJJ de retenciones de IVA). Throws unless the host wired a real adapter. Files a tax return, confirmation gate required.",
         "sideEffects": "files tax return",
         "idempotent": true,
         "requiresConfirmation": true
@@ -1072,7 +1163,7 @@ export const MANIFESTS = [
       },
       {
         "name": "calculate_installments",
-        "description": "Calculate cuotas (installments) options for a given amount. THE killer Argentine feature — returns options like '12 cuotas sin interés de $X' (recommended_message field) which you should surface VERBA",
+        "description": "Calculate installment options for an amount (calcular cuotas, cuotas sin interés). THE killer Argentine feature, returns options like '12 cuotas sin interés de $X' (recommended_message field) which yo",
         "input": {
           "amount_ars": "number positive",
           "payment_method_id": "string? (e.g. visa, master, naranja)",
@@ -1085,7 +1176,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cancel_order",
-        "description": "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead — cancel only works pre-capture. **IRREVERSIBLE — confi",
+        "description": "Cancel an Order. Releases any auth-holds and marks the Order as canceled. For orders that have already been CAPTURED, use refund_payment instead, cancel only works pre-capture. **IRREVERSIBLE, confirm",
         "input": {
           "order_id": "string"
         },
@@ -1096,7 +1187,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cancel_payment",
-        "description": "Cancel a pending or in_process payment (only works before approval). Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment that's still pending. **IRREVERSIBLE — confi",
+        "description": "Cancel a pending or in_process Mercado Pago payment (cancelar un pago pendiente); only works before approval. Once approved, use refund_payment instead. Common use: cancel an unpaid ticket payment tha",
         "input": {
           "payment_id": "string"
         },
@@ -1108,15 +1199,15 @@ export const MANIFESTS = [
       },
       {
         "name": "cancel_point_payment_intent",
-        "description": "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN' — once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERS"
+        "description": "Cancel an OPEN point payment intent before the buyer interacts with the device. ONLY WORKS while state='OPEN', once the buyer taps, you can't cancel; refund_payment after the fact instead. **IRREVERSI"
       },
       {
         "name": "cancel_qr_payment",
-        "description": "Cancel a pending QR order on a POS. Necessary if the buyer never scans — otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE — but low-stakes since the QR has not been pai"
+        "description": "Cancel a pending QR order on a POS (cancelar un QR pendiente). Necessary if the buyer never scans, otherwise the next create_qr_payment on the same POS returns 409. **IRREVERSIBLE, but low-stakes sinc"
       },
       {
         "name": "cancel_subscription",
-        "description": "Cancel an active Mercado Pago subscription. After cancellation, MP will not charge the customer again. This action is irreversible — confirm with the user before calling.",
+        "description": "Cancel an active Mercado Pago subscription (cancelar suscripción, dar de baja). After cancellation, MP will not charge the customer again. This action is irreversible, confirm with the user before cal",
         "input": {
           "subscription_id": "string"
         },
@@ -1141,7 +1232,7 @@ export const MANIFESTS = [
       },
       {
         "name": "capture_payment",
-        "description": "Capture an authorized credit-card payment that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional partial amount. **MOVES MONEY —",
+        "description": "Capture an authorized credit-card payment (capturar un pago autorizado) that was created with capture=false. Use for hold-then-capture flows (e.g., authorize on order, capture on shipment). Optional p",
         "input": {
           "payment_id": "string",
           "amount_ars": "number? (partial capture)"
@@ -1154,11 +1245,11 @@ export const MANIFESTS = [
       },
       {
         "name": "charge_saved_card",
-        "description": "Charge a previously-saved card for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Mercado Pago does NOT support CVV-"
+        "description": "Charge a previously-saved card (cobrar con tarjeta guardada) for a returning customer. Requires customer_id + card_id (from list_customer_cards) AND a fresh CVV the user provides this session. AR Merc"
       },
       {
         "name": "compute_marketplace_fee",
-        "description": "PURE HELPER (no network) — given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_payme"
+        "description": "PURE HELPER (no network), given a transaction amount + fee rule (% or flat ARS, with optional min/max floors), returns the exact `marketplace_fee` value in ARS to pass to create_order or create_paymen"
       },
       {
         "name": "confirm_3ds_challenge",
@@ -1166,7 +1257,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_customer",
-        "description": "Create a Mercado Pago customer record so the buyer can save cards for future charges. Idempotent on email — if a customer with that email exists, MP returns it instead of creating a duplicate. Use fin",
+        "description": "Create a Mercado Pago customer record (crear cliente en Mercado Pago) so the buyer can save cards for future charges. Idempotent on email, if a customer with that email exists, MP returns it instead o",
         "input": {
           "email": "string",
           "first_name": "string?",
@@ -1183,7 +1274,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_customer_card",
-        "description": "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform — agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard "
+        "description": "Add a saved card to an existing customer using a card_token (one-time token from MP frontend Cardform, agents should NEVER take raw card data, that's a PCI violation). Returns the saved CustomerCard w"
       },
       {
         "name": "create_order",
@@ -1210,7 +1301,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_payment",
-        "description": "Create a one-time payment. Two flows: (a) with a card token from MP frontend Cardform — for transparent checkout; (b) without token, for non-card methods like 'account_money', 'rapipago', 'pagofacil'.",
+        "description": "Create a one-time Mercado Pago payment (crear un pago, cobrar con Mercado Pago). Two flows: (a) with a card token from MP frontend Cardform, for transparent checkout; (b) without token, for non-card m",
         "input": {
           "amount_ars": "number positive",
           "payment_method_id": "string (visa | master | naranja | account_money | rapipago | ...)",
@@ -1235,7 +1326,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_payment_preference",
-        "description": "Create a Mercado Pago Checkout Pro preference and get back a payment URL (init_point) to send to the customer. THIS is the recommended way for an agent to take a payment when you only have a payer ema",
+        "description": "Create a Mercado Pago Checkout Pro payment link (crear link de pago, cobrar por Mercado Pago) and get back a payment URL (init_point) to send to the customer. THIS is the recommended way for an agent ",
         "input": {
           "items": "array of {title, quantity, unit_price, description?, picture_url?}",
           "payer_email": "string?",
@@ -1254,7 +1345,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_point_payment_intent",
-        "description": "Create a payment intent on a physical Point device — the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait f"
+        "description": "Create a payment intent on a physical Point device, the device prompts the buyer to tap/insert/swipe their card. Returns immediately with intent_id; query state via get_point_payment_intent or wait fo"
       },
       {
         "name": "create_pos",
@@ -1262,7 +1353,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_qr_payment",
-        "description": "Generate a dynamic in-store QR for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc. — interop is mandated by Transferencias 3.0). Requires a pre-configured POS"
+        "description": "Generate a dynamic in-store payment QR (cobrar con QR de Mercado Pago) for a buyer to scan with any AR wallet (Modo, BNA+, Cuenta DNI, Naranja X, Mercado Pago, etc., interop is mandated by Transferenc"
       },
       {
         "name": "create_store",
@@ -1270,7 +1361,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_subscription",
-        "description": "Create a Mercado Pago recurring subscription. Returns an init_point URL where the customer must complete the FIRST payment with their card and CVV (this is a hard MP requirement; agents cannot bypass ",
+        "description": "Create a Mercado Pago recurring subscription (crear suscripción, cobro recurrente con Mercado Pago). Returns an init_point URL where the customer must complete the FIRST payment with their card and CV",
         "input": {
           "customer_email": "string (email; cannot equal seller email)",
           "amount_ars": "number (positive)",
@@ -1287,7 +1378,7 @@ export const MANIFESTS = [
       },
       {
         "name": "create_subscription_plan",
-        "description": "Create a REUSABLE subscription plan (preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscribe_to_plan. Use plans for S"
+        "description": "Create a reusable subscription plan (crear plan de suscripción; preapproval_plan). Different from create_subscription: a plan defines price + frequency once, then customers subscribe to it via subscri"
       },
       {
         "name": "create_webhook",
@@ -1295,7 +1386,7 @@ export const MANIFESTS = [
       },
       {
         "name": "delete_customer_card",
-        "description": "Delete a saved card from a customer. Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE — confirm with the user before calling. The customer must re-enter card data (PAN + ",
+        "description": "Delete a saved card from a customer (eliminar tarjeta guardada). Common use: customer requests removal, or expired card cleanup. **IRREVERSIBLE, confirm with the user before calling. The customer must",
         "input": {
           "customer_id": "string",
           "card_id": "string"
@@ -1312,23 +1403,23 @@ export const MANIFESTS = [
       },
       {
         "name": "delete_store",
-        "description": "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes — delete those first."
+        "description": "Delete a store. IRREVERSIBLE. Confirm with user before calling. Will fail if the store has associated POSes, delete those first."
       },
       {
         "name": "delete_webhook",
-        "description": "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE — confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subs"
+        "description": "Delete a webhook subscription. MP stops POSTing to it immediately. **IRREVERSIBLE, confirm before calling. State the webhook URL + topic so the user knows which subscription is being removed. Re-subsc"
       },
       {
         "name": "explain_payment_status",
-        "description": "PURE HELPER (no network) — given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's crypt"
+        "description": "PURE HELPER (no network), given a Payment object (from get_payment / create_payment / handle_webhook), returns { summary, recommendedAction, final, paid, retryable } in Spanish. Translates MP's crypti"
       },
       {
         "name": "find_applicable_promos",
-        "description": "PURE HELPER (no network, sub-ms) — returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30"
+        "description": "PURE HELPER (no network, sub-ms), returns the 'cuotas sin interés' promotions applicable to a given (issuer, paymentMethodId, amount, category, date) tuple. Includes the federal Ahora 3/6/12/18/24/30 "
       },
       {
         "name": "find_customer_by_email",
-        "description": "Find an existing customer by email address. Returns the customer object if found, or null. Use before create_customer to avoid duplicate records.",
+        "description": "Find an existing Mercado Pago customer by email (buscar cliente por email). Returns the customer object if found, or null. Use before create_customer to avoid duplicate records.",
         "input": {
           "email": "string"
         },
@@ -1346,7 +1437,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_account_info",
-        "description": "Get info about the Mercado Pago account that owns the access token: site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the right acc",
+        "description": "Get info about the connected Mercado Pago account (información de la cuenta): site_id (MLA=Argentina), country_id, user_type (registered, partial, etc.). Useful to verify the agent is connected to the",
         "input": {},
         "output": {
           "account_id": "string",
@@ -1363,7 +1454,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_customer_card",
-        "description": "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ — useful before charge_saved_card to confirm the card is still valid."
+        "description": "Get details of a single saved card by (customer_id, card_id). Returns last 4 digits, expiration, brand, issuer. PURE READ, useful before charge_saved_card to confirm the card is still valid."
       },
       {
         "name": "get_dispute",
@@ -1371,7 +1462,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_merchant_order",
-        "description": "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference — one Order can have multiple partial Payments (r"
+        "description": "Get a merchant_order with all its associated payments + shipments. MerchantOrder is the parent entity for Payments associated with a single Preference, one Order can have multiple partial Payments (re"
       },
       {
         "name": "get_order",
@@ -1383,7 +1474,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_payment",
-        "description": "Fetch a single payment by ID. Use to confirm status after webhook arrives, or to inspect details (status_detail explains rejections).",
+        "description": "Fetch a Mercado Pago payment by ID (consultar un pago). Use to confirm status after webhook arrives, or to inspect details (status_detail explains rejections).",
         "input": {
           "payment_id": "string"
         },
@@ -1391,7 +1482,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_payment_preference",
-        "description": "Fetch a Checkout Pro preference by ID. Returns the preference config and current init_point URLs. Use to inspect a previously-created link.",
+        "description": "Fetch a Checkout Pro preference / payment link by ID (consultar un link de pago). Returns the preference config and current init_point URLs. Use to inspect a previously-created link.",
         "input": {
           "preference_id": "string"
         },
@@ -1407,7 +1498,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_refund",
-        "description": "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ — useful to verify a refund processed or to reconcile partial-refund history."
+        "description": "Fetch a single refund by (payment_id, refund_id). Returns the Refund object with amount, status, date_created. PURE READ, useful to verify a refund processed or to reconcile partial-refund history."
       },
       {
         "name": "get_settlement",
@@ -1423,7 +1514,7 @@ export const MANIFESTS = [
       },
       {
         "name": "get_subscription_status",
-        "description": "Check the current status of a Mercado Pago subscription. Use this to confirm the customer completed the first payment (status becomes 'authorized') or to inspect the next charge date.",
+        "description": "Check the status of a Mercado Pago subscription (consultar estado de una suscripción). Use this to confirm the customer completed the first payment (status becomes 'authorized') or to inspect the next",
         "input": {
           "subscription_id": "string (MP preapproval ID)"
         },
@@ -1465,11 +1556,11 @@ export const MANIFESTS = [
       },
       {
         "name": "list_bank_accounts",
-        "description": "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array — the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settl"
+        "description": "List the bank accounts (CBUs) the seller has registered with MP for receiving payouts. Returns an array, the one with `is_default: true` is where settlements (release_money) go. USE BEFORE list_settle"
       },
       {
         "name": "list_customer_cards",
-        "description": "List the saved cards for a customer. Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_payment calls to charge a ",
+        "description": "List a customer's saved cards (listar tarjetas guardadas). Returns array with last 4 digits, expiration, payment method (visa, master, naranja, etc.). The card_id can be used in subsequent create_paym",
         "input": {
           "customer_id": "string"
         },
@@ -1485,15 +1576,15 @@ export const MANIFESTS = [
       },
       {
         "name": "list_issuers",
-        "description": "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments — issuer-specific "
+        "description": "List card issuers (banks) that support a payment_method_id. Optionally filter by `bin` (first 6 digits of the card) for accurate issuer detection. Useful with calculate_installments, issuer-specific p"
       },
       {
         "name": "list_payment_disputes",
-        "description": "List all disputes / chargebacks raised against a payment. Read-only — resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when th"
+        "description": "List all disputes / chargebacks raised against a payment. Read-only, resolution is dashboard-only. Surface the dashboard URL `https://www.mercadopago.com.ar/disputes/{dispute_id}` to the user when the"
       },
       {
         "name": "list_payment_methods",
-        "description": "List all payment methods enabled for the seller's MP account (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.). Use to validate which methods you can offer the custom",
+        "description": "List the payment methods enabled for the seller's Mercado Pago account (medios de pago disponibles) (visa, master, naranja, naranja_x, cabal, account_money, rapipago, pagofacil, etc.). Use to validate",
         "input": {},
         "output": {
           "count": "number",
@@ -1502,7 +1593,7 @@ export const MANIFESTS = [
       },
       {
         "name": "list_point_devices",
-        "description": "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS — these are actual terminals at brick-and-mortar shops. Returns each device's id "
+        "description": "List the physical Point devices (Smart, Tap to Pay, etc.) linked to the seller's MP account. Distinct from logical POS, these are actual terminals at brick-and-mortar shops. Returns each device's id ("
       },
       {
         "name": "list_pos",
@@ -1510,7 +1601,7 @@ export const MANIFESTS = [
       },
       {
         "name": "list_refunds",
-        "description": "List all refunds for a given payment. Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
+        "description": "List all refunds for a payment (listar reembolsos de un pago). Returns array of Refund objects. Useful to confirm a refund was processed or to inspect partial-refund history.",
         "input": {
           "payment_id": "string"
         },
@@ -1522,11 +1613,11 @@ export const MANIFESTS = [
       },
       {
         "name": "list_settlements",
-        "description": "List settlements (release_money) — i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation repo"
+        "description": "List settlements (release_money), i.e. transfers from the MP wallet to the seller's registered bank account (CBU). USE WHEN the user asks 'cuándo me deposita MP' or for monthly bank-conciliation repor"
       },
       {
         "name": "list_settlements_all",
-        "description": "Collect ALL settlements matching a filter — auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports."
+        "description": "Collect ALL settlements matching a filter, auto-paginates. Pass `max_items` to cap. Use for monthly bank-conciliation reports."
       },
       {
         "name": "list_stores",
@@ -1534,7 +1625,7 @@ export const MANIFESTS = [
       },
       {
         "name": "list_subscription_payments",
-        "description": "List the auto-charge attempts (authorized_payments) under a subscription. Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge."
+        "description": "List the auto-charges under a subscription (cobros de una suscripción; authorized_payments). Useful for 'show me the cobros del último mes for this client' or to debug a failing recurring charge."
       },
       {
         "name": "list_subscription_plans",
@@ -1563,7 +1654,7 @@ export const MANIFESTS = [
       },
       {
         "name": "oauth_exchange_code",
-        "description": "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response** — refresh_token is long-liv",
+        "description": "Exchange the authorization code (from the OAuth redirect) for an `OAuthToken`. Returns access_token, refresh_token, user_id, and expires_in. **PERSIST the entire response**, refresh_token is long-live",
         "input": {
           "code": "string",
           "redirect_uri": "string (must EXACTLY match the URL used in oauth_authorize_url)"
@@ -1577,7 +1668,7 @@ export const MANIFESTS = [
       },
       {
         "name": "oauth_refresh_token",
-        "description": "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken — pe",
+        "description": "Refresh a per-seller access_token using the saved refresh_token. Call PROACTIVELY before expires_in elapses, or REACTIVELY on a 401 from a per-seller MercadoPagoClient. Returns a fresh OAuthToken, per",
         "input": {
           "refresh_token": "string"
         },
@@ -1589,7 +1680,7 @@ export const MANIFESTS = [
       },
       {
         "name": "pause_subscription",
-        "description": "Pause an authorized Mercado Pago subscription. Charges stop until resumed. Only works on subscriptions in 'authorized' status.",
+        "description": "Pause an authorized Mercado Pago subscription (pausar suscripción). Charges stop until resumed. Only works on subscriptions in 'authorized' status.",
         "input": {
           "subscription_id": "string"
         },
@@ -1601,7 +1692,7 @@ export const MANIFESTS = [
       },
       {
         "name": "refund_payment",
-        "description": "Refund an approved payment. Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to prevent double-refunds on retries. **IRREVERSIBLE AND M",
+        "description": "Refund an approved Mercado Pago payment (reembolsar un pago, hacer una devolución). Pass amount for partial refund; omit for full refund. Idempotency key is auto-generated based on paymentId+amount to",
         "input": {
           "payment_id": "string",
           "amount_ars": "number? (omit for full refund)"
@@ -1616,11 +1707,11 @@ export const MANIFESTS = [
       },
       {
         "name": "register_bank_account",
-        "description": "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance — this endpoint may not work for all accounts. If it fails with 403, redirect the "
+        "description": "Register a new bank account (CBU) for the seller. NOTE: MP usually requires this through the dashboard for compliance, this endpoint may not work for all accounts. If it fails with 403, redirect the u"
       },
       {
         "name": "resume_subscription",
-        "description": "Resume a paused Mercado Pago subscription. Charges resume on the next scheduled date. Only works on subscriptions in 'paused' status.",
+        "description": "Resume a paused Mercado Pago subscription (reactivar suscripción). Charges resume on the next scheduled date. Only works on subscriptions in 'paused' status.",
         "input": {
           "subscription_id": "string"
         },
@@ -1636,7 +1727,7 @@ export const MANIFESTS = [
       },
       {
         "name": "search_payments",
-        "description": "Search payments with filters. Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful charges in a date range. Returns",
+        "description": "Search Mercado Pago payments with filters (buscar pagos). Most common: by external_reference (your-system identifier) to find all payments for an order, or by status='approved' to list successful char",
         "input": {
           "external_reference": "string?",
           "status": "string?",
@@ -1655,7 +1746,7 @@ export const MANIFESTS = [
       },
       {
         "name": "search_payments_all",
-        "description": "Collect ALL payments matching a filter — auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to ca"
+        "description": "Collect ALL payments matching a filter, auto-paginates under the hood. Returns an array (NOT paginated) so the agent doesn't have to manage offset/limit loops manually. SAFETY: pass `max_items` to cap"
       },
       {
         "name": "search_subscriptions",
@@ -1663,15 +1754,15 @@ export const MANIFESTS = [
       },
       {
         "name": "subscribe_to_plan",
-        "description": "Subscribe a customer to an existing reusable plan. Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when you have fixed tiers."
+        "description": "Subscribe a customer to an existing plan (suscribir un cliente a un plan). Returns a Preapproval with init_point URL where the customer completes first payment. Cleaner than create_subscription when y"
       },
       {
         "name": "update_customer",
-        "description": "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch — fields you don't send remain unchanged. Use to keep customer records in sync (e"
+        "description": "Update a customer's profile (first_name, last_name, phone, identification, address, default_card). MP merges the patch, fields you don't send remain unchanged. Use to keep customer records in sync (e."
       },
       {
         "name": "update_merchant_order",
-        "description": "Update a merchant_order — typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle."
+        "description": "Update a merchant_order, typically to add items or shipping info. Most agent flows don't need this; use only when integrating with a custom shipping flow that requires updating the MO mid-lifecycle."
       },
       {
         "name": "update_order",
@@ -1705,7 +1796,7 @@ export const MANIFESTS = [
       },
       {
         "name": "update_subscription_plan",
-        "description": "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated — only NEW subscribers get the new pricing."
+        "description": "Update a subscription plan's reason / amount / status / back_url. Existing customer subscriptions to the plan are NOT automatically updated, only NEW subscribers get the new pricing."
       },
       {
         "name": "update_webhook",
@@ -1713,7 +1804,7 @@ export const MANIFESTS = [
       },
       {
         "name": "validate_tax_id",
-        "description": "PURE HELPER (no network, sub-ms) — validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC struct"
+        "description": "PURE HELPER (no network, sub-ms), validates a tax ID against the appropriate country algorithm. Supports AR (DNI/CUIT/CUIL with modulo-11), BR (CPF/CNPJ with two-step weighted modulo), MX (RFC structu"
       }
     ],
     "name": "@ar-agents/mercadopago",
@@ -1730,23 +1821,23 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "mi_argentina_start_login",
-        "description": "Start an OIDC login flow against Mi Argentina. Returns the authorize URL + state/nonce for replay protection."
+        "description": "Begin a Mi Argentina government login (iniciar sesión con Mi Argentina, OIDC). Returns an authorization URL the user must open in a browser, plus the OAuth `state` value the callback will return. SIDE"
       },
       {
         "name": "mi_argentina_complete_login",
-        "description": "Exchange the OIDC code for an ID token + access token. Verifies the JWT signature against the cached JWKS."
+        "description": "Complete a Mi Argentina login (completar el login de Mi Argentina) by exchanging the authorization code for tokens and verifying the ID token. Pass BOTH the `code` and `state` values that arrived in t"
       },
       {
         "name": "mi_argentina_get_user_profile",
-        "description": "Fetch the authenticated user's profile (DNI, name, contact info) from the Mi Argentina userinfo endpoint."
+        "description": "Fetch the Mi Argentina user profile (perfil del usuario de Mi Argentina) via the OIDC userinfo endpoint, given an access token already obtained from `mi_argentina_complete_login`. Returns sub, CUIL, D"
       },
       {
         "name": "mi_argentina_verify_id_token",
-        "description": "Verify an ID token JWT against Mi Argentina's published JWKS. Use to validate identity claims from upstream services."
+        "description": "Verify a Mi Argentina ID token (compact JWT) end-to-end: signature, issuer, audience, expiration. Returns the verified claims when valid; throws when invalid. USE THIS WHEN: you receive an ID token fr"
       },
       {
         "name": "mi_argentina_refresh_token",
-        "description": "Refresh an expired access token using a refresh token. Maintains long-lived sessions without forcing re-login."
+        "description": "Exchange a refresh token for a new access token. Returns a new TokenResponse with refreshed access_token, id_token, and (per provider policy) a possibly-rotated refresh_token. USE THIS WHEN: an access"
       }
     ]
   },
@@ -1758,7 +1849,7 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "cancelar_envio",
-        "description": "Cancelar un envío que aún no salió a reparto. Returns { canceled: bool, reason? }. Si canceled=false, surface reason verbatim al usuario (típicamente 'ya está en reparto' o 'el carrier no soporta canc",
+        "description": "Cancel a shipment that has not gone out for delivery (cancelar un envío). Returns { canceled: bool, reason? }. Si canceled=false, surface reason verbatim al usuario (típicamente 'ya está en reparto' o",
         "input": {
           "carrier?": "...",
           "tracking_number": "string"
@@ -1767,7 +1858,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cotizar_envio",
-        "description": "Cotizar el costo de un envío vía un carrier específico (Andreani, OCA, o Correo Argentino). Pasá origen + destino + paquetes (peso + dimensiones + valor declarado) y servicio (standard, express, same_",
+        "description": "Quote the shipping cost with one carrier (cotizar un envío) (Andreani, OCA, o Correo Argentino). Pasá origen + destino + paquetes (peso + dimensiones + valor declarado) y servicio (standard, express, ",
         "input": {
           "carrier?": "andreani | oca | correo_argentino",
           "origin": "Address",
@@ -1779,7 +1870,7 @@ export const MANIFESTS = [
       },
       {
         "name": "cotizar_envio_todos",
-        "description": "Cotizar un envío en TODOS los carriers configurados en paralelo. Returns { quotes: QuoteOption[] } ordenado por costo (más barato primero). USE WHEN el usuario dice 'cuál es el envío más barato' o 'co",
+        "description": "Compare shipping quotes across ALL configured carriers in parallel (cotizar envío en todos los carriers). Returns { quotes: QuoteOption[] } ordenado por costo (más barato primero). USE WHEN el usuario",
         "input": {
           "origin": "Address",
           "destination": "Address",
@@ -1790,7 +1881,7 @@ export const MANIFESTS = [
       },
       {
         "name": "crear_envio",
-        "description": "Crear un envío real con un carrier. RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier — confirma con el usuario antes si el monto es alto (",
+        "description": "Create a real shipment and get a tracking number + label (crear un envío). RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier, confirma con ",
         "input": {
           "carrier?": "...",
           "origin": "Address",
@@ -1804,7 +1895,7 @@ export const MANIFESTS = [
       },
       {
         "name": "listar_sucursales",
-        "description": "Listar las sucursales / centros de despacho de un carrier cerca de un Código Postal Argentino (CPA). Returns array con id, name, address, openingHours, distanceKm cuando disponible. USE WHEN el usuari",
+        "description": "List carrier branch offices near a postal code (listar sucursales de un carrier) cerca de un Código Postal Argentino (CPA). Returns array con id, name, address, openingHours, distanceKm cuando disponi",
         "input": {
           "carrier?": "...",
           "postal_code": "string",
@@ -1814,7 +1905,7 @@ export const MANIFESTS = [
       },
       {
         "name": "trackear_envio",
-        "description": "Consultar el estado actual de un envío vía su trackingNumber. Returns { currentStatus, events[], deliveredAt? }. currentStatus normalizado a uno de: label_created, in_transit, out_for_delivery, delive",
+        "description": "Track a shipment by tracking number (trackear un envío, dónde está mi paquete). Returns { currentStatus, events[], deliveredAt? }. currentStatus normalizado a uno de: label_created, in_transit, out_fo",
         "input": {
           "carrier?": "...",
           "tracking_number": "string"
@@ -1835,28 +1926,28 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "sicore_calculate_retention",
-        "description": "Compute the Ganancias retention amount for a single payment per RG 830/00. Honors monthly accumulator + already-retained credit. Returns 0 when supplier is exento or accumulated is below mínimo.",
+        "description": "Calculate the SICORE income-tax retention on a supplier payment (calcular retención de Ganancias SICORE). Implements the RG 830/00 rule: retention is on the MONTHLY ACCUMULATED amount (passed via accu",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "sicore_calculate_retention_stream",
-        "description": "Walk a chronological stream of payments to ONE supplier in ONE month, returning per-payment retentions with the accumulator advancing.",
+        "description": "Walk a chronological stream of payments to ONE supplier in ONE month and return the retention per payment, with the accumulator advancing automatically. Use this when reconciling a supplier's invoices",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "sicore_build_ddjj",
-        "description": "Aggregate retention results into a monthly SICORE DDJJ with per-category and per-supplier breakdowns. Pure aggregation, does NOT submit.",
+        "description": "Assemble the monthly SICORE return (armar la DDJJ SICORE) from a list of retention results. Returns totals + per-category + per-supplier breakdowns ready for filing. Pure aggregation; does NOT submit.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "sicore_submit_ddjj",
-        "description": "Submit an assembled SICORE DDJJ to AFIP/ARCA. Throws SicoreUnconfiguredError unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "description": "Submit an assembled SICORE return to AFIP/ARCA (presentar la DDJJ SICORE). Throws SicoreUnconfiguredError unless the host wired a real submission adapter. Confirmation gate REQUIRED in the host UI bef",
         "sideEffects": "files tax return",
         "idempotent": true,
         "requiresConfirmation": true
@@ -1870,21 +1961,21 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "suss_calculate_employee_month",
-        "description": "Per-employee monthly aportes + contribuciones per F.931 / SICOSS.",
+        "description": "Calculate monthly payroll social-security amounts for one employee (calcular aportes y contribuciones) per F.931 / SICOSS. Returns the structured breakdown (jubilación, INSSJP, obra social, asignacion",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "suss_build_ddjj",
-        "description": "Aggregate per-employee results into the monthly SICOSS DDJJ.",
+        "description": "Assemble the monthly SICOSS return (armar la DDJJ SICOSS, F.931) from per-employee results with vector totals (Seguridad Social, Obra Social, ART) + per-employee detail. Pure aggregation, does NOT sub",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "suss_submit_ddjj",
-        "description": "Submit the SICOSS DDJJ to AFIP. v0.1 throws unless a real adapter is wired.",
+        "description": "Submit a SICOSS return to AFIP (presentar la DDJJ SICOSS, F.931). v0.1 ships only the contract, the real upload (fixed-width F.931 / SI.AP.RE web service) requires a custom adapter; throws SussUnconfi",
         "sideEffects": "files tax return",
         "idempotent": true,
         "requiresConfirmation": true
@@ -1898,70 +1989,70 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "tienda_nube_get_store",
-        "description": "Retrieve metadata about the bound Tienda Nube store.",
+        "description": "Get info about the Tienda Nube store (datos de la tienda) this adapter is bound to (denominación, currency, country, language, contact email).",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_list_products",
-        "description": "Cursor-paginated product list with substring search.",
+        "description": "List Tienda Nube products (listar productos de la tienda) with optional substring search + paginated results. Use `publishedOnly: true` to skip drafts. Returns `hasMore: true` when at least one more p",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_get_product",
-        "description": "Retrieve a product by id, including all variants.",
+        "description": "Get a Tienda Nube product by id (consultar un producto), including all variants.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_list_orders",
-        "description": "List orders with status, payment_status, email, and date filters.",
+        "description": "List Tienda Nube orders (listar ventas, órdenes de la tienda) with status / payment_status / email filters + ISO 8601 date ranges. Reverse-chronological. The `paymentStatus: \"paid\"` filter is the typi",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_get_order",
-        "description": "Retrieve a single order by id.",
+        "description": "Get a Tienda Nube order by id (consultar una orden). Includes contact email + name + addresses + per-line products.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_list_customers",
-        "description": "Cursor-paginated customer list with name+email substring search.",
+        "description": "List Tienda Nube customers (listar clientes) with optional substring search across name + email.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_get_customer",
-        "description": "Retrieve a single customer by id.",
+        "description": "Get a Tienda Nube customer by id (consultar un cliente), including default_address + total_spent.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_list_webhooks",
-        "description": "List webhook subscriptions for this app on the bound store.",
+        "description": "List webhook subscriptions registered by this app for this store.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_create_webhook",
-        "description": "Register a webhook subscription. URL must be https://.",
+        "description": "Register a webhook subscription. URL must be https://. Common events: order/created, order/paid, order/fulfilled, product/updated, customer/created, app/uninstalled.",
         "sideEffects": "creates resource",
         "idempotent": false,
         "requiresConfirmation": false
       },
       {
         "name": "tienda_nube_delete_webhook",
-        "description": "Delete a webhook subscription by id. Idempotent.",
+        "description": "Delete a webhook subscription by id. Idempotent: deleting an unknown id resolves without raising.",
         "sideEffects": "irreversible",
         "idempotent": true,
         "requiresConfirmation": false
@@ -1975,56 +2066,56 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "uala_create_payment_link",
-        "description": "Create a Ualá payment link the payer can complete on the web or via the Ualá app.",
+        "description": "Create a Ualá payment link (crear link de pago, cobrar con Ualá) the payer can complete on the web or via the Ualá app. Returns shareUrl + optional QR. Use for billing flows where the customer is not ",
         "sideEffects": "creates resource",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "uala_get_payment_link",
-        "description": "Fetch the current state of a previously-created payment link.",
+        "description": "Check a Ualá payment link's status (consultar estado de un link de pago) (status, paid amount, payer info if any). Use to poll a link's status if you don't yet have the webhook wired.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "uala_cancel_payment_link",
-        "description": "Revoke an open payment link so it can no longer be paid.",
+        "description": "Cancel an open Ualá payment link (cancelar un link de pago) so it can no longer be paid. Idempotent: cancelling an already-cancelled link is a no-op. Cannot un-cancel; create a new link instead.",
         "sideEffects": "irreversible",
         "idempotent": true,
         "requiresConfirmation": true
       },
       {
         "name": "uala_list_transactions",
-        "description": "List Ualá account transactions in chronological order.",
+        "description": "List Ualá account transactions (movimientos de la cuenta) in chronological order. Returns up to `limit` items + a `nextCursor` for paging. Use for reconciliation, agent-summarized statements, or match",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "uala_get_transaction",
-        "description": "Fetch a single transaction by id.",
+        "description": "Fetch a single transaction by id. Use when you need full details (e.g. the externalReference or counterpart CUIT) that the list view trimmed.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "uala_get_balance",
-        "description": "Get the current available + pending balance.",
+        "description": "Get the current Ualá balance (consultar saldo): available + pending. Useful before initiating a payout to verify funds. Pass `currency` to query USD vs ARS independently.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "uala_create_payout",
-        "description": "Initiate a payout from the Ualá account to a CBU.",
+        "description": "Send money from the Ualá account to a CBU (transferir dinero, hacer un payout). Status starts at `pending` and resolves to `paid` or `rejected`. IRREVERSIBLE once `paid`, agents calling this MUST gate",
         "sideEffects": "moves money",
         "idempotent": true,
         "requiresConfirmation": true
       },
       {
         "name": "uala_get_payout",
-        "description": "Fetch the current state of a previously-created payout.",
+        "description": "Fetch the current state of a previously-created payout (status, paidAt, rejectionReason). Use to poll payout completion when you don't yet have a webhook wired.",
         "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
@@ -2101,15 +2192,43 @@ export const MANIFESTS = [
     "tools": [
       {
         "name": "wscdc_validate_comprobante",
-        "description": "Validate that a received factura was actually issued by AFIP with a real CAE. Returns resultado='A' (approved), 'N' (rejected — likely forged or wrong data), or 'O' (observed — exists but a non-key field differs).",
+        "description": "Verify a received invoice's CAE against AFIP (constatar comprobante, verificar CAE de una factura recibida): confirms it was actually issued by AFIP. Use this BEFORE ingesting any received factura int",
         "sideEffects": "network read",
         "idempotent": true,
         "requiresConfirmation": false
       },
       {
         "name": "wscdc_health",
-        "description": "Ping the AFIP WSCDC service (Dummy operation). Returns AppServer/DbServer/AuthServer statuses.",
+        "description": "Ping the AFIP WSCDC service (Dummy operation). Returns AppServer/DbServer/AuthServer statuses. Use to confirm WSCDC is reachable + your WSAA token still works before a batch validation flow.",
         "sideEffects": "network read",
+        "idempotent": true,
+        "requiresConfirmation": false
+      }
+    ]
+  },
+  {
+    "$schema": "https://agents.md/tools.manifest.schema.json",
+    "package": "@ar-agents/x402",
+    "version": "0.1.0",
+    "tools": [
+      {
+        "name": "x402_get_payment_requirements",
+        "description": "Probe x402 payment requirements for a URL without paying.",
+        "sideEffects": "none",
+        "idempotent": true,
+        "requiresConfirmation": false
+      },
+      {
+        "name": "x402_paid_fetch",
+        "description": "Pay for an HTTP 402 resource and fetch it via the x402 protocol.",
+        "sideEffects": "moves money",
+        "idempotent": false,
+        "requiresConfirmation": true
+      },
+      {
+        "name": "x402_verify_payment",
+        "description": "Verify an x402 payment authorization as a seller via the facilitator.",
+        "sideEffects": "none",
         "idempotent": true,
         "requiresConfirmation": false
       }

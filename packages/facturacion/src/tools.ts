@@ -19,7 +19,7 @@ export interface FacturacionToolsOptions {
   descriptions?: Partial<Record<FacturacionToolName, string>>;
   /**
    * Default punto de venta. When set, agents can omit `ptoVta` from inputs.
-   * Most SaaS issue from a single PtoVta — passing it once at boot avoids
+   * Most SaaS issue from a single PtoVta, passing it once at boot avoids
    * the agent having to remember it.
    */
   defaultPtoVta?: number;
@@ -39,34 +39,34 @@ export type FacturacionToolName =
 
 const DEFAULT_DESCRIPTIONS: Record<FacturacionToolName, string> = {
   emitir_factura:
-    "Emitir una factura electrónica vía AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el CAE (14 dígitos), su fecha de vencimiento, y el número de comprobante asignado, o errors/observaciones si AFIP rechazó. SIDE EFFECT: el CAE queda registrado en AFIP — NO se puede deshacer; para anular, emitir Nota de Crédito. PRE-FLIGHT: validate_cuit (del receptor) + consultar_ultimo_comprobante para obtener el próximo número. CONSTRAINTS: ImpTotal = ImpNeto + ImpIVA + ImpOpEx + ImpTrib + ImpTotConc (AFIP error 10048 si no). Para Factura C (monotributista), ImpIVA debe ser 0 y no incluir filas iva. Para Servicios, fchServDesde/Hasta/VtoPago obligatorios. Para Notas de Crédito/Débito, cbtesAsoc obligatorio referenciando el comprobante original. The lib pre-valida estas reglas localmente antes del round-trip a AFIP.",
+    "Issue an electronic invoice and get its CAE (emitir factura electrónica, facturar) via AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el CAE (14 dígitos), su fecha de vencimiento, y el número de comprobante asignado, o errors/observaciones si AFIP rechazó. SIDE EFFECT: el CAE queda registrado en AFIP, NO se puede deshacer; para anular, emitir Nota de Crédito. PRE-FLIGHT: validate_cuit (del receptor) + consultar_ultimo_comprobante para obtener el próximo número. CONSTRAINTS: ImpTotal = ImpNeto + ImpIVA + ImpOpEx + ImpTrib + ImpTotConc (AFIP error 10048 si no). Para Factura C (monotributista), ImpIVA debe ser 0 y no incluir filas iva. Para Servicios, fchServDesde/Hasta/VtoPago obligatorios. Para Notas de Crédito/Débito, cbtesAsoc obligatorio referenciando el comprobante original. The lib pre-valida estas reglas localmente antes del round-trip a AFIP.",
 
   consultar_ultimo_comprobante:
-    "Consultar el último número de comprobante autorizado para un (PtoVta, CbteTipo) — i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener el próximo número (último + 1). Returns 0 si nunca se emitió un comprobante de ese tipo desde ese PtoVta — entonces el próximo es 1. PURE READ: no side effects.",
+    "Get the last authorized invoice number (consultar último comprobante autorizado) para un (PtoVta, CbteTipo), i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener el próximo número (último + 1). Returns 0 si nunca se emitió un comprobante de ese tipo desde ese PtoVta, entonces el próximo es 1. PURE READ: no side effects.",
 
   consultar_factura_emitida:
-    "Consultar los detalles completos de una factura ya emitida (CAE, fecha, importes, doc receptor). USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de datos, o estás migrando de otro sistema y querés re-cargar facturas históricas. PURE READ: no side effects.",
+    "Look up an already-issued invoice (consultar factura emitida, verificar un CAE propio): CAE, fecha, importes, doc receptor. USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de datos, o estás migrando de otro sistema y querés re-cargar facturas históricas. PURE READ: no side effects.",
 
   obtener_tipos_comprobante:
-    "Listar los tipos de comprobante disponibles según AFIP (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no están en los catalogs hard-coded del lib). HEAVY: hace network round-trip a AFIP — para flujos comunes preferí los constants de `CbteTipo` en `@ar-agents/facturacion`.",
+    "List AFIP voucher types (tipos de comprobante) (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no están en los catalogs hard-coded del lib). HEAVY: hace network round-trip a AFIP, para flujos comunes preferí los constants de `CbteTipo` en `@ar-agents/facturacion`.",
 
   obtener_tipos_documento:
-    "Listar los tipos de documento que AFIP acepta (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
+    "List AFIP document types (tipos de documento) (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
 
   obtener_alicuotas_iva:
-    "Listar las alícuotas de IVA disponibles según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Preferí `AlicuotaIva` constants para flujos comunes.",
+    "List VAT rates (alícuotas de IVA) según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Preferí `AlicuotaIva` constants para flujos comunes.",
 
   obtener_tipos_concepto:
-    "Listar los tipos de concepto: Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
+    "List concept types (tipos de concepto): Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
 
   obtener_tipos_moneda:
-    "Listar las monedas que WSFE acepta para emitir facturas (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: round-trip a AFIP.",
+    "List currencies accepted for invoicing (tipos de moneda) (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: round-trip a AFIP.",
 
   obtener_cotizacion:
-    "Obtener la cotización oficial AFIP de una moneda extranjera vs ARS. REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el monCotiz a usar en `emitir_factura`. PURE READ.",
+    "Get the official AFIP exchange rate (cotización oficial de moneda extranjera vs ARS). REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el monCotiz a usar en `emitir_factura`. PURE READ.",
 
   health_check_afip:
-    "Health check de AFIP WSFE — devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
+    "Health check de AFIP WSFE, devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
 };
 
 export function facturacionTools(
@@ -135,7 +135,7 @@ export function facturacionTools(
             z.literal(213).describe("FCE MiPyMEs Nota de Crédito C"),
           ])
           .describe(
-            "Tipo de comprobante AFIP. Lista cerrada — debe coincidir con CbteTipo en catalogs.ts. Si AFIP agrega nuevos códigos, agregalos a CbteTipo y a este union juntos.",
+            "Tipo de comprobante AFIP. Lista cerrada, debe coincidir con CbteTipo en catalogs.ts. Si AFIP agrega nuevos códigos, agregalos a CbteTipo y a este union juntos.",
           ),
         concepto: z
           .union([
@@ -160,7 +160,7 @@ export function facturacionTools(
             z.literal(99).describe("Consumidor Final (DocNro: 0)"),
           ])
           .describe(
-            "Tipo de documento del receptor — lista cerrada AFIP. Debe coincidir con DocTipo en catalogs.ts.",
+            "Tipo de documento del receptor, lista cerrada AFIP. Debe coincidir con DocTipo en catalogs.ts.",
           ),
         docNro: z.union([z.string(), z.number()]).describe(
           "Número de documento del receptor. Para Consumidor Final pasá 0.",

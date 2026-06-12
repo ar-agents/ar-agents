@@ -5,56 +5,56 @@
   "tools": [
     {
       "name": "uala_create_payment_link",
-      "description": "Create a Ualá payment link the payer can complete on the web or via the Ualá app.",
+      "description": "Create a Ualá payment link (crear link de pago, cobrar con Ualá) the payer can complete on the web or via the Ualá app. Returns shareUrl + optional QR. Use for billing flows where the customer is not ",
       "sideEffects": "creates resource",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "uala_get_payment_link",
-      "description": "Fetch the current state of a previously-created payment link.",
+      "description": "Check a Ualá payment link's status (consultar estado de un link de pago) (status, paid amount, payer info if any). Use to poll a link's status if you don't yet have the webhook wired.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "uala_cancel_payment_link",
-      "description": "Revoke an open payment link so it can no longer be paid.",
+      "description": "Cancel an open Ualá payment link (cancelar un link de pago) so it can no longer be paid. Idempotent: cancelling an already-cancelled link is a no-op. Cannot un-cancel; create a new link instead.",
       "sideEffects": "irreversible",
       "idempotent": true,
       "requiresConfirmation": true
     },
     {
       "name": "uala_list_transactions",
-      "description": "List Ualá account transactions in chronological order.",
+      "description": "List Ualá account transactions (movimientos de la cuenta) in chronological order. Returns up to `limit` items + a `nextCursor` for paging. Use for reconciliation, agent-summarized statements, or match",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "uala_get_transaction",
-      "description": "Fetch a single transaction by id.",
+      "description": "Fetch a single transaction by id. Use when you need full details (e.g. the externalReference or counterpart CUIT) that the list view trimmed.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "uala_get_balance",
-      "description": "Get the current available + pending balance.",
+      "description": "Get the current Ualá balance (consultar saldo): available + pending. Useful before initiating a payout to verify funds. Pass `currency` to query USD vs ARS independently.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "uala_create_payout",
-      "description": "Initiate a payout from the Ualá account to a CBU.",
+      "description": "Send money from the Ualá account to a CBU (transferir dinero, hacer un payout). Status starts at `pending` and resolves to `paid` or `rejected`. IRREVERSIBLE once `paid`, agents calling this MUST gate",
       "sideEffects": "moves money",
       "idempotent": true,
       "requiresConfirmation": true
     },
     {
       "name": "uala_get_payout",
-      "description": "Fetch the current state of a previously-created payout.",
+      "description": "Fetch the current state of a previously-created payout (status, paidAt, rejectionReason). Use to poll payout completion when you don't yet have a webhook wired.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false

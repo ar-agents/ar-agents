@@ -39,17 +39,17 @@ export type IdentityToolName = "validate_cuit" | "lookup_cuit_afip";
  */
 const DEFAULT_DESCRIPTIONS: Record<IdentityToolName, string> = {
   validate_cuit:
-    "Validate an Argentine CUIT/CUIL via the AFIP modulo-11 check digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency, free. Returns whether the input is mathematically valid plus the inferred person type (persona física vs jurídica). USE THIS WHEN: the user pastes a CUIT/CUIL and you need to detect typos, infer person type from the prefix, or normalize formatting before downstream operations. DO NOT USE WHEN: the user wants the taxpayer's name, tax condition, or monotributo category — call `lookup_cuit_afip` for that. Always call `validate_cuit` first; if it returns invalid, do NOT call `lookup_cuit_afip` (you already know the answer is no, and you'd waste an AFIP request).",
+    "Validate a CUIT/CUIL Argentine tax ID (validar CUIT, verificar CUIT/CUIL) via the AFIP modulo-11 check digit algorithm. PURE FUNCTION: no API call, no environment dependencies, sub-millisecond latency, free. Returns whether the input is mathematically valid plus the inferred person type (persona física vs jurídica). USE THIS WHEN: the user pastes a CUIT/CUIL and you need to detect typos, infer person type from the prefix, or normalize formatting before downstream operations. DO NOT USE WHEN: the user wants the taxpayer's name, tax condition, or monotributo category, call `lookup_cuit_afip` for that. Always call `validate_cuit` first; if it returns invalid, do NOT call `lookup_cuit_afip` (you already know the answer is no, and you'd waste an AFIP request).",
 
   lookup_cuit_afip:
-    "Look up an Argentine CUIT/CUIL against AFIP's padron webservice. Returns taxpayer name, tax condition (Monotributo / Responsable Inscripto / etc.), monotributo category if applicable, and registered address. REQUIRES an `AfipPadronAdapter` configured at app boot — typically wired to AFIP's WSAA + WSCDC SOAP integration which itself requires an X.509 cert registered with AFIP. WHEN NOT CONFIGURED: this tool returns `{ available: false, error: <setup instructions> }` instead of crashing. SURFACE the error message verbatim to the user — it contains the actionable steps to enable the lookup. DO NOT make up taxpayer info if available is false. USE THIS WHEN: the user asks for the taxpayer's name, tax condition, monotributo category, registered address, or activities. ALWAYS call `validate_cuit` first to confirm the format is sound — there's no point hitting AFIP for a malformed CUIT.",
+    "Look up a CUIT/CUIL in the AFIP/ARCA taxpayer registry (consultar CUIT en AFIP, datos del contribuyente, padrón). Returns taxpayer name, tax condition (Monotributo / Responsable Inscripto / etc.), monotributo category if applicable, and registered address. REQUIRES an `AfipPadronAdapter` configured at app boot, typically wired to AFIP's WSAA + WSCDC SOAP integration which itself requires an X.509 cert registered with AFIP. WHEN NOT CONFIGURED: this tool returns `{ available: false, error: <setup instructions> }` instead of crashing. SURFACE the error message verbatim to the user, it contains the actionable steps to enable the lookup. DO NOT make up taxpayer info if available is false. USE THIS WHEN: the user asks for the taxpayer's name, tax condition, monotributo category, registered address, or activities. ALWAYS call `validate_cuit` first to confirm the format is sound, there's no point hitting AFIP for a malformed CUIT.",
 };
 
 /**
  * Build the agent tool collection for `@ar-agents/identity`. Drop directly
  * into `Experimental_Agent`'s `tools` option, or merge with other tool sets.
  *
- * @example Algorithm-only (default — AFIP lookup returns "not configured")
+ * @example Algorithm-only (default, AFIP lookup returns "not configured")
  * ```ts
  * import { Experimental_Agent as Agent, stepCountIs } from "ai";
  * import { identityTools } from "@ar-agents/identity";

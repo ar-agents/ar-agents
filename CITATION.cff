@@ -32,7 +32,7 @@ abstract: >
   by the Ministry of Desregulación on 28 April 2026 and sent to the
   Senate on 1 June 2026 (not yet law).
   The package comprises 33 Vercel AI SDK 6 compatible npm libraries
-  (221 typed tools) spanning Mercado Pago, AFIP/ARCA identity +
+  (235 typed tools) spanning Mercado Pago, AFIP/ARCA identity +
   electronic invoicing, WhatsApp Business, banking, shipping, GDE/TAD,
   BCRA, IGJ, Boletín Oficial, fiscal calculators, and Mercado Libre
   integration; cookbook recipes; six RFCs (RFC-001..006, the first

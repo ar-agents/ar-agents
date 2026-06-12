@@ -4,12 +4,12 @@
  * Six tools, grouped by intent:
  *
  *   Read:
- *   - bo_search           — free-text + filters → list of normas
- *   - bo_get_norma        — fetch a single norma by id
- *   - bo_today            — convenience wrapper for "today's publications"
+ *   - bo_search          , free-text + filters → list of normas
+ *   - bo_get_norma       , fetch a single norma by id
+ *   - bo_today           , convenience wrapper for "today's publications"
  *
  *   Subscriptions:
- *   - bo_subscribe        — register a keyword/CUIT/sección match
+ *   - bo_subscribe       , register a keyword/CUIT/sección match
  *   - bo_list_subscriptions
  *   - bo_unsubscribe
  *
@@ -46,22 +46,22 @@ export interface BoToolsOptions {
 
 const DEFAULT_DESCRIPTIONS: Record<BoToolName, string> = {
   bo_search:
-    "Search the Argentine Boletín Oficial. Returns a list of normas (laws, decrees, resoluciones, sociedades, contracting, judicial notices) matching free-text query + optional filters (sección, organismo, CUIT, date range). USE THIS WHEN: the user wants to find a specific publication, monitor a topic, or audit recent state activity. RETURNS at most 20 results per call by default — paginate with `cursor` for more. NOTE: the BO has no documented public API — results come from the official website's search and may be incomplete on the same-day publication.",
+    "Search the Argentine Boletín Oficial (buscar en el Boletín Oficial). Returns a list of normas (laws, decrees, resoluciones, sociedades, contracting, judicial notices) matching free-text query + optional filters (sección, organismo, CUIT, date range). USE THIS WHEN: the user wants to find a specific publication, monitor a topic, or audit recent state activity. RETURNS at most 20 results per call by default, paginate with `cursor` for more. NOTE: the BO has no documented public API, results come from the official website's search and may be incomplete on the same-day publication.",
 
   bo_get_norma:
-    "Fetch a single norma by its BO id. Returns the title, organismo, full text, fecha de publicación, and any CUITs mentioned. USE THIS WHEN: you have an id (from `bo_search` or a URL the user pasted) and need the full text or details. CUIT extraction is heuristic — validate any CUIT before trusting it.",
+    "Fetch a single norma from the Boletín Oficial by id (consultar una norma). Returns the title, organismo, full text, fecha de publicación, and any CUITs mentioned. USE THIS WHEN: you have an id (from `bo_search` or a URL the user pasted) and need the full text or details. CUIT extraction is heuristic, validate any CUIT before trusting it.",
 
   bo_today:
-    "Fetch today's publications from the Boletín Oficial, optionally filtered by sección. USE THIS WHEN: the user wants a daily summary of newly-published norms, e.g. `qué publicó el BO hoy`. Defaults to Sección Primera (legislación) — pass `seccion` to switch.",
+    "Fetch today's Boletín Oficial publications (qué salió hoy en el Boletín Oficial), optionally filtered by sección. USE THIS WHEN: the user wants a daily summary of newly-published norms, e.g. `qué publicó el BO hoy`. Defaults to Sección Primera (legislación), pass `seccion` to switch.",
 
   bo_subscribe:
-    "Register a subscription on the Boletín Oficial. The matcher fires whenever a new norma matches the criteria — keyword, CUIT, organismo, sección, or tipo. USE THIS WHEN: the user wants ongoing monitoring (e.g., 'avisame cuando ARCA publique resoluciones', 'subscribir CUIT 30-12345678-9'). Returns the subscription id; pass to `bo_unsubscribe` to remove. AT LEAST ONE criterion (keyword/cuit/organismo/seccion/tipo) MUST be set — empty subscriptions are rejected.",
+    "Subscribe to Boletín Oficial alerts (suscribirse a alertas del Boletín Oficial). The matcher fires whenever a new norma matches the criteria, keyword, CUIT, organismo, sección, or tipo. USE THIS WHEN: the user wants ongoing monitoring (e.g., 'avisame cuando ARCA publique resoluciones', 'subscribir CUIT 30-12345678-9'). Returns the subscription id; pass to `bo_unsubscribe` to remove. AT LEAST ONE criterion (keyword/cuit/organismo/seccion/tipo) MUST be set, empty subscriptions are rejected.",
 
   bo_list_subscriptions:
-    "List active subscriptions for an owner. USE THIS WHEN: the user wants to see what they've subscribed to. Pass `owner_id` to scope to a specific user/tenant.",
+    "List active Boletín Oficial subscriptions (listar suscripciones). USE THIS WHEN: the user wants to see what they've subscribed to. Pass `owner_id` to scope to a specific user/tenant.",
 
   bo_unsubscribe:
-    "Remove a subscription by id. USE THIS WHEN: the user wants to stop a previous bo_subscribe.",
+    "Remove a Boletín Oficial subscription by id (cancelar una suscripción). USE THIS WHEN: the user wants to stop a previous bo_subscribe.",
 };
 
 export function boletinOficialTools(options: BoToolsOptions): ToolSet {

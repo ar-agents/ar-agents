@@ -4,7 +4,7 @@
   "tools": [
     {
       "name": "aduana_lookup_despacho",
-      "description": "Look up an ARCA Aduana customs declaration by SUSI/KIM/OM number.",
+      "description": "Look up an Argentine customs declaration (consultar despacho aduanero) by its SUSI, KIM, or OM number. Returns current status (registrado / canalizado_verde / naranja / rojo / libre_disponibilidad / a",
       "input": {
         "kind": "SUSI | KIM | OM",
         "value": "string (number as printed on the despacho)"
@@ -15,8 +15,10 @@
     },
     {
       "name": "aduana_lookup_ncm",
-      "description": "Look up an Argentine NCM tariff code (8 digits).",
-      "input": { "code": "8-digit NCM" },
+      "description": "Look up an Argentine NCM tariff code (consultar posición arancelaria NCM). Returns the official description, whether it is currently in force, and its AEC (Mercosur common external tariff) + DIE (impo",
+      "input": {
+        "code": "8-digit NCM"
+      },
       "returns": "NcmLookupResult | {code, found: false}",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false

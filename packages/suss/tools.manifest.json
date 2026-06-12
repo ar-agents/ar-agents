@@ -5,21 +5,21 @@
   "tools": [
     {
       "name": "suss_calculate_employee_month",
-      "description": "Per-employee monthly aportes + contribuciones per F.931 / SICOSS.",
+      "description": "Calculate monthly payroll social-security amounts for one employee (calcular aportes y contribuciones) per F.931 / SICOSS. Returns the structured breakdown (jubilación, INSSJP, obra social, asignacion",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "suss_build_ddjj",
-      "description": "Aggregate per-employee results into the monthly SICOSS DDJJ.",
+      "description": "Assemble the monthly SICOSS return (armar la DDJJ SICOSS, F.931) from per-employee results with vector totals (Seguridad Social, Obra Social, ART) + per-employee detail. Pure aggregation, does NOT sub",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "suss_submit_ddjj",
-      "description": "Submit the SICOSS DDJJ to AFIP. v0.1 throws unless a real adapter is wired.",
+      "description": "Submit a SICOSS return to AFIP (presentar la DDJJ SICOSS, F.931). v0.1 ships only the contract, the real upload (fixed-width F.931 / SI.AP.RE web service) requires a custom adapter; throws SussUnconfi",
       "sideEffects": "files tax return",
       "idempotent": true,
       "requiresConfirmation": true
