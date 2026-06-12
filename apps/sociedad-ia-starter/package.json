@@ -2,7 +2,7 @@
   "name": "sociedad-ia-starter",
   "version": "0.1.4",
   "private": true,
-  "description": "Reference Next.js app for an Argentine sociedad-IA — operated by an LLM agent on top of @ar-agents/* (16 packages, 168 tools). Edge Runtime, Vercel AI SDK 6 native, RFC-001 governance, HMAC-signed audit log. Deploy in one click.",
+  "description": "Reference Next.js app for an Argentine sociedad-IA: operated by an LLM agent on top of @ar-agents/* (33 packages, 221 tools). Edge Runtime, Vercel AI SDK 6 native, RFC-001 governance, HMAC-signed audit log. Deploy in one click.",
   "keywords": [
     "vercel-template",
     "next-app-router",

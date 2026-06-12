@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/igj",
   "version": "0.2.0",
-  "description": "Inspección General de Justicia (IGJ) open data as drop-in tools for the Vercel AI SDK. Search entities, fetch authorities/balances/asambleas via the public CKAN endpoint at datos.jus.gob.ar. Pluggable adapter — ships a LiveCkanFetcher (no auth, public endpoint) and a MockFetcher for tests.",
+  "description": "Inspección General de Justicia (IGJ) open data as drop-in tools for the Vercel AI SDK. Search entities, fetch authorities/balances/asambleas via the public CKAN endpoint at datos.jus.gob.ar. Pluggable adapter: ships a LiveCkanFetcher (no auth, public endpoint) and a MockFetcher for tests.",
   "keywords": [
     "igj",
     "argentina",
