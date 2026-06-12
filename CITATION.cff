@@ -26,19 +26,23 @@ license-url: "https://github.com/ar-agents/ar-agents/blob/main/LICENSE"
 version: "0.x"
 date-released: "2026-05-05"
 abstract: >
-  Open-source infrastructure and reference implementation for Argentine
-  AI corporations (sociedades de inteligencia artificial) under the
-  regime announced by the Ministry of Desregulación on 28 April 2026.
-  The package comprises 17 Vercel AI SDK 6 compatible npm libraries
-  spanning Mercado Pago, AFIP/ARCA identity + electronic invoicing,
-  WhatsApp Business, banking, shipping, GDE/TAD, BCRA, IGJ, Boletín
-  Oficial, and Mercado Libre integration; cookbook recipes; five RFCs
-  (RFC-001..005) with Zenodo DOIs covering identity, agent discovery,
+  Open infrastructure and reference implementation for Argentine
+  sociedades de IA (AI-operated companies) under the Anteproyecto de
+  Ley General de Sociedades (art. 14, Sociedad Automatizada), announced
+  by the Ministry of Desregulación on 28 April 2026 and sent to the
+  Senate on 1 June 2026 (not yet law).
+  The package comprises 33 Vercel AI SDK 6 compatible npm libraries
+  (221 typed tools) spanning Mercado Pago, AFIP/ARCA identity +
+  electronic invoicing, WhatsApp Business, banking, shipping, GDE/TAD,
+  BCRA, IGJ, Boletín Oficial, fiscal calculators, and Mercado Libre
+  integration; cookbook recipes; six RFCs (RFC-001..006, the first
+  five with Zenodo DOIs) covering identity, agent discovery,
   cross-jurisdictional audit-log reciprocity, the operational-log wire
-  format, and the Ed25519 asymmetric upgrade path; conformance test
-  vectors; a public certifier that scores any URL 0-100 against
-  RFC-002 + RFC-004 in seconds; a reference implementation that
-  self-certifies at 100/100.
+  format, the Ed25519 asymmetric upgrade path, and hash-chained ledger
+  anchoring;
+  conformance test vectors; a public certifier that scores any URL
+  0-100 against RFC-002 + RFC-004 in seconds; a reference
+  implementation that self-certifies at 100/100.
 references:
   - type: report
     title: "RFC-001: Identity and signing for AI corporations in Argentina"
@@ -84,6 +88,14 @@ references:
     year: 2026
     doi: "10.5281/zenodo.20159424"
     url: "https://ar-agents.ar/rfcs/005"
+    license: CC-BY-4.0
+  - type: report
+    title: "RFC-006: Hash-chained ledger + external anchoring profile"
+    authors:
+      - given-names: Naza
+        family-names: ""
+    year: 2026
+    url: "https://ar-agents.ar/rfcs/006"
     license: CC-BY-4.0
   - type: data
     title: "RFC-004 v1 conformance test vectors"

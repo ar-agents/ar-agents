@@ -146,7 +146,7 @@ Mismo contenido más comprimido, pensado para attachear o linkear en cold emails
 | 0:40 | `lookup_credit_situation` | mocked-upstream pill | "Cruza con BCRA Central de Deudores antes de decidir." |
 | 0:46 | `mp_create_subscription` + `send_whatsapp_text` | audit-logged pill | "Si está al día, crea la suscripción de Mercado Pago y manda link por WhatsApp. Cada llamada queda en audit log con timestamp HMAC-firmado." |
 | 0:54 | open audit entry | expand JSON inputs/outputs | "Reproducible. Auditable. RFC-001 § 9." |
-| 0:58 | back to home | scroll to `/architecture` link | "13 paquetes en npm, 168 tools. MIT. SLSA v1 provenance." |
+| 0:58 | back to home | scroll to `/architecture` link | "33 paquetes en npm, 221 tools. MIT. SLSA v1 provenance." |
 | 1:05 | end | URL `ar-agents.ar/play` | "ar-agents.ar/play" |
 
 ### Producción

@@ -78,21 +78,30 @@ Smithery is the second-largest MCP registry (after Glama).
 
 Post via your account around 10am EDT (= 11am ART today, since we're in EDT not EST).
 
-**Title:** `Show HN: Mercado Pago Agent Toolkit – 89 typed tools for the Vercel AI SDK 6`
-(80 chars exactly — HN limit)
+**Title:** `Show HN: Open infrastructure for Argentina's AI-run companies (33 npm packages)`
+(under the 80-char HN limit)
 
 **URL:** `https://ar-agents.ar`
 
 **First comment** (post immediately after submission, gets pinned):
 ```
-Hi HN — author here. I built ar-agents because every Argentine SaaS dev I know
-has had to hand-roll Mercado Pago integration: idempotency keys, webhook HMAC
+Hi HN — author here. Argentina sent a corporate-law reform to its Senate that
+includes "Sociedad Automatizada" (art. 14): a company operated by AI agents
+with a human administrator on record. It is not law yet. ar-agents is open
+infrastructure for that: 33 MIT npm packages (221 typed tools for the Vercel
+AI SDK 6) covering what an AI-operated Argentine company needs — identity
+(AFIP/ARCA), payments, electronic invoicing, banking, government filings,
+communications, and a forensic audit log — plus 6 RFCs with frozen
+conformance vectors.
+
+The deepest package is @ar-agents/mercadopago. Every Argentine SaaS dev I
+know has had to hand-roll MP integration: idempotency keys, webhook HMAC
 verification, the cuotas (installment) catalog, the 30+ status_detail codes
 that tell you why a payment was rejected, the 5-minute replay window for
 webhooks, etc. The official mercadopago SDK is a thin REST client — fine, but
 nothing is shaped for an LLM agent.
 
-This package wraps it as 89 typed Vercel AI SDK 6 tools, runs on Edge Runtime
+That package wraps it as 89 typed Vercel AI SDK 6 tools, runs on Edge Runtime
 via Web Crypto, gates 8 irreversible operations (refund, cancel, delete) behind
 a programmatic human-in-the-loop callback, and uses deterministic SHA-256
 idempotency keys derived from the inputs (so an LLM retrying a tool call
@@ -106,13 +115,14 @@ provenance attestations (SLSA v1).
 The landing has a "Try it with a live agent" button that runs Claude Sonnet
 4.6 via Vercel AI Gateway against mocked MP tools, no signup needed.
 
-Sidecar packages (each shippable on its own):
+Some of the other 32 packages (each shippable on its own):
 - @ar-agents/identity (CUIT/CUIL + AFIP padrón)
 - @ar-agents/facturacion (AFIP factura electrónica WSFE)
 - @ar-agents/whatsapp (Business Cloud API)
 - @ar-agents/banking (CBU/CVU + BCRA Central de Deudores)
 - @ar-agents/shipping (Andreani/OCA/Correo Argentino)
-- @ar-agents/mcp (MCP server bundling all 7 for Claude Desktop / Cursor)
+- @ar-agents/incorporate (one-call sociedad-IA incorporation pipeline)
+- @ar-agents/mcp (MCP server bundling the toolkit for Claude Desktop / Cursor)
 
 License: MIT. Listed on Glama and the official MCP Registry. Open to feedback
 on the agent ergonomics — what would make this easier to drop in?
@@ -123,7 +133,7 @@ on the agent ergonomics — what would make this easier to drop in?
 https://vercel.com/discord → `#show-and-tell`:
 
 ```
-Just shipped ar-agents — Mercado Pago Agent Toolkit for Vercel AI SDK 6 🇦🇷
+Just shipped ar-agents — open infrastructure for Argentina's AI-run companies, 33 packages for Vercel AI SDK 6 🇦🇷
 
 89 typed tools across the agent-relevant MP API (Subscriptions, Payments,
 Checkout Pro, Marketplace OAuth, Cuotas, QR, 3DS). Edge Runtime, npm
@@ -203,9 +213,9 @@ Feedback bienvenido.
 
 **r/typescript**:
 ```
-Title: Mercado Pago Agent Toolkit for Vercel AI SDK 6 — 89 typed tools, Edge Runtime, idempotency by default
+Title: ar-agents — open infra for Argentina's AI-run companies (33 packages, 221 typed tools, Vercel AI SDK 6)
 
-Just shipped this. Wraps Mercado Pago's API as Vercel AI SDK 6 tools so an LLM agent can drive billing flows from natural-language prompts.
+Just shipped this. The deepest package wraps Mercado Pago's API as 89 typed Vercel AI SDK 6 tools so an LLM agent can drive billing flows from natural-language prompts; the rest of the stack covers AFIP identity, invoicing, banking, and government filings for AI-operated companies under Argentina's proposed art. 14 regime.
 
 Things I tried to get right for agent ergonomics:
 - AGENTS.md per package (agents.md convention) — decision tree, result schemas to memorize, latency table, AR landmines documented
@@ -240,10 +250,13 @@ servers PR (#6016). Thanks!
 Form: https://vercel.com/blog/submit (or DM @vercel team in Discord).
 
 ```
-Project: ar-agents — Mercado Pago Agent Toolkit for Vercel AI SDK 6
+Project: ar-agents — open infrastructure for Argentina's AI-run companies
 URL: https://ar-agents.ar
 GitHub: https://github.com/ar-agents/ar-agents
-Description: Drop Mercado Pago into your AI agent. 89 typed tools across the
+Description: 33 npm packages (221 typed tools) for the Vercel AI SDK 6
+covering what an AI-operated Argentine company needs: identity, payments,
+invoicing, banking, filings, comms, and a forensic audit log. The deepest
+package drops Mercado Pago into your AI agent: 89 typed tools across the
 agent-relevant MP API surface (Subscriptions, Payments, Checkout Pro,
 Marketplace OAuth, Cuotas, QR, 3DS). Edge Runtime, Vercel KV adapters,
 OpenTelemetry, npm provenance attestation, deterministic idempotency, HITL

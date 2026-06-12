@@ -2,7 +2,7 @@
 Drop-in draft for dev.to / Hashnode / Medium / personal blog.
 
 Front matter for dev.to (https://dev.to/new):
-  title: "I shipped Mercado Pago as 89 typed tools for the Vercel AI SDK"
+  title: "I shipped 33 npm packages for Argentina's AI-corporation law (starting with Mercado Pago's 89 tools)"
   published: false
   description: "Lessons from building agent ergonomics on top of LATAM's largest payment platform — idempotency keys an LLM can't break, HITL on irreversible ops, AGENTS.md per package, npm provenance attestations."
   tags: ai, vercel, typescript, opensource
@@ -10,7 +10,9 @@ Front matter for dev.to (https://dev.to/new):
   canonical_url: https://ar-agents.ar
 -->
 
-# I shipped Mercado Pago as 89 typed tools for the Vercel AI SDK
+# I shipped 33 npm packages for Argentina's AI-corporation law (starting with Mercado Pago's 89 tools)
+
+On April 28, 2026, Argentina's Ministry of Deregulation announced a corporate-law reform that includes "Sociedad Automatizada" (art. 14): a company operated by AI agents with a human administrator on record. It was sent to the Senate on June 1. It is not law yet. When I read the announcement I realized the regime would need open technical infrastructure, so I built ar-agents: 33 MIT npm packages, 221 typed tools for the Vercel AI SDK 6, 6 RFCs, and a forensic audit log. The first and deepest piece was Mercado Pago.
 
 Every Argentine SaaS dev has had to hand-roll Mercado Pago integration: idempotency keys, webhook HMAC verification, the cuotas (installment) catalog with per-issuer promo rules, the 30+ `status_detail` codes that explain why a payment was rejected, the 5-minute replay window for webhooks, the marketplace OAuth dance, the 3DS challenge resolution flow.
 

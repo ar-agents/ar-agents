@@ -13,10 +13,13 @@
 [![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 [![ar-agents on Glama](https://glama.ai/mcp/servers/ar-agents/ar-agents/badges/score.svg)](https://glama.ai/mcp/servers/ar-agents/ar-agents)
 
-The flagship package [`@ar-agents/mercadopago`](./packages/mercadopago) is a
-Mercado Pago agent toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6
-`Experimental_Agent` — 89 typed tools across the agent-relevant Mercado Pago
-API surface, one of the 33 packages in the `@ar-agents/*` stack:
+The stack covers what an AI-operated Argentine company needs to exist and
+operate: identity (AFIP/ARCA), payments, invoicing, banking, government
+filings, communications, and a forensic audit log. The deepest package,
+[`@ar-agents/mercadopago`](./packages/mercadopago), exposes 89 typed tools
+across the agent-relevant Mercado Pago API surface for the
+[Vercel AI SDK](https://ai-sdk.dev) 6 `Experimental_Agent`, one of the 33
+packages in the `@ar-agents/*` stack:
 
 > Payments · Subscriptions · Checkout Pro · Marketplace OAuth · Order Management ·
 > Customers · Cards · Cuotas · QR · 3DS · Point devices · Stores+POS ·
