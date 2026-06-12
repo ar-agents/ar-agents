@@ -5,21 +5,21 @@
   "tools": [
     {
       "name": "iva_perception_calculate",
-      "description": "Compute the IVA perception (extra charge added on top of IVA) for a sale invoice. Returns 0 with waiverReason when buyer is exento / monotributista / consumidor final, below mínimo, or has a non-perception certificate.",
+      "description": "Compute the VAT perception for a sale invoice (calcular percepción de IVA, the extra charge added on top of IVA). Returns 0 with a `waiverReason` when the buyer is exento / monotributista / consumidor",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "iva_perception_build_ddjj",
-      "description": "Aggregate perception results into a monthly SIRE DDJJ with per-regime and per-buyer breakdowns. Pure aggregation.",
+      "description": "Assemble the monthly SIRE perception return (armar DDJJ SIRE de percepciones de IVA) with per-regime and per-buyer breakdowns. Pure aggregation.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "iva_perception_submit_ddjj",
-      "description": "Submit an assembled SIRE perception DDJJ to AFIP/ARCA. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+      "description": "Submit an assembled SIRE perception return (presentar DDJJ de percepciones de IVA). Throws unless the host wired a real adapter. Files a tax return, confirmation gate required.",
       "sideEffects": "files tax return",
       "idempotent": true,
       "requiresConfirmation": true

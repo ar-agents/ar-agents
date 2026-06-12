@@ -1,6 +1,6 @@
 {
   "name": "io.github.ar-agents/mcp",
-  "description": "MCP server exposing the @ar-agents/* toolkit: 221 typed tools for Argentina (CUIT/AFIP identity, Mercado Pago, Mercado Libre, WhatsApp Business, banking, factura electronica, IGJ, Boletin Oficial, GDE/TAD, shipping, fiscal calculators). Open infrastructure for Argentina's sociedades de IA.",
+  "description": "MCP server exposing the @ar-agents/* toolkit: 235 typed tools for Argentina (CUIT/AFIP identity, Mercado Pago, Mercado Libre, WhatsApp Business, banking, factura electronica, IGJ, Boletin Oficial, GDE/TAD, shipping, fiscal calculators). Open infrastructure for Argentina's sociedades de IA.",
   "repository": "https://github.com/ar-agents/ar-agents",
   "homepage": "https://ar-agents.ar",
   "registry": "https://registry.modelcontextprotocol.io/v0.1/servers?search=io.github.ar-agents/mcp",

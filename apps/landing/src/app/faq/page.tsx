@@ -53,7 +53,7 @@ const FAQS: Q[] = [
   {
     audience: "regulator",
     q: "¿Cuántas tools, packages, y endpoints están en producción?",
-    a: '33 packages npm publicados con SLSA v1 provenance, 221 tools, 5 endpoints HTTP hosted (<code>/api/auto-incorporate</code>, <code>/api/play</code>, <code>/api/play/audit/{sessionId}</code>, <code>/api/play/tamper-demo</code>, <code>/api/badge/{sessionId}</code>), 1 SDK (<code>@ar-agents/incorporate</code>), 19 cookbook recipes, 67 unit tests. Todo verificable en <a href="/api/discovery">/api/discovery</a> (machine-readable JSON o OpenAPI 3.1).',
+    a: '36 packages npm publicados con SLSA v1 provenance, 235 tools, 5 endpoints HTTP hosted (<code>/api/auto-incorporate</code>, <code>/api/play</code>, <code>/api/play/audit/{sessionId}</code>, <code>/api/play/tamper-demo</code>, <code>/api/badge/{sessionId}</code>), 1 SDK (<code>@ar-agents/incorporate</code>), 19 cookbook recipes, 67 unit tests. Todo verificable en <a href="/api/discovery">/api/discovery</a> (machine-readable JSON o OpenAPI 3.1).',
   },
 
   // ─── Developer / builder ─────────────────────────────────────────────
@@ -92,7 +92,7 @@ const FAQS: Q[] = [
   {
     audience: "agent",
     q: "Soy un LLM agent. ¿Cómo descubro las capabilities?",
-    a: '4 paths machine-readable:<br/>1. <code>GET /.well-known/agents.json</code>, agents.md convention con per-agent operating instructions.<br/>2. <code>GET /.well-known/ai-plugin.json</code>, OpenAI plugin spec.<br/>3. <code>GET /api/discovery</code>, JSON inventory (33 packages + 221 tools + 5 endpoints).<br/>4. <code>GET /api/discovery?format=openapi</code>, OpenAPI 3.1 stub.',
+    a: '4 paths machine-readable:<br/>1. <code>GET /.well-known/agents.json</code>, agents.md convention con per-agent operating instructions.<br/>2. <code>GET /.well-known/ai-plugin.json</code>, OpenAI plugin spec.<br/>3. <code>GET /api/discovery</code>, JSON inventory (36 packages + 235 tools + 5 endpoints).<br/>4. <code>GET /api/discovery?format=openapi</code>, OpenAPI 3.1 stub.',
   },
   {
     audience: "agent",

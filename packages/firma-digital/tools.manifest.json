@@ -6,19 +6,19 @@
   "tools": [
     {
       "name": "firma_inspect_cert",
-      "description": "Inspect an X.509 certificate (subject, issuer, validity, fingerprint, AKI/SKI, key usage). Use before trusting any cert in a verification chain."
+      "description": "Inspect an Argentine Firma Digital X.509 certificate (inspeccionar certificado de firma digital, PEM-encoded) and return its subject, issuer, validity window, CUIT (when embedded), public-key info, an"
     },
     {
       "name": "firma_verify_chain",
-      "description": "Verify an X.509 chain of trust against a configurable AR trust anchor (defaults to AC-Raíz / ONTI heuristic). Returns the chain depth + the trust-anchor identity."
+      "description": "Verify an X.509 certificate chain (verificar cadena de certificados; PEM bundle, leaf → root), checks issuer-by-subject linking, RSA signatures, validity window. Returns valid/reason + per-cert trace."
     },
     {
       "name": "firma_is_onti_issued",
-      "description": "Predicate: does this certificate ultimately chain to an ONTI-issued AC-Raíz root? Use to gate operations that require state-issued PKI identity."
+      "description": "Check if a cert was issued under Argentine Firma Digital (¿es un certificado de firma digital argentina? AC-Raíz / ONTI ecosystem); quick yes/no. Heuristic-based on issuer DN attributes. PURE FUNCTION"
     },
     {
       "name": "firma_verify_cms_signature",
-      "description": "Verify a PKCS#7/CMS detached or attached signature against a payload. Returns the signer chain + claim of authenticity."
+      "description": "Verify a digitally signed document (verificar firma digital de un documento): detached PKCS#7 / CMS signature against a payload (e.g., `firma.p7s` produced by an AR signing tool). Returns valid/reason"
     }
   ]
 }

@@ -6,7 +6,7 @@
   "tools": [
     {
       "name": "cancelar_envio",
-      "description": "Cancelar un envío que aún no salió a reparto. Returns { canceled: bool, reason? }. Si canceled=false, surface reason verbatim al usuario (típicamente 'ya está en reparto' o 'el carrier no soporta canc",
+      "description": "Cancel a shipment that has not gone out for delivery (cancelar un envío). Returns { canceled: bool, reason? }. Si canceled=false, surface reason verbatim al usuario (típicamente 'ya está en reparto' o",
       "input": {
         "carrier?": "...",
         "tracking_number": "string"
@@ -15,7 +15,7 @@
     },
     {
       "name": "cotizar_envio",
-      "description": "Cotizar el costo de un envío vía un carrier específico (Andreani, OCA, o Correo Argentino). Pasá origen + destino + paquetes (peso + dimensiones + valor declarado) y servicio (standard, express, same_",
+      "description": "Quote the shipping cost with one carrier (cotizar un envío) (Andreani, OCA, o Correo Argentino). Pasá origen + destino + paquetes (peso + dimensiones + valor declarado) y servicio (standard, express, ",
       "input": {
         "carrier?": "andreani | oca | correo_argentino",
         "origin": "Address",
@@ -27,7 +27,7 @@
     },
     {
       "name": "cotizar_envio_todos",
-      "description": "Cotizar un envío en TODOS los carriers configurados en paralelo. Returns { quotes: QuoteOption[] } ordenado por costo (más barato primero). USE WHEN el usuario dice 'cuál es el envío más barato' o 'co",
+      "description": "Compare shipping quotes across ALL configured carriers in parallel (cotizar envío en todos los carriers). Returns { quotes: QuoteOption[] } ordenado por costo (más barato primero). USE WHEN el usuario",
       "input": {
         "origin": "Address",
         "destination": "Address",
@@ -38,7 +38,7 @@
     },
     {
       "name": "crear_envio",
-      "description": "Crear un envío real con un carrier. RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier — confirma con el usuario antes si el monto es alto (",
+      "description": "Create a real shipment and get a tracking number + label (crear un envío). RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier, confirma con ",
       "input": {
         "carrier?": "...",
         "origin": "Address",
@@ -52,7 +52,7 @@
     },
     {
       "name": "listar_sucursales",
-      "description": "Listar las sucursales / centros de despacho de un carrier cerca de un Código Postal Argentino (CPA). Returns array con id, name, address, openingHours, distanceKm cuando disponible. USE WHEN el usuari",
+      "description": "List carrier branch offices near a postal code (listar sucursales de un carrier) cerca de un Código Postal Argentino (CPA). Returns array con id, name, address, openingHours, distanceKm cuando disponi",
       "input": {
         "carrier?": "...",
         "postal_code": "string",
@@ -62,7 +62,7 @@
     },
     {
       "name": "trackear_envio",
-      "description": "Consultar el estado actual de un envío vía su trackingNumber. Returns { currentStatus, events[], deliveredAt? }. currentStatus normalizado a uno de: label_created, in_transit, out_for_delivery, delive",
+      "description": "Track a shipment by tracking number (trackear un envío, dónde está mi paquete). Returns { currentStatus, events[], deliveredAt? }. currentStatus normalizado a uno de: label_created, in_transit, out_fo",
       "input": {
         "carrier?": "...",
         "tracking_number": "string"

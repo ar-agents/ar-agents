@@ -1,6 +1,6 @@
 /**
  * Drop-in tool collection for Vercel AI SDK 6+. Pair with an Agent or
- * any caller of `tool()`. Schema authoring is conservative — every input
+ * any caller of `tool()`. Schema authoring is conservative, every input
  * has an explicit zod description so the model can pick the right tool
  * without guessing what each parameter means.
  *
@@ -47,7 +47,7 @@ export function ualaTools(opts: UalaToolsOptions = {}) {
   const allTools = {
     uala_create_payment_link: tool({
       description:
-        "Create a Ualá payment link the payer can complete on the web or via the Ualá app. Returns shareUrl + optional QR. Use for billing flows where the customer is not in-person. Idempotency-key honored: same key + same amount returns the original link.",
+        "Create a Ualá payment link (crear link de pago, cobrar con Ualá) the payer can complete on the web or via the Ualá app. Returns shareUrl + optional QR. Use for billing flows where the customer is not in-person. Idempotency-key honored: same key + same amount returns the original link.",
       inputSchema: z.object({
         amount: z
           .number()
@@ -96,7 +96,7 @@ export function ualaTools(opts: UalaToolsOptions = {}) {
 
     uala_get_payment_link: tool({
       description:
-        "Fetch the current state of a previously-created payment link (status, paid amount, payer info if any). Use to poll a link's status if you don't yet have the webhook wired.",
+        "Check a Ualá payment link's status (consultar estado de un link de pago) (status, paid amount, payer info if any). Use to poll a link's status if you don't yet have the webhook wired.",
       inputSchema: z.object({
         id: z.string().describe("The payment link id returned at creation."),
       }),
@@ -105,7 +105,7 @@ export function ualaTools(opts: UalaToolsOptions = {}) {
 
     uala_cancel_payment_link: tool({
       description:
-        "Revoke an open payment link so it can no longer be paid. Idempotent: cancelling an already-cancelled link is a no-op. Cannot un-cancel; create a new link instead.",
+        "Cancel an open Ualá payment link (cancelar un link de pago) so it can no longer be paid. Idempotent: cancelling an already-cancelled link is a no-op. Cannot un-cancel; create a new link instead.",
       inputSchema: z.object({
         id: z.string().describe("The payment link id to revoke."),
       }),
@@ -114,7 +114,7 @@ export function ualaTools(opts: UalaToolsOptions = {}) {
 
     uala_list_transactions: tool({
       description:
-        "List Ualá account transactions in chronological order. Returns up to `limit` items + a `nextCursor` for paging. Use for reconciliation, agent-summarized statements, or matching incoming credits to invoices.",
+        "List Ualá account transactions (movimientos de la cuenta) in chronological order. Returns up to `limit` items + a `nextCursor` for paging. Use for reconciliation, agent-summarized statements, or matching incoming credits to invoices.",
       inputSchema: z.object({
         fromIso: z
           .string()
@@ -156,7 +156,7 @@ export function ualaTools(opts: UalaToolsOptions = {}) {
 
     uala_get_balance: tool({
       description:
-        "Get the current available + pending balance. Useful before initiating a payout to verify funds. Pass `currency` to query USD vs ARS independently.",
+        "Get the current Ualá balance (consultar saldo): available + pending. Useful before initiating a payout to verify funds. Pass `currency` to query USD vs ARS independently.",
       inputSchema: z.object({
         currency: currencySchema
           .optional()
@@ -167,7 +167,7 @@ export function ualaTools(opts: UalaToolsOptions = {}) {
 
     uala_create_payout: tool({
       description:
-        "Initiate a payout from the Ualá account to a CBU. Status starts at `pending` and resolves to `paid` or `rejected`. IRREVERSIBLE once `paid` — agents calling this MUST gate with explicit user confirmation in the host UI.",
+        "Send money from the Ualá account to a CBU (transferir dinero, hacer un payout). Status starts at `pending` and resolves to `paid` or `rejected`. IRREVERSIBLE once `paid`, agents calling this MUST gate with explicit user confirmation in the host UI.",
       inputSchema: z.object({
         amount: z
           .number()

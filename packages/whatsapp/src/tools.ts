@@ -6,7 +6,7 @@ import type { WhatsAppClient } from "./client";
  * Build the WhatsApp tool set for a Vercel AI SDK agent.
  *
  * Wires the methods of `WhatsAppClient` into named, schema-validated tools
- * that the LLM can invoke. The tool descriptions are written for the LLM —
+ * that the LLM can invoke. The tool descriptions are written for the LLM -
  * they explain when to use each tool and when NOT to.
  *
  * # Scoped mode (recommended for webhook handlers)
@@ -23,7 +23,7 @@ import type { WhatsAppClient } from "./client";
  * batch/proactive flows where the agent is sending notifications to a list
  * of recipients you control.
  *
- * @example Scoped (webhook handler — recommended)
+ * @example Scoped (webhook handler, recommended)
  * ```ts
  * import { whatsappTools, WhatsAppClient } from "@ar-agents/whatsapp";
  *
@@ -55,7 +55,7 @@ export function whatsappTools(
 export interface WhatsAppToolsOptions {
   /**
    * Bind every outbound `send_*` tool to this single recipient phone. The
-   * `to` parameter is removed from tool schemas — the LLM cannot specify a
+   * `to` parameter is removed from tool schemas, the LLM cannot specify a
    * different recipient. Use in webhook handlers to prevent agent hijacking.
    *
    * AR phone formats accepted: `+54 9 11 1234-5678`, `549112345678`, etc.
@@ -64,13 +64,13 @@ export interface WhatsAppToolsOptions {
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Unscoped tools — LLM provides `to` per-call (batch / proactive flows).
+// Unscoped tools, LLM provides `to` per-call (batch / proactive flows).
 // ─────────────────────────────────────────────────────────────────────────
 
 function buildUnscopedTools(client: WhatsAppClient) {
   return {
     send_whatsapp_text: tool({
-      description: `Send a free-form text message to a WhatsApp recipient. Use for replies INSIDE the 24-hour customer service window (after the user has messaged you within the last 24h). For proactive messages outside that window, use send_whatsapp_template instead — free-form will fail with code 131026.
+      description: `Send a free-form WhatsApp text message (enviar mensaje de WhatsApp, mandar un WhatsApp). Use for replies INSIDE the 24-hour customer service window (after the user has messaged you within the last 24h). For proactive messages outside that window, use send_whatsapp_template instead, free-form will fail with code 131026.
 
 Returns: { messageId, recipient } on success. Throws WhatsAppApiError on failure (network, invalid recipient, outside-window).
 
@@ -100,7 +100,7 @@ The recipient phone is auto-normalized (handles +54 9 11 ..., 011 ..., etc.).`,
     }),
 
     send_whatsapp_template: tool({
-      description: `Send an APPROVED WhatsApp template message. Required for any message OUTSIDE the 24-hour customer service window — i.e. proactive notifications, transactional updates, marketing, re-engagement.
+      description: `Send an APPROVED WhatsApp template message (enviar plantilla de WhatsApp). Required for any message OUTSIDE the 24-hour customer service window, i.e. proactive notifications, transactional updates, marketing, re-engagement.
 
 Templates must be created and approved by Meta first. The template name MUST match exactly what's registered in Meta Business Suite. The bodyParams array fills the {{1}}, {{2}}, ... placeholders in the template body, in order.
 
@@ -120,7 +120,7 @@ Returns: { messageId, recipient }. Throws if template doesn't exist, params don'
           .array(z.string())
           .optional()
           .describe(
-            "Positional params for the template body — fills {{1}}, {{2}}, etc. in order.",
+            "Positional params for the template body, fills {{1}}, {{2}}, etc. in order.",
           ),
       }),
       execute: async (input) => {
@@ -134,11 +134,11 @@ Returns: { messageId, recipient }. Throws if template doesn't exist, params don'
     }),
 
     send_whatsapp_media: tool({
-      description: `Send a media attachment (image / audio / video / document / sticker). Provide either a public URL (link, faster — Meta downloads) or a pre-uploaded media ID.
+      description: `Send a WhatsApp media attachment (enviar imagen, audio, video o documento por WhatsApp). Provide either a public URL (link, faster, Meta downloads) or a pre-uploaded media ID.
 
 WhatsApp media size limits: image 5MB, audio 16MB, video 16MB, document 100MB, sticker 100KB.
 
-Subject to the same 24-hour customer service window as send_whatsapp_text — outside the window use a template with a media header.
+Subject to the same 24-hour customer service window as send_whatsapp_text, outside the window use a template with a media header.
 
 Returns: { messageId, recipient }.`,
       inputSchema: z.object({
@@ -176,7 +176,7 @@ Returns: { messageId, recipient }.`,
     }),
 
     send_whatsapp_buttons: tool({
-      description: `Send a message with up to 3 reply buttons. The user taps a button and you receive an interactive.button_reply event in the webhook. Useful for confirmations like "Sí / No / Cambiar".
+      description: `Send a WhatsApp message with up to 3 reply buttons (botones de respuesta rápida). The user taps a button and you receive an interactive.button_reply event in the webhook. Useful for confirmations like "Sí / No / Cambiar".
 
 Use for SHORT decisions in chat. For longer menus (4-10 options grouped into sections), use send_whatsapp_list.
 
@@ -208,7 +208,7 @@ Each button has an id (you choose, used to identify the response in the webhook)
     }),
 
     send_whatsapp_list: tool({
-      description: `Send a list-picker menu — a button that opens a sectioned list of options. The user picks one and you receive an interactive.list_reply event.
+      description: `Send a WhatsApp list-picker menu (menú de lista de WhatsApp), a button that opens a sectioned list of options. The user picks one and you receive an interactive.list_reply event.
 
 Use for menus with 4+ options or when grouping options helps (e.g., "Plan Básico / Pro / Enterprise" sections by tier).
 
@@ -264,7 +264,7 @@ Each row has id (used in webhook), title (24 chars max), optional description (7
     }),
 
     mark_whatsapp_read: tool({
-      description: `Mark an inbound WhatsApp message as read (the blue double-check). Call this from your webhook handler immediately when you process a user message — the user sees the read receipt and knows the agent received the message even if the response takes a few seconds.
+      description: `Mark an inbound WhatsApp message as read (marcar como leído, the blue double-check). Call this from your webhook handler immediately when you process a user message, the user sees the read receipt and knows the agent received the message even if the response takes a few seconds.
 
 Pass the messageId (wamid) from the inbound webhook event.`,
       inputSchema: z.object({
@@ -281,17 +281,17 @@ Pass the messageId (wamid) from the inbound webhook event.`,
 }
 
 // ─────────────────────────────────────────────────────────────────────────
-// Scoped tools — `to` is removed from schemas; bound to a single sender.
+// Scoped tools, `to` is removed from schemas; bound to a single sender.
 // Use in webhook handlers. Prevents agent hijacking via prompt injection.
 // ─────────────────────────────────────────────────────────────────────────
 
 function buildScopedTools(client: WhatsAppClient, scopedTo: string) {
-  const SCOPE_NOTE = `\n\nThis tool is BOUND to recipient ${scopedTo} (the original WhatsApp sender). You cannot message a different number — that parameter has been removed from the schema. If the user asks you to message someone else, decline politely.`;
+  const SCOPE_NOTE = `\n\nThis tool is BOUND to recipient ${scopedTo} (the original WhatsApp sender). You cannot message a different number, that parameter has been removed from the schema. If the user asks you to message someone else, decline politely.`;
 
   return {
     send_whatsapp_text: tool({
       description:
-        `Send a free-form text reply to the conversation owner. Use for replies INSIDE the 24-hour customer service window. For proactive messages outside that window, use send_whatsapp_template instead — free-form will fail with code 131026.
+        `Send a free-form WhatsApp text reply (responder por WhatsApp) to the conversation owner. Use for replies INSIDE the 24-hour customer service window. For proactive messages outside that window, use send_whatsapp_template instead, free-form will fail with code 131026.
 
 Returns: { messageId, recipient }. Throws WhatsAppApiError on failure.` + SCOPE_NOTE,
       inputSchema: z.object({
@@ -317,7 +317,7 @@ Returns: { messageId, recipient }. Throws WhatsAppApiError on failure.` + SCOPE_
 
     send_whatsapp_template: tool({
       description:
-        `Send an APPROVED WhatsApp template message to the conversation owner. Required for any message OUTSIDE the 24-hour customer service window.
+        `Send an APPROVED WhatsApp template message to the conversation owner (enviar plantilla de WhatsApp). Required for any message OUTSIDE the 24-hour customer service window.
 
 Templates must be approved by Meta first. The bodyParams array fills the {{1}}, {{2}}, ... placeholders in order.
 
@@ -342,7 +342,7 @@ Returns: { messageId, recipient }.` + SCOPE_NOTE,
 
     send_whatsapp_media: tool({
       description:
-        `Send a media attachment to the conversation owner. Provide either a public URL or a pre-uploaded media ID.
+        `Send a WhatsApp media attachment to the conversation owner (enviar imagen, audio, video o documento). Provide either a public URL or a pre-uploaded media ID.
 
 Size limits: image 5MB, audio 16MB, video 16MB, document 100MB, sticker 100KB.` + SCOPE_NOTE,
       inputSchema: z.object({
@@ -366,7 +366,7 @@ Size limits: image 5MB, audio 16MB, video 16MB, document 100MB, sticker 100KB.` 
 
     send_whatsapp_buttons: tool({
       description:
-        `Send a message with up to 3 reply buttons to the conversation owner.` + SCOPE_NOTE,
+        `Send a WhatsApp message with up to 3 reply buttons to the conversation owner (botones de respuesta rápida).` + SCOPE_NOTE,
       inputSchema: z.object({
         bodyText: z.string().min(1).max(1024),
         headerText: z.string().max(60).optional(),
@@ -394,7 +394,7 @@ Size limits: image 5MB, audio 16MB, video 16MB, document 100MB, sticker 100KB.` 
 
     send_whatsapp_list: tool({
       description:
-        `Send a list-picker menu to the conversation owner.` + SCOPE_NOTE,
+        `Send a WhatsApp list-picker menu (menú de lista de WhatsApp) to the conversation owner.` + SCOPE_NOTE,
       inputSchema: z.object({
         bodyText: z.string().min(1).max(1024),
         headerText: z.string().max(60).optional(),
@@ -441,7 +441,7 @@ Size limits: image 5MB, audio 16MB, video 16MB, document 100MB, sticker 100KB.` 
     }),
 
     mark_whatsapp_read: tool({
-      description: `Mark an inbound WhatsApp message as read (the blue double-check).`,
+      description: `Mark an inbound WhatsApp message as read (marcar como leído, the blue double-check).`,
       inputSchema: z.object({
         messageId: z.string().describe("wamid of the inbound message."),
       }),

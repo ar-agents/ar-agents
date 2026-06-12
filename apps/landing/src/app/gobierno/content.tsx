@@ -98,8 +98,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
           <li>
             <L
               lang={lang}
-              es="Soy un desarrollador independiente argentino. Construí la implementación técnica de referencia del régimen de sociedades-IA que anunció el Ministro el 28-abr: 33 paquetes npm + 6 specs técnicas CC-BY-4.0 + audit log criptográfico peritable."
-              en="I'm an independent Argentine developer. I built the technical reference implementation for the sociedades-IA regime the Minister announced on April 28: 33 npm packages + 6 technical specs (CC-BY-4.0) + a forensic cryptographic audit log."
+              es="Soy un desarrollador independiente argentino. Construí la implementación técnica de referencia del régimen de sociedades-IA que anunció el Ministro el 28-abr: 36 paquetes npm + 6 specs técnicas CC-BY-4.0 + audit log criptográfico peritable."
+              en="I'm an independent Argentine developer. I built the technical reference implementation for the sociedades-IA regime the Minister announced on April 28: 36 npm packages + 6 technical specs (CC-BY-4.0) + a forensic cryptographic audit log."
             />
           </li>
           <li>
@@ -190,7 +190,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>33 paquetes npm</strong> bajo{" "}
+                <strong>36 paquetes npm</strong> bajo{" "}
                 <DocCode>@ar-agents/*</DocCode> con licencia MIT. Cubren
                 16 de las 17 piezas operativas que una sociedad-IA
                 argentina necesita para operar end-to-end (identidad /
@@ -202,7 +202,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>33 npm packages</strong> under{" "}
+                <strong>36 npm packages</strong> under{" "}
                 <DocCode>@ar-agents/*</DocCode> with MIT license. They
                 cover 16 of the 17 operational pieces an Argentine
                 AI corporation needs to operate end-to-end (identity /

@@ -10,7 +10,7 @@
 
 ## Summary (one paragraph)
 
-We propose a new AAIF working group titled **"Argentine AI Society Profile"** to define a technical profile for AI agents incorporated as legal entities in Argentina under the proposed *sociedad-IA* corporate-law reform announced by the Argentine Minister of Deregulation on 2026-04-28. The profile would extend existing AAIF-anchored standards (MCP, AGENTS.md, agent identity primitives) with the regulatory metadata and operational primitives required for AR fiscal residency, identity verification, electronic invoicing, and gazette monitoring. An initial reference implementation covering 16 of 17 required pieces is already shipped under MIT license (`@ar-agents/*` on npm, 33 packages, 221 typed tools, with npm provenance attestations).
+We propose a new AAIF working group titled **"Argentine AI Society Profile"** to define a technical profile for AI agents incorporated as legal entities in Argentina under the proposed *sociedad-IA* corporate-law reform announced by the Argentine Minister of Deregulation on 2026-04-28. The profile would extend existing AAIF-anchored standards (MCP, AGENTS.md, agent identity primitives) with the regulatory metadata and operational primitives required for AR fiscal residency, identity verification, electronic invoicing, and gazette monitoring. An initial reference implementation covering 16 of 17 required pieces is already shipped under MIT license (`@ar-agents/*` on npm, 36 packages, 235 typed tools, with npm provenance attestations).
 
 ## Why this fits AAIF's charter
 
@@ -48,7 +48,7 @@ The working group would author and maintain:
 
 ## Existing prior art
 
-- **`@ar-agents/*` on npm** — 33 packages (221 typed tools) covering 16/17 pieces (MIT, npm provenance, AGENTS.md per package). Reference implementation. github.com/ar-agents/ar-agents
+- **`@ar-agents/*` on npm** — 36 packages (235 typed tools) covering 16/17 pieces (MIT, npm provenance, AGENTS.md per package). Reference implementation. github.com/ar-agents/ar-agents
 - **RFC-001**: Identity and signature for agents in Argentina (CC0, draft-01). ar-agents.ar/rfcs/001
 - **AfipSDK** — closed-source REST/JS SDK to AFIP, ~4,238 active CUITs. Adjacent prior art, no agent-specific primitives.
 - **Wyoming DAO LLC + ClawBank** — substrate for USA agent-LLC formation. Different jurisdiction, conceptually related.

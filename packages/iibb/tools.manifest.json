@@ -5,28 +5,28 @@
   "tools": [
     {
       "name": "iibb_calculate_retention",
-      "description": "Pure math: compute IIBB retention amount = base × rate, with optional minimum threshold.",
+      "description": "Calculate the IIBB gross-receipts retention (calcular retención de Ingresos Brutos) on a base imponible in a given jurisdiction. Pure math: amount = base × rate (fraction), unless base < minimumThresh",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "iibb_calculate_perception",
-      "description": "Pure math: compute IIBB perception amount on a sale.",
+      "description": "Calculate the IIBB perception (calcular percepción de Ingresos Brutos) on a base imponible in a given jurisdiction. Symmetrical to retention in v0.1; some jurisdictions add a fixed component which wil",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "iibb_compute_ddjj",
-      "description": "Assemble a monthly DDJJ from income lines + rate-book. Supports LOCAL and CM Article 2 (general).",
+      "description": "Assemble a monthly IIBB tax return (armar la DDJJ mensual de Ingresos Brutos) from raw income lines + a rate-book. Supports the LOCAL regime (single jurisdiction) and the CM general regime (Article 2,",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "iibb_lookup_padron",
-      "description": "Lookup a CUIT's taxpayer status in a jurisdiction's padrón. Real adapters ship for CABA (AgipPublicAdapter, no auth) and BSAS (ArbaCitAdapter, host-supplied CIT fetcher). Other jurisdictions: subclass HttpPadronAdapter.",
+      "description": "Look up a CUIT in a jurisdiction's IIBB registry (consultar padrón de Ingresos Brutos). Returns null if not registered. Throws IibbUnconfiguredError if the adapter for that jurisdiction is not wired (",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false

@@ -40,16 +40,16 @@ export interface MiArgentinaToolsOptions {
 
 const DEFAULT_DESCRIPTIONS: Record<MiArgentinaToolName, string> = {
   mi_argentina_start_login:
-    "Begin a Mi Argentina (Argentine government) OIDC login. Returns an authorization URL the user must open in a browser, plus the OAuth `state` value the callback will return. SIDE EFFECT: stores PKCE verifier + nonce + state server-side; subsequent `mi_argentina_complete_login` requires this state. USE THIS WHEN: the user wants to log in with their gov.ar account, or wants to grant your agent access to claims like CUIL, DNI, name, or domicilio. AFTER calling: tell the user to open the URL in their browser, complete the consent, and report back the `code` and `state` values from the callback URL.",
+    "Begin a Mi Argentina government login (iniciar sesión con Mi Argentina, OIDC). Returns an authorization URL the user must open in a browser, plus the OAuth `state` value the callback will return. SIDE EFFECT: stores PKCE verifier + nonce + state server-side; subsequent `mi_argentina_complete_login` requires this state. USE THIS WHEN: the user wants to log in with their gov.ar account, or wants to grant your agent access to claims like CUIL, DNI, name, or domicilio. AFTER calling: tell the user to open the URL in their browser, complete the consent, and report back the `code` and `state` values from the callback URL.",
 
   mi_argentina_complete_login:
-    "Complete a Mi Argentina OIDC login by exchanging the authorization code for tokens and verifying the ID token. Pass BOTH the `code` and `state` values that arrived in the callback URL — the package atomically consumes the matching server-side state and verifies the ID token signature, issuer, audience, expiration, and nonce. Returns the user's verified profile (CUIL, DNI, name, etc.) and the access/refresh tokens. WHEN THIS FAILS: surface the error message verbatim — it tells the user (and you) whether to retry the login, contact support, or restart from scratch.",
+    "Complete a Mi Argentina login (completar el login de Mi Argentina) by exchanging the authorization code for tokens and verifying the ID token. Pass BOTH the `code` and `state` values that arrived in the callback URL, the package atomically consumes the matching server-side state and verifies the ID token signature, issuer, audience, expiration, and nonce. Returns the user's verified profile (CUIL, DNI, name, etc.) and the access/refresh tokens. WHEN THIS FAILS: surface the error message verbatim, it tells the user (and you) whether to retry the login, contact support, or restart from scratch.",
 
   mi_argentina_get_user_profile:
-    "Fetch the Mi Argentina user profile via the OIDC userinfo endpoint, given an access token already obtained from `mi_argentina_complete_login`. Returns sub, CUIL, DNI, names, email, optional domicilio. USE THIS WHEN: you have an active access token and the local cache is stale or missing. DO NOT USE WHEN: you only have an ID token — call `mi_argentina_verify_id_token` for that. NOTE: the access token expires (typically 1 hour); call `mi_argentina_refresh_token` when expired.",
+    "Fetch the Mi Argentina user profile (perfil del usuario de Mi Argentina) via the OIDC userinfo endpoint, given an access token already obtained from `mi_argentina_complete_login`. Returns sub, CUIL, DNI, names, email, optional domicilio. USE THIS WHEN: you have an active access token and the local cache is stale or missing. DO NOT USE WHEN: you only have an ID token, call `mi_argentina_verify_id_token` for that. NOTE: the access token expires (typically 1 hour); call `mi_argentina_refresh_token` when expired.",
 
   mi_argentina_verify_id_token:
-    "Verify a Mi Argentina ID token (compact JWT) end-to-end: signature, issuer, audience, expiration. Returns the verified claims when valid; throws when invalid. USE THIS WHEN: you receive an ID token from a frontend or another service and need to trust its claims. DO NOT trust any claim without calling this first — the token can be malformed, expired, or forged.",
+    "Verify a Mi Argentina ID token (compact JWT) end-to-end: signature, issuer, audience, expiration. Returns the verified claims when valid; throws when invalid. USE THIS WHEN: you receive an ID token from a frontend or another service and need to trust its claims. DO NOT trust any claim without calling this first, the token can be malformed, expired, or forged.",
 
   mi_argentina_refresh_token:
     "Exchange a refresh token for a new access token. Returns a new TokenResponse with refreshed access_token, id_token, and (per provider policy) a possibly-rotated refresh_token. USE THIS WHEN: an access token has expired or is about to. WHEN THIS FAILS: the refresh token is revoked or expired; the user must restart the login flow from `mi_argentina_start_login`.",
@@ -108,7 +108,7 @@ export function miArgentinaTools(
       description: desc("mi_argentina_complete_login"),
       inputSchema: z.object({
         code: z.string().describe("The `code` query parameter from the callback URL."),
-        state: z.string().describe("The `state` query parameter from the callback URL — must match what was generated."),
+        state: z.string().describe("The `state` query parameter from the callback URL, must match what was generated."),
         fetch_user_info: z
           .boolean()
           .optional()

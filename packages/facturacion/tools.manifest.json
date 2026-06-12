@@ -6,7 +6,7 @@
   "tools": [
     {
       "name": "consultar_factura_emitida",
-      "description": "Consultar los detalles completos de una factura ya emitida (CAE, fecha, importes, doc receptor). USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de datos, o estás migrando de ",
+      "description": "Look up an already-issued invoice (consultar factura emitida, verificar un CAE propio): CAE, fecha, importes, doc receptor. USE WHEN: necesitás verificar que un CAE es válido y matchea con tu base de ",
       "input": {
         "ptoVta": "number?",
         "cbteTipo": "number",
@@ -16,7 +16,7 @@
     },
     {
       "name": "consultar_ultimo_comprobante",
-      "description": "Consultar el último número de comprobante autorizado para un (PtoVta, CbteTipo) — i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE emitir_factura para obtener",
+      "description": "Get the last authorized invoice number (consultar último comprobante autorizado) para un (PtoVta, CbteTipo), i.e. cuál fue el número del último Factura C emitido desde el punto de venta 1. USE BEFORE ",
       "input": {
         "ptoVta": "number?",
         "cbteTipo": "number"
@@ -25,25 +25,25 @@
     },
     {
       "name": "emitir_factura",
-      "description": "Emitir una factura electrónica vía AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el CAE (14 dígitos), su fecha de vencimiento, y el núm",
+      "description": "Issue an electronic invoice and get its CAE (emitir factura electrónica, facturar) via AFIP/ARCA WSFE. Solicita el CAE (Código de Autorización Electrónico) que valida la factura ante AFIP. RETURNS: el",
       "input": "SolicitarCaeInput",
       "output": "SolicitarCaeResult & { ok, tipoComprobanteDescripcion }"
     },
     {
       "name": "health_check_afip",
-      "description": "Health check de AFIP WSFE — devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
+      "description": "Health check de AFIP WSFE, devuelve el status de los servidores app, db, y auth. Use as a /health endpoint o como pre-flight rápido antes de emitir muchas facturas. PURE READ, latencia < 200ms.",
       "input": {},
       "output": "DummyResult & { ok }"
     },
     {
       "name": "obtener_alicuotas_iva",
-      "description": "Listar las alícuotas de IVA disponibles según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Prefe",
+      "description": "List VAT rates (alícuotas de IVA) según AFIP (21%=5, 10.5%=4, 27%=6, 0%=3, etc.). USE WHEN: el usuario necesita ver las opciones para construir una factura B o A. HEAVY: round-trip a AFIP. Preferí `Al",
       "input": {},
       "output": "{ items: CatalogItem[] }"
     },
     {
       "name": "obtener_cotizacion",
-      "description": "Obtener la cotización oficial AFIP de una moneda extranjera vs ARS. REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el monCotiz a usar e",
+      "description": "Get the official AFIP exchange rate (cotización oficial de moneda extranjera vs ARS). REQUIRED antes de emitir cualquier factura no-PES (AFIP rechaza si la cotización está desactualizada). Devuelve el",
       "input": {
         "monId": "string"
       },
@@ -51,25 +51,25 @@
     },
     {
       "name": "obtener_tipos_comprobante",
-      "description": "Listar los tipos de comprobante disponibles según AFIP (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no es",
+      "description": "List AFIP voucher types (tipos de comprobante) (Factura A=1, B=6, C=11, Nota Crédito A=3, etc.). USE WHEN: necesitás mostrar al usuario la lista actualizada (puede haber tipos nuevos que no están en l",
       "input": {},
       "output": "{ items: CatalogItem[] }"
     },
     {
       "name": "obtener_tipos_concepto",
-      "description": "Listar los tipos de concepto: Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
+      "description": "List concept types (tipos de concepto): Productos (1), Servicios (2), Productos y Servicios (3). HEAVY: round-trip a AFIP. Preferí `Concepto` constants.",
       "input": {},
       "output": "{ items: CatalogItem[] }"
     },
     {
       "name": "obtener_tipos_documento",
-      "description": "Listar los tipos de documento que AFIP acepta (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
+      "description": "List AFIP document types (tipos de documento) (CUIT=80, DNI=96, Pasaporte=94, Consumidor Final=99, etc.). HEAVY: round-trip a AFIP. Preferí los constants de `DocTipo` para flujos comunes.",
       "input": {},
       "output": "{ items: CatalogItem[] }"
     },
     {
       "name": "obtener_tipos_moneda",
-      "description": "Listar las monedas que WSFE acepta para emitir facturas (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: roun",
+      "description": "List currencies accepted for invoicing (tipos de moneda) (PES = Pesos, DOL = Dólar, 060 = Euro, 012 = Real, etc.). USE WHEN: el usuario quiere emitir Factura E (exportación) o multi-moneda. HEAVY: rou",
       "input": {},
       "output": "{ items: CatalogItem[] }"
     }

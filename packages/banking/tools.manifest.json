@@ -6,43 +6,43 @@
   "tools": [
     {
       "name": "get_bcra_variable",
-      "description": "Fetch the time series for a specific BCRA Principales Variables indicator by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, inflación). Optional "
+      "description": "Fetch the historical series of a BCRA indicator (serie histórica de una variable del BCRA) by id. USE THIS WHEN: the user wants historical values of a specific variable (cotización USD, CER, UVA, infl"
     },
     {
       "name": "get_cer",
-      "description": "Convenience: fetch the latest CER (Coeficiente de Estabilización de Referencia, BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. US"
+      "description": "Get the current CER coefficient (coeficiente CER hoy, ajuste por inflación; BCRA variable id 30). CER is the official inflation-tracking coefficient used to adjust regulated debt and contracts. USE TH"
     },
     {
       "name": "get_reservas_bcra",
-      "description": "Convenience: fetch the latest BCRA international reserves (Reservas Internacionales, variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the lates"
+      "description": "Get BCRA international reserves (reservas del BCRA, Reservas Internacionales; variable id 1). USE THIS WHEN: the user asks about reservas, USD reserves, or BCRA balance sheet. Returns the latest value"
     },
     {
       "name": "get_usd_oficial",
-      "description": "Convenience: fetch the latest USD oficial cotización (Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily datapoints. USE THIS WHEN: the user asks"
+      "description": "Get the official USD exchange rate (dólar oficial, a cuánto está el dólar, cotización USD; Tipo de Cambio Minorista, BCRA variable id 4). Returns the current value + date + the most recent N daily dat"
     },
     {
       "name": "get_uva",
-      "description": "Convenience: fetch the latest UVA (Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: the use"
+      "description": "Get the current UVA value (valor UVA hoy; Unidad de Valor Adquisitivo, BCRA variable id 31). UVA is the inflation-adjusted unit used for AR mortgages, fixed-term deposits, and rentals. USE THIS WHEN: "
     },
     {
       "name": "list_banks",
-      "description": "Return the full list of known Argentine banks with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a work",
+      "description": "List Argentine banks (listar bancos argentinos) with their BCRA codes. USE THIS WHEN: you need to render a dropdown of banks for the user to pick from, or need to enumerate available entities for a wo",
       "input": {},
       "output": "{ banks: BankInfo[] }"
     },
     {
       "name": "list_bcra_variables",
-      "description": "List all BCRA Principales Variables (monetary indicators) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio Mayorist"
+      "description": "List BCRA monetary indicators (principales variables del BCRA) with their current latest value and ID. Returns variables like Reservas Internacionales, Tipo de Cambio Minorista USD, Tipo de Cambio May"
     },
     {
       "name": "list_psps",
-      "description": "Return the full list of known Argentine PSPs (fintechs / digital wallets / virtual account issuers — Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need",
+      "description": "List Argentine fintech wallets / PSPs (listar billeteras virtuales, Mercado Pago, Ualá, Naranja X, Personal Pay, etc.) with their CVU prefixes. USE THIS WHEN: you need to render a dropdown of fintech ",
       "input": {},
       "output": "{ psps: BankInfo[] }"
     },
     {
       "name": "lookup_bank_by_code",
-      "description": "Look up the Argentine bank or PSP (payment service provider) by its 3-digit BCRA-assigned entity code. PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal name, sho",
+      "description": "Identify the Argentine bank or PSP behind an entity code (de qué banco es este CBU, código de entidad BCRA). PURE FUNCTION: in-memory lookup, free, sub-millisecond. Returns the entity's full legal nam",
       "input": {
         "code": "string"
       },
@@ -50,7 +50,7 @@
     },
     {
       "name": "lookup_credit_situation",
-      "description": "Look up the BCRA Central de Deudores credit situation for an Argentine CUIT. Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 days, 4=high risk 180-365 days, 5=irr",
+      "description": "Check a CUIT's credit standing in the BCRA Central de Deudores (consultar deudores BCRA, situación crediticia). Returns the worst situation code (1=normal, 2=low risk <90 days, 3=medium risk 90-180 da",
       "input": {
         "cuit": "string"
       },
@@ -58,7 +58,7 @@
     },
     {
       "name": "validate_cbu",
-      "description": "Validate an Argentine CBU (Clave Bancaria Uniforme, traditional bank account) or CVU (Clave Virtual Uniforme, fintech wallet account) via the BCRA dual mod-10 check-digit algorithm. PURE FUNCTION: no ",
+      "description": "Validate an Argentine CBU or CVU bank account number (validar CBU, validar CVU). CBU = Clave Bancaria Uniforme (traditional bank account), CVU = Clave Virtual Uniforme (fintech wallet account), checke",
       "input": {
         "cbu": "string"
       },

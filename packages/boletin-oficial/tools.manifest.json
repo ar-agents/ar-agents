@@ -6,27 +6,27 @@
   "tools": [
     {
       "name": "bo_search",
-      "description": "Full-text search the Boletín Oficial archive. Filter by organismo, fecha range, keyword. Returns ranked normas with summary + publication date."
+      "description": "Search the Argentine Boletín Oficial (buscar en el Boletín Oficial). Returns a list of normas (laws, decrees, resoluciones, sociedades, contracting, judicial notices) matching free-text query + option"
     },
     {
       "name": "bo_get_norma",
-      "description": "Fetch a single norma by its BO id. Returns the full body + metadata (issuing organism, date, sumario)."
+      "description": "Fetch a single norma from the Boletín Oficial by id (consultar una norma). Returns the title, organismo, full text, fecha de publicación, and any CUITs mentioned. USE THIS WHEN: you have an id (from `"
     },
     {
       "name": "bo_today",
-      "description": "Fetch all normas published in today's Boletín Oficial. Useful for the morning operating loop on a sociedad-IA."
+      "description": "Fetch today's Boletín Oficial publications (qué salió hoy en el Boletín Oficial), optionally filtered by sección. USE THIS WHEN: the user wants a daily summary of newly-published norms, e.g. `qué publ"
     },
     {
       "name": "bo_subscribe",
-      "description": "Subscribe to BO updates by CUIT, organismo, or keyword. Notifications are dispatched via the configured webhook."
+      "description": "Subscribe to Boletín Oficial alerts (suscribirse a alertas del Boletín Oficial). The matcher fires whenever a new norma matches the criteria, keyword, CUIT, organismo, sección, or tipo. USE THIS WHEN:"
     },
     {
       "name": "bo_list_subscriptions",
-      "description": "List all active BO subscriptions for the current tenant."
+      "description": "List active Boletín Oficial subscriptions (listar suscripciones). USE THIS WHEN: the user wants to see what they've subscribed to. Pass `owner_id` to scope to a specific user/tenant."
     },
     {
       "name": "bo_unsubscribe",
-      "description": "Cancel a BO subscription by id. Used by the agent to retire stale watch criteria."
+      "description": "Remove a Boletín Oficial subscription by id (cancelar una suscripción). USE THIS WHEN: the user wants to stop a previous bo_subscribe."
     }
   ]
 }

@@ -3,14 +3,14 @@
  *
  * Six tools, all read-only:
  *
- *   - `igj_search_entities`     — search the IGJ entity dataset.
- *   - `igj_get_entity`          — fetch one entity by id.
- *   - `igj_get_domicilios`      — domicilios for an entity.
- *   - `igj_get_autoridades`     — directors/officers for an entity.
- *   - `igj_get_balances`        — filed balances for an entity.
- *   - `igj_get_asambleas`       — asambleas for an entity.
+ *   - `igj_search_entities`    , search the IGJ entity dataset.
+ *   - `igj_get_entity`         , fetch one entity by id.
+ *   - `igj_get_domicilios`     , domicilios for an entity.
+ *   - `igj_get_autoridades`    , directors/officers for an entity.
+ *   - `igj_get_balances`       , filed balances for an entity.
+ *   - `igj_get_asambleas`      , asambleas for an entity.
  *
- * Every result includes a `coverageNote` field — the IGJ open dataset
+ * Every result includes a `coverageNote` field, the IGJ open dataset
  * is a SAMPLE, not real-time. Surface that note when the user might be
  * making decisions about whether an entity exists.
  */
@@ -35,10 +35,10 @@ export interface IgjToolsOptions {
 
 const DEFAULT_DESCRIPTIONS: Record<IgjToolName, string> = {
   igj_search_entities:
-    "Search Argentine IGJ-registered entities (sociedades, asociaciones, fundaciones) via the public CKAN open data at datos.jus.gob.ar. Returns matching entities + a `coverageNote` (the dataset is SAMPLE/muestreo, not real-time). USE THIS WHEN: you need to find entities by name, CUIT, type, or date range. ALWAYS surface `coverageNote` so users know the data isn't authoritative — use the IGJ portal for live verification.",
+    "Search IGJ-registered Argentine entities (buscar sociedades en IGJ; sociedades, asociaciones, fundaciones) via the public CKAN open data at datos.jus.gob.ar. Returns matching entities + a `coverageNote` (the dataset is SAMPLE/muestreo, not real-time). USE THIS WHEN: you need to find entities by name, CUIT, type, or date range. ALWAYS surface `coverageNote` so users know the data isn't authoritative, use the IGJ portal for live verification.",
 
   igj_get_entity:
-    "Fetch a single IGJ entity by its dataset id. Returns the entity record including razón social, CUIT (when present), tipo de entidad, fecha de inscripción, matrícula. Returns `null` when not found. USE THIS WHEN: you have an entity id from `igj_search_entities` and need the full record.",
+    "Fetch a single IGJ entity by its dataset id (consultar una entidad IGJ). Returns the entity record including razón social, CUIT (when present), tipo de entidad, fecha de inscripción, matrícula. Returns `null` when not found. USE THIS WHEN: you have an entity id from `igj_search_entities` and need the full record.",
 
   igj_get_domicilios:
     "Fetch the registered domicilios (addresses) for an IGJ entity by its id. Multiple domicilios may exist (legal, fiscal, real). USE THIS WHEN: the user wants the registered address of a sociedad/asociación, or to verify a domicilio claim.",
@@ -47,7 +47,7 @@ const DEFAULT_DESCRIPTIONS: Record<IgjToolName, string> = {
     "Fetch the registered authorities (directors, officers, trustees) of an IGJ entity. Includes nombre, cargo, fecha de designación, and inferred genre when available. USE THIS WHEN: the user asks who is on the board of a sociedad, or wants to know who legally represents an entity.",
 
   igj_get_balances:
-    "Fetch the balances (financial reports) filed at IGJ for an entity. Includes cierre de ejercicio, número de ejercicio, fecha de presentación. USE THIS WHEN: the user wants to know if a sociedad is up to date on its balance filings, or wants to track filing history. NOTE: the dataset stores filing metadata, NOT the balance content itself — that lives in TAD/IGJ portal.",
+    "Fetch the balances (financial reports) filed at IGJ for an entity. Includes cierre de ejercicio, número de ejercicio, fecha de presentación. USE THIS WHEN: the user wants to know if a sociedad is up to date on its balance filings, or wants to track filing history. NOTE: the dataset stores filing metadata, NOT the balance content itself, that lives in TAD/IGJ portal.",
 
   igj_get_asambleas:
     "Fetch the registered asambleas (meetings) of an IGJ entity. Includes tipo (ordinaria/extraordinaria) and fecha. USE THIS WHEN: you want to know when a sociedad held its last asamblea or track the calendar of meetings.",
