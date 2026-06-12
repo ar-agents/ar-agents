@@ -5,70 +5,70 @@
   "tools": [
     {
       "name": "tienda_nube_get_store",
-      "description": "Retrieve metadata about the bound Tienda Nube store.",
+      "description": "Get info about the Tienda Nube store (datos de la tienda) this adapter is bound to (denominación, currency, country, language, contact email).",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_list_products",
-      "description": "Cursor-paginated product list with substring search.",
+      "description": "List Tienda Nube products (listar productos de la tienda) with optional substring search + paginated results. Use `publishedOnly: true` to skip drafts. Returns `hasMore: true` when at least one more p",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_get_product",
-      "description": "Retrieve a product by id, including all variants.",
+      "description": "Get a Tienda Nube product by id (consultar un producto), including all variants.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_list_orders",
-      "description": "List orders with status, payment_status, email, and date filters.",
+      "description": "List Tienda Nube orders (listar ventas, órdenes de la tienda) with status / payment_status / email filters + ISO 8601 date ranges. Reverse-chronological. The `paymentStatus: \"paid\"` filter is the typi",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_get_order",
-      "description": "Retrieve a single order by id.",
+      "description": "Get a Tienda Nube order by id (consultar una orden). Includes contact email + name + addresses + per-line products.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_list_customers",
-      "description": "Cursor-paginated customer list with name+email substring search.",
+      "description": "List Tienda Nube customers (listar clientes) with optional substring search across name + email.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_get_customer",
-      "description": "Retrieve a single customer by id.",
+      "description": "Get a Tienda Nube customer by id (consultar un cliente), including default_address + total_spent.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_list_webhooks",
-      "description": "List webhook subscriptions for this app on the bound store.",
+      "description": "List webhook subscriptions registered by this app for this store.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_create_webhook",
-      "description": "Register a webhook subscription. URL must be https://.",
+      "description": "Register a webhook subscription. URL must be https://. Common events: order/created, order/paid, order/fulfilled, product/updated, customer/created, app/uninstalled.",
       "sideEffects": "creates resource",
       "idempotent": false,
       "requiresConfirmation": false
     },
     {
       "name": "tienda_nube_delete_webhook",
-      "description": "Delete a webhook subscription by id. Idempotent.",
+      "description": "Delete a webhook subscription by id. Idempotent: deleting an unknown id resolves without raising.",
       "sideEffects": "irreversible",
       "idempotent": true,
       "requiresConfirmation": false

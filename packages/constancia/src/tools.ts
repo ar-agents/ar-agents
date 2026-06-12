@@ -1,7 +1,7 @@
 /**
  * Vercel AI SDK tool collection for `@ar-agents/constancia`.
  *
- *   - constancia_inscripcion — CUIT → official ARCA Constancia de
+ *   - constancia_inscripcion, CUIT → official ARCA Constancia de
  *     Inscripción: parsed fields + the PDF artifact.
  *
  * Browser-backed: the default fetcher is `UnconfiguredConstanciaFetcher`
@@ -28,7 +28,7 @@ export interface ConstanciaToolsOptions {
 
 const DEFAULT_DESCRIPTIONS: Record<ConstanciaToolName, string> = {
   constancia_inscripcion:
-    "Obtené la Constancia de Inscripción oficial de ARCA (ex-AFIP) para un CUIT: el régimen (monotributo + categoría / responsable inscripto / exento), domicilio fiscal, actividades CLAE, impuestos, fecha de inscripción Y el documento PDF oficial con su código verificador. USE THIS WHEN: the user needs the official PDF document (alta de proveedor, KYC, expediente, licitación) or needs the tax data WITHOUT an AFIP X.509 cert (this drives the PUBLIC web form — no Clave Fiscal). DO NOT USE WHEN: you only need the tax data AND `@ar-agents/identity` is configured with a cert — `lookup_cuit_afip` is faster and needs no browser. BROWSER-BACKED: each call drives a real browser via the `afip-constancia` runtime; expect seconds, not milliseconds, and transient failures. Returns `available:false` with an actionable `error` when not configured, the CUIT is not registered, or the lookup is blocked — never throws. Validate the CUIT with `@ar-agents/identity` `validate_cuit` first.",
+    "Get the official AFIP/ARCA registration certificate for a CUIT (constancia de inscripción, obtené la Constancia de Inscripción de ARCA, ex-AFIP): el régimen (monotributo + categoría / responsable inscripto / exento), domicilio fiscal, actividades CLAE, impuestos, fecha de inscripción Y el documento PDF oficial con su código verificador. USE THIS WHEN: the user needs the official PDF document (alta de proveedor, KYC, expediente, licitación) or needs the tax data WITHOUT an AFIP X.509 cert (this drives the PUBLIC web form, no Clave Fiscal). DO NOT USE WHEN: you only need the tax data AND `@ar-agents/identity` is configured with a cert, `lookup_cuit_afip` is faster and needs no browser. BROWSER-BACKED: each call drives a real browser via the `afip-constancia` runtime; expect seconds, not milliseconds, and transient failures. Returns `available:false` with an actionable `error` when not configured, the CUIT is not registered, or the lookup is blocked, never throws. Validate the CUIT with `@ar-agents/identity` `validate_cuit` first.",
 };
 
 export function constanciaTools(
@@ -46,7 +46,7 @@ export function constanciaTools(
           .string()
           .min(1)
           .describe(
-            "CUIT/CUIL to look up. Accepts dashed (20-41758101-5) or bare (20417581015) — normalized to 11 digits. Shape-checked only; verify the check digit with @ar-agents/identity validate_cuit first.",
+            "CUIT/CUIL to look up. Accepts dashed (20-41758101-5) or bare (20417581015), normalized to 11 digits. Shape-checked only; verify the check digit with @ar-agents/identity validate_cuit first.",
           ),
       }),
       execute: async ({ cuit }) => {

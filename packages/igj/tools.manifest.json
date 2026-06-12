@@ -6,27 +6,27 @@
   "tools": [
     {
       "name": "igj_search_entities",
-      "description": "Full-text search the IGJ corporate registry by name. Returns a paginated list with denominación, CUIT, tipo societario, status."
+      "description": "Search IGJ-registered Argentine entities (buscar sociedades en IGJ; sociedades, asociaciones, fundaciones) via the public CKAN open data at datos.jus.gob.ar. Returns matching entities + a `coverageNot"
     },
     {
       "name": "igj_get_entity",
-      "description": "Fetch a single IGJ-registered entity by CUIT or registry number. Includes inscripción/baja status, last update."
+      "description": "Fetch a single IGJ entity by its dataset id (consultar una entidad IGJ). Returns the entity record including razón social, CUIT (when present), tipo de entidad, fecha de inscripción, matrícula. Return"
     },
     {
       "name": "igj_get_domicilios",
-      "description": "List the registered domicilios (legal/real/fiscal) for an IGJ entity. Useful for verifying counterparties before contracting."
+      "description": "Fetch the registered domicilios (addresses) for an IGJ entity by its id. Multiple domicilios may exist (legal, fiscal, real). USE THIS WHEN: the user wants the registered address of a sociedad/asociac"
     },
     {
       "name": "igj_get_autoridades",
-      "description": "Fetch the registered authorities (directorio, sindicatura, gerencia) for an entity, with start/end dates of their mandate."
+      "description": "Fetch the registered authorities (directors, officers, trustees) of an IGJ entity. Includes nombre, cargo, fecha de designación, and inferred genre when available. USE THIS WHEN: the user asks who is "
     },
     {
       "name": "igj_get_balances",
-      "description": "List filed balance-sheet metadata for an entity. Includes filing date and the period covered (the actual balance-sheet PDFs are not yet exposed via the public CKAN)."
+      "description": "Fetch the balances (financial reports) filed at IGJ for an entity. Includes cierre de ejercicio, número de ejercicio, fecha de presentación. USE THIS WHEN: the user wants to know if a sociedad is up t"
     },
     {
       "name": "igj_get_asambleas",
-      "description": "List filed shareholder/partner asambleas for an entity (date, type, registered minutes ID)."
+      "description": "Fetch the registered asambleas (meetings) of an IGJ entity. Includes tipo (ordinaria/extraordinaria) and fecha. USE THIS WHEN: you want to know when a sociedad held its last asamblea or track the cale"
     }
   ]
 }

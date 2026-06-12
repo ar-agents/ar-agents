@@ -60,7 +60,7 @@ export function ivaPerceptionTools(opts: IvaPerceptionToolsOptions = {}) {
   const allTools = {
     iva_perception_calculate: tool({
       description:
-        "Compute the IVA perception (extra charge added on top of IVA) for a sale invoice. Returns 0 with a `waiverReason` when the buyer is exento / monotributista / consumidor final, when below the mínimo, or when a non-perception certificate is on file. Inputs in ARS centavos.",
+        "Compute the VAT perception for a sale invoice (calcular percepción de IVA, the extra charge added on top of IVA). Returns 0 with a `waiverReason` when the buyer is exento / monotributista / consumidor final, when below the mínimo, or when a non-perception certificate is on file. Inputs in ARS centavos.",
       inputSchema: z.object({
         regime: regimeEnum,
         buyerCondition: buyerConditionEnum,
@@ -88,7 +88,7 @@ export function ivaPerceptionTools(opts: IvaPerceptionToolsOptions = {}) {
 
     iva_perception_build_ddjj: tool({
       description:
-        "Aggregate perception results into a monthly SIRE DDJJ with per-regime and per-buyer breakdowns. Pure aggregation.",
+        "Assemble the monthly SIRE perception return (armar DDJJ SIRE de percepciones de IVA) with per-regime and per-buyer breakdowns. Pure aggregation.",
       inputSchema: z.object({
         period: z.string().regex(/^\d{4}-\d{2}$/),
         agentCuit: cuitSchema,
@@ -111,7 +111,7 @@ export function ivaPerceptionTools(opts: IvaPerceptionToolsOptions = {}) {
 
     iva_perception_submit_ddjj: tool({
       description:
-        "Submit an assembled SIRE perception DDJJ. Throws unless the host wired a real adapter. Files a tax return — confirmation gate required.",
+        "Submit an assembled SIRE perception return (presentar DDJJ de percepciones de IVA). Throws unless the host wired a real adapter. Files a tax return, confirmation gate required.",
       inputSchema: z.object({
         ddjj: z.unknown(),
       }),

@@ -78,7 +78,7 @@ Smithery is the second-largest MCP registry (after Glama).
 
 Post via your account around 10am EDT (= 11am ART today, since we're in EDT not EST).
 
-**Title:** `Show HN: Open infrastructure for Argentina's AI-run companies (33 npm packages)`
+**Title:** `Show HN: Open infrastructure for Argentina's AI-run companies (36 npm packages)`
 (under the 80-char HN limit)
 
 **URL:** `https://ar-agents.ar`
@@ -88,7 +88,7 @@ Post via your account around 10am EDT (= 11am ART today, since we're in EDT not 
 Hi HN — author here. Argentina sent a corporate-law reform to its Senate that
 includes "Sociedad Automatizada" (art. 14): a company operated by AI agents
 with a human administrator on record. It is not law yet. ar-agents is open
-infrastructure for that: 33 MIT npm packages (221 typed tools for the Vercel
+infrastructure for that: 36 MIT npm packages (235 typed tools for the Vercel
 AI SDK 6) covering what an AI-operated Argentine company needs — identity
 (AFIP/ARCA), payments, electronic invoicing, banking, government filings,
 communications, and a forensic audit log — plus 6 RFCs with frozen
@@ -133,7 +133,7 @@ on the agent ergonomics — what would make this easier to drop in?
 https://vercel.com/discord → `#show-and-tell`:
 
 ```
-Just shipped ar-agents — open infrastructure for Argentina's AI-run companies, 33 packages for Vercel AI SDK 6 🇦🇷
+Just shipped ar-agents — open infrastructure for Argentina's AI-run companies, 36 packages for Vercel AI SDK 6 🇦🇷
 
 89 typed tools across the agent-relevant MP API (Subscriptions, Payments,
 Checkout Pro, Marketplace OAuth, Cuotas, QR, 3DS). Edge Runtime, npm
@@ -213,7 +213,7 @@ Feedback bienvenido.
 
 **r/typescript**:
 ```
-Title: ar-agents — open infra for Argentina's AI-run companies (33 packages, 221 typed tools, Vercel AI SDK 6)
+Title: ar-agents — open infra for Argentina's AI-run companies (36 packages, 235 typed tools, Vercel AI SDK 6)
 
 Just shipped this. The deepest package wraps Mercado Pago's API as 89 typed Vercel AI SDK 6 tools so an LLM agent can drive billing flows from natural-language prompts; the rest of the stack covers AFIP identity, invoicing, banking, and government filings for AI-operated companies under Argentina's proposed art. 14 regime.
 
@@ -253,7 +253,7 @@ Form: https://vercel.com/blog/submit (or DM @vercel team in Discord).
 Project: ar-agents — open infrastructure for Argentina's AI-run companies
 URL: https://ar-agents.ar
 GitHub: https://github.com/ar-agents/ar-agents
-Description: 33 npm packages (221 typed tools) for the Vercel AI SDK 6
+Description: 36 npm packages (235 typed tools) for the Vercel AI SDK 6
 covering what an AI-operated Argentine company needs: identity, payments,
 invoicing, banking, filings, comms, and a forensic audit log. The deepest
 package drops Mercado Pago into your AI agent: 89 typed tools across the

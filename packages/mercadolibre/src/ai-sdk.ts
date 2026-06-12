@@ -73,38 +73,38 @@ export interface MeliToolsOptions {
 }
 
 // ---------------------------------------------------------------------------
-// Default descriptions — written for LLM consumption
+// Default descriptions, written for LLM consumption
 // ---------------------------------------------------------------------------
 
 const DEFAULT_DESCRIPTIONS: Record<MeliToolName, string> = {
   list_my_items:
-    "List the seller's own items. USE THIS WHEN: the agent needs to inventory the seller's catalog or filter by status. Pagination via `scroll_id` is automatic; pass `cursor` if you got one back. Returns `{ ok: true, item_ids, scroll_id?, total }`.",
+    "List the seller's own Mercado Libre listings (mis publicaciones de Mercado Libre). USE THIS WHEN: the agent needs to inventory the seller's catalog or filter by status. Pagination via `scroll_id` is automatic; pass `cursor` if you got one back. Returns `{ ok: true, item_ids, scroll_id?, total }`.",
   get_item:
-    "Fetch a full Item by id (e.g. `MLA1234567890`). USE THIS WHEN: you need the listing's title, price, status, attributes, or pictures. Public endpoint — no seller scope needed. Returns `{ ok: true, item }`.",
+    "Fetch a Mercado Libre listing by id (consultar una publicación; e.g. `MLA1234567890`). USE THIS WHEN: you need the listing's title, price, status, attributes, or pictures. Public endpoint, no seller scope needed. Returns `{ ok: true, item }`.",
   create_item:
-    "Publish a new listing. USE THIS WHEN the seller has decided to publish. Requires title + category_id + price + currency_id + available_quantity + at least one picture. Pair with `categorize_listing_and_plan_attributes` first to fill required attributes. Returns `{ ok: true, item }`.",
+    "Publish a new Mercado Libre listing (publicar un producto en Mercado Libre). USE THIS WHEN the seller has decided to publish. Requires title + category_id + price + currency_id + available_quantity + at least one picture. Pair with `categorize_listing_and_plan_attributes` first to fill required attributes. Returns `{ ok: true, item }`.",
   update_item_price_or_stock:
-    "Update price and/or available_quantity on an existing item. USE THIS WHEN: a stock change or repricing decision has been made. Pass `id` plus any of `price` / `available_quantity` / `status`. Returns `{ ok: true, item }`.",
+    "Update price or stock on a Mercado Libre listing (cambiar precio, actualizar stock). USE THIS WHEN: a stock change or repricing decision has been made. Pass `id` plus any of `price` / `available_quantity` / `status`. Returns `{ ok: true, item }`.",
   categorize_listing_and_plan_attributes:
-    "Predict the MELI category for a listing AND fetch its required attributes. USE THIS BEFORE `create_item`: it returns the canonical category_id, the domain_id, and the list of MAIN attributes the seller MUST fill before publishing (so a downstream agent can either auto-fill or ask the user). Returns `{ ok: true, prediction, requiredAttributeIds, technicalSpecs }`.",
+    "Predict the Mercado Libre category for a listing (predecir categoría) AND fetch its required attributes. USE THIS BEFORE `create_item`: it returns the canonical category_id, the domain_id, and the list of MAIN attributes the seller MUST fill before publishing (so a downstream agent can either auto-fill or ask the user). Returns `{ ok: true, prediction, requiredAttributeIds, technicalSpecs }`.",
   list_unanswered_questions:
-    "List recent unanswered pre-sale questions on this seller's items. USE THIS WHEN: the agent is doing a triage pass. Returns `{ ok: true, questions, total }`. Combine with `classify_question_spam` to filter spam before drafting answers.",
+    "List unanswered Mercado Libre questions (preguntas sin responder) on this seller's items. USE THIS WHEN: the agent is doing a triage pass. Returns `{ ok: true, questions, total }`. Combine with `classify_question_spam` to filter spam before drafting answers.",
   answer_question:
-    "Post an answer to a pre-sale question. USE THIS WHEN: the question is real (not spam) and the agent has drafted a response in the seller's voice. Max 2000 chars. Returns `{ ok: true, answer }`.",
+    "Answer a Mercado Libre pre-sale question (responder una pregunta). USE THIS WHEN: the question is real (not spam) and the agent has drafted a response in the seller's voice. Max 2000 chars. Returns `{ ok: true, answer }`.",
   classify_question_spam:
-    "Score a pre-sale question as spam / borderline / ham using a transparent heuristic. USE THIS BEFORE answering at scale to avoid wasting response time on spam waves. Returns `{ ok: true, label, score, features }`.",
+    "Classify a pre-sale question as spam / borderline / ham (detectar spam en preguntas) using a transparent heuristic. USE THIS BEFORE answering at scale to avoid wasting response time on spam waves. Returns `{ ok: true, label, score, features }`.",
   list_recent_orders:
-    "List the seller's recent orders. USE THIS WHEN: doing a fulfillment audit, billing reconciliation, or building a daily summary. Returns `{ ok: true, orders, total }`.",
+    "List the seller's recent Mercado Libre orders (ventas recientes, listar órdenes). USE THIS WHEN: doing a fulfillment audit, billing reconciliation, or building a daily summary. Returns `{ ok: true, orders, total }`.",
   get_order:
-    "Fetch a single Order by id, including buyer, payments, shipping, items. USE THIS WHEN: investigating a specific order. Returns `{ ok: true, order }`.",
+    "Fetch a Mercado Libre order by id (consultar una venta), including buyer, payments, shipping, items. USE THIS WHEN: investigating a specific order. Returns `{ ok: true, order }`.",
   list_open_claims:
-    "List open claims (reclamos) at the requested mediation stage. USE THIS WHEN: the agent is running a defense pass. Returns `{ ok: true, claims, total }`. Pair with `defend_claim` to upload evidence.",
+    "List open Mercado Libre claims (listar reclamos abiertos) at the requested mediation stage. USE THIS WHEN: the agent is running a defense pass. Returns `{ ok: true, claims, total }`. Pair with `defend_claim` to upload evidence.",
   defend_claim:
-    "Run the 2-day-SLA claim defender flow: upload all evidences in one call (one-shot per spec) and optionally post a closing message. USE THIS WHEN: a claim needs response within the SLA window and the agent has gathered evidence (proof of shipment, invoice, video, etc.). Returns `{ ok: true, claim, uploadedEvidences, messagePosted }`.",
+    "Defend a Mercado Libre claim (defender un reclamo) via the 2-day-SLA flow: upload all evidences in one call (one-shot per spec) and optionally post a closing message. USE THIS WHEN: a claim needs response within the SLA window and the agent has gathered evidence (proof of shipment, invoice, video, etc.). Returns `{ ok: true, claim, uploadedEvidences, messagePosted }`.",
   get_seller_reputation:
-    "Fetch the seller's current reputation snapshot — thermometer color, claim/handling/cancel rates, transactions, status. USE THIS WHEN: dashboarding or before a big-volume action like batch repricing. Returns `{ ok: true, reputation, alerts }` — alerts are pre-evaluated against thermometer thresholds.",
+    "Fetch the seller's Mercado Libre reputation (reputación del vendedor), thermometer color, claim/handling/cancel rates, transactions, status. USE THIS WHEN: dashboarding or before a big-volume action like batch repricing. Returns `{ ok: true, reputation, alerts }`, alerts are pre-evaluated against thermometer thresholds.",
   list_promotion_candidates:
-    "List promotion candidates the seller has been invited to but hasn't opted into yet. USE THIS WHEN: the seller wants to find money-printing opportunities. Returns `{ ok: true, candidates }`. Use `autoOptInPromotions` (programmatic) for bulk opt-in with margin guards.",
+    "List available Mercado Libre promotions (promociones disponibles) the seller has been invited to but hasn't opted into yet. USE THIS WHEN: the seller wants to find money-printing opportunities. Returns `{ ok: true, candidates }`. Use `autoOptInPromotions` (programmatic) for bulk opt-in with margin guards.",
 };
 
 // ---------------------------------------------------------------------------

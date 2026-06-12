@@ -1,0 +1,49 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/bind",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "bind_list_accounts",
+      "description": "List the BIND bank accounts visible to the configured credentials, with balances and CBUs.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "bind_get_movements",
+      "description": "Get the movements (transactions) of a BIND bank account with date filters and pagination.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "bind_get_cbu_owner",
+      "description": "Check who owns a CBU, CVU, or alias before paying.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "bind_create_transfer",
+      "description": "Transfer pesos from a BIND bank account to a CBU, CVU, or alias. Irreversible once completed.",
+      "sideEffects": "irreversible",
+      "idempotent": true,
+      "requiresConfirmation": true
+    },
+    {
+      "name": "bind_create_debin",
+      "description": "Create a DEBIN request to collect pesos from a buyer's account; the buyer approves it on their side.",
+      "sideEffects": "creates resource",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "bind_get_echeqs",
+      "description": "List echeqs (electronic checks) for a BIND account filtered by status and perspective.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    }
+  ]
+}

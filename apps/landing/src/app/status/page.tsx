@@ -123,7 +123,7 @@ function buildChecks(): Check[] {
   // ── Public surfaces ──────────────────────────────────────────────────
   checks.push({
     group: "Public surfaces",
-    name: "/api/discovery (33 packages, 221 tools, 3 hosted endpoints)",
+    name: "/api/discovery (36 packages, 235 tools, 3 hosted endpoints)",
     status: "ok",
     detail: "JSON inventory + OpenAPI 3.1 stub. Auto-discoverable by external agents.",
   });

@@ -6,23 +6,23 @@
   "tools": [
     {
       "name": "mi_argentina_start_login",
-      "description": "Start an OIDC login flow against Mi Argentina. Returns the authorize URL + state/nonce for replay protection."
+      "description": "Begin a Mi Argentina government login (iniciar sesión con Mi Argentina, OIDC). Returns an authorization URL the user must open in a browser, plus the OAuth `state` value the callback will return. SIDE"
     },
     {
       "name": "mi_argentina_complete_login",
-      "description": "Exchange the OIDC code for an ID token + access token. Verifies the JWT signature against the cached JWKS."
+      "description": "Complete a Mi Argentina login (completar el login de Mi Argentina) by exchanging the authorization code for tokens and verifying the ID token. Pass BOTH the `code` and `state` values that arrived in t"
     },
     {
       "name": "mi_argentina_get_user_profile",
-      "description": "Fetch the authenticated user's profile (DNI, name, contact info) from the Mi Argentina userinfo endpoint."
+      "description": "Fetch the Mi Argentina user profile (perfil del usuario de Mi Argentina) via the OIDC userinfo endpoint, given an access token already obtained from `mi_argentina_complete_login`. Returns sub, CUIL, D"
     },
     {
       "name": "mi_argentina_verify_id_token",
-      "description": "Verify an ID token JWT against Mi Argentina's published JWKS. Use to validate identity claims from upstream services."
+      "description": "Verify a Mi Argentina ID token (compact JWT) end-to-end: signature, issuer, audience, expiration. Returns the verified claims when valid; throws when invalid. USE THIS WHEN: you receive an ID token fr"
     },
     {
       "name": "mi_argentina_refresh_token",
-      "description": "Refresh an expired access token using a refresh token. Maintains long-lived sessions without forcing re-login."
+      "description": "Exchange a refresh token for a new access token. Returns a new TokenResponse with refreshed access_token, id_token, and (per provider policy) a possibly-rotated refresh_token. USE THIS WHEN: an access"
     }
   ]
 }

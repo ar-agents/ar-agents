@@ -489,7 +489,7 @@ export default function Home() {
               role={lang === "es" ? "Para developers" : "For developers"}
               body={
                 lang === "es"
-                  ? "33 paquetes npm tipados para Vercel AI SDK 6. Cobrar, validar CUIT, mandar WhatsApp, emitir factura, monitorear el BO."
+                  ? "36 paquetes npm tipados para Vercel AI SDK 6. Cobrar, validar CUIT, mandar WhatsApp, emitir factura, monitorear el BO."
                   : "33 typed npm packages for Vercel AI SDK 6. Charge, validate CUIT, send WhatsApp, emit invoice, monitor the gazette."
               }
               cta={lang === "es" ? "Ver SDK" : "Browse SDK"}
@@ -659,7 +659,7 @@ export default function Home() {
                 {lang === "es" ? "Núcleo abierto · gratis" : "Open core · free"}
               </div>
               <div style={{ fontSize: 17, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>
-                {lang === "es" ? "33 paquetes, 6 RFCs, wizard" : "33 packages, 6 RFCs, wizard"}
+                {lang === "es" ? "36 paquetes, 6 RFCs, wizard" : "36 packages, 6 RFCs, wizard"}
               </div>
               <p style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.5, margin: "0 0 12px" }}>
                 {lang === "es"
@@ -994,8 +994,8 @@ export default function Home() {
             }}
           >
             {lang === "es"
-              ? "89 tools tipadas para Vercel AI SDK 6. Idempotencia determinística, HITL programático en operaciones irreversibles, verificación de webhook HMAC. La pieza más madura del núcleo open-source (33 paquetes), referenciada por el resto del toolkit. "
-              : "89 typed tools for Vercel AI SDK 6. Deterministic idempotency, programmatic HITL on irreversible operations, HMAC webhook verification. The deepest piece of the open-source core (33 packages), referenced by the rest of the toolkit. "}
+              ? "89 tools tipadas para Vercel AI SDK 6. Idempotencia determinística, HITL programático en operaciones irreversibles, verificación de webhook HMAC. La pieza más madura del núcleo open-source (36 paquetes), referenciada por el resto del toolkit. "
+              : "89 typed tools for Vercel AI SDK 6. Deterministic idempotency, programmatic HITL on irreversible operations, HMAC webhook verification. The deepest piece of the open-source core (36 packages), referenced by the rest of the toolkit. "}
             {lang === "es" ? (
               <>
                 El núcleo es gratis; la capa de confianza paga es{" "}

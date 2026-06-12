@@ -19,7 +19,7 @@ export function cnvTools(opts: CnvToolsOptions = {}) {
   return {
     cnv_get_issuer: tool({
       description:
-        "Look up a CNV-registered issuer by their stable code (e.g. 'YPF', 'GGAL', 'TXAR'). Returns denominación, CUIT, categoría, sector classification, and active status. Returns null if no issuer exists with that code.",
+        "Look up a CNV-registered securities issuer (consultar emisora CNV) by their stable code (e.g. 'YPF', 'GGAL', 'TXAR'). Returns denominación, CUIT, categoría, sector classification, and active status. Returns null if no issuer exists with that code.",
       inputSchema: z.object({
         code: z.string().min(1).describe("CNV issuer code, e.g. 'YPF'."),
       }),
@@ -50,7 +50,7 @@ export function cnvTools(opts: CnvToolsOptions = {}) {
 
     cnv_list_financial_statements: tool({
       description:
-        "List financial statements (annual / quarterly / intermediate) filed by an issuer in the CNV AIF. Each entry carries the period end, submitted timestamp, kind, and AIF folder URL.",
+        "List financial statements filed with CNV (estados financieros presentados en CNV): annual / quarterly / intermediate, in the AIF. Each entry carries the period end, submitted timestamp, kind, and AIF folder URL.",
       inputSchema: z.object({
         issuerCode: z.string().min(1).describe("CNV issuer code."),
         limit: z.number().int().min(1).max(100).optional(),

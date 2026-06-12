@@ -3,10 +3,10 @@
  *
  * 4 tools, all read-only:
  *
- *   - `firma_inspect_cert`        — parse one PEM cert, return summary.
- *   - `firma_verify_chain`        — validate a chain anchored at AC-Raíz / ONTI.
- *   - `firma_is_onti_issued`      — quick yes/no for "AR Firma Digital".
- *   - `firma_verify_cms_signature`— verify a detached PKCS#7 over data.
+ *   - `firma_inspect_cert`       , parse one PEM cert, return summary.
+ *   - `firma_verify_chain`       , validate a chain anchored at AC-Raíz / ONTI.
+ *   - `firma_is_onti_issued`     , quick yes/no for "AR Firma Digital".
+ *   - `firma_verify_cms_signature`- verify a detached PKCS#7 over data.
  */
 
 import { tool, type ToolSet } from "ai";
@@ -26,16 +26,16 @@ export interface FirmaDigitalToolsOptions {
 
 const DEFAULT_DESCRIPTIONS: Record<FirmaDigitalToolName, string> = {
   firma_inspect_cert:
-    "Parse a single Argentine Firma Digital X.509 certificate (PEM-encoded) and return its subject, issuer, validity window, CUIT (when embedded), public-key info, and signature algorithm. Detects whether the cert is issued under AR ONTI / AC-Raíz Argentina. USE THIS WHEN: the user pastes a cert and asks 'who is this' or 'is this real'. PURE FUNCTION — no I/O, sub-millisecond.",
+    "Inspect an Argentine Firma Digital X.509 certificate (inspeccionar certificado de firma digital, PEM-encoded) and return its subject, issuer, validity window, CUIT (when embedded), public-key info, and signature algorithm. Detects whether the cert is issued under AR ONTI / AC-Raíz Argentina. USE THIS WHEN: the user pastes a cert and asks 'who is this' or 'is this real'. PURE FUNCTION, no I/O, sub-millisecond.",
 
   firma_verify_chain:
-    "Verify an X.509 cert chain (PEM bundle, leaf → root) — checks issuer-by-subject linking, RSA signatures, validity window. Returns valid/reason + per-cert trace. By default accepts AR-ONTI-looking self-signed roots; pass explicit trust anchors for stricter checks. USE THIS WHEN: the user has a chain and needs to know whether to trust it. DO NOT USE for end-to-end document signature verification — for that use `firma_verify_cms_signature`.",
+    "Verify an X.509 certificate chain (verificar cadena de certificados; PEM bundle, leaf → root), checks issuer-by-subject linking, RSA signatures, validity window. Returns valid/reason + per-cert trace. By default accepts AR-ONTI-looking self-signed roots; pass explicit trust anchors for stricter checks. USE THIS WHEN: the user has a chain and needs to know whether to trust it. DO NOT USE for end-to-end document signature verification, for that use `firma_verify_cms_signature`.",
 
   firma_is_onti_issued:
-    "Quick yes/no: was this PEM cert issued under Argentine Firma Digital (AC-Raíz / ONTI ecosystem)? Heuristic-based on issuer DN attributes. PURE FUNCTION. USE THIS WHEN: triaging incoming signed docs to decide which verification path to take.",
+    "Check if a cert was issued under Argentine Firma Digital (¿es un certificado de firma digital argentina? AC-Raíz / ONTI ecosystem); quick yes/no. Heuristic-based on issuer DN attributes. PURE FUNCTION. USE THIS WHEN: triaging incoming signed docs to decide which verification path to take.",
 
   firma_verify_cms_signature:
-    "Verify a detached PKCS#7 / CMS signature against a payload (e.g., `firma.p7s` produced by an AR signing tool). Returns valid/reason + per-signer info including chain validation. The signature is base64-encoded; the payload is base64-encoded too (binary-safe). USE THIS WHEN: the user wants to know if a signed document is authentic. NOTE: timestamp-token (PAdES-LTV) verification is NOT performed.",
+    "Verify a digitally signed document (verificar firma digital de un documento): detached PKCS#7 / CMS signature against a payload (e.g., `firma.p7s` produced by an AR signing tool). Returns valid/reason + per-signer info including chain validation. The signature is base64-encoded; the payload is base64-encoded too (binary-safe). USE THIS WHEN: the user wants to know if a signed document is authentic. NOTE: timestamp-token (PAdES-LTV) verification is NOT performed.",
 };
 
 export function firmaDigitalTools(options: FirmaDigitalToolsOptions = {}): ToolSet {
@@ -107,7 +107,7 @@ export function firmaDigitalTools(options: FirmaDigitalToolsOptions = {}): ToolS
         signature_b64: z
           .string()
           .describe(
-            "Base64-encoded PKCS#7 / CMS signature (DER or PEM ASCII). For PEM, also accept the raw text — base64 the PEM if needed.",
+            "Base64-encoded PKCS#7 / CMS signature (DER or PEM ASCII). For PEM, also accept the raw text, base64 the PEM if needed.",
           ),
         payload_b64: z.string().describe("Base64-encoded payload bytes the signature was made over."),
         verify_chain: z

@@ -30,7 +30,7 @@ export function aduanaTools(opts: AduanaToolsOptions = {}) {
   return {
     aduana_lookup_despacho: tool({
       description:
-        "Look up an Argentine customs declaration (despacho) by its SUSI, KIM, or OM number. Returns current status (registrado / canalizado_verde / naranja / rojo / libre_disponibilidad / anulado), operation kind, NCM, registration date, and Aduana office. Returns `{found: false}` for unknown numbers — that is not an error, just no record.",
+        "Look up an Argentine customs declaration (consultar despacho aduanero) by its SUSI, KIM, or OM number. Returns current status (registrado / canalizado_verde / naranja / rojo / libre_disponibilidad / anulado), operation kind, NCM, registration date, and Aduana office. Returns `{found: false}` for unknown numbers, that is not an error, just no record.",
       inputSchema: z.object({
         kind: z.enum(["SUSI", "KIM", "OM"]).describe(
           "Identifier type. SUSI is the most common modern format; KIM/OM appear on older declarations.",
@@ -51,7 +51,7 @@ export function aduanaTools(opts: AduanaToolsOptions = {}) {
 
     aduana_lookup_ncm: tool({
       description:
-        "Look up an Argentine NCM tariff code. Returns the official description, whether it is currently in force, and its AEC (Mercosur common external tariff) + DIE (imports tax) percentages when published. Pass the full 8-digit code; partial matches are not yet supported in v0.1.",
+        "Look up an Argentine NCM tariff code (consultar posición arancelaria NCM). Returns the official description, whether it is currently in force, and its AEC (Mercosur common external tariff) + DIE (imports tax) percentages when published. Pass the full 8-digit code; partial matches are not yet supported in v0.1.",
       inputSchema: z.object({
         code: z
           .string()

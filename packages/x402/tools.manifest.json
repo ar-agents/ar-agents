@@ -1,0 +1,28 @@
+{
+  "$schema": "https://agents.md/tools.manifest.schema.json",
+  "package": "@ar-agents/x402",
+  "version": "0.1.0",
+  "tools": [
+    {
+      "name": "x402_get_payment_requirements",
+      "description": "Probe x402 payment requirements for a URL without paying.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "x402_paid_fetch",
+      "description": "Pay for an HTTP 402 resource and fetch it via the x402 protocol.",
+      "sideEffects": "moves money",
+      "idempotent": false,
+      "requiresConfirmation": true
+    },
+    {
+      "name": "x402_verify_payment",
+      "description": "Verify an x402 payment authorization as a seller via the facilitator.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    }
+  ]
+}

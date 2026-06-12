@@ -1,6 +1,6 @@
 # ar-agents
 
-> **Open infrastructure for Argentina's _sociedades de IA_ (AI corporations).** 33 npm packages · 221 typed tools · 6 RFCs · a forensic audit log. Built in Argentina.
+> **Open infrastructure for Argentina's _sociedades de IA_ (AI corporations).** 36 npm packages · 235 typed tools · 6 RFCs · a forensic audit log. Built in Argentina.
 
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ar-agents/ar-agents/badge)](https://scorecard.dev/viewer/?uri=github.com/ar-agents/ar-agents)

@@ -4,24 +4,30 @@
   "tools": [
     {
       "name": "anses_get_cuil_status",
-      "description": "Look up a CUIL's ANSES status.",
-      "input": { "cuil": "11-digit CUIL" },
+      "description": "Look up a CUIL's ANSES status (consultar situación en ANSES), activo / jubilado / pensionado / desempleado_con_subsidio / desempleado_sin_subsidio / inactivo / fallecido. Returns last-reported employe",
+      "input": {
+        "cuil": "11-digit CUIL"
+      },
       "returns": "CuilStatusResult",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     },
     {
       "name": "anses_get_family_allowances",
-      "description": "List family-allowance entitlements for a CUIL.",
-      "input": { "cuil": "11-digit CUIL" },
+      "description": "List family-allowance entitlements ANSES has on file for a CUIL (asignaciones familiares): AUH (per-child), AUE (pregnancy), SUAF (formal workers), Pensión No Contributiva, Tarjeta Alimentar. Each ent",
+      "input": {
+        "cuil": "11-digit CUIL"
+      },
       "returns": "FamilyAllowanceEntitlement[]",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     },
     {
       "name": "anses_get_minimo_jubilatorio",
-      "description": "Haber mínimo jubilatorio for a YYYY-MM period.",
-      "input": { "period": "YYYY-MM" },
+      "description": "Look up the haber mínimo jubilatorio (minimum monthly pension) for a given period, returned in ARS centavos. Use to compare against an actual jubilación amount or to populate compliance UIs.",
+      "input": {
+        "period": "YYYY-MM"
+      },
       "returns": "MinimoJubilatorioRecord | null",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false

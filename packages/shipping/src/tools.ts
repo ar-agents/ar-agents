@@ -43,22 +43,22 @@ export type ShippingToolName =
 
 const DEFAULT_DESCRIPTIONS: Record<ShippingToolName, string> = {
   cotizar_envio:
-    "Cotizar el costo de un envío vía un carrier específico (Andreani, OCA, o Correo Argentino). Pasá origen + destino + paquetes (peso + dimensiones + valor declarado) y servicio (standard, express, same_day). Returns { carrier, costArs, estimatedDaysMin, estimatedDaysMax, productId }. USE WHEN el usuario quiere el precio de UN carrier conocido. Para comparar entre carriers, usá cotizar_envio_todos.",
+    "Quote the shipping cost with one carrier (cotizar un envío) (Andreani, OCA, o Correo Argentino). Pasá origen + destino + paquetes (peso + dimensiones + valor declarado) y servicio (standard, express, same_day). Returns { carrier, costArs, estimatedDaysMin, estimatedDaysMax, productId }. USE WHEN el usuario quiere el precio de UN carrier conocido. Para comparar entre carriers, usá cotizar_envio_todos.",
 
   cotizar_envio_todos:
-    "Cotizar un envío en TODOS los carriers configurados en paralelo. Returns { quotes: QuoteOption[] } ordenado por costo (más barato primero). USE WHEN el usuario dice 'cuál es el envío más barato' o 'compará Andreani vs OCA vs Correo'. Si un carrier falla individualmente, los otros igual responden — el campo error en cada quote indica si falló.",
+    "Compare shipping quotes across ALL configured carriers in parallel (cotizar envío en todos los carriers). Returns { quotes: QuoteOption[] } ordenado por costo (más barato primero). USE WHEN el usuario dice 'cuál es el envío más barato' o 'compará Andreani vs OCA vs Correo'. Si un carrier falla individualmente, los otros igual responden, el campo error en cada quote indica si falló.",
 
   crear_envio:
-    "Crear un envío real con un carrier. RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier — confirma con el usuario antes si el monto es alto (>$10k declared value). Para Andreani, requiere productId del cotizador previo si querés bloquear el precio. Usá `externalReference` para reconciliar con tu order id.",
+    "Create a real shipment and get a tracking number + label (crear un envío). RETURNS un trackingNumber + labelUrl + costo. SIDE EFFECT: el envío queda registrado en el sistema del carrier, confirma con el usuario antes si el monto es alto (>$10k declared value). Para Andreani, requiere productId del cotizador previo si querés bloquear el precio. Usá `externalReference` para reconciliar con tu order id.",
 
   trackear_envio:
-    "Consultar el estado actual de un envío vía su trackingNumber. Returns { currentStatus, events[], deliveredAt? }. currentStatus normalizado a uno de: label_created, in_transit, out_for_delivery, delivered, delivery_failed, returned, canceled, exception, unknown. SURFACE los `events` al usuario en orden cronológico — muestran el detalle del recorrido.",
+    "Track a shipment by tracking number (trackear un envío, dónde está mi paquete). Returns { currentStatus, events[], deliveredAt? }. currentStatus normalizado a uno de: label_created, in_transit, out_for_delivery, delivered, delivery_failed, returned, canceled, exception, unknown. SURFACE los `events` al usuario en orden cronológico, muestran el detalle del recorrido.",
 
   cancelar_envio:
-    "Cancelar un envío que aún no salió a reparto. Returns { canceled: bool, reason? }. Si canceled=false, surface reason verbatim al usuario (típicamente 'ya está en reparto' o 'el carrier no soporta cancelación post-pickup'). Para envíos ya entregados, NO se puede cancelar — el usuario tiene que coordinar una devolución manual.",
+    "Cancel a shipment that has not gone out for delivery (cancelar un envío). Returns { canceled: bool, reason? }. Si canceled=false, surface reason verbatim al usuario (típicamente 'ya está en reparto' o 'el carrier no soporta cancelación post-pickup'). Para envíos ya entregados, NO se puede cancelar, el usuario tiene que coordinar una devolución manual.",
 
   listar_sucursales:
-    "Listar las sucursales / centros de despacho de un carrier cerca de un Código Postal Argentino (CPA). Returns array con id, name, address, openingHours, distanceKm cuando disponible. USE WHEN el usuario quiere despachar el envío en sucursal en lugar de retiro a domicilio, o cuando necesita un punto Pickup para que el destinatario retire.",
+    "List carrier branch offices near a postal code (listar sucursales de un carrier) cerca de un Código Postal Argentino (CPA). Returns array con id, name, address, openingHours, distanceKm cuando disponible. USE WHEN el usuario quiere despachar el envío en sucursal en lugar de retiro a domicilio, o cuando necesita un punto Pickup para que el destinatario retire.",
 };
 
 export function shippingTools(options: ShippingToolsOptions = {}): ToolSet {
@@ -110,7 +110,7 @@ export function shippingTools(options: ShippingToolsOptions = {}): ToolSet {
     name: z.string().min(1).max(120).describe("Recipient or sender full name. Required."),
     company: z.string().max(120).optional().describe("Company name if delivering to a business."),
     street: z.string().min(1).max(200).describe("Street name."),
-    number: z.string().min(1).max(20).describe("Street number (string — supports 's/n', '1234A', etc.)."),
+    number: z.string().min(1).max(20).describe("Street number (string, supports 's/n', '1234A', etc.)."),
     unit: z.string().max(40).optional().describe("Apt/floor (e.g. '4°B', 'PB')."),
     city: z.string().min(1).max(120).describe("City / locality."),
     state: z
@@ -327,7 +327,7 @@ export function shippingTools(options: ShippingToolsOptions = {}): ToolSet {
           .string()
           .min(4)
           .max(8)
-          .describe("AR CPA — 4 digits or extended ('B1842ZAB')."),
+          .describe("AR CPA, 4 digits or extended ('B1842ZAB')."),
         limit: z.number().int().min(1).max(50).optional(),
       }),
       execute: async ({ carrier, postal_code, limit }) => {

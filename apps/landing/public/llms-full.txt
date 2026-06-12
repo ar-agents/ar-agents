@@ -1,6 +1,6 @@
 # ar-agents, full reference for LLM crawlers
 
-> Open infrastructure for Argentina's sociedades de IA (AI-operated companies, Anteproyecto de Ley General de Sociedades art. 14, in the Senate since 1-jun-2026, not yet law), with a deep Mercado Pago toolkit as the technical flagship. 6 RFCs (001-006) with frozen test vectors + public certifier + RFC-005 dual-signing live in production. 33 npm packages, 221 typed tools, 30 cookbook recipes, 5 sociedades on /registro all scoring 100/100 Rating A. Paid trust layer: El Auditor (hosted proof-of-autonomy, USD 199/mo) at /precios, machine-readable contract at GET /api/auditor/subscribe.
+> Open infrastructure for Argentina's sociedades de IA (AI-operated companies, Anteproyecto de Ley General de Sociedades art. 14, in the Senate since 1-jun-2026, not yet law), with a deep Mercado Pago toolkit as the technical flagship. 6 RFCs (001-006) with frozen test vectors + public certifier + RFC-005 dual-signing live in production. 36 npm packages, 235 typed tools, 30 cookbook recipes, 5 sociedades on /registro all scoring 100/100 Rating A. Paid trust layer: El Auditor (hosted proof-of-autonomy, USD 199/mo) at /precios, machine-readable contract at GET /api/auditor/subscribe.
 
 This file is `llms-full.txt`, an extension of [`llms.txt`](/llms.txt) per the [llmstxt.org](https://llmstxt.org) spec. Where `llms.txt` is a short index, `llms-full.txt` carries the deep content an LLM needs to answer questions about the project without re-crawling.
 

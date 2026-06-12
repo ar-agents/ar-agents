@@ -110,7 +110,7 @@ const PACKAGE_GRAPH = `flowchart LR
 export const metadata: Metadata = {
   title: "Architecture",
   description:
-    "Canonical reference for the @ar-agents/* stack: 33 packages, 221 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
+    "Canonical reference for the @ar-agents/* stack: 36 packages, 235 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
   alternates: { canonical: "https://ar-agents.ar/architecture" },
 };
 
@@ -182,6 +182,30 @@ const PACKAGES: PackageRow[] = [
     category: "payments",
     external: "api.mercadolibre.com",
     notes: "First faithful TS SDK since the official one was archived in 2022. Items + catalog + questions/messages + claims + shipments + reputation + promotions + webhooks with /missed_feeds replay.",
+  },
+  {
+    name: "@ar-agents/x402",
+    version: "0.1.0",
+    tools: 3,
+    category: "payments",
+    external: "x402 facilitators (Coinbase CDP, Cloudflare)",
+    notes: "HTTP 402 agent payments: pay-enabled fetch, requirements probe, seller-side verify. Pluggable signer.",
+  },
+  {
+    name: "@ar-agents/bind",
+    version: "0.1.0",
+    tools: 6,
+    category: "payments",
+    external: "BIND APIBANK (Banco Industrial BaaS)",
+    notes: "Bank transfers, DEBIN, echeq, movements, CBU/CVU ownership. HITL on transfers.",
+  },
+  {
+    name: "@ar-agents/fecred",
+    version: "0.1.0",
+    tools: 5,
+    category: "fiscal",
+    external: "AFIP/ARCA WSFECred",
+    notes: "Factura de Credito Electronica MiPyME: obligation check, list received, accept/reject (HITL).",
   },
   {
     name: "@ar-agents/banking",
@@ -297,6 +321,9 @@ const MATURITY: Record<string, Maturity> = {
   "@ar-agents/gde-tad": "preview",
   "@ar-agents/mercadopago": "live",
   "@ar-agents/mercadolibre": "live",
+  "@ar-agents/x402": "live",
+  "@ar-agents/bind": "adapter",
+  "@ar-agents/fecred": "adapter",
   "@ar-agents/banking": "adapter",
   "@ar-agents/facturacion": "adapter",
   "@ar-agents/igj": "adapter",
@@ -338,9 +365,9 @@ function MaturityBadge({ name }: { name: string }) {
 
 // Canonical totals (match /api/discovery, agents.json, every other surface).
 // The grid below diagrams the core packages by category; the full set is the
-// 33 published packages / 221 tools.
-const PUBLISHED_PACKAGES = 33;
-const CANONICAL_TOOLS = 221;
+// 33 published packages / 235 tools.
+const PUBLISHED_PACKAGES = 36;
+const CANONICAL_TOOLS = 235;
 const CORE_SHOWN = PACKAGES.length;
 
 export default function ArchitecturePage() {
@@ -367,7 +394,7 @@ export default function ArchitecturePage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>The 33 packages</DocH2>
+      <DocH2>The 36 packages</DocH2>
 
       <DocP>
         The {CORE_SHOWN} core packages are diagrammed below by category; the full

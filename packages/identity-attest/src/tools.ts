@@ -22,15 +22,15 @@ type ToolName =
 
 const DEFAULT_DESCRIPTIONS: Record<ToolName, string> = {
   request_identity_verification:
-    "Start a verification flow to prove the user controls a phone, email, or other identity asset. Returns a request_id you'll use to check status, plus a verification_url (for magic-link flows) or instructions to ask the user for the OTP code (for OTP flows). Pick the method based on trust requirements: 'whatsapp_otp' (trust 0.3, fastest), 'email_magic_link' (trust 0.5, more friction). Use list_verification_methods to see what's registered.",
+    "Start an identity verification flow (verificar identidad, enviar código de verificación) to prove the user controls a phone, email, or other identity asset. Returns a request_id you'll use to check status, plus a verification_url (for magic-link flows) or instructions to ask the user for the OTP code (for OTP flows). Pick the method based on trust requirements: 'whatsapp_otp' (trust 0.3, fastest), 'email_magic_link' (trust 0.5, more friction). Use list_verification_methods to see what's registered.",
   submit_otp_code:
-    "Submit the OTP code the user dictated back to you (after they received it via WhatsApp/SMS/Email). Returns the signed attestation if correct, throws InvalidOtpCodeError if wrong (with attempts remaining), or TooManyAttemptsError if exhausted. The user typically dictates the code aloud or types it in chat — extract just the digits.",
+    "Submit the OTP verification code (ingresar código de verificación) the user dictated back to you (after they received it via WhatsApp/SMS/Email). Returns the signed attestation if correct, throws InvalidOtpCodeError if wrong (with attempts remaining), or TooManyAttemptsError if exhausted. The user typically dictates the code aloud or types it in chat, extract just the digits.",
   check_verification_status:
-    "Check whether a verification is still pending, completed, expired, or failed. Use this between user turns when waiting for the user to click a magic link.",
+    "Check verification status (estado de la verificación): pending, completed, expired, or failed. Use this between user turns when waiting for the user to click a magic link.",
   get_attestation:
-    "Fetch the signed attestation for a completed verification. Returns null if not yet verified. The attestation includes trust_level (0-1), method, subject, claims, and a signature you can persist for audit.",
+    "Fetch the signed attestation for a completed verification (obtener la atestación firmada). Returns null if not yet verified. The attestation includes trust_level (0-1), method, subject, claims, and a signature you can persist for audit.",
   list_verification_methods:
-    "List all verification methods the host app has registered (with trust levels). Use to know what options are available before calling request_identity_verification.",
+    "List available verification methods (métodos de verificación disponibles) the host app has registered (with trust levels). Use to know what options are available before calling request_identity_verification.",
 };
 
 /**
@@ -112,8 +112,8 @@ export function identityAttestTools(
           expires_at: request.expiresAt,
           verification_url: request.verificationUrl,
           next_step: request.verificationUrl
-            ? `Tell the user: 'Te mandé un mail con un link para confirmar — hacé click ahí.' Then poll check_verification_status until it returns 'verified'.`
-            : `Tell the user: 'Te mandé un código por WhatsApp — pasámelo cuando lo recibas.' When they reply with the code, call submit_otp_code with the request_id and the code.`,
+            ? `Tell the user: 'Te mandé un mail con un link para confirmar, hacé click ahí.' Then poll check_verification_status until it returns 'verified'.`
+            : `Tell the user: 'Te mandé un código por WhatsApp, pasámelo cuando lo recibas.' When they reply with the code, call submit_otp_code with the request_id and the code.`,
         };
       },
     }),
@@ -193,10 +193,10 @@ export function identityAttestTools(
 }
 
 function trustDescription(level: number): string {
-  if (level >= 0.95) return "gov-verified — official identity (highest)";
-  if (level >= 0.85) return "KYC-verified — fintech-grade identity check";
-  if (level >= 0.7) return "federated identity — IdP account verified";
-  if (level >= 0.5) return "email-owned — controls an email";
-  if (level >= 0.3) return "phone-owned — controls a phone number";
+  if (level >= 0.95) return "gov-verified, official identity (highest)";
+  if (level >= 0.85) return "KYC-verified, fintech-grade identity check";
+  if (level >= 0.7) return "federated identity, IdP account verified";
+  if (level >= 0.5) return "email-owned, controls an email";
+  if (level >= 0.3) return "phone-owned, controls a phone number";
   return "low confidence";
 }
