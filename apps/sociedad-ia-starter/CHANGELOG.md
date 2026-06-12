@@ -1,5 +1,14 @@
 # sociedad-ia-starter
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/gde-tad@0.3.1
+  - @ar-agents/igj@0.2.1
+  - @ar-agents/mercadopago@0.18.1
+
 ## 0.1.4
 
 ### Patch Changes

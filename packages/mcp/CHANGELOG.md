@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.10.5
+
+### Patch Changes
+
+- Vision mega-update: package descriptions aligned to the canonical framing (open infrastructure for Argentina's sociedades de IA), em dashes removed, mcp bundles 13 packages, incorporate points to ar-agents.ar.
+
+- Updated dependencies []:
+  - @ar-agents/firma-digital@0.2.1
+  - @ar-agents/gde-tad@0.3.1
+  - @ar-agents/identity-attest@0.5.1
+  - @ar-agents/igj@0.2.1
+  - @ar-agents/mercadopago@0.18.1
+  - @ar-agents/mi-argentina@0.2.1
+  - @ar-agents/shipping@0.3.1
+
 ## 0.10.4
 
 ### Patch Changes

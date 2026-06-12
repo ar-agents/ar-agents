@@ -1,5 +1,11 @@
 # @ar-agents/shipping
 
+## 0.3.1
+
+### Patch Changes
+
+- Vision mega-update: package descriptions aligned to the canonical framing (open infrastructure for Argentina's sociedades de IA), em dashes removed, mcp bundles 13 packages, incorporate points to ar-agents.ar.
+
 ## 0.3.0
 
 ### Minor Changes
