@@ -20,7 +20,7 @@ narrativa ya está siendo escrita desde arriba; lo que falta es la capa
 técnica que hace que esas sociedades — y cualquier developer argentino
 construyendo agentes — puedan operar contra el Estado.
 
-En esta charla muestro `/arg`, una colección de 11 packages npm
+En esta charla muestro ar-agents, una colección de 33 packages npm (221 herramientas)
 open-source que cubre AFIP/ARCA, Mercado Pago, WhatsApp, BCRA, Boletín
 Oficial, IGJ, Firma Digital, Mi Argentina y RENAPER-bypass — todo como
 tools del Vercel AI SDK 6, todo Edge-Runtime-compatible, todo MIT.
@@ -32,7 +32,7 @@ segundos de ejecución de agente.
 **Audiencia ideal:** Developers AR, civic-tech, regtech, fintech.
 
 **Take-aways:**
-- Cómo está estructurado el stack /arg.
+- Cómo está estructurado el stack ar-agents.
 - El gap político y por qué la ventana es ahora.
 - Cómo contribuir.
 
@@ -54,7 +54,7 @@ schemas Zod tipados, manifests machine-readable, Web Crypto en lugar de
 node:crypto — son todos decisiones de ingeniería que se repiten paquete
 a paquete.
 
-Esta charla disecciona cómo `/arg` resuelve estos patrones en 11
+Esta charla disecciona cómo ar-agents resuelve estos patrones en 33
 packages npm open-source enfocados en integraciones argentinas (AFIP,
 MercadoPago, WhatsApp, BCRA, Boletín Oficial, Firma Digital, etc.).
 Vamos a ver:
@@ -91,8 +91,8 @@ Mercado Pago, WhatsApp, identity providers, the Boletín Oficial — does
 not exist. There is no "gov.br auth + Pix + Open Finance" equivalent in
 Argentina.
 
-This talk shows `/arg`: a Vercel-native, MIT-licensed npm scope that
-fills that gap. 11 packages, all built on Vercel AI SDK 6, all
+This talk shows ar-agents: a Vercel-native, MIT-licensed npm scope that
+fills that gap. 33 packages (221 typed tools), all built on Vercel AI SDK 6, all
 Edge-Runtime-compatible, all MCP-native. The talk frames the strategic
 positioning (open + civilian, distinct from the SIDE/Palantir track)
 and walks the technical decisions that make Vercel the right platform
@@ -101,7 +101,7 @@ for this kind of public-sector dev infrastructure.
 **Audience:** Vercel customers, LATAM dev leadership, gov-tech.
 
 **Hook line:** "If India has India Stack and Brazil has gov.br, what
-does Argentina have? Today nothing. Next year, /arg."
+does Argentina have? Today nothing. Next year, ar-agents."
 
 ---
 
@@ -117,7 +117,7 @@ does Argentina have? Today nothing. Next year, /arg."
 
 **Nazareno Clemente** is an Argentine independent developer building
 the open infrastructure stack for AI agents in Argentina. Author of
-the `/arg` toolkit (`@ar-agents/*` on npm), fiscally registered as a
+the ar-agents toolkit (`@ar-agents/*` on npm), fiscally registered as a
 monotributista en CABA, currently based in Spain. Previously: built
 Astro (astro.ar), Publi (publi.ar). Twitter: @nazaclemente. GitHub:
 @naza00000.

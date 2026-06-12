@@ -2,7 +2,7 @@
   "name": "ar-agents-demo-video",
   "version": "0.1.0",
   "private": true,
-  "description": "Remotion-built demo video for /arg — sociedad-IA en producción.",
+  "description": "Remotion-built demo video for ar-agents: sociedad-IA en producción.",
   "scripts": {
     "build": "remotion render src/index.ts SociedadIaDemo out/demo.mp4 --codec h264 --pixel-format yuv420p",
     "build-fast": "remotion render src/index.ts SociedadIaDemo out/demo-fast.mp4 --concurrency 4 --codec h264 --pixel-format yuv420p",
