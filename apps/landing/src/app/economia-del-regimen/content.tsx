@@ -57,8 +57,10 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             <>
               <strong>Tesis central.</strong> Bien estructurado, el régimen
               puede hacer de Argentina la opción más competitiva del mundo
-              para incorporar una sociedad-IA. Con la estructura
-              recomendada, una ventana de incubación de 24 meses construye
+              para incorporar una sociedad-IA (nombre legal en el
+              anteproyecto: <em>Sociedad Automatizada</em>, art. 14). Con la
+              estructura recomendada, una ventana de incubación de 24 meses
+              construye
               la base de adopción que lleva la recaudación fiscal directa a
               un <strong>run-rate de USD 1.000 millones+ anuales</strong>. La
               página tiene tres partes: comparación contra las
@@ -70,8 +72,10 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             <>
               <strong>Central thesis.</strong> Structured well, the regime
               can make Argentina the world's most competitive jurisdiction
-              to incorporate an AI corporation. With the recommended
-              structure, a 24-month incubation window builds the adoption
+              to incorporate an AI corporation (legal name in the draft
+              bill: <em>Sociedad Automatizada</em>, art. 14). With the
+              recommended structure, a 24-month incubation window builds the
+              adoption
               base that takes direct fiscal revenue to a{" "}
               <strong>USD 1 billion+ annual run-rate</strong>. The page has
               three parts: comparison against competing jurisdictions,
@@ -1176,23 +1180,25 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>¿Por qué Argentina y no Uruguay/Chile/Paraguay?</strong>{" "}
-                Argentina es el único país hoy con un régimen
-                explícitamente propuesto para sociedades-IA (anuncio
-                Sturzenegger del 28-abr-2026). Uruguay tiene zona
-                franca pero menor escala. Chile y Paraguay no
+                Argentina es el único país hoy con un texto concreto para
+                sociedades-IA: anuncio Sturzenegger del 28-abr-2026 y
+                anteproyecto de Ley General de Sociedades firmado el
+                28-may-2026, en el Senado desde el 1-jun-2026. Uruguay tiene
+                zona franca pero menor escala. Chile y Paraguay no
                 propusieron nada equivalente. El primer país que
-                ratifique el régimen ratifica el estándar internacional.
+                sancione el régimen ratifica el estándar internacional.
               </>
             }
             en={
               <>
                 <strong>Why Argentina and not Uruguay/Chile/Paraguay?</strong>{" "}
-                Argentina is the only country today with an explicitly
-                proposed AI-corp regime (Sturzenegger announcement of
-                April 28, 2026). Uruguay has free-trade-zone setups but
-                smaller scale. Chile and Paraguay have proposed nothing
-                equivalent. The first country to ratify the regime
-                ratifies the international standard.
+                Argentina is the only country today with concrete text for
+                AI-corps: the Sturzenegger announcement of April 28, 2026
+                and a General Companies Law draft bill signed May 28, 2026,
+                in the Senate since June 1, 2026. Uruguay has
+                free-trade-zone setups but smaller scale. Chile and Paraguay
+                have proposed nothing equivalent. The first country to
+                enact the regime ratifies the international standard.
               </>
             }
           />

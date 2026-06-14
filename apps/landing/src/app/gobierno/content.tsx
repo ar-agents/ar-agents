@@ -193,11 +193,13 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <strong>36 paquetes npm</strong> bajo{" "}
                 <DocCode>@ar-agents/*</DocCode> con licencia MIT. Cubren
                 16 de las 17 piezas operativas que una sociedad-IA
-                argentina necesita para operar end-to-end (identidad /
-                firma / dinero / operación al cliente / monitoreo del BO
-                / registro corporativo). La pieza que falta (alta de
-                aplicación cliente en TAD/GDE) requiere autorización
-                gubernamental y no tiene proceso público.
+                argentina (nombre legal en el anteproyecto:{" "}
+                <em>Sociedad Automatizada</em>, art. 14) necesita para
+                operar end-to-end (identidad / firma / dinero / operación
+                al cliente / monitoreo del BO / registro corporativo). La
+                pieza que falta (alta de aplicación cliente en TAD/GDE)
+                requiere autorización gubernamental y no tiene proceso
+                público.
               </>
             }
             en={
@@ -205,11 +207,12 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <strong>36 npm packages</strong> under{" "}
                 <DocCode>@ar-agents/*</DocCode> with MIT license. They
                 cover 16 of the 17 operational pieces an Argentine
-                AI corporation needs to operate end-to-end (identity /
-                signing / money / customer ops / Official Gazette
-                monitoring / corporate registry). The missing piece
-                (registering a client app on TAD/GDE) requires
-                government authorization with no public process.
+                AI corporation (legal name in the draft bill:{" "}
+                <em>Sociedad Automatizada</em>, art. 14) needs to operate
+                end-to-end (identity / signing / money / customer ops /
+                Official Gazette monitoring / corporate registry). The
+                missing piece (registering a client app on TAD/GDE)
+                requires government authorization with no public process.
               </>
             }
           />
@@ -677,9 +680,9 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                   /registro
                 </Link>{" "}
                 lo dice: muestra la implementación de referencia + 4
-                demos del autor, no un ecosistema. La ley todavía no
-                existe; los operadores reales aparecen cuando aparezca el
-                régimen.
+                demos del autor, no un ecosistema. El régimen todavía no
+                es ley (el anteproyecto está en el Senado); los operadores
+                reales aparecen cuando se sancione.
               </>
             }
             en={
@@ -692,8 +695,9 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                   /registry
                 </Link>{" "}
                 says so: it shows the reference implementation + 4 demos
-                by the author, not an ecosystem. The law doesn't exist
-                yet; real operators appear when the regime appears.
+                by the author, not an ecosystem. The regime is not law
+                yet (the draft bill is in the Senate); real operators
+                appear once it is enacted.
               </>
             }
           />
@@ -750,10 +754,11 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <strong>
                   Conciencia técnica del equipo del Ministro
                 </strong>{" "}
-                de que la implementación de referencia existe, antes de
-                que el articulado se redacte. Evita supuestos técnicos
-                contradictorios con el stack que ya funciona. Cero
-                compromiso.
+                de que la implementación de referencia existe, mientras el
+                anteproyecto se debate en el Senado. Evita supuestos
+                técnicos contradictorios con el stack que ya funciona, y
+                ayuda a afinar la reglamentación que los arts. 263-264
+                dejan pendiente. Cero compromiso.
               </>
             }
             en={
@@ -761,9 +766,11 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <strong>
                   Awareness on the Minister's team
                 </strong>{" "}
-                that the reference implementation exists, before the
-                articulado is drafted. Avoids technical assumptions that
-                contradict the stack that already works. Zero commitment.
+                that the reference implementation exists, while the draft
+                bill is debated in the Senate. Avoids technical assumptions
+                that contradict the stack that already works, and helps
+                refine the regulation that arts. 263-264 leave pending.
+                Zero commitment.
               </>
             }
           />
@@ -854,15 +861,15 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
       <DocH2>
         <L
           lang={lang}
-          es="7 · Por qué necesito que circule esto antes que la redacción de la ley"
-          en="7 · Why I need this to circulate before the bill is drafted"
+          es="7 · Por qué necesito que circule esto durante el debate en el Senado"
+          en="7 · Why I need this to circulate during the Senate debate"
         />
       </DocH2>
       <DocP>
         <L
           lang={lang}
-          es="Una ley redactada sin input técnico tiende a fijar definiciones que después complican la implementación: estándares criptográficos obsoletos, asunciones sobre identidad digital que chocan con OIDC/PKCE, requisitos de retención que ignoran cómo funciona realmente un audit log append-only. Los 6 RFCs cubren esas decisiones desde el lado del código. Si llegamos antes que el draft del articulado, evitamos errores costosos de revertir después; si llegamos después, los errores se cristalizan."
-          en="A bill drafted without technical input tends to fix definitions that later complicate implementation: obsolete cryptographic standards, digital-identity assumptions that clash with OIDC/PKCE, retention requirements that ignore how an append-only audit log actually works. The 6 RFCs cover those decisions from the code side. If we get there before the articulado draft, we avoid costly reversals; if we arrive after, the errors crystallize."
+          es="Una ley sancionada sin input técnico tiende a fijar definiciones que después complican la implementación: estándares criptográficos obsoletos, asunciones sobre identidad digital que chocan con OIDC/PKCE, requisitos de retención que ignoran cómo funciona realmente un audit log append-only. El anteproyecto ya tiene texto y está en el Senado; los 6 RFCs cubren esas decisiones desde el lado del código y pueden afinar la reglamentación pendiente (arts. 263-264). Si llegamos durante el debate, evitamos errores costosos de revertir después; si llegamos después de la sanción, los errores se cristalizan."
+          en="A bill enacted without technical input tends to fix definitions that later complicate implementation: obsolete cryptographic standards, digital-identity assumptions that clash with OIDC/PKCE, retention requirements that ignore how an append-only audit log actually works. The draft bill already has text and is in the Senate; the 6 RFCs cover those decisions from the code side and can refine the pending regulation (arts. 263-264). If we get there during the debate, we avoid costly reversals; if we arrive after enactment, the errors crystallize."
         />
       </DocP>
       <DocP>

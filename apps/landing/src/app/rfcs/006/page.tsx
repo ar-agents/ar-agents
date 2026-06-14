@@ -76,8 +76,11 @@ export default function Rfc006Page() {
         RFC-004 §4 specifies an append-only, per-entry HMAC-signed log and, in
         §11, explicitly leaves open whether stores that allow random-access
         overwrite need a Merkle-chain to give the same guarantee, plus
-        anti-equivocation. A sociedad-IA handling real value wants strictly
-        more than per-entry tamper-evidence:
+        anti-equivocation. A sociedad-IA (umbrella nickname; the legal figure
+        is the Sociedad Automatizada, art. 14 of the Anteproyecto de Ley
+        General de Sociedades, whose art. 263 requires publicly-verifiable
+        digital records) handling real value wants strictly more than
+        per-entry tamper-evidence:
       </DocP>
       <ul style={listStyle}>
         <Li>

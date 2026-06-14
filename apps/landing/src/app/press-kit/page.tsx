@@ -16,7 +16,7 @@ const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
   { label: "Autor", value: "Nazareno Clemente, 26 años, monotributista, Buenos Aires." },
   { label: "Licencia", value: "MIT, copy, fork, comercializar permitido." },
   { label: "Origen", value: "Build privado iniciado nov 2025; npm pública desde may 2026." },
-  { label: "Estado régimen", value: "Anuncio Sturzenegger 28-abr-2026; ley estimada H1 2027." },
+  { label: "Estado régimen", value: "Anuncio 28-abr-2026; anteproyecto firmado 28-may-2026, en el Senado; todavía no es ley." },
   { label: "Alcance funcional", value: "16 de las 17 piezas (TAD escritura sigue rolling out)." },
   { label: "Filosofía", value: "Edge-Runtime first, Web Crypto only, AbortSignal everywhere." },
 ];

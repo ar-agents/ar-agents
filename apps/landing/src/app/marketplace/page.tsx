@@ -375,9 +375,11 @@ export default function MarketplacePage() {
         corporate registry, BCRA credit history, digital signature
         verification, Boletín Oficial monitoring, ACP-with-factura, has been
         un-or-poorly served until now. The toolkit&apos;s thesis is that the
-        agent jurisdiction Argentina is shaping (sociedades-IA bill, April
-        2026) needs that hard half answered first, before any of the headline
-        marketing about agent corporations becomes meaningful in practice.
+        agent jurisdiction Argentina is shaping (the Anteproyecto de Ley
+        General de Sociedades, which creates the Sociedad Automatizada in
+        art. 14, text dated 28-may-2026 and in the Senate, not yet law) needs
+        that hard half answered first, before any of the headline marketing
+        about agent corporations becomes meaningful in practice.
       </DocP>
 
       <DocH2>How to verify</DocH2>

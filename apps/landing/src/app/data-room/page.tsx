@@ -393,9 +393,9 @@ export default async function DataRoomPage() {
           href="/.well-known/agents.json"
         />
         <Metric
-          label="RFC drafts"
-          value="3"
-          sub="RFC-001 / RFC-002 / RFC-003"
+          label="RFCs"
+          value="6"
+          sub="RFC-001 … RFC-006"
           href="/rfcs/001"
         />
       </div>

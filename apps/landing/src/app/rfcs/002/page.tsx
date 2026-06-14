@@ -262,9 +262,10 @@ export default function Rfc002Page() {
       <ul style={listStyle}>
         <Li>
           <strong>Agent-economy entities are becoming corporate</strong>{" "}
-          (sociedad-IA in AR, MIDAO in Marshall Islands, Wyoming DAO LLC,
-          etc.). They consume services like humans do, but at machine
-          frequency.
+          (sociedad-IA in AR, legally the Sociedad Automatizada under art. 14
+          of the Anteproyecto de Ley General de Sociedades; MIDAO in Marshall
+          Islands; Wyoming DAO LLC, etc.). They consume services like humans
+          do, but at machine frequency.
         </Li>
         <Li>
           <strong>Per-vendor SDK installs don&apos;t scale</strong>. An

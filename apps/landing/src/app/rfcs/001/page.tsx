@@ -40,10 +40,12 @@ export default function Rfc001Page() {
 
       <DocH2>1. Problem statement</DocH2>
       <DocP>
-        Una <DocCode>sociedad de IA</DocCode> creada bajo el régimen
-        propuesto por Sturzenegger necesita resolver, sin un humano en el
-        ciclo, los mismos cuatro problemas que cualquier persona jurídica
-        argentina:
+        Una <DocCode>sociedad de IA</DocCode> (nombre legal:{" "}
+        <strong>Sociedad Automatizada</strong>, art. 14 del Anteproyecto de
+        Ley General de Sociedades; texto firmado 28-may-2026, en el Senado
+        desde el 1-jun-2026, todavía no es ley) necesita resolver, sin un
+        humano en el ciclo operativo ordinario, los mismos cuatro problemas
+        que cualquier persona jurídica argentina:
       </DocP>
       <DocP>
         <strong>(a) Identidad</strong>: probar al Estado quién es.
@@ -70,8 +72,9 @@ export default function Rfc001Page() {
         <strong>2.1</strong> La sociedad IA recibe un CUIT al
         constituirse, exactamente como una SA. No se inventa un &ldquo;CUIT
         de agente&rdquo;, el régimen reusa la primitiva existente. (Esto
-        coincide con el plan Sturzenegger: la IA no es titular, la{" "}
-        <em>sociedad</em> sí.)
+        coincide con el anteproyecto: la Sociedad Automatizada es una
+        declaración aplicable a cualquier tipo societario, art. 14, la IA no
+        es titular, la <em>sociedad</em> sí.)
       </DocP>
       <DocP>
         <strong>2.2</strong> La sociedad nombra un{" "}
@@ -159,8 +162,12 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
       <DocH2>6. Apertura, open questions</DocH2>
       <DocP>
         <strong>6.1</strong> ¿Quién es responsable cuando un agente
-        ejecuta un fraude? El RFC actual es agnóstico, depende de cómo
-        el proyecto Sturzenegger trate la responsabilidad piercing-the-veil.
+        ejecuta un fraude? El anteproyecto ya fija un piso: la Sociedad
+        Automatizada responde con su patrimonio (art. 14) y el uso de IA en
+        la gestión no exime a los administradores ni del deber de
+        configuración y supervisión (art. 102), bajo el estándar de culpa o
+        dolo del art. 101. La doctrina del corrimiento del velo sigue siendo
+        terreno a precisar; el RFC aporta el marco probatorio.
       </DocP>
       <DocP>
         <strong>6.2</strong> ¿Cómo se renueva el cert X.509 sin
@@ -196,7 +203,7 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
       <DocP>
         Este RFC no es teoría, el toolkit{" "}
         <DocCode>@ar-agents/*</DocCode> ya implementa 16 de los 17 pasos
-        técnicos del régimen propuesto. La lista cruzada de qué pieza
+        técnicos que el régimen requiere. La lista cruzada de qué pieza
         técnica resuelve cada problema:
       </DocP>
       <DocP>
@@ -237,9 +244,12 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
 
       <DocH2>9. Marco de responsabilidad</DocH2>
       <DocP>
-        El backlash central al plan Sturzenegger es{" "}
+        La objeción central al régimen es{" "}
         <em>&ldquo;¿quién responde si una sociedad-IA defrauda?&rdquo;</em>{" "}
-        El RFC propone tres capas de responsabilidad concatenadas:
+        El anteproyecto contesta una parte (art. 14: la sociedad responde
+        con su patrimonio; art. 102: el deber de supervisión no se delega en
+        la IA). Sobre esa base, el RFC propone tres capas de responsabilidad
+        concatenadas:
       </DocP>
       <DocP>
         <strong>9.1 Responsabilidad operativa</strong>: el oficial
@@ -252,8 +262,13 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
         call que la sociedad-IA ejecuta queda registrado en un audit
         log con HMAC-signed timestamps (el patrón{" "}
         <DocCode>AuditLogger</DocCode> ya implementado en{" "}
-        <DocCode>@ar-agents/mercadopago</DocCode>). El log es prueba
-        legal de qué hizo el agente, cuándo, contra qué tool.
+        <DocCode>@ar-agents/mercadopago</DocCode>). El log es evidencia de
+        qué hizo el agente, cuándo, contra qué tool, tamper-evidente para
+        un testigo que ya tiene la entrada (el anclaje externo de RFC-006 es
+        lo que lo vuelve defensible contra el propio operador). Tiene
+        respaldo directo en el anteproyecto: art. 263 (registros digitales
+        públicamente verificables), art. 102 (deber de configuración y
+        supervisión) y art. 101 (procedimiento de decisión adecuado).
       </DocP>
       <DocP>
         <strong>9.3 Responsabilidad de operador (operator-of-record)</strong>:
@@ -298,17 +313,23 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
         sección 9.2 de este RFC se alinea con esa propuesta.
       </DocP>
       <DocP>
-        <strong>Plan Sturzenegger</strong>, anuncio en Expo EFI
-        2026-04-28. Sin texto público todavía. Este RFC asume el
-        contorno descripto en la conferencia y se va a actualizar
-        cuando llegue el proyecto a Diputados.
+        <strong>Anteproyecto de Ley General de Sociedades</strong>, régimen
+        anunciado en Expo EFI el 28-abr-2026 (Sturzenegger), texto firmado
+        el 28-may-2026 (Santiago Viola, Secretaría de Justicia, expediente
+        IF-2026-53144057-APN-SECJ#MJ) y enviado al Senado el 1-jun-2026.
+        277 artículos; reemplaza la Ley 19.550 (art. 270). Crea la Sociedad
+        Automatizada (art. 14) y la Sociedad Descentralizada Autónoma
+        Operativa (DAO) (arts. 258-265). Todavía no es ley. Este RFC se
+        alinea con ese texto y se va a actualizar a medida que avance el
+        debate parlamentario.
       </DocP>
 
       <DocH2>Comentarios</DocH2>
       <DocP>
-        Este RFC es un primer borrador. Se va a iterar contra: lectura del
-        proyecto cuando llegue al Boletín Oficial, feedback de juristas,
-        feedback de agentes que efectivamente intenten incorporarse.{" "}
+        Este RFC es un primer borrador. Se va a iterar contra: el texto del
+        anteproyecto y los cambios que sufra en el Senado, feedback de
+        juristas, feedback de agentes que efectivamente intenten
+        incorporarse.{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/discussions"
           style={{ color: "inherit", textDecoration: "underline" }}

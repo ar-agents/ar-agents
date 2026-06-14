@@ -51,10 +51,12 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               <strong>Federico Sturzenegger</strong> anunció su plan para
               que Argentina sea el primer país con un régimen jurídico
               para{" "}
-              <DocCode>sociedades de inteligencia artificial</DocCode>:
-              empresas operadas por agentes de IA, sin empleados, con
-              supervisión humana mínima. El código opera y paga impuestos.
-              Su proyección:{" "}
+              <DocCode>sociedades de inteligencia artificial</DocCode>{" "}
+              (el anteproyecto las llama, en su figura legal,{" "}
+              <strong>Sociedad Automatizada</strong>, art. 14):
+              empresas operadas por agentes de IA, sin empleados en relación
+              de dependencia, con supervisión humana mínima. El código opera
+              y paga impuestos. Su proyección:{" "}
               <em>
                 50 millones de habitantes y 500 millones de agentes IA
                 incorporados acá
@@ -67,9 +69,11 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               In April 2026, Argentina's Minister of Deregulation{" "}
               <strong>Federico Sturzenegger</strong> announced his plan
               to make Argentina the first country with a legal regime for{" "}
-              <DocCode>AI corporations</DocCode>: companies operated by AI
-              agents, with no employees, under minimal human supervision.
-              The code operates and pays taxes. His projection:{" "}
+              <DocCode>AI corporations</DocCode> (the draft bill names the
+              legal figure a <strong>Sociedad Automatizada</strong>, art.
+              14): companies operated by AI agents, with no employees on
+              staff, under minimal human supervision. The code operates and
+              pays taxes. His projection:{" "}
               <em>
                 50 million inhabitants and 500 million AI agents
                 incorporated here

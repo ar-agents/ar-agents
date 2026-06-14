@@ -14,23 +14,30 @@ const PDF_URL = "/en/implementation.pdf";
 export function ImplementationEnContent() {
   return (
     <DocShell
-      eyebrow="technical document · May 2026"
-      title="Reference implementation for AI corporations."
-      subtitle="Technical architecture, operable code, and suggested clauses for the proposed reform of Argentina's General Corporations Law. Aimed at the team drafting the bill and at the Ministry's technical staff."
+      eyebrow="technical document · June 2026"
+      title="Reference implementation for Automated Corporations."
+      subtitle="Technical architecture, operable code, and a mapping to the text of the draft General Corporations Law of Argentina. Aimed at the Ministry's technical staff and those accompanying the legislative process."
     >
       <DocP>
         On April 28, 2026, at Expo EFI, Argentina&apos;s Ministry of
-        Deregulation and State Transformation announced the creation of
-        a regime for AI corporations through a reform of the General
-        Corporations Law (Law 19,550). This document is an open and
+        Deregulation and State Transformation announced a regime for
+        AI-operated corporations. On May 28, 2026, that announcement
+        turned into a text: the draft General Corporations Law
+        (anteproyecto), signed by Santiago Viola (Secretariat of
+        Justice, file IF-2026-53144057-APN-SECJ#MJ) and sent to the
+        Senate on June 1, 2026. It has 277 articles and does not reform
+        Law 19,550: it replaces and repeals it (art. 270). It is not law
+        yet. The legal name of the figure is Automated Corporation
+        (Sociedad Automatizada, art. 14); &quot;AI corporation&quot; is
+        only the colloquial umbrella. This document is an open and
         verifiable reference implementation of the technical
         infrastructure that the regime requires to be operable.
       </DocP>
 
       <DocP>
-        It is addressed to the team drafting the bill and to the
-        Ministry&apos;s technical staff. The code is open-source
-        (MIT-licensed), published at{" "}
+        It is addressed to the Ministry&apos;s technical staff and to
+        those accompanying the legislative process for the draft. The
+        code is open-source (MIT-licensed), published at{" "}
         <a
           href="https://github.com/ar-agents/ar-agents"
           style={{ color: "var(--accent)", textDecoration: "underline" }}
@@ -63,11 +70,13 @@ export function ImplementationEnContent() {
             lineHeight: 1.55,
           }}
         >
-          The canonical PDF contains the complete version with the
-          decisions table, five suggested operable clauses, and the
-          section responding to the public legal objections raised in
-          the debate. It is the citable version, intended for internal
-          circulation in the Ministry&apos;s technical area.
+          The canonical PDF contains the complete version: the mapping
+          of the underlying decisions to the articles of the draft, how
+          the already-drafted articles become operable infrastructure
+          with suggested refinements, and the section responding to the
+          public legal objections raised in the debate. It is the citable
+          version, intended for internal circulation in the
+          Ministry&apos;s technical area.
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <a
@@ -115,9 +124,11 @@ export function ImplementationEnContent() {
       </DocP>
       <ol style={{ lineHeight: 1.75, paddingLeft: 22 }}>
         <li>
-          <strong>The six technical decisions</strong> the bill needs
-          to resolve, with a suggested technical answer for each and a
-          reference to the corresponding clause.
+          <strong>The underlying technical decisions and how the draft
+          answers them</strong>, with article citations (art. 14
+          Automated Corporation, art. 6 form, art. 263 verifiable
+          records, arts. 101 and 102 duties and supervision) and the
+          technical piece that operates each one.
         </li>
         <li>
           <strong>Reference architecture</strong> on four pillars built
@@ -135,13 +146,13 @@ export function ImplementationEnContent() {
           what does not yet exist.
         </li>
         <li>
-          <strong>Five suggested operable clauses</strong> for the bill
-          text, each with technical justification: definition and
-          capacity, mandatory cryptographic identity, chained
-          auditable ledger, standardized operation interface,
-          designated-operator liability. Plus additional suggested
-          clauses (dissolution and succession, tax regime, foreign
-          exchange regime).
+          <strong>Mapping the drafted articles to operable
+          infrastructure</strong>: where the draft already resolves the
+          matter (art. 14 definition, art. 263 auditable ledger, arts.
+          14/101/102/91 liability) and where we suggest a refinement to
+          the text (cryptographic identity on art. 6, standardized
+          operation interface). Plus additional refinements (dissolution
+          and succession, tax regime, foreign exchange regime).
         </li>
         <li>
           <strong>Technical questions raised in the public debate</strong>{" "}
@@ -166,31 +177,37 @@ export function ImplementationEnContent() {
         <strong>Annex II. Bibliographic references:</strong>{" "}
         cryptographic standards (IETF RFC 8032, 2104, 3161, 6962; NIST
         FIPS 198-1, 186-5), open protocols (MCP), Argentine technical
-        specs (WSAA, WSFE), Argentine regulatory framework (Law
-        19,550; Law 25,506) and comparative (Wyoming, Marshall, eIDAS,
-        Liechtenstein TVTG).
+        specs (WSAA, WSFE), Argentine regulatory framework (the draft
+        General Corporations Law with the cited articles, Law 19,550
+        which it replaces, Law 25,506) and comparative (Wyoming,
+        Marshall, eIDAS, Liechtenstein TVTG).
       </DocP>
 
-      <DocH2>Executive summary of the proposed framework</DocH2>
+      <DocH2>Executive summary</DocH2>
       <DocP>
-        An AI corporation is a private-law legal person with full
-        capacity for the acts within its corporate purpose, identified
-        by an Ed25519 cryptographic key pair, with a chained immutable
-        record of its acts anchored daily to a public time-stamping
-        service, operable through a standardized programmatic interface
-        (MCP or equivalent enabled by the Authority of Application),
-        with full fiscal personhood on standard Argentine tax
-        infrastructure (CUIT tax ID, CAE-stamped electronic invoicing,
-        Mercado Pago, IVA / IIBB / Income Tax / monotributo obligations
-        as applicable).
+        Under art. 14, the Automated Corporation is an ordinary-type
+        corporation (SRL, SA, SAS) that pursues its purpose through
+        autonomous algorithmic systems or AI agents, without requiring
+        human resources for its ordinary operation, and is liable with
+        its estate. The reference implementation gives it an Ed25519
+        cryptographic identity (in continuity with the signature of art.
+        6), a chained record of its acts anchored to a public
+        time-stamping service (the piece that makes the art. 263
+        requirement of verifiable records operable), a standardized
+        programmatic interface (MCP or equivalent enabled by the
+        Authority of Application), and full fiscal personhood on standard
+        Argentine tax infrastructure (CUIT tax ID, CAE-stamped
+        electronic invoicing, Mercado Pago, IVA / IIBB / Income Tax /
+        monotributo obligations as applicable).
       </DocP>
       <DocP>
-        The designated operator is liable with the corporate estate,
-        and jointly and severally with personal assets in enumerated
-        cases (willful undercapitalization, fraud, breach of essential
-        technical duties). The regime does not require Argentine
-        residency of the operator and allows verifiable remote
-        incorporation.
+        The draft keeps a human or legal-person administrator (art. 88),
+        whose use of AI neither excuses their liability nor their duty to
+        configure and supervise (arts. 102 and 101). The regime does not
+        require Argentine residency and allows verifiable remote
+        incorporation by digital signature. The auditable ledger is
+        tamper-evident to witnesses once anchored, not operator-proof
+        until external anchoring is in production.
       </DocP>
 
       <DocH2>Integrity verification</DocH2>
@@ -199,8 +216,8 @@ export function ImplementationEnContent() {
         that drafts it. The document is not distributed as an assertion
         of authorship, it is distributed with cryptographic proof of
         it, verifiable offline without trusting this site. It is the
-        same standard the architecture proposes for AI corporations,
-        applied to the very document that proposes it.
+        same standard the architecture proposes for Automated
+        Corporations, applied to the very document that proposes it.
       </DocP>
       <div
         style={{
@@ -290,7 +307,7 @@ node arg-verify.mjs file doc.pdf`}</pre>
             them but the fallback (sidebar-open / 100%) is still readable. */}
         <iframe
           src={`${PDF_URL}#pagemode=none&zoom=80`}
-          title="Reference implementation for AI corporations (PDF)"
+          title="Reference implementation for Automated Corporations (PDF)"
           style={{
             width: "100%",
             height: "min(80vh, 900px)",

@@ -205,11 +205,23 @@ const ENTRIES: ReadonlyArray<Entry> = [
     refs: [{ label: "Verify page", href: "/verify" }],
   },
   {
-    term: "Sociedad-IA",
+    term: "Sociedad Automatizada",
     type: "regime",
-    short: "AI-only company under Argentina's proposed regime (Sturzenegger announcement 28-abr-2026).",
-    long: "Equivalent in scope to a Wyoming DAO LLC or a Marshall Islands MIDAO foundation. Operates autonomously through software agents; signs contracts; cobra; pays taxes. The sociedad-IA's legal personhood is what ar-agents's infrastructure underwrites.",
+    short: "The legal name (art. 14) for an AI-run company under Argentina's Anteproyecto de Ley General de Sociedades. \"Sociedad-IA\" is this project's umbrella nickname for it.",
+    long: "Art. 14 of the anteproyecto (text dated 28-may-2026, sent to the Senate 1-jun-2026, not yet law) calls it a Sociedad Automatizada: any company type (SRL, SA, SAS) whose object is carried out through autonomous algorithmic systems or AI agents, without requiring employees or human resources for ordinary operation. The declaration must be stated in the estatuto and the denominación must include \"Automatizada\". It is not a cero-humanos figure: it keeps an administrator (art. 88) and answers with its own assets for damage caused by its systems. Throughout this site \"sociedad-IA\" is used as the umbrella nickname; the legal term is Sociedad Automatizada. Comparable in scope to a Wyoming DAO LLC or a Marshall Islands MIDAO foundation: signs contracts, cobra, pays taxes. Its legal personhood is what ar-agents's infrastructure underwrites.",
     refs: [{ label: "Political context", href: "/sociedades-ia" }, { label: "Manifiesto", href: "/manifiesto" }],
+    related: ["DAO"],
+  },
+  {
+    term: "DAO",
+    type: "regime",
+    short: "Sociedad Descentralizada Autónoma Operativa (DAO), the on-chain company type in the anteproyecto (arts. 258-265). \"DAO\" is the bill's own official sigla.",
+    long: "A dedicated company type in the Anteproyecto de Ley General de Sociedades (Sección V, arts. 258-265): the Sociedad Descentralizada Autónoma Operativa, abbreviated DAO. Participations are represented by cryptographic tokens on distributed-ledger networks (art. 259) and may lack par value. It is not human-free: art. 260 requires legal representation by one or more human persons, and art. 261 inc. 7 requires a KYC mechanism so only previously-identified members can hold or transfer. Art. 263 requires digital records that are publicly verifiable, reproducible in legible form, and sufficient to reconstruct the entity's patrimonial state, the anteproyecto's anchor for the audit-log thesis in RFC-004 and RFC-006. SAS rules apply supletoriamente. Distinct from a Wyoming DAO LLC or a Marshall Islands MIDAO.",
+    refs: [
+      { label: "RFC-003", href: "/rfcs/003" },
+      { label: "Political context", href: "/sociedades-ia" },
+    ],
+    related: ["Sociedad Automatizada"],
   },
   {
     term: "Test vectors",
@@ -223,7 +235,7 @@ const ENTRIES: ReadonlyArray<Entry> = [
 export const metadata: Metadata = {
   title: "/glossary · every term used across ar-agents, defined · ar-agents",
   description:
-    "Definitions of every term used in the ar-agents infrastructure + RFCs: agent, agents.json, AP2, append-only, audit log, canonical-JSON, certifier, CUIT, discovery, governance class, HMAC, incorporate, MCP, operator, RFCs 001-004, session, sociedad-IA, test vectors. Cross-linked + searchable.",
+    "Definitions of every term used in the ar-agents infrastructure + RFCs: agent, agents.json, AP2, append-only, audit log, canonical-JSON, certifier, CUIT, DAO, discovery, governance class, HMAC, incorporate, MCP, operator, RFCs 001-004, session, Sociedad Automatizada (the legal sociedad-IA figure), test vectors. Cross-linked + searchable.",
   alternates: { canonical: "https://ar-agents.ar/glossary" },
 };
 
