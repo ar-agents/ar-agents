@@ -88,10 +88,10 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
 export const EN = {
   // hero
-  hero_h1_l1: "Open infrastructure for AI corporations.",
+  hero_h1_l1: "Open infra for agentic companies.",
   hero_h1_l2: "Built in Argentina.",
   hero_sub:
-    "A Sociedad Automatizada runs on AI agents, not employees. ar-agents is the open-source code to incorporate and operate one.",
+    "Argentina is writing a law for a new kind of company, the Sociedad Automatizada, operated by AI instead of employees (art. 14). It still has to incorporate, get paid, invoice, and answer customers. ar-agents is the open-source code that does all of it, against the country's real government and payment systems.",
   cta_deploy: "Deploy on Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",

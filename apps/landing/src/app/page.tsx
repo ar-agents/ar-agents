@@ -327,7 +327,9 @@ export default function Home() {
               lineHeight: 1.08,
               letterSpacing: "-0.035em",
               color: "var(--text)",
-              maxWidth: 820,
+              // EN headline ("Open Infra for agentic companies.") fits on one
+              // line; ES headline is longer, keep its tighter wrap.
+              maxWidth: lang === "en" ? 900 : 820,
             }}
           >
             {t.hero_h1_l1}
@@ -490,7 +492,7 @@ export default function Home() {
               body={
                 lang === "es"
                   ? "36 paquetes npm tipados para Vercel AI SDK 6. Cobrar, validar CUIT, mandar WhatsApp, emitir factura, monitorear el BO."
-                  : "36 typed npm packages for Vercel AI SDK 6. Charge, validate CUIT, send WhatsApp, emit invoice, monitor the gazette."
+                  : "36 typed npm packages for the Vercel AI SDK. Charge a card, validate a tax ID, send a WhatsApp, issue an invoice, watch the official gazette."
               }
               cta={lang === "es" ? "Ver SDK" : "Browse SDK"}
               href="/sdk"
@@ -500,7 +502,7 @@ export default function Home() {
               body={
                 lang === "es"
                   ? "Audit log forense con HMAC + Ed25519, verificable sin pedir la clave al operador. 1-pager imprimible."
-                  : "Forensic audit log with HMAC + Ed25519, verifiable without asking the operator for their key. Printable 1-pager."
+                  : "A forensic audit log signed with HMAC + Ed25519. Anyone can verify what an agent did, without asking the operator for a key."
               }
               cta={lang === "es" ? "Abrir /auditor" : "Open /auditor"}
               href="/auditor"
@@ -510,7 +512,7 @@ export default function Home() {
               body={
                 lang === "es"
                   ? "Síntesis técnica de los 6 RFCs con texto sugerido cite-by-reference. Para quien esté redactando la ley."
-                  : "Technical synthesis of the 6 RFCs with suggested cite-by-reference legislative text. For whoever is drafting the bill."
+                  : "A technical synthesis of the six RFCs, with suggested text you can cite by reference. For whoever is drafting the law."
               }
               cta={lang === "es" ? "Abrir /legislación" : "Open /legislation"}
               href={lang === "es" ? "/legislacion" : "/en/legislation"}
