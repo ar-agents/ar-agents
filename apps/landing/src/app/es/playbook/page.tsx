@@ -4,7 +4,7 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 export const metadata: Metadata = {
   title: "El playbook sociedad-IA · documento flagship en español",
   description:
-    "Cómo construir una empresa argentina 100% autónoma en 2027. La infraestructura, la ley, el marco de responsabilidad y la realidad operativa. Escrito para quienes lo van a aprobar, regular o desplegar primero.",
+    "Cómo construir una empresa argentina operada por agentes de IA (Sociedad Automatizada, art. 14) en 2027. La infraestructura, la ley, el marco de responsabilidad y la realidad operativa. Escrito para quienes lo van a aprobar, regular o desplegar primero.",
   alternates: { canonical: "https://ar-agents.ar/es/playbook" },
 };
 
@@ -21,19 +21,26 @@ export default function PlaybookEsPage() {
         <DocP>
           El 28 de abril de 2026, el ministro de Desregulación Federico
           Sturzenegger anunció una nueva forma societaria: la{" "}
-          <em>sociedad de IA</em>, una persona jurídica sin accionistas
-          humanos, sin directores humanos, sin empleados humanos. Software
-          puro. Tendría CUIT, emitiría facturas, sería titular de cuenta
-          bancaria, pagaría impuestos. La cita literal:{" "}
+          <em>sociedad de IA</em>. El anteproyecto la llama, en su figura
+          legal, <strong>Sociedad Automatizada</strong> (art. 14): una
+          persona jurídica que desarrolla su objeto con sistemas
+          algorítmicos autónomos o agentes de IA, sin trabajadores en
+          relación de dependencia para su operación ordinaria. Conserva un
+          administrador (art. 88). Software puro en el loop operativo. Tiene
+          CUIT, emite facturas, es titular de cuenta bancaria, paga
+          impuestos. La cita literal:{" "}
           <strong>500 millones de agentes de IA incorporados en
           Argentina, produciendo para el mundo y pagando impuestos
           acá</strong>.
         </DocP>
         <DocP>
-          El proyecto aún no entró formalmente al Congreso. El antecedente
-          más cercano (la Ley SAS de 2017) tardó 12 meses anuncio→sanción.
-          Realista: régimen operativo H1 2027. La elección legislativa de
-          octubre 2026 es la variable principal.
+          El texto ya existe. Un anteproyecto firmado (28 de mayo de 2026,
+          Santiago Viola, Secretaría de Justicia) entró al Senado el 1 de
+          junio de 2026. Reemplaza la Ley 19.550 (la Ley General de
+          Sociedades), no la reforma. Todavía no es ley: si se sanciona,
+          rige a los 180 días de publicarse en el Boletín Oficial (art.
+          271). La elección legislativa de octubre 2026 es la variable
+          principal.
         </DocP>
         <DocP>
           Este playbook es la respuesta operativa a una pregunta concreta:{" "}
@@ -136,7 +143,7 @@ export default function PlaybookEsPage() {
       <DocP>
         El primer ataque conceptual contra cualquier propuesta de
         sociedad-IA es: <em>si la IA rompe algo, ¿quién responde?</em> Sin
-        una respuesta sólida, el proyecto muere en Diputados. RFC-001 § 9
+        una respuesta sólida, el proyecto se traba en el Senado. RFC-001 § 9
         propone un modelo de tres capas:
       </DocP>
       <DocP>
@@ -254,10 +261,12 @@ export default function PlaybookEsPage() {
         F.572 si corresponde.
       </DocP>
       <DocP>
-        Todo eso, sin un humano. Es código. Pero a los ojos del Estado,
-        es una empresa. Cada paso es una tool call. La librería ship las
-        herramientas; el agente compone el flujo según el prompt. Se
-        escriben las piezas, no la orquestación.
+        Todo eso, sin humanos en el loop operativo, solo el administrador
+        responsable supervisando (arts. 88, 102). Es código el que hace el
+        trabajo. Pero a los ojos del Estado, es una empresa. Cada paso es
+        una tool call. La librería ship las herramientas; el agente compone
+        el flujo según el prompt. Se escriben las piezas, no la
+        orquestación.
       </DocP>
 
       <DocH2>6 · Incorporación en 10 minutos</DocH2>
@@ -282,13 +291,16 @@ export default function PlaybookEsPage() {
       <DocH2>7 · Por qué importa fuera de Argentina</DocH2>
       <DocP>
         Una sociedad-IA es la primera vez que un Estado soberano propone
-        una entidad legal para un agente no-humano. Las DAO LLCs de
-        Marshall Islands (2022) y Wyoming (2021) se le acercan, pero ambas
-        requieren un firmante humano en la capa operativa. La propuesta
-        argentina va más allá: <em>no se requiere humano</em>. El
+        una entidad legal construida en torno a un agente no-humano. Las
+        DAO LLCs de Marshall Islands (2022) y Wyoming (2021) se le acercan.
+        La propuesta argentina va más allá: bajo el art. 14, una Sociedad
+        Automatizada corre su operación ordinaria sin trabajadores en
+        relación de dependencia, sin humanos en el día a día, conservando
+        un administrador responsable (art. 88) para la supervisión. El
         análogo más cercano es el régimen de &quot;sistemas de alto
         riesgo&quot; del EU AI Act, pero ese apunta a la supervisión de IA
-        deployada por humanos, no a la capacidad legal de la IA en sí.
+        deployada por humanos, no a la capacidad legal de una empresa
+        operada por IA en sí.
       </DocP>
       <DocP>
         Si Argentina ship el régimen, tres cosas siguen:

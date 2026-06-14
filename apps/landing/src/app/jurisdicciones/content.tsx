@@ -134,8 +134,8 @@ const ROWS: ReadonlyArray<BilingualRow> = [
   {
     capa: { es: "Costo de incorporación", en: "Incorporation cost" },
     ar: {
-      es: "Sociedad-IA aún no existe legalmente. Hoy SAS estándar: tasas IGJ + escribano (~USD 200-500).",
-      en: "Sociedad-IA does not yet legally exist. Today standard SAS: IGJ fees + notary (~USD 200-500).",
+      es: "Sociedad Automatizada definida en el anteproyecto (art. 14), aún no vigente. Hoy SAS estándar: tasas IGJ + escribano (~USD 200-500).",
+      en: "Sociedad Automatizada defined in the draft bill (art. 14), not yet in force. Today standard SAS: IGJ fees + notary (~USD 200-500).",
     },
     wyoming: {
       es: "USD 100 + USD 50/year renewal + registered agent (~USD 100-200).",
@@ -234,7 +234,9 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
           es={
             <>
               Argentina anunció el régimen de sociedades-IA el 28 de abril
-              de 2026.{" "}
+              de 2026 y el anteproyecto de Ley General de Sociedades (que
+              crea la <em>Sociedad Automatizada</em>, art. 14) está en el
+              Senado desde el 1 de junio de 2026.{" "}
               <strong>
                 Ningún otro país tiene exactamente esto
               </strong>
@@ -246,7 +248,9 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
           en={
             <>
               Argentina announced the sociedades-IA regime on April 28,
-              2026.{" "}
+              2026, and the General Companies Law draft bill (which creates
+              the <em>Sociedad Automatizada</em>, art. 14) has been in the
+              Senate since June 1, 2026.{" "}
               <strong>No other country has exactly this</strong>, but four
               jurisdictions have already solved pieces of the problem. This
               page enumerates them so the Argentine legislative conversation
@@ -470,10 +474,13 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
                 <strong>Suiza (2021 DLT Act).</strong> Modelo: blanket
                 act que amenda 10 leyes existentes en vez de crear un
                 régimen nuevo.{" "}
-                <strong>Aplicación AR políticamente fuerte:</strong> el
-                Ministerio puede argumentar que sociedad-IA se resuelve
-                amendando Código Civil y Comercial + Ley de Sociedades
-                Generales + Ley 25.506, no requiere ley nueva.
+                <strong>Contraste con AR:</strong> el anteproyecto eligió
+                la vía opuesta, una Ley General de Sociedades nueva que
+                reemplaza la 19.550 (art. 270) e integra la Sociedad
+                Automatizada (art. 14) y la Sociedad Descentralizada
+                Autónoma Operativa (DAO, arts. 258-265) en un solo cuerpo,
+                en vez de parchear el Código Civil y Comercial + la Ley
+                25.506.
               </>
             }
             en={
@@ -481,10 +488,12 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
                 <strong>Switzerland (2021 DLT Act).</strong> Model:
                 blanket act that amends 10 existing laws instead of
                 creating a new regime.{" "}
-                <strong>Politically strong AR application:</strong> the
-                Ministry can argue that sociedad-IA is solved by
-                amending the Civil and Commercial Code + Companies Law
-                + Law 25.506, no new law required.
+                <strong>Contrast with AR:</strong> the draft bill took the
+                opposite path, a new General Companies Law that replaces
+                Law 19.550 (art. 270) and folds the Sociedad Automatizada
+                (art. 14) and the Sociedad Descentralizada Autónoma
+                Operativa (DAO, arts. 258-265) into a single body, rather
+                than patching the Civil and Commercial Code + Law 25.506.
               </>
             }
           />
@@ -529,18 +538,19 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Toda la stack ya escrita</strong> en open-source
-                bajo MIT antes de que la ley se redacte. Wyoming,
-                Estonia, Marshall, Singapore tienen la ley primero y la
-                implementación después; AR puede hacer la inversa.
+                bajo MIT mientras el anteproyecto se debate en el Senado.
+                Wyoming, Estonia, Marshall, Singapore tuvieron la ley
+                primero y la implementación después; AR llega con la
+                implementación lista antes de la sanción.
               </>
             }
             en={
               <>
                 <strong>The full stack already written</strong> in
-                open-source under MIT before the law is drafted.
-                Wyoming, Estonia, Marshall, Singapore had the law
-                first and the implementation later; AR can do the
-                reverse.
+                open-source under MIT while the draft bill is debated in
+                the Senate. Wyoming, Estonia, Marshall, Singapore had the
+                law first and the implementation later; AR arrives with the
+                implementation ready before enactment.
               </>
             }
           />

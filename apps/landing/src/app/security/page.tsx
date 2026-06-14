@@ -196,7 +196,10 @@ export default function SecurityPage() {
         <DocP>
           This page enumerates every threat we have explicitly thought
           about, with the specific mitigation in code. Inspired by
-          STRIDE + the OWASP LLM Top 10. Three statuses:
+          STRIDE + the OWASP LLM Top 10. The four operator rows below
+          (T15-T18) apply to a sociedad-IA, the umbrella nickname for the
+          Sociedad Automatizada (art. 14 of the Anteproyecto de Ley General
+          de Sociedades, not yet law). Three statuses:
         </DocP>
         <DocP>
           <strong>Mitigated by toolkit</strong>, code in @ar-agents/*
