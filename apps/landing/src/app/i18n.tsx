@@ -37,54 +37,43 @@ function langFromPath(pathname: string): Lang | null {
   return null;
 }
 
-function readInitialLang(pathname: string): Lang {
-  // Path is authoritative, if user is on /en/X, lang must be "en" regardless
-  // of what's in localStorage. This keeps the toggle in sync with the URL on
-  // direct loads and after navigation.
-  const fromPath = langFromPath(pathname);
-  if (fromPath) return fromPath;
-  if (typeof window === "undefined") return "es";
-  const stored = window.localStorage.getItem(STORAGE_KEY);
-  return stored === "en" ? "en" : "es";
-}
-
 export function LangProvider({ children }: { children: ReactNode }) {
   const pathname = usePathname() ?? "/";
-  const [lang, setLangState] = useState<Lang>("es");
-  const [mounted, setMounted] = useState(false);
 
-  // First mount: pick lang based on path + storage.
+  // `lang` is DERIVED, not synced via effects: path wins (any /en/* URL is
+  // English), otherwise the user's stored preference. Deriving instead of
+  // mirroring-with-effects removes the race that previously let the path-sync
+  // effect fight a manual toggle during async navigation (e.g. toggling ES on
+  // an /en page left lang stuck on "en", and toggling EN on a mirror-less page
+  // like the home bounced straight back to "es").
+  const [pref, setPref] = useState<Lang>("es");
+
+  // Read the stored preference once on mount. On /en/* URLs this is cosmetic
+  // (path overrides anyway); on canonical URLs it restores the last choice.
   useEffect(() => {
-    setLangState(readInitialLang(pathname));
-    setMounted(true);
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    if (typeof window === "undefined") return;
+    const stored = window.localStorage.getItem(STORAGE_KEY);
+    if (stored === "en" || stored === "es") setPref(stored);
   }, []);
 
-  // Subsequent navigations: if path implies a lang different from current,
-  // sync to it. Doesn't fight the user's manual toggle, which navigates the
-  // path first, by the time pathname changes, the toggle already set lang.
-  useEffect(() => {
-    if (!mounted) return;
-    const fromPath = langFromPath(pathname);
-    if (fromPath && fromPath !== lang) {
-      setLangState(fromPath);
-    } else if (!fromPath && lang === "en") {
-      // Navigated away from /en/* to a canonical (ES) path, only switch
-      // back if user's preference was ES. Otherwise respect their toggle.
-      const stored = window.localStorage.getItem(STORAGE_KEY);
-      if (stored !== "en") setLangState("es");
-    }
-  }, [pathname, lang, mounted]);
+  const lang: Lang = langFromPath(pathname) ?? pref;
 
+  // Reflect the active language on <html lang> for a11y/SEO.
   useEffect(() => {
-    if (!mounted) return;
     document.documentElement.setAttribute("lang", lang);
-    window.localStorage.setItem(STORAGE_KEY, lang);
-  }, [mounted, lang]);
+  }, [lang]);
 
-  const setLang = useCallback((v: Lang) => setLangState(v), []);
+  // A manual toggle sets the preference and persists it. If the current page
+  // has an /en mirror, LangSwitch also navigates; the derived `lang` then
+  // follows the new path. No effect-driven reconciliation, so no bounce-back.
+  const setLang = useCallback((v: Lang) => {
+    setPref(v);
+    if (typeof window !== "undefined") {
+      window.localStorage.setItem(STORAGE_KEY, v);
+    }
+  }, []);
+
   const t = lang === "es" ? ES : EN;
-
   const value = useMemo<Ctx>(() => ({ lang, setLang, t }), [lang, setLang, t]);
 
   return <LangCtx.Provider value={value}>{children}</LangCtx.Provider>;
