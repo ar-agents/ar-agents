@@ -21,19 +21,23 @@ export default function PlaybookPage() {
         <DocP>
           On April 28th 2026, Argentina&apos;s minister of deregulation
           Federico Sturzenegger announced a new corporate form: the{" "}
-          <em>sociedad de IA</em>, a legal entity with no human shareholders,
-          no human directors, no human employees. Pure software. It would have
-          a tax ID, issue invoices, hold a bank account, pay taxes. Sturzenegger
-          said the country was aiming for <strong>500 million AI agents
-          incorporated in Argentina, producing for the world and paying taxes
-          here</strong>.
+          <em>sociedad de IA</em>. The draft bill calls the legal figure a{" "}
+          <strong>Sociedad Automatizada</strong> (art. 14): a company that
+          runs its business on autonomous algorithmic systems or AI agents,
+          without employees on staff for ordinary operations. It keeps an
+          administrator on record (art. 88). Pure software in the operating
+          loop. It has a tax ID, issues invoices, holds a bank account, pays
+          taxes. Sturzenegger said the country was aiming for{" "}
+          <strong>500 million AI agents incorporated in Argentina, producing
+          for the world and paying taxes here</strong>.
         </DocP>
         <DocP>
-          The bill is not yet in Congress. The closest precedent (Argentina&apos;s
-          2017 SAS law for streamlined corporations) took 12 months from
-          announcement to enactment. Realistically: an operative sociedad-IA
-          regime by H1 2027. The midterm elections in October 2026 are the
-          biggest variable.
+          The text exists. A signed anteproyecto (28 May 2026, Santiago
+          Viola, Secretaría de Justicia) reached the Senate on 1 June 2026.
+          It replaces Ley 19.550 (the General Companies Law) rather than
+          amending it. It is not law yet: if sanctioned, it takes effect 180
+          days after publication in the Boletín Oficial (art. 271). The
+          midterm elections in October 2026 are the biggest variable.
         </DocP>
         <DocP>
           This playbook is the working answer to:{" "}
@@ -135,7 +139,7 @@ export default function PlaybookPage() {
       <DocP>
         The first attack vector against any sociedad-IA proposal is:{" "}
         <em>if the AI breaks something, who pays?</em> Without a sound
-        answer, the bill dies in Congress. RFC-001 § 9 proposes a
+        answer, the bill stalls in the Senate. RFC-001 § 9 proposes a
         three-layer model:
       </DocP>
       <DocP>
@@ -250,10 +254,11 @@ export default function PlaybookPage() {
         equivalent of a U.S. K-1 if applicable.
       </DocP>
       <DocP>
-        Through all of this, no human. Code. To the State&apos;s eyes, a
-        company. Each step is a tool call. The toolkit ships the tools;
-        the agent composes them per the prompt. You write the pieces, not
-        the orchestration.
+        Through all of this, no human in the operating loop, only the
+        administrator on record supervising (arts. 88, 102). Code does the
+        work. To the State&apos;s eyes, a company. Each step is a tool call.
+        The toolkit ships the tools; the agent composes them per the prompt.
+        You write the pieces, not the orchestration.
       </DocP>
 
       <DocH2>6 · The 10-minute incorporation</DocH2>
@@ -276,13 +281,15 @@ export default function PlaybookPage() {
       <DocH2>7 · Why this matters outside Argentina</DocH2>
       <DocP>
         A sociedad-IA is the first time a sovereign state has proposed a
-        legal-fiction entity for a non-human agent. Marshall Islands DAO
-        LLCs (2022) and Wyoming&apos;s DAO LLC (2021) come close, but both
-        require a human signatory at the operator layer. Argentina&apos;s
-        proposal goes further: <em>no human is required</em>. The closest
-        analogue is the EU AI Act&apos;s &quot;high-risk system&quot; framework,
-        but that targets oversight of human-deployed AI rather than the
-        legal capacity of AI itself.
+        legal-fiction entity built around a non-human agent. Marshall Islands
+        DAO LLCs (2022) and Wyoming&apos;s DAO LLC (2021) come close.
+        Argentina&apos;s proposal goes further: under art. 14 a Sociedad
+        Automatizada runs its ordinary operations without employees, no
+        humans in the day-to-day loop, while keeping an administrator on
+        record (art. 88) for supervision. The closest analogue is the EU AI
+        Act&apos;s &quot;high-risk system&quot; framework, but that targets
+        oversight of human-deployed AI rather than the legal capacity of an
+        AI-run company itself.
       </DocP>
       <DocP>
         If Argentina ships the regime, three things follow:

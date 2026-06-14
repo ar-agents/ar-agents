@@ -71,7 +71,10 @@ export default function Rfc005Page() {
       <DocH2>1 · Why upgrade</DocH2>
       <DocP>
         RFC-004 v1 specifies HMAC-SHA256 with a shared symmetric secret.
-        Three audiences hit limits with that scheme:
+        Three audiences hit limits with that scheme (throughout, &quot;sociedad-IA&quot;
+        is the umbrella nickname; the legal figure is the Sociedad
+        Automatizada, art. 14 of the Anteproyecto de Ley General de
+        Sociedades):
       </DocP>
       <ul style={listStyle}>
         <Li>

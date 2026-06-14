@@ -97,12 +97,16 @@ export default function EnLegislationPage() {
             Technical synthesis for AI-corporation regimes.
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.55 }}>
-            Argentina announced a sociedad-IA regime on 28 April 2026.
-            This page synthesizes six open-source technical documents
-            (RFC-001 through RFC-006) published as <em>infrastructure</em>
-            the legislation can adopt by reference instead of rewriting
-            from scratch. Each section maps an RFC to a suggested
-            legislative paragraph + flags what the RFCs do NOT solve.
+            Argentina announced a sociedad-IA regime on 28 April 2026; a
+            signed draft bill (the Anteproyecto de Ley General de
+            Sociedades, naming the legal figure a{" "}
+            <em>Sociedad Automatizada</em>, art. 14) reached the Senate on 1
+            June 2026 and is not yet law. This page synthesizes six
+            open-source technical documents (RFC-001 through RFC-006)
+            published as <em>infrastructure</em> the legislation can adopt
+            by reference instead of rewriting from scratch. Each section
+            maps an RFC to a suggested legislative paragraph + flags what
+            the RFCs do NOT solve.
           </p>
           <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 8 }}>
             Reading time: 10 minutes · No marketing · Suggested text in

@@ -91,14 +91,20 @@ export default function LegislacionPage() {
           </h1>
           <p style={{ fontSize: 17, lineHeight: 1.55 }}>
             El régimen de sociedades-IA fue anunciado el 28 de abril de
-            2026. Esta página resume cinco documentos técnicos
-            (RFC-001 a RFC-006) publicados como infraestructura
-            open-source que la legislación puede incorporar{" "}
-            <em>cite-by-reference</em> (referenciar la norma técnica en
-            lugar de transcribirla, como cuando una ley dice
-            &ldquo;según norma IRAM 4001&rdquo; sin copiar la norma) en
-            lugar de reescribir cada concepto desde cero. Cada sección
-            propone texto sugerido para el articulado.
+            2026 y el anteproyecto de Ley General de Sociedades (277
+            artículos, firmado el 28 de mayo de 2026, en el Senado desde el
+            1 de junio) ya tiene texto: crea la{" "}
+            <strong>Sociedad Automatizada</strong> (art. 14, el nombre
+            legal de lo que esta página llama &ldquo;sociedad-IA&rdquo;) y
+            la <strong>Sociedad Descentralizada Autónoma Operativa</strong>{" "}
+            (DAO, arts. 258-265). Todavía no es ley. Esta página resume los
+            documentos técnicos (RFC-001 a RFC-006) publicados como
+            infraestructura open-source que el articulado y su futura
+            reglamentación pueden incorporar <em>cite-by-reference</em>{" "}
+            (referenciar la norma técnica en lugar de transcribirla, como
+            cuando una ley dice &ldquo;según norma IRAM 4001&rdquo; sin
+            copiar la norma) en lugar de reescribir cada concepto desde
+            cero. Cada sección propone texto sugerido.
           </p>
           <p style={{ color: "var(--text-muted)", fontSize: 13, marginTop: 8 }}>
             Tiempo de lectura: 10 minutos · Sin marketing · Texto sugerido
@@ -132,7 +138,7 @@ export default function LegislacionPage() {
           matriculados. La adopción legislativa de cualquier porción de
           este material requiere análisis por abogados corporativos y
           asesores técnicos del organismo legislativo correspondiente. Las
-          referencias a las especificaciones (RFC-001..005) apuntan a
+          referencias a las especificaciones (RFC-001..006) apuntan a
           documentos versionados en{" "}
           <a
             href="https://github.com/ar-agents/ar-agents"
@@ -205,6 +211,16 @@ export default function LegislacionPage() {
         </Section>
 
         <Section title="2 · Responsabilidad civil, RFC-001">
+          <P>
+            <strong>Dónde engancha en el anteproyecto.</strong> La{" "}
+            Sociedad Automatizada (art. 14) responde con su patrimonio por
+            los daños de sus sistemas algorítmicos; el administrador
+            mantiene el deber de configuración y supervisión del sistema y
+            sus resultados (art. 102) y responde por culpa o dolo con la
+            protección de la discrecionalidad empresarial cuando actúa con
+            un procedimiento de decisión adecuado (art. 101). RFC-001
+            operativiza ese reparto desde el código.
+          </P>
           <P>
             <strong>Concepto.</strong> Tres capas de responsabilidad civil
             (Layer 1: operador humano · Layer 2: sociedad-IA · Layer 3:
@@ -356,12 +372,27 @@ export default function LegislacionPage() {
             </em>
           </LegislativeBox>
           <P>
+            <strong>Dónde engancha en el anteproyecto.</strong> El art.
+            263 ya exige que todo registro digital sea{" "}
+            <em>públicamente verificable</em>, reproducible en formato
+            legible y que permita reconstruir el estado patrimonial, y
+            delega en el PEN los estándares mínimos de trazabilidad y
+            conservación. RFC-004 es una propuesta concreta para esa
+            reglamentación. El log también es la evidencia del deber de
+            supervisión del art. 102 y del procedimiento de decisión
+            adecuado del art. 101.
+          </P>
+          <P>
             <strong>Cláusula de prueba.</strong> El log RFC-004 es
             <em> per se </em>medio de prueba admisible en sede
             administrativa + judicial, según el Art. 286 + 287 CPCCN
             (firma electrónica con clave). El cite-by-reference le da
             valor probatorio sin tener que regular criptografía en la
-            ley.
+            ley.{" "}
+            <strong>Honestidad:</strong> el log es a prueba de manipulación
+            frente a testigos que conserven copias, no a prueba del
+            operador hasta que haya anclaje externo (timestamp de tercero o
+            registro público).
           </P>
         </Section>
 

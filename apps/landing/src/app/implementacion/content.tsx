@@ -1,10 +1,11 @@
 import { DocH2, DocP, DocShell } from "../doc-shell";
 
 /**
- * Página pública del documento técnico de referencia para el régimen
- * de Sociedades de Inteligencia Artificial. Dirigido al equipo redactor
- * del proyecto de ley + áreas técnicas del Ministerio + cualquier
- * tercero que necesite citar la implementación de referencia.
+ * Página pública del documento técnico de referencia para la figura
+ * de la Sociedad Automatizada (art. 14 del anteproyecto de Ley General
+ * de Sociedades). Dirigido al equipo técnico del Ministerio + quienes
+ * acompañen el tratamiento legislativo + cualquier tercero que necesite
+ * citar la implementación de referencia.
  *
  * El PDF canónico está en /implementacion.pdf (descargable + adjuntable).
  * Esta página renderiza el resumen + tabla de contenidos + viewer inline
@@ -16,24 +17,31 @@ const PDF_URL = "/implementacion.pdf";
 export function ImplementacionContent() {
   return (
     <DocShell
-      eyebrow="documento técnico · 2026-05"
-      title="Implementación de referencia para Sociedades de IA."
-      subtitle="Arquitectura técnica, código operable y cláusulas sugeridas para el proyecto de reforma a la Ley General de Sociedades. Dirigido al equipo redactor del proyecto y a las áreas técnicas del Ministerio."
+      eyebrow="documento técnico · 2026-06"
+      title="Implementación de referencia para Sociedades Automatizadas."
+      subtitle="Arquitectura técnica, código operable y mapeo al texto del anteproyecto de Ley General de Sociedades. Dirigido al equipo técnico del Ministerio y a quienes acompañen el tratamiento legislativo."
     >
       <DocP>
-        El 28 de abril de 2026, en el marco de Expo EFI, el Ministerio
-        de Desregulación y Transformación del Estado anunció la
-        creación de un régimen de Sociedades de Inteligencia Artificial
-        mediante reforma a la Ley General de Sociedades (Ley 19.550).
-        El presente documento es una implementación de referencia
-        abierta y verificable de la infraestructura técnica que ese
-        régimen requiere para ser operable.
+        El 28 de abril de 2026, en Expo EFI, el Ministerio de
+        Desregulación y Transformación del Estado anunció un régimen
+        para sociedades operadas por inteligencia artificial. El 28 de
+        mayo de 2026 ese anuncio se materializó en un texto: el
+        anteproyecto de Ley General de Sociedades (firmado por Santiago
+        Viola, Secretaría de Justicia, expediente
+        IF-2026-53144057-APN-SECJ#MJ), enviado al Senado el 1 de junio
+        de 2026. Tiene 277 artículos y no reforma la Ley 19.550: la
+        reemplaza y deroga (art. 270). Todavía no es ley. El nombre
+        legal de la figura es Sociedad Automatizada (art. 14); "sociedad
+        de IA" es solo el paraguas coloquial. Este documento es una
+        implementación de referencia abierta y verificable de la
+        infraestructura técnica que ese régimen requiere para ser
+        operable.
       </DocP>
 
       <DocP>
-        Está dirigido al equipo que redacte el proyecto de ley y a las
-        áreas técnicas del Ministerio. El código es open-source
-        (licencia MIT), publicado en{" "}
+        Está dirigido al equipo técnico del Ministerio y a quienes
+        acompañen el tratamiento legislativo del anteproyecto. El código
+        es open-source (licencia MIT), publicado en{" "}
         <a
           href="https://github.com/ar-agents/ar-agents"
           style={{ color: "var(--accent)", textDecoration: "underline" }}
@@ -66,11 +74,13 @@ export function ImplementacionContent() {
             lineHeight: 1.55,
           }}
         >
-          El PDF canónico contiene la versión completa con tabla de
-          decisiones, cinco cláusulas operables sugeridas, y la sección
-          de respuesta a las objeciones jurídicas públicas formuladas
-          en el debate. Es la versión citable, indicada para circular
-          internamente en el área técnica del Ministerio.
+          El PDF canónico contiene la versión completa: el mapeo de las
+          decisiones de fondo a los artículos del anteproyecto, cómo los
+          artículos ya redactados se vuelven infraestructura operable con
+          refinamientos sugeridos, y la sección de respuesta a las
+          objeciones jurídicas públicas formuladas en el debate. Es la
+          versión citable, indicada para circular internamente en el área
+          técnica del Ministerio.
         </p>
         <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
           <a
@@ -118,9 +128,11 @@ export function ImplementacionContent() {
       </DocP>
       <ol style={{ lineHeight: 1.75, paddingLeft: 22 }}>
         <li>
-          <strong>Las seis decisiones técnicas</strong> que el proyecto
-          de ley requiere resolver, con respuesta técnica sugerida y
-          referencia a la cláusula correspondiente.
+          <strong>Las decisiones técnicas de fondo y cómo el anteproyecto
+          las responde</strong>, con cita de artículo (art. 14 Sociedad
+          Automatizada, art. 6 forma, art. 263 registros verificables,
+          arts. 101 y 102 deberes y supervisión) y la pieza técnica que
+          opera cada una.
         </li>
         <li>
           <strong>Arquitectura de referencia</strong> sobre cuatro
@@ -138,13 +150,14 @@ export function ImplementacionContent() {
           qué no existe todavía.
         </li>
         <li>
-          <strong>Cinco cláusulas operables sugeridas</strong> para el
-          texto del proyecto, con justificación técnica de cada una:
-          definición y capacidad, identidad criptográfica obligatoria,
-          registro auditable encadenado, interfaz de operación
-          estandarizada, responsabilidad del operador designado. Más
-          cláusulas adicionales sugeridas (disolución y sucesión,
-          régimen tributario, régimen cambiario).
+          <strong>Mapeo de los artículos redactados a infraestructura
+          operable</strong>: dónde el anteproyecto ya resuelve la
+          cuestión (art. 14 definición, art. 263 registro auditable,
+          arts. 14/101/102/91 responsabilidad) y dónde sugerimos un
+          refinamiento al texto (identidad criptográfica sobre el art. 6,
+          interfaz de operación estandarizada). Más refinamientos
+          adicionales (disolución y sucesión, régimen tributario,
+          régimen cambiario).
         </li>
         <li>
           <strong>Preguntas técnicas planteadas en el debate público</strong>{" "}
@@ -169,31 +182,36 @@ export function ImplementacionContent() {
         estándares criptográficos (IETF RFC 8032, 2104, 3161, 6962;
         NIST FIPS 198-1, 186-5), protocolos abiertos (MCP), spec
         técnica argentina (WSAA, WSFE), marco normativo argentino
-        (Ley 19.550, Ley 25.506) y comparado (Wyoming, Marshall,
-        eIDAS, Liechtenstein TVTG).
+        (anteproyecto de Ley General de Sociedades con los artículos
+        citados, Ley 19.550 que reemplaza, Ley 25.506) y comparado
+        (Wyoming, Marshall, eIDAS, Liechtenstein TVTG).
       </DocP>
 
-      <DocH2>Resumen ejecutivo del marco propuesto</DocH2>
+      <DocH2>Resumen ejecutivo</DocH2>
       <DocP>
-        La sociedad-IA es persona jurídica de derecho privado con plena
-        capacidad para los actos de su objeto, identificada por un par
-        de claves criptográficas Ed25519, con registro de actos
-        inmutable encadenado y anclado diariamente a un servicio
-        público de verificación temporal, operable mediante una
+        Según el art. 14, la Sociedad Automatizada es una sociedad de
+        tipo común (SRL, SA, SAS) que desarrolla su objeto mediante
+        sistemas algorítmicos autónomos o agentes de IA, sin requerir
+        recursos humanos para su operación ordinaria, y responde con su
+        patrimonio. La implementación de referencia la dota de
+        identidad criptográfica Ed25519 (en continuidad con la firma
+        del art. 6), registro de actos encadenado y anclado a un
+        servicio público de verificación temporal (la pieza que hace
+        operable la exigencia de registros verificables del art. 263),
         interfaz programática estandarizada (MCP o equivalente
-        habilitado por la Autoridad de Aplicación), con personería
-        fiscal completa sobre la infraestructura tributaria argentina
-        estándar (CUIT, factura electrónica con CAE, Mercado Pago,
-        obligaciones IVA / IIBB / Ganancias / monotributo según
-        corresponda).
+        habilitado por la Autoridad de Aplicación), y personería fiscal
+        completa sobre la infraestructura tributaria argentina estándar
+        (CUIT, factura electrónica con CAE, Mercado Pago, obligaciones
+        IVA / IIBB / Ganancias / monotributo según corresponda).
       </DocP>
       <DocP>
-        El operador designado responde con su patrimonio social, y
-        solidariamente con su patrimonio personal en supuestos
-        enumerados (infracapitalización dolosa, fraude, incumplimiento
-        de los deberes técnicos esenciales). El régimen no requiere
-        residencia argentina del operador y permite incorporación
-        remota verificable.
+        El anteproyecto conserva un administrador humano o persona
+        jurídica (art. 88), cuyo uso de IA no exime su responsabilidad
+        ni su deber de configuración y supervisión (arts. 102 y 101). El
+        régimen no requiere residencia argentina y permite constitución
+        remota verificable por firma digital. El registro auditable es
+        tamper-evidente frente a testigos una vez anclado, no
+        operator-proof hasta que el anclaje externo esté en producción.
       </DocP>
 
       <DocH2>Verificación de integridad</DocH2>
@@ -202,8 +220,8 @@ export function ImplementacionContent() {
         que lo redacta. El documento no se distribuye como una afirmación
         de paternidad, se distribuye con una prueba criptográfica de ella,
         verificable offline sin confiar en este sitio. Es el mismo
-        estándar que la arquitectura propone para las sociedades-IA,
-        aplicado al propio documento que lo propone.
+        estándar que la arquitectura propone para las Sociedades
+        Automatizadas, aplicado al propio documento que lo propone.
       </DocP>
       <div
         style={{
@@ -293,7 +311,7 @@ node arg-verify.mjs file doc.pdf`}</pre>
             them but the fallback (sidebar-open / 100%) is still readable. */}
         <iframe
           src={`${PDF_URL}#pagemode=none&zoom=80`}
-          title="Implementación de referencia para sociedades de IA (PDF)"
+          title="Implementación de referencia para Sociedades Automatizadas (PDF)"
           style={{
             width: "100%",
             height: "min(80vh, 900px)",

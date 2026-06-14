@@ -59,9 +59,10 @@ export default function Rfc003Page() {
       <DocH2>1 · The cross-jurisdictional drift problem</DocH2>
       <DocP>
         Recipe 21 in the cookbook is concrete: a USA-incorporated agent
-        (Wyoming DAO LLC) signs an AP2 mandate, an AR sociedad-IA
-        verifies it, emits the factura, lands the cobro. Each side keeps
-        its own audit log:
+        (Wyoming DAO LLC) signs an AP2 mandate, an AR sociedad-IA (legal
+        name: Sociedad Automatizada, art. 14 of the Anteproyecto de Ley
+        General de Sociedades) verifies it, emits the factura, lands the
+        cobro. Each side keeps its own audit log:
       </DocP>
       <ul style={listStyle}>
         <Li>
@@ -251,9 +252,11 @@ await appendAudit(sessionId, {
       </DocP>
       <ul style={listStyle}>
         <Li>
-          <strong>AR sociedad-IA</strong> ship 2027. The headline use
-          case for the regime is cross-jurisdictional agent commerce
-          (RFC-001 § 7).
+          <strong>AR sociedades-IA</strong> are pending. The legal figure
+          (Sociedad Automatizada, art. 14) lives in the Anteproyecto de Ley
+          General de Sociedades, in the Senate since 1-jun-2026 and not yet
+          law. The headline use case for the regime is cross-jurisdictional
+          agent commerce (RFC-001 § 7).
         </Li>
         <Li>
           <strong>MIDAO is operational</strong> in Marshall Islands.

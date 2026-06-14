@@ -97,6 +97,10 @@ export default function Rfc004Page() {
         legal scaffolding to anchor the liability framework, but it leaves
         a dozen implementation decisions on the floor, and every
         implementation that diverges is a regulator&apos;s headache later.
+        (&quot;Sociedad-IA&quot; is the umbrella nickname; the legal figure
+        is the Sociedad Automatizada, art. 14 of the Anteproyecto de Ley
+        General de Sociedades. Its records duty is grounded in art. 263,
+        which requires publicly-verifiable digital records.)
       </DocP>
       <DocP>RFC-004 pins down:</DocP>
       <ul style={listStyle}>
