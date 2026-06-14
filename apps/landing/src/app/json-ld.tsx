@@ -39,7 +39,7 @@ export function HomeJsonLd() {
           url: SITE_URL,
           logo: `${SITE_URL}/icon.png`,
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades-IA, AI-only companies under Argentina's proposed regime.",
+            "Open-source toolkit and reference implementation for Argentine sociedades-IA (legally, Sociedad Automatizada, art. 14), companies that run on AI agents under Argentina's proposed regime.",
           sameAs: [REPO_URL, "https://www.npmjs.com/org/ar-agents"],
           founder: {
             "@type": "Person",
@@ -244,7 +244,7 @@ export function SociedadesIaJsonLd() {
         headline:
           "Implementación de referencia para sociedades de IA en Argentina",
         description:
-          "El proyecto Sturzenegger del 28-abr-2026 propone una nueva forma societaria para empresas operadas 100% por IA. Esta página documenta cómo el toolkit @ar-agents/* implementa las 17 piezas operativas necesarias.",
+          "El anuncio de Sturzenegger del 28-abr-2026 derivó en un anteproyecto (texto firmado el 28-may-2026, hoy en el Senado) que crea la Sociedad Automatizada (art. 14): empresas que operan con agentes de IA, sin empleados en relación de dependencia. Esta página documenta cómo el toolkit @ar-agents/* implementa las 17 piezas operativas necesarias.",
         url: `${SITE_URL}/sociedades-ia`,
         author: {
           "@type": "Person",
@@ -257,10 +257,11 @@ export function SociedadesIaJsonLd() {
         },
         inLanguage: "es-AR",
         about: [
+          { "@type": "Thing", name: "Sociedad Automatizada" },
           { "@type": "Thing", name: "Sociedad de IA" },
           { "@type": "Thing", name: "Argentina" },
           { "@type": "Thing", name: "Federico Sturzenegger" },
-          { "@type": "Thing", name: "Ley de Sociedades Comerciales" },
+          { "@type": "Thing", name: "Ley General de Sociedades" },
         ],
         keywords: [
           "sociedad-ia",

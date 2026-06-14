@@ -23,7 +23,7 @@ const FAQS: Q[] = [
   {
     audience: "regulator",
     q: "¿Qué es ar-agents? ¿Es un proyecto del gobierno?",
-    a: 'No. ar-agents es un proyecto open-source civil-comercial, escrito por Nazareno Clemente. Sin financiamiento estatal, sin relación contractual con ningún ministerio. La iniciativa pública relevante es el anuncio Sturzenegger del 28-abr-2026; ar-agents es la implementación de referencia técnica que un proyecto así necesita para operar el día 1. MIT-licensed, públicamente auditable en <a href="https://github.com/ar-agents/ar-agents">github.com/ar-agents/ar-agents</a>.',
+    a: 'No. ar-agents es un proyecto open-source civil-comercial, escrito por Nazareno Clemente. Sin financiamiento estatal, sin relación contractual con ningún ministerio. La iniciativa pública relevante: el anuncio del régimen (Sturzenegger, Expo EFI, 28-abr-2026) y luego el Anteproyecto de Ley General de Sociedades (texto firmado por Santiago Viola el 28-may-2026, enviado al Senado el 1-jun-2026, todavía no es ley). ar-agents es la implementación de referencia técnica que un régimen así necesita para operar el día 1. MIT-licensed, públicamente auditable en <a href="https://github.com/ar-agents/ar-agents">github.com/ar-agents/ar-agents</a>.',
   },
   {
     audience: "regulator",
@@ -38,12 +38,12 @@ const FAQS: Q[] = [
   {
     audience: "regulator",
     q: "¿Cómo se garantiza que el audit log no fue manipulado?",
-    a: 'Cada entry se firma con HMAC-SHA256 sobre canonical-JSON al momento de la escritura. El secret vive solo server-side. Cualquiera puede recomputar la firma en <a href="/verify">/verify</a> y ver si coincide. Si una entrada fue editada después de la firma, <code>tampered</code> sale &gt; 0 mecánicamente. Demo en vivo: <a href="/api/play/tamper-demo">/api/play/tamper-demo</a>. RFC-001 § 9.2 hace este log legalmente probatorio.',
+    a: 'Cada entry se firma con HMAC-SHA256 sobre canonical-JSON al momento de la escritura. El secret vive solo server-side. Cualquiera puede recomputar la firma en <a href="/verify">/verify</a> y ver si coincide. Si una entrada fue editada después de la firma, <code>tampered</code> sale &gt; 0 mecánicamente. Es tamper-evidente para un testigo que ya tenga la entrada; el anclaje externo (RFC-006) es lo que lo vuelve defensible contra el propio operador. Demo en vivo: <a href="/api/play/tamper-demo">/api/play/tamper-demo</a>. El anteproyecto respalda este enfoque: art. 263 exige registros digitales públicamente verificables, art. 102 fija el deber de configuración y supervisión, y art. 101 exige un procedimiento de decisión adecuado. RFC-001 § 9.2 lo desarrolla como mecanismo probatorio.',
   },
   {
     audience: "regulator",
     q: "¿Qué autoridad tienen las decisiones que toma una sociedad-IA?",
-    a: "Bajo el régimen propuesto, las decisiones de la sociedad-IA tienen la misma autoridad que las de cualquier persona jurídica argentina (firmar contratos, emitir facturas, ser titular de cuenta bancaria). El humano representante (RFC-001 § 3.1) firma el acto constitutivo y queda responsable por las decisiones de capa 1 (configuración del operador), no por las decisiones del modelo (capa 2).",
+    a: 'El nombre legal de la figura es <strong>Sociedad Automatizada</strong> (art. 14 del anteproyecto; texto firmado 28-may-2026, en el Senado desde el 1-jun-2026, todavía no es ley). Si se sanciona, sus decisiones tendrían la misma autoridad que las de cualquier persona jurídica argentina (firmar contratos, emitir facturas, ser titular de cuenta bancaria). La ley es explícita en que el uso de IA en la gestión no excluye la responsabilidad de los administradores ni el deber de configuración y supervisión del sistema (art. 102). El humano representante (RFC-001 § 3.1) firma el acto constitutivo y queda responsable por las decisiones de capa 1 (configuración del operador), no por las decisiones del modelo (capa 2).',
   },
   {
     audience: "regulator",

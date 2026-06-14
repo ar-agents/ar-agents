@@ -56,11 +56,13 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
               junio de 2026 el Poder Ejecutivo envió al Senado el
               anteproyecto que reemplaza la Ley 19.550. Crea la{" "}
               <em>Sociedad Automatizada</em> (art. 14): una empresa
-              operada por agentes de IA, sin empleados en relación de
-              dependencia, que responde con su patrimonio y conserva un
-              administrador que configura y supervisa el sistema (art.
-              102). Y la <em>DAO</em> (art. 258), con representante legal
-              humano obligatorio (art. 260). Su cifra fue clara,{" "}
+              operada por agentes de IA, sin trabajadores en relación de
+              dependencia para su operación ordinaria, que responde con su
+              patrimonio y conserva un administrador que configura y
+              supervisa el sistema (art. 102). Y la{" "}
+              <em>Sociedad Descentralizada Autónoma Operativa</em> (DAO,
+              art. 258), con representante legal humano obligatorio (art.
+              260). Su cifra fue clara,{" "}
               &ldquo;si en 10 años el 90% del PBI mundial lo producen
               agentes de IA, queremos que ese régimen jurídico esté en
               Argentina&rdquo;.
@@ -72,10 +74,12 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
               June 1, 2026 the Executive sent the Senate the draft bill
               that replaces Law 19.550. It creates the{" "}
               <em>Sociedad Automatizada</em> (art. 14): a company run by
-              AI agents, with no employees, that answers with its own
-              assets and keeps an administrator who configures and
-              supervises the system (art. 102). And the <em>DAO</em>{" "}
-              (art. 258), with a mandatory human legal representative
+              AI agents, with no employees on payroll for its ordinary
+              operation, that answers with its own assets and keeps an
+              administrator who configures and supervises the system (art.
+              102). And the{" "}
+              <em>Sociedad Descentralizada Autónoma Operativa</em> (DAO,
+              art. 258), with a mandatory human legal representative
               (art. 260). Your quote was clear, &ldquo;if in 10 years 90%
               of global GDP is produced by AI agents, we want that legal
               regime to be in Argentina&rdquo;.
@@ -205,7 +209,7 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
               funcional para el pre-flight de inscripciones y para el
               inbox del Domicilio Electrónico Constituido, pero el acta de
               constitución no se puede presentar programáticamente. Si la
-              reforma de Ley de Sociedades pasa por el Congreso con un
+              nueva Ley General de Sociedades pasa por el Congreso con un
               mandato técnico de exposición programática de TAD, el ciclo
               se cierra.
             </>
@@ -218,8 +222,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
               a documented API for TAD. Today there is a functional
               adapter for incorporation pre-flight and for the
               Electronic Domicile inbox, but the constitutive deed
-              cannot be filed programmatically. If the Corporate
-              Companies Law reform passes Congress with a technical
+              cannot be filed programmatically. If the new General
+              Companies Law passes Congress with a technical
               mandate to expose TAD programmatically, the cycle closes.
             </>
           }

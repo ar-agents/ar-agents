@@ -125,8 +125,8 @@ export function CoFirmarContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="El régimen de sociedades-IA anunciado por Sturzenegger el 28 de abril de 2026 requiere infraestructura técnica + sustento jurídico. La técnica está escrita; el sustento jurídico requiere revisores con matrícula profesional y/o peso académico que el autor original (Nazareno Clemente, dev independiente) no tiene."
-          en="The sociedades-IA regime announced by Sturzenegger on April 28, 2026 requires technical infrastructure + legal grounding. The technical side is written; the legal grounding requires reviewers with a professional license and/or academic weight the original author (Nazareno Clemente, independent dev) doesn't have."
+          es="El régimen de sociedades-IA (nombre legal: Sociedad Automatizada, art. 14), anunciado por Sturzenegger el 28 de abril de 2026 y con anteproyecto de Ley General de Sociedades en el Senado desde el 1 de junio de 2026, requiere infraestructura técnica + sustento jurídico. La técnica está escrita; el sustento jurídico requiere revisores con matrícula profesional y/o peso académico que el autor original (Nazareno Clemente, dev independiente) no tiene."
+          en="The sociedades-IA regime (legal name: Sociedad Automatizada, art. 14), announced by Sturzenegger on April 28, 2026 and with a General Companies Law draft bill in the Senate since June 1, 2026, requires technical infrastructure + legal grounding. The technical side is written; the legal grounding requires reviewers with a professional license and/or academic weight the original author (Nazareno Clemente, independent dev) doesn't have."
         />
       </DocP>
 
