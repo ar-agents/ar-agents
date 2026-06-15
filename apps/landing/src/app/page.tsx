@@ -321,15 +321,17 @@ export default function Home() {
           </p>
           <h1
             style={{
-              fontSize: "clamp(38px, 7vw, 56px)",
+              // EN headline runs one word longer ("automated companies"); 54px
+              // keeps it on one line in the 920px column. ES stays 56px.
+              fontSize: lang === "en" ? "clamp(38px, 7vw, 54px)" : "clamp(38px, 7vw, 56px)",
               margin: "12px 0 20px",
               fontWeight: 600,
               lineHeight: 1.08,
               letterSpacing: "-0.035em",
               color: "var(--text)",
-              // EN headline ("Open Infra for agentic companies.") fits on one
-              // line; ES headline is longer, keep its tighter wrap.
-              maxWidth: lang === "en" ? 900 : 820,
+              // EN headline ("Open infra for automated companies.") fits on one
+              // line; ES headline ("Sociedades Automatizadas") is longer, wraps.
+              maxWidth: lang === "en" ? 940 : 820,
             }}
           >
             {t.hero_h1_l1}
