@@ -39,8 +39,11 @@ export function MermaidDiagram({ chart, caption }: MermaidDiagramProps) {
             tertiaryColor: "#0c4a6e",
             background: "transparent",
             mainBkg: "#0f172a",
-            // Edge label background, same as page background so labels read clean.
-            edgeLabelBackground: "var(--bg, #ffffff)",
+            // Edge label background. Must be a literal color: Mermaid's strict
+            // security level rejects CSS var() values ("Unsupported color
+            // format"), which silently broke the whole diagram. Match the dark
+            // node fill so labels read clean on the diagram surface.
+            edgeLabelBackground: "#0f172a",
           },
           flowchart: {
             curve: "basis",

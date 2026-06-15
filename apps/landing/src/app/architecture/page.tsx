@@ -1,5 +1,5 @@
 import type { Metadata } from "next";
-import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
+import { DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 import { MermaidDiagram } from "./mermaid-diagram";
 
 const COMPOSITION_FLOW = `sequenceDiagram
@@ -377,22 +377,20 @@ export default function ArchitecturePage() {
       title="Architecture."
       subtitle={`${PUBLISHED_PACKAGES} packages, ${CANONICAL_TOOLS} tools, one Edge-Runtime composition contract.`}
     >
-      <DocBlock>
-        <DocP>
-          The toolkit is not a monolith. Each package solves one external
-          dependency (AFIP, BCRA, MP, Meta, Andreani, etc.) and ships
-          independently to npm. They compose at the agent-loop level,
-          there are no cross-package runtime dependencies beyond optional
-          adapter subpaths.
-        </DocP>
-        <DocP>
-          That matters because an Argentine business-as-agent isn&apos;t one
-          thing, it&apos;s the simultaneous operation of 5–7 external systems
-          (taxpayer registry, payment processor, banking, invoicing, government
-          identity, shipping carrier, public records). The toolkit is shaped
-          around that fact.
-        </DocP>
-      </DocBlock>
+      <DocP>
+        The toolkit is not a monolith. Each package solves one external
+        dependency (AFIP, BCRA, MP, Meta, Andreani, etc.) and ships
+        independently to npm. They compose at the agent-loop level,
+        there are no cross-package runtime dependencies beyond optional
+        adapter subpaths.
+      </DocP>
+      <DocP>
+        That matters because an Argentine business-as-agent isn&apos;t one
+        thing, it&apos;s the simultaneous operation of 5-7 external systems
+        (taxpayer registry, payment processor, banking, invoicing, government
+        identity, shipping carrier, public records). The toolkit is shaped
+        around that fact.
+      </DocP>
 
       <DocH2>The 36 packages</DocH2>
 
