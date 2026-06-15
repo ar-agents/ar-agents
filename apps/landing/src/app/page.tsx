@@ -491,7 +491,7 @@ export default function Home() {
               role={lang === "es" ? "Para developers" : "For developers"}
               body={
                 lang === "es"
-                  ? "36 paquetes npm tipados para Vercel AI SDK 6. Cobrar, validar CUIT, mandar WhatsApp, emitir factura, monitorear el BO."
+                  ? "36 paquetes npm tipados para el Vercel AI SDK. Cobrá una tarjeta, validá un CUIT, mandá un WhatsApp, emití una factura, seguí el Boletín Oficial."
                   : "36 typed npm packages for the Vercel AI SDK. Charge a card, validate a tax ID, send a WhatsApp, issue an invoice, watch the official gazette."
               }
               cta={lang === "es" ? "Ver SDK" : "Browse SDK"}
@@ -501,7 +501,7 @@ export default function Home() {
               role={lang === "es" ? "Para reguladores" : "For regulators"}
               body={
                 lang === "es"
-                  ? "Audit log forense con HMAC + Ed25519, verificable sin pedir la clave al operador. 1-pager imprimible."
+                  ? "Un audit log forense firmado con HMAC + Ed25519. Cualquiera puede verificar qué hizo un agente, sin pedirle la clave al operador."
                   : "A forensic audit log signed with HMAC + Ed25519. Anyone can verify what an agent did, without asking the operator for a key."
               }
               cta={lang === "es" ? "Abrir /auditor" : "Open /auditor"}
@@ -511,7 +511,7 @@ export default function Home() {
               role={lang === "es" ? "Para legisladores" : "For legislators"}
               body={
                 lang === "es"
-                  ? "Síntesis técnica de los 6 RFCs con texto sugerido cite-by-reference. Para quien esté redactando la ley."
+                  ? "Una síntesis técnica de los 6 RFCs, con texto sugerido que podés citar por referencia. Para quien esté redactando la ley."
                   : "A technical synthesis of the six RFCs, with suggested text you can cite by reference. For whoever is drafting the law."
               }
               cta={lang === "es" ? "Abrir /legislación" : "Open /legislation"}

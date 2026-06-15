@@ -260,10 +260,10 @@ export const EN = {
 } as const;
 
 export const ES: Translations = {
-  hero_h1_l1: "Infraestructura abierta para sociedades de IA.",
+  hero_h1_l1: "Infra abierta para Sociedades Automatizadas.",
   hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
-    "Una Sociedad Automatizada opera con agentes de IA, no con empleados. ar-agents es el código abierto para constituirla y operarla.",
+    "Argentina está escribiendo una ley para la Sociedad Automatizada: una sociedad que opera con agentes de IA, no con empleados (art. 14). Igual tiene que constituirse, cobrar, facturar y atender a los clientes. ar-agents es el código abierto que hace todo eso, integrado con el Estado y los sistemas de pago reales de Argentina.",
   cta_deploy: "Deployar en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
