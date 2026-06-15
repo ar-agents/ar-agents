@@ -17,227 +17,55 @@ import { HomeJsonLd } from "./json-ld";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
-type Pkg = {
-  name: string;
-  version: string;
-  purposeKey: keyof Translations;
-  npm: string;
-  github: string;
-  demo: string | null;
-};
-
-const OTHER_PACKAGES: ReadonlyArray<Pkg> = [
+// Toolkit grouped into 5 buckets (was 16 per-package cards). Full per-package
+// list, versions, and demos live on /sdk.
+const BUCKETS = [
   {
-    name: "@ar-agents/identity",
-    version: "0.7.0",
-    purposeKey: "pp_identity",
-    npm: "https://www.npmjs.com/package/@ar-agents/identity",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity",
-    demo: "https://cuit-hello.ar-agents.ar",
+    en: "Identity & trust",
+    es: "Identidad y confianza",
+    descEn:
+      "Validate a CUIT, log in with the government identity, turn a verification into a signed attestation, check digital signatures.",
+    descEs:
+      "Validar un CUIT, login con la identidad del gobierno, convertir una verificación en attestation firmada, verificar firma digital.",
+    pkgs: "identity · mi-argentina · identity-attest · firma-digital",
   },
   {
-    name: "@ar-agents/mi-argentina",
-    version: "0.1.0",
-    purposeKey: "pp_mi_argentina",
-    npm: "https://www.npmjs.com/package/@ar-agents/mi-argentina",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mi-argentina",
-    demo: null,
+    en: "Money",
+    es: "Dinero",
+    descEn:
+      "Charge and subscribe (the flagship, 89 tools), issue AFIP e-invoices, validate CBU/CVU and read live BCRA data.",
+    descEs:
+      "Cobrar y suscribir (el insignia, 89 tools), emitir facturas AFIP, validar CBU/CVU y leer datos del BCRA.",
+    pkgs: "mercadopago · facturacion · banking",
   },
   {
-    name: "@ar-agents/identity-attest",
-    version: "0.4.2",
-    purposeKey: "pp_identity_attest",
-    npm: "https://www.npmjs.com/package/@ar-agents/identity-attest",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/identity-attest",
-    demo: null,
+    en: "Commerce",
+    es: "Comercio",
+    descEn:
+      "Sell on Mercado Libre and bridge ChatGPT, Claude and Gemini into agentic checkout (ACP, AP2).",
+    descEs:
+      "Vender en Mercado Libre y puentear ChatGPT, Claude y Gemini al checkout agentic (ACP, AP2).",
+    pkgs: "mercadolibre · agentic-commerce-bridge · ap2",
   },
   {
-    name: "@ar-agents/whatsapp",
-    version: "0.4.0",
-    purposeKey: "pp_whatsapp",
-    npm: "https://www.npmjs.com/package/@ar-agents/whatsapp",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/whatsapp",
-    demo: "https://whatsapp-hello.ar-agents.ar",
+    en: "Operations",
+    es: "Operaciones",
+    descEn:
+      "Message on WhatsApp, ship with Andreani/OCA/Correo, watch the Boletín Oficial, query the IGJ registry, file with the State.",
+    descEs:
+      "Mensajear por WhatsApp, despachar con Andreani/OCA/Correo, seguir el Boletín Oficial, consultar la IGJ, tramitar con el Estado.",
+    pkgs: "whatsapp · shipping · boletin-oficial · igj · gde-tad",
   },
   {
-    name: "@ar-agents/facturacion",
-    version: "0.3.0",
-    purposeKey: "pp_facturacion",
-    npm: "https://www.npmjs.com/package/@ar-agents/facturacion",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/facturacion",
-    demo: null,
+    en: "Glue",
+    es: "Orquestación",
+    descEn:
+      "Auto-incorporate a company in one call, or install one MCP server that bundles them all.",
+    descEs:
+      "Constituir una empresa en una sola llamada, o instalar un servidor MCP que bundlea todo.",
+    pkgs: "incorporate · mcp",
   },
-  {
-    name: "@ar-agents/banking",
-    version: "0.4.0",
-    purposeKey: "pp_banking",
-    npm: "https://www.npmjs.com/package/@ar-agents/banking",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/banking",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/boletin-oficial",
-    version: "0.1.0",
-    purposeKey: "pp_boletin_oficial",
-    npm: "https://www.npmjs.com/package/@ar-agents/boletin-oficial",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/boletin-oficial",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/igj",
-    version: "0.1.0",
-    purposeKey: "pp_igj",
-    npm: "https://www.npmjs.com/package/@ar-agents/igj",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/igj",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/firma-digital",
-    version: "0.1.0",
-    purposeKey: "pp_firma_digital",
-    npm: "https://www.npmjs.com/package/@ar-agents/firma-digital",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/firma-digital",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/shipping",
-    version: "0.2.0",
-    purposeKey: "pp_shipping",
-    npm: "https://www.npmjs.com/package/@ar-agents/shipping",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/shipping",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/gde-tad",
-    version: "0.2.0",
-    purposeKey: "pp_gde_tad",
-    npm: "https://www.npmjs.com/package/@ar-agents/gde-tad",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/gde-tad",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/mercadolibre",
-    version: "0.4.3",
-    purposeKey: "pp_mercadolibre",
-    npm: "https://www.npmjs.com/package/@ar-agents/mercadolibre",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mercadolibre",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/agentic-commerce-bridge",
-    version: "5.0.0",
-    purposeKey: "pp_agentic_commerce_bridge",
-    npm: "https://www.npmjs.com/package/@ar-agents/agentic-commerce-bridge",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/agentic-commerce-bridge",
-    demo: "https://bridge-hello.ar-agents.ar",
-  },
-  {
-    name: "@ar-agents/ap2",
-    version: "0.2.0",
-    purposeKey: "pp_ap2",
-    npm: "https://www.npmjs.com/package/@ar-agents/ap2",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/ap2",
-    demo: null,
-  },
-  {
-    name: "@ar-agents/incorporate",
-    version: "0.2.0",
-    purposeKey: "pp_incorporate",
-    npm: "https://www.npmjs.com/package/@ar-agents/incorporate",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/incorporate",
-    demo: "https://ar-agents.ar/incorporar",
-  },
-  {
-    name: "@ar-agents/mcp",
-    version: "0.10.0",
-    purposeKey: "pp_mcp",
-    npm: "https://www.npmjs.com/package/@ar-agents/mcp",
-    github: "https://github.com/ar-agents/ar-agents/tree/main/packages/mcp",
-    demo: null,
-  },
-];
-
-type RowKey =
-  | "compare_row_schemas"
-  | "compare_row_ar"
-  | "compare_row_tools"
-  | "compare_row_webhooks"
-  | "compare_row_edge"
-  | "compare_row_otel"
-  | "compare_row_idem"
-  | "compare_row_hitl"
-  | "compare_row_coverage";
-
-type CellKey = keyof Translations | "✓" | "-" | "$" | "raw";
-type Cell = { key: CellKey; raw?: string };
-
-const COMPARISON_ROWS: ReadonlyArray<{
-  label: RowKey;
-  ours: Cell;
-  official: Cell;
-  stripe: Cell;
-}> = [
-  {
-    label: "compare_row_schemas",
-    ours: { key: "✓" },
-    official: { key: "compare_no" },
-    stripe: { key: "raw", raw: "✓ (Stripe)" },
-  },
-  {
-    label: "compare_row_ar",
-    ours: { key: "✓" },
-    official: { key: "compare_partial" },
-    stripe: { key: "compare_no" },
-  },
-  {
-    label: "compare_row_tools",
-    ours: { key: "raw", raw: "89" },
-    official: { key: "compare_thin" },
-    stripe: { key: "raw", raw: "26 (Stripe)" },
-  },
-  {
-    label: "compare_row_webhooks",
-    ours: { key: "✓" },
-    official: { key: "compare_client_only" },
-    stripe: { key: "✓" },
-  },
-  {
-    label: "compare_row_edge",
-    ours: { key: "✓" },
-    official: { key: "compare_node_only" },
-    stripe: { key: "compare_optional" },
-  },
-  {
-    label: "compare_row_otel",
-    ours: { key: "✓" },
-    official: { key: "compare_no" },
-    stripe: { key: "compare_no" },
-  },
-  {
-    label: "compare_row_idem",
-    ours: { key: "✓" },
-    official: { key: "compare_no" },
-    stripe: { key: "compare_no" },
-  },
-  {
-    label: "compare_row_hitl",
-    ours: { key: "✓" },
-    official: { key: "compare_no" },
-    stripe: { key: "compare_no" },
-  },
-  {
-    label: "compare_row_coverage",
-    ours: { key: "compare_full" },
-    official: { key: "compare_full" },
-    stripe: { key: "raw", raw: "n/a" },
-  },
-];
-
-function cellText(cell: Cell, t: Translations): string {
-  if (cell.key === "raw") return cell.raw ?? "";
-  if (cell.key === "✓" || cell.key === "-" || cell.key === "$") return cell.key;
-  return t[cell.key as keyof Translations];
-}
+] as const;
 
 type WhatsRow = {
   titleKey: keyof Translations;
@@ -790,10 +618,16 @@ export default function Home() {
             </code>
             {t.other_intro_b}
           </p>
-          <div style={{ display: "grid", gap: 12 }}>
-            {OTHER_PACKAGES.map((pkg) => (
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {BUCKETS.map((b) => (
               <article
-                key={pkg.name}
+                key={b.en}
                 style={{
                   background: "var(--bg)",
                   borderRadius: 8,
@@ -801,87 +635,53 @@ export default function Home() {
                   boxShadow: "var(--card-shadow)",
                 }}
               >
-                <div
+                <h3
                   style={{
-                    display: "flex",
-                    alignItems: "baseline",
-                    justifyContent: "space-between",
-                    flexWrap: "wrap",
-                    gap: 8,
-                    marginBottom: 8,
+                    fontSize: 15,
+                    fontWeight: 600,
+                    margin: "0 0 6px",
+                    color: "var(--text)",
                   }}
                 >
-                  <h3
-                    style={{
-                      fontSize: 16,
-                      fontWeight: 600,
-                      margin: 0,
-                      fontFamily: FONT_MONO,
-                      letterSpacing: 0,
-                      color: "var(--text)",
-                    }}
-                  >
-                    {pkg.name}
-                  </h3>
-                  <span
-                    style={{
-                      background: "var(--accent-bg)",
-                      color: "var(--accent-text)",
-                      padding: "0 10px",
-                      borderRadius: 9999,
-                      fontSize: 12,
-                      fontFamily: FONT_MONO,
-                      fontWeight: 500,
-                      lineHeight: 1.7,
-                    }}
-                  >
-                    v{pkg.version}
-                  </span>
-                </div>
+                  {lang === "es" ? b.es : b.en}
+                </h3>
                 <p
                   style={{
                     color: "var(--text-body)",
-                    margin: "0 0 12px",
+                    margin: "0 0 10px",
                     fontSize: 14,
-                    lineHeight: 1.6,
+                    lineHeight: 1.55,
                   }}
                 >
-                  {t[pkg.purposeKey]}
+                  {lang === "es" ? b.descEs : b.descEn}
                 </p>
-                <div style={{ display: "flex", gap: 14, fontSize: 13 }}>
-                  <a
-                    href={pkg.npm}
-                    style={{
-                      color: "var(--text)",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    {t.other_card_npm}
-                  </a>
-                  <a
-                    href={pkg.github}
-                    style={{
-                      color: "var(--text)",
-                      textDecoration: "underline",
-                    }}
-                  >
-                    {t.other_card_source}
-                  </a>
-                  {pkg.demo && (
-                    <a
-                      href={pkg.demo}
-                      style={{
-                        color: "var(--accent)",
-                        textDecoration: "underline",
-                      }}
-                    >
-                      {t.other_card_demo}
-                    </a>
-                  )}
-                </div>
+                <p
+                  style={{
+                    fontFamily: FONT_MONO,
+                    fontSize: 12.5,
+                    color: "var(--text-muted)",
+                    margin: 0,
+                  }}
+                >
+                  {b.pkgs}
+                </p>
               </article>
             ))}
           </div>
+          <p style={{ margin: "16px 0 0", fontSize: 14 }}>
+            <a
+              href="/sdk"
+              style={{
+                color: "var(--accent)",
+                textDecoration: "underline",
+                fontWeight: 500,
+              }}
+            >
+              {lang === "es"
+                ? "Lista completa, versiones y demos en /sdk →"
+                : "Full list, versions and demos on /sdk →"}
+            </a>
+          </p>
         </section>
 
         {/* COMPOSITION EXAMPLE */}
@@ -1016,182 +816,6 @@ export default function Home() {
           </p>
         </section>
 
-        {/* COMPARISON */}
-        <section style={{ marginBottom: 80 }}>
-          <h2
-            style={{
-              fontSize: "clamp(24px, 5vw, 32px)",
-              fontWeight: 600,
-              margin: "0 0 24px",
-              letterSpacing: "-0.04em",
-              lineHeight: 1.2,
-              color: "var(--text)",
-            }}
-          >
-            {t.compare_h2}
-          </h2>
-          <div
-            style={{
-              background: "var(--bg)",
-              borderRadius: 8,
-              padding: 0,
-              overflow: "auto",
-              boxShadow: "var(--card-shadow)",
-            }}
-          >
-            <table
-              style={{
-                width: "100%",
-                borderCollapse: "collapse",
-                fontSize: 13,
-              }}
-            >
-              <thead style={{ background: "var(--bg-tint)" }}>
-                <tr>
-                  <th
-                    style={{
-                      textAlign: "left",
-                      padding: 14,
-                      fontWeight: 600,
-                      color: "var(--text)",
-                      letterSpacing: "-0.32px",
-                      boxShadow: "inset 0 -1px 0 var(--border-color)",
-                    }}
-                  >
-                    {t.compare_col_feature}
-                  </th>
-                  <th
-                    style={{
-                      textAlign: "center",
-                      padding: 14,
-                      fontWeight: 600,
-                      color: "var(--text)",
-                      fontFamily: FONT_MONO,
-                      fontSize: 12,
-                      boxShadow: "inset 0 -1px 0 var(--border-color)",
-                    }}
-                  >
-                    @ar-agents
-                    <br />
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 400,
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      /mercadopago
-                    </span>
-                  </th>
-                  <th
-                    style={{
-                      textAlign: "center",
-                      padding: 14,
-                      fontWeight: 500,
-                      color: "var(--text-body)",
-                      fontFamily: FONT_MONO,
-                      fontSize: 12,
-                      boxShadow: "inset 0 -1px 0 var(--border-color)",
-                    }}
-                  >
-                    mercadopago
-                    <br />
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 400,
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {t.compare_col_official}
-                    </span>
-                  </th>
-                  <th
-                    style={{
-                      textAlign: "center",
-                      padding: 14,
-                      fontWeight: 500,
-                      color: "var(--text-body)",
-                      fontFamily: FONT_MONO,
-                      fontSize: 12,
-                      boxShadow: "inset 0 -1px 0 var(--border-color)",
-                    }}
-                  >
-                    Stripe Agent
-                    <br />
-                    <span
-                      style={{
-                        fontSize: 11,
-                        fontWeight: 400,
-                        color: "var(--text-muted)",
-                      }}
-                    >
-                      {t.compare_col_stripe}
-                    </span>
-                  </th>
-                </tr>
-              </thead>
-              <tbody>
-                {COMPARISON_ROWS.map((row, idx) => (
-                  <tr
-                    key={row.label}
-                    style={{
-                      boxShadow:
-                        idx < COMPARISON_ROWS.length - 1
-                          ? "inset 0 -1px 0 var(--border-color)"
-                          : "none",
-                    }}
-                  >
-                    <td
-                      style={{
-                        padding: "12px 14px",
-                        color: "var(--text)",
-                        fontWeight: 500,
-                      }}
-                    >
-                      {t[row.label]}
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 14px",
-                        textAlign: "center",
-                        color: "var(--text)",
-                        fontWeight: 600,
-                        fontFamily: FONT_MONO,
-                        fontSize: 13,
-                      }}
-                    >
-                      {cellText(row.ours, t)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 14px",
-                        textAlign: "center",
-                        color: "var(--text-muted)",
-                        fontFamily: FONT_MONO,
-                        fontSize: 13,
-                      }}
-                    >
-                      {cellText(row.official, t)}
-                    </td>
-                    <td
-                      style={{
-                        padding: "12px 14px",
-                        textAlign: "center",
-                        color: "var(--text-muted)",
-                        fontFamily: FONT_MONO,
-                        fontSize: 13,
-                      }}
-                    >
-                      {cellText(row.stripe, t)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        </section>
-
         {/* WHAT'S IN THE BOX */}
         <section style={{ marginBottom: 80 }}>
           <h2
@@ -1305,12 +929,8 @@ export default function Home() {
           <div style={{ display: "grid", gap: 8 }}>
             {[
               { q: t.faq_q1, a: t.faq_a1 },
-              { q: t.faq_q2, a: t.faq_a2 },
-              { q: t.faq_q3, a: t.faq_a3 },
-              { q: t.faq_q4, a: t.faq_a4 },
               { q: t.faq_q5, a: t.faq_a5 },
               { q: t.faq_q6, a: t.faq_a6 },
-              { q: t.faq_q7, a: t.faq_a7 },
             ].map(({ q, a }, i) => (
               <details
                 key={i}
@@ -1344,6 +964,93 @@ export default function Home() {
                 </p>
               </details>
             ))}
+          </div>
+        </section>
+
+        {/* CLOSING */}
+        <section
+          style={{
+            marginBottom: 80,
+            paddingTop: 44,
+            borderTop: "1px solid var(--border-color)",
+          }}
+        >
+          <h2
+            style={{
+              fontSize: "clamp(22px, 4vw, 30px)",
+              fontWeight: 600,
+              letterSpacing: "-0.03em",
+              lineHeight: 1.18,
+              color: "var(--text)",
+              margin: "0 0 12px",
+              maxWidth: 720,
+            }}
+          >
+            {lang === "es"
+              ? "Argentina puede ser el primer lugar donde una empresa operada por IA es una empresa de verdad."
+              : "Argentina can be the first place where a company run by AI is a real company."}
+          </h2>
+          <p
+            style={{
+              color: "var(--text-body)",
+              fontSize: "clamp(15px, 2.4vw, 18px)",
+              lineHeight: 1.55,
+              maxWidth: 680,
+              margin: "0 0 24px",
+            }}
+          >
+            {lang === "es"
+              ? "El código para construirla es abierto. La prueba de que opera bien es el producto."
+              : "The code to build one is open. The proof that it runs responsibly is the product."}
+          </p>
+          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
+            <a
+              href="/play"
+              style={{
+                padding: "9px 16px",
+                background: "var(--primary-bg)",
+                color: "var(--primary-text)",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: "none",
+                lineHeight: 1.43,
+              }}
+            >
+              {lang === "es" ? "Probalo con un agente" : "Try it with a live agent"}
+            </a>
+            <a
+              href="/rfcs/001"
+              style={{
+                padding: "9px 16px",
+                background: "var(--bg)",
+                color: "var(--text)",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: "none",
+                lineHeight: 1.43,
+                boxShadow: "var(--shadow-ring-light)",
+              }}
+            >
+              {lang === "es" ? "Leer el spec (RFC-001)" : "Read the spec (RFC-001)"}
+            </a>
+            <a
+              href="https://github.com/ar-agents/ar-agents"
+              style={{
+                padding: "9px 16px",
+                background: "var(--bg)",
+                color: "var(--text)",
+                borderRadius: 6,
+                fontSize: 14,
+                fontWeight: 500,
+                textDecoration: "none",
+                lineHeight: 1.43,
+                boxShadow: "var(--shadow-ring-light)",
+              }}
+            >
+              GitHub
+            </a>
           </div>
         </section>
 
