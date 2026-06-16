@@ -608,8 +608,8 @@ export default function Home() {
             }}
           >
             {lang === "es"
-              ? "El estándar es gratis. La confianza es el negocio."
-              : "The standard is free. Trust is the business."}
+              ? "Cómo funciona el modelo"
+              : "How the model works"}
           </h2>
           <p
             style={{
@@ -621,8 +621,8 @@ export default function Home() {
             }}
           >
             {lang === "es"
-              ? "El código es abierto y gratis. La confianza es un servicio pago. Lo probamos con nuestra propia empresa."
-              : "The code is open and free. Trust is a paid service. We prove it with our own company."}
+              ? "El código es abierto y gratis. La capa hosted que asume responsabilidad es paga. Lo probamos con nuestra propia empresa."
+              : "The code is open and free. The hosted layer that bears liability is paid. We prove it with our own company."}
           </p>
 
           <div

@@ -26,12 +26,12 @@ const FONT_MONO_VAR = "var(--font-geist-mono), ui-monospace, monospace";
 const T = {
   eyebrow: { es: "precios", en: "pricing" },
   title: {
-    es: "El estándar es gratis. La confianza es el negocio.",
-    en: "The standard is free. Trust is the business.",
+    es: "Precios",
+    en: "Pricing",
   },
   subtitle: {
-    es: "El código es abierto y portable. Corrés todo gratis, para siempre. Pagás la capa operada que un regulador, un banco o una contraparte confían. No cobramos el código. Cobramos la confianza que no podés auto-emitir.",
-    en: "The code is open and portable. Run it all for free, forever. You pay for the managed layer a regulator, a bank, or a counterparty trusts. We do not charge for the code. We charge for the trust you cannot self-issue.",
+    es: "El código es abierto y gratis para siempre. La capa hosted que asume responsabilidad (el audit log firmado, el rol humano que la ley exige y la atestación para terceros) es paga.",
+    en: "The code is open and free forever. The hosted layer that bears liability (the signed audit log, the human role the law requires, and the attestation for third parties) is paid.",
   },
   h2model: { es: "Cómo funciona el modelo", en: "How the model works" },
   modelP: {
@@ -45,8 +45,8 @@ const T = {
         . Con eso constituís y operás una Sociedad Automatizada por tu cuenta,
         sin pagarnos nada. Lo pago es la capa hosted que asume responsabilidad:
         un log de auditoría firmado e independiente, un rol humano que la ley
-        exige, y la atestación que una contraparte necesita. Un fork no la
-        copia, porque no es código. Es confianza con respaldo.
+        exige, y la atestación que una contraparte necesita. Un fork copia el
+        código, pero no la responsabilidad ni la atestación: eso es lo pago.
       </>
     ),
     en: (
@@ -59,12 +59,12 @@ const T = {
         wizard. With that you incorporate and run an automated company on your
         own, paying us nothing. The paid part is the hosted layer that bears
         liability: a signed, independent audit log, a human role the law
-        requires, and the attestation a counterparty needs. A fork cannot copy
-        it, because it is not code. It is backed trust.
+        requires, and the attestation a counterparty needs. A fork copies the
+        code, but not the liability or the attestation: that is the paid part.
       </>
     ),
   },
-  h2fair: { es: "Quién paga, y por qué es justo", en: "Who pays, and why it's fair" },
+  h2fair: { es: "Quién paga", en: "Who pays" },
   fairP: {
     es: (
       <>
@@ -147,7 +147,7 @@ const T = {
       </>
     ),
   },
-  h2selfhost: { es: "Corré todo vos mismo", en: "Run it all yourself" },
+  h2selfhost: { es: "Self-hosting", en: "Self-hosting" },
   selfhostP: {
     es: (
       <>
@@ -168,7 +168,7 @@ const T = {
       </>
     ),
   },
-  h2autonomo: { es: "100% autónomo, de verdad", en: "100% autonomous, for real" },
+  h2autonomo: { es: "100% autónomo", en: "100% autonomous" },
   autonomoP: {
     es: (
       <>
@@ -238,8 +238,8 @@ const LAYERS: ReadonlyArray<Layer> = [
     payer: { es: "Nadie", en: "No one" },
     status: "free",
     fair: {
-      es: "36 paquetes (MIT) + 6 RFCs (CC-BY-4.0) + wizard. El estándar no se cobra. Self-hosteable.",
-      en: "36 packages (MIT) + 6 RFCs (CC-BY-4.0) + wizard. The standard is not charged. Self-hostable.",
+      es: "36 paquetes (MIT) + 6 RFCs (CC-BY-4.0) + wizard. Gratis y self-hosteable.",
+      en: "36 packages (MIT) + 6 RFCs (CC-BY-4.0) + wizard. Free and self-hostable.",
     },
   },
   {
@@ -337,8 +337,8 @@ export function PreciosContent({ lang }: { lang: Lang }) {
 function FairnessTable({ lang }: { lang: Lang }) {
   const headers =
     lang === "es"
-      ? { layer: "Capa", payer: "Quién paga", status: "Estado", fair: "Por qué es justo" }
-      : { layer: "Layer", payer: "Who pays", status: "Status", fair: "Why it's fair" };
+      ? { layer: "Capa", payer: "Quién paga", status: "Estado", fair: "Por qué" }
+      : { layer: "Layer", payer: "Who pays", status: "Status", fair: "Why" };
 
   return (
     <div style={{ overflowX: "auto", margin: "16px 0 24px" }}>
