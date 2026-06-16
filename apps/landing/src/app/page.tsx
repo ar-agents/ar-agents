@@ -698,7 +698,7 @@ export default function Home() {
                 {lang === "es" ? "El Auditor · pago" : "The Auditor · paid"}
               </div>
               <div style={{ fontSize: 17, fontWeight: 600, color: "var(--text)", marginBottom: 6 }}>
-                {lang === "es" ? "Prueba de autonomía, USD 199/mes" : "Proof-of-autonomy, USD 199/mo"}
+                {lang === "es" ? "Prueba de autonomía" : "Proof-of-autonomy"}
               </div>
               <p style={{ fontSize: 14, color: "var(--text-body)", lineHeight: 1.5, margin: "0 0 12px" }}>
                 {lang === "es"

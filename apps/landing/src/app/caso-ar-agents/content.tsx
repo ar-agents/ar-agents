@@ -26,7 +26,7 @@ const AUDIT_SNAPSHOT = `// /dashboard/ar-agents-sociedad-automatizada · snapsho
     y operen sociedades automatizadas en Argentina
 
 2026-06-09T14:42:43Z  auditor_subscribe    ✓ hmac  ✓ ed25519
-  → El Auditor Pro · USD 199/mes · proof-of-autonomy (art. 102)
+  → El Auditor Pro · proof-of-autonomy (art. 102)
 
 → verificable en vivo, por cualquiera, sin pedirnos la clave (RFC-005).`;
 
