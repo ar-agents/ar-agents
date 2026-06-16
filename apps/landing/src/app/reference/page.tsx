@@ -243,7 +243,7 @@ const SECTIONS: Section[] = [
         label: "/.well-known/agents.json",
         tone: "infra",
         description:
-          "agents.md convention. Lists endpoints, packages, governance primitives, and per-agent operating instructions. The agent-economy entry document.",
+          "agents.md convention. Lists endpoints, packages, governance primitives, and per-agent operating instructions. The machine-readable index for agents.",
       },
       {
         url: "/.well-known/security.txt",

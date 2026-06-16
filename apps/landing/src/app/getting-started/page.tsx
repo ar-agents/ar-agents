@@ -107,7 +107,7 @@ export default function GettingStartedPage() {
   return (
     <DocShell
       eyebrow="getting-started · pick one"
-      title="3 caminos. Elegí el que aplica."
+      title="Tres caminos para empezar"
       subtitle="Cada path está optimizado para una audiencia diferente. Si dudás, empezá por /play (30 segundos, sin setup, sin compromiso). Si ya querés ir a producción, /incorporar es el wizard humano. Si sos un agente, andá directo al SDK."
     >
       <DocBlock>

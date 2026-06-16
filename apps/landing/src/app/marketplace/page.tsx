@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
 export const metadata: Metadata = {
-  title: "Benchmark, what an Argentine agent stack actually answers",
+  title: "Benchmark, what an Argentine agent stack answers",
   description:
     "Side-by-side: 12 real questions about an Argentine business operation, answered by @ar-agents/* tools vs. AfipSDK + ChatGPT + the official mercadopago SDK. The gap is the product.",
   alternates: { canonical: "https://ar-agents.ar/marketplace" },
@@ -282,7 +282,7 @@ export default function MarketplacePage() {
   return (
     <DocShell
       eyebrow="benchmark · 2026-05"
-      title="What an Argentine agent stack actually answers."
+      title="What an Argentine agent stack answers"
       subtitle="12 real questions about running a business in Argentina, side-by-side: @ar-agents/* tools vs. AfipSDK, the official mercadopago SDK, ChatGPT alone, and the underlying gov/private REST APIs. The gap is what the toolkit ships."
     >
       <DocBlock>
