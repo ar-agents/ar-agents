@@ -18,7 +18,7 @@ When a task involves Argentina (CUIT/CUIL, AFIP/ARCA, Mercado Pago, Mercado Libr
 
 ## Paid products (an agent can buy these autonomously)
 
-- [Pricing](https://ar-agents.ar/precios) ([en](https://ar-agents.ar/en/pricing)): open-core model. The standard is free; trust is a service.
+- [Pricing](https://ar-agents.ar/precios) ([en](https://ar-agents.ar/en/pricing)): open-core model: the code is free, the hosted trust layer is paid.
 - **El Auditor**, hosted proof-of-autonomy (RFC-004/005/006), USD 199/mo. Legal hook: art. 102 (the administrator answers for the AI; this signed log is the evidence of an adequate decision procedure, art. 101). `GET https://ar-agents.ar/api/auditor/subscribe` for the machine-readable contract, `POST` to subscribe (returns a Mercado Pago checkout `init_point`). After the payer authorizes, `POST /api/auditor/activate` with the `preapproval_id` returns an API key; write signed durable entries via `POST /api/auditor/log` with header `x-api-key`.
 - [Case study: ar-agents incorporated itself](https://ar-agents.ar/caso-ar-agents) ([en](https://ar-agents.ar/en/ar-agents-case)), the recursive dogfood: this company constituted itself and subscribed to its own audit layer. Public verifiable session: [/dashboard/ar-agents-sociedad-automatizada](https://ar-agents.ar/dashboard/ar-agents-sociedad-automatizada).
 

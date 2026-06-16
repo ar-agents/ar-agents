@@ -100,7 +100,7 @@ export default function SdkPage() {
   return (
     <DocShell
       eyebrow="sdk · @ar-agents/incorporate"
-      title="The agent-economy entry point."
+      title="The incorporation SDK"
       subtitle="Zero-dependency TypeScript client for /api/auto-incorporate. One async call returns the full AR sociedad-IA incorporation kit: generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference."
     >
       <DocBlock>
