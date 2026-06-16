@@ -190,7 +190,7 @@ function buildDiscoveryDoc(): DiscoveryDoc {
     totalTools,
     endpoints,
     commercial: {
-      model: "open-core: the standard is free, trust is a service",
+      model: "open-core: the code is free, the hosted trust layer is paid",
       pricing: `${SITE_URL}/precios`,
       products: [
         {
