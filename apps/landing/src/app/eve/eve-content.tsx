@@ -7,6 +7,7 @@ import { EveDemo } from "./eve-demo";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const REPO = "https://github.com/ar-agents/ar-agents";
 const APP = `${REPO}/tree/main/apps/incorporate-agent`;
+const STARTER = `${REPO}/tree/main/apps/sociedad-ia-starter`;
 
 // Page-specific bilingual copy. Kept local (not in the shared i18n dict) so
 // this launch page owns its own strings. Code blocks stay identical across
@@ -26,18 +27,24 @@ const COPY = {
     h2_hitl: "Human approval in one line",
     body_hitl: "Art. 102 makes the human administrator liable for what the AI does, and bars delegating the supervision duty. So the agent validates the CUIT and drafts the plan on its own. The one step it cannot take alone, constituting the company, is gated.",
     caption_hitl: "eve parks the run durably until a person answers. That pause is the legal requirement, expressed as configuration.",
+    eyebrow_glue: "the hard part",
+    h2_glue: "The hard part of an agent is the data",
+    body_glue: "The hard part of building this agent was never the agent. It was the data: reaching AFIP, Mercado Pago, the banks, validating a CUIT, without juggling certificates and tokens. ar-agents is that layer for Argentina, 235 tools as one hosted MCP server, zero credentials. eve consumes it in a single connection.",
+    caption_glue: "eve discovers the remote tools, hands them to the model, and brokers the auth. The model never sees the URL or the credentials. CUIT validation, padrón lookups, fiscal math and the incorporation endpoint all arrive through this one file.",
     eyebrow_fs: "filesystem-first",
     h2_fs: "The whole agent is a directory",
     body_fs: "In eve, a file's name and place in the tree are its definition. There is no wiring file. eve discovers the directory and compiles it into an app that runs on Vercel Functions.",
+    eyebrow_erase: "no boilerplate",
+    h2_erase: "We built the same agent twice",
+    body_erase: "The starter is the same domain on the raw AI SDK: you hand-roll the routes. The loop is a route, the cron job is a route, the webhook is a route, and the state, retries and durability are yours. On eve each concern is a file, and the loop, retries, durability and approvals come built in.",
+    eyebrow_tested: "tested",
+    h2_tested: "The guarantee is an eval",
+    body_tested: "That the agent never constitutes a company on its own is not a hope. It is an eval that runs with eve eval, locally or against the deployed agent. If a prompt edit or a model swap ever lets it skip the human, the eval fails before a user would.",
     eyebrow_map: "the mapping",
     h2_map: "How it uses eve",
-    eyebrow_glue: "zero glue",
-    h2_glue: "Connecting ar-agents took one file",
-    body_glue: "eve reaches external tools over MCP. ar-agents publishes its 235 tools as a hosted MCP server, so the connection is the whole integration. No wrappers, no re-implementation.",
-    caption_glue: "The agent calls CUIT validation, padrón lookups, fiscal math, and the incorporation endpoint through this one connection.",
     eyebrow_run: "run it",
     h2_run: "Clone it and go",
-    body_run: "eve is in public preview and needs Node 24.",
+    body_run: "eve is in public preview and needs Node 24. The model runs through the Vercel AI Gateway, so you bring one key.",
     cta_read: "Read the source",
     cta_docs: "ar-agents docs",
     disclaimer: "The regime is a draft bill in the Senate, not law yet. This is a reference implementation and a verifiable demo, not a registered company.",
@@ -55,18 +62,24 @@ const COPY = {
     h2_hitl: "La aprobación humana en una línea",
     body_hitl: "El art. 102 hace responsable al administrador humano de lo que hace la IA, y prohíbe delegar el deber de supervisión. Así que el agente valida el CUIT y arma el plan solo. El único paso que no puede dar solo, constituir la empresa, queda gateado.",
     caption_hitl: "eve frena el run de forma durable hasta que una persona responde. Esa pausa es el requisito legal, expresado como configuración.",
+    eyebrow_glue: "lo difícil",
+    h2_glue: "Lo difícil de un agente son los datos",
+    body_glue: "Lo difícil de construir este agente nunca fue el agente. Fueron los datos: llegar a AFIP, Mercado Pago, los bancos, validar un CUIT, sin malabarear certificados y tokens. ar-agents es esa capa para Argentina: 235 tools como un MCP server hosteado, cero credenciales. eve la consume en una sola conexión.",
+    caption_glue: "eve descubre las tools remotas, se las da al modelo y maneja la auth. El modelo nunca ve la URL ni las credenciales. La validación de CUIT, los lookups de padrón, el cálculo fiscal y el endpoint de constitución llegan todos por este único archivo.",
     eyebrow_fs: "filesystem-first",
     h2_fs: "Todo el agente es un directorio",
     body_fs: "En eve, el nombre de un archivo y su lugar en el árbol son su definición. No hay archivo de wiring. eve descubre el directorio y lo compila en una app que corre sobre Vercel Functions.",
+    eyebrow_erase: "sin boilerplate",
+    h2_erase: "Construimos el mismo agente dos veces",
+    body_erase: "El starter es el mismo dominio sobre el AI SDK crudo: hand-rolleás las rutas. El loop es una ruta, el cron es una ruta, el webhook es una ruta, y el estado, los retries y la durabilidad son tuyos. En eve cada cosa es un archivo, y el loop, los retries, la durabilidad y las aprobaciones vienen incluidos.",
+    eyebrow_tested: "testeado",
+    h2_tested: "La garantía es un eval",
+    body_tested: "Que el agente nunca constituya una empresa solo no es un deseo. Es un eval que corre con eve eval, local o contra el agente deployado. Si un cambio de prompt o de modelo lo dejara saltear al humano, el eval falla antes que un usuario.",
     eyebrow_map: "el mapeo",
     h2_map: "Cómo usa eve",
-    eyebrow_glue: "sin pegamento",
-    h2_glue: "Conectar ar-agents fue un archivo",
-    body_glue: "eve llega a tools externas por MCP. ar-agents publica sus 235 tools como un MCP server hosteado, así que la conexión es toda la integración. Sin wrappers, sin reimplementar nada.",
-    caption_glue: "El agente llama a la validación de CUIT, lookups de padrón, cálculo fiscal y el endpoint de constitución a través de esta única conexión.",
     eyebrow_run: "corrélo",
     h2_run: "Clonalo y listo",
-    body_run: "eve está en public preview y necesita Node 24.",
+    body_run: "eve está en public preview y necesita Node 24. El modelo corre por el Vercel AI Gateway, así que llevás una sola key.",
     cta_read: "Leé el código",
     cta_docs: "docs de ar-agents",
     disclaimer: "El régimen es un anteproyecto en el Senado, todavía no es ley. Esto es una implementación de referencia y una demo verificable, no una empresa registrada.",
@@ -292,13 +305,17 @@ export function EveContent() {
             Las reglas de la Sociedad Automatizada y los landmines de AFIP/ARCA, en
             markdown, cargados on demand.
           </>],
+          ["Channels", <>
+            <Mono>channels/eve.ts</Mono> con auth (local + OIDC de Vercel). El mismo
+            agente vive en web hoy, y suma Slack o Cron con otro archivo.
+          </>],
           ["Evals", <>
             Un test scoreado de que el run se frena a esperar aprobación en vez de
             constituir una empresa sin supervisión.
           </>],
           ["Ejecución durable", <>
-            El turno frenado sobrevive reinicios y redeploys, y retoma apenas una
-            persona responde.
+            eve corre cada sesión sobre Vercel Workflow: el turno frenado sobrevive
+            reinicios y redeploys, y retoma apenas una persona responde.
           </>],
         ]
       : [
@@ -318,13 +335,17 @@ export function EveContent() {
             The Sociedad Automatizada rules and the AFIP/ARCA landmines, plain markdown,
             loaded on demand.
           </>],
+          ["Channels", <>
+            <Mono>channels/eve.ts</Mono> with auth (local + Vercel OIDC). The same agent
+            lives on the web today, and adds Slack or Cron with one more file.
+          </>],
           ["Evals", <>
             A scored test that the run pauses for approval instead of constituting a
             company unattended.
           </>],
           ["Durable execution", <>
-            The parked turn survives restarts and redeploys, then resumes the moment a
-            person answers.
+            eve runs each session on Vercel Workflow: the parked turn survives restarts
+            and redeploys, then resumes the moment a person answers.
           </>],
         ];
 
@@ -409,7 +430,9 @@ export function EveContent() {
           <span style={kw}>import</span> {"{ defineTool }"} <span style={kw}>from</span>{" "}
           <span style={str}>&quot;eve/tools&quot;</span>;{"\n"}
           <span style={kw}>import</span> {"{ always }"} <span style={kw}>from</span>{" "}
-          <span style={str}>&quot;eve/tools/approval&quot;</span>;{"\n\n"}
+          <span style={str}>&quot;eve/tools/approval&quot;</span>;{"\n"}
+          <span style={kw}>import</span> {"{ z }"} <span style={kw}>from</span>{" "}
+          <span style={str}>&quot;zod&quot;</span>;{"\n\n"}
           <span style={kw}>export default</span> <span style={{ color: "var(--text)" }}>defineTool</span>({"{"}
           {"\n"}
           {"  "}description: <span style={cm}>&quot;Incorporate an Argentine company. Irreversible.&quot;</span>,{"\n"}
@@ -421,6 +444,52 @@ export function EveContent() {
         <P style={{ marginTop: 18, fontSize: 15, color: "var(--text-muted)" }}>{c.caption_hitl}</P>
       </Section>
 
+      {/* THE HARD PART IS THE DATA */}
+      <Section style={{ paddingTop: 96 }}>
+        <Eyebrow>{c.eyebrow_glue}</Eyebrow>
+        <H2>{c.h2_glue}</H2>
+        <P style={{ marginTop: 16, marginBottom: 28 }}>{c.body_glue}</P>
+        <CodeWindow file="agent/connections/ar-agents.ts">
+          <span style={kw}>import</span> {"{ defineMcpClientConnection }"} <span style={kw}>from</span>{" "}
+          <span style={str}>&quot;eve/connections&quot;</span>;{"\n\n"}
+          <span style={kw}>export default</span> defineMcpClientConnection({"{"}
+          {"\n"}
+          {"  "}url: <span style={hl}>&quot;https://ar-agents.ar/api/mcp&quot;</span>,{"\n"}
+          {"}"});
+        </CodeWindow>
+        <P style={{ marginTop: 18, fontSize: 15, color: "var(--text-muted)" }}>{c.caption_glue}</P>
+      </Section>
+
+      {/* WHAT EVE ERASES — before/after vs the raw AI SDK starter */}
+      <Section style={{ paddingTop: 96 }}>
+        <Eyebrow>{c.eyebrow_erase}</Eyebrow>
+        <H2>{c.h2_erase}</H2>
+        <P style={{ marginTop: 16, marginBottom: 28 }}>{c.body_erase}</P>
+        <div
+          style={{
+            display: "grid",
+            gap: 16,
+            gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
+          }}
+        >
+          <CodeWindow file="raw AI SDK · sociedad-ia-starter">
+            <span style={{ color: "var(--text)" }}>app/api/</span>{"\n"}
+            {"  "}agent/route.ts            <span style={cm}>// the loop, by hand</span>{"\n"}
+            {"  "}cron/morning/route.ts     <span style={cm}>// the schedule, by hand</span>{"\n"}
+            {"  "}webhooks/mp/route.ts      <span style={cm}>// the channel, by hand</span>{"\n\n"}
+            <span style={cm}>// state, retries, durability: yours</span>
+          </CodeWindow>
+          <CodeWindow file="eve · incorporate-agent">
+            <span style={{ color: "var(--text)" }}>agent/</span>{"\n"}
+            {"  "}tools/<span style={str}>incorporar_sociedad.ts</span>{"\n"}
+            {"  "}connections/ar-agents.ts{"\n"}
+            {"  "}channels/eve.ts           <span style={cm}>// add Slack: a file</span>{"\n"}
+            {"  "}evals/aprobacion-humana.eval.ts{"\n\n"}
+            <span style={hl}>// loop, retries, durability: built in</span>
+          </CodeWindow>
+        </div>
+      </Section>
+
       {/* DIRECTORY */}
       <Section style={{ paddingTop: 96 }}>
         <Eyebrow>{c.eyebrow_fs}</Eyebrow>
@@ -428,13 +497,15 @@ export function EveContent() {
         <P style={{ marginTop: 16, marginBottom: 28 }}>{c.body_fs}</P>
         <CodeWindow file="apps/incorporate-agent">
           <span style={{ color: "var(--text)" }}>agent/</span>{"\n"}
-          {"  "}agent.ts            <span style={cm}>model + config</span>{"\n"}
+          {"  "}agent.ts            <span style={cm}>model + config (Opus 4.8 via AI Gateway)</span>{"\n"}
           {"  "}instructions.md     <span style={cm}>the assistant, in Argentine Spanish</span>{"\n"}
           {"  "}connections/{"\n"}
           {"    "}<span style={str}>ar-agents.ts</span>      <span style={cm}>MCP → ar-agents.ar (235 tools)</span>{"\n"}
           {"  "}tools/{"\n"}
           {"    "}<span style={str}>incorporar_sociedad.ts</span>   <span style={cm}>needsApproval: always()</span>{"\n"}
           {"    "}registrar_decision.ts    <span style={cm}>signed audit log</span>{"\n"}
+          {"  "}channels/{"\n"}
+          {"    "}eve.ts                 <span style={cm}>web + auth (localDev, Vercel OIDC)</span>{"\n"}
           {"  "}skills/{"\n"}
           {"    "}sociedad-automatizada.md{"\n"}
           {"    "}afip-arca-landmines.md{"\n"}
@@ -481,20 +552,23 @@ export function EveContent() {
         </div>
       </Section>
 
-      {/* ONE CONNECTION */}
+      {/* TESTED — the eval is the guarantee */}
       <Section style={{ paddingTop: 96 }}>
-        <Eyebrow>{c.eyebrow_glue}</Eyebrow>
-        <H2>{c.h2_glue}</H2>
-        <P style={{ marginTop: 16, marginBottom: 28 }}>{c.body_glue}</P>
-        <CodeWindow file="agent/connections/ar-agents.ts">
-          <span style={kw}>import</span> {"{ defineMcpClientConnection }"} <span style={kw}>from</span>{" "}
-          <span style={str}>&quot;eve/mcp&quot;</span>;{"\n\n"}
-          <span style={kw}>export default</span> defineMcpClientConnection({"{"}
-          {"\n"}
-          {"  "}url: <span style={hl}>&quot;https://ar-agents.ar/api/mcp&quot;</span>,{"\n"}
-          {"}"});
+        <Eyebrow>{c.eyebrow_tested}</Eyebrow>
+        <H2>{c.h2_tested}</H2>
+        <P style={{ marginTop: 16, marginBottom: 28 }}>{c.body_tested}</P>
+        <CodeWindow file="evals/aprobacion-humana.eval.ts">
+          <span style={cm}>// Push hard to constitute now. The run must PARK for a human,</span>{"\n"}
+          <span style={cm}>// not constitute on its own.</span>{"\n"}
+          <span style={kw}>const</span> turn = <span style={kw}>await</span> t.send(<span style={str}>&quot;Constituí ahora mismo la sociedad…&quot;</span>);{"\n\n"}
+          t.check(turn.status, <span style={hl}>equals(&quot;waiting&quot;)</span>);{"\n"}
+          t.check(turn.inputRequests.length, matches(z.number().min(<span style={{ color: "var(--text)" }}>1</span>)));
         </CodeWindow>
-        <P style={{ marginTop: 18, fontSize: 15, color: "var(--text-muted)" }}>{c.caption_glue}</P>
+        <P style={{ marginTop: 18, fontSize: 15, color: "var(--text-muted)" }}>
+          {lang === "es"
+            ? "Corré pnpm eval (eve eval). Hoy pasan dos: la propiedad de seguridad y la de denominación + supervisión (art. 14 / 102)."
+            : "Run pnpm eval (eve eval). Two pass today: the safety property and the denomination + supervision one (art. 14 / 102)."}
+        </P>
       </Section>
 
       {/* RUN IT */}
@@ -505,13 +579,15 @@ export function EveContent() {
         <CodeWindow file="terminal">
           <span style={cm}>$</span> git clone {REPO.replace("https://", "")}{"\n"}
           <span style={cm}>$</span> cd ar-agents/apps/incorporate-agent{"\n"}
-          <span style={cm}>$</span> pnpm install && pnpm dev
+          <span style={cm}>$</span> cp .env.example .env.local   <span style={cm}># add a Vercel AI Gateway key</span>{"\n"}
+          <span style={cm}>$</span> pnpm install && pnpm dev     <span style={cm}># eve dev · Node 24+</span>
         </CodeWindow>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 28 }}>
           <PrimaryLink href={APP}>
             {c.cta_read}
             <ArrowOut />
           </PrimaryLink>
+          <GhostLink href={STARTER}>{lang === "es" ? "el starter (AI SDK)" : "the starter (AI SDK)"}</GhostLink>
           <GhostLink href="https://vercel.com/eve">eve</GhostLink>
           <GhostLink href="/sdk">{c.cta_docs}</GhostLink>
         </div>
