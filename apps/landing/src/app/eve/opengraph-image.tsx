@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "ar-agents, built on eve. An agent that incorporates a company.";
+export const alt = "ar-agents, built with eve. An agent that incorporates automated companies in Argentina.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -56,7 +56,7 @@ export default function EveOgImage() {
           >
             ar
           </div>
-          <span>ar-agents · built on eve</span>
+          <span>ar-agents · built with eve</span>
         </div>
 
         {/* Middle: headline + the one-line hook as a code chip */}
@@ -65,15 +65,16 @@ export default function EveOgImage() {
             style={{
               display: "flex",
               flexDirection: "column",
-              fontSize: 82,
+              fontSize: 62,
               fontWeight: 600,
-              lineHeight: 1.0,
-              letterSpacing: "-4.6px",
+              lineHeight: 1.04,
+              letterSpacing: "-3.2px",
               color: "#ededed",
             }}
           >
-            <span>An agent that</span>
-            <span>incorporates a company.</span>
+            <span>An agent that incorporates</span>
+            <span>automated companies</span>
+            <span>in Argentina.</span>
           </div>
 
           <div style={{ display: "flex", alignItems: "center", gap: 22 }}>
