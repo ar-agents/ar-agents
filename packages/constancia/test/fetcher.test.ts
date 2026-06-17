@@ -10,8 +10,8 @@ import {
 } from "../src";
 
 const sampleData: Constancia = {
-  cuit: "20417581015",
-  denominacion: "CLEMENTE NAZARENO",
+  cuit: "20123456786",
+  denominacion: "PEREZ JUAN",
   tipoPersona: "fisica",
   condicion: "monotributo",
   monotributoCategoria: "A",
@@ -31,48 +31,48 @@ const sampleData: Constancia = {
 
 describe("normalizeCuit", () => {
   it("strips formatting to 11 bare digits", () => {
-    expect(normalizeCuit("20-41758101-5")).toBe("20417581015");
-    expect(normalizeCuit("20417581015")).toBe("20417581015");
-    expect(normalizeCuit("  20.41758101.5 ")).toBe("20417581015");
+    expect(normalizeCuit("20-12345678-6")).toBe("20123456786");
+    expect(normalizeCuit("20123456786")).toBe("20123456786");
+    expect(normalizeCuit("  20.12345678.6 ")).toBe("20123456786");
   });
 
   it("returns null when not 11 digits", () => {
     expect(normalizeCuit("123")).toBeNull();
     expect(normalizeCuit("abcdefghijk")).toBeNull();
-    expect(normalizeCuit("204175810155")).toBeNull();
+    expect(normalizeCuit("201234567865")).toBeNull();
   });
 });
 
 describe("UnconfiguredConstanciaFetcher", () => {
   it("is safe to call and reports not-configured", async () => {
     const f = new UnconfiguredConstanciaFetcher();
-    const r = await f.getConstancia("20-41758101-5");
+    const r = await f.getConstancia("20-12345678-6");
     expect(r.available).toBe(false);
     expect(r.source).toBe("unconfigured");
     expect(r.data).toBeNull();
     expect(r.pdf).toBeNull();
     expect(r.error).toMatch(/not configured/i);
-    expect(r.cuit).toBe("20417581015");
+    expect(r.cuit).toBe("20123456786");
   });
 });
 
 describe("MockConstanciaFetcher", () => {
   it("returns the fixture for a known CUIT (key normalized)", async () => {
     const f = new MockConstanciaFetcher(
-      { "20-41758101-5": sampleData },
-      { "20417581015": { base64: "JVBER", codigoVerificador: "ABC123" } },
+      { "20-12345678-6": sampleData },
+      { "20123456786": { base64: "JVBER", codigoVerificador: "ABC123" } },
     );
-    const r = await f.getConstancia("20417581015");
+    const r = await f.getConstancia("20123456786");
     expect(r.available).toBe(true);
     expect(r.error).toBeNull();
-    expect(r.data?.denominacion).toBe("CLEMENTE NAZARENO");
+    expect(r.data?.denominacion).toBe("PEREZ JUAN");
     expect(r.data?.monotributoCategoria).toBe("A");
     expect(r.pdf?.codigoVerificador).toBe("ABC123");
     expect(r.source).toBe("mock");
   });
 
   it("returns cuit_not_found for an unknown CUIT", async () => {
-    const f = new MockConstanciaFetcher({ "20417581015": sampleData });
+    const f = new MockConstanciaFetcher({ "20123456786": sampleData });
     const r = await f.getConstancia("30-70750012-9");
     expect(r.available).toBe(false);
     expect(r.error).toMatch(/cuit_not_found/);
@@ -87,8 +87,8 @@ describe("MockConstanciaFetcher", () => {
   });
 
   it("found fixture without a PDF yields pdf:null", async () => {
-    const f = new MockConstanciaFetcher({ "20417581015": sampleData });
-    const r = await f.getConstancia("20417581015");
+    const f = new MockConstanciaFetcher({ "20123456786": sampleData });
+    const r = await f.getConstancia("20123456786");
     expect(r.available).toBe(true);
     expect(r.pdf).toBeNull();
   });
@@ -96,7 +96,7 @@ describe("MockConstanciaFetcher", () => {
 
 describe("parseSkillOutput", () => {
   it("normalizes a full payload (object)", () => {
-    const r = parseSkillOutput("20417581015", {
+    const r = parseSkillOutput("20123456786", {
       found: true,
       denominacion: "  ACME S.A.  ",
       tipoPersona: "juridica",
@@ -138,9 +138,9 @@ describe("parseSkillOutput", () => {
 
   it("parses a JSON string and infers monotributo + category", () => {
     const r = parseSkillOutput(
-      "20417581015",
+      "20123456786",
       JSON.stringify({
-        denominacion: "CLEMENTE NAZARENO",
+        denominacion: "PEREZ JUAN",
         condicion: "Monotributo",
         monotributoCategoria: "a",
       }),
@@ -155,7 +155,7 @@ describe("parseSkillOutput", () => {
     ["sin inscripción", "no_inscripto"],
     ["algo raro", "desconocida"],
   ])("maps condición %s → %s", (input, expected) => {
-    const r = parseSkillOutput("20417581015", {
+    const r = parseSkillOutput("20123456786", {
       denominacion: "X",
       condicion: input,
     });
@@ -163,11 +163,11 @@ describe("parseSkillOutput", () => {
   });
 
   it("throws cuit_not_found when found:false", () => {
-    expect(() => parseSkillOutput("20417581015", { found: false })).toThrow(
+    expect(() => parseSkillOutput("20123456786", { found: false })).toThrow(
       ConstanciaError,
     );
     try {
-      parseSkillOutput("20417581015", { found: false });
+      parseSkillOutput("20123456786", { found: false });
     } catch (e) {
       expect((e as ConstanciaError).code).toBe("cuit_not_found");
     }
@@ -175,7 +175,7 @@ describe("parseSkillOutput", () => {
 
   it("throws cuit_not_found when the skill reports 'no figura'", () => {
     try {
-      parseSkillOutput("20417581015", { error: "el CUIT no figura inscripto" });
+      parseSkillOutput("20123456786", { error: "el CUIT no figura inscripto" });
       throw new Error("should have thrown");
     } catch (e) {
       expect((e as ConstanciaError).code).toBe("cuit_not_found");
@@ -184,7 +184,7 @@ describe("parseSkillOutput", () => {
 
   it("throws fetcher_unexpected_response on a generic skill error", () => {
     try {
-      parseSkillOutput("20417581015", { error: "timeout navigating" });
+      parseSkillOutput("20123456786", { error: "timeout navigating" });
       throw new Error("should have thrown");
     } catch (e) {
       expect((e as ConstanciaError).code).toBe("fetcher_unexpected_response");
@@ -193,7 +193,7 @@ describe("parseSkillOutput", () => {
 
   it("throws fetcher_unexpected_response when denominacion is missing", () => {
     try {
-      parseSkillOutput("20417581015", { condicion: "monotributo" });
+      parseSkillOutput("20123456786", { condicion: "monotributo" });
       throw new Error("should have thrown");
     } catch (e) {
       expect((e as ConstanciaError).code).toBe("fetcher_unexpected_response");
@@ -201,11 +201,11 @@ describe("parseSkillOutput", () => {
   });
 
   it("throws on invalid JSON string and on empty input", () => {
-    expect(() => parseSkillOutput("20417581015", "{not json")).toThrow(
+    expect(() => parseSkillOutput("20123456786", "{not json")).toThrow(
       /not valid JSON/,
     );
     expect(() =>
-      parseSkillOutput("20417581015", null as unknown as string),
+      parseSkillOutput("20123456786", null as unknown as string),
     ).toThrow(/empty or not an object/);
   });
 });
@@ -230,13 +230,13 @@ describe("BrowseSkillConstanciaFetcher", () => {
     const f = new BrowseSkillConstanciaFetcher({
       runSkill: async (cuit) => ({
         cuit,
-        denominacion: "CLEMENTE NAZARENO",
+        denominacion: "PEREZ JUAN",
         condicion: "monotributo",
         monotributoCategoria: "A",
         pdf: { url: "https://x/y.pdf" },
       }),
     });
-    const r = await f.getConstancia("20-41758101-5");
+    const r = await f.getConstancia("20-12345678-6");
     expect(r.available).toBe(true);
     expect(r.data?.condicion).toBe("monotributo");
     expect(r.pdf?.url).toBe("https://x/y.pdf");
@@ -248,7 +248,7 @@ describe("BrowseSkillConstanciaFetcher", () => {
         throw new Error("browserbase 503");
       },
     });
-    const r = await f.getConstancia("20417581015");
+    const r = await f.getConstancia("20123456786");
     expect(r.available).toBe(false);
     expect(r.error).toMatch(/fetcher_unreachable/);
     expect(r.error).toMatch(/browserbase 503/);
@@ -258,7 +258,7 @@ describe("BrowseSkillConstanciaFetcher", () => {
     const f = new BrowseSkillConstanciaFetcher({
       runSkill: async () => ({ found: false }),
     });
-    const r = await f.getConstancia("20417581015");
+    const r = await f.getConstancia("20123456786");
     expect(r.available).toBe(false);
     expect(r.error).toMatch(/cuit_not_found/);
   });
@@ -267,7 +267,7 @@ describe("BrowseSkillConstanciaFetcher", () => {
     const f = new BrowseSkillConstanciaFetcher({
       runSkill: async () => ({ condicion: "monotributo" }), // no denominacion
     });
-    const r = await f.getConstancia("20417581015");
+    const r = await f.getConstancia("20123456786");
     expect(r.available).toBe(false);
     expect(r.error).toMatch(/fetcher_unexpected_response/);
   });

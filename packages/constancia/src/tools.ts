@@ -46,7 +46,7 @@ export function constanciaTools(
           .string()
           .min(1)
           .describe(
-            "CUIT/CUIL to look up. Accepts dashed (20-41758101-5) or bare (20417581015), normalized to 11 digits. Shape-checked only; verify the check digit with @ar-agents/identity validate_cuit first.",
+            "CUIT/CUIL to look up. Accepts dashed (20-12345678-6) or bare (20123456786), normalized to 11 digits. Shape-checked only; verify the check digit with @ar-agents/identity validate_cuit first.",
           ),
       }),
       execute: async ({ cuit }) => {

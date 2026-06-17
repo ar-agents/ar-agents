@@ -85,8 +85,8 @@ export class UnconfiguredBcraAdapter implements BcraDeudaAdapter {
  * ```
  * {
  *   "results": {
- *     "identificacion": 20417581015,
- *     "denominacion": "CLEMENTE NAZARENO",
+ *     "identificacion": 20123456786,
+ *     "denominacion": "PEREZ JUAN",
  *     "periodos": [{
  *       "periodo": "202604",
  *       "entidades": [{

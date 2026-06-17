@@ -54,12 +54,12 @@ describe("HttpPadronAdapter (via AgipPublicAdapter)", () => {
       endpointTemplate: "https://example.test/{cuit}",
     });
     // Empty body fails parse, but we only assert the URL got built.
-    await expect(a.lookupPadron("20417581015")).rejects.toThrow(
+    await expect(a.lookupPadron("20123456786")).rejects.toThrow(
       IibbUnconfiguredError,
     );
     expect(spy).toHaveBeenCalledTimes(1);
     const [url] = spy.mock.calls[0]!;
-    expect(url).toBe("https://example.test/20417581015");
+    expect(url).toBe("https://example.test/20123456786");
   });
 
   it("returns null when HTTP 404 (taxpayer-not-found in some jurisdictions)", async () => {

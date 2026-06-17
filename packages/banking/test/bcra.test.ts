@@ -7,12 +7,12 @@ import {
 describe("UnconfiguredBcraAdapter", () => {
   it("always returns available: false with setup instructions", async () => {
     const adapter = new UnconfiguredBcraAdapter();
-    const result = await adapter.lookup("20417581015");
+    const result = await adapter.lookup("20123456786");
     expect(result.available).toBe(false);
     expect(result.error).toMatch(/not configured/i);
     expect(result.error).toMatch(/BcraDeudaAdapter/);
     expect(result.data).toBeNull();
-    expect(result.cuit).toBe("20417581015");
+    expect(result.cuit).toBe("20123456786");
   });
 });
 
@@ -23,8 +23,8 @@ describe("BcraPublicApiAdapter — happy path", () => {
         new Response(
           JSON.stringify({
             results: {
-              identificacion: 20417581015,
-              denominacion: "CLEMENTE NAZARENO",
+              identificacion: 20123456786,
+              denominacion: "PEREZ JUAN",
               periodos: [
                 {
                   periodo: "202604",
@@ -57,17 +57,17 @@ describe("BcraPublicApiAdapter — happy path", () => {
       fetchImpl: fakeFetch,
       maxRetries: 0,
     });
-    const result = await adapter.lookup("20417581015");
+    const result = await adapter.lookup("20123456786");
 
     expect(result.available).toBe(true);
-    expect(result.data?.name).toBe("CLEMENTE NAZARENO");
+    expect(result.data?.name).toBe("PEREZ JUAN");
     expect(result.data?.period).toBe("202604");
     expect(result.data?.worstSituation).toBe(2);
     expect(result.data?.totalAmount).toBe(1535.5);
     expect(result.data?.entities).toHaveLength(2);
     expect(result.data?.entities[0]!.entity).toBe("BANCO MACRO S.A.");
     expect(fakeFetch).toHaveBeenCalledWith(
-      "https://api.test/deudas/20417581015",
+      "https://api.test/deudas/20123456786",
       expect.objectContaining({ method: "GET" }),
     );
   });
@@ -99,7 +99,7 @@ describe("BcraPublicApiAdapter — error paths", () => {
       fetchImpl: fakeFetch,
       maxRetries: 2,
     });
-    const result = await adapter.lookup("20417581015");
+    const result = await adapter.lookup("20123456786");
     expect(result.available).toBe(false);
     expect(result.error).toMatch(/HTTP 500/);
     expect(calls).toBe(3); // initial + 2 retries
@@ -119,7 +119,7 @@ describe("BcraPublicApiAdapter — error paths", () => {
       onCall,
       maxRetries: 0,
     });
-    await adapter.lookup("20417581015");
+    await adapter.lookup("20123456786");
     expect(onCall).toHaveBeenCalledOnce();
     expect(onCall).toHaveBeenCalledWith(
       expect.objectContaining({
@@ -139,7 +139,7 @@ describe("BcraPublicApiAdapter — error paths", () => {
       fetchImpl: fakeFetch,
       maxRetries: 0,
     });
-    const result = await adapter.lookup("20417581015");
+    const result = await adapter.lookup("20123456786");
     expect(result.available).toBe(false);
     expect(result.error).toMatch(/sin campo/i);
   });
@@ -160,7 +160,7 @@ describe("BcraPublicApiAdapter — error paths", () => {
       requestTimeoutMs: 50,
       maxRetries: 0,
     });
-    const result = await adapter.lookup("20417581015");
+    const result = await adapter.lookup("20123456786");
     expect(result.available).toBe(false);
     expect(result.error).toMatch(/aborted|abort/i);
   });
@@ -174,7 +174,7 @@ describe("BcraPublicApiAdapter — error paths", () => {
       fetchImpl: fakeFetch,
       maxRetries: 2,
     });
-    const result = await adapter.lookup("20417581015");
+    const result = await adapter.lookup("20123456786");
     expect(result.available).toBe(false);
     expect(result.error).toMatch(/ECONNREFUSED/);
   });

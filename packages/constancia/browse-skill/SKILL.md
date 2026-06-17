@@ -49,7 +49,7 @@ it. Shape:
 
 ```json
 {
-  "cuit": "20417581015",
+  "cuit": "20123456786",
   "found": true,
   "denominacion": "APELLIDO NOMBRE | RAZÓN SOCIAL",
   "tipoPersona": "fisica | juridica",

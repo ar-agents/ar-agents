@@ -54,8 +54,8 @@ export interface TaxIdValidationResult {
  * Validate a tax ID against the appropriate country algorithm.
  *
  * @example
- * validateTaxId("20-41758101-5", "CUIT")
- * // → { valid: true, normalized: "20417581015", formatted: "20-41758101-5", ... }
+ * validateTaxId("20-12345678-6", "CUIT")
+ * // → { valid: true, normalized: "20123456786", formatted: "20-12345678-6", ... }
  *
  * @example
  * validateTaxId("123.456.789-09", "CPF")

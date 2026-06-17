@@ -124,7 +124,7 @@ describe("MercadoPagoIdentityAdapter", () => {
         email: "lautaro@test.com",
         first_name: "Lautaro",
         last_name: "Codes",
-        identification: { type: "DNI", number: "41758101" },
+        identification: { type: "DNI", number: "12345678" },
       },
     });
     const adapter = new MercadoPagoIdentityAdapter({
@@ -140,7 +140,7 @@ describe("MercadoPagoIdentityAdapter", () => {
     expect(result.claims?.["sub"]).toBe("mp:123");
     expect(result.claims?.["email"]).toBe("lautaro@test.com");
     expect(result.claims?.["identification_type"]).toBe("DNI");
-    expect(result.claims?.["identification_number"]).toBe("41758101");
+    expect(result.claims?.["identification_number"]).toBe("12345678");
     expect(result.claims?.["payment_id"]).toBe("p_123");
   });
 

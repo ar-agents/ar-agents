@@ -89,7 +89,7 @@ describe("Buyer", () => {
   it("accepts company.tax_id (used for AR CUIT)", () => {
     const r = Buyer.safeParse({
       email: "tere@example.com",
-      company: { name: "Tere SRL", tax_id: "20-41758101-5" },
+      company: { name: "Tere SRL", tax_id: "20-12345678-6" },
     });
     expect(r.success).toBe(true);
   });

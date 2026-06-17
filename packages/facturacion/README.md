@@ -120,7 +120,7 @@ The `WsfeClient` accepts `requestTimeoutMs`, `maxRetries`, and an `onCall` obser
 new WsfeClient({
   certPath: "...",
   keyPath: "...",
-  cuit: "20417581015",
+  cuit: "20123456786",
   env: "prod",
   requestTimeoutMs: 15_000,
   maxRetries: 2,

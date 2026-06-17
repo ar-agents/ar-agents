@@ -38,7 +38,7 @@ export default function Home() {
             <strong>POST</strong> <code>/api/agent</code> — conversar con el agente IA
           </li>
           <li>
-            <strong>GET</strong> <code>/api/cuit?value=20-41758101-5</code> — validación pura sin LLM
+            <strong>GET</strong> <code>/api/cuit?value=20-12345678-6</code> — validación pura sin LLM
           </li>
           <li>
             <strong>POST</strong> <code>/api/cuit</code> — validación batch (body: <code>{`{values:[...]}`}</code>)
@@ -60,7 +60,7 @@ export default function Home() {
           }}
         >{`curl -X POST http://localhost:3014/api/agent \\
   -H "Content-Type: application/json" \\
-  -d '{"message": "Validá el CUIT 20-41758101-5 y dec\xEDme qu\xE9 sab\xE9s de \xE9l."}'`}</pre>
+  -d '{"message": "Validá el CUIT 20-12345678-6 y dec\xEDme qu\xE9 sab\xE9s de \xE9l."}'`}</pre>
       </section>
 
       <section style={{ marginBottom: "32px" }}>
@@ -75,12 +75,12 @@ export default function Home() {
             fontSize: "13px",
             lineHeight: 1.5,
           }}
-        >{`curl http://localhost:3014/api/cuit?value=20-41758101-5
+        >{`curl http://localhost:3014/api/cuit?value=20-12345678-6
 
 # Batch
 curl -X POST http://localhost:3014/api/cuit \\
   -H "Content-Type: application/json" \\
-  -d '{"values":["20-41758101-5","30707500126","27ABCD"]}'`}</pre>
+  -d '{"values":["20-12345678-6","30707500126","27ABCD"]}'`}</pre>
       </section>
 
       <section style={{ marginBottom: "32px" }}>

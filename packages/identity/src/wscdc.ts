@@ -347,7 +347,7 @@ export function parseGetPersonaResponse(
  *   ta,
  *   service: "ws_sr_constancia_inscripcion",
  *   env: "prod",
- *   cuitRepresentado: "20417581015",
+ *   cuitRepresentado: "20123456786",
  *   cuitToQuery: "30707500129",
  * });
  * ```

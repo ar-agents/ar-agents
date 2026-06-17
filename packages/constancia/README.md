@@ -51,7 +51,7 @@ const agent = new Agent({
 
 const { text } = await agent.generate({
   prompt:
-    "Necesito la constancia de inscripción del CUIT 20-41758101-5 para el alta de proveedor. Decime el régimen y guardá el PDF.",
+    "Necesito la constancia de inscripción del CUIT 20-12345678-6 para el alta de proveedor. Decime el régimen y guardá el PDF.",
 });
 ```
 

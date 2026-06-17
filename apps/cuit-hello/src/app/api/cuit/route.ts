@@ -9,7 +9,7 @@ export const runtime = "nodejs";
  * deterministic, fast — designed for form-validation use cases that don't
  * need an agent in the loop.
  *
- * GET /api/cuit?value=20-41758101-5
+ * GET /api/cuit?value=20-12345678-6
  */
 export async function GET(req: NextRequest) {
   const limited = rateLimit(req);

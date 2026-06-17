@@ -83,7 +83,7 @@ export function identityTools(options: IdentityToolsOptions = {}): ToolSet {
           .string()
           .min(1)
           .describe(
-            "The CUIT/CUIL to validate. Accepts any format with or without separators: 20-41758101-5, 20.41758101.5, 20 41758101 5, 20417581015. The function normalizes by stripping non-digit characters before validating.",
+            "The CUIT/CUIL to validate. Accepts any format with or without separators: 20-12345678-6, 20.12345678.6, 20 12345678 6, 20123456786. The function normalizes by stripping non-digit characters before validating.",
           ),
       }),
       execute: async ({ cuit }) => {

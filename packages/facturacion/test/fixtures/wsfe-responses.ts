@@ -35,7 +35,7 @@ export const FE_SOLICITAR_CAE_APROBADO = `<?xml version="1.0" encoding="utf-8"?>
     <FECAESolicitarResponse xmlns="http://ar.gov.afip.dif.FEV1/">
       <FECAESolicitarResult>
         <FeCabResp>
-          <Cuit>20417581015</Cuit>
+          <Cuit>20123456786</Cuit>
           <PtoVta>1</PtoVta>
           <CbteTipo>11</CbteTipo>
           <FchProceso>20260506</FchProceso>
@@ -47,7 +47,7 @@ export const FE_SOLICITAR_CAE_APROBADO = `<?xml version="1.0" encoding="utf-8"?>
           <FECAEDetResponse>
             <Concepto>2</Concepto>
             <DocTipo>80</DocTipo>
-            <DocNro>20417581015</DocNro>
+            <DocNro>20123456786</DocNro>
             <CbteDesde>43</CbteDesde>
             <CbteHasta>43</CbteHasta>
             <CbteFch>20260506</CbteFch>
@@ -67,7 +67,7 @@ export const FE_SOLICITAR_CAE_RECHAZADO = `<?xml version="1.0" encoding="utf-8"?
     <FECAESolicitarResponse xmlns="http://ar.gov.afip.dif.FEV1/">
       <FECAESolicitarResult>
         <FeCabResp>
-          <Cuit>20417581015</Cuit>
+          <Cuit>20123456786</Cuit>
           <PtoVta>1</PtoVta>
           <CbteTipo>11</CbteTipo>
           <FchProceso>20260506</FchProceso>
@@ -78,7 +78,7 @@ export const FE_SOLICITAR_CAE_RECHAZADO = `<?xml version="1.0" encoding="utf-8"?
           <FECAEDetResponse>
             <Concepto>2</Concepto>
             <DocTipo>80</DocTipo>
-            <DocNro>20417581015</DocNro>
+            <DocNro>20123456786</DocNro>
             <CbteDesde>43</CbteDesde>
             <CbteHasta>43</CbteHasta>
             <CbteFch>20260506</CbteFch>

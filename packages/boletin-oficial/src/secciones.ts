@@ -65,7 +65,7 @@ export function classifyTipo(titulo: string, seccion: BoSeccion): NormaTipo {
  */
 export function extractCuits(text: string): string[] {
   const seen = new Set<string>();
-  // Pattern matches: 20-41758101-5 / 20.41758101.5 / 20 41758101 5 / 20417581015
+  // Pattern matches: 20-12345678-6 / 20.12345678.6 / 20 12345678 6 / 20123456786
   const pattern = /\b(2[03457]|3[034])[\s.-]?(\d{8})[\s.-]?(\d)\b/g;
   let m: RegExpExecArray | null;
   while ((m = pattern.exec(text)) !== null) {

@@ -39,10 +39,10 @@ Two tools shipped, mutually complementary:
 ```json
 {
   "valid": true,
-  "normalized": "20417581015",
-  "formatted": "20-41758101-5",
+  "normalized": "20123456786",
+  "formatted": "20-12345678-6",
   "prefix": "20",
-  "body": "41758101",
+  "body": "12345678",
   "checkDigit": "5",
   "personType": "fisica_masculina",
   "personTypeDescription": "Persona física (masculino).",
@@ -55,10 +55,10 @@ When `valid` is false:
 ```json
 {
   "valid": false,
-  "normalized": "20417581019",
-  "formatted": "20-41758101-9",
+  "normalized": "20123456789",
+  "formatted": "20-12345678-9",
   "prefix": "20",
-  "body": "41758101",
+  "body": "12345678",
   "checkDigit": "9",
   "personType": "fisica_masculina",
   "error": "Dígito verificador inválido. Esperado: 5, recibido: 9. Probablemente hay un typo en el CUIT."
@@ -71,7 +71,7 @@ When `valid` is false:
 
 ```json
 {
-  "cuit": "20-41758101-5",
+  "cuit": "20-12345678-6",
   "available": true,
   "error": null,
   "data": {
@@ -89,7 +89,7 @@ When the lookup is unavailable (default config: no adapter wired):
 
 ```json
 {
-  "cuit": "20-41758101-5",
+  "cuit": "20-12345678-6",
   "available": false,
   "error": "AFIP padron lookup not configured for this app. To enable: ...",
   "data": null
@@ -100,7 +100,7 @@ When the cert IS wired but AFIP rejects (cert invalid, service unauthorized, etc
 
 ```json
 {
-  "cuit": "20417581015",
+  "cuit": "20123456786",
   "available": false,
   "error": "Failed to authenticate with AFIP WSAA: ...",
   "data": null
@@ -125,17 +125,17 @@ When AFIP runs but the CUIT isn't in the padron:
 ### Pattern 1: User gave you a malformed CUIT
 
 ```
-User: ¿Es válido el CUIT 20-41758101-9?
+User: ¿Es válido el CUIT 20-12345678-9?
 You: [call validate_cuit]
 Result: { valid: false, error: "Dígito verificador inválido. Esperado: 5, recibido: 9..." }
-You should reply: explain the error, suggest the corrected CUIT (20-41758101-5),
+You should reply: explain the error, suggest the corrected CUIT (20-12345678-6),
                   ask if they want to validate that instead. DO NOT call lookup_cuit_afip.
 ```
 
 ### Pattern 2: User wants taxpayer info but AFIP is unconfigured
 
 ```
-User: ¿Quién es el dueño del CUIT 20-41758101-5?
+User: ¿Quién es el dueño del CUIT 20-12345678-6?
 You: [call validate_cuit] → valid
 You: [call lookup_cuit_afip] → { available: false, error: "...not configured..." }
 You should reply: confirm the CUIT is valid (with persona type from validate_cuit's
@@ -147,7 +147,7 @@ You should reply: confirm the CUIT is valid (with persona type from validate_cui
 ### Pattern 3: User asks for AFIP info on a known-invalid CUIT
 
 ```
-User: ¿Quién es el dueño del CUIT 20-41758101-9?
+User: ¿Quién es el dueño del CUIT 20-12345678-9?
 You: [call validate_cuit] → invalid (wrong check digit)
 You should reply: explain the CUIT is invalid BEFORE calling lookup_cuit_afip
                   (which would just return "no encontrado" or rate-limit waste).
@@ -171,7 +171,7 @@ You should reply: explain the CUIT is invalid BEFORE calling lookup_cuit_afip
 | `lookup_cuit_afip` (configured) | 200–800ms | $0 | AFIP SOAP |
 
 Implications:
-- `validate_cuit` is so cheap you can call it preemptively whenever a user mentions a CUIT, even if you're not sure they want validation. Pattern: "I noticed the CUIT you mentioned ends in 9, but the correct check digit is 5: did you mean 20-41758101-5?"
+- `validate_cuit` is so cheap you can call it preemptively whenever a user mentions a CUIT, even if you're not sure they want validation. Pattern: "I noticed the CUIT you mentioned ends in 9, but the correct check digit is 5: did you mean 20-12345678-6?"
 - `lookup_cuit_afip` is moderately expensive: only call it when the user explicitly asks for taxpayer info. Don't preemptively look up every CUIT mentioned.
 
 ## Argentine context (for non-AR agents)

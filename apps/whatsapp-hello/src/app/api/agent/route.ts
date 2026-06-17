@@ -127,7 +127,7 @@ export async function GET() {
           multi_turn: { messages: [{ role: "user|assistant", content: "string" }], from: "5491112345678" },
         },
         example: {
-          message: "Hola, quiero contratar el plan Pro mensual ($25.000). Mi CUIT es 20-41758101-5",
+          message: "Hola, quiero contratar el plan Pro mensual ($25.000). Mi CUIT es 20-12345678-6",
           from: "5491112345678",
         },
       },

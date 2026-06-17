@@ -24,8 +24,8 @@
  *
  * # Common pitfall
  *
- * Users paste CUITs in many shapes: `20-41758101-5`, `20.41758101.5`,
- * `20 41758101 5`, `20417581015`. Always pass the user's input directly to
+ * Users paste CUITs in many shapes: `20-12345678-6`, `20.12345678.6`,
+ * `20 12345678 6`, `20123456786`. Always pass the user's input directly to
  * `parseCuit()` — it normalizes by stripping non-digits before validating.
  */
 
@@ -86,8 +86,8 @@ export interface CuitParseResult {
  * validating.
  *
  * @example
- * normalizeCuit("20-41758101-5") // → "20417581015"
- * normalizeCuit("20.41758101.5") // → "20417581015"
+ * normalizeCuit("20-12345678-6") // → "20123456786"
+ * normalizeCuit("20.12345678.6") // → "20123456786"
  */
 export function normalizeCuit(input: string): string {
   return input.replace(/\D/g, "");
@@ -102,7 +102,7 @@ export function normalizeCuit(input: string): string {
  * canonical published convention).
  *
  * @example
- * computeCheckDigit("2041758101") // → 5
+ * computeCheckDigit("2012345678") // → 5
  */
 export function computeCheckDigit(first10: string): number | null {
   if (first10.length !== 10 || !/^\d{10}$/.test(first10)) return null;
@@ -123,13 +123,13 @@ export function computeCheckDigit(first10: string): number | null {
  * @returns A `CuitParseResult` with `valid: true|false` plus structural details.
  *
  * @example
- * parseCuit("20-41758101-5")
- * // { valid: true, normalized: "20417581015", formatted: "20-41758101-5",
- * //   prefix: "20", body: "41758101", checkDigit: "5",
+ * parseCuit("20-12345678-6")
+ * // { valid: true, normalized: "20123456786", formatted: "20-12345678-6",
+ * //   prefix: "20", body: "12345678", checkDigit: "5",
  * //   personType: "fisica_masculina", error: null }
  *
  * @example
- * parseCuit("20-41758101-9")
+ * parseCuit("20-12345678-9")
  * // { valid: false, ..., error: "Dígito verificador inválido. Esperado: 5, recibido: 9. ..." }
  */
 export function parseCuit(input: string): CuitParseResult {

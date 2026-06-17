@@ -32,7 +32,7 @@ const ta = {
 const baseOpts = {
   ta,
   env: "homo" as const,
-  cuit: "20417581015",
+  cuit: "20123456786",
   endpointOverride: "https://test/wsfe",
   maxRetries: 0,
 };
@@ -93,7 +93,7 @@ describe("consultarUltimoAutorizado", () => {
     expect(capturedBody).toContain("<fev1:PtoVta>7</fev1:PtoVta>");
     expect(capturedBody).toContain("<fev1:CbteTipo>6</fev1:CbteTipo>");
     expect(capturedBody).toContain("<fev1:Token>FAKE_TOKEN</fev1:Token>");
-    expect(capturedBody).toContain("<fev1:Cuit>20417581015</fev1:Cuit>");
+    expect(capturedBody).toContain("<fev1:Cuit>20123456786</fev1:Cuit>");
   });
 });
 
@@ -148,7 +148,7 @@ describe("solicitarCAE — happy path", () => {
       cbteTipo: CbteTipo.FACTURA_C,
       concepto: Concepto.SERVICIOS,
       docTipo: DocTipo.CUIT,
-      docNro: "20417581015",
+      docNro: "20123456786",
       cbteDesde: 43,
       cbteHasta: 43,
       cbteFch: "20260506",
@@ -207,7 +207,7 @@ describe("solicitarCAE — happy path", () => {
       cbteTipo: CbteTipo.FACTURA_C,
       concepto: Concepto.SERVICIOS,
       docTipo: DocTipo.CUIT,
-      docNro: "20417581015",
+      docNro: "20123456786",
       cbteDesde: 1,
       cbteHasta: 1,
       cbteFch: "20260506",
@@ -233,7 +233,7 @@ describe("solicitarCAE — rechazado", () => {
       cbteTipo: CbteTipo.FACTURA_C,
       concepto: Concepto.SERVICIOS,
       docTipo: DocTipo.CUIT,
-      docNro: "20417581015",
+      docNro: "20123456786",
       cbteDesde: 43,
       cbteHasta: 43,
       cbteFch: "20260506",

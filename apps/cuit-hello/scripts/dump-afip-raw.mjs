@@ -10,7 +10,7 @@ const cache = new TokenCache({
 const ta = await cache.getTicket("ws_sr_padron_a13");
 console.log("[ta] expirationTimeMs:", new Date(ta.expirationTimeMs).toISOString());
 
-const cuit = process.argv[2] ?? "20417581015";
+const cuit = process.argv[2] ?? "20123456786";
 const cuitRep = process.env.AFIP_CUIT_REPRESENTADO;
 
 const envelope = `<?xml version="1.0" encoding="UTF-8"?>

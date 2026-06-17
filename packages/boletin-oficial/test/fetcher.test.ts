@@ -16,7 +16,7 @@ const sample: Norma[] = [
     organismo: "ARCA",
     fechaPublicacion: "2026-04-28",
     texto: "Establece nuevas alícuotas para monotributistas.",
-    cuitsMencionados: ["20417581015"],
+    cuitsMencionados: ["20123456786"],
     url: "https://www.boletinoficial.gob.ar/detalleAviso/primera/100/20260428",
   },
   {

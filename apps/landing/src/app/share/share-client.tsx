@@ -144,9 +144,8 @@ Happy to be a technical source on this. CV/links on request.
 
 Best,
 Nazareno Clemente
-naza@naza.ar
-+34 695 63 22 37`,
-    notes: "Best for: international press. English. Lead with their recent work (personalize). The 'jurisdiction-agnostic' angle is the international hook. Phone number signals seriousness.",
+naza@naza.ar`,
+    notes: "Best for: international press. English. Lead with their recent work (personalize). The 'jurisdiction-agnostic' angle is the international hook.",
   },
   {
     id: "email-3-regulator-aaip",

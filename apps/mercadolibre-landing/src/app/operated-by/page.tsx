@@ -66,7 +66,7 @@ export default function OperatedByPage() {
           <Row k="Author / sole maintainer" v="Nazareno Clemente (Argentina)" />
           <Row
             k="Legal entity"
-            v="None. Sole proprietorship under personal CUIT 20-41758101-5 (monotributista categoría A)."
+            v="None. Sole proprietorship under personal CUIT 20-12345678-6 (monotributista categoría A)."
           />
           <Row k="Jurisdiction" v="Argentine Republic" />
           <Row k="License" v="MIT (SPDX: MIT)" />

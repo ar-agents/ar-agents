@@ -143,7 +143,7 @@ describe("registries — graceful unconfigured fallback", () => {
 
 describe("registries — wired with env vars", () => {
   it("identity: includes lookup_cuit_afip when CERT_PEM + CUIT are set", () => {
-    process.env.AFIP_CUIT_REPRESENTADO = "20-41758101-5";
+    process.env.AFIP_CUIT_REPRESENTADO = "20-12345678-6";
     process.env.AFIP_CERT_PEM = "-----BEGIN CERTIFICATE-----\nFAKE\n-----END CERTIFICATE-----";
     process.env.AFIP_KEY_PEM = "-----BEGIN PRIVATE KEY-----\nFAKE\n-----END PRIVATE KEY-----";
     const tools = buildIdentityTools();
@@ -152,7 +152,7 @@ describe("registries — wired with env vars", () => {
   });
 
   it("identity: works with PATH-mode env vars too", () => {
-    process.env.AFIP_CUIT_REPRESENTADO = "20-41758101-5";
+    process.env.AFIP_CUIT_REPRESENTADO = "20-12345678-6";
     process.env.AFIP_CERT_PATH = "/tmp/cert.pem";
     process.env.AFIP_KEY_PATH = "/tmp/key.pem";
     const tools = buildIdentityTools();

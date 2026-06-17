@@ -9,12 +9,12 @@ describe("UnconfiguredAfipPadronAdapter", () => {
   const adapter = new UnconfiguredAfipPadronAdapter();
 
   it("returns available: false with setup instructions", async () => {
-    const result = await adapter.lookup("20-41758101-5");
+    const result = await adapter.lookup("20-12345678-6");
     expect(result.available).toBe(false);
     expect(result.error).toMatch(/not configured/i);
     expect(result.error).toMatch(/AFIP_CERT_PATH|AFIP_KEY_PATH|cert/i);
     expect(result.data).toBeNull();
-    expect(result.cuit).toBe("20-41758101-5");
+    expect(result.cuit).toBe("20-12345678-6");
   });
 
   it("never throws — always resolves with a structured result", async () => {
@@ -44,9 +44,9 @@ describe("custom AfipPadronAdapter implementation", () => {
     const fake = new FakeAfipAdapter(
       new Map([
         [
-          "20-41758101-5",
+          "20-12345678-6",
           {
-            cuit: "20-41758101-5",
+            cuit: "20-12345678-6",
             available: true,
             error: null,
             data: {
@@ -62,7 +62,7 @@ describe("custom AfipPadronAdapter implementation", () => {
       ]),
     );
 
-    const found = await fake.lookup("20-41758101-5");
+    const found = await fake.lookup("20-12345678-6");
     expect(found.available).toBe(true);
     expect(found.data?.condicion).toBe("MONOTRIBUTO");
     expect(found.data?.monotributoCategoria).toBe("A");
