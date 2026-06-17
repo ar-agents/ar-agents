@@ -1,7 +1,7 @@
 {
   "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/whatsapp",
-  "version": "0.5.0",
+  "version": "0.5.1",
   "tools": [
     {
       "name": "mark_whatsapp_read"

@@ -1,0 +1,37 @@
+{
+  "name": "@ar-agents/incorporate-agent",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "eve agent that incorporates and operates an Argentine Sociedad Automatizada (art. 14), with the human-in-the-loop approval the law requires (art. 102). Built on ar-agents.",
+  "imports": {
+    "#*": "./agent/*",
+    "#evals/*": "./evals/*"
+  },
+  "scripts": {
+    "build": "eve build",
+    "dev": "eve dev",
+    "start": "eve start",
+    "eval": "eve eval",
+    "typecheck": "tsgo"
+  },
+  "dependencies": {
+    "@vercel/connect": "0.2.2",
+    "ai": "7.0.0-beta.178",
+    "eve": "^0.11.2",
+    "zod": "4.4.3"
+  },
+  "devDependencies": {
+    "@types/node": "24",
+    "@typescript/native-preview": "7.0.0-dev.20260523.1"
+  },
+  "overrides": {
+    "ai": "7.0.0-beta.178"
+  },
+  "resolutions": {
+    "ai": "7.0.0-beta.178"
+  },
+  "engines": {
+    "node": ">=24"
+  }
+}
