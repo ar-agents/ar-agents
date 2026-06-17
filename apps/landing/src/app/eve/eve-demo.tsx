@@ -5,9 +5,10 @@
 // it stops and waits for a human, exactly like eve parks the turn in
 // production. Approve and it constitutes + logs; reject and nothing happens.
 // Driven by timers + state, not CSS transitions, so it still works under
-// prefers-reduced-motion.
+// prefers-reduced-motion. Bilingual: the parent remounts it with key={lang}.
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLang, type Lang } from "../i18n";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
@@ -27,63 +28,108 @@ type EventNode =
   | { kind: "tool"; name: string; via?: string; args: Json; result: Json }
   | { kind: "gate"; name: string; args: Json };
 
-// The transcript. Index 3 is the approval gate. Everything at index > 3 only
-// renders once a human approves.
-const EVENTS: ReadonlyArray<EventNode> = [
-  {
-    kind: "user",
-    text: "Incorporate an automated company for my invoicing SaaS. Administrator CUIT 20-41758101-5.",
+// Demo chrome labels per language. Code, tool names and data values stay
+// language-agnostic.
+const L = {
+  en: {
+    status_ready: "ready",
+    status_running: "running",
+    status_awaiting: "waiting for human",
+    status_rejected: "rejected",
+    status_done: "done",
+    user: "Incorporate an automated company for my invoicing SaaS. Administrator CUIT 20-41758101-5.",
+    assistant1: "CUIT is valid. Ready to constitute Facturador Automatizada SAS. Constituting a company is irreversible, so it needs your approval (art. 102).",
+    assistant2: "Done. Facturador Automatizada SAS is constituted. A human approved the irreversible step, and the whole run is in the signed audit log (art. 101/102).",
+    gate_awaiting: "Approval required",
+    gate_approved: "Approved by a human",
+    gate_rejected: "Rejected. Nothing was constituted.",
+    parked: "The run is parked until you answer.",
+    approve: "Approve",
+    reject: "Reject",
+    constituted: "Company constituted",
+    f_denomination: "Denomination",
+    f_type: "Type",
+    f_admin: "Administrator",
+    f_audit: "Audit entry",
+    v_audit: "#41 · ed25519 signed",
+    see_log: "See the audit log",
+    replay: "replay",
+    run_again: "run again",
   },
-  {
-    kind: "tool",
-    name: "validate_cuit",
-    via: "ar-agents.ar/api/mcp",
-    args: { cuit: "20-41758101-5" },
-    result: { valid: true, nombre: "Clemente, Nazareno", condicion: "Responsable Inscripto" },
+  es: {
+    status_ready: "listo",
+    status_running: "corriendo",
+    status_awaiting: "esperando humano",
+    status_rejected: "rechazado",
+    status_done: "hecho",
+    user: "Constituí una sociedad automatizada para mi SaaS de facturación. CUIT del administrador 20-41758101-5.",
+    assistant1: "El CUIT es válido. Listo para constituir Facturador Automatizada SAS. Constituir una empresa es irreversible, así que necesita tu aprobación (art. 102).",
+    assistant2: "Listo. Facturador Automatizada SAS quedó constituida. Un humano aprobó el paso irreversible, y todo el run quedó en el audit log firmado (art. 101/102).",
+    gate_awaiting: "Aprobación requerida",
+    gate_approved: "Aprobado por un humano",
+    gate_rejected: "Rechazado. No se constituyó nada.",
+    parked: "El run está frenado hasta que respondas.",
+    approve: "Aprobar",
+    reject: "Rechazar",
+    constituted: "Empresa constituida",
+    f_denomination: "Denominación",
+    f_type: "Tipo",
+    f_admin: "Administrador",
+    f_audit: "Entrada de auditoría",
+    v_audit: "#41 · firmado ed25519",
+    see_log: "Ver el audit log",
+    replay: "replay",
+    run_again: "correr de nuevo",
   },
-  {
-    kind: "assistant",
-    text: "CUIT is valid. Ready to constitute Facturador Automatizada SAS. Constituting a company is irreversible, so it needs your approval (art. 102).",
-  },
-  {
-    kind: "gate",
-    name: "incorporar_sociedad",
-    args: {
-      denominacion: "Facturador Automatizada SAS",
-      tipo: "SAS",
-      objeto: "Facturación electrónica para PyMEs argentinas",
-      representante: "20-41758101-5",
-    },
-  },
-  // --- below here renders only after approval ---
-  {
-    kind: "tool",
-    name: "incorporar_sociedad",
-    args: {
-      denominacion: "Facturador Automatizada SAS",
-      tipo: "SAS",
-      representante: "20-41758101-5",
-    },
-    result: {
-      ok: true,
-      denominacion: "Facturador Automatizada SAS",
-      deployUrl: "facturador-auto.vercel.app",
-      auditRef: "rfc006:8f2a91c4",
-    },
-  },
-  {
-    kind: "tool",
-    name: "registrar_decision",
-    args: { tool: "incorporar_sociedad", governance: "human-approved" },
-    result: { logged: true, seq: 41, sig: "ed25519:7b3e…d0" },
-  },
-  {
-    kind: "assistant",
-    text: "Done. Facturador Automatizada SAS is constituted. A human approved the irreversible step, and the whole run is in the signed audit log (art. 101/102).",
-  },
-];
+} as const;
 
-const GATE_IDX = EVENTS.findIndex((e) => e.kind === "gate");
+function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
+  const t = L[lang];
+  return [
+    { kind: "user", text: t.user },
+    {
+      kind: "tool",
+      name: "validate_cuit",
+      via: "ar-agents.ar/api/mcp",
+      args: { cuit: "20-41758101-5" },
+      result: { valid: true, nombre: "Clemente, Nazareno", condicion: "Responsable Inscripto" },
+    },
+    { kind: "assistant", text: t.assistant1 },
+    {
+      kind: "gate",
+      name: "incorporar_sociedad",
+      args: {
+        denominacion: "Facturador Automatizada SAS",
+        tipo: "SAS",
+        objeto: "Facturación electrónica para PyMEs argentinas",
+        representante: "20-41758101-5",
+      },
+    },
+    // --- below here renders only after approval ---
+    {
+      kind: "tool",
+      name: "incorporar_sociedad",
+      args: {
+        denominacion: "Facturador Automatizada SAS",
+        tipo: "SAS",
+        representante: "20-41758101-5",
+      },
+      result: {
+        ok: true,
+        denominacion: "Facturador Automatizada SAS",
+        deployUrl: "facturador-auto.vercel.app",
+        auditRef: "rfc006:8f2a91c4",
+      },
+    },
+    {
+      kind: "tool",
+      name: "registrar_decision",
+      args: { tool: "incorporar_sociedad", governance: "human-approved" },
+      result: { logged: true, seq: 41, sig: "ed25519:7b3e…d0" },
+    },
+    { kind: "assistant", text: t.assistant2 },
+  ];
+}
 
 type Phase =
   | { type: "idle" }
@@ -95,8 +141,8 @@ type Phase =
   | { type: "rejected"; idx: number }
   | { type: "done" };
 
-function phaseFor(idx: number): Phase {
-  const ev = EVENTS[idx];
+function phaseFor(events: ReadonlyArray<EventNode>, idx: number): Phase {
+  const ev = events[idx];
   if (!ev) return { type: "done" };
   if (ev.kind === "user") return { type: "user", idx, chars: 0 };
   if (ev.kind === "tool") return { type: "tool-running", idx };
@@ -104,9 +150,9 @@ function phaseFor(idx: number): Phase {
   return { type: "assistant", idx, chars: 0 };
 }
 
-function activeIdx(p: Phase): number {
+function activeIdx(p: Phase, total: number): number {
   if (p.type === "idle") return -1;
-  if (p.type === "done") return EVENTS.length;
+  if (p.type === "done") return total;
   return p.idx;
 }
 
@@ -261,20 +307,17 @@ type GateState = "awaiting" | "approved" | "rejected";
 function GateCard({
   event,
   state,
+  labels,
   onApprove,
   onReject,
 }: {
   event: Extract<EventNode, { kind: "gate" }>;
   state: GateState;
+  labels: (typeof L)[Lang];
   onApprove: () => void;
   onReject: () => void;
 }) {
-  const accent =
-    state === "approved"
-      ? "var(--accent)"
-      : state === "rejected"
-        ? "var(--text-muted)"
-        : "var(--accent)";
+  const accent = state === "rejected" ? "var(--text-muted)" : "var(--accent)";
   return (
     <div
       style={{
@@ -317,10 +360,10 @@ function GateCard({
         </span>
         <span style={{ fontWeight: 500, fontSize: 13.5, color: "var(--text)", letterSpacing: "-0.01em" }}>
           {state === "approved"
-            ? "Approved by a human"
+            ? labels.gate_approved
             : state === "rejected"
-              ? "Rejected. Nothing was constituted."
-              : "Approval required"}
+              ? labels.gate_rejected
+              : labels.gate_awaiting}
         </span>
         <span style={{ flex: 1 }} />
         <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.04em" }}>
@@ -336,14 +379,7 @@ function GateCard({
       </div>
 
       {state === "awaiting" ? (
-        <div
-          style={{
-            display: "flex",
-            gap: 8,
-            padding: "0 14px 14px",
-            fontFamily: FONT_SANS,
-          }}
-        >
+        <div style={{ display: "flex", gap: 8, padding: "0 14px 14px", fontFamily: FONT_SANS }}>
           <button
             type="button"
             onClick={onApprove}
@@ -359,7 +395,7 @@ function GateCard({
               letterSpacing: "-0.01em",
             }}
           >
-            Approve
+            {labels.approve}
           </button>
           <button
             type="button"
@@ -376,11 +412,11 @@ function GateCard({
               boxShadow: "var(--shadow-ring-light)",
             }}
           >
-            Reject
+            {labels.reject}
           </button>
           <span style={{ flex: 1 }} />
           <span style={{ alignSelf: "center", fontSize: 12, color: "var(--text-muted)" }}>
-            The run is parked until you answer.
+            {labels.parked}
           </span>
         </div>
       ) : null}
@@ -388,12 +424,18 @@ function GateCard({
   );
 }
 
-function ResultCard({ onReplay }: { onReplay: () => void }) {
+function ResultCard({
+  labels,
+  onReplay,
+}: {
+  labels: (typeof L)[Lang];
+  onReplay: () => void;
+}) {
   const fields: ReadonlyArray<readonly [string, string]> = [
-    ["Denomination", "Facturador Automatizada SAS"],
-    ["Type", "SAS · art. 14 (Automatizada)"],
-    ["Administrator", "CUIT 20-41758101-5"],
-    ["Audit entry", "#41 · ed25519 signed"],
+    [labels.f_denomination, "Facturador Automatizada SAS"],
+    [labels.f_type, "SAS · art. 14 (Automatizada)"],
+    [labels.f_admin, "CUIT 20-41758101-5"],
+    [labels.f_audit, labels.v_audit],
   ];
   return (
     <div
@@ -424,7 +466,7 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
         </span>
         <span style={{ fontWeight: 500, fontSize: 15, letterSpacing: "-0.16px", color: "var(--text)" }}>
-          Company constituted
+          {labels.constituted}
         </span>
         <span style={{ flex: 1 }} />
         <button
@@ -446,7 +488,7 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
           }}
         >
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>
-          replay
+          {labels.replay}
         </button>
       </div>
       <div
@@ -486,7 +528,7 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
           letterSpacing: "-0.16px",
         }}
       >
-        See the audit log
+        {labels.see_log}
         <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M7 17 17 7" /><path d="M7 7h10v10" /></svg>
       </a>
     </div>
@@ -494,6 +536,11 @@ function ResultCard({ onReplay }: { onReplay: () => void }) {
 }
 
 export function EveDemo() {
+  const { lang } = useLang();
+  const labels = L[lang];
+  const events = useMemo(() => makeEvents(lang), [lang]);
+  const gateIdx = useMemo(() => events.findIndex((e) => e.kind === "gate"), [events]);
+
   const [phase, setPhase] = useState<Phase>({ type: "idle" });
   const [started, setStarted] = useState(false);
   const containerRef = useRef<HTMLDivElement>(null);
@@ -507,17 +554,17 @@ export function EveDemo() {
       (entries) => {
         if (entries.some((e) => e.isIntersecting)) {
           setStarted(true);
-          setPhase(phaseFor(0));
+          setPhase(phaseFor(events, 0));
         }
       },
       { threshold: 0.3 },
     );
     obs.observe(el);
     return () => obs.disconnect();
-  }, [started]);
+  }, [started, events]);
 
-  // Phase machine. The gate ("awaiting") and "rejected" schedule no timer,
-  // so the run genuinely waits for a click.
+  // Phase machine. "awaiting" and "rejected" schedule no timer, so the run
+  // genuinely waits for a click.
   useEffect(() => {
     let timer: ReturnType<typeof setTimeout> | null = null;
     const after = (fn: () => void, ms: number) => {
@@ -525,63 +572,59 @@ export function EveDemo() {
     };
 
     if (phase.type === "user") {
-      const ev = EVENTS[phase.idx];
+      const ev = events[phase.idx];
       if (ev.kind !== "user") return;
       if (phase.chars < ev.text.length) {
         after(() => setPhase({ ...phase, chars: phase.chars + 1 }), TYPE_USER_MS);
       } else {
-        after(() => setPhase(phaseFor(phase.idx + 1)), PAUSE_AFTER_USER);
+        after(() => setPhase(phaseFor(events, phase.idx + 1)), PAUSE_AFTER_USER);
       }
     } else if (phase.type === "tool-running") {
       after(() => setPhase({ type: "tool-done", idx: phase.idx }), TOOL_RUN_MS);
     } else if (phase.type === "tool-done") {
-      after(() => setPhase(phaseFor(phase.idx + 1)), PAUSE_AFTER_TOOL);
+      after(() => setPhase(phaseFor(events, phase.idx + 1)), PAUSE_AFTER_TOOL);
     } else if (phase.type === "assistant") {
-      const ev = EVENTS[phase.idx];
+      const ev = events[phase.idx];
       if (ev.kind !== "assistant") return;
       if (phase.chars < ev.text.length) {
         after(() => setPhase({ ...phase, chars: phase.chars + 1 }), TYPE_ASSISTANT_MS);
-      } else if (phase.idx >= EVENTS.length - 1) {
+      } else if (phase.idx >= events.length - 1) {
         after(() => setPhase({ type: "done" }), PAUSE_BEFORE_DONE);
       } else {
-        after(() => setPhase(phaseFor(phase.idx + 1)), PAUSE_AFTER_TOOL);
+        after(() => setPhase(phaseFor(events, phase.idx + 1)), PAUSE_AFTER_TOOL);
       }
     }
 
     return () => {
       if (timer) clearTimeout(timer);
     };
-  }, [phase]);
+  }, [phase, events]);
 
   const approve = useCallback(() => {
-    setPhase((p) => (p.type === "awaiting" ? phaseFor(p.idx + 1) : p));
-  }, []);
+    setPhase((p) => (p.type === "awaiting" ? phaseFor(events, p.idx + 1) : p));
+  }, [events]);
   const reject = useCallback(() => {
     setPhase((p) => (p.type === "awaiting" ? { type: "rejected", idx: p.idx } : p));
   }, []);
-  const replay = useCallback(() => setPhase(phaseFor(0)), []);
+  const replay = useCallback(() => setPhase(phaseFor(events, 0)), [events]);
 
-  const idx = activeIdx(phase);
-  const statusLabel = useMemo(() => {
-    switch (phase.type) {
-      case "idle":
-        return "ready";
-      case "awaiting":
-        return "waiting for human";
-      case "rejected":
-        return "rejected";
-      case "done":
-        return "done";
-      default:
-        return "running";
-    }
-  }, [phase.type]);
-  const active = phase.type !== "idle" && phase.type !== "done" && phase.type !== "rejected";
+  const idx = activeIdx(phase, events.length);
+  const statusLabel =
+    phase.type === "idle"
+      ? labels.status_ready
+      : phase.type === "awaiting"
+        ? labels.status_awaiting
+        : phase.type === "rejected"
+          ? labels.status_rejected
+          : phase.type === "done"
+            ? labels.status_done
+            : labels.status_running;
+  const activeDot = phase.type !== "idle" && phase.type !== "done" && phase.type !== "rejected";
 
   const gateState: GateState =
     phase.type === "rejected"
       ? "rejected"
-      : idx > GATE_IDX || phase.type === "done"
+      : idx > gateIdx || phase.type === "done"
         ? "approved"
         : "awaiting";
 
@@ -614,8 +657,8 @@ export function EveDemo() {
                 width: 8,
                 height: 8,
                 borderRadius: 9999,
-                background: active ? "var(--accent)" : "var(--text-muted)",
-                animation: active ? "eve-pulse 2s ease-in-out infinite" : "none",
+                background: activeDot ? "var(--accent)" : "var(--text-muted)",
+                animation: activeDot ? "eve-pulse 2s ease-in-out infinite" : "none",
               }}
             />
             <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
@@ -638,7 +681,7 @@ export function EveDemo() {
             minHeight: 360,
           }}
         >
-          {EVENTS.map((event, i) => {
+          {events.map((event, i) => {
             if (i > idx) return null;
 
             if (event.kind === "user") {
@@ -665,6 +708,7 @@ export function EveDemo() {
                   key={i}
                   event={event}
                   state={gateState}
+                  labels={labels}
                   onApprove={approve}
                   onReject={reject}
                 />
@@ -682,7 +726,7 @@ export function EveDemo() {
             );
           })}
 
-          {phase.type === "done" ? <ResultCard onReplay={replay} /> : null}
+          {phase.type === "done" ? <ResultCard labels={labels} onReplay={replay} /> : null}
           {phase.type === "rejected" ? (
             <div style={{ marginTop: 14 }}>
               <button
@@ -704,7 +748,7 @@ export function EveDemo() {
                 }}
               >
                 <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true"><path d="M3 12a9 9 0 1 0 3-6.7" /><path d="M3 4v5h5" /></svg>
-                run again
+                {labels.run_again}
               </button>
             </div>
           ) : null}
