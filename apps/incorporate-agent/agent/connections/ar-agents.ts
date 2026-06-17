@@ -8,5 +8,5 @@ import { defineMcpClientConnection } from "eve/connections";
 export default defineMcpClientConnection({
   url: "https://ar-agents.ar/api/mcp",
   description:
-    "ar-agents Argentine toolkit (read-only): validate a CUIT/CUIL, validate a CBU/CVU, compute IVA/SICORE/SUSS withholdings, look up the BCRA debtor registry and monetary variables, and read the 36-package / 235-tool catalog. Use it to validate the administrator's CUIT and the company data before incorporating.",
+    "ar-agents Argentine toolkit (read-only): validate a CUIT/CUIL, validate a CBU/CVU, compute IVA/SICORE/SUSS withholdings, look up the BCRA debtor registry and monetary variables, and read the 34-package / 235-tool catalog. Use it to validate the administrator's CUIT and the company data before incorporating.",
 });
