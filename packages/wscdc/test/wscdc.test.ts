@@ -21,7 +21,7 @@ import {
 const goodTicket: AccessTicket = {
   token: "FAKE_TOKEN",
   sign: "FAKE_SIGN",
-  cuitRepresentada: "20417581015",
+  cuitRepresentada: "20123456786",
   expirationTime: new Date(Date.now() + 3_600_000).toISOString(),
 };
 
@@ -36,7 +36,7 @@ function validReq(overrides: Partial<ConstatarRequest> = {}): ConstatarRequest {
     impTotal: 12100.0,
     codAutorizacion: "70123456789012",
     docTipoReceptor: 80,
-    docNroReceptor: "20417581015",
+    docNroReceptor: "20123456786",
     ...overrides,
   };
 }
@@ -157,7 +157,7 @@ describe("validateConstatarRequest", () => {
 
 describe("normalizeCuit", () => {
   it("strips hyphens", () => {
-    expect(normalizeCuit("20-41758101-5", "x")).toBe("20417581015");
+    expect(normalizeCuit("20-12345678-6", "x")).toBe("20123456786");
   });
   it("throws on garbage", () => {
     expect(() => normalizeCuit("nope", "x")).toThrow(WscdcValidationError);
@@ -169,7 +169,7 @@ describe("buildConstatarEnvelope + parseConstatarResponse", () => {
     const xml = buildConstatarEnvelope({ ticket: goodTicket, req: validReq() });
     expect(xml).toContain("<w:Token>FAKE_TOKEN</w:Token>");
     expect(xml).toContain("<w:Sign>FAKE_SIGN</w:Sign>");
-    expect(xml).toContain("<w:Cuit>20417581015</w:Cuit>");
+    expect(xml).toContain("<w:Cuit>20123456786</w:Cuit>");
   });
 
   it("formats impTotal with 2 decimals always", () => {

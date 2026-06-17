@@ -14,8 +14,8 @@ const norma: Norma = {
   titulo: "RESOLUCIÓN GENERAL ARCA 5612/2026",
   organismo: "ARCA — AGENCIA DE RECAUDACIÓN Y CONTROL ADUANERO",
   fechaPublicacion: "2026-04-28",
-  texto: "Establece nuevas alícuotas. CUIT del responsable: 20-41758101-5.",
-  cuitsMencionados: ["20417581015"],
+  texto: "Establece nuevas alícuotas. CUIT del responsable: 20-12345678-6.",
+  cuitsMencionados: ["20123456786"],
   url: "https://www.boletinoficial.gob.ar/detalleAviso/primera/999/20260428",
 };
 
@@ -42,7 +42,7 @@ describe("matchNorma", () => {
   });
 
   it("matches by CUIT (exact)", () => {
-    const subs = [sub({ match: { cuit: "20417581015" } })];
+    const subs = [sub({ match: { cuit: "20123456786" } })];
     expect(matchNorma(norma, subs)).toHaveLength(1);
   });
 
@@ -108,10 +108,10 @@ describe("InMemoryBoSubscriptionAdapter", () => {
 
 describe("makeSubscriptionId", () => {
   it("includes owner + criteria", () => {
-    const id = makeSubscriptionId("user-1", { keyword: "ARCA", cuit: "20417581015" });
+    const id = makeSubscriptionId("user-1", { keyword: "ARCA", cuit: "20123456786" });
     expect(id).toContain("o=user-1");
     expect(id).toContain("k=ARCA");
-    expect(id).toContain("c=20417581015");
+    expect(id).toContain("c=20123456786");
   });
 
   it("is stable across calls", () => {

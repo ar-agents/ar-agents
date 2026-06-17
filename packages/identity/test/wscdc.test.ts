@@ -29,20 +29,20 @@ describe("buildGetPersonaSoap", () => {
   it("includes token, sign, cuitRepresentada, idPersona (default constancia)", () => {
     const soap = buildGetPersonaSoap({
       ta,
-      cuitRepresentado: "20417581015",
+      cuitRepresentado: "20123456786",
       cuitToQuery: "30707500129",
     });
     // Constancia uses the a5 namespace prefix (personaServiceA5 endpoint).
     expect(soap).toContain("<a5:getPersona>");
     expect(soap).toContain("<token>FAKE_TOKEN</token>");
-    expect(soap).toContain("<cuitRepresentada>20417581015</cuitRepresentada>");
+    expect(soap).toContain("<cuitRepresentada>20123456786</cuitRepresentada>");
     expect(soap).toContain("<idPersona>30707500129</idPersona>");
   });
 
   it("default constancia uses a5 targetNamespace", () => {
     const soap = buildGetPersonaSoap({
       ta,
-      cuitRepresentado: "20417581015",
+      cuitRepresentado: "20123456786",
       cuitToQuery: "30707500129",
     });
     expect(soap).toContain('xmlns:a5="http://a5.soap.ws.server.puc.sr/"');
@@ -51,7 +51,7 @@ describe("buildGetPersonaSoap", () => {
   it("A13 service uses a13 targetNamespace + prefix", () => {
     const soap = buildGetPersonaSoap({
       ta,
-      cuitRepresentado: "20417581015",
+      cuitRepresentado: "20123456786",
       cuitToQuery: "30707500129",
       service: "ws_sr_padron_a13",
     });
@@ -62,7 +62,7 @@ describe("buildGetPersonaSoap", () => {
   it("escapes XML special chars in the sign value", () => {
     const soap = buildGetPersonaSoap({
       ta,
-      cuitRepresentado: "20417581015",
+      cuitRepresentado: "20123456786",
       cuitToQuery: "30707500129",
     });
     expect(soap).toContain("&lt;");
@@ -113,22 +113,22 @@ describe("parseGetPersonaResponse — error paths", () => {
 
 describe("parseGetPersonaResponse — A13 (datos generales) shape", () => {
   it("parses a real A13 persona física response (no monotributo)", () => {
-    // Real shape captured from AFIP prod for CUIT 20-41758101-5.
+    // Shape captured from AFIP prod; identifying fields replaced with fictional values.
     const xml = `<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
   <soap:Body>
     <ns2:getPersonaResponse xmlns:ns2="http://a13.soap.ws.server.puc.sr/">
       <personaReturn>
         <metadata><fechaHora>2026-05-05T12:59:25.402-03:00</fechaHora></metadata>
         <persona>
-          <apellido>CLEMENTE</apellido>
+          <apellido>PEREZ</apellido>
           <descripcionActividadPrincipal>SERVICIOS DE CONSULTORES EN INFORMÁTICA</descripcionActividadPrincipal>
           <domicilio>
-            <calle>CABO CORRIENTES</calle>
-            <codigoPostal>1842</codigoPostal>
+            <calle>FALSA</calle>
+            <codigoPostal>1000</codigoPostal>
             <descripcionProvincia>BUENOS AIRES</descripcionProvincia>
-            <direccion>CABO CORRIENTES 468</direccion>
-            <localidad>MONTE GRANDE</localidad>
-            <numero>468</numero>
+            <direccion>FALSA 123</direccion>
+            <localidad>CIUDAD EJEMPLO</localidad>
+            <numero>123</numero>
             <tipoDomicilio>FISCAL</tipoDomicilio>
           </domicilio>
           <domicilio>
@@ -136,8 +136,8 @@ describe("parseGetPersonaResponse — A13 (datos generales) shape", () => {
             <tipoDomicilio>LEGAL/REAL</tipoDomicilio>
           </domicilio>
           <estadoClave>ACTIVO</estadoClave>
-          <idPersona>20417581015</idPersona>
-          <nombre>NAZARENO</nombre>
+          <idPersona>20123456786</idPersona>
+          <nombre>JUAN</nombre>
           <tipoClave>CUIT</tipoClave>
           <tipoPersona>FISICA</tipoPersona>
         </persona>
@@ -147,14 +147,14 @@ describe("parseGetPersonaResponse — A13 (datos generales) shape", () => {
 </soap:Envelope>`;
     const result = parseGetPersonaResponse(xml);
     expect(result.found).toBe(true);
-    expect(result.data?.nombre).toBe("CLEMENTE NAZARENO");
+    expect(result.data?.nombre).toBe("PEREZ JUAN");
     expect(result.data?.condicion).toBe("DESCONOCIDA"); // A13 doesn't include monotributo
     expect(result.data?.monotributoCategoria).toBeNull();
     expect(result.data?.fechaInscripcion).toBeNull();
-    expect(result.data?.domicilioFiscal).toContain("CABO CORRIENTES 468");
-    expect(result.data?.domicilioFiscal).toContain("MONTE GRANDE");
+    expect(result.data?.domicilioFiscal).toContain("FALSA 123");
+    expect(result.data?.domicilioFiscal).toContain("CIUDAD EJEMPLO");
     expect(result.data?.domicilioFiscal).toContain("BUENOS AIRES");
-    expect(result.data?.domicilioFiscal).toContain("1842");
+    expect(result.data?.domicilioFiscal).toContain("1000");
     // Should pick the FISCAL domicilio, not LEGAL/REAL
     expect(result.data?.domicilioFiscal).not.toContain("OTRA DIRECCION");
     expect(result.data?.actividades).toContain("SERVICIOS DE CONSULTORES EN INFORMÁTICA");
@@ -169,18 +169,18 @@ describe("parseGetPersonaResponse — constancia_inscripcion (full) shape", () =
       <personaReturn>
         <metadata><fechaHora>2026-05-05T12:00:00.000-03:00</fechaHora></metadata>
         <datosGenerales>
-          <apellido>CLEMENTE</apellido>
-          <nombre>NAZARENO</nombre>
+          <apellido>PEREZ</apellido>
+          <nombre>JUAN</nombre>
           <tipoPersona>FISICA</tipoPersona>
           <tipoClave>CUIT</tipoClave>
           <estadoClave>ACTIVO</estadoClave>
-          <fechaNacimiento>1999-02-10T12:00:00-03:00</fechaNacimiento>
-          <idPersona>20417581015</idPersona>
+          <fechaNacimiento>1990-01-01T12:00:00-03:00</fechaNacimiento>
+          <idPersona>20123456786</idPersona>
           <domicilioFiscal>
-            <direccion>CABO CORRIENTES 468</direccion>
-            <localidad>MONTE GRANDE</localidad>
+            <direccion>FALSA 123</direccion>
+            <localidad>CIUDAD EJEMPLO</localidad>
             <descripcionProvincia>BUENOS AIRES</descripcionProvincia>
-            <codigoPostal>1842</codigoPostal>
+            <codigoPostal>1000</codigoPostal>
             <tipoDomicilio>FISCAL</tipoDomicilio>
           </domicilioFiscal>
         </datosGenerales>
@@ -207,10 +207,10 @@ describe("parseGetPersonaResponse — constancia_inscripcion (full) shape", () =
 </soap:Envelope>`;
     const result = parseGetPersonaResponse(xml);
     expect(result.found).toBe(true);
-    expect(result.data?.nombre).toBe("CLEMENTE NAZARENO");
+    expect(result.data?.nombre).toBe("PEREZ JUAN");
     expect(result.data?.condicion).toBe("MONOTRIBUTO");
     expect(result.data?.monotributoCategoria).toBe("A");
-    expect(result.data?.domicilioFiscal).toContain("CABO CORRIENTES 468");
+    expect(result.data?.domicilioFiscal).toContain("FALSA 123");
     expect(result.data?.actividades).toContain("SERVICIOS DE CONSULTORES EN INFORMÁTICA");
   });
 
@@ -263,8 +263,8 @@ describe("parseGetPersonaResponse — constancia_inscripcion (full) shape", () =
 
   it("legacy MONOTRIBUTO heuristic still works when monotributo block is nested under persona (not constancia)", () => {
     const xml = `<persona>
-      <apellido>CLEMENTE</apellido>
-      <nombre>NAZARENO</nombre>
+      <apellido>PEREZ</apellido>
+      <nombre>JUAN</nombre>
       <tipoPersona>FISICA</tipoPersona>
       <monotributo>
         <categoriaMonotributo>A</categoriaMonotributo>

@@ -92,7 +92,7 @@ const facilitator = createFacilitator({
   webhookSecret: process.env.ACP_WEBHOOK_SECRET,
   hooks: createFacturacionHook({
     seller: {
-      cuit: "20417581015",
+      cuit: "20123456786",
       punto_venta: 1,
       regime: "monotributo",
     },

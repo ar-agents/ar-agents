@@ -82,7 +82,7 @@ const mp = createMercadoPagoPaymentProvider({
 import { createFacturacionHook } from "@ar-agents/agentic-commerce-bridge";
 const fiscalHook = createFacturacionHook({
   seller: {
-    cuit: "20417581015",
+    cuit: "20123456786",
     punto_venta: 1,
     regime: "monotributo",
   },

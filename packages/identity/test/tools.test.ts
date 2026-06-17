@@ -19,7 +19,7 @@ describe("identityTools", () => {
     it("returns a valid CUIT result", async () => {
       const tools = identityTools();
       const result = (await tools.validate_cuit!.execute!(
-        { cuit: "20-41758101-5" },
+        { cuit: "20-12345678-6" },
         { toolCallId: "t1", messages: [] } as never,
       )) as { valid: boolean; personType: string; personTypeDescription: string };
       expect(result.valid).toBe(true);
@@ -30,11 +30,11 @@ describe("identityTools", () => {
     it("returns an invalid result with actionable Spanish error message", async () => {
       const tools = identityTools();
       const result = (await tools.validate_cuit!.execute!(
-        { cuit: "20-41758101-9" },
+        { cuit: "20-12345678-9" },
         { toolCallId: "t2", messages: [] } as never,
       )) as { valid: boolean; error: string };
       expect(result.valid).toBe(false);
-      expect(result.error).toMatch(/Esperado: 5/);
+      expect(result.error).toMatch(/Esperado: 6/);
     });
   });
 
@@ -42,7 +42,7 @@ describe("identityTools", () => {
     it("returns available: false with setup instructions when no afip option given", async () => {
       const tools = identityTools();
       const result = (await tools.lookup_cuit_afip!.execute!(
-        { cuit: "20-41758101-5" },
+        { cuit: "20-12345678-6" },
         { toolCallId: "t3", messages: [] } as never,
       )) as AfipPadronResult;
       expect(result.available).toBe(false);
@@ -73,7 +73,7 @@ describe("identityTools", () => {
     it("uses the provided adapter and returns its result", async () => {
       const tools = identityTools({ afip: new FakeAdapter() });
       const result = (await tools.lookup_cuit_afip!.execute!(
-        { cuit: "20-41758101-5" },
+        { cuit: "20-12345678-6" },
         { toolCallId: "t4", messages: [] } as never,
       )) as AfipPadronResult;
       expect(result.available).toBe(true);
@@ -98,7 +98,7 @@ describe("identityTools", () => {
 describe("validateCuitTool standalone export", () => {
   it("works without going through identityTools()", async () => {
     const result = (await validateCuitTool.execute!(
-      { cuit: "20-41758101-5" },
+      { cuit: "20-12345678-6" },
       { toolCallId: "t1", messages: [] } as never,
     )) as { valid: boolean };
     expect(result.valid).toBe(true);

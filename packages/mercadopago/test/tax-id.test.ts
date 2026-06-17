@@ -19,21 +19,21 @@ describe("validateTaxId — AR DNI", () => {
 });
 
 describe("validateTaxId — AR CUIT/CUIL", () => {
-  it("accepts a valid CUIT (Naza's: 20-41758101-5)", () => {
-    expect(validateTaxId("20-41758101-5", "CUIT").valid).toBe(true);
-    expect(validateTaxId("20417581015", "CUIT").valid).toBe(true);
+  it("accepts a valid CUIT (Naza's: 20-12345678-6)", () => {
+    expect(validateTaxId("20-12345678-6", "CUIT").valid).toBe(true);
+    expect(validateTaxId("20123456786", "CUIT").valid).toBe(true);
   });
 
   it("rejects bad checksum", () => {
-    expect(validateTaxId("20-41758101-9", "CUIT").valid).toBe(false);
+    expect(validateTaxId("20-12345678-9", "CUIT").valid).toBe(false);
   });
 
   it("rejects wrong length", () => {
-    expect(validateTaxId("2041758101", "CUIT").valid).toBe(false);
+    expect(validateTaxId("2012345678", "CUIT").valid).toBe(false);
   });
 
   it("formats as XX-XXXXXXXX-X", () => {
-    expect(validateTaxId("20417581015", "CUIT").formatted).toBe("20-41758101-5");
+    expect(validateTaxId("20123456786", "CUIT").formatted).toBe("20-12345678-6");
   });
 });
 
@@ -145,7 +145,7 @@ describe("validateTaxId — PE RUC", () => {
 describe("detectAndValidate", () => {
   it("AR detects DNI vs CUIT by length", () => {
     expect(detectAndValidate("12345678", "AR")?.type).toBe("DNI");
-    expect(detectAndValidate("20-41758101-5", "AR")?.type).toBe("CUIT");
+    expect(detectAndValidate("20-12345678-6", "AR")?.type).toBe("CUIT");
     expect(detectAndValidate("12345", "AR")).toBeNull();
   });
 

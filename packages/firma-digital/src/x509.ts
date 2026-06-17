@@ -236,8 +236,8 @@ function flattenDn(dn: forge.pki.CertificateField[] | { attributes: forge.pki.Ce
 }
 
 function extractCuit(subject: Record<string, string>): string | undefined {
-  // Argentine convention: serialNumber may carry "CUIT 20-41758101-5" or
-  // just "20417581015". Some certs put it in "OID 2.5.4.5" (== serialNumber).
+  // Argentine convention: serialNumber may carry "CUIT 20-12345678-6" or
+  // just "20123456786". Some certs put it in "OID 2.5.4.5" (== serialNumber).
   const candidates = [subject["serialNumber"], subject["UID"], subject["title"], subject["description"]];
   for (const c of candidates) {
     if (!c) continue;

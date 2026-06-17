@@ -33,7 +33,7 @@ export interface ParsedCert {
   notAfter: string;
   /**
    * CUIT extracted from `subject.serialNumber`. Argentine convention
-   * stores it as `CUIT 20-41758101-5` or `20417581015` — we normalize.
+   * stores it as `CUIT 20-12345678-6` or `20123456786` — we normalize.
    */
   cuit?: string;
   /** When `true`, the cert was issued by a recognized AR ONTI / AC-Raíz CA. */

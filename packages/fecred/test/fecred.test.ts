@@ -32,7 +32,7 @@ const goodTicket: AccessTicket = {
 
 function seedCmp(overrides: Partial<FecredComprobante> = {}): FecredComprobante {
   return {
-    cuitEmisor: "20417581015",
+    cuitEmisor: "20123456786",
     razonSocialEmi: "MiPyME Proveedora SRL",
     codTipoCmp: 201,
     ptoVta: 3,
@@ -92,7 +92,7 @@ const COMPROBANTES_SOAP = `<?xml version="1.0" encoding="UTF-8"?>
       <consultarCmpReturn>
         <arrayComprobantes>
           <comprobante>
-            <cuitEmisor>20417581015</cuitEmisor>
+            <cuitEmisor>20123456786</cuitEmisor>
             <razonSocialEmi>MiPyME Proveedora SRL</razonSocialEmi>
             <codTipoCmp>201</codTipoCmp>
             <ptovta>3</ptovta>
@@ -178,11 +178,11 @@ describe("envelope builders", () => {
         rol: "Receptor",
         fechaTipo: "Emision",
         estadoCmp: "Recepcionado",
-        cuitContraparte: "20-41758101-5",
+        cuitContraparte: "20-12345678-6",
       },
     });
     expect(xml).toContain("<rolCUITRepresentada>Receptor</rolCUITRepresentada>");
-    expect(xml).toContain("<CUITContraparte>20417581015</CUITContraparte>");
+    expect(xml).toContain("<CUITContraparte>20123456786</CUITContraparte>");
     expect(xml).toContain("<estadoCmp>Recepcionado</estadoCmp>");
     expect(xml).toContain("<tipo>Emision</tipo>");
     expect(xml).toContain("<desde>2019-01-01</desde>");
@@ -194,14 +194,14 @@ describe("envelope builders", () => {
     const xml = buildAceptarEnvelope({
       ticket: goodTicket,
       input: {
-        idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+        idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
         saldoAceptado: 8_000_000,
         codMoneda: "PES",
         cotizacionMonedaUlt: 1,
       },
     });
     expect(xml).toContain("<fec:aceptarFECredRequest>");
-    expect(xml).toContain("<CUITEmisor>20417581015</CUITEmisor>");
+    expect(xml).toContain("<CUITEmisor>20123456786</CUITEmisor>");
     expect(xml).toContain("<codTipoCmp>201</codTipoCmp>");
     expect(xml).toContain("<saldoAceptado>8000000.00</saldoAceptado>");
     expect(xml).toContain("<codMoneda>PES</codMoneda>");
@@ -211,7 +211,7 @@ describe("envelope builders", () => {
     const xml = buildRechazarEnvelope({
       ticket: goodTicket,
       input: {
-        idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+        idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
         motivos: [
           { codMotivo: 1, descMotivo: "Mercaderia no recibida", justificacion: "Remito sin entregar" },
         ],
@@ -257,7 +257,7 @@ describe("parsers", () => {
     const r = parseConsultarComprobantesResponse(COMPROBANTES_SOAP);
     expect(r.comprobantes).toHaveLength(1);
     const c = r.comprobantes[0]!;
-    expect(c.cuitEmisor).toBe("20417581015");
+    expect(c.cuitEmisor).toBe("20123456786");
     expect(c.codTipoCmp).toBe(201);
     expect(c.ptoVta).toBe(3);
     expect(c.nroCmp).toBe(42);
@@ -317,7 +317,7 @@ describe("UnconfiguredFecredAdapter", () => {
     ).rejects.toThrow(FecredUnconfiguredError);
     await expect(
       a.acceptInvoice({
-        idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+        idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
         saldoAceptado: 1,
         codMoneda: "PES",
         cotizacionMonedaUlt: 1,
@@ -325,7 +325,7 @@ describe("UnconfiguredFecredAdapter", () => {
     ).rejects.toThrow(FecredUnconfiguredError);
     await expect(
       a.rejectInvoice({
-        idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+        idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
         motivos: [{ codMotivo: 1, descMotivo: "x", justificacion: "y" }],
       }),
     ).rejects.toThrow(FecredUnconfiguredError);
@@ -347,7 +347,7 @@ describe("HttpFecredAdapter", () => {
     const captured = vi.fn(() => ({ ok: true, status: 200, text: OPERACION_OK_SOAP }));
     const a = new HttpFecredAdapter({ env: "homo", ticket: goodTicket, fetch: mockFetch(captured) });
     await a.acceptInvoice({
-      idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+      idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
       saldoAceptado: 100,
       codMoneda: "PES",
       cotizacionMonedaUlt: 1,
@@ -377,7 +377,7 @@ describe("HttpFecredAdapter", () => {
     const a = new HttpFecredAdapter({ env: "homo", ticket: goodTicket, fetch: mockFetch(captured) });
     await expect(
       a.rejectInvoice({
-        idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+        idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
         motivos: [],
       }),
     ).rejects.toThrow(FecredValidationError);
@@ -430,7 +430,7 @@ describe("InMemoryFecredAdapter", () => {
     const yes = await a.checkObligation({ cuitConsultada: "30500000018" });
     expect(yes.obligado).toBe(true);
     expect(yes.montoDesde).toBe(5_500_000);
-    const no = await a.checkObligation({ cuitConsultada: "20417581015" });
+    const no = await a.checkObligation({ cuitConsultada: "20123456786" });
     expect(no.obligado).toBe(false);
     expect(no.montoDesde).toBeNull();
   });
@@ -449,7 +449,7 @@ describe("InMemoryFecredAdapter", () => {
     const byCuit = await a.listComprobantes({
       rol: "Receptor",
       fechaTipo: "Emision",
-      cuitContraparte: "20-41758101-5",
+      cuitContraparte: "20-12345678-6",
     });
     expect(byCuit.comprobantes).toHaveLength(2);
   });
@@ -457,7 +457,7 @@ describe("InMemoryFecredAdapter", () => {
   it("acceptInvoice transitions Recepcionado to Aceptado", async () => {
     const a = new InMemoryFecredAdapter({ comprobantes: [seedCmp()] });
     const r = await a.acceptInvoice({
-      idFactura: { cuitEmisor: "20-41758101-5", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+      idFactura: { cuitEmisor: "20-12345678-6", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
       saldoAceptado: 8_000_000,
       codMoneda: "PES",
       cotizacionMonedaUlt: 1,
@@ -475,7 +475,7 @@ describe("InMemoryFecredAdapter", () => {
   it("rejectInvoice transitions to Rechazado", async () => {
     const a = new InMemoryFecredAdapter({ comprobantes: [seedCmp()] });
     const r = await a.rejectInvoice({
-      idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+      idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
       motivos: [{ codMotivo: 1, descMotivo: "Mercaderia no recibida", justificacion: "Sin remito" }],
     });
     expect(r.resultado).toBe("A");
@@ -490,7 +490,7 @@ describe("InMemoryFecredAdapter", () => {
   it("returns R with synthetic error for an unknown factura", async () => {
     const a = new InMemoryFecredAdapter();
     const r = await a.acceptInvoice({
-      idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 1, nroCmp: 999 },
+      idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 1, nroCmp: 999 },
       saldoAceptado: 1,
       codMoneda: "PES",
       cotizacionMonedaUlt: 1,
@@ -502,7 +502,7 @@ describe("InMemoryFecredAdapter", () => {
   it("refuses to accept/reject an already-settled factura", async () => {
     const a = new InMemoryFecredAdapter({ comprobantes: [seedCmp({ estado: "Aceptado" })] });
     const r = await a.rejectInvoice({
-      idFactura: { cuitEmisor: "20417581015", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+      idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
       motivos: [{ codMotivo: 1, descMotivo: "x", justificacion: "y" }],
     });
     expect(r.resultado).toBe("R");

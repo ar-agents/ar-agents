@@ -503,7 +503,7 @@ export async function generateQuarterlyComplianceReport(
 // {
 //   "sociedad": {
 //     "denominacion": "Sociedad-IA Demo SAS",
-//     "operatorCuit": "20-41758101-5",
+//     "operatorCuit": "20-12345678-6",
 //     "jurisdiction": "AR",
 //     "rfcConformance": ["rfc-001-v1", "rfc-004-draft"],
 //     "auditBaseUrl": "https://ar-agents.ar"

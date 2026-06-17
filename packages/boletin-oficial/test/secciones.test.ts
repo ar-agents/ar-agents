@@ -45,9 +45,9 @@ describe("classifyTipo", () => {
 
 describe("extractCuits", () => {
   it("finds CUITs in mixed text", () => {
-    const text = "El responsable es 20-41758101-5, junto a 30.70750012.9 y 27123456780.";
+    const text = "El responsable es 20-12345678-6, junto a 30.70750012.9 y 27123456780.";
     const cuits = extractCuits(text);
-    expect(cuits).toContain("20417581015");
+    expect(cuits).toContain("20123456786");
     expect(cuits).toContain("30707500129");
     expect(cuits).toContain("27123456780");
   });
@@ -57,8 +57,8 @@ describe("extractCuits", () => {
   });
 
   it("dedupes repeated CUITs", () => {
-    const text = "20-41758101-5 menciona 20-41758101-5 nuevamente";
-    expect(extractCuits(text)).toEqual(["20417581015"]);
+    const text = "20-12345678-6 menciona 20-12345678-6 nuevamente";
+    expect(extractCuits(text)).toEqual(["20123456786"]);
   });
 
   it("ignores 11-digit numbers that don't look like CUITs (wrong prefix)", () => {

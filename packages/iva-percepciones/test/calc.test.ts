@@ -215,7 +215,7 @@ describe("buildPerceptionDdjj", () => {
     });
     const ddjj = buildPerceptionDdjj({
       period: "2026-01",
-      agentCuit: "20417581015",
+      agentCuit: "20123456786",
       entries: [asEntry("FA-001", r1), asEntry("FA-002", r2)],
     });
     expect(ddjj.totals.perceptionCentavos).toBe(150_000 + 300_000);
@@ -231,7 +231,7 @@ describe("buildPerceptionDdjj", () => {
     expect(() =>
       buildPerceptionDdjj({
         period: "2026/01",
-        agentCuit: "20417581015",
+        agentCuit: "20123456786",
         entries: [],
       }),
     ).toThrow(IvaPerceptionValidationError);

@@ -73,7 +73,7 @@ Do NOT pick this lib when:
 
 - **Ley 25.506** (2001) created Argentine Firma Digital. Distinguishes *firma electrónica* (lower trust) from *firma digital* (full legal weight equivalent to ink).
 - **AC-Raíz Argentina** is the root CA, run by ONTI (Oficina Nacional de Tecnologías de Información, now under Jefatura de Gabinete). Subordinate CAs include ANSES, AC ONTI, AC RAIZ ARGENTINA — all of which issue end-user certs.
-- **CUIT in subject** — Argentine certs typically embed the holder's CUIT in `subject.serialNumber` (OID 2.5.4.5) as a string like `"CUIT 20-41758101-5"` or `"20417581015"`. The package's `extractCuit` tries both.
+- **CUIT in subject** — Argentine certs typically embed the holder's CUIT in `subject.serialNumber` (OID 2.5.4.5) as a string like `"CUIT 20-12345678-6"` or `"20123456786"`. The package's `extractCuit` tries both.
 - **ARCA WSAA cert ≠ Firma Digital cert** — the X.509 cert AFIP/ARCA issues for SOAP web services (used by `@ar-agents/identity`'s WSAA path) is a SEPARATE PKI. ARCA-WSAA is for machine-to-machine auth; Firma Digital is for human/sociedad signatures with legal weight. Don't confuse them.
 - **Subordinate CA rotation** — AR ONTI rotates AC-Raíz periodically. The heuristic pattern matching (subject DN substring) is the resilient layer; explicit fingerprint pinning is the strict layer. Default config uses heuristic only.
 

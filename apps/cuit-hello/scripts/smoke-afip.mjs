@@ -4,11 +4,11 @@
 // Run with:
 //   node --env-file=.env.local apps/cuit-hello/scripts/smoke-afip.mjs <CUIT>
 //
-// Defaults: queries CUIT 20-41758101-5 (Naza himself, monotributo Categoría A).
+// Defaults: queries CUIT 20-12345678-6 (Naza himself, monotributo Categoría A).
 
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
 
-const cuitToQuery = process.argv[2] ?? "20417581015";
+const cuitToQuery = process.argv[2] ?? "20123456786";
 
 const adapter = new WsaaWscdcAfipPadronAdapter({
   certPath: process.env.AFIP_CERT_PATH,

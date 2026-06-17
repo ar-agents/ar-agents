@@ -38,7 +38,7 @@ export function normalizeEntityType(raw: string | null | undefined): IgjEntityTy
   return TYPE_MAP[lower] ?? "otro";
 }
 
-/** Strip non-digits — convert "20-41758101-5" → "20417581015". */
+/** Strip non-digits — convert "20-12345678-6" → "20123456786". */
 export function normalizeCuit(input: string | null | undefined): string | undefined {
   if (!input) return undefined;
   const digits = String(input).replace(/\D/g, "");

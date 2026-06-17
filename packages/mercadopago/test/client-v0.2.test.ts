@@ -37,9 +37,9 @@ describe("MercadoPagoClient — Payments (v0.2)", () => {
         transactionAmount: 1000,
         paymentMethodId: "account_money",
         payerEmail: "buyer@test.com",
-        identification: { type: "DNI", number: "41758101" },
+        identification: { type: "DNI", number: "12345678" },
       });
-      expect(payment.payer?.identification?.number).toBe("41758101");
+      expect(payment.payer?.identification?.number).toBe("12345678");
       expect(payment.payer?.identification?.type).toBe("DNI");
     });
   });

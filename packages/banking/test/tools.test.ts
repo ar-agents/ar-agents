@@ -64,7 +64,7 @@ describe("bankingTools", () => {
   it("lookup_credit_situation returns 'not configured' by default", async () => {
     const tools = bankingTools();
     const result = await (tools.lookup_credit_situation as any).execute({
-      cuit: "20417581015",
+      cuit: "20123456786",
     });
     expect(result.available).toBe(false);
     expect(result.error).toMatch(/not configured/i);

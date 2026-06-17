@@ -4,7 +4,7 @@ import { WsfeNotConfiguredError } from "../src/errors";
 
 describe("WsfeClient — construction", () => {
   it("throws WsfeNotConfiguredError when cert/key paths and PEMs are both missing", () => {
-    expect(() => new WsfeClient({ cuit: "20417581015", env: "prod" } as any)).toThrow(
+    expect(() => new WsfeClient({ cuit: "20123456786", env: "prod" } as any)).toThrow(
       WsfeNotConfiguredError,
     );
   });
@@ -24,7 +24,7 @@ describe("WsfeClient — construction", () => {
     const client = new WsfeClient({
       certPath: "/tmp/cert.pem",
       keyPath: "/tmp/key.pem",
-      cuit: "20417581015",
+      cuit: "20123456786",
       env: "homo",
     });
     expect(client).toBeInstanceOf(WsfeClient);
@@ -35,7 +35,7 @@ describe("WsfeClient — construction", () => {
       certPem: "-----BEGIN CERTIFICATE-----\nfake\n-----END CERTIFICATE-----",
       keyPem:
         "-----BEGIN PRIVATE KEY-----\nfake\n-----END PRIVATE KEY-----",
-      cuit: "20-41758101-5",
+      cuit: "20-12345678-6",
       env: "prod",
     });
     expect(client).toBeInstanceOf(WsfeClient);

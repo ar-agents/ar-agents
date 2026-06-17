@@ -140,7 +140,6 @@ Demo en vivo: ar-agents.ar/play
 
 Naza Clemente
 naza@helloastro.co
-WhatsApp/llamadas: +34 695 63 22 37
 ```
 
 **Word count:** ~230.

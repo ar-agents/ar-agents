@@ -64,13 +64,13 @@ describe("parseCert", () => {
       cn: "Juan Pérez",
       o: "Sistema Nacional de Firma Digital",
       ou: "AC ONTI",
-      serialNumber: "CUIT 20-41758101-5",
+      serialNumber: "CUIT 20-12345678-6",
     });
     const parsed = parseCert(pem);
     expect(parsed.commonName).toBe("Juan Pérez");
     expect(parsed.subject["O"]).toContain("Firma Digital");
     expect(parsed.subject["OU"]).toBe("AC ONTI");
-    expect(parsed.cuit).toBe("20417581015");
+    expect(parsed.cuit).toBe("20123456786");
     expect(parsed.fingerprintSha256).toMatch(/^[0-9a-f]{64}$/);
     expect(parsed.publicKey.algorithm).toBe("RSA");
     expect(parsed.publicKey.bitLength).toBe(2048);

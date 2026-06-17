@@ -684,7 +684,7 @@ RFC: ar-agents.ar/rfcs/001
 Manifiesto: ar-agents.ar/manifiesto
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@helloastro.co
 X: @nazanazanazanaz
 ```
 
@@ -723,7 +723,7 @@ Repo: github.com/ar-agents/ar-agents
 RFC: ar-agents.ar/rfcs/001
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@helloastro.co
 X: @nazanazanazanaz
 ```
 
@@ -765,7 +765,7 @@ Repo: github.com/ar-agents/ar-agents
 RFC: ar-agents.ar/rfcs/001
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@helloastro.co
 X: @nazanazanazanaz
 ```
 
@@ -805,7 +805,7 @@ Repo: github.com/ar-agents/ar-agents
 RFC: ar-agents.ar/rfcs/001
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@helloastro.co
 X: @nazanazanazanaz
 ```
 
@@ -846,7 +846,7 @@ RFC: ar-agents.ar/rfcs/001
 Manifiesto: ar-agents.ar/manifiesto (sección "Lo que NO hace /arg" — explícito que no vende a la SIDE ni firma con el Estado)
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@helloastro.co
 X: @nazanazanazanaz
 ```
 

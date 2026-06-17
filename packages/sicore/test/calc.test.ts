@@ -402,7 +402,7 @@ describe("buildSicoreDdjj", () => {
     });
     const ddjj = buildSicoreDdjj({
       period: "2026-01",
-      agentCuit: "20417581015",
+      agentCuit: "20123456786",
       entries: [asEntry("FA-001", r1), asEntry("FA-002", r2)],
     });
     expect(ddjj.totals.paymentCentavos).toBe(11_000_000);
@@ -418,7 +418,7 @@ describe("buildSicoreDdjj", () => {
     expect(() =>
       buildSicoreDdjj({
         period: "2026/01",
-        agentCuit: "20417581015",
+        agentCuit: "20123456786",
         entries: [],
       }),
     ).toThrow(SicoreValidationError);

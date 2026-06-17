@@ -8,7 +8,7 @@ const factCBase: SolicitarCaeInput = {
   cbteTipo: CbteTipo.FACTURA_C,
   concepto: Concepto.SERVICIOS,
   docTipo: DocTipo.CUIT,
-  docNro: "20417581015",
+  docNro: "20123456786",
   cbteDesde: 1,
   cbteHasta: 1,
   cbteFch: "20260506",

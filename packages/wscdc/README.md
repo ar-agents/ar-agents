@@ -43,7 +43,7 @@ const result = await wscdc.validateComprobante({
   impTotal: 12100.0,
   codAutorizacion: "70123456789012",
   docTipoReceptor: 80, // CUIT
-  docNroReceptor: "20417581015",
+  docNroReceptor: "20123456786",
 });
 
 if (result.resultado === "A") {
