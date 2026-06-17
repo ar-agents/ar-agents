@@ -1,3 +1,7 @@
 packages:
   - "apps/*"
   - "packages/*"
+  # Standalone eve app (Vercel agent framework). Excluded from the workspace
+  # because it pins ai@7 beta + node>=24, which would clash with the landing's
+  # ai@6 / node 20-22. Install + run it from its own directory.
+  - "!apps/incorporate-agent"
