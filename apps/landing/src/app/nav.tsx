@@ -39,6 +39,11 @@ const NAV: ReadonlyArray<NavItem> = [
     matchPrefixes: ["/play"],
   },
   {
+    href: { es: "/eve", en: "/eve" },
+    label: { es: "eve", en: "eve" },
+    matchPrefixes: ["/eve"],
+  },
+  {
     href: { es: "/registro", en: "/en/registry" },
     label: { es: "Registro", en: "Registry" },
     matchPrefixes: ["/registro", "/en/registry"],
