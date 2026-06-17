@@ -204,6 +204,14 @@ h1, h2, h3 {
   }
 }
 
+/* /eve "how it uses eve" rows: stack label over description on small screens. */
+@media (max-width: 560px) {
+  .eve-use-row {
+    grid-template-columns: 1fr !important;
+    row-gap: 4px !important;
+  }
+}
+
 /* Visually-hidden utility for skip-links and SR-only labels. */
 .sr-only {
   position: absolute;
