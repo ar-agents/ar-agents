@@ -14,8 +14,8 @@ const APP = `${REPO}/tree/main/apps/incorporate-agent`;
 // translate.
 const COPY = {
   en: {
-    eyebrow_hero: "built on eve",
-    h1: "An agent that incorporates a company.",
+    eyebrow_hero: "Built with eve",
+    h1: "An agent that incorporates automated companies in Argentina",
     sub: "eve is Vercel's open-source agent framework. ar-agents already speaks the protocol it connects over, so this agent incorporates a real Argentine company, and pauses for a human to approve the one step it must not take alone.",
     cta_demo: "Run the demo",
     cta_source: "Source",
@@ -43,8 +43,8 @@ const COPY = {
     disclaimer: "The regime is a draft bill in the Senate, not law yet. This is a reference implementation and a verifiable demo, not a registered company.",
   },
   es: {
-    eyebrow_hero: "built on eve",
-    h1: "Un agente que constituye una empresa.",
+    eyebrow_hero: "Hecho con eve",
+    h1: "Un agente que constituye sociedades automatizadas en Argentina",
     sub: "eve es el framework de agentes open source de Vercel. ar-agents ya habla el protocolo con el que se conecta, así que este agente constituye una empresa argentina real, y se frena para que un humano apruebe el único paso que no debe dar solo.",
     cta_demo: "Probá la demo",
     cta_source: "Código",
