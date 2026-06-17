@@ -70,12 +70,12 @@ describe("getAuthorizationUrl", () => {
     const r = await c.getAuthorizationUrl({
       prompt: "login",
       uiLocales: "es-AR",
-      loginHint: "20-41758101-5",
+      loginHint: "20-12345678-6",
     });
     const url = new URL(r.url);
     expect(url.searchParams.get("prompt")).toBe("login");
     expect(url.searchParams.get("ui_locales")).toBe("es-AR");
-    expect(url.searchParams.get("login_hint")).toBe("20-41758101-5");
+    expect(url.searchParams.get("login_hint")).toBe("20-12345678-6");
   });
 
   it("falls back to default scopes when none provided", async () => {

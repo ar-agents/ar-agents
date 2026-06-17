@@ -84,7 +84,7 @@ const { results } = await fetcher.search({ organismo: "ARCA", query: "monotribut
 
 // Pure helpers — no I/O, safe in any environment:
 classifyTipo("RESOLUCIÓN GENERAL Nº 5612/2026", "primera"); // → "resolucion"
-extractCuits("CUIT del responsable: 20-41758101-5"); // → ["20417581015"]
+extractCuits("CUIT del responsable: 20-12345678-6"); // → ["20123456786"]
 ```
 
 ## Resilience model

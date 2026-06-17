@@ -89,7 +89,7 @@ const tools = iibbTools({
 });
 
 const status = await tools.iibb_lookup_padron.execute({
-  cuit: "20417581015",
+  cuit: "20123456786",
   jurisdiction: "CABA",
 });
 // → { cuit: "...", jurisdiction: "CABA", inscribed: true, regime: "local" } | null

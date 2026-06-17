@@ -123,7 +123,7 @@ pnpm add @ar-agents/identity @ar-agents/banking @ar-agents/facturacion @ar-agent
 
 ## Contact
 
-Nazareno Clemente · naza@naza.ar · CUIT 20-41758101-5 · Buenos Aires, AR · [@cesargazzo](https://twitter.com/cesargazzo) is the Subsec TIC currently in office; outreach is welcome via the issues tracker or email.
+Nazareno Clemente · naza@naza.ar · CUIT 20-12345678-6 · Buenos Aires, AR · [@cesargazzo](https://twitter.com/cesargazzo) is the Subsec TIC currently in office; outreach is welcome via the issues tracker or email.
 
 ## License
 

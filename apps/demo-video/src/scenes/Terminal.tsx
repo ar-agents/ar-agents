@@ -72,7 +72,7 @@ const BEATS: Beat[] = [
     start: 580,
     end: 720,
     pkg: "@ar-agents/facturacion",
-    lines: ['→ emitir_factura({ tipo: "C", monto: 50000, cuit_cliente: "20417581015" })'],
+    lines: ['→ emitir_factura({ tipo: "C", monto: 50000, cuit_cliente: "20123456786" })'],
     result: [
       '  ← { CAE: "74269825318964", numero: "0001-00000001" }',
       "  ✓ Factura electrónica emitida (AFIP/WSFE)",

@@ -209,7 +209,7 @@ describe("buildRetentionDdjj", () => {
     });
     const ddjj = buildRetentionDdjj({
       period: "2026-01",
-      agentCuit: "20417581015",
+      agentCuit: "20123456786",
       entries: [asEntry("FA-001", r1), asEntry("FA-002", r2)],
     });
     expect(ddjj.totals.retentionCentavos).toBe(500_000 + 100_000);
@@ -222,7 +222,7 @@ describe("buildRetentionDdjj", () => {
     expect(() =>
       buildRetentionDdjj({
         period: "2026/01",
-        agentCuit: "20417581015",
+        agentCuit: "20123456786",
         entries: [],
       }),
     ).toThrow(IvaRetentionValidationError);

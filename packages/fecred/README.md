@@ -50,7 +50,7 @@ const pending = await fecred.listComprobantes({
 
 // 3. Accept one (IRREVERSIBLE legal act):
 const r = await fecred.acceptInvoice({
-  idFactura: { cuitEmisor: "20-41758101-5", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+  idFactura: { cuitEmisor: "20-12345678-6", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
   saldoAceptado: 8_000_000,
   codMoneda: "PES",
   cotizacionMonedaUlt: 1,

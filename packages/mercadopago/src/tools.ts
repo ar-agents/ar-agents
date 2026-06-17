@@ -2839,7 +2839,7 @@ function buildAllTools(
       description: desc("validate_tax_id"),
       inputSchema: z.object({
         tax_id: z.string().min(1).describe(
-          "The tax ID to validate. Accepts any format with or without separators (20-41758101-5, 20.41758101.5, 20417581015 all work for AR CUIT).",
+          "The tax ID to validate. Accepts any format with or without separators (20-12345678-6, 20.12345678.6, 20123456786 all work for AR CUIT).",
         ),
         type: z
           .enum([

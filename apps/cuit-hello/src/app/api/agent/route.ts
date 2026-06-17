@@ -78,12 +78,12 @@ export async function GET() {
         url: "/api/agent",
         body: { message: "string" },
         example: {
-          message: "Validá el CUIT 20-41758101-5",
+          message: "Validá el CUIT 20-12345678-6",
         },
       },
       direct_validation: {
         method: "GET",
-        url: "/api/cuit?value=20-41758101-5",
+        url: "/api/cuit?value=20-12345678-6",
         note: "Pure-algorithm validation without invoking the LLM. Useful for high-volume validation in form handlers.",
       },
     }),

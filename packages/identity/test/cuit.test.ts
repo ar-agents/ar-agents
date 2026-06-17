@@ -9,10 +9,10 @@ import {
 
 describe("normalizeCuit", () => {
   it.each([
-    ["20-41758101-5", "20417581015"],
-    ["20.41758101.5", "20417581015"],
-    ["20 41758101 5", "20417581015"],
-    ["20417581015", "20417581015"],
+    ["20-12345678-6", "20123456786"],
+    ["20.12345678.6", "20123456786"],
+    ["20 12345678 6", "20123456786"],
+    ["20123456786", "20123456786"],
     ["", ""],
     ["abc", ""],
   ])("normalizes %s → %s", (input, expected) => {
@@ -22,7 +22,7 @@ describe("normalizeCuit", () => {
 
 describe("computeCheckDigit", () => {
   it("computes the AFIP modulo-11 check digit for valid 10-digit inputs", () => {
-    expect(computeCheckDigit("2041758101")).toBe(5);
+    expect(computeCheckDigit("2012345678")).toBe(6);
   });
 
   it("returns 9 when remainder is 1 (special AFIP case)", () => {
@@ -36,20 +36,20 @@ describe("computeCheckDigit", () => {
 
   it("returns null when input length isn't 10", () => {
     expect(computeCheckDigit("20417581")).toBeNull();
-    expect(computeCheckDigit("20417581015")).toBeNull();
+    expect(computeCheckDigit("20123456786")).toBeNull();
   });
 });
 
 describe("parseCuit", () => {
   it("returns a fully populated valid result for a known-good CUIT", () => {
-    const result = parseCuit("20-41758101-5");
+    const result = parseCuit("20-12345678-6");
     expect(result).toEqual({
       valid: true,
-      normalized: "20417581015",
-      formatted: "20-41758101-5",
+      normalized: "20123456786",
+      formatted: "20-12345678-6",
       prefix: "20",
-      body: "41758101",
-      checkDigit: "5",
+      body: "12345678",
+      checkDigit: "6",
       personType: "fisica_masculina",
       error: null,
     });
@@ -84,22 +84,22 @@ describe("parseCuit", () => {
   });
 
   it("rejects wrong check digit AND tells the user the right one", () => {
-    const result = parseCuit("20-41758101-9");
+    const result = parseCuit("20-12345678-9");
     expect(result.valid).toBe(false);
-    expect(result.error).toMatch(/Esperado: 5/);
+    expect(result.error).toMatch(/Esperado: 6/);
     expect(result.error).toMatch(/recibido: 9/);
   });
 
   it("normalizes input with separators before validating", () => {
-    expect(parseCuit("20.41758101.5").valid).toBe(true);
-    expect(parseCuit("20 41758101 5").valid).toBe(true);
+    expect(parseCuit("20.12345678.6").valid).toBe(true);
+    expect(parseCuit("20 12345678 6").valid).toBe(true);
   });
 });
 
 describe("isValidCuit", () => {
   it("returns just the boolean", () => {
-    expect(isValidCuit("20-41758101-5")).toBe(true);
-    expect(isValidCuit("20-41758101-9")).toBe(false);
+    expect(isValidCuit("20-12345678-6")).toBe(true);
+    expect(isValidCuit("20-12345678-9")).toBe(false);
   });
 });
 

@@ -23,10 +23,10 @@ describe("IdentityError", () => {
   });
 
   it("AfipCuitNotFoundError carries the CUIT in the message", () => {
-    const err = new AfipCuitNotFoundError("20-41758101-5");
+    const err = new AfipCuitNotFoundError("20-12345678-6");
     expect(err.code).toBe("afip_cuit_not_found");
-    expect(err.cuit).toBe("20-41758101-5");
-    expect(err.message).toContain("20-41758101-5");
+    expect(err.cuit).toBe("20-12345678-6");
+    expect(err.message).toContain("20-12345678-6");
   });
 });
 

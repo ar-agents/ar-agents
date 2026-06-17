@@ -10,7 +10,7 @@ import type { CheckoutSession } from "../src/schemas/checkout-session";
 import type { Order } from "../src/schemas/order";
 
 const seller: SellerFiscal = {
-  cuit: "20417581015",
+  cuit: "20123456786",
   punto_venta: 1,
   regime: "monotributo",
   legal_name: "Naza Clemente",

@@ -19,7 +19,7 @@ export default function Home() {
       text: "Hablale como si fueras un cliente que escribe por WhatsApp. El agente combina @ar-agents/identity (CUIT + AFIP) + @ar-agents/mercadopago (suscripciones) + @ar-agents/whatsapp (reply via WhatsApp).",
     },
   ]);
-  const [input, setInput] = useState("Hola, quiero contratar el plan Pro. Mi CUIT es 20-41758101-5");
+  const [input, setInput] = useState("Hola, quiero contratar el plan Pro. Mi CUIT es 20-12345678-6");
   const [loading, setLoading] = useState(false);
   const [whatsappMode, setWhatsappMode] = useState<"live" | "mock" | null>(null);
 

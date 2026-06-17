@@ -15,7 +15,7 @@ const adapter = new WsaaWscdcAfipPadronAdapter({
   env: (process.env.AFIP_ENV ?? "prod"),
 });
 
-const cuit = process.argv[2] ?? "20417581015";
+const cuit = process.argv[2] ?? "20123456786";
 console.log(`[smoke-pem] Querying via PEM strings for CUIT ${cuit}...`);
 const t0 = Date.now();
 const result = await adapter.lookup(cuit);

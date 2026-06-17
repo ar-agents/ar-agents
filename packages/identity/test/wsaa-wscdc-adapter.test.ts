@@ -40,8 +40,8 @@ const VALID_PERSONA_RESPONSE = `<?xml version="1.0"?>
   <soapenv:Body>
     <return>
       <persona>
-        <apellido>CLEMENTE</apellido>
-        <nombre>NAZARENO</nombre>
+        <apellido>PEREZ</apellido>
+        <nombre>JUAN</nombre>
         <tipoPersona>FISICA</tipoPersona>
         <fechaInscripcion>2026-04-17</fechaInscripcion>
         <monotributo>
@@ -68,14 +68,14 @@ describe("WsaaWscdcAfipPadronAdapter", () => {
     const adapter = new WsaaWscdcAfipPadronAdapter({
       certPath,
       keyPath,
-      cuitRepresentado: "20-41758101-5",
+      cuitRepresentado: "20-12345678-6",
       env: "homo",
       fetchImpl: fakeFetch,
     });
-    const result = await adapter.lookup("20-41758101-5");
+    const result = await adapter.lookup("20-12345678-6");
     expect(result.available).toBe(true);
-    expect(result.cuit).toBe("20417581015");
-    expect(result.data?.nombre).toBe("CLEMENTE NAZARENO");
+    expect(result.cuit).toBe("20123456786");
+    expect(result.data?.nombre).toBe("PEREZ JUAN");
     expect(result.data?.condicion).toBe("MONOTRIBUTO");
     expect(result.data?.monotributoCategoria).toBe("A");
   });
@@ -87,7 +87,7 @@ describe("WsaaWscdcAfipPadronAdapter", () => {
     const adapter = new WsaaWscdcAfipPadronAdapter({
       certPath,
       keyPath,
-      cuitRepresentado: "20417581015",
+      cuitRepresentado: "20123456786",
       env: "homo",
       fetchImpl: fakeFetch,
     });
@@ -112,7 +112,7 @@ describe("WsaaWscdcAfipPadronAdapter", () => {
     const adapter = new WsaaWscdcAfipPadronAdapter({
       certPath,
       keyPath,
-      cuitRepresentado: "20417581015",
+      cuitRepresentado: "20123456786",
       env: "homo",
       fetchImpl: fakeFetch,
     });
@@ -131,7 +131,7 @@ describe("WsaaWscdcAfipPadronAdapter", () => {
     const adapter = new WsaaWscdcAfipPadronAdapter({
       certPath,
       keyPath,
-      cuitRepresentado: "20417581015",
+      cuitRepresentado: "20123456786",
       env: "homo",
       fetchImpl: fakeFetch,
     });

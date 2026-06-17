@@ -47,7 +47,7 @@ const agent = new Agent({
 });
 
 const result = await agent.generate({
-  prompt: "Validá el CUIT 20-41758101-5 y decime qué sabés de él.",
+  prompt: "Validá el CUIT 20-12345678-6 y decime qué sabés de él.",
 });
 console.log(result.text);
 // → The agent calls validate_cuit (returns valid + persona física masculina)
@@ -147,13 +147,13 @@ If you don't need the agent layer at all (e.g., a Next.js form-handler), import 
 ```ts
 import { parseCuit, isValidCuit, computeCheckDigit } from "@ar-agents/identity";
 
-const result = parseCuit("20-41758101-5");
+const result = parseCuit("20-12345678-6");
 // {
 //   valid: true,
-//   normalized: "20417581015",
-//   formatted: "20-41758101-5",
+//   normalized: "20123456786",
+//   formatted: "20-12345678-6",
 //   prefix: "20",
-//   body: "41758101",
+//   body: "12345678",
 //   checkDigit: "5",
 //   personType: "fisica_masculina",
 //   error: null,
@@ -180,13 +180,13 @@ CUIT/CUIL = 11 digits structured as `PP-DDDDDDDD-V`. The check digit `V` is comp
 
 | CUIT | Expected | Notes |
 | --- | --- | --- |
-| `20-41758101-5` | valid, fisica_masculina | Real CUIT (Naza) |
+| `20-12345678-6` | valid, fisica_masculina | Example CUIT |
 | `30-70750012-9` | valid, juridica | Synthetic juridical (correct check digit) |
 | `00-12345678-9` | invalid, prefix unknown | Prefix `00` not in lookup table |
-| `20-41758101-9` | invalid, check digit | Wrong check (should be 5) |
+| `20-12345678-9` | invalid, check digit | Wrong check (should be 6) |
 | `20417581` | invalid, length | Too short |
-| `20.41758101.5` | valid | Dots accepted; normalized internally |
-| `20 41758101 5` | valid | Spaces accepted |
+| `20.12345678.6` | valid | Dots accepted; normalized internally |
+| `20 12345678 6` | valid | Spaces accepted |
 
 ## Errors
 

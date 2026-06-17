@@ -87,7 +87,7 @@ const facilitator = createFacilitator({
   webhookSecret: process.env.ACP_WEBHOOK_SECRET,
   hooks: createFacturacionHook({
     seller: {
-      cuit: "20417581015",
+      cuit: "20123456786",
       punto_venta: 1,
       regime: "monotributo",
       legal_name: "Naza Clemente",
@@ -183,7 +183,7 @@ completes:
      "factura_cae_vencimiento": "20260520",
      "factura_numero": 42,
      "factura_punto_venta": 1,
-     "factura_cuit_emisor": "20417581015",
+     "factura_cuit_emisor": "20123456786",
      "factura_importe_total": 1210,
      "factura_importe_iva": 0,
      "factura_importe_neto": 1210

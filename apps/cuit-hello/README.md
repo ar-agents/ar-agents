@@ -27,7 +27,7 @@ Conversational interface. The agent has two tools:
 ```bash
 curl -X POST http://localhost:3014/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"message": "Validá el CUIT 20-41758101-5 y decime qué sabés de él."}'
+  -d '{"message": "Validá el CUIT 20-12345678-6 y decime qué sabés de él."}'
 ```
 
 ### 2. Direct REST endpoint (`/api/cuit`)
@@ -37,12 +37,12 @@ Pure-algorithm validation without LLM in the loop. Cheap, fast, deterministic
 
 ```bash
 # Single validation
-curl 'http://localhost:3014/api/cuit?value=20-41758101-5'
+curl 'http://localhost:3014/api/cuit?value=20-12345678-6'
 
 # Batch validation
 curl -X POST http://localhost:3014/api/cuit \
   -H "Content-Type: application/json" \
-  -d '{"values":["20-41758101-5","30707500126","27ABCD"]}'
+  -d '{"values":["20-12345678-6","30707500126","27ABCD"]}'
 ```
 
 Returns:
@@ -50,10 +50,10 @@ Returns:
 ```json
 {
   "valid": true,
-  "normalized": "20417581015",
-  "formatted": "20-41758101-5",
+  "normalized": "20123456786",
+  "formatted": "20-12345678-6",
   "prefix": "20",
-  "body": "41758101",
+  "body": "12345678",
   "checkDigit": "5",
   "personType": "fisica_masculina",
   "personTypeDescription": "Persona física (masculino).",
@@ -115,13 +115,13 @@ Some real and synthetic CUITs to test against:
 
 | CUIT                | Expected                  | Notes                                         |
 | ------------------- | ------------------------- | --------------------------------------------- |
-| `20-41758101-5`     | valid, fisica_masculina   | Naza's CUIT (Monotributo Cat A)               |
+| `20-12345678-6`     | valid, fisica_masculina   | Naza's CUIT (Monotributo Cat A)               |
 | `30-70750012-9`     | valid, juridica           | Synthetic juridical CUIT (correct check)      |
 | `00-12345678-9`     | invalid, prefix unknown   | Prefix 00 not in PREFIX_TO_TYPE               |
-| `20-41758101-9`     | invalid, check digit      | Wrong check digit (should be 5)               |
+| `20-12345678-9`     | invalid, check digit      | Wrong check digit (should be 5)               |
 | `20417581`          | invalid, length           | Too short                                     |
-| `20.41758101.5`     | valid                     | Dots accepted; normalization strips them      |
-| `20 41758101 5`     | valid                     | Spaces accepted                               |
+| `20.12345678.6`     | valid                     | Dots accepted; normalization strips them      |
+| `20 12345678 6`     | valid                     | Spaces accepted                               |
 
 ## Acceptance criteria for Fase 3
 

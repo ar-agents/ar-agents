@@ -49,7 +49,7 @@ export function divisorFor(currency: string): number {
 // ---------------------------------------------------------------------------
 // Merchant — payee on Payment Mandates and `checkout.allowed_merchants`.
 // Open-vocabulary: the spec carries `id`, `name`, `website` only. LATAM hosts
-// can stuff CUIT/CPF/RFC into `id` as a URN (e.g. `cuit:20-41758101-5`).
+// can stuff CUIT/CPF/RFC into `id` as a URN (e.g. `cuit:20-12345678-6`).
 // ---------------------------------------------------------------------------
 
 export const Merchant = z.object({

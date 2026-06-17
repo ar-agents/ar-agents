@@ -64,7 +64,7 @@ const r2 = calculatePerception({ /* ... */ });
 
 const ddjj = buildPerceptionDdjj({
   period: "2026-01",
-  agentCuit: "20-41758101-5",
+  agentCuit: "20-12345678-6",
   entries: [asEntry("FA-A-001", r1), asEntry("FA-A-002", r2)],
 });
 // ddjj.totals: { netCentavos, perceptionCentavos, entryCount }

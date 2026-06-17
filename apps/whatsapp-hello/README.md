@@ -45,5 +45,5 @@ Optional env vars wire the real services (all degrade gracefully when absent):
 ```bash
 curl -X POST http://localhost:3015/api/agent \
   -H "Content-Type: application/json" \
-  -d '{"message": "Validá el CUIT 20-41758101-5 y decime si tiene una suscripción activa."}'
+  -d '{"message": "Validá el CUIT 20-12345678-6 y decime si tiene una suscripción activa."}'
 ```

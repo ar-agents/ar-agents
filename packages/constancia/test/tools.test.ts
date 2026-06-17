@@ -7,8 +7,8 @@ import {
 } from "../src";
 
 const sample: Constancia = {
-  cuit: "20417581015",
-  denominacion: "CLEMENTE NAZARENO",
+  cuit: "20123456786",
+  denominacion: "PEREZ JUAN",
   tipoPersona: "fisica",
   condicion: "monotributo",
   monotributoCategoria: "A",
@@ -25,7 +25,7 @@ describe("constanciaTools", () => {
   it("default fetcher is unconfigured but safe to call", async () => {
     const tools = constanciaTools();
     const r = (await tools.constancia_inscripcion!.execute!(
-      { cuit: "20-41758101-5" },
+      { cuit: "20-12345678-6" },
       ctx,
     )) as ConstanciaResult;
     expect(r.available).toBe(false);
@@ -35,20 +35,20 @@ describe("constanciaTools", () => {
 
   it("uses a provided fetcher and returns the constancia", async () => {
     const tools = constanciaTools({
-      fetcher: new MockConstanciaFetcher({ "20417581015": sample }),
+      fetcher: new MockConstanciaFetcher({ "20123456786": sample }),
     });
     const r = (await tools.constancia_inscripcion!.execute!(
-      { cuit: "20417581015" },
+      { cuit: "20123456786" },
       ctx,
     )) as ConstanciaResult;
     expect(r.available).toBe(true);
-    expect(r.data?.denominacion).toBe("CLEMENTE NAZARENO");
+    expect(r.data?.denominacion).toBe("PEREZ JUAN");
     expect(r.source).toBe("mock");
   });
 
   it("returns cuit_not_found through the tool for an unknown CUIT", async () => {
     const tools = constanciaTools({
-      fetcher: new MockConstanciaFetcher({ "20417581015": sample }),
+      fetcher: new MockConstanciaFetcher({ "20123456786": sample }),
     });
     const r = (await tools.constancia_inscripcion!.execute!(
       { cuit: "30-70750012-9" },

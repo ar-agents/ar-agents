@@ -50,9 +50,9 @@ const INSTRUCTIONS = `Sos el asistente de billing de LautaroSaaS por WhatsApp. T
 
 # Ejemplo de flow exitoso
 
-User: "Hola, quiero contratar el plan Pro. CUIT 20-41758101-5, teléfono 5491112345678"
+User: "Hola, quiero contratar el plan Pro. CUIT 20-12345678-6, teléfono 5491112345678"
 Agent: [mark_whatsapp_read] [validate_cuit] [lookup_cuit_afip → confirma nombre]
-       "Listo CLEMENTE NAZARENO. Plan Pro son $25.000/mes. Antes de generar el link te mando un código por WhatsApp para verificar el número, dame un toque."
+       "Listo PEREZ JUAN. Plan Pro son $25.000/mes. Antes de generar el link te mando un código por WhatsApp para verificar el número, dame un toque."
        [request_identity_verification(method=whatsapp_otp, subject_value=5491112345678)]
        "Te mandé el código a tu WhatsApp."
 User: "el código es 482917"
