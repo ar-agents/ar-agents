@@ -37,7 +37,7 @@ const L = {
     status_awaiting: "waiting for human",
     status_rejected: "rejected",
     status_done: "done",
-    user: "Incorporate an automated company for my invoicing SaaS. Administrator CUIT 20-41758101-5.",
+    user: "Incorporate an automated company for my invoicing SaaS. Administrator CUIT 20-12345678-6.",
     assistant1: "CUIT is valid. Ready to constitute Facturador Automatizada SAS. Constituting a company is irreversible, so it needs your approval (art. 102).",
     assistant2: "Done. Facturador Automatizada SAS is constituted. A human approved the irreversible step, and the whole run is in the signed audit log (art. 101/102).",
     gate_awaiting: "Approval required",
@@ -62,7 +62,7 @@ const L = {
     status_awaiting: "esperando humano",
     status_rejected: "rechazado",
     status_done: "hecho",
-    user: "Constituí una sociedad automatizada para mi SaaS de facturación. CUIT del administrador 20-41758101-5.",
+    user: "Constituí una sociedad automatizada para mi SaaS de facturación. CUIT del administrador 20-12345678-6.",
     assistant1: "El CUIT es válido. Listo para constituir Facturador Automatizada SAS. Constituir una empresa es irreversible, así que necesita tu aprobación (art. 102).",
     assistant2: "Listo. Facturador Automatizada SAS quedó constituida. Un humano aprobó el paso irreversible, y todo el run quedó en el audit log firmado (art. 101/102).",
     gate_awaiting: "Aprobación requerida",
@@ -91,8 +91,8 @@ function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
       kind: "tool",
       name: "validate_cuit",
       via: "ar-agents.ar/api/mcp",
-      args: { cuit: "20-41758101-5" },
-      result: { valid: true, nombre: "Clemente, Nazareno", condicion: "Responsable Inscripto" },
+      args: { cuit: "20-12345678-6" },
+      result: { valid: true, nombre: "Pérez, Juan", condicion: "Responsable Inscripto" },
     },
     { kind: "assistant", text: t.assistant1 },
     {
@@ -102,7 +102,7 @@ function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
         denominacion: "Facturador Automatizada SAS",
         tipo: "SAS",
         objeto: "Facturación electrónica para PyMEs argentinas",
-        representante: "20-41758101-5",
+        representante: "20-12345678-6",
       },
     },
     // --- below here renders only after approval ---
@@ -112,7 +112,7 @@ function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
       args: {
         denominacion: "Facturador Automatizada SAS",
         tipo: "SAS",
-        representante: "20-41758101-5",
+        representante: "20-12345678-6",
       },
       result: {
         ok: true,
@@ -434,7 +434,7 @@ function ResultCard({
   const fields: ReadonlyArray<readonly [string, string]> = [
     [labels.f_denomination, "Facturador Automatizada SAS"],
     [labels.f_type, "SAS · art. 14 (Automatizada)"],
-    [labels.f_admin, "CUIT 20-41758101-5"],
+    [labels.f_admin, "CUIT 20-12345678-6"],
     [labels.f_audit, labels.v_audit],
   ];
   return (
