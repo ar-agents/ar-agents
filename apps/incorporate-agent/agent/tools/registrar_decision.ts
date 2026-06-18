@@ -23,7 +23,7 @@ export default defineTool({
   inputSchema: z.object({
     tool: z.string().min(1).max(80).describe("Short name of the action being logged."),
     governance: z
-      .enum(["algorithm-only", "audit-logged", "human-approved", "mocked-upstream", "requires-confirmation"])
+      .enum(["algorithm-only", "audit-logged", "mocked-upstream", "requires-confirmation"])
       .default("audit-logged"),
     input: z.unknown().describe("The action's inputs."),
     output: z.unknown().optional().describe("The action's result, if any."),

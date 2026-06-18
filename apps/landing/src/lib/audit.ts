@@ -138,7 +138,6 @@ export async function verifyEntry(entry: AuditEntry): Promise<boolean> {
 export type AuditGovernance =
   | "algorithm-only"
   | "audit-logged"
-  | "human-approved"
   | "mocked-upstream"
   | "requires-confirmation";
 

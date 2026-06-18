@@ -34,7 +34,6 @@ function aggregate(entries: AuditEntry[]): Aggregates {
     governance: {
       "algorithm-only": 0,
       "audit-logged": 0,
-      "human-approved": 0,
       "mocked-upstream": 0,
       "requires-confirmation": 0,
     },
@@ -64,7 +63,6 @@ function p(sorted: number[], pct: number): number {
 const GOV_COLOR: Record<AuditEntry["governance"], string> = {
   "algorithm-only": "#737373",
   "audit-logged": "#0a72ef",
-  "human-approved": "#16a34a",
   "mocked-upstream": "#eab308",
   "requires-confirmation": "#22c55e",
 };

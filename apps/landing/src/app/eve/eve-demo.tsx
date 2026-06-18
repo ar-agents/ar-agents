@@ -123,7 +123,7 @@ function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
     {
       kind: "tool",
       name: "registrar_decision",
-      args: { tool: "incorporar_sociedad", governance: "human-approved" },
+      args: { tool: "incorporar_sociedad", governance: "requires-confirmation" },
       result: { logged: true, seq: 41, sig: "ed25519:7b3e…d0" },
     },
     { kind: "assistant", text: t.assistant2 },
