@@ -31,7 +31,7 @@ const MAX_FIELD_BYTES = 8 * 1024;
 const Body = z.object({
   tool: z.string().min(1).max(80),
   governance: z
-    .enum(["algorithm-only", "audit-logged", "mocked-upstream", "requires-confirmation"])
+    .enum(["algorithm-only", "audit-logged", "human-approved", "mocked-upstream", "requires-confirmation"])
     .default("audit-logged"),
   input: z.unknown(),
   output: z.unknown().optional(),

@@ -11,6 +11,7 @@
  * and is unit-tested. This route is just HTTP plumbing + audit log.
  */
 
+import { kv } from "@vercel/kv";
 import { jsonCors, preflight } from "@/lib/cors";
 import {
   appendAudit,
@@ -39,6 +40,25 @@ export async function POST(req: Request) {
   // Incorporation entries are durable KV writes, damp per-IP amplification.
   if (!rateLimit("auto-incorporate", clientIp(req), 10, 60 * 60_000)) {
     return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
+  }
+
+  // Idempotency: an agent (or eve's durable-workflow replay across a cold start
+  // or redeploy) may POST the same body twice. The incorporate-agent tool sends
+  // an Idempotency-Key (sha256 of the body). If we've seen it, return the prior
+  // result and do NOT constitute or write the audit log again.
+  const idempoKey = req.headers.get("idempotency-key")?.trim();
+  const cacheKey = idempoKey ? `idempo:auto-incorporate:${idempoKey}` : null;
+  if (cacheKey) {
+    const cached = await kv
+      .get<Record<string, unknown>>(cacheKey)
+      .catch(() => null);
+    if (cached) {
+      const sid =
+        (cached.audit as { sessionId?: string } | undefined)?.sessionId ?? "";
+      return jsonCors(cached, {
+        headers: { "x-idempotent-replay": "true", "x-play-session": sid },
+      });
+    }
   }
 
   let raw: unknown;
@@ -109,44 +129,49 @@ export async function POST(req: Request) {
     { durable: true },
   );
 
-  return jsonCors(
-    {
-      ok: true,
-      sociedad: {
-        denominacion: input.denominacion,
-        tipo: input.tipo,
-        capitalSocial: input.capitalSocial,
-        slug,
-      },
-      validation,
-      config,
-      envVars,
-      checklist: generateChecklist(input),
-      deploy: {
-        target: "vercel",
-        oneClickUrl: deployUrl,
-        sourceUrl:
-          "https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter",
-        manualSteps: generateChecklist(input),
-      },
-      audit: {
-        sessionId,
-        backend: auditBackend(),
-        entry: auditEntry,
-        url: `https://ar-agents.ar/api/play/audit/${sessionId}`,
-        verifyUrl: `https://ar-agents.ar/api/play/audit/${sessionId}?verify=1`,
-        dashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
-      },
-      rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
-      generatedAt: new Date().toISOString(),
+  const responseBody = {
+    ok: true,
+    sociedad: {
+      denominacion: input.denominacion,
+      tipo: input.tipo,
+      capitalSocial: input.capitalSocial,
+      slug,
     },
-    {
-      headers: {
-        "x-play-session": sessionId,
-        "x-audit-backend": auditBackend(),
-      },
+    validation,
+    config,
+    envVars,
+    checklist: generateChecklist(input),
+    deploy: {
+      target: "vercel",
+      oneClickUrl: deployUrl,
+      sourceUrl:
+        "https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter",
+      manualSteps: generateChecklist(input),
     },
-  );
+    audit: {
+      sessionId,
+      backend: auditBackend(),
+      entry: auditEntry,
+      url: `https://ar-agents.ar/api/play/audit/${sessionId}`,
+      verifyUrl: `https://ar-agents.ar/api/play/audit/${sessionId}?verify=1`,
+      dashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
+    },
+    rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
+    generatedAt: new Date().toISOString(),
+  };
+
+  // Store the exact response so a replay of the same Idempotency-Key returns it
+  // verbatim (same sessionId, same audit entry) instead of constituting again.
+  if (cacheKey) {
+    await kv.set(cacheKey, responseBody, { ex: 86_400 }).catch(() => {});
+  }
+
+  return jsonCors(responseBody, {
+    headers: {
+      "x-play-session": sessionId,
+      "x-audit-backend": auditBackend(),
+    },
+  });
 }
 
 export async function GET() {
