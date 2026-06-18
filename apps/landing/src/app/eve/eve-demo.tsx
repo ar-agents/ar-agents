@@ -85,6 +85,14 @@ const L = {
 
 function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
   const t = L[lang];
+  // Single source of truth for the incorporation args, so the parked (gate)
+  // call and the executed (tool) call can never drift.
+  const incorpArgs = {
+    denominacion: "Facturador Automatizada SAS",
+    tipo: "SAS",
+    objeto: "Facturación electrónica para PyMEs argentinas",
+    representante: "20-12345678-6",
+  };
   return [
     { kind: "user", text: t.user },
     {
@@ -98,22 +106,13 @@ function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
     {
       kind: "gate",
       name: "incorporar_sociedad",
-      args: {
-        denominacion: "Facturador Automatizada SAS",
-        tipo: "SAS",
-        objeto: "Facturación electrónica para PyMEs argentinas",
-        representante: "20-12345678-6",
-      },
+      args: incorpArgs,
     },
     // --- below here renders only after approval ---
     {
       kind: "tool",
       name: "incorporar_sociedad",
-      args: {
-        denominacion: "Facturador Automatizada SAS",
-        tipo: "SAS",
-        representante: "20-12345678-6",
-      },
+      args: incorpArgs,
       result: {
         ok: true,
         denominacion: "Facturador Automatizada SAS",
@@ -124,7 +123,7 @@ function makeEvents(lang: Lang): ReadonlyArray<EventNode> {
     {
       kind: "tool",
       name: "registrar_decision",
-      args: { tool: "incorporar_sociedad", governance: "human-approved" },
+      args: { tool: "incorporar_sociedad", governance: "requires-confirmation" },
       result: { logged: true, seq: 41, sig: "ed25519:7b3e…d0" },
     },
     { kind: "assistant", text: t.assistant2 },

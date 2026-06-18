@@ -6,28 +6,13 @@ import { z } from "zod";
 const ENDPOINT = "https://ar-agents.ar/api/auto-incorporate";
 const TIMEOUT_MS = 60_000;
 
-type IncorporateInput = {
-  denominacion: string;
-  tipo: string;
-  objeto: string;
-  capitalSocial: number;
-  representante?: { nombre: string; cuit: string };
-};
-
-// Stable idempotency key from the meaningful inputs. eve runs each session as a
-// durable workflow that can replay across cold starts and redeploys; a bare
-// non-idempotent POST could constitute the company twice on replay or on a
-// deliberate retry. Same inputs -> same key, so a dedupe-aware server returns
-// the prior result instead of incorporating again.
-function idempotencyKey(input: IncorporateInput): string {
-  const seed = [
-    input.denominacion,
-    input.tipo,
-    input.objeto,
-    input.capitalSocial,
-    input.representante?.cuit ?? "",
-  ].join("|");
-  return createHash("sha256").update(seed).digest("hex");
+// Stable idempotency key over the FULL request body. eve runs each session as a
+// durable workflow that can replay across cold starts and redeploys; the server
+// (/api/auto-incorporate) dedupes on this key and returns the prior result, so a
+// replay or deliberate retry can't constitute the company twice. Hashing the
+// whole body (not a field subset) means two requests collide only if identical.
+function idempotencyKey(input: unknown): string {
+  return createHash("sha256").update(JSON.stringify(input)).digest("hex");
 }
 
 /**
