@@ -3,12 +3,19 @@ import { always } from "eve/tools/approval";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 
-// Endpoint is env-injectable so evals/tests can point at a local stub instead of
-// hitting the live (irreversible) endpoint. Defaults to production.
-const ENDPOINT =
-  process.env.INCORPORATE_ENDPOINT?.trim() ||
-  "https://ar-agents.ar/api/auto-incorporate";
 const TIMEOUT_MS = 60_000;
+
+// Endpoint is env-injectable so evals/tests can point at a local stub instead of
+// hitting the live (irreversible) endpoint. Resolved at CALL time, not import
+// time, so a test that sets INCORPORATE_ENDPOINT before the tool fires actually
+// takes effect (an import-time const would capture the value too early to
+// override). Defaults to production.
+function resolveEndpoint(): string {
+  return (
+    process.env.INCORPORATE_ENDPOINT?.trim() ||
+    "https://ar-agents.ar/api/auto-incorporate"
+  );
+}
 
 // Stable idempotency key over the FULL request body. eve runs each session as a
 // durable workflow that can replay across cold starts and redeploys; the server
@@ -106,11 +113,12 @@ export default defineTool({
     }),
   needsApproval: always(),
   async execute(input) {
+    const endpoint = resolveEndpoint();
     const apiKey = process.env.INCORPORATE_API_KEY?.trim();
 
     let res: Response;
     try {
-      res = await fetch(ENDPOINT, {
+      res = await fetch(endpoint, {
         method: "POST",
         headers: {
           "content-type": "application/json",
