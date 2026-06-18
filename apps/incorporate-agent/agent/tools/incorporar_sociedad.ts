@@ -3,7 +3,11 @@ import { always } from "eve/tools/approval";
 import { createHash } from "node:crypto";
 import { z } from "zod";
 
-const ENDPOINT = "https://ar-agents.ar/api/auto-incorporate";
+// Endpoint is env-injectable so evals/tests can point at a local stub instead of
+// hitting the live (irreversible) endpoint. Defaults to production.
+const ENDPOINT =
+  process.env.INCORPORATE_ENDPOINT?.trim() ||
+  "https://ar-agents.ar/api/auto-incorporate";
 const TIMEOUT_MS = 60_000;
 
 // Stable idempotency key over the FULL request body. eve runs each session as a
@@ -42,7 +46,11 @@ export default defineTool({
       .refine((v) => /\bautomatizada\b/i.test(v), {
         message: "La denominación debe incluir 'Automatizada' (art. 14).",
       })
-      .describe("Company name. MUST include 'Automatizada' for a Sociedad Automatizada (art. 14)."),
+      .refine((v) => !/\b(nacional|estatal|gobierno|estado|oficial)\b/i.test(v), {
+        message:
+          "La denominación no puede contener palabras reservadas por IGJ (nacional, estatal, gobierno, estado, oficial).",
+      })
+      .describe("Company name. MUST include 'Automatizada' (art. 14) and avoid IGJ-reserved words."),
     tipo: z
       .enum(["SAS", "SRL", "SA", "SOCIEDAD-IA"])
       .describe("Society type. Automatización (art. 14) is a declaration on any of these."),
@@ -77,7 +85,25 @@ export default defineTool({
       .string()
       .optional()
       .describe("Carries the audit log across calls. Reuse it to keep one verifiable session."),
-  }),
+  })
+    // Mirror the server's minimum-capital-by-type guard (lib/incorporate.ts) so the
+    // human only ever approves a request the endpoint will accept, instead of one
+    // that 422s after the irreversible gate.
+    .superRefine((val, ctx) => {
+      const MIN: Record<string, number> = {
+        SAS: 100_000,
+        SRL: 100_000,
+        SA: 30_000_000,
+      };
+      const min = MIN[val.tipo] ?? 100_000;
+      if (val.capitalSocial < min) {
+        ctx.addIssue({
+          code: z.ZodIssueCode.custom,
+          path: ["capitalSocial"],
+          message: `Capital social mínimo para ${val.tipo}: ${min.toLocaleString("es-AR")} ARS.`,
+        });
+      }
+    }),
   needsApproval: always(),
   async execute(input) {
     const apiKey = process.env.INCORPORATE_API_KEY?.trim();
