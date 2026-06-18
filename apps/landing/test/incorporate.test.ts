@@ -2,7 +2,7 @@
  * Unit tests for /api/auto-incorporate's pure logic.
  */
 
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import {
   Body,
   envVarsFor,
@@ -17,6 +17,7 @@ import {
   slugFor,
   validate,
 } from "../src/lib/incorporate";
+import { authorizeIncorporate } from "../src/lib/incorporate-auth";
 
 const baseInput = {
   denominacion: "ACME-AI SAS",
@@ -260,5 +261,55 @@ describe("generateChecklist()", () => {
       Body.parse({ ...baseInput, tipo: "SOCIEDAD-IA", capitalSocial: 1 }),
     );
     expect(steps.some((s) => s.includes("aún no fue sancionado"))).toBe(true);
+  });
+});
+
+describe("authorizeIncorporate()", () => {
+  const ENV = "INCORPORATE_API_KEY";
+  const prev = process.env[ENV];
+  afterEach(() => {
+    if (prev === undefined) delete process.env[ENV];
+    else process.env[ENV] = prev;
+  });
+  const post = (headers: Record<string, string> = {}) =>
+    new Request("https://ar-agents.ar/api/auto-incorporate", { method: "POST", headers });
+
+  it("fails closed with 500 when the secret is unset", async () => {
+    delete process.env[ENV];
+    expect(await authorizeIncorporate(post({ "x-api-key": "anything" }))).toEqual({
+      ok: false,
+      status: 500,
+      error: "auth_not_configured",
+    });
+  });
+
+  it("401s when no credential is presented", async () => {
+    process.env[ENV] = "s3cret";
+    expect(await authorizeIncorporate(post())).toEqual({
+      ok: false,
+      status: 401,
+      error: "unauthorized",
+    });
+  });
+
+  it("401s on a wrong x-api-key", async () => {
+    process.env[ENV] = "s3cret";
+    expect(await authorizeIncorporate(post({ "x-api-key": "nope" }))).toEqual({
+      ok: false,
+      status: 401,
+      error: "unauthorized",
+    });
+  });
+
+  it("accepts the correct x-api-key", async () => {
+    process.env[ENV] = "s3cret";
+    expect(await authorizeIncorporate(post({ "x-api-key": "s3cret" }))).toEqual({ ok: true });
+  });
+
+  it("accepts the correct Authorization: Bearer token", async () => {
+    process.env[ENV] = "s3cret";
+    expect(await authorizeIncorporate(post({ authorization: "Bearer s3cret" }))).toEqual({
+      ok: true,
+    });
   });
 });

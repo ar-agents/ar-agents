@@ -33,6 +33,7 @@ import {
   validate,
 } from "@/lib/incorporate";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { authorizeIncorporate } from "@/lib/incorporate-auth";
 
 export const runtime = "edge";
 
@@ -40,6 +41,13 @@ export async function POST(req: Request) {
   // Incorporation entries are durable KV writes, damp per-IP amplification.
   if (!rateLimit("auto-incorporate", clientIp(req), 10, 60 * 60_000)) {
     return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
+  }
+
+  // Authenticate before doing anything else (this is an irreversible write
+  // surface). Shared secret via Authorization: Bearer or x-api-key, fail closed.
+  const auth = await authorizeIncorporate(req);
+  if (!auth.ok) {
+    return jsonCors({ ok: false, error: auth.error }, { status: auth.status });
   }
 
   // Idempotency: an agent (or eve's durable-workflow replay across a cold start
