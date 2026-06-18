@@ -384,7 +384,7 @@ function GateCard({
             type="button"
             onClick={onApprove}
             style={{
-              padding: "8px 18px",
+              padding: "11px 18px",
               background: "var(--primary-bg)",
               color: "var(--primary-text)",
               border: "none",
@@ -401,7 +401,7 @@ function GateCard({
             type="button"
             onClick={onReject}
             style={{
-              padding: "8px 16px",
+              padding: "11px 16px",
               background: "transparent",
               color: "var(--text-body)",
               border: "none",
