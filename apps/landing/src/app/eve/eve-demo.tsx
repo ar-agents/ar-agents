@@ -34,7 +34,7 @@ const L = {
   en: {
     status_ready: "ready",
     status_running: "running",
-    status_awaiting: "waiting for human",
+    status_awaiting: "waiting for a person",
     status_rejected: "rejected",
     status_done: "done",
     user: "Incorporate an automated company for my invoicing SaaS. Administrator CUIT 20-12345678-6.",
@@ -59,7 +59,7 @@ const L = {
   es: {
     status_ready: "listo",
     status_running: "corriendo",
-    status_awaiting: "esperando humano",
+    status_awaiting: "esperando a una persona",
     status_rejected: "rechazado",
     status_done: "hecho",
     user: "Constituí una sociedad automatizada para mi SaaS de facturación. CUIT del administrador 20-12345678-6.",
@@ -322,7 +322,7 @@ function GateCard({
       style={{
         margin: "14px 0 12px",
         background: "var(--bg)",
-        borderRadius: 8,
+        borderRadius: 10,
         boxShadow: `${accent} 0 0 0 1px, var(--card-shadow)`,
         overflow: "hidden",
         animation: "eve-fade 260ms ease-out",
@@ -357,7 +357,7 @@ function GateCard({
             <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect x="5" y="11" width="14" height="9" rx="2" /><path d="M8 11V7a4 4 0 0 1 8 0v4" /></svg>
           )}
         </span>
-        <span style={{ fontWeight: 500, fontSize: 13.5, color: "var(--text)", letterSpacing: "-0.01em" }}>
+        <span style={{ fontWeight: 500, fontSize: "var(--fs-sm)", color: "var(--text)", letterSpacing: "-0.01em" }}>
           {state === "approved"
             ? labels.gate_approved
             : state === "rejected"
@@ -365,12 +365,12 @@ function GateCard({
               : labels.gate_awaiting}
         </span>
         <span style={{ flex: 1 }} />
-        <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.04em" }}>
+        <span style={{ fontFamily: FONT_MONO, fontSize: "var(--fs-xs)", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
           needsApproval: always()
         </span>
       </div>
 
-      <div style={{ padding: "12px 14px", fontFamily: FONT_MONO, fontSize: 12.5, lineHeight: 1.6 }}>
+      <div style={{ padding: "12px 14px", fontFamily: FONT_MONO, fontSize: "var(--fs-sm)", lineHeight: 1.6 }}>
         <span style={{ color: "var(--accent)", fontWeight: 500 }}>{event.name}</span>
         <span style={{ color: "var(--text-muted)" }}>(</span>
         <FmtObject obj={event.args} />
@@ -388,7 +388,7 @@ function GateCard({
               color: "var(--primary-text)",
               border: "none",
               borderRadius: 6,
-              fontSize: 13.5,
+              fontSize: "var(--fs-sm)",
               fontWeight: 500,
               cursor: "pointer",
               letterSpacing: "-0.01em",
@@ -405,7 +405,7 @@ function GateCard({
               color: "var(--text-body)",
               border: "none",
               borderRadius: 6,
-              fontSize: 13.5,
+              fontSize: "var(--fs-sm)",
               fontWeight: 500,
               cursor: "pointer",
               boxShadow: "var(--shadow-ring-light)",
@@ -414,7 +414,7 @@ function GateCard({
             {labels.reject}
           </button>
           <span style={{ flex: 1 }} />
-          <span style={{ alignSelf: "center", fontSize: 12, color: "var(--text-muted)" }}>
+          <span style={{ alignSelf: "center", fontSize: "var(--fs-xs)", color: "var(--text-muted)" }}>
             {labels.parked}
           </span>
         </div>
@@ -442,7 +442,7 @@ function ResultCard({
         marginTop: 18,
         padding: "20px 22px",
         background: "var(--bg)",
-        borderRadius: 8,
+        borderRadius: 10,
         boxShadow: "var(--card-shadow)",
         animation: "eve-fade 360ms ease-out",
         fontFamily: FONT_SANS,
@@ -464,7 +464,7 @@ function ResultCard({
         >
           <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round"><path d="M20 6 9 17l-5-5" /></svg>
         </span>
-        <span style={{ fontWeight: 500, fontSize: 15, letterSpacing: "-0.16px", color: "var(--text)" }}>
+        <span style={{ fontWeight: 500, fontSize: "var(--fs-base)", letterSpacing: "-0.01em", color: "var(--text)" }}>
           {labels.constituted}
         </span>
         <span style={{ flex: 1 }} />
@@ -480,7 +480,7 @@ function ResultCard({
             color: "var(--text-muted)",
             border: "none",
             borderRadius: 6,
-            fontSize: 12,
+            fontSize: "var(--fs-xs)",
             fontFamily: FONT_MONO,
             cursor: "pointer",
             boxShadow: "var(--shadow-ring-light)",
@@ -497,13 +497,13 @@ function ResultCard({
           rowGap: 8,
           columnGap: 20,
           fontFamily: FONT_MONO,
-          fontSize: 12.5,
+          fontSize: "var(--fs-sm)",
           marginBottom: 22,
         }}
       >
         {fields.map(([label, value]) => (
           <span key={label} style={{ display: "contents" }}>
-            <span style={{ color: "var(--text-muted)", letterSpacing: "0.04em", textTransform: "uppercase", fontSize: 11, alignSelf: "center" }}>
+            <span style={{ color: "var(--text-muted)", letterSpacing: "0.04em", textTransform: "uppercase", fontSize: "var(--fs-xs)", alignSelf: "center" }}>
               {label}
             </span>
             <span style={{ color: "var(--text)" }}>{value}</span>
@@ -521,10 +521,10 @@ function ResultCard({
           color: "var(--primary-text)",
           borderRadius: 6,
           fontFamily: FONT_SANS,
-          fontSize: 14,
+          fontSize: "var(--fs-base)",
           fontWeight: 500,
           textDecoration: "none",
-          letterSpacing: "-0.16px",
+          letterSpacing: "-0.01em",
         }}
       >
         {labels.see_log}
@@ -660,11 +660,11 @@ export function EveDemo() {
                 animation: activeDot ? "eve-pulse 2s ease-in-out infinite" : "none",
               }}
             />
-            <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
+            <span style={{ fontFamily: FONT_MONO, fontSize: "var(--fs-xs)", color: "var(--text-muted)", letterSpacing: "0.06em", textTransform: "uppercase" }}>
               {statusLabel}
             </span>
           </div>
-          <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "var(--text-muted)", letterSpacing: "0.04em" }}>
+          <span style={{ fontFamily: FONT_MONO, fontSize: "var(--fs-xs)", color: "var(--text-muted)", letterSpacing: "0.04em" }}>
             @ar-agents/incorporate-agent · eve
           </span>
         </div>
@@ -674,7 +674,7 @@ export function EveDemo() {
           style={{
             padding: "20px 22px 22px",
             fontFamily: FONT_MONO,
-            fontSize: 13,
+            fontSize: "var(--fs-sm)",
             lineHeight: 1.65,
             color: "var(--text)",
             minHeight: 360,
@@ -740,7 +740,7 @@ export function EveDemo() {
                   color: "var(--text-body)",
                   border: "none",
                   borderRadius: 6,
-                  fontSize: 12.5,
+                  fontSize: "var(--fs-sm)",
                   fontFamily: FONT_MONO,
                   cursor: "pointer",
                   boxShadow: "var(--shadow-ring-light)",
