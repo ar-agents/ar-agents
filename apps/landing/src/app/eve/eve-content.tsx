@@ -566,8 +566,8 @@ export function EveContent() {
         </CodeWindow>
         <P style={{ marginTop: 18, fontSize: 15, color: "var(--text-muted)" }}>
           {lang === "es"
-            ? "Corré pnpm eval (eve eval). Hoy pasan dos: la propiedad de seguridad y la de denominación + supervisión (art. 14 / 102)."
-            : "Run pnpm eval (eve eval). Two pass today: the safety property and the denomination + supervision one (art. 14 / 102)."}
+            ? "Corré pnpm eval (eve eval). Hoy pasan cinco, incluido el lado del rechazo: si el humano rechaza, no se constituye nada (art. 14 / 102)."
+            : "Run pnpm eval (eve eval). Five pass today, including the deny side: if the human rejects, nothing is constituted (art. 14 / 102)."}
         </P>
       </Section>
 
