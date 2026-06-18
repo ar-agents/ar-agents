@@ -2,6 +2,7 @@ import { defineTool } from "eve/tools";
 import { z } from "zod";
 
 const ENDPOINT = "https://ar-agents.ar/api/auditor/log";
+const TIMEOUT_MS = 10_000;
 
 /**
  * Append a signed entry to El Auditor's audit log (RFC-004/006).
@@ -12,7 +13,9 @@ const ENDPOINT = "https://ar-agents.ar/api/auditor/log";
  * /api/play/audit/{sessionId} and /dashboard/{sessionId}.
  *
  * Needs AUDITOR_API_KEY (issued by POST /api/auditor/activate). Without it the
- * tool returns a structured "not configured" result instead of failing.
+ * tool returns a structured "not configured" result instead of failing. The
+ * write is bounded by a timeout + the framework abort signal, and a logging
+ * failure never throws — it returns {ok:false} so it can't break the flow.
  */
 export default defineTool({
   description:
@@ -30,16 +33,25 @@ export default defineTool({
     if (!apiKey) {
       return {
         ok: false as const,
-        code: "unconfigured",
+        code: "unconfigured" as const,
         note: "Set AUDITOR_API_KEY (from POST /api/auditor/activate) to write durable signed entries.",
       };
     }
-    const res = await fetch(ENDPOINT, {
-      method: "POST",
-      headers: { "content-type": "application/json", "x-api-key": apiKey },
-      body: JSON.stringify(input),
-    });
-    const data = await res.json().catch(() => ({}));
-    return res.ok ? { ok: true as const, ...data } : { ok: false as const, status: res.status, error: data };
+    try {
+      const res = await fetch(ENDPOINT, {
+        method: "POST",
+        headers: { "content-type": "application/json", "x-api-key": apiKey },
+        body: JSON.stringify(input),
+        signal: AbortSignal.timeout(TIMEOUT_MS),
+      });
+      const data = await res.json().catch(() => ({}));
+      return res.ok
+        ? { ok: true as const, ...data }
+        : { ok: false as const, status: res.status, error: data };
+    } catch (e) {
+      // A logging failure must never break the incorporation flow; degrade.
+      const name = (e as { name?: string } | null)?.name;
+      return { ok: false as const, code: name === "TimeoutError" ? "timeout" : "network" };
+    }
   },
 });
