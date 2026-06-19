@@ -16,7 +16,7 @@ const STARTER = `${REPO}/tree/main/apps/sociedad-ia-starter`;
 const COPY = {
   en: {
     eyebrow_hero: "Built with eve",
-    h1: "An agent that incorporates automated companies in Argentina",
+    h1: "An agent that incorporates\nautomated companies in Argentina",
     sub: "Wiring an agent to the tools of the State used to mean cabling credentials one by one. eve is Vercel's open-source agent framework, and ar-agents already speaks the protocol it connects over. The agent incorporates an Argentine company and stops at the one step it cannot take alone. There, a person decides.",
     cta_demo: "Run the demo",
     cta_source: "View the source",
@@ -58,7 +58,7 @@ const COPY = {
   },
   es: {
     eyebrow_hero: "Hecho con eve",
-    h1: "Un agente que constituye sociedades automatizadas en Argentina",
+    h1: "Un agente que constituye\nsociedades automatizadas en Argentina",
     sub: "Conectar un agente a las herramientas del Estado solía ser cablear credenciales una por una. eve es el framework de agentes open source de Vercel, y ar-agents ya habla el protocolo con el que se conecta. El agente constituye una sociedad argentina y frena en el único paso que no puede dar solo. Ahí decide una persona.",
     cta_demo: "Probá la demo",
     cta_source: "Ver el código",
@@ -459,15 +459,17 @@ export function EveContent() {
         <Eyebrow>{c.eyebrow_hero}</Eyebrow>
         <h1
           style={{
-            fontSize: "clamp(36px, 7vw, 60px)",
+            fontSize: "clamp(32px, 6vw, 44px)",
             fontWeight: 600,
-            lineHeight: 1.04,
+            lineHeight: 1.06,
             letterSpacing: "var(--tracking-display)",
             margin: "20px 0 0",
-            maxWidth: 780,
+            maxWidth: 880,
           }}
         >
-          {c.h1}
+          {c.h1.split("\n").flatMap((line, i) =>
+            i === 0 ? [line] : [<br key={i} />, line],
+          )}
         </h1>
         <P style={{ fontSize: "var(--fs-lg)", marginTop: 22, maxWidth: 680 }}>{c.sub}</P>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 12, marginTop: 28 }}>
