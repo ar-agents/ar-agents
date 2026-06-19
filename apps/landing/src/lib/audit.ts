@@ -158,16 +158,17 @@ export interface Ed25519Signature {
  * operating record must carry the approver instead of discarding it at the gate.
  */
 export interface ApproverAttestation {
-  /** How the caller authenticated. `shared-key` today; `vercel-oidc` once the
-   *  caller presents a verifiable OIDC token (see incorporate-auth.ts). */
-  method: "shared-key" | "vercel-oidc";
+  /** How the approver was established. `shared-key`/`vercel-oidc` for agent
+   *  callers (see incorporate-auth.ts); `self-attested` for a human who declared
+   *  their administrator identity and accepted art. 102 responsibility in the UI. */
+  method: "shared-key" | "vercel-oidc" | "self-attested";
   /** Stable, NON-SECRET identifier of the approving principal. For the shared
    *  key it is a fingerprint of the credential (sha256 prefix), so the log
    *  proves which credential approved without storing the secret; for OIDC it
    *  is the verified subject. */
   principal: string;
   /** What `principal` is, so a reader/verifier interprets it correctly. */
-  principalKind: "credential-fingerprint" | "oidc-subject";
+  principalKind: "credential-fingerprint" | "oidc-subject" | "declared-cuit";
   /** Caller-asserted human identifier of the named administrator (art. 102):
    *  the representante's name, or an `x-approver` header. Recorded as-asserted,
    *  NEVER trusted for authentication. */
