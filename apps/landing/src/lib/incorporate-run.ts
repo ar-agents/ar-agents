@@ -1,12 +1,16 @@
 /**
  * The incorporation pipeline, shared by every transport that constitutes a
- * society: validate -> generate the locked-template scaffold -> append the
- * signed, durable audit entry (carrying the approver attestation) -> build the
- * response. Transport concerns (rate limiting, auth, idempotency caching) stay
- * in the route handlers; this is the pure act of incorporating a validated
- * input. Both POST /api/auto-incorporate (structured body) and
- * POST /api/incorporate-from-prompt (LLM-extracted body) call it, so the rails
- * and the audit shape can never drift between the two surfaces.
+ * society. Two entry points over one set of pure generators:
+ *  - buildScaffold(input): the pure act of validating + generating the locked
+ *    template (no side effects). previewIncorporation exposes it as a dry run.
+ *  - runIncorporation(input, opts): the real act, which additionally appends the
+ *    signed, durable audit entry (binding the approver attestation) and builds
+ *    the full response. POST /api/auto-incorporate and
+ *    /api/incorporate-from-prompt call it; /api/incorporate-preview calls the
+ *    dry run. Sharing buildScaffold means the preview a human sees and the
+ *    scaffold that is actually constituted can never drift.
+ *
+ * Transport concerns (rate limiting, auth, idempotency) stay in the routes.
  */
 
 import {
@@ -17,6 +21,7 @@ import {
 } from "./audit";
 import {
   envVarsFor,
+  type Finding,
   generateAgentTs,
   generateChecklist,
   generateEnvExample,
@@ -30,6 +35,71 @@ import {
 
 const STARTER_URL =
   "https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter";
+
+export interface Scaffold {
+  validation: { valid: boolean; findings: Finding[] };
+  piezas: string[];
+  envVars: { name: string; description: string }[];
+  config: Record<string, string>;
+  slug: string;
+  checklist: string[];
+  deployUrl: string;
+}
+
+/** Validate + generate the locked-template scaffold. Pure, no side effects. */
+export function buildScaffold(input: IncorporateInput): Scaffold {
+  const validation = validate(input);
+  const piezas = resolvePiezas(input.piezas);
+  const envVars = envVarsFor(piezas);
+  const config = {
+    "package.json": generatePackageJson(input, piezas),
+    "lib/agent.ts": generateAgentTs(input, piezas),
+    ".env.example": generateEnvExample(envVars),
+    "README.md": generateReadme(input),
+  };
+  const slug = slugFor(input.denominacion);
+  const deployUrl = `https://vercel.com/new/clone?repository-url=${encodeURIComponent(
+    STARTER_URL,
+  )}&project-name=${encodeURIComponent(slug)}&env=${encodeURIComponent(
+    envVars.map((v) => v.name).join(","),
+  )}`;
+  return {
+    validation,
+    piezas,
+    envVars,
+    config,
+    slug,
+    checklist: generateChecklist(input),
+    deployUrl,
+  };
+}
+
+export interface IncorporationPreview {
+  validation: { valid: boolean; findings: Finding[] };
+  slug: string;
+  configFiles: string[];
+  envVars: { name: string; description: string }[];
+  checklist: string[];
+  deployUrl: string;
+}
+
+/**
+ * A dry run: what WOULD be constituted, with NO audit write, no approver, no
+ * sessionId. Safe to expose unauthenticated (it constitutes nothing) so a human
+ * can see their society before the gated, irreversible act. Returns file NAMES,
+ * not contents, since the preview surface only needs to show the shape.
+ */
+export function previewIncorporation(input: IncorporateInput): IncorporationPreview {
+  const s = buildScaffold(input);
+  return {
+    validation: s.validation,
+    slug: s.slug,
+    configFiles: Object.keys(s.config),
+    envVars: s.envVars,
+    checklist: s.checklist,
+    deployUrl: s.deployUrl,
+  };
+}
 
 export type RunIncorporationResult =
   | { ok: false; status: 422; body: Record<string, unknown> }
@@ -45,39 +115,23 @@ export async function runIncorporation(
   input: IncorporateInput,
   opts: { approver: ApproverAttestation; tool: string },
 ): Promise<RunIncorporationResult> {
-  const validation = validate(input);
-  if (!validation.valid) {
+  const s = buildScaffold(input);
+  if (!s.validation.valid) {
     return {
       ok: false,
       status: 422,
       body: {
         ok: false,
-        validation,
+        validation: s.validation,
         rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
       },
     };
   }
 
-  const piezas = resolvePiezas(input.piezas);
-  const envVars = envVarsFor(piezas);
-  const config = {
-    "package.json": generatePackageJson(input, piezas),
-    "lib/agent.ts": generateAgentTs(input, piezas),
-    ".env.example": generateEnvExample(envVars),
-    "README.md": generateReadme(input),
-  };
-
   const sessionId =
     input.sessionId && isSessionIdValid(input.sessionId)
       ? input.sessionId
       : crypto.randomUUID();
-
-  const slug = slugFor(input.denominacion);
-  const deployUrl = `https://vercel.com/new/clone?repository-url=${encodeURIComponent(
-    STARTER_URL,
-  )}&project-name=${encodeURIComponent(slug)}&env=${encodeURIComponent(
-    envVars.map((v) => v.name).join(","),
-  )}`;
 
   // Incorporation acts are business records, not demo noise: durable, so the
   // public proof link survives past the 7-day demo TTL. The approver attestation
@@ -93,9 +147,9 @@ export async function runIncorporation(
         tipo: input.tipo,
         capitalSocial: input.capitalSocial,
         objeto: input.objeto.slice(0, 200),
-        piezas,
+        piezas: s.piezas,
       },
-      output: { slug, valid: validation.valid, files: Object.keys(config) },
+      output: { slug: s.slug, valid: s.validation.valid, files: Object.keys(s.config) },
     },
     { durable: true },
   );
@@ -106,17 +160,17 @@ export async function runIncorporation(
       denominacion: input.denominacion,
       tipo: input.tipo,
       capitalSocial: input.capitalSocial,
-      slug,
+      slug: s.slug,
     },
-    validation,
-    config,
-    envVars,
-    checklist: generateChecklist(input),
+    validation: s.validation,
+    config: s.config,
+    envVars: s.envVars,
+    checklist: s.checklist,
     deploy: {
       target: "vercel",
-      oneClickUrl: deployUrl,
+      oneClickUrl: s.deployUrl,
       sourceUrl: STARTER_URL,
-      manualSteps: generateChecklist(input),
+      manualSteps: s.checklist,
     },
     audit: {
       sessionId,

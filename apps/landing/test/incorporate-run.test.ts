@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { type ApproverAttestation, readAudit, verifyEntry } from "../src/lib/audit";
 import type { IncorporateInput } from "../src/lib/incorporate";
-import { runIncorporation } from "../src/lib/incorporate-run";
+import { buildScaffold, previewIncorporation, runIncorporation } from "../src/lib/incorporate-run";
 import { draftToInput, extractSocietyDraft } from "../src/lib/prompt-to-society";
 
 const SECRET = "test-secret-32-chars-aaaaaaaaaaaaaaaaaaaa";
@@ -114,5 +114,37 @@ describe("prompt -> draft -> input -> runIncorporation (end to end, mocked model
     const entries = await readAudit("prompt-sess-1");
     expect(entries[0]!.approver?.declaredBy).toBe("Juan Pérez");
     expect((r.body.sociedad as { denominacion: string }).denominacion).toBe("Software Pyme");
+  });
+});
+
+describe("previewIncorporation (dry run) + buildScaffold (pure)", () => {
+  it("returns the scaffold shape for a valid input, constituting nothing", () => {
+    const p = previewIncorporation(validInput);
+    expect(p.validation.valid).toBe(true);
+    expect(p.configFiles).toEqual([
+      "package.json",
+      "lib/agent.ts",
+      ".env.example",
+      "README.md",
+    ]);
+    expect(p.envVars.length).toBeGreaterThan(0);
+    expect(p.slug).toBe("pyme-digital");
+  });
+
+  it("surfaces validation errors without throwing (still a preview)", () => {
+    const p = previewIncorporation({ ...validInput, denominacion: "Banco Nacional Argentino" });
+    expect(p.validation.valid).toBe(false);
+    expect(p.validation.findings.some((f) => f.severity === "error")).toBe(true);
+  });
+
+  it("buildScaffold generates the four locked-template files", () => {
+    const s = buildScaffold(validInput);
+    expect(Object.keys(s.config)).toEqual([
+      "package.json",
+      "lib/agent.ts",
+      ".env.example",
+      "README.md",
+    ]);
+    expect(s.config["package.json"]).toContain("@ar-agents/");
   });
 });
