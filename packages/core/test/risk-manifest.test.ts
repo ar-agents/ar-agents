@@ -12,10 +12,16 @@ describe("classifyTool", () => {
     expect(classifyTool({ name: "incorporar_sociedad" })).toBe("legal");
     expect(classifyTool({ name: "constituir_empresa" })).toBe("legal");
   });
-  it("tax acts -> fiscal", () => {
+  it("fiscal ACTS -> fiscal", () => {
     expect(classifyTool({ name: "emitir_factura" })).toBe("fiscal");
-    expect(classifyTool({ name: "calcular_retencion_iva" })).toBe("fiscal");
-    expect(classifyTool({ name: "sicore_export" })).toBe("fiscal");
+    expect(classifyTool({ name: "nota_credito_emitir" })).toBe("fiscal");
+    expect(classifyTool({ name: "presentar_ddjj_iva" })).toBe("fiscal");
+  });
+  it("tax CALCULATORS read, they do not file (no side effect)", () => {
+    expect(classifyTool({ name: "calcular_retencion_iva" })).toBe("read");
+    expect(classifyTool({ name: "iva_percepcion_calculate" })).toBe("read");
+    expect(classifyTool({ name: "sicore_retencion_calculate" })).toBe("read");
+    expect(classifyTool({ name: "suss_contribuciones_calculate" })).toBe("read");
   });
   it("money movement -> money", () => {
     expect(classifyTool({ name: "transfer_funds" })).toBe("money");
@@ -27,12 +33,16 @@ describe("classifyTool", () => {
     expect(classifyTool({ name: "delete_webhook" })).toBe("irreversible");
     expect(classifyTool({ name: "revoke_token" })).toBe("irreversible");
   });
-  it("reads -> read", () => {
+  it("reads -> read (incl. lookups, variables, info anywhere in the name)", () => {
     expect(classifyTool({ name: "get_payment" })).toBe("read");
     expect(classifyTool({ name: "validate_cuit" })).toBe("read");
+    expect(classifyTool({ name: "validate_cbu" })).toBe("read");
     expect(classifyTool({ name: "list_invoices" })).toBe("read");
     expect(classifyTool({ name: "health_check_afip" })).toBe("read");
     expect(classifyTool({ name: "consultar_padron" })).toBe("read");
+    expect(classifyTool({ name: "bcra_deudas_lookup" })).toBe("read");
+    expect(classifyTool({ name: "bcra_monetary_variable" })).toBe("read");
+    expect(classifyTool({ name: "get_toolkit_info" })).toBe("read");
   });
   it("registrar_decision -> create (auto, low-stakes append to audit log)", () => {
     expect(classifyTool({ name: "registrar_decision" })).toBe("create");
