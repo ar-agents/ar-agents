@@ -56,7 +56,9 @@ export interface ToolRiskInput {
 // money or files a tax form is still gated. Small and auditable on purpose.
 const OVERRIDES: ReadonlyArray<readonly [RegExp, RiskLevel]> = [
   [/incorporar_sociedad|(^|_)constitu/i, "legal"],
-  [/emitir_factura|nota_credito|nota_debito|(^|_)cae(_|$)|percepcion|retencion|sicore|suss|iva_/i, "fiscal"],
+  // Fiscal ACTS only (emit/cancel/file). Tax CALCULATORS (iva/sicore/suss
+  // *_calculate) are pure math with no side effect -> they read (see READ_SIGNALS).
+  [/emitir_factura|anular_factura|generar_factura|nota_credito|nota_debito|(^|_)cae(_|$)|presentar_(ddjj|f29|f931|declaracion)/i, "fiscal"],
   // Money-MOVING verbs only. "payment" as a noun (get_payment, list_payments)
   // must NOT match here, or reads would be gated; those fall through to read.
   [/transfer|payout|withdraw|reembols|refund|(^|_)cobr|(^|_)depos|(^|_)swap|(^|_)pay(_|$)|(create|cancel|capture|refund|void|process)_payment|charge|checkout|send_money/i, "money"],
@@ -69,6 +71,12 @@ const OVERRIDES: ReadonlyArray<readonly [RegExp, RiskLevel]> = [
 // Benign read-name patterns. Only consulted when no positive signal fired.
 const READ_PATTERNS =
   /^(get|list|search|validate|validar|lookup|consultar|consulta|health|fetch|read|check|is_|describe|info|show|find|status)(_|$)/i;
+
+// Read/compute words that can appear ANYWHERE in a tool name (a calculator, a
+// balance lookup, a monetary-variable read). Only consulted after the risk
+// overrides + sideEffects, so a genuinely risky name still gates first.
+const READ_SIGNALS =
+  /(calcula|calcular|calculate|calculo|compute|cotiz|estimat|simul|preview|lookup|consulta|(^|_)info(_|$)|status|balance|saldo|variable|deudas|padron)/i;
 
 function fromSideEffects(se?: string): RiskLevel | null {
   switch ((se ?? "").toLowerCase().trim()) {
@@ -100,8 +108,8 @@ export function classifyTool(input: ToolRiskInput): RiskLevel {
   // 3. Manifest sideEffects hint.
   const se = fromSideEffects(input.sideEffects);
   if (se) return se;
-  // 4. Benign read-name heuristic.
-  if (READ_PATTERNS.test(name)) return "read";
+  // 4. Benign read heuristics: anchored read verbs, or read/compute words anywhere.
+  if (READ_PATTERNS.test(name) || READ_SIGNALS.test(name)) return "read";
   // 5. Fail closed.
   return "unknown";
 }

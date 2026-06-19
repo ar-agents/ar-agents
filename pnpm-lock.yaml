@@ -162,6 +162,9 @@ importers:
       '@ar-agents/banking':
         specifier: workspace:*
         version: link:../../packages/banking
+      '@ar-agents/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@ar-agents/identity':
         specifier: workspace:*
         version: link:../../packages/identity
