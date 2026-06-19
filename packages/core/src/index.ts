@@ -35,3 +35,13 @@ export {
   withApproval,
   type WithApprovalOptions,
 } from "./middleware";
+
+export {
+  type RiskLevel,
+  type ToolRiskInput,
+  type EnforceRiskPolicyOptions,
+  classifyTool,
+  requiresApproval,
+  levelRequiresApproval,
+  enforceRiskPolicy,
+} from "./risk-manifest";
