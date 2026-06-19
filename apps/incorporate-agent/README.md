@@ -1,4 +1,4 @@
-# @ar-agents/incorporate-agent
+# incorporate-agent
 
 An [eve](https://vercel.com/blog/introducing-eve) agent that incorporates and operates an Argentine **Sociedad Automatizada** (art. 14 of the draft General Companies Law), built on [ar-agents](https://ar-agents.ar).
 
