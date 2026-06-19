@@ -311,3 +311,58 @@ export function withApproval(
     return wrapped;
   };
 }
+
+// ── withHalt (kill-switch) ─────────────────────────────────────
+
+export interface WithHaltOptions {
+  /**
+   * Called BEFORE execute. Return true if the society is suspended, so the tool
+   * must refuse. Unlike withApproval (which only gates high-stakes acts), the
+   * kill-switch halts EVERY operation, regardless of risk level, while the
+   * society is suspended.
+   */
+  isHalted: (toolName: string, args: unknown) => Promise<boolean> | boolean;
+  /** Optional reason emitted in the error when halted. */
+  haltedMessage?: string;
+}
+
+/**
+ * Kill-switch. When `isHalted` returns true the tool refuses before doing
+ * anything. This is the operational form of the art. 102 supervision duty: a
+ * human administrator (or supervisor) can suspend a Sociedad Automatizada and
+ * every one of its tools stops, enforced centrally rather than trusted to each
+ * agent. FAILS CLOSED: if the halt state cannot be read, the tool refuses (a
+ * kill-switch we cannot consult must never silently let the society act).
+ */
+export function withHalt(toolName: string, opts: WithHaltOptions): ToolMiddleware {
+  return <T extends AnyTool>(tool: T): T => {
+    const original = tool.execute as
+      | ((args: unknown, ctx: unknown) => Promise<unknown> | unknown)
+      | undefined;
+    if (typeof original !== "function") return tool;
+    const wrapped = {
+      ...tool,
+      execute: async (args: unknown, ctx: unknown) => {
+        let halted = false;
+        try {
+          halted = await opts.isHalted(toolName, args);
+        } catch (err) {
+          throw new ArAgentsError(
+            opts.haltedMessage ??
+              `Halt check failed for tool "${toolName}"; refusing (fail closed).`,
+            { code: "halt_check_error", retryable: false, context: { toolName }, cause: err },
+          );
+        }
+        if (halted) {
+          throw new ArAgentsError(
+            opts.haltedMessage ??
+              `Society is suspended (kill-switch); tool "${toolName}" refused.`,
+            { code: "society_suspended", retryable: false, context: { toolName } },
+          );
+        }
+        return original(args, ctx);
+      },
+    } as T;
+    return wrapped;
+  };
+}

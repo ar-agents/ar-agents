@@ -17,7 +17,7 @@
 // forgotten tool can never move money or constitute a company silently.
 
 import type { AnyTool, ToolMiddleware } from "./middleware";
-import { applyToAllTools, withApproval } from "./middleware";
+import { applyToAllTools, compose, withApproval, withHalt } from "./middleware";
 
 /** Risk tiers, lowest to highest stakes. */
 export type RiskLevel =
@@ -137,6 +137,14 @@ export interface EnforceRiskPolicyOptions {
   /** Supply a tool's manifest `sideEffects` by name to sharpen classification. */
   sideEffectsFor?: (toolName: string) => string | undefined;
   refusedMessage?: string;
+  /**
+   * Kill-switch. When provided and it returns true, EVERY tool refuses (the
+   * society is suspended), regardless of risk level — checked before the risk
+   * gate. The art. 102 supervision duty made operational: a human can halt the
+   * whole society, enforced centrally here rather than trusted to each agent.
+   * Fails closed (see {@link withHalt}).
+   */
+  isHalted?: (toolName: string, args: unknown) => Promise<boolean> | boolean;
 }
 
 /**
@@ -158,12 +166,17 @@ export function enforceRiskPolicy<T extends Record<string, AnyTool>>(
         typeof tool?.description === "string" ? tool.description : undefined,
       sideEffects: opts.sideEffectsFor?.(name),
     };
-    if (!requiresApproval(input)) return identity;
-    return withApproval(name, {
-      approve: opts.approve,
-      refusedMessage:
-        opts.refusedMessage ??
-        `Tool "${name}" needs human approval (art. 102): ${classifyTool(input)} risk.`,
-    });
+    const riskMw = requiresApproval(input)
+      ? withApproval(name, {
+          approve: opts.approve,
+          refusedMessage:
+            opts.refusedMessage ??
+            `Tool "${name}" needs human approval (art. 102): ${classifyTool(input)} risk.`,
+        })
+      : identity;
+    // Kill-switch outermost: a suspended society halts EVERY tool (read or not)
+    // before the risk gate runs. Same central enforcement point as art. 102.
+    if (!opts.isHalted) return riskMw;
+    return compose(withHalt(name, { isHalted: opts.isHalted }), riskMw);
   });
 }
