@@ -166,3 +166,57 @@ describe("enforceRiskPolicy", () => {
     expect(approve).toHaveBeenCalledWith("fetch_x", {});
   });
 });
+
+describe("enforceRiskPolicy kill-switch (isHalted)", () => {
+  const makeTool = () => ({ execute: vi.fn(async () => "ran") }) as never;
+  const exec = (gated: unknown, name: string) =>
+    (gated as Record<string, { execute: (a: unknown, c: unknown) => Promise<unknown> }>)[name]!.execute(
+      {},
+      {},
+    );
+
+  it("halts EVERY tool when the society is suspended, even reads", async () => {
+    const tools = { get_balance: makeTool() } as Record<string, { execute: ReturnType<typeof vi.fn> }>;
+    const original = tools.get_balance.execute;
+    const approve = vi.fn(async () => true);
+    const gated = enforceRiskPolicy(tools as never, { approve, isHalted: () => true });
+    await expect(exec(gated, "get_balance")).rejects.toThrow(/suspended/i);
+    expect(original).not.toHaveBeenCalled();
+  });
+
+  it("checks the kill-switch BEFORE approval on an approval-level tool", async () => {
+    const tools = { transfer_funds: makeTool() } as Record<string, { execute: ReturnType<typeof vi.fn> }>;
+    const original = tools.transfer_funds.execute;
+    const approve = vi.fn(async () => true);
+    const gated = enforceRiskPolicy(tools as never, { approve, isHalted: () => true });
+    await expect(exec(gated, "transfer_funds")).rejects.toThrow(/suspended/i);
+    expect(approve).not.toHaveBeenCalled(); // halt is outermost
+    expect(original).not.toHaveBeenCalled();
+  });
+
+  it("runs normally when NOT suspended (read passes, approval still gated)", async () => {
+    const tools = { get_balance: makeTool(), transfer_funds: makeTool() } as Record<
+      string,
+      { execute: ReturnType<typeof vi.fn> }
+    >;
+    const approve = vi.fn(async () => true);
+    const gated = enforceRiskPolicy(tools as never, { approve, isHalted: () => false });
+    await expect(exec(gated, "get_balance")).resolves.toBe("ran");
+    await expect(exec(gated, "transfer_funds")).resolves.toBe("ran");
+    expect(approve).toHaveBeenCalledTimes(1); // only the approval-level tool
+  });
+
+  it("fails CLOSED when the halt check throws", async () => {
+    const tools = { get_balance: makeTool() } as Record<string, { execute: ReturnType<typeof vi.fn> }>;
+    const original = tools.get_balance.execute;
+    const approve = vi.fn(async () => true);
+    const gated = enforceRiskPolicy(tools as never, {
+      approve,
+      isHalted: () => {
+        throw new Error("kv down");
+      },
+    });
+    await expect(exec(gated, "get_balance")).rejects.toThrow(/fail closed/i);
+    expect(original).not.toHaveBeenCalled();
+  });
+});
