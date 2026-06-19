@@ -5,12 +5,15 @@ import {
   SocietyDraftSchema,
 } from "../src/lib/prompt-to-society";
 
+// ExtractionSchema shape: every field present, optionals nullable.
 const validDraft = {
   denominacion: "Pyme Digital",
   tipo: "SAS",
   capitalSocial: 100_000,
   objeto: "Desarrollo de software y servicios digitales para comercios argentinos.",
   piezas: ["identity", "gde-tad", "mercadopago", "banking", "facturacion", "whatsapp"],
+  representante: null,
+  emailContacto: null,
 };
 
 describe("extractSocietyDraft", () => {
@@ -36,10 +39,10 @@ describe("extractSocietyDraft", () => {
   });
 
   it("passes the trimmed prompt + a non-empty system instruction to the model", async () => {
-    const generate = vi.fn(async (_args: { system: string; prompt: string }) => validDraft);
+    const generate = vi.fn(async () => validDraft);
     await extractSocietyDraft("   hola mundo SA   ", { generate });
     expect(generate).toHaveBeenCalledTimes(1);
-    const arg = generate.mock.calls[0]![0];
+    const arg = (generate.mock.calls[0] as unknown as [{ system: string; prompt: string }])[0];
     expect(arg.prompt).toBe("hola mundo SA");
     expect(arg.system.length).toBeGreaterThan(50);
   });
@@ -80,9 +83,8 @@ describe("extractSocietyDraft", () => {
     expect(r).toEqual({ ok: false, error: "generation_failed", detail: "gateway 402" });
   });
 
-  it("applies the default REQUIRED piezas when the model omits them", async () => {
-    const { piezas: _omit, ...noPiezas } = validDraft;
-    const generate = vi.fn(async () => noPiezas);
+  it("applies the default REQUIRED piezas when the model returns null piezas", async () => {
+    const generate = vi.fn(async () => ({ ...validDraft, piezas: null }));
     const r = await extractSocietyDraft("una pyme sin capacidades explicitas", { generate });
     expect(r.ok).toBe(true);
     if (r.ok) {
@@ -98,7 +100,14 @@ describe("extractSocietyDraft", () => {
 });
 
 describe("draftToInput", () => {
-  const draft = SocietyDraftSchema.parse(validDraft);
+  // a clean Body-valid draft (Body optionals are omittable, not nullable)
+  const draft = SocietyDraftSchema.parse({
+    denominacion: "Pyme Digital",
+    tipo: "SAS",
+    capitalSocial: 100_000,
+    objeto: "Desarrollo de software y servicios digitales para comercios argentinos.",
+    piezas: ["identity", "gde-tad", "mercadopago", "banking", "facturacion"],
+  });
 
   it("assigns the sessionId when provided", () => {
     expect(draftToInput(draft, "sess-12345678").sessionId).toBe("sess-12345678");

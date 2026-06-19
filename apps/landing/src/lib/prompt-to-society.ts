@@ -2,24 +2,63 @@
  * The "prompteándola" step: turn a human's natural-language description of the
  * society they want into the STRUCTURED DATA the locked incorporation templates
  * consume. The LLM emits DATA, never code: generateObject is constrained to a
- * schema derived from the incorporation Body, so the model physically cannot
- * return executable text, only a validated parameter object. That object then
- * flows through the existing validate() + generate*() pipeline unchanged.
+ * schema, so the model physically cannot return executable text, only a
+ * parameter object that is then validated against the strict incorporation Body
+ * and flows through the existing validate() + generate*() pipeline unchanged.
+ *
+ * Two schemas, on purpose:
+ *  - ExtractionSchema is the MODEL contract: flat, every field present, optional
+ *    fields nullable (Anthropic structured output emits an explicit null far
+ *    more reliably than it omits a key), no defaults/refinements. This is what
+ *    generateObject enforces, and it is what makes the live model call succeed.
+ *  - Body (from incorporate.ts) is the STORAGE contract: strict, with min/max,
+ *    capital minimums, the pieza enum + defaults. The extracted candidate is
+ *    re-validated against it, so nothing the model says becomes anything other
+ *    than a real incorporation input.
  *
  * The model call sits behind an injectable `generate` seam, so the extraction
- * logic (prompt construction, schema validation, error mapping) is unit-tested
- * without a live LLM. The default seam routes through the Vercel AI Gateway,
- * same as /api/demo and /api/play.
+ * logic is unit-tested without a live LLM. The default seam routes through the
+ * Vercel AI Gateway, same as /api/demo and /api/play.
  */
 
 import { generateObject } from "ai";
-import type { z } from "zod";
+import { z } from "zod";
 import { Body, PIEZA_IDS, REQUIRED_PIEZAS, type IncorporateInput } from "./incorporate";
 
-// What the model is allowed to emit: the user-supplied fields of an
-// incorporation, minus sessionId (assigned server-side). Deriving from Body
-// keeps this in lockstep with the schema the templates consume, so the model
-// cannot invent or rename a field.
+// The model contract. Kept deliberately simple so Anthropic structured output
+// matches it first try: all fields required, optionals expressed as nullable,
+// capital coerced from a possible string, no defaults or refinements (those
+// live in Body, applied after).
+export const ExtractionSchema = z.object({
+  denominacion: z
+    .string()
+    .describe("Nombre de fantasía de la sociedad, 3 a 200 caracteres, sin palabras reservadas (nacional, estatal, gobierno, estado, oficial)."),
+  tipo: z
+    .enum(["SAS", "SRL", "SA", "SOCIEDAD-IA"])
+    .describe("Tipo societario. SAS por defecto salvo que el usuario pida otro explícitamente."),
+  capitalSocial: z.coerce
+    .number()
+    .describe("Capital social en pesos argentinos (ARS), número. Si el usuario no lo dice, el mínimo del tipo (SAS y SRL: 100000)."),
+  objeto: z.string().describe("Objeto social, 20 a 2000 caracteres, específico a lo que describe el usuario."),
+  piezas: z
+    .array(z.enum(PIEZA_IDS))
+    .nullable()
+    .describe(`Capacidades de la sociedad, elegidas SOLO de: ${PIEZA_IDS.join(", ")}. identity, gde-tad, mercadopago, banking y facturacion van siempre; agregá las demás según el caso (ej: 'vende por WhatsApp' -> whatsapp, 'hace envíos' -> shipping). null si no hay ninguna extra.`),
+  representante: z
+    .object({
+      nombre: z.string().describe("Nombre del representante legal."),
+      cuit: z.string().describe("CUIT del representante, 11 dígitos."),
+    })
+    .nullable()
+    .describe("Representante legal si el usuario lo menciona; null si no."),
+  emailContacto: z
+    .string()
+    .nullable()
+    .describe("Email de contacto si el usuario lo menciona; null si no."),
+});
+export type SocietyExtraction = z.infer<typeof ExtractionSchema>;
+
+// The validated draft (storage contract minus the server-assigned sessionId).
 export const SocietyDraftSchema = Body.omit({ sessionId: true });
 export type SocietyDraft = z.infer<typeof SocietyDraftSchema>;
 
@@ -28,18 +67,17 @@ export type SocietyDraft = z.infer<typeof SocietyDraftSchema>;
 export const EXTRACTION_MODEL = "anthropic/claude-sonnet-4-6";
 
 /**
- * The model seam. Receives the fully-built system + user prompt, returns the raw
- * object the model produced. Swapped for a fake in tests. The return is
- * `unknown` on purpose: extractSocietyDraft re-validates it, so the module never
- * trusts its generator (a fake, or a future non-schema generator, cannot smuggle
- * an off-schema draft through).
+ * The model seam. Receives the system + user prompt, returns the raw object the
+ * model produced. Swapped for a fake in tests. The return is `unknown` on
+ * purpose: extractSocietyDraft re-validates it, so the module never trusts its
+ * generator.
  */
 export type DraftGenerator = (args: { system: string; prompt: string }) => Promise<unknown>;
 
 const defaultGenerator: DraftGenerator = async ({ system, prompt }) => {
   const { object } = await generateObject({
     model: EXTRACTION_MODEL,
-    schema: SocietyDraftSchema,
+    schema: ExtractionSchema,
     system,
     prompt,
   });
@@ -49,14 +87,8 @@ const defaultGenerator: DraftGenerator = async ({ system, prompt }) => {
 const SYSTEM = [
   "Sos un asistente que estructura la constitución de una sociedad automatizada argentina.",
   "Convertí la descripción en lenguaje natural del usuario en los parámetros de constitución.",
-  "Reglas:",
-  "- denominacion: nombre de fantasía, 3 a 200 caracteres. No uses palabras reservadas (nacional, estatal, gobierno, estado, oficial).",
-  "- tipo: SAS por defecto, salvo que el usuario pida SRL, SA o SOCIEDAD-IA explícitamente.",
-  "- capitalSocial: en ARS. Si el usuario no lo dice, proponé el mínimo legal del tipo (SAS y SRL: 100000).",
-  "- objeto: el objeto social, 20 a 2000 caracteres, claro y específico a lo que describe el usuario.",
-  `- piezas: elegí SOLO de esta lista las capacidades que la sociedad necesita: ${PIEZA_IDS.join(", ")}. identity, gde-tad, mercadopago, banking y facturacion van siempre; agregá las demás según lo que el usuario describe (ej: 'vende por WhatsApp' -> whatsapp, 'hace envíos' -> shipping).`,
-  "- representante y emailContacto: completalos solo si el usuario los menciona.",
-  "No inventes datos personales (CUIT, nombres) que el usuario no haya dado.",
+  "Completá TODOS los campos. Para los opcionales que el usuario no mencione, usá null.",
+  "No inventes datos personales (CUIT, nombres) que el usuario no haya dado: si no los dio, representante y emailContacto van en null.",
 ].join("\n");
 
 export type ExtractResult =
@@ -67,9 +99,22 @@ export type ExtractResult =
       detail?: unknown;
     };
 
+/** Map the lenient model candidate onto the strict Body input shape. */
+function candidateToBodyInput(c: SocietyExtraction): Record<string, unknown> {
+  return {
+    denominacion: c.denominacion,
+    tipo: c.tipo,
+    capitalSocial: c.capitalSocial,
+    objeto: c.objeto,
+    ...(c.piezas && c.piezas.length ? { piezas: c.piezas } : {}),
+    ...(c.representante ? { representante: c.representante } : {}),
+    ...(c.emailContacto ? { emailContacto: c.emailContacto } : {}),
+  };
+}
+
 /**
  * Extract a structured society draft from a natural-language prompt. Returns a
- * schema-validated draft (DATA), or a typed error. It deliberately does NOT run
+ * Body-validated draft (DATA), or a typed error. It deliberately does NOT run
  * the business validate() (reserved words, capital minimums): that stays at the
  * incorporation boundary, so this module has exactly one job, prompt -> DATA.
  */
@@ -92,14 +137,19 @@ export async function extractSocietyDraft(
     };
   }
 
-  // Re-validate regardless of source: the schema is the only boundary. Unknown
-  // keys are stripped, off-schema values are rejected. Nothing the model says
-  // becomes anything other than a Body-shaped parameter object.
-  const parsed = SocietyDraftSchema.safeParse(raw);
-  if (!parsed.success) {
-    return { ok: false, error: "invalid_draft", detail: parsed.error.format() };
+  // Stage 1: the model contract (also re-validates an injected fake's output).
+  const candidate = ExtractionSchema.safeParse(raw);
+  if (!candidate.success) {
+    return { ok: false, error: "invalid_draft", detail: candidate.error.format() };
   }
-  return { ok: true, draft: parsed.data };
+
+  // Stage 2: the strict storage contract. Unknown keys are stripped, min/max +
+  // pieza enum + defaults applied. Nothing becomes anything but a Body input.
+  const draft = SocietyDraftSchema.safeParse(candidateToBodyInput(candidate.data));
+  if (!draft.success) {
+    return { ok: false, error: "invalid_draft", detail: draft.error.format() };
+  }
+  return { ok: true, draft: draft.data };
 }
 
 /** Promote a validated draft to a full incorporation input (assigns sessionId). */

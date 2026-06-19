@@ -91,6 +91,7 @@ describe("prompt -> draft -> input -> runIncorporation (end to end, mocked model
       piezas: ["identity", "gde-tad", "mercadopago", "banking", "facturacion", "whatsapp"],
       // fictional identity only (never real PII)
       representante: { nombre: "Juan Pérez", cuit: "20-12345678-6" },
+      emailContacto: null,
     };
     const generate = vi.fn(async () => draft);
     const extracted = await extractSocietyDraft(
