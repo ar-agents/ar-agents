@@ -13,26 +13,9 @@
 
 import { kv } from "@vercel/kv";
 import { jsonCors, preflight } from "@/lib/cors";
-import {
-  appendAudit,
-  type ApproverAttestation,
-  backend as auditBackend,
-  isSessionIdValid,
-} from "@/lib/audit";
-import {
-  Body,
-  generateAgentTs,
-  generateChecklist,
-  generateEnvExample,
-  generatePackageJson,
-  generateReadme,
-  envVarsFor,
-  PIEZA_IDS,
-  REQUIRED_PIEZAS,
-  resolvePiezas,
-  slugFor,
-  validate,
-} from "@/lib/incorporate";
+import { type ApproverAttestation, backend as auditBackend } from "@/lib/audit";
+import { Body, PIEZA_IDS, REQUIRED_PIEZAS } from "@/lib/incorporate";
+import { runIncorporation } from "@/lib/incorporate-run";
 import { clientIp, rateLimit, kvRateLimit } from "@/lib/ratelimit";
 import { authorizeIncorporate } from "@/lib/incorporate-auth";
 
@@ -93,39 +76,6 @@ export async function POST(req: Request) {
   }
   const input = parsed.data;
 
-  const validation = validate(input);
-  if (!validation.valid) {
-    return jsonCors(
-      {
-        ok: false,
-        validation,
-        rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
-      },
-      { status: 422 },
-    );
-  }
-
-  const piezas = resolvePiezas(input.piezas);
-  const envVars = envVarsFor(piezas);
-  const config = {
-    "package.json": generatePackageJson(input, piezas),
-    "lib/agent.ts": generateAgentTs(input, piezas),
-    ".env.example": generateEnvExample(envVars),
-    "README.md": generateReadme(input),
-  };
-
-  const sessionId =
-    input.sessionId && isSessionIdValid(input.sessionId)
-      ? input.sessionId
-      : crypto.randomUUID();
-
-  const slug = slugFor(input.denominacion);
-  const deployUrl = `https://vercel.com/new/clone?repository-url=${encodeURIComponent(
-    "https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter",
-  )}&project-name=${encodeURIComponent(slug)}&env=${encodeURIComponent(
-    envVars.map((v) => v.name).join(","),
-  )}`;
-
   // Bind WHO authorized this legal act into the signed record. The credential
   // fingerprint (from auth) proves which credential approved; declaredBy names
   // the human administrator (art. 102), taken from the validated body's
@@ -139,66 +89,23 @@ export async function POST(req: Request) {
       undefined,
   };
 
-  // Incorporation acts are business records, not demo noise: durable, so the
-  // public proof link survives past the 7-day demo TTL.
-  const auditEntry = await appendAudit(
-    sessionId,
-    {
-      tool: "auto_incorporate",
-      governance: "audit-logged",
-      approver,
-      input: {
-        denominacion: input.denominacion,
-        tipo: input.tipo,
-        capitalSocial: input.capitalSocial,
-        objeto: input.objeto.slice(0, 200),
-        piezas,
-      },
-      output: { slug, valid: validation.valid, files: Object.keys(config) },
-    },
-    { durable: true },
-  );
-
-  const responseBody = {
-    ok: true,
-    sociedad: {
-      denominacion: input.denominacion,
-      tipo: input.tipo,
-      capitalSocial: input.capitalSocial,
-      slug,
-    },
-    validation,
-    config,
-    envVars,
-    checklist: generateChecklist(input),
-    deploy: {
-      target: "vercel",
-      oneClickUrl: deployUrl,
-      sourceUrl:
-        "https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter",
-      manualSteps: generateChecklist(input),
-    },
-    audit: {
-      sessionId,
-      backend: auditBackend(),
-      entry: auditEntry,
-      url: `https://ar-agents.ar/api/play/audit/${sessionId}`,
-      verifyUrl: `https://ar-agents.ar/api/play/audit/${sessionId}?verify=1`,
-      dashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
-    },
-    rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
-    generatedAt: new Date().toISOString(),
-  };
+  const result = await runIncorporation(input, {
+    approver,
+    tool: "auto_incorporate",
+  });
+  if (!result.ok) {
+    return jsonCors(result.body, { status: result.status });
+  }
 
   // Store the exact response so a replay of the same Idempotency-Key returns it
   // verbatim (same sessionId, same audit entry) instead of constituting again.
   if (cacheKey) {
-    await kv.set(cacheKey, responseBody, { ex: 86_400 }).catch(() => {});
+    await kv.set(cacheKey, result.body, { ex: 86_400 }).catch(() => {});
   }
 
-  return jsonCors(responseBody, {
+  return jsonCors(result.body, {
     headers: {
-      "x-play-session": sessionId,
+      "x-play-session": result.sessionId,
       "x-audit-backend": auditBackend(),
     },
   });
