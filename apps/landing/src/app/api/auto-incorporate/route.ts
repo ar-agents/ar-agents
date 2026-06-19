@@ -15,6 +15,7 @@ import { kv } from "@vercel/kv";
 import { jsonCors, preflight } from "@/lib/cors";
 import {
   appendAudit,
+  type ApproverAttestation,
   backend as auditBackend,
   isSessionIdValid,
 } from "@/lib/audit";
@@ -125,6 +126,19 @@ export async function POST(req: Request) {
     envVars.map((v) => v.name).join(","),
   )}`;
 
+  // Bind WHO authorized this legal act into the signed record. The credential
+  // fingerprint (from auth) proves which credential approved; declaredBy names
+  // the human administrator (art. 102), taken from the validated body's
+  // representante or an x-approver header, recorded as-asserted (never trusted
+  // for auth). Both are signed with the entry, so the attestation is tamper-evident.
+  const approver: ApproverAttestation = {
+    ...auth.approver,
+    declaredBy:
+      input.representante?.nombre ||
+      req.headers.get("x-approver")?.trim() ||
+      undefined,
+  };
+
   // Incorporation acts are business records, not demo noise: durable, so the
   // public proof link survives past the 7-day demo TTL.
   const auditEntry = await appendAudit(
@@ -132,6 +146,7 @@ export async function POST(req: Request) {
     {
       tool: "auto_incorporate",
       governance: "audit-logged",
+      approver,
       input: {
         denominacion: input.denominacion,
         tipo: input.tipo,

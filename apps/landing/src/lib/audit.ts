@@ -149,6 +149,31 @@ export interface Ed25519Signature {
   value: string;
 }
 
+/**
+ * Who authorized an approval-level act (e.g. an incorporation). Bound INTO the
+ * audit entry, so it is HMAC/Ed25519-signed alongside everything else: the
+ * signed record proves not just WHAT was constituted but WHICH credential
+ * approved it, tamper-evident. Art. 102 makes a named human administrator
+ * responsible for the AI's acts and bars delegating that supervision, so the
+ * operating record must carry the approver instead of discarding it at the gate.
+ */
+export interface ApproverAttestation {
+  /** How the caller authenticated. `shared-key` today; `vercel-oidc` once the
+   *  caller presents a verifiable OIDC token (see incorporate-auth.ts). */
+  method: "shared-key" | "vercel-oidc";
+  /** Stable, NON-SECRET identifier of the approving principal. For the shared
+   *  key it is a fingerprint of the credential (sha256 prefix), so the log
+   *  proves which credential approved without storing the secret; for OIDC it
+   *  is the verified subject. */
+  principal: string;
+  /** What `principal` is, so a reader/verifier interprets it correctly. */
+  principalKind: "credential-fingerprint" | "oidc-subject";
+  /** Caller-asserted human identifier of the named administrator (art. 102):
+   *  the representante's name, or an `x-approver` header. Recorded as-asserted,
+   *  NEVER trusted for authentication. */
+  declaredBy?: string | undefined;
+}
+
 export interface AuditEntry {
   /** Stable across reads. ISO date + monotonic random suffix. */
   id: string;
@@ -168,6 +193,12 @@ export interface AuditEntry {
   errored?: boolean;
   /** Wall-clock duration in ms. */
   durationMs?: number;
+  /**
+   * Who authorized this act, present on approval-level acts (incorporation).
+   * Signed alongside the rest of the entry, so the attestation is tamper-evident
+   * and a reader can prove which credential stood behind the legal act.
+   */
+  approver?: ApproverAttestation;
   /** HMAC-SHA256 over the canonical-JSON of all other fields. */
   hmac: string | null;
   /**

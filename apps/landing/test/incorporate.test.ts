@@ -301,15 +301,20 @@ describe("authorizeIncorporate()", () => {
     });
   });
 
-  it("accepts the correct x-api-key", async () => {
+  it("accepts the correct x-api-key and emits an approver attestation", async () => {
     process.env[ENV] = "s3cret";
-    expect(await authorizeIncorporate(post({ "x-api-key": "s3cret" }))).toEqual({ ok: true });
+    const r = await authorizeIncorporate(post({ "x-api-key": "s3cret" }));
+    expect(r.ok).toBe(true);
+    if (r.ok) {
+      expect(r.approver.method).toBe("shared-key");
+      expect(r.approver.principalKind).toBe("credential-fingerprint");
+      expect(r.approver.principal).toMatch(/^key:[0-9a-f]{16}$/);
+    }
   });
 
   it("accepts the correct Authorization: Bearer token", async () => {
     process.env[ENV] = "s3cret";
-    expect(await authorizeIncorporate(post({ authorization: "Bearer s3cret" }))).toEqual({
-      ok: true,
-    });
+    const r = await authorizeIncorporate(post({ authorization: "Bearer s3cret" }));
+    expect(r.ok).toBe(true);
   });
 });
