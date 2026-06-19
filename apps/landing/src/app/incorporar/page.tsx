@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 import { IncorporarWizard } from "./wizard";
+import { IncorporarPrompt } from "./prompt-mode";
 import { IncorporarJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
@@ -34,7 +35,15 @@ export default function IncorporarPage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>Configuración</DocH2>
+      <DocH2>Describilo en una frase</DocH2>
+      <DocP>
+        Contá qué hace tu sociedad y el agente la estructura: denominación,
+        objeto, capital y las piezas que necesita. Es un preview en vivo, no
+        constituye nada. El acto legal lo aprueba una persona (art. 102).
+      </DocP>
+      <IncorporarPrompt />
+
+      <DocH2>O configurá paso a paso</DocH2>
 
       <IncorporarWizard />
 
