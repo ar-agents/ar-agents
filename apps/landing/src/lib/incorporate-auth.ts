@@ -22,11 +22,26 @@
  * requires the agent to run on Vercel emitting an OIDC token.
  */
 
+import type { ApproverAttestation } from "./audit";
+
 export type IncorporateAuthResult =
-  | { ok: true }
+  | { ok: true; approver: ApproverAttestation }
   | { ok: false; status: 401 | 500; error: string };
 
 const encoder = new TextEncoder();
+
+/**
+ * Non-secret, stable fingerprint of a credential: `key:<first 16 hex of
+ * sha256(secret)>`. Identifies WHICH credential approved an act in the signed
+ * audit log without ever storing the secret. Edge-safe (crypto.subtle only).
+ */
+async function credentialFingerprint(secret: string): Promise<string> {
+  const digest = await crypto.subtle.digest("SHA-256", encoder.encode(secret));
+  const hex = Array.from(new Uint8Array(digest))
+    .map((b) => b.toString(16).padStart(2, "0"))
+    .join("");
+  return `key:${hex.slice(0, 16)}`;
+}
 
 /**
  * Constant-time string comparison on the Edge runtime. HMACs both inputs with a
@@ -75,5 +90,16 @@ export async function authorizeIncorporate(req: Request): Promise<IncorporateAut
   if (!presented) return { ok: false, status: 401, error: "unauthorized" };
 
   const valid = await constantTimeEqual(presented, key);
-  return valid ? { ok: true } : { ok: false, status: 401, error: "unauthorized" };
+  if (!valid) return { ok: false, status: 401, error: "unauthorized" };
+  // Authenticated: emit the approver attestation that the route binds into the
+  // signed audit entry. Today the principal is the credential fingerprint; the
+  // OIDC upgrade (see header doc) would swap in the verified subject claim.
+  return {
+    ok: true,
+    approver: {
+      method: "shared-key",
+      principal: await credentialFingerprint(key),
+      principalKind: "credential-fingerprint",
+    },
+  };
 }
