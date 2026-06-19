@@ -56,12 +56,18 @@ export interface ToolRiskInput {
 // money or files a tax form is still gated. Small and auditable on purpose.
 const OVERRIDES: ReadonlyArray<readonly [RegExp, RiskLevel]> = [
   [/incorporar_sociedad|(^|_)constitu/i, "legal"],
-  // Fiscal ACTS only (emit/cancel/file). Tax CALCULATORS (iva/sicore/suss
-  // *_calculate) are pure math with no side effect -> they read (see READ_SIGNALS).
-  [/emitir_factura|anular_factura|generar_factura|nota_credito|nota_debito|(^|_)cae(_|$)|presentar_(ddjj|f29|f931|declaracion)/i, "fiscal"],
+  // Fiscal ACTS only (emit/cancel/file a tax return). Tax CALCULATORS
+  // (iva/sicore/suss *_calculate) are pure math with no side effect -> they read
+  // (see READ_SIGNALS). DDJJ submissions are matched for any filing verb
+  // (presentar/enviar/submit) so sicore_submit_ddjj, suss_submit_ddjj and the
+  // iva_*_submit_ddjj tools classify fiscal, not fall through to unknown.
+  [/emitir_factura|anular_factura|generar_factura|nota_credito|nota_debito|(^|_)cae(_|$)|(presentar|enviar|submit)_(ddjj|f29|f931|declaracion)/i, "fiscal"],
   // Money-MOVING verbs only. "payment" as a noun (get_payment, list_payments)
   // must NOT match here, or reads would be gated; those fall through to read.
-  [/transfer|payout|withdraw|reembols|refund|(^|_)cobr|(^|_)depos|(^|_)swap|(^|_)pay(_|$)|(create|cancel|capture|refund|void|process)_payment|charge|checkout|send_money/i, "money"],
+  // `paid_fetch` is the x402 pay-per-call HTTP tool (settles a micropayment);
+  // `(accept|reject)_invoice` is the FCE (factura de crédito) act that creates
+  // or declines a legally-enforceable payment obligation.
+  [/transfer|payout|withdraw|reembols|refund|(^|_)cobr|(^|_)depos|(^|_)swap|(^|_)pay(_|$)|(create|cancel|capture|refund|void|process)_payment|charge|checkout|send_money|paid_fetch|(accept|reject)_invoice/i, "money"],
   [/(^|_)delete(_|$)|(^|_)remove(_|$)|revoke|destroy|cancel(_|$)/i, "irreversible"],
   // registrar_decision appends to the signed audit log: a write, but low-stakes
   // and the agent should log its own decisions without a human in the loop.

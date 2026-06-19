@@ -16,6 +16,9 @@ describe("classifyTool", () => {
     expect(classifyTool({ name: "emitir_factura" })).toBe("fiscal");
     expect(classifyTool({ name: "nota_credito_emitir" })).toBe("fiscal");
     expect(classifyTool({ name: "presentar_ddjj_iva" })).toBe("fiscal");
+    // DDJJ submissions under any filing verb (real tools: sicore/suss/iva_*).
+    expect(classifyTool({ name: "sicore_submit_ddjj" })).toBe("fiscal");
+    expect(classifyTool({ name: "iva_retention_submit_ddjj" })).toBe("fiscal");
   });
   it("tax CALCULATORS read, they do not file (no side effect)", () => {
     expect(classifyTool({ name: "calcular_retencion_iva" })).toBe("read");
@@ -28,6 +31,12 @@ describe("classifyTool", () => {
     expect(classifyTool({ name: "create_payment" })).toBe("money");
     expect(classifyTool({ name: "cobrar_suscripcion" })).toBe("money");
     expect(classifyTool({ name: "uala_create_payout" })).toBe("money");
+    expect(classifyTool({ name: "bind_create_transfer" })).toBe("money");
+    // x402 pay-per-call settles a micropayment; FCE accept/reject creates or
+    // declines an enforceable payment obligation (real tools: x402/fecred).
+    expect(classifyTool({ name: "x402_paid_fetch" })).toBe("money");
+    expect(classifyTool({ name: "fecred_accept_invoice" })).toBe("money");
+    expect(classifyTool({ name: "fecred_reject_invoice" })).toBe("money");
   });
   it("destructive -> irreversible", () => {
     expect(classifyTool({ name: "delete_webhook" })).toBe("irreversible");
