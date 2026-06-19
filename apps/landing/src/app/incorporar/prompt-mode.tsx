@@ -1,29 +1,42 @@
 "use client";
 
 // The "prompteándola" surface: a person describes the society in one sentence,
-// we show what would be constituted (dry run, /api/incorporate-preview, which
-// constitutes nothing). The actual irreversible act stays gated behind a human
-// approval (art. 102), surfaced as the note below. No CSS-only animation, so it
-// behaves under prefers-reduced-motion.
+// previews what would be constituted (dry run, /api/incorporate-preview, which
+// constitutes nothing), then constitutes it by declaring their administrator
+// identity and accepting art. 102 responsibility (/api/incorporate-attested,
+// which binds the self-attested approver into a signed, durable audit entry).
+// No CSS-only animation, so it behaves under prefers-reduced-motion.
 
 import { useState } from "react";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
+type Draft = {
+  denominacion: string;
+  tipo: string;
+  capitalSocial: number;
+  objeto: string;
+  piezas: string[];
+  representante?: { nombre: string; cuit: string } | null;
+  emailContacto?: string | null;
+};
+
 type PreviewResult = {
   ok: true;
   sociedad: { denominacion: string; tipo: string; capitalSocial: number; slug: string };
-  draft: {
-    objeto: string;
-    piezas: string[];
-    representante?: { nombre: string; cuit: string } | null;
-    emailContacto?: string | null;
-  };
+  draft: Draft;
   validation: { valid: boolean; findings: { severity: "error" | "warning"; message: string }[] };
   configFiles: string[];
   envVars: { name: string }[];
   deploy: { oneClickUrl: string };
   note: string;
+};
+
+type ConstitutedResult = {
+  ok: true;
+  sociedad: { denominacion: string; slug: string };
+  audit: { sessionId: string; verifyUrl: string; dashboardUrl: string };
+  deploy: { oneClickUrl: string };
 };
 
 const EXAMPLES = [
@@ -38,6 +51,10 @@ const ERROR_COPY: Record<string, string> = {
   generation_failed: "El modelo no respondió. Reintentá en un momento.",
   rate_limited: "Demasiadas pruebas seguidas. Esperá un rato y reintentá.",
   bad_json: "Algo salió mal con el pedido. Reintentá.",
+  art102_no_aceptado: "Tenés que aceptar la responsabilidad como administrador (art. 102).",
+  administrador_invalido: "Falta el nombre del administrador.",
+  cuit_invalido: "El CUIT del administrador no es válido.",
+  draft_invalido: "Los datos de la sociedad no son válidos. Volvé a previsualizar.",
 };
 
 const box: React.CSSProperties = {
@@ -47,11 +64,36 @@ const box: React.CSSProperties = {
   padding: 16,
 };
 
+const inputStyle: React.CSSProperties = {
+  width: "100%",
+  padding: "9px 12px",
+  borderRadius: 8,
+  border: "1px solid var(--border-color)",
+  background: "var(--bg)",
+  color: "var(--text)",
+  font: "14px var(--font-geist-sans), Arial, sans-serif",
+};
+
 export function IncorporarPrompt() {
   const [prompt, setPrompt] = useState("");
   const [loading, setLoading] = useState(false);
   const [result, setResult] = useState<PreviewResult | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // constitution step
+  const [showForm, setShowForm] = useState(false);
+  const [nombre, setNombre] = useState("");
+  const [cuit, setCuit] = useState("");
+  const [acepta102, setAcepta102] = useState(false);
+  const [constituting, setConstituting] = useState(false);
+  const [constituted, setConstituted] = useState<ConstitutedResult | null>(null);
+  const [cErr, setCErr] = useState<string | null>(null);
+
+  function resetConstitution() {
+    setShowForm(false);
+    setConstituted(null);
+    setCErr(null);
+  }
 
   async function run(text: string) {
     const trimmed = text.trim();
@@ -59,6 +101,7 @@ export function IncorporarPrompt() {
     setLoading(true);
     setError(null);
     setResult(null);
+    resetConstitution();
     try {
       const res = await fetch("/api/incorporate-preview", {
         method: "POST",
@@ -76,6 +119,38 @@ export function IncorporarPrompt() {
       setError("No se pudo conectar. Reintentá.");
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function constitute() {
+    if (!result || constituting) return;
+    if (!acepta102) {
+      setCErr(ERROR_COPY.art102_no_aceptado!);
+      return;
+    }
+    setConstituting(true);
+    setCErr(null);
+    try {
+      const res = await fetch("/api/incorporate-attested", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          draft: result.draft,
+          administrador: { nombre, cuit },
+          acepta102: true,
+        }),
+      });
+      const data = (await res.json()) as ConstitutedResult | { ok: false; error: string };
+      if (!res.ok || !("ok" in data) || !data.ok) {
+        const code = "error" in data ? data.error : "generation_failed";
+        setCErr(ERROR_COPY[code] ?? "No se pudo constituir. Reintentá.");
+      } else {
+        setConstituted(data);
+      }
+    } catch {
+      setCErr("No se pudo conectar. Reintentá.");
+    } finally {
+      setConstituting(false);
     }
   }
 
@@ -121,9 +196,7 @@ export function IncorporarPrompt() {
           >
             {loading ? "Pensando..." : "Ver mi sociedad"}
           </button>
-          <span style={{ color: "var(--text-muted)", fontSize: 13 }}>
-            Dry run. No constituye nada.
-          </span>
+          <span style={{ color: "var(--text-muted)", fontSize: 13 }}>Dry run. No constituye nada.</span>
         </div>
       </form>
 
@@ -154,9 +227,7 @@ export function IncorporarPrompt() {
         </div>
       )}
 
-      {error && (
-        <div style={{ ...box, borderColor: "var(--accent)", color: "var(--text-body)" }}>{error}</div>
-      )}
+      {error && <div style={{ ...box, borderColor: "var(--accent)", color: "var(--text-body)" }}>{error}</div>}
 
       {result && (
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
@@ -197,10 +268,7 @@ export function IncorporarPrompt() {
               {result.validation.findings.map((f, i) => (
                 <div
                   key={i}
-                  style={{
-                    fontSize: 13,
-                    color: f.severity === "error" ? "var(--accent)" : "var(--text-muted)",
-                  }}
+                  style={{ fontSize: 13, color: f.severity === "error" ? "var(--accent)" : "var(--text-muted)" }}
                 >
                   {f.severity === "error" ? "Error: " : "Nota: "}
                   {f.message}
@@ -222,16 +290,111 @@ export function IncorporarPrompt() {
             </div>
           </div>
 
-          <div style={{ ...box, borderColor: "var(--accent)" }}>
-            <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 14 }}>
-              Esto es un dry run. No se constituyó nada.
+          {/* Constitution: the gated, attested, irreversible step. */}
+          {constituted ? (
+            <div style={{ ...box, borderColor: "var(--accent)" }}>
+              <div style={{ fontWeight: 700, color: "var(--text)", fontSize: 16 }}>
+                {constituted.sociedad.denominacion} quedó constituida.
+              </div>
+              <p style={{ fontSize: 13, color: "var(--text-body)", margin: "6px 0 10px", lineHeight: 1.5 }}>
+                Firmada por {nombre} como administrador (art. 102) y registrada en el audit log. El acto quedó
+                con firma criptográfica verificable.
+              </p>
+              <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 13 }}>
+                <a href={constituted.audit.verifyUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+                  Verificar la firma
+                </a>
+                <a href={constituted.audit.dashboardUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+                  Ver el registro
+                </a>
+                <a href={constituted.deploy.oneClickUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
+                  Deploy en Vercel
+                </a>
+              </div>
             </div>
-            <p style={{ fontSize: 13, color: "var(--text-body)", margin: "6px 0 0", lineHeight: 1.5 }}>
-              Constituir de verdad es irreversible, así que necesita la aprobación de una persona y queda
-              firmado en el audit log (art. 102). Esa parte la hace el agente, que para acá y te pregunta
-              antes de constituir.
-            </p>
-          </div>
+          ) : (
+            <div style={{ ...box, borderColor: "var(--accent)" }}>
+              <div style={{ fontWeight: 600, color: "var(--text)", fontSize: 14 }}>
+                Hasta acá es un dry run. No se constituyó nada.
+              </div>
+              <p style={{ fontSize: 13, color: "var(--text-body)", margin: "6px 0 0", lineHeight: 1.5 }}>
+                Constituir es irreversible: lo aprobás vos como administrador y queda firmado en el audit log
+                (art. 102). Hoy genera el repo y el registro firmado; el alta en IGJ/AFIP queda en el checklist.
+              </p>
+
+              {!showForm ? (
+                <button
+                  type="button"
+                  onClick={() => setShowForm(true)}
+                  disabled={!result.validation.valid}
+                  style={{
+                    marginTop: 12,
+                    padding: "10px 18px",
+                    borderRadius: 999,
+                    border: "1px solid var(--accent)",
+                    background: "var(--accent)",
+                    color: "var(--bg)",
+                    font: "600 14px var(--font-geist-sans), Arial, sans-serif",
+                    cursor: result.validation.valid ? "pointer" : "default",
+                    opacity: result.validation.valid ? 1 : 0.5,
+                  }}
+                >
+                  Constituir esta sociedad
+                </button>
+              ) : (
+                <form
+                  onSubmit={(e) => {
+                    e.preventDefault();
+                    void constitute();
+                  }}
+                  style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 14 }}
+                >
+                  <input
+                    value={nombre}
+                    onChange={(e) => setNombre(e.target.value)}
+                    placeholder="Tu nombre (administrador)"
+                    style={inputStyle}
+                  />
+                  <input
+                    value={cuit}
+                    onChange={(e) => setCuit(e.target.value)}
+                    placeholder="Tu CUIT (ej: 20-12345678-6)"
+                    style={inputStyle}
+                  />
+                  <label style={{ display: "flex", gap: 8, alignItems: "flex-start", fontSize: 13, color: "var(--text-body)" }}>
+                    <input
+                      type="checkbox"
+                      checked={acepta102}
+                      onChange={(e) => setAcepta102(e.target.checked)}
+                      style={{ marginTop: 3 }}
+                    />
+                    <span>
+                      Acepto la responsabilidad como administrador de esta sociedad automatizada y la supervisión
+                      no delegable de sus actos (art. 102).
+                    </span>
+                  </label>
+                  {cErr && <div style={{ fontSize: 13, color: "var(--accent)" }}>{cErr}</div>}
+                  <button
+                    type="submit"
+                    disabled={constituting || !acepta102 || nombre.trim().length < 2 || cuit.trim().length < 8}
+                    style={{
+                      alignSelf: "flex-start",
+                      padding: "10px 18px",
+                      borderRadius: 999,
+                      border: "1px solid var(--accent)",
+                      background: constituting ? "var(--bg-tint)" : "var(--accent)",
+                      color: constituting ? "var(--text-muted)" : "var(--bg)",
+                      font: "600 14px var(--font-geist-sans), Arial, sans-serif",
+                      cursor: constituting ? "default" : "pointer",
+                      opacity: !acepta102 || nombre.trim().length < 2 || cuit.trim().length < 8 ? 0.6 : 1,
+                    }}
+                  >
+                    {constituting ? "Constituyendo..." : "Confirmar y constituir"}
+                  </button>
+                </form>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>

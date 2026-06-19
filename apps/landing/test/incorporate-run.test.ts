@@ -74,6 +74,25 @@ describe("runIncorporation", () => {
     const entries = await readAudit("continuity-123");
     expect(entries[0]!.tool).toBe("incorporate_from_prompt");
   });
+
+  it("binds a self-attested human approver (cuit + art.102) into the signed entry", async () => {
+    const selfAttested: ApproverAttestation = {
+      method: "self-attested",
+      principal: "cuit:20123456786",
+      principalKind: "declared-cuit",
+      declaredBy: "Juan Pérez",
+    };
+    const r = await runIncorporation(
+      { ...validInput, sessionId: "attested-001" },
+      { approver: selfAttested, tool: "incorporate_attested" },
+    );
+    expect(r.ok).toBe(true);
+    if (!r.ok) return;
+    const entries = await readAudit("attested-001");
+    expect(entries[0]!.approver).toEqual(selfAttested);
+    expect(entries[0]!.tool).toBe("incorporate_attested");
+    expect(await verifyEntry(entries[0]!)).toBe(true);
+  });
 });
 
 describe("prompt -> draft -> input -> runIncorporation (end to end, mocked model)", () => {
