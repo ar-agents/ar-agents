@@ -7,6 +7,8 @@
  * path. Same pattern /api/play already uses.
  */
 
+import { kv } from "@vercel/kv";
+
 const buckets = new Map<string, { count: number; resetAt: number }>();
 
 // Cap the Map so a flood of distinct IPs/keys can't grow it unboundedly on a
@@ -56,4 +58,33 @@ export function rateLimit(
   if (b.count >= max) return false;
   b.count++;
   return true;
+}
+
+/**
+ * Durable, cross-isolate fixed-window limiter backed by Vercel KV. The
+ * in-memory `rateLimit` above only damps a single isolate (Edge instances don't
+ * share memory), so it is not a real quota on the abuse-attractive mutating
+ * endpoints (incorporation). This one is: one INCR per call, one EXPIRE on the
+ * first hit of a window, shared across every isolate.
+ *
+ * `windowSec` buckets are aligned to the wall clock so every isolate agrees on
+ * the current window without coordination. Fails OPEN on a KV error
+ * (availability over strictness — the in-memory limiter is the backstop).
+ */
+export async function kvRateLimit(
+  scope: string,
+  id: string,
+  max: number,
+  windowSec: number,
+): Promise<boolean> {
+  const windowStart = Math.floor(Date.now() / 1000 / windowSec);
+  const key = `rl:${scope}:${id}:${windowStart}`;
+  try {
+    const count = await kv.incr(key);
+    // Set the TTL once, on the first hit of this window (+1s slack).
+    if (count === 1) await kv.expire(key, windowSec + 1);
+    return count <= max;
+  } catch {
+    return true; // fail open
+  }
 }
