@@ -32,14 +32,21 @@ import {
   slugFor,
   validate,
 } from "@/lib/incorporate";
-import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { clientIp, rateLimit, kvRateLimit } from "@/lib/ratelimit";
 import { authorizeIncorporate } from "@/lib/incorporate-auth";
 
 export const runtime = "edge";
 
 export async function POST(req: Request) {
   // Incorporation entries are durable KV writes, damp per-IP amplification.
-  if (!rateLimit("auto-incorporate", clientIp(req), 10, 60 * 60_000)) {
+  const ip = clientIp(req);
+  if (!rateLimit("auto-incorporate", ip, 10, 60 * 60_000)) {
+    return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
+  }
+  // Durable, cross-isolate quota: the in-memory limiter above only damps one
+  // isolate. This endpoint constitutes legal entities, so it gets a real global
+  // per-IP cap (KV-backed, fails open). Defense against a distributed mint flood.
+  if (!(await kvRateLimit("auto-incorporate", ip, 10, 60 * 60))) {
     return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }
 
