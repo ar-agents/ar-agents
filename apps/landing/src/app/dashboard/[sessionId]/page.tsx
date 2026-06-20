@@ -8,6 +8,7 @@ import {
   verifySession,
 } from "@/lib/audit";
 import { readAnchors, readHead } from "@/lib/ledger";
+import { ApprovalsCard } from "./approvals-card";
 import { LiveTimeline } from "./live-timeline";
 import { TamperDemo } from "./tamper-demo";
 
@@ -101,6 +102,8 @@ export default async function DashboardPage({
           initialEntries={entries}
           hmacWired={verification.hmacWired}
         />
+
+        <ApprovalsCard sessionId={sessionId} />
 
         <TamperDemo />
 
