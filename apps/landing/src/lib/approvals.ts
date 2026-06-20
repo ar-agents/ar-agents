@@ -128,6 +128,23 @@ async function listPendingIds(society: string): Promise<string[]> {
   return Array.isArray(ids) ? (ids as string[]) : [];
 }
 
+const memConsumed = new Set<string>();
+
+/**
+ * Atomic single-use claim on an approval id. Only the FIRST concurrent caller
+ * wins (SETNX / set-if-absent), so two simultaneous gate calls can never both
+ * consume one approval and run the approved act twice.
+ */
+async function claimConsume(id: string): Promise<boolean> {
+  if (!isKvWired()) {
+    if (memConsumed.has(id)) return false;
+    memConsumed.add(id);
+    return true;
+  }
+  const got = await kv.set(`appr:consumed:${id}`, "1", { nx: true, ex: REQ_TTL_SECONDS });
+  return Boolean(got);
+}
+
 // ── public API ───────────────────────────────────────────────────────────────
 
 /** Queue a pending approval for an action, deduping on (society, tool, argsHash)
@@ -141,7 +158,13 @@ export async function requestApproval(
   const existingId = await getActId(society, tool, argsHash);
   if (existingId) {
     const existing = await getReq(existingId);
-    if (existing && existing.status === "pending") return existing;
+    if (existing) {
+      // Dedup a still-pending request; KEEP a denial STICKY (a denied action must
+      // not silently re-queue and grind through on a fatigued re-approval). A
+      // "consumed" request falls through: single-use, so the next instance of the
+      // same action re-queues for a fresh approval.
+      if (existing.status === "pending" || existing.status === "denied") return existing;
+    }
   }
   const req: ApprovalRequest = {
     id: crypto.randomUUID(),
@@ -169,6 +192,10 @@ export async function consumeApproval(
   if (!id) return false;
   const req = await getReq(id);
   if (!req || req.status !== "approved") return false;
+  // Atomic single-use: only ONE concurrent caller may consume this approval.
+  // Without this guard, two concurrent gate calls both observe "approved" and
+  // both proceed -> the approved act executes twice (double-spend / double-file).
+  if (!(await claimConsume(id))) return false;
   req.status = "consumed";
   req.resolvedAt = req.resolvedAt ?? new Date().toISOString();
   await putReq(req);
@@ -197,7 +224,7 @@ export async function gateAction(
     }
   })();
   const req = await requestApproval(society, tool, h, preview);
-  return { approved: false, status: "pending", requestId: req.id };
+  return { approved: false, status: req.status, requestId: req.id };
 }
 
 export async function approvalById(id: string): Promise<ApprovalRequest | null> {
