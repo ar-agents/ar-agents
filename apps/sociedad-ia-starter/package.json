@@ -62,6 +62,7 @@
     "@ai-sdk/anthropic": "^2.0.0",
     "@ar-agents/banking": "workspace:*",
     "@ar-agents/boletin-oficial": "workspace:*",
+    "@ar-agents/core": "workspace:*",
     "@ar-agents/facturacion": "workspace:*",
     "@ar-agents/gde-tad": "workspace:*",
     "@ar-agents/identity": "workspace:*",

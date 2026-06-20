@@ -36,6 +36,8 @@ import {
   getWsfeClient,
   getAfipPadronAdapter,
 } from "./clients";
+import { enforceRiskPolicy } from "@ar-agents/core";
+import { approve, isHalted } from "./governance";
 
 const SYSTEM_PROMPT = `Sos el agente operador de una sociedad-IA argentina.
 Operás bajo el marco de RFC-001 (https://ar-agents.ar/rfcs/001):
@@ -74,27 +76,33 @@ export function buildAgent() {
     model: anthropic("claude-sonnet-4-5"),
     stopWhen: stepCountIs(20),
     instructions: SYSTEM_PROMPT,
-    tools: {
-      // Always-on (algorithm or default-OK adapter).
-      ...identityTools({ afip }),
-      ...bankingTools(),
-      ...gdeTadTools(),
-      ...igjTools({ fetcher: new LiveCkanFetcher() }),
-      ...boletinOficialTools({
-        fetcher: new LiveBoFetcher(),
-        subscriptions: new InMemoryBoSubscriptionAdapter(),
-      }),
-      ...facturacionTools(wsfe ? { wsfe } : {}),
-      // Tools that need a client — register only if config present.
-      ...(mp
-        ? mercadoPagoTools(mp, {
-            state: new InMemoryStateAdapter(),
-            backUrl:
-              process.env.MERCADOPAGO_BACK_URL?.trim() ??
-              "https://example.com/return",
-          })
-        : {}),
-      ...(wa ? whatsappTools(wa) : {}),
-    },
+    // enforceRiskPolicy is the central art. 102 gate: high-stakes tools defer to
+    // an async human approval (queue at ar-agents.ar), a suspended society halts
+    // every tool (kill-switch), and read tools pass through. See ./governance.
+    tools: enforceRiskPolicy(
+      {
+        // Always-on (algorithm or default-OK adapter).
+        ...identityTools({ afip }),
+        ...bankingTools(),
+        ...gdeTadTools(),
+        ...igjTools({ fetcher: new LiveCkanFetcher() }),
+        ...boletinOficialTools({
+          fetcher: new LiveBoFetcher(),
+          subscriptions: new InMemoryBoSubscriptionAdapter(),
+        }),
+        ...facturacionTools(wsfe ? { wsfe } : {}),
+        // Tools that need a client — register only if config present.
+        ...(mp
+          ? mercadoPagoTools(mp, {
+              state: new InMemoryStateAdapter(),
+              backUrl:
+                process.env.MERCADOPAGO_BACK_URL?.trim() ??
+                "https://example.com/return",
+            })
+          : {}),
+        ...(wa ? whatsappTools(wa) : {}),
+      },
+      { approve, isHalted },
+    ),
   });
 }
