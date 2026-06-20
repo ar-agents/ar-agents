@@ -31,7 +31,7 @@ export function ApprovalsCard({ sessionId }: { sessionId: string }) {
   const [pending, setPending] = useState<Pending[]>([]);
   const [loaded, setLoaded] = useState(false);
   const [nombre, setNombre] = useState("");
-  const [cuit, setCuit] = useState("");
+  const [token, setToken] = useState("");
   const [busy, setBusy] = useState<string | null>(null);
   const [err, setErr] = useState<string | null>(null);
 
@@ -54,8 +54,8 @@ export function ApprovalsCard({ sessionId }: { sessionId: string }) {
   }, [sessionId]);
 
   async function resolve(id: string, approved: boolean) {
-    if (nombre.trim().length < 2 || cuit.trim().length < 8) {
-      setErr("Completá tu nombre y CUIT de administrador.");
+    if (token.trim().length < 8) {
+      setErr("Pegá tu token de administrador (lo recibiste al constituir la sociedad).");
       return;
     }
     setBusy(id);
@@ -64,16 +64,14 @@ export function ApprovalsCard({ sessionId }: { sessionId: string }) {
       const res = await fetch("/api/approvals/resolve", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ id, approved, administrador: { nombre, cuit } }),
+        body: JSON.stringify({ id, approved, adminToken: token, nombre: nombre || undefined }),
       });
       const data = await res.json();
       if (!res.ok || !data?.ok) {
         setErr(
-          data?.error === "no_sos_el_administrador"
-            ? "Ese CUIT no es el del administrador de esta sociedad."
-            : data?.error === "cuit_invalido"
-              ? "CUIT inválido."
-              : "No se pudo resolver. Reintentá.",
+          data?.error === "token_invalido"
+            ? "Token inválido. No sos el administrador de esta sociedad."
+            : "No se pudo resolver. Reintentá.",
         );
       } else {
         setPending((p) => p.filter((x) => x.id !== id));
@@ -99,15 +97,15 @@ export function ApprovalsCard({ sessionId }: { sessionId: string }) {
       <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginBottom: 12 }}>
         <input
           style={inputStyle}
-          placeholder="Tu nombre"
+          placeholder="Tu nombre (opcional)"
           value={nombre}
           onChange={(e) => setNombre(e.target.value)}
         />
         <input
-          style={inputStyle}
-          placeholder="Tu CUIT"
-          value={cuit}
-          onChange={(e) => setCuit(e.target.value)}
+          style={{ ...inputStyle, flex: 1, minWidth: 220, fontFamily: FONT_MONO }}
+          placeholder="Tu token de administrador (sat_…)"
+          value={token}
+          onChange={(e) => setToken(e.target.value)}
         />
       </div>
       {err && <div style={{ fontSize: 13, color: "var(--accent)", marginBottom: 10 }}>{err}</div>}

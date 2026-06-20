@@ -28,20 +28,21 @@ export async function POST(req: Request) {
   const b = raw as {
     id?: unknown;
     approved?: unknown;
-    administrador?: { nombre?: unknown; cuit?: unknown };
+    adminToken?: unknown;
+    nombre?: unknown;
   };
   const id = typeof b.id === "string" ? b.id.trim() : "";
   if (!id) return jsonCors({ ok: false, error: "falta_id" }, { status: 400 });
   if (typeof b.approved !== "boolean") {
     return jsonCors({ ok: false, error: "falta_approved" }, { status: 400 });
   }
-  const nombre = typeof b.administrador?.nombre === "string" ? b.administrador.nombre.trim() : "";
-  const cuit = typeof b.administrador?.cuit === "string" ? b.administrador.cuit : "";
-  if (nombre.length < 2) {
-    return jsonCors({ ok: false, error: "administrador_invalido" }, { status: 400 });
+  const adminToken = typeof b.adminToken === "string" ? b.adminToken.trim() : "";
+  const nombre = typeof b.nombre === "string" ? b.nombre.trim() : undefined;
+  if (!adminToken) {
+    return jsonCors({ ok: false, error: "falta_token" }, { status: 400 });
   }
 
-  const r = await authorizeAndResolve({ id, approved: b.approved, nombre, cuit });
+  const r = await authorizeAndResolve({ id, approved: b.approved, adminToken, nombre });
   if (!r.ok) return jsonCors({ ok: false, error: r.error }, { status: r.status });
   return jsonCors({ ok: true, request: r.request, audit: { entry: r.entry } });
 }
