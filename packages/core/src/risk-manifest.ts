@@ -84,6 +84,14 @@ const READ_PATTERNS =
 const READ_SIGNALS =
   /(calcula|calcular|calculate|calculo|compute|cotiz|estimat|simul|preview|lookup|consulta|(^|_)info(_|$)|status|balance|saldo|variable|deudas|padron)/i;
 
+// Mutating verbs that carry a read-ish noun (set_balance, credit_saldo,
+// modificar_padron). READ_SIGNALS matches the noun ANYWHERE, so without this a
+// mutation would be downgraded to "read" and skip the gate. A name with a
+// mutating verb is NOT downgraded: it falls through to "unknown" (fail closed),
+// or to its true category if an OVERRIDE already caught it.
+const MUTATING_SIGNALS =
+  /(^|_)(set|update|adjust|credit|debit|deduct|increment|decrement|acreditar|debitar|cargar|modificar|actualizar|incrementar|decrementar|write|overwrite)(_|$)/i;
+
 function fromSideEffects(se?: string): RiskLevel | null {
   switch ((se ?? "").toLowerCase().trim()) {
     case "irreversible":
@@ -114,8 +122,15 @@ export function classifyTool(input: ToolRiskInput): RiskLevel {
   // 3. Manifest sideEffects hint.
   const se = fromSideEffects(input.sideEffects);
   if (se) return se;
-  // 4. Benign read heuristics: anchored read verbs, or read/compute words anywhere.
-  if (READ_PATTERNS.test(name) || READ_SIGNALS.test(name)) return "read";
+  // 4. Benign read heuristics: anchored read verbs, or read/compute words
+  // anywhere — but NOT when the name also carries a mutating verb (a mutation
+  // dressed in a read-ish noun must never be downgraded to "read").
+  if (
+    (READ_PATTERNS.test(name) || READ_SIGNALS.test(name)) &&
+    !MUTATING_SIGNALS.test(name)
+  ) {
+    return "read";
+  }
   // 5. Fail closed.
   return "unknown";
 }

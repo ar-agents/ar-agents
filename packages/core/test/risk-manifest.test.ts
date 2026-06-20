@@ -53,6 +53,18 @@ describe("classifyTool", () => {
     expect(classifyTool({ name: "bcra_monetary_variable" })).toBe("read");
     expect(classifyTool({ name: "get_toolkit_info" })).toBe("read");
   });
+  it("a mutating verb is NOT downgraded to read by a read-ish noun (#8 hardening)", () => {
+    // carry a read-ish noun (balance/saldo/padron) but MUTATE it -> must gate
+    expect(classifyTool({ name: "credit_balance" })).toBe("unknown");
+    expect(classifyTool({ name: "set_saldo" })).toBe("unknown");
+    expect(classifyTool({ name: "debit_balance" })).toBe("unknown");
+    expect(classifyTool({ name: "modificar_padron" })).toBe("unknown");
+    expect(requiresApproval({ name: "credit_balance" })).toBe(true); // gated, fail closed
+    // genuine reads still classify read
+    expect(classifyTool({ name: "get_balance" })).toBe("read");
+    expect(classifyTool({ name: "bcra_monetary_variable" })).toBe("read");
+    expect(classifyTool({ name: "consultar_padron" })).toBe("read");
+  });
   it("registrar_decision -> create (auto, low-stakes append to audit log)", () => {
     expect(classifyTool({ name: "registrar_decision" })).toBe("create");
   });

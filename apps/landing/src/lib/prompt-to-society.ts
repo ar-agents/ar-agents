@@ -80,9 +80,16 @@ const defaultGenerator: DraftGenerator = async ({ system, prompt }) => {
     schema: ExtractionSchema,
     system,
     prompt,
+    // The draft is small; bound the output so a hostile prompt can't run the
+    // bill up via a huge generation.
+    maxOutputTokens: 800,
   });
   return object;
 };
+
+/** Hard cap on the prompt length, so a single request can't drive a large
+ *  (billed) model call. Rejected before the model is ever consulted. */
+const MAX_PROMPT_CHARS = 4000;
 
 const SYSTEM = [
   "Sos un asistente que estructura la constitución de una sociedad automatizada argentina.",
@@ -95,7 +102,7 @@ export type ExtractResult =
   | { ok: true; draft: SocietyDraft }
   | {
       ok: false;
-      error: "empty_prompt" | "invalid_draft" | "generation_failed";
+      error: "empty_prompt" | "prompt_too_long" | "invalid_draft" | "generation_failed";
       detail?: unknown;
     };
 
@@ -124,6 +131,7 @@ export async function extractSocietyDraft(
 ): Promise<ExtractResult> {
   const prompt = (userPrompt ?? "").trim();
   if (prompt.length < 3) return { ok: false, error: "empty_prompt" };
+  if (prompt.length > MAX_PROMPT_CHARS) return { ok: false, error: "prompt_too_long" };
 
   const generate = opts.generate ?? defaultGenerator;
   let raw: unknown;
