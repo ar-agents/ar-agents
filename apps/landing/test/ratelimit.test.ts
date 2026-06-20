@@ -11,7 +11,28 @@ vi.mock("@vercel/kv", () => ({
   },
 }));
 
-import { kvRateLimit, rateLimit } from "../src/lib/ratelimit";
+import { clientIp, kvRateLimit, rateLimit } from "../src/lib/ratelimit";
+
+const reqWith = (headers: Record<string, string>) => new Request("https://x/", { headers });
+
+describe("clientIp (spoof-resistant)", () => {
+  it("prefers x-vercel-forwarded-for (platform-trusted, unspoofable)", () => {
+    expect(
+      clientIp(reqWith({ "x-vercel-forwarded-for": "1.2.3.4", "x-forwarded-for": "9.9.9.9, 1.2.3.4" })),
+    ).toBe("1.2.3.4");
+  });
+  it("never returns the attacker-controlled leftmost x-forwarded-for hop", () => {
+    // attacker prepends a fake hop; the real client is the rightmost (trusted proxy)
+    expect(clientIp(reqWith({ "x-forwarded-for": "6.6.6.6, 1.2.3.4" }))).toBe("1.2.3.4");
+    expect(clientIp(reqWith({ "x-forwarded-for": "6.6.6.6, 1.2.3.4" }))).not.toBe("6.6.6.6");
+  });
+  it("uses x-real-ip before the x-forwarded-for fallback", () => {
+    expect(clientIp(reqWith({ "x-real-ip": "5.5.5.5", "x-forwarded-for": "6.6.6.6" }))).toBe("5.5.5.5");
+  });
+  it("returns 'unknown' with no proxy headers", () => {
+    expect(clientIp(reqWith({}))).toBe("unknown");
+  });
+});
 
 afterEach(() => {
   incr.mockReset();

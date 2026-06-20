@@ -82,12 +82,27 @@ describe("approval queue: gate -> resolve -> consume", () => {
     expect(last.approver?.declaredBy).toBe("Juan Pérez");
   });
 
-  it("denial keeps the gate deferred", async () => {
+  it("a denial is STICKY: the action does not silently re-queue as approvable (#7)", async () => {
     await seedSociety("soc-d");
     const g = await gateAction("soc-d", "transfer_funds", { x: 1 });
     await authorizeAndResolve({ id: g.requestId!, approved: false, ...RESOLVE });
     const g2 = await gateAction("soc-d", "transfer_funds", { x: 1 });
     expect(g2.approved).toBe(false);
+    expect(g2.status).toBe("denied"); // surfaced as denied, not a fresh pending
+    expect(g2.requestId).toBe(g.requestId); // same request, not re-queued
+  });
+
+  it("single-use is ATOMIC: concurrent gates can't double-consume one approval (#3)", async () => {
+    await seedSociety("soc-race");
+    const args = { cbu: "x", amount: 9999 };
+    const g = await gateAction("soc-race", "transfer_funds", args);
+    await authorizeAndResolve({ id: g.requestId!, approved: true, ...RESOLVE });
+    // two concurrent consumes of the SAME approved action
+    const [a, b] = await Promise.all([
+      gateAction("soc-race", "transfer_funds", args),
+      gateAction("soc-race", "transfer_funds", args),
+    ]);
+    expect([a.approved, b.approved].filter(Boolean).length).toBe(1); // exactly one proceeds
   });
 
   it("pendingApprovals lists pending, excludes resolved", async () => {

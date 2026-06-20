@@ -27,6 +27,12 @@ export async function POST(req: Request) {
   if (!(await kvRateLimit("incorporate-preview", ip, 8, 60 * 60))) {
     return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }
+  // Global daily ceiling (NOT per-IP): caps total preview spend on the SHARED
+  // ar-agents gateway key regardless of caller, so a party rotating IPs (or
+  // spoofing x-forwarded-for) can't drain it and 402 every product on the key.
+  if (!(await kvRateLimit("incorporate-preview-global", "all", 2000, 86_400))) {
+    return jsonCors({ ok: false, error: "rate_limited_global" }, { status: 429 });
+  }
 
   let raw: unknown;
   try {
@@ -42,7 +48,7 @@ export async function POST(req: Request) {
   const extracted = await extractSocietyDraft(prompt);
   if (!extracted.ok) {
     const status =
-      extracted.error === "empty_prompt"
+      extracted.error === "empty_prompt" || extracted.error === "prompt_too_long"
         ? 400
         : extracted.error === "invalid_draft"
           ? 422

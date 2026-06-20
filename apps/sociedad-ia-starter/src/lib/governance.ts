@@ -17,9 +17,14 @@
 
 const BASE = process.env.AR_AGENTS_API_BASE?.trim() || "https://ar-agents.ar";
 const SOCIETY = process.env.SOCIETY_ID?.trim() || "";
+// The ungoverned pass-through is for LOCAL DEV ONLY. In production a missing
+// SOCIETY_ID must FAIL CLOSED: a deployed society with governance silently off
+// (every high-stakes tool ungated, kill-switch inert) is the most dangerous
+// misconfiguration — a total art. 102 bypass the operator would not notice.
+const IS_PROD = process.env.NODE_ENV === "production" || Boolean(process.env.VERCEL);
 
 export async function approve(toolName: string, args: unknown): Promise<boolean> {
-  if (!SOCIETY) return true; // ungoverned (dev): no gate
+  if (!SOCIETY) return !IS_PROD; // dev: pass through; prod: refuse (fail closed)
   try {
     const res = await fetch(`${BASE}/api/approvals/gate`, {
       method: "POST",
@@ -35,7 +40,7 @@ export async function approve(toolName: string, args: unknown): Promise<boolean>
 }
 
 export async function isHalted(): Promise<boolean> {
-  if (!SOCIETY) return false; // ungoverned (dev): never halted
+  if (!SOCIETY) return IS_PROD; // dev: not halted; prod: halt (fail closed)
   try {
     const res = await fetch(
       `${BASE}/api/suspension-status?society=${encodeURIComponent(SOCIETY)}`,

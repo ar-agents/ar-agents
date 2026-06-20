@@ -32,9 +32,26 @@ function evictIfNeeded(now: number): void {
 }
 
 export function clientIp(req: Request): string {
+  // On Vercel, `x-vercel-forwarded-for` is the platform-computed client IP and
+  // cannot be spoofed by the caller (Vercel overwrites it on ingress). Prefer
+  // it. NEVER trust the LEFTMOST `x-forwarded-for` hop: it is caller-controlled,
+  // so rotating it would mint a fresh bucket per request and defeat every
+  // per-IP rate limit.
+  const vercel = req.headers.get("x-vercel-forwarded-for");
+  if (vercel) return vercel.split(",")[0]!.trim();
+  const real = req.headers.get("x-real-ip");
+  if (real) return real.trim();
+  // Non-Vercel / local fallback: the RIGHTMOST x-forwarded-for hop is the
+  // closest trusted proxy; the leftmost is whatever the client sent. Take last.
   const fwd = req.headers.get("x-forwarded-for");
-  if (fwd) return fwd.split(",")[0]!.trim();
-  return req.headers.get("x-real-ip") ?? "unknown";
+  if (fwd) {
+    const parts = fwd
+      .split(",")
+      .map((s) => s.trim())
+      .filter(Boolean);
+    if (parts.length) return parts[parts.length - 1]!;
+  }
+  return "unknown";
 }
 
 /**
