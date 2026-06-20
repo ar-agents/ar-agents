@@ -14,11 +14,10 @@
  */
 
 import { kv } from "@vercel/kv";
+import { verifyAdminToken } from "./admin-token";
 import { type ApproverAttestation, appendAudit, type AuditEntry, readAudit } from "./audit";
 import { jsonCors } from "./cors";
-import { normalizeCuit } from "./incorporate";
 import { clientIp, kvRateLimit, rateLimit } from "./ratelimit";
-import { parseCuit } from "@ar-agents/identity";
 
 const SUSPENDED_SET = "society:suspended";
 const memSuspended = new Set<string>();
@@ -78,35 +77,33 @@ export async function societyAdminPrincipal(sessionId: string): Promise<string |
 }
 
 export type SuspensionResult =
-  | { ok: false; status: 403 | 404 | 422; error: string }
+  | { ok: false; status: 403 | 404; error: string }
   | { ok: true; suspended: boolean; entry: AuditEntry };
 
 /**
- * Authorize (by CUIT match against the signed constitution) and apply a
- * suspend/resume, recording the act as a signed durable audit entry.
+ * Authorize (by the administrator CAPABILITY TOKEN, not a knowable CUIT) and
+ * apply a suspend/resume, recording the act as a signed durable audit entry.
  */
 export async function changeSuspension(opts: {
   society: string;
-  nombre: string;
-  cuit: string;
+  adminToken: string;
   motivo?: string;
   suspend: boolean;
+  nombre?: string;
 }): Promise<SuspensionResult> {
-  if (!parseCuit(opts.cuit).valid) {
-    return { ok: false, status: 422, error: "cuit_invalido" };
-  }
-  const principal = `cuit:${normalizeCuit(opts.cuit)}`;
   const admin = await societyAdminPrincipal(opts.society);
   if (!admin) return { ok: false, status: 404, error: "sociedad_sin_registro" };
-  if (admin !== principal) {
-    return { ok: false, status: 403, error: "no_sos_el_administrador" };
+  // Possession proof: the secret token minted at constitution, NOT the
+  // semi-public CUIT. Knowing the administrator's CUIT is no longer enough.
+  if (!(await verifyAdminToken(opts.society, opts.adminToken))) {
+    return { ok: false, status: 403, error: "token_invalido" };
   }
 
   const approver: ApproverAttestation = {
     method: "self-attested",
-    principal,
+    principal: admin,
     principalKind: "declared-cuit",
-    declaredBy: opts.nombre,
+    declaredBy: opts.nombre ?? "administrador",
   };
   // Record the act FIRST (it is the source of truth), then flip the flag.
   const entry = await appendAudit(
@@ -145,7 +142,8 @@ export async function handleSuspensionRequest(req: Request, suspend: boolean): P
   }
   const b = raw as {
     society?: unknown;
-    administrador?: { nombre?: unknown; cuit?: unknown };
+    adminToken?: unknown;
+    nombre?: unknown;
     motivo?: unknown;
     acepta?: unknown;
   };
@@ -160,15 +158,13 @@ export async function handleSuspensionRequest(req: Request, suspend: boolean): P
     );
   }
   const society = typeof b.society === "string" ? b.society.trim() : "";
-  const nombre = typeof b.administrador?.nombre === "string" ? b.administrador.nombre.trim() : "";
-  const cuit = typeof b.administrador?.cuit === "string" ? b.administrador.cuit : "";
+  const adminToken = typeof b.adminToken === "string" ? b.adminToken.trim() : "";
+  const nombre = typeof b.nombre === "string" ? b.nombre.trim() : undefined;
   const motivo = typeof b.motivo === "string" ? b.motivo : undefined;
   if (!society) return jsonCors({ ok: false, error: "falta_society" }, { status: 400 });
-  if (nombre.length < 2) {
-    return jsonCors({ ok: false, error: "administrador_invalido" }, { status: 400 });
-  }
+  if (!adminToken) return jsonCors({ ok: false, error: "falta_token" }, { status: 400 });
 
-  const r = await changeSuspension({ society, nombre, cuit, motivo, suspend });
+  const r = await changeSuspension({ society, adminToken, nombre, motivo, suspend });
   if (!r.ok) return jsonCors({ ok: false, error: r.error }, { status: r.status });
   return jsonCors({ ok: true, suspended: r.suspended, society, audit: { entry: r.entry } });
 }

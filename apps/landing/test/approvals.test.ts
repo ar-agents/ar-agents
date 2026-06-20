@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { mintAdminToken } from "../src/lib/admin-token";
 import { type ApproverAttestation, appendAudit, readAudit } from "../src/lib/audit";
 import {
   authorizeAndResolve,
@@ -22,15 +23,18 @@ function setup(): void {
   delete process.env.KV_REST_API_TOKEN;
 }
 
-async function seedSociety(sid: string, approver: ApproverAttestation = ADMIN): Promise<void> {
+/** Seed a constituted society and return its admin capability token. */
+async function seedSociety(sid: string, approver: ApproverAttestation = ADMIN): Promise<string> {
   await appendAudit(
     sid,
     { tool: "incorporate_attested", governance: "audit-logged", approver, input: {}, output: {} },
     { durable: true },
   );
+  const token = await mintAdminToken(sid);
+  return token!; // a fresh session always mints
 }
 
-const RESOLVE = { nombre: "Juan Pérez", cuit: "20-12345678-6" };
+const NOMBRE = "Juan Pérez";
 
 describe("hashArgs", () => {
   it("is stable regardless of key order", async () => {
@@ -48,13 +52,13 @@ describe("approval queue: gate -> resolve -> consume", () => {
   });
 
   it("first gate defers; approve; next gate proceeds once (single-use)", async () => {
-    await seedSociety("soc-a");
+    const token = await seedSociety("soc-a");
     const args = { cbu: "x", amount: 5000 };
     const g1 = await gateAction("soc-a", "transfer_funds", args);
     expect(g1.approved).toBe(false);
     expect(g1.status).toBe("pending");
 
-    const r = await authorizeAndResolve({ id: g1.requestId!, approved: true, ...RESOLVE });
+    const r = await authorizeAndResolve({ id: g1.requestId!, approved: true, adminToken: token, nombre: NOMBRE });
     expect(r.ok).toBe(true);
 
     const g2 = await gateAction("soc-a", "transfer_funds", args);
@@ -74,18 +78,18 @@ describe("approval queue: gate -> resolve -> consume", () => {
   });
 
   it("records a signed approval act in the society's audit log", async () => {
-    await seedSociety("soc-c");
+    const token = await seedSociety("soc-c");
     const g = await gateAction("soc-c", "transfer_funds", { x: 1 });
-    await authorizeAndResolve({ id: g.requestId!, approved: true, ...RESOLVE });
+    await authorizeAndResolve({ id: g.requestId!, approved: true, adminToken: token, nombre: NOMBRE });
     const last = (await readAudit("soc-c")).at(-1)!;
     expect(last.tool).toBe("aprobar_accion");
     expect(last.approver?.declaredBy).toBe("Juan Pérez");
   });
 
   it("a denial is STICKY: the action does not silently re-queue as approvable (#7)", async () => {
-    await seedSociety("soc-d");
+    const token = await seedSociety("soc-d");
     const g = await gateAction("soc-d", "transfer_funds", { x: 1 });
-    await authorizeAndResolve({ id: g.requestId!, approved: false, ...RESOLVE });
+    await authorizeAndResolve({ id: g.requestId!, approved: false, adminToken: token, nombre: NOMBRE });
     const g2 = await gateAction("soc-d", "transfer_funds", { x: 1 });
     expect(g2.approved).toBe(false);
     expect(g2.status).toBe("denied"); // surfaced as denied, not a fresh pending
@@ -93,11 +97,10 @@ describe("approval queue: gate -> resolve -> consume", () => {
   });
 
   it("single-use is ATOMIC: concurrent gates can't double-consume one approval (#3)", async () => {
-    await seedSociety("soc-race");
+    const token = await seedSociety("soc-race");
     const args = { cbu: "x", amount: 9999 };
     const g = await gateAction("soc-race", "transfer_funds", args);
-    await authorizeAndResolve({ id: g.requestId!, approved: true, ...RESOLVE });
-    // two concurrent consumes of the SAME approved action
+    await authorizeAndResolve({ id: g.requestId!, approved: true, adminToken: token, nombre: NOMBRE });
     const [a, b] = await Promise.all([
       gateAction("soc-race", "transfer_funds", args),
       gateAction("soc-race", "transfer_funds", args),
@@ -106,47 +109,41 @@ describe("approval queue: gate -> resolve -> consume", () => {
   });
 
   it("pendingApprovals lists pending, excludes resolved", async () => {
-    await seedSociety("soc-e");
+    const token = await seedSociety("soc-e");
     const g1 = await gateAction("soc-e", "tool_a", { x: 1 });
     await gateAction("soc-e", "tool_b", { y: 2 });
     expect((await pendingApprovals("soc-e")).length).toBe(2);
-    await authorizeAndResolve({ id: g1.requestId!, approved: true, ...RESOLVE });
+    await authorizeAndResolve({ id: g1.requestId!, approved: true, adminToken: token, nombre: NOMBRE });
     expect((await pendingApprovals("soc-e")).length).toBe(1);
   });
 });
 
-describe("authorizeAndResolve is CUIT-gated", () => {
+describe("authorizeAndResolve is TOKEN-gated", () => {
   beforeEach(setup);
   afterEach(() => {
     delete process.env.AUDIT_HMAC_SECRET;
   });
 
-  it("a different administrator cannot resolve (403)", async () => {
-    await seedSociety("soc-f", { ...ADMIN, principal: "cuit:27111111110", declaredBy: "Otro" });
+  it("a WRONG token cannot resolve (403) — knowing the CUIT is no longer enough", async () => {
+    await seedSociety("soc-f");
     const g = await gateAction("soc-f", "transfer_funds", { x: 1 });
-    const r = await authorizeAndResolve({ id: g.requestId!, approved: true, ...RESOLVE });
-    expect(r.ok).toBe(false);
-    if (r.ok) return;
-    expect(r.status).toBe(403);
-  });
-
-  it("an invalid CUIT -> 422", async () => {
     const r = await authorizeAndResolve({
-      id: "whatever",
+      id: g.requestId!,
       approved: true,
-      nombre: "Juan Pérez",
-      cuit: "20-12345678-9",
+      adminToken: "sat_attacker_guess",
+      nombre: "Mallory",
     });
     expect(r.ok).toBe(false);
     if (r.ok) return;
-    expect(r.status).toBe(422);
+    expect(r.status).toBe(403);
   });
 
   it("a nonexistent approval id -> 404", async () => {
     const r = await authorizeAndResolve({
       id: "does-not-exist",
       approved: true,
-      ...RESOLVE,
+      adminToken: "sat_whatever",
+      nombre: NOMBRE,
     });
     expect(r.ok).toBe(false);
     if (r.ok) return;
