@@ -46,7 +46,16 @@ describe("TokenBucketRateLimiter", () => {
   });
 
   it("learnFromHeaders tightens bucket when MP says we have less remaining", async () => {
-    const limiter = new TokenBucketRateLimiter({ capacity: 50, refillPerSecond: 25 });
+    // Inject a frozen clock: without it, getStats() refills a fraction of a
+    // token from the real wall-clock elapsed between learnFromHeaders and the
+    // read, making `toBe(3)` flaky in CI (e.g. 3.025). A frozen clock = 0
+    // elapsed = no accrual = exactly 3.
+    const clock = makeClock();
+    const limiter = new TokenBucketRateLimiter({
+      capacity: 50,
+      refillPerSecond: 25,
+      now: clock.now,
+    });
     // Bucket starts at capacity (50)
     limiter.learnFromHeaders({ remaining: 3, resetSeconds: 60 });
     expect(limiter.getStats().tokens).toBe(3);
