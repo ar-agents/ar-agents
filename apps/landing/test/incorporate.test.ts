@@ -167,6 +167,11 @@ describe("envVarsFor()", () => {
     const v = envVarsFor(["identity"]).map((x) => x.name);
     expect(v).not.toContain("WHATSAPP_ACCESS_TOKEN");
   });
+  it("includes governance env vars (SOCIETY_ID + AR_AGENTS_API_BASE)", () => {
+    const v = envVarsFor(["identity"]).map((x) => x.name);
+    expect(v).toContain("SOCIETY_ID");
+    expect(v).toContain("AR_AGENTS_API_BASE");
+  });
 });
 
 describe("generatePackageJson()", () => {
@@ -189,6 +194,10 @@ describe("generatePackageJson()", () => {
     const keys = Object.keys(parsed.dependencies);
     const sorted = [...keys].sort();
     expect(keys).toEqual(sorted);
+  });
+  it("includes @ar-agents/core (central governance) in deps", () => {
+    const parsed = JSON.parse(generatePackageJson(Body.parse(baseInput), ["identity"]));
+    expect(parsed.dependencies["@ar-agents/core"]).toBeDefined();
   });
 });
 
@@ -221,6 +230,13 @@ describe("generateAgentTs()", () => {
     expect(ts).toContain("from \"./clients\"");
     expect(ts).toContain("getMpClient");
     expect(ts).toContain("getAfipPadronAdapter");
+  });
+  it("wraps tools with the central enforceRiskPolicy gate + governance hooks", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity"]);
+    expect(ts).toContain('import { enforceRiskPolicy } from "@ar-agents/core"');
+    expect(ts).toContain('import { approve, isHalted } from "./governance"');
+    expect(ts).toContain("enforceRiskPolicy(");
+    expect(ts).toContain("{ approve, isHalted }");
   });
 });
 

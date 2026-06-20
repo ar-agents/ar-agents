@@ -333,6 +333,9 @@ importers:
       '@ar-agents/boletin-oficial':
         specifier: workspace:*
         version: link:../../packages/boletin-oficial
+      '@ar-agents/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@ar-agents/facturacion':
         specifier: workspace:*
         version: link:../../packages/facturacion

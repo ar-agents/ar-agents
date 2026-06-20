@@ -232,6 +232,19 @@ export function envVarsFor(piezas: string[]): Array<{ name: string; description:
       description: "URL the toolkit hits for HITL gates (refunds / cancellations).",
     },
   );
+  // art. 102 governance: the society's central enforcement consults ar-agents.ar
+  // for the async approval queue (high-stakes acts) and the kill-switch.
+  vars.push(
+    {
+      name: "SOCIETY_ID",
+      description:
+        "This society's id (the sessionId from when it was constituted). Keys the approval queue + kill-switch. Unset => the agent runs ungoverned (dev only).",
+    },
+    {
+      name: "AR_AGENTS_API_BASE",
+      description: "Base URL for the governance API. Defaults to https://ar-agents.ar.",
+    },
+  );
   return vars;
 }
 
@@ -243,6 +256,8 @@ export function generatePackageJson(input: IncorporateInput, piezas: string[]): 
     "react-dom": "^19.0.0",
     zod: "^4.0.0",
     "@ai-sdk/anthropic": "^2.0.0",
+    // Central enforcement (risk gate + art. 102 async approval + kill-switch).
+    "@ar-agents/core": "^0.2.0",
   };
   for (const id of piezas) {
     deps[`@ar-agents/${id}`] = PIEZA_VERSIONS[id] ?? "*";
@@ -319,6 +334,8 @@ import {
   getWsfeClient,
   getAfipPadronAdapter,
 } from "./clients";
+import { enforceRiskPolicy } from "@ar-agents/core";
+import { approve, isHalted } from "./governance";
 
 export function buildAgent() {
   const mp = getMpClient();
@@ -331,12 +348,19 @@ export function buildAgent() {
     stopWhen: stepCountIs(20),
     instructions:
       "Sos el agente operador de ${input.denominacion}. Operás bajo " +
-      "RFC-001 (https://ar-agents.ar/rfcs/001). Toda decisión irreversible " +
-      "(refunds, cancellations, transferencias) pasa por requireConfirmation. Audit " +
+      "RFC-001 (https://ar-agents.ar/rfcs/001). Toda acción de alto riesgo " +
+      "(transferencias, facturación, actos irreversibles) espera una aprobación " +
+      "humana asíncrona (art. 102) y puede frenarse con el kill-switch. Audit " +
       "log HMAC-firmado en cada tool call.",
-    tools: {
+    // enforceRiskPolicy is the central art. 102 gate: high-stakes tools defer to
+    // a human approval (async queue at ar-agents.ar), a suspended society halts
+    // every tool (kill-switch), and read tools pass through.
+    tools: enforceRiskPolicy(
+      {
 ${toolSpread.join("\n")}
-    },
+      },
+      { approve, isHalted },
+    ),
   });
 }
 `;
