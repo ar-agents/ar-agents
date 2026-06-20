@@ -11,6 +11,7 @@
 import { jsonCors, preflight } from "@/lib/cors";
 import { gateAction } from "@/lib/approvals";
 import { clientIp, kvRateLimit, rateLimit } from "@/lib/ratelimit";
+import { societyAdminPrincipal } from "@/lib/suspension";
 
 export const runtime = "edge";
 
@@ -33,6 +34,12 @@ export async function POST(req: Request) {
   const tool = typeof b.tool === "string" ? b.tool.trim() : "";
   if (!society || !tool) {
     return jsonCors({ ok: false, error: "falta_society_o_tool" }, { status: 400 });
+  }
+  // Only a constituted society may queue approvals. Without this, an anonymous
+  // caller could poison arbitrary / nonexistent societies' (public) pending
+  // queues, drowning a real malicious approval in noise (approval fatigue).
+  if (!(await societyAdminPrincipal(society))) {
+    return jsonCors({ ok: false, error: "sociedad_sin_registro" }, { status: 404 });
   }
   const result = await gateAction(society, tool, b.args ?? {});
   return jsonCors({ ok: true, ...result });

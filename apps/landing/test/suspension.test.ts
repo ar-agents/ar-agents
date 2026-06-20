@@ -47,6 +47,24 @@ describe("suspension store", () => {
     expect(await societyAdminPrincipal("soc-admin")).toBe("cuit:20123456786");
     expect(await societyAdminPrincipal("nonexistent")).toBeNull();
   });
+
+  it("anchors to the EARLIEST incorporation: re-incorporation cannot hijack admin (#2c)", async () => {
+    await seedSociety("soc-hijack"); // original admin (cuit:20123456786)
+    // attacker appends a LATER incorporation with their own principal
+    await appendAudit(
+      "soc-hijack",
+      {
+        tool: "incorporate_attested",
+        governance: "audit-logged",
+        approver: { ...ADMIN, principal: "cuit:27111111110", declaredBy: "Mallory" },
+        input: {},
+        output: {},
+      },
+      { durable: true },
+    );
+    // the ORIGINAL administrator remains authoritative
+    expect(await societyAdminPrincipal("soc-hijack")).toBe("cuit:20123456786");
+  });
 });
 
 describe("changeSuspension (authorized by CUIT match against the signed record)", () => {
