@@ -64,8 +64,12 @@ export async function isSuspended(societyId: string): Promise<boolean> {
  */
 export async function societyAdminPrincipal(sessionId: string): Promise<string | null> {
   const entries = await readAudit(sessionId);
-  for (let i = entries.length - 1; i >= 0; i--) {
-    const e = entries[i];
+  // The EARLIEST incorporation wins: the original constituting administrator is
+  // authoritative. A later (possibly forged) incorporation entry appended to the
+  // same session cannot override the admin anchor — this closes the
+  // re-incorporation takeover (an attacker cannot become the recognized
+  // administrator by appending a second constitution to a victim's session).
+  for (const e of entries) {
     if (e && INCORPORATION_TOOLS.has(e.tool) && e.approver?.principal) {
       return e.approver.principal;
     }
