@@ -37,6 +37,7 @@ type ConstitutedResult = {
   sociedad: { denominacion: string; slug: string };
   audit: { sessionId: string; verifyUrl: string; dashboardUrl: string };
   deploy: { oneClickUrl: string };
+  adminToken?: string | null;
 };
 
 const EXAMPLES = [
@@ -300,6 +301,33 @@ export function IncorporarPrompt() {
                 Firmada por {nombre} como administrador (art. 102) y registrada en el audit log. El acto quedó
                 con firma criptográfica verificable.
               </p>
+              {constituted.adminToken && (
+                <div
+                  style={{
+                    border: "1px solid var(--accent)",
+                    borderRadius: 8,
+                    background: "var(--code-bg)",
+                    padding: 12,
+                    margin: "0 0 12px",
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>
+                    Token de administrador. Guardalo ahora, no se vuelve a mostrar. Es lo único que te
+                    autoriza a frenar (kill-switch) o aprobar acciones de esta sociedad.
+                  </div>
+                  <code
+                    style={{
+                      fontFamily: FONT_MONO,
+                      fontSize: 12,
+                      color: "var(--code-text)",
+                      wordBreak: "break-all",
+                      userSelect: "all",
+                    }}
+                  >
+                    {constituted.adminToken}
+                  </code>
+                </div>
+              )}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 13 }}>
                 <a href={constituted.audit.verifyUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
                   Verificar la firma

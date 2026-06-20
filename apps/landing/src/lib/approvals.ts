@@ -16,10 +16,9 @@
  */
 
 import { kv } from "@vercel/kv";
+import { verifyAdminToken } from "./admin-token";
 import { type ApproverAttestation, appendAudit, type AuditEntry, readAudit } from "./audit";
-import { normalizeCuit } from "./incorporate";
 import { societyAdminPrincipal } from "./suspension";
-import { parseCuit } from "@ar-agents/identity";
 
 export type ApprovalStatus = "pending" | "approved" | "denied" | "consumed";
 
@@ -285,20 +284,21 @@ export async function resolveApproval(
 export async function authorizeAndResolve(opts: {
   id: string;
   approved: boolean;
-  nombre: string;
-  cuit: string;
-}): Promise<ResolveResult | { ok: false; status: 403 | 422; error: string }> {
-  if (!parseCuit(opts.cuit).valid) return { ok: false, status: 422, error: "cuit_invalido" };
+  adminToken: string;
+  nombre?: string;
+}): Promise<ResolveResult | { ok: false; status: 403; error: string }> {
   const req = await getReq(opts.id);
   if (!req) return { ok: false, status: 404, error: "aprobacion_inexistente" };
-  const principal = `cuit:${normalizeCuit(opts.cuit)}`;
+  // Possession proof: the society's admin capability token, NOT a knowable CUIT.
+  if (!(await verifyAdminToken(req.society, opts.adminToken))) {
+    return { ok: false, status: 403, error: "token_invalido" };
+  }
   const admin = await societyAdminPrincipal(req.society);
-  if (admin !== principal) return { ok: false, status: 403, error: "no_sos_el_administrador" };
   return resolveApproval(opts.id, opts.approved, {
     method: "self-attested",
-    principal,
+    principal: admin ?? "cuit:unknown",
     principalKind: "declared-cuit",
-    declaredBy: opts.nombre,
+    declaredBy: opts.nombre ?? "administrador",
   });
 }
 

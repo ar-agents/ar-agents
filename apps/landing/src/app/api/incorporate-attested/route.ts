@@ -20,6 +20,7 @@
  */
 
 import { jsonCors, preflight } from "@/lib/cors";
+import { mintAdminToken } from "@/lib/admin-token";
 import { type ApproverAttestation, backend as auditBackend } from "@/lib/audit";
 import { normalizeCuit } from "@/lib/incorporate";
 import { runIncorporation } from "@/lib/incorporate-run";
@@ -106,9 +107,14 @@ export async function POST(req: Request) {
   if (!result.ok) {
     return jsonCors(result.body, { status: result.status });
   }
-  return jsonCors(result.body, {
-    headers: { "x-play-session": result.sessionId, "x-audit-backend": auditBackend() },
-  });
+  // Mint the administrator capability token ONCE. The human must save it: it is
+  // the only proof (NOT the semi-public CUIT) that authorizes suspending or
+  // approving this society's acts later. Returned a single time, hashed at rest.
+  const adminToken = await mintAdminToken(result.sessionId);
+  return jsonCors(
+    { ...result.body, adminToken },
+    { headers: { "x-play-session": result.sessionId, "x-audit-backend": auditBackend() } },
+  );
 }
 
 export async function GET() {

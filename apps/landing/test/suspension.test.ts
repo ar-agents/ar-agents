@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { mintAdminToken } from "../src/lib/admin-token";
 import { type ApproverAttestation, appendAudit, readAudit } from "../src/lib/audit";
 import {
   changeSuspension,
@@ -21,12 +22,14 @@ function setup(): void {
   delete process.env.KV_REST_API_TOKEN;
 }
 
-async function seedSociety(sid: string, approver: ApproverAttestation = ADMIN): Promise<void> {
+async function seedSociety(sid: string, approver: ApproverAttestation = ADMIN): Promise<string> {
   await appendAudit(
     sid,
     { tool: "incorporate_attested", governance: "audit-logged", approver, input: {}, output: {} },
     { durable: true },
   );
+  const token = await mintAdminToken(sid);
+  return token!; // a fresh session always mints
 }
 
 describe("suspension store", () => {
@@ -67,20 +70,20 @@ describe("suspension store", () => {
   });
 });
 
-describe("changeSuspension (authorized by CUIT match against the signed record)", () => {
+describe("changeSuspension (authorized by the admin capability TOKEN)", () => {
   beforeEach(setup);
   afterEach(() => {
     delete process.env.AUDIT_HMAC_SECRET;
   });
 
-  it("the administrator suspends: records a signed act + flips the flag", async () => {
-    await seedSociety("soc-1");
+  it("the administrator suspends with the token: records a signed act + flips the flag", async () => {
+    const token = await seedSociety("soc-1");
     const r = await changeSuspension({
       society: "soc-1",
-      nombre: "Juan Pérez",
-      cuit: "20-12345678-6",
+      adminToken: token,
       motivo: "prueba",
       suspend: true,
+      nombre: "Juan Pérez",
     });
     expect(r.ok).toBe(true);
     if (!r.ok) return;
@@ -91,27 +94,16 @@ describe("changeSuspension (authorized by CUIT match against the signed record)"
   });
 
   it("resume lifts the suspension", async () => {
-    await seedSociety("soc-2");
-    await changeSuspension({ society: "soc-2", nombre: "Juan Pérez", cuit: "20-12345678-6", suspend: true });
-    const r = await changeSuspension({
-      society: "soc-2",
-      nombre: "Juan Pérez",
-      cuit: "20-12345678-6",
-      suspend: false,
-    });
+    const token = await seedSociety("soc-2");
+    await changeSuspension({ society: "soc-2", adminToken: token, suspend: true });
+    const r = await changeSuspension({ society: "soc-2", adminToken: token, suspend: false });
     expect(r.ok && r.suspended === false).toBe(true);
     expect(await isSuspended("soc-2")).toBe(false);
   });
 
-  it("a different administrator cannot suspend (403), even with a valid CUIT", async () => {
-    // society's recorded administrator is a different principal
-    await seedSociety("soc-3", { ...ADMIN, principal: "cuit:27111111110", declaredBy: "Otro" });
-    const r = await changeSuspension({
-      society: "soc-3",
-      nombre: "Mallory",
-      cuit: "20-12345678-6", // valid CUIT, but not the administrator
-      suspend: true,
-    });
+  it("a WRONG token cannot suspend (403) — knowing the CUIT is no longer enough", async () => {
+    await seedSociety("soc-3"); // a real token exists, but the attacker does not have it
+    const r = await changeSuspension({ society: "soc-3", adminToken: "sat_attacker_guess", suspend: true });
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.status).toBe(403);
@@ -119,27 +111,9 @@ describe("changeSuspension (authorized by CUIT match against the signed record)"
   });
 
   it("a society with no constitution record -> 404", async () => {
-    const r = await changeSuspension({
-      society: "ghost",
-      nombre: "Juan Pérez",
-      cuit: "20-12345678-6",
-      suspend: true,
-    });
+    const r = await changeSuspension({ society: "ghost", adminToken: "sat_whatever", suspend: true });
     expect(r.ok).toBe(false);
     if (r.ok) return;
     expect(r.status).toBe(404);
-  });
-
-  it("an invalid CUIT -> 422", async () => {
-    await seedSociety("soc-4");
-    const r = await changeSuspension({
-      society: "soc-4",
-      nombre: "Juan Pérez",
-      cuit: "20-12345678-9", // invalid checksum
-      suspend: true,
-    });
-    expect(r.ok).toBe(false);
-    if (r.ok) return;
-    expect(r.status).toBe(422);
   });
 });
