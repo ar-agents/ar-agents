@@ -31,7 +31,14 @@ import {
 import type { TelemetryHook } from "./telemetry";
 import { noopTelemetryHook } from "./telemetry";
 
-export type AnyTool = Tool<unknown, unknown>;
+// Matches the AI SDK's heterogeneous ToolSet: a record of tools with differing
+// input/output generics. `Tool<unknown, unknown>` rejects them because a tool's
+// `needsApproval` is contravariant in its input type, so a strongly-typed tool
+// (e.g. Tool<{ text: string }>) is not assignable to Tool<unknown>. `any` is the
+// SDK's own choice for a tool of unknown shape; the middleware only wraps
+// `execute` and never reads the input/output types, so this is safe.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+export type AnyTool = Tool<any, any>;
 export type ToolMiddleware = <T extends AnyTool>(tool: T) => T;
 
 /**
