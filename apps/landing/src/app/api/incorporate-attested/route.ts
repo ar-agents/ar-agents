@@ -20,11 +20,7 @@
  */
 
 import { jsonCors, preflight } from "@/lib/cors";
-import {
-  type ApproverAttestation,
-  backend as auditBackend,
-  isSessionIdValid,
-} from "@/lib/audit";
+import { type ApproverAttestation, backend as auditBackend } from "@/lib/audit";
 import { normalizeCuit } from "@/lib/incorporate";
 import { runIncorporation } from "@/lib/incorporate-run";
 import { draftToInput, SocietyDraftSchema } from "@/lib/prompt-to-society";
@@ -93,11 +89,11 @@ export async function POST(req: Request) {
     );
   }
 
-  const sessionId =
-    typeof body.sessionId === "string" && isSessionIdValid(body.sessionId)
-      ? body.sessionId
-      : undefined;
-  const input = draftToInput(parsed.data, sessionId);
+  // Always server-mint the sessionId on the human constitution path. Accepting a
+  // caller-controlled sessionId would let an attacker constitute INTO a victim's
+  // session and, as the EARLIEST incorporation entry, anchor themselves as its
+  // administrator. runIncorporation mints a fresh UUID when none is supplied.
+  const input = draftToInput(parsed.data);
 
   const approver: ApproverAttestation = {
     method: "self-attested",
