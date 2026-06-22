@@ -199,6 +199,30 @@ export interface Ed25519Signature {
  * responsible for the AI's acts and bars delegating that supervision, so the
  * operating record must carry the approver instead of discarding it at the gate.
  */
+/**
+ * Optional proof that the administrator controls a verified channel (WhatsApp /
+ * email / KYC provider / gov identity), issued by `@ar-agents/identity-attest`
+ * and verified at constitution. Bound INTO the approver so the signed record
+ * shows not just the declared CUIT but HOW (and how strongly) it was backed by a
+ * possession proof. Absent today by default — self-attestation remains valid
+ * pre-law; this is the wired upgrade path to real KYC. Non-secret, so it is safe
+ * to sign + surface in the public record.
+ */
+export interface ChannelAttestationSummary {
+  /** Verification method id (e.g. "whatsapp_otp", "mercadopago_identity"). */
+  method: string;
+  /** Trust level the method confers, 0..1 (see identity-attest TrustLevel). */
+  trustLevel: number;
+  /** What was verified ("cuit" | "phone" | "email" | "dni" | ...). */
+  subjectType: string;
+  /** Whether the verified subject IS the declared administrator CUIT (the strong
+   *  case). False when the proof is only channel-control (phone/email) not tied
+   *  to the CUIT. */
+  subjectMatchesCuit: boolean;
+  /** ISO timestamp the verification completed. */
+  verifiedAt: string;
+}
+
 export interface ApproverAttestation {
   /** How the approver was established. `shared-key`/`vercel-oidc` for agent
    *  callers (see incorporate-auth.ts); `self-attested` for a human who declared
@@ -215,6 +239,11 @@ export interface ApproverAttestation {
    *  the representante's name, or an `x-approver` header. Recorded as-asserted,
    *  NEVER trusted for authentication. */
   declaredBy?: string | undefined;
+  /** Optional verified-channel proof backing the declared identity (KYC upgrade
+   *  path). Undefined when the administrator is purely self-attested (today's
+   *  default). Canonical-JSON skips it when absent, so existing signatures are
+   *  unaffected. */
+  channelAttestation?: ChannelAttestationSummary | undefined;
 }
 
 export interface AuditEntry {

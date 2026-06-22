@@ -22,14 +22,29 @@
 import { jsonCors, preflight } from "@/lib/cors";
 import { mintAdminToken } from "@/lib/admin-token";
 import { mintGateToken } from "@/lib/gate-token";
-import { type ApproverAttestation, backend as auditBackend } from "@/lib/audit";
+import {
+  attestationConfigured,
+  attestationRequired,
+  verifyPresentedAttestation,
+} from "@/lib/admin-attestation";
+import {
+  type ApproverAttestation,
+  backend as auditBackend,
+  type ChannelAttestationSummary,
+} from "@/lib/audit";
 import { canonicalCuit } from "@/lib/incorporate";
 import { runIncorporation } from "@/lib/incorporate-run";
 import { draftToInput, SocietyDraftSchema } from "@/lib/prompt-to-society";
 import { clientIp, kvRateLimit, rateLimit } from "@/lib/ratelimit";
 import { parseCuit } from "@ar-agents/identity";
 
-export const runtime = "edge";
+// Node runtime (not edge): the KYC seam pulls @ar-agents/identity-attest, whose
+// barrel re-exports the deprecated Auth0/magic-link adapters that load
+// node:crypto (the package isolates them by subpath but the barrel still drags
+// them in, and there is no client-only subpath to import around it). This is a
+// low-frequency durable-write endpoint (5/hr), so Node runtime is the right
+// trade; Web Crypto (audit signing, token hashing) works identically here.
+export const runtime = "nodejs";
 
 export async function POST(req: Request) {
   const ip = clientIp(req);
@@ -53,6 +68,7 @@ export async function POST(req: Request) {
     administrador?: { nombre?: unknown; cuit?: unknown };
     acepta102?: unknown;
     sessionId?: unknown;
+    attestation?: unknown;
   };
 
   // art. 102 acceptance is mandatory: a human takes non-delegable responsibility.
@@ -88,6 +104,35 @@ export async function POST(req: Request) {
     );
   }
 
+  // KYC seam (Phase 2 #6): if a verified channel attestation is presented (and
+  // the seam is configured), verify it and bind it into the signed record. If
+  // this instance REQUIRES attestation, reject when none is presented. Otherwise
+  // self-attestation remains valid (today's default — no behavior change).
+  let channelAttestation: ChannelAttestationSummary | undefined;
+  if (attestationRequired() && body.attestation == null) {
+    return jsonCors(
+      {
+        ok: false,
+        error: "attestation_requerida",
+        message: "Esta instancia exige verificación de identidad del administrador.",
+      },
+      { status: 401 },
+    );
+  }
+  if (attestationConfigured() && body.attestation != null) {
+    const v = await verifyPresentedAttestation({
+      attestation: body.attestation,
+      expectedCuit: cuitCanonical,
+    });
+    if (!v.ok) {
+      return jsonCors(
+        { ok: false, error: "attestation_invalida", detail: v.error },
+        { status: 422 },
+      );
+    }
+    channelAttestation = v.summary;
+  }
+
   // Re-validate the draft against the strict storage contract: the human may
   // have edited the previewed draft, and the client is never trusted.
   const parsed = SocietyDraftSchema.safeParse(body.draft);
@@ -109,6 +154,7 @@ export async function POST(req: Request) {
     principal: `cuit:${cuitCanonical}`,
     principalKind: "declared-cuit",
     declaredBy: nombre,
+    ...(channelAttestation ? { channelAttestation } : {}),
   };
 
   const result = await runIncorporation(input, { approver, tool: "incorporate_attested" });
