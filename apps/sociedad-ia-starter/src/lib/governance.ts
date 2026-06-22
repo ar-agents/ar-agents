@@ -17,6 +17,10 @@
 
 const BASE = process.env.AR_AGENTS_API_BASE?.trim() || "https://ar-agents.ar";
 const SOCIETY = process.env.SOCIETY_ID?.trim() || "";
+// This society's runtime gate token (minted at constitution, shown once). Proves
+// to the approval queue that this deploy IS the society, so a stranger who knows
+// the public sessionId cannot flood the queue. Sent on every gate call.
+const GATE_TOKEN = process.env.SOCIETY_GATE_TOKEN?.trim() || "";
 // The ungoverned pass-through is for LOCAL DEV ONLY. In production a missing
 // SOCIETY_ID must FAIL CLOSED: a deployed society with governance silently off
 // (every high-stakes tool ungated, kill-switch inert) is the most dangerous
@@ -29,7 +33,7 @@ export async function approve(toolName: string, args: unknown): Promise<boolean>
     const res = await fetch(`${BASE}/api/approvals/gate`, {
       method: "POST",
       headers: { "content-type": "application/json" },
-      body: JSON.stringify({ society: SOCIETY, tool: toolName, args }),
+      body: JSON.stringify({ society: SOCIETY, tool: toolName, args, gateToken: GATE_TOKEN }),
     });
     if (!res.ok) return false; // fail closed
     const data = (await res.json()) as { approved?: boolean };

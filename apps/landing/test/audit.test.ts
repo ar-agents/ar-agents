@@ -358,3 +358,70 @@ describe("RFC-005 dual-sign, HMAC strip rule covers both fields", () => {
     expect(entries[entries.length - 1]?.signature).toEqual(sigStub);
   });
 });
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUDIT_HMAC_SECRET rotation keyring: a single, unrotatable secret was a
+// non-repudiation SPOF. signEntry uses the primary; verifyEntry accepts the
+// primary OR any comma-separated retired secret (AUDIT_HMAC_SECRET_PREVIOUS),
+// so a proof link doesn't break mid-rotation.
+// ─────────────────────────────────────────────────────────────────────────────
+
+describe("AUDIT_HMAC_SECRET rotation keyring", () => {
+  const OLD = "old-secret-32-chars-bbbbbbbbbbbbbbbbbbbb";
+  const NEW = "new-secret-32-chars-cccccccccccccccccccc";
+  const OLDER = "older-secret-32-chars-dddddddddddddddddd";
+
+  afterEach(() => {
+    delete process.env.AUDIT_HMAC_SECRET;
+    delete process.env.AUDIT_HMAC_SECRET_PREVIOUS;
+  });
+
+  const mkEntry = (): AuditEntry => ({
+    id: "rot-1",
+    sessionId: "rot-sess",
+    ts: "2026-06-22T00:00:00.000Z",
+    tool: "validate_cuit",
+    governance: "algorithm-only",
+    input: { cuit: "20-12345678-9" },
+    hmac: null,
+  });
+
+  it("an entry signed under the OLD secret still verifies after rotating (OLD kept in PREVIOUS)", async () => {
+    process.env.AUDIT_HMAC_SECRET = OLD;
+    const entry = mkEntry();
+    entry.hmac = await signEntry(entry);
+    // rotate: NEW is primary, OLD becomes verify-only
+    process.env.AUDIT_HMAC_SECRET = NEW;
+    process.env.AUDIT_HMAC_SECRET_PREVIOUS = OLD;
+    expect(await verifyEntry(entry)).toBe(true);
+  });
+
+  it("new entries sign under the NEW primary (not the retired one) and verify", async () => {
+    process.env.AUDIT_HMAC_SECRET = NEW;
+    process.env.AUDIT_HMAC_SECRET_PREVIOUS = OLD;
+    const entry = mkEntry();
+    entry.hmac = await signEntry(entry);
+    expect(await verifyEntry(entry)).toBe(true);
+    // the signature is the NEW one, not what OLD would have produced
+    process.env.AUDIT_HMAC_SECRET = OLD;
+    delete process.env.AUDIT_HMAC_SECRET_PREVIOUS;
+    expect(entry.hmac).not.toBe(await signEntry(mkEntry()));
+  });
+
+  it("once OLD is fully retired (not primary, not previous), its entries no longer verify", async () => {
+    process.env.AUDIT_HMAC_SECRET = OLD;
+    const entry = mkEntry();
+    entry.hmac = await signEntry(entry);
+    process.env.AUDIT_HMAC_SECRET = NEW; // OLD retired entirely
+    expect(await verifyEntry(entry)).toBe(false);
+  });
+
+  it("accepts multiple retired secrets (comma-separated)", async () => {
+    process.env.AUDIT_HMAC_SECRET = OLDER;
+    const entry = mkEntry();
+    entry.hmac = await signEntry(entry);
+    process.env.AUDIT_HMAC_SECRET = NEW;
+    process.env.AUDIT_HMAC_SECRET_PREVIOUS = `${OLD}, ${OLDER}`;
+    expect(await verifyEntry(entry)).toBe(true); // OLDER is in the keyring
+  });
+});

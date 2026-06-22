@@ -10,6 +10,7 @@
 
 import { jsonCors, preflight } from "@/lib/cors";
 import { gateAction } from "@/lib/approvals";
+import { hasGateToken, verifyGateToken } from "@/lib/gate-token";
 import { clientIp, kvRateLimit, rateLimit } from "@/lib/ratelimit";
 import { societyAdminPrincipal } from "@/lib/suspension";
 
@@ -29,9 +30,15 @@ export async function POST(req: Request) {
   } catch {
     return jsonCors({ ok: false, error: "bad_json" }, { status: 400 });
   }
-  const b = raw as { society?: unknown; tool?: unknown; args?: unknown };
+  const b = raw as {
+    society?: unknown;
+    tool?: unknown;
+    args?: unknown;
+    gateToken?: unknown;
+  };
   const society = typeof b.society === "string" ? b.society.trim() : "";
   const tool = typeof b.tool === "string" ? b.tool.trim() : "";
+  const gateToken = typeof b.gateToken === "string" ? b.gateToken : "";
   if (!society || !tool) {
     return jsonCors({ ok: false, error: "falta_society_o_tool" }, { status: 400 });
   }
@@ -40,6 +47,17 @@ export async function POST(req: Request) {
   // queues, drowning a real malicious approval in noise (approval fatigue).
   if (!(await societyAdminPrincipal(society))) {
     return jsonCors({ ok: false, error: "sociedad_sin_registro" }, { status: 404 });
+  }
+  // #4-full: a society constituted after the gate-token upgrade must present its
+  // runtime token (SOCIETY_GATE_TOKEN, baked into the deploy). Knowing the
+  // public sessionId is no longer enough to enqueue — only the society itself
+  // holds the token. Require-if-present: legacy societies minted before the
+  // upgrade have no gate token and keep the #4-partial protection (registered-
+  // society check above) so they are not bricked.
+  if (await hasGateToken(society)) {
+    if (!(await verifyGateToken(society, gateToken))) {
+      return jsonCors({ ok: false, error: "gate_token_invalido" }, { status: 403 });
+    }
   }
   const result = await gateAction(society, tool, b.args ?? {});
   return jsonCors({ ok: true, ...result });

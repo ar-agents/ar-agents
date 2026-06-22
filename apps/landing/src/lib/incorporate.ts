@@ -71,8 +71,34 @@ const MIN_CAPITAL: Record<string, number> = {
   "SOCIEDAD-IA": 1,
 };
 
+// The conventional separators a human types in a CUIT: ASCII whitespace, dot,
+// soft hyphen (U+00AD), the Unicode dash block (U+2010–U+2015), and the ASCII
+// hyphen. NOTHING else is stripped.
+const CUIT_SEPARATORS = /[\s.­‐-―-]/g;
+
+/**
+ * Strip ONLY the conventional separators from a typed CUIT — never "everything
+ * that isn't a digit". Stripping all non-digits would silently delete injected
+ * junk (zero-width chars, bidi overrides, homoglyphs) and could fold two visually
+ * different inputs onto the same 11-digit principal. By removing only known
+ * separators, any contaminating character SURVIVES and the strict 11-ASCII-digit
+ * check downstream REJECTS it instead of cleaning it. Use {@link canonicalCuit}
+ * at trust boundaries to get the validated digits or null.
+ */
 export function normalizeCuit(raw: string): string {
-  return String(raw ?? "").replace(/[^\d]/g, "");
+  return String(raw ?? "").replace(CUIT_SEPARATORS, "");
+}
+
+/**
+ * Canonical CUIT for use as an identity key (the audit `principal`). Returns the
+ * 11-digit string iff, after stripping conventional separators, what remains is
+ * EXACTLY 11 ASCII digits (`[0-9]`); otherwise null. Unicode digits, homoglyphs,
+ * and any non-separator contamination yield null — a rejected input, never a
+ * silently-cleaned or colliding principal.
+ */
+export function canonicalCuit(raw: string): string | null {
+  const stripped = normalizeCuit(raw);
+  return /^[0-9]{11}$/.test(stripped) ? stripped : null;
 }
 
 export function validate(input: IncorporateInput): {
@@ -108,8 +134,7 @@ export function validate(input: IncorporateInput): {
     });
   }
   if (input.representante?.cuit) {
-    const norm = normalizeCuit(input.representante.cuit);
-    if (!/^\d{11}$/.test(norm)) {
+    if (!canonicalCuit(input.representante.cuit)) {
       findings.push({
         code: "cuit_representante_invalid",
         severity: "error",
@@ -239,6 +264,11 @@ export function envVarsFor(piezas: string[]): Array<{ name: string; description:
       name: "SOCIETY_ID",
       description:
         "This society's id (the sessionId from when it was constituted). Keys the approval queue + kill-switch. Unset => the agent runs ungoverned (dev only).",
+    },
+    {
+      name: "SOCIETY_GATE_TOKEN",
+      description:
+        "This society's runtime gate token, shown once at constitution. Proves to the approval queue that this deploy IS the society, so a stranger who knows the sessionId cannot flood its queue. Set it to the value returned when you constituted.",
     },
     {
       name: "AR_AGENTS_API_BASE",
