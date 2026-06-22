@@ -28,25 +28,68 @@ import { kv } from "@vercel/kv";
 
 const enc = new TextEncoder();
 
-const cachedKey: { key: CryptoKey | null; secret: string | null } = {
-  key: null,
-  secret: null,
-};
-
-async function getHmacKey(): Promise<CryptoKey | null> {
-  const secret = process.env.AUDIT_HMAC_SECRET?.trim();
-  if (!secret) return null;
-  if (cachedKey.key && cachedKey.secret === secret) return cachedKey.key;
-  const key = await crypto.subtle.importKey(
+async function importHmac(secret: string): Promise<CryptoKey> {
+  return crypto.subtle.importKey(
     "raw",
     enc.encode(secret),
     { name: "HMAC", hash: "SHA-256" },
     false,
     ["sign", "verify"],
   );
-  cachedKey.key = key;
-  cachedKey.secret = secret;
+}
+
+function primarySecret(): string | null {
+  return process.env.AUDIT_HMAC_SECRET?.trim() || null;
+}
+
+/**
+ * Verify-only retired secrets, comma-separated, for ZERO-DOWNTIME ROTATION.
+ * Rotate by: AUDIT_HMAC_SECRET=<new>, AUDIT_HMAC_SECRET_PREVIOUS=<old>. New
+ * entries sign under the new secret; entries written under the old one still
+ * verify (so a public proof link doesn't break mid-rotation). Drop PREVIOUS once
+ * every entry signed under the old secret has aged past its TTL. A single
+ * AUDIT_HMAC_SECRET with no PREVIOUS was a non-repudiation SPOF — unrotatable
+ * without invalidating all history.
+ */
+function previousSecrets(): string[] {
+  const raw = process.env.AUDIT_HMAC_SECRET_PREVIOUS?.trim();
+  if (!raw) return [];
+  return raw
+    .split(",")
+    .map((s) => s.trim())
+    .filter(Boolean);
+}
+
+const cachedSigning: { key: CryptoKey | null; secret: string | null } = {
+  key: null,
+  secret: null,
+};
+
+/** The single key NEW entries are signed with: the primary secret. */
+async function getSigningKey(): Promise<CryptoKey | null> {
+  const secret = primarySecret();
+  if (!secret) return null;
+  if (cachedSigning.key && cachedSigning.secret === secret) return cachedSigning.key;
+  const key = await importHmac(secret);
+  cachedSigning.key = key;
+  cachedSigning.secret = secret;
   return key;
+}
+
+let cachedVerify: { keys: CryptoKey[]; fingerprint: string } | null = null;
+
+/** Every key an entry MAY have been signed with: primary first, then retired
+ *  secrets (verify-only). verifyEntry accepts a match against any of them. */
+async function getVerificationKeys(): Promise<CryptoKey[]> {
+  const secrets = [primarySecret(), ...previousSecrets()].filter(
+    (s): s is string => Boolean(s),
+  );
+  if (secrets.length === 0) return [];
+  const fingerprint = JSON.stringify(secrets);
+  if (cachedVerify && cachedVerify.fingerprint === fingerprint) return cachedVerify.keys;
+  const keys = await Promise.all(secrets.map(importHmac));
+  cachedVerify = { keys, fingerprint };
+  return keys;
 }
 
 function bytesToHex(bytes: ArrayBuffer): string {
@@ -91,7 +134,7 @@ function canonical(value: unknown, depth = 0): string {
 }
 
 export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string | null> {
-  const key = await getHmacKey();
+  const key = await getSigningKey();
   if (!key) return null;
   // Strip BOTH `hmac` and `signature` (RFC-005) fields before signing.
   // verify() does the same, so sign + verify operate on the same input
@@ -104,8 +147,8 @@ export async function signEntry(entry: Omit<AuditEntry, "hmac">): Promise<string
 }
 
 export async function verifyEntry(entry: AuditEntry): Promise<boolean> {
-  const key = await getHmacKey();
-  if (!key) return false;
+  const keys = await getVerificationKeys();
+  if (keys.length === 0) return false;
   if (!entry.hmac?.startsWith("sha256:")) return false;
   const hex = entry.hmac.slice("sha256:".length);
   if (!/^[0-9a-f]+$/.test(hex)) return false;
@@ -117,18 +160,17 @@ export async function verifyEntry(entry: AuditEntry): Promise<boolean> {
   const stripped = { ...entry } as Record<string, unknown>;
   delete stripped.hmac;
   delete stripped.signature;
-  try {
-    return await crypto.subtle.verify(
-      "HMAC",
-      key,
-      sigBytes,
-      enc.encode(canonical(stripped)),
-    );
-  } catch {
-    // A poisoned/over-deep stored entry must read as "not verified", never
-    // 500 the public read endpoint.
-    return false;
+  const msg = enc.encode(canonical(stripped));
+  // Accept a match under the primary OR any retired secret (rotation window).
+  for (const key of keys) {
+    try {
+      if (await crypto.subtle.verify("HMAC", key, sigBytes, msg)) return true;
+    } catch {
+      // A poisoned/over-deep stored entry must read as "not verified", never
+      // 500 the public read endpoint. Try the next key, then fall through.
+    }
   }
+  return false;
 }
 
 // ─────────────────────────────────────────────────────────────────────────────

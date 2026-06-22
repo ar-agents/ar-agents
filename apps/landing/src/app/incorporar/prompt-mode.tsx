@@ -38,6 +38,7 @@ type ConstitutedResult = {
   audit: { sessionId: string; verifyUrl: string; dashboardUrl: string };
   deploy: { oneClickUrl: string };
   adminToken?: string | null;
+  gateToken?: string | null;
 };
 
 const EXAMPLES = [
@@ -325,6 +326,34 @@ export function IncorporarPrompt() {
                     }}
                   >
                     {constituted.adminToken}
+                  </code>
+                </div>
+              )}
+              {constituted.gateToken && (
+                <div
+                  style={{
+                    border: "1px solid var(--border)",
+                    borderRadius: 8,
+                    background: "var(--code-bg)",
+                    padding: 12,
+                    margin: "0 0 12px",
+                  }}
+                >
+                  <div style={{ fontSize: 12, color: "var(--text-muted)", marginBottom: 4 }}>
+                    Token de la sociedad. Pegalo en tu deploy como{" "}
+                    <code style={{ fontFamily: FONT_MONO }}>SOCIETY_GATE_TOKEN</code>. Es lo que prueba
+                    que el deploy es esta sociedad cuando consulta la cola de aprobaciones. No se vuelve a mostrar.
+                  </div>
+                  <code
+                    style={{
+                      fontFamily: FONT_MONO,
+                      fontSize: 12,
+                      color: "var(--code-text)",
+                      wordBreak: "break-all",
+                      userSelect: "all",
+                    }}
+                  >
+                    {constituted.gateToken}
                   </code>
                 </div>
               )}
