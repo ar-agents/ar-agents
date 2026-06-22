@@ -5,6 +5,7 @@
 import { afterEach, describe, expect, it } from "vitest";
 import {
   Body,
+  canonicalCuit,
   envVarsFor,
   generateAgentTs,
   generateChecklist,
@@ -106,16 +107,52 @@ describe("validate()", () => {
   });
 });
 
+// Build special characters from code points so the test is robust to source
+// encoding (literal invisible bytes are unreliable across editors/pipes).
+const ZWSP = String.fromCharCode(0x200b); // zero-width space
+const RTL = String.fromCharCode(0x202e); // right-to-left override (bidi)
+const EN_DASH = String.fromCharCode(0x2013); // U+2013, inside the stripped dash range
+const FW = String.fromCharCode(0xff12) + String.fromCharCode(0xff10); // fullwidth "20"
+
 describe("normalizeCuit()", () => {
-  it("strips non-digits", () => {
+  it("strips the conventional separators (space, dot, hyphen family)", () => {
     expect(normalizeCuit("20-12345678-9")).toBe("20123456789");
     expect(normalizeCuit("20.12345678-9")).toBe("20123456789");
     expect(normalizeCuit("20 1234 5678 9")).toBe("20123456789");
+    expect(normalizeCuit(`20${EN_DASH}12345678${EN_DASH}9`)).toBe("20123456789");
   });
   it("handles empty / null", () => {
     expect(normalizeCuit("")).toBe("");
     expect(normalizeCuit(null as unknown as string)).toBe("");
     expect(normalizeCuit(undefined as unknown as string)).toBe("");
+  });
+  it("does NOT silently delete non-separator contamination (it survives, to be rejected)", () => {
+    // A zero-width / bidi / homoglyph char must NOT vanish — it stays so the
+    // strict 11-ASCII-digit check downstream rejects the input rather than
+    // cleaning a hostile string into a valid-looking CUIT.
+    expect(normalizeCuit(`2012345678${ZWSP}9`)).toContain(ZWSP); // ZWSP survives
+    expect(normalizeCuit("20123456789X")).toBe("20123456789X"); // letter survives
+  });
+});
+
+describe("canonicalCuit() — strict identity key", () => {
+  it("returns the 11 ASCII digits for a clean input", () => {
+    expect(canonicalCuit("20-12345678-9")).toBe("20123456789");
+    expect(canonicalCuit("  20123456789  ")).toBe("20123456789");
+  });
+  it("rejects non-11-digit, unicode-digit, and contaminated inputs (null)", () => {
+    expect(canonicalCuit("123")).toBeNull(); // too short
+    expect(canonicalCuit("201234567890")).toBeNull(); // too long
+    expect(canonicalCuit("2012345678X")).toBeNull(); // letter
+    expect(canonicalCuit(`2012345678${ZWSP}9`)).toBeNull(); // zero-width contamination
+    expect(canonicalCuit(`${FW}123456789`)).toBeNull(); // fullwidth digits
+    expect(canonicalCuit("")).toBeNull();
+  });
+  it("two visually-similar inputs cannot collapse onto one principal", () => {
+    // clean digits canonicalize; a bidi/zero-width variant is rejected, so it
+    // can never share an identity with the clean form.
+    expect(canonicalCuit("20123456786")).toBe("20123456786");
+    expect(canonicalCuit(`201234567${RTL}86`)).toBeNull(); // RTL override injected
   });
 });
 
@@ -167,9 +204,10 @@ describe("envVarsFor()", () => {
     const v = envVarsFor(["identity"]).map((x) => x.name);
     expect(v).not.toContain("WHATSAPP_ACCESS_TOKEN");
   });
-  it("includes governance env vars (SOCIETY_ID + AR_AGENTS_API_BASE)", () => {
+  it("includes governance env vars (SOCIETY_ID + SOCIETY_GATE_TOKEN + AR_AGENTS_API_BASE)", () => {
     const v = envVarsFor(["identity"]).map((x) => x.name);
     expect(v).toContain("SOCIETY_ID");
+    expect(v).toContain("SOCIETY_GATE_TOKEN");
     expect(v).toContain("AR_AGENTS_API_BASE");
   });
 });

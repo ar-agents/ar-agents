@@ -70,9 +70,23 @@ describe("kvRateLimit", () => {
     expect(key).toMatch(/^rl:scopeX:ip9:\d+$/);
   });
 
-  it("fails OPEN on a KV error (availability over strictness)", async () => {
+  it("fails OPEN on a KV error by default (availability over strictness)", async () => {
     incr.mockRejectedValueOnce(new Error("kv unreachable"));
     expect(await kvRateLimit("auto-incorporate", "1.2.3.4", 10, 3600)).toBe(true);
+  });
+
+  it("fails CLOSED on a KV error when failClosed is set (durable-write paths)", async () => {
+    incr.mockRejectedValueOnce(new Error("kv unreachable"));
+    expect(
+      await kvRateLimit("incorporate-attested", "1.2.3.4", 5, 3600, { failClosed: true }),
+    ).toBe(false);
+  });
+
+  it("failClosed does NOT change the happy path (still allows under the cap)", async () => {
+    incr.mockResolvedValueOnce(1);
+    expect(
+      await kvRateLimit("incorporate-attested", "1.2.3.4", 5, 3600, { failClosed: true }),
+    ).toBe(true);
   });
 });
 
