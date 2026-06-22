@@ -17,6 +17,7 @@
     "@ar-agents/banking": "workspace:*",
     "@ar-agents/core": "workspace:*",
     "@ar-agents/identity": "workspace:*",
+    "@ar-agents/identity-attest": "workspace:*",
     "@ar-agents/iva-percepciones": "workspace:*",
     "@ar-agents/iva-retenciones": "workspace:*",
     "@ar-agents/sicore": "workspace:*",
