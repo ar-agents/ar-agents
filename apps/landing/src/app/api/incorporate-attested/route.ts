@@ -21,8 +21,9 @@
 
 import { jsonCors, preflight } from "@/lib/cors";
 import { mintAdminToken } from "@/lib/admin-token";
+import { mintGateToken } from "@/lib/gate-token";
 import { type ApproverAttestation, backend as auditBackend } from "@/lib/audit";
-import { normalizeCuit } from "@/lib/incorporate";
+import { canonicalCuit } from "@/lib/incorporate";
 import { runIncorporation } from "@/lib/incorporate-run";
 import { draftToInput, SocietyDraftSchema } from "@/lib/prompt-to-society";
 import { clientIp, kvRateLimit, rateLimit } from "@/lib/ratelimit";
@@ -35,7 +36,9 @@ export async function POST(req: Request) {
   if (!rateLimit("incorporate-attested", ip, 5, 60 * 60_000)) {
     return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }
-  if (!(await kvRateLimit("incorporate-attested", ip, 5, 60 * 60))) {
+  // Durable-write path: fail CLOSED if KV (the only cross-isolate quota) is
+  // down, rather than waving through an unbounded flood of permanent records.
+  if (!(await kvRateLimit("incorporate-attested", ip, 5, 60 * 60, { failClosed: true }))) {
     return jsonCors({ ok: false, error: "rate_limited" }, { status: 429 });
   }
 
@@ -73,7 +76,12 @@ export async function POST(req: Request) {
       { status: 400 },
     );
   }
-  if (!parseCuit(cuitRaw).valid) {
+  // parseCuit validates the check digit; canonicalCuit additionally pins the
+  // stored principal to exactly 11 ASCII digits, rejecting unicode-digit /
+  // homoglyph / zero-width contamination so two visually different inputs can
+  // never collapse onto one administrator identity.
+  const cuitCanonical = canonicalCuit(cuitRaw);
+  if (!parseCuit(cuitRaw).valid || !cuitCanonical) {
     return jsonCors(
       { ok: false, error: "cuit_invalido", message: "El CUIT del administrador no es válido." },
       { status: 422 },
@@ -98,7 +106,7 @@ export async function POST(req: Request) {
 
   const approver: ApproverAttestation = {
     method: "self-attested",
-    principal: `cuit:${normalizeCuit(cuitRaw)}`,
+    principal: `cuit:${cuitCanonical}`,
     principalKind: "declared-cuit",
     declaredBy: nombre,
   };
@@ -107,12 +115,14 @@ export async function POST(req: Request) {
   if (!result.ok) {
     return jsonCors(result.body, { status: result.status });
   }
-  // Mint the administrator capability token ONCE. The human must save it: it is
-  // the only proof (NOT the semi-public CUIT) that authorizes suspending or
-  // approving this society's acts later. Returned a single time, hashed at rest.
+  // Mint two write-once capability tokens (returned a single time, hashed at
+  // rest). adminToken: the human's proof to suspend/approve (NOT the semi-public
+  // CUIT). gateToken: baked into the deployed society's env as
+  // SOCIETY_GATE_TOKEN so only the society itself can enqueue approvals.
   const adminToken = await mintAdminToken(result.sessionId);
+  const gateToken = await mintGateToken(result.sessionId);
   return jsonCors(
-    { ...result.body, adminToken },
+    { ...result.body, adminToken, gateToken },
     { headers: { "x-play-session": result.sessionId, "x-audit-backend": auditBackend() } },
   );
 }

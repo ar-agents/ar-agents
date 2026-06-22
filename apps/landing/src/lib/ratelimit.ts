@@ -85,14 +85,20 @@ export function rateLimit(
  * first hit of a window, shared across every isolate.
  *
  * `windowSec` buckets are aligned to the wall clock so every isolate agrees on
- * the current window without coordination. Fails OPEN on a KV error
- * (availability over strictness — the in-memory limiter is the backstop).
+ * the current window without coordination.
+ *
+ * On a KV error it fails OPEN by default (availability over strictness — the
+ * in-memory limiter is the backstop). Pass `{ failClosed: true }` on the
+ * abuse-attractive DURABLE-WRITE paths (constitution): there, a KV outage that
+ * disabled the only real cross-isolate quota should DENY, not wave through an
+ * unbounded flood of permanent records.
  */
 export async function kvRateLimit(
   scope: string,
   id: string,
   max: number,
   windowSec: number,
+  opts?: { failClosed?: boolean },
 ): Promise<boolean> {
   const windowStart = Math.floor(Date.now() / 1000 / windowSec);
   const key = `rl:${scope}:${id}:${windowStart}`;
@@ -102,6 +108,6 @@ export async function kvRateLimit(
     if (count === 1) await kv.expire(key, windowSec + 1);
     return count <= max;
   } catch {
-    return true; // fail open
+    return !opts?.failClosed; // default fail-open; fail-closed when requested
   }
 }
