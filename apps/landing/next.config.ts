@@ -84,6 +84,17 @@ const nextConfig: NextConfig = {
           { key: "X-Frame-Options", value: "SAMEORIGIN" },
         ],
       },
+      // Long-cache the immutable demo media in public/video. Vercel serves
+      // public/ assets with a short default cache, so without this the 12 MB
+      // demo video (plus its poster + subtitles) is re-downloaded on repeat
+      // visits and billed as Fast Data Transfer. These files are versioned by
+      // name; if the demo ever changes, ship it under a new filename.
+      {
+        source: "/video/:path*",
+        headers: [
+          { key: "Cache-Control", value: "public, max-age=31536000, immutable" },
+        ],
+      },
       // Agent discovery: advertise the machine-readable surfaces to any
       // agent that inspects response headers (emerging agent-ready pattern).
       {
