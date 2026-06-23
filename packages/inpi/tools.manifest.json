@@ -18,10 +18,26 @@
     {
       "name": "inpi_get_trademark",
       "description": "Look up one trademark by acta.",
-      "input": { "acta": "string" },
+      "input": {
+        "acta": "string"
+      },
       "returns": "TrademarkRecord | null",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-marcas",
+    "articles": [
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "estado-digital-xroad",
+      "D2",
+      "D5"
+    ]
+  }
 }

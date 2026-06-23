@@ -1,6 +1,6 @@
 # ar-agents
 
-> **Mercado Pago Agent Toolkit.** Built on Vercel.
+> **Open infrastructure for AI societies in Argentina.** Built for agents that need to incorporate, operate, pay, invoice, attest identity, and leave auditable logs under Argentine rails.
 
 [![CI](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml/badge.svg)](https://github.com/ar-agents/ar-agents/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/ar-agents/ar-agents/badge)](https://scorecard.dev/viewer/?uri=github.com/ar-agents/ar-agents)
@@ -13,9 +13,16 @@
 [![npm provenance](https://img.shields.io/badge/npm%20provenance-SLSA%20v1-7C3AED?logo=npm)](https://docs.npmjs.com/generating-provenance-statements)
 [![ar-agents on Glama](https://glama.ai/mcp/servers/ar-agents/ar-agents/badges/score.svg)](https://glama.ai/mcp/servers/ar-agents/ar-agents)
 
-[`@ar-agents/mercadopago`](./packages/mercadopago) is a Mercado Pago Agent
-Toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6 `Experimental_Agent`.
-89 typed tools across the agent-relevant Mercado Pago API surface:
+`ar-agents` is an open-source toolkit for Argentine AI societies: npm
+packages, RFCs, registry, demos, and audit primitives that let agents operate
+through ARCA/AFIP, IGJ/GDE/TAD, banking, payments, WhatsApp, Boletín Oficial,
+and other local systems. Mercado Pago is one integration inside the stack, not
+the project scope.
+
+The most mature package remains [`@ar-agents/mercadopago`](./packages/mercadopago),
+a Mercado Pago Agent Toolkit for the [Vercel AI SDK](https://ai-sdk.dev) 6
+`Experimental_Agent`, with typed tools across the agent-relevant Mercado Pago
+API surface:
 
 > Payments · Subscriptions · Checkout Pro · Marketplace OAuth · Order Management ·
 > Customers · Cards · Cuotas · QR · 3DS · Point devices · Stores+POS ·
@@ -35,11 +42,12 @@ Deploys [`apps/mp-hello`](./apps/mp-hello), a runnable agent on Vercel with
 Edge Runtime API routes, MP webhook handler, and Upstash-backed subscription
 state. Around 2 minutes from click to live.
 
-## Governance layer for AR sociedades-IA
+## Infrastructure for AR sociedades-IA
 
-Since Argentina announced a sociedad-IA regime (Sturzenegger,
-28-abr-2026), this repo additionally hosts a complete open-source
-governance scaffolding for AI-only Argentine corporations:
+Argentina's executive branch sent a draft companies-law reform to the Senate on
+2026-06-01. The draft includes the Sociedad Automatizada and DAO categories,
+but it is not law yet. This repo hosts open-source infrastructure for that
+possible regime and for agent-operated Argentine companies today:
 
 - **5 RFCs (001–005)** — civil liability (3-layer) / discovery / cross-
   jurisdictional reciprocity / operational-log wire format / Ed25519

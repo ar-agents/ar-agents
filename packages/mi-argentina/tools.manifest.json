@@ -24,5 +24,17 @@
       "name": "mi_argentina_refresh_token",
       "description": "Refresh an expired access token using a refresh token. Maintains long-lived sessions without forcing re-login."
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-mi-argentina",
+    "articles": [
+      "art-4",
+      "art-8"
+    ],
+    "normas": [
+      "estado-digital-xroad"
+    ]
+  }
 }

@@ -220,7 +220,7 @@ const schemaOrgJsonLd = {
       "@type": "WebSite",
       "@id": SITE + "/#website",
       name: "ar-agents",
-      alternateName: "Mercado Pago Agent Toolkit",
+      alternateName: "Open infrastructure for AI societies in Argentina",
       url: SITE,
       inLanguage: ["en", "es"],
       publisher: { "@id": SITE + "/#org-ar-agents" },
@@ -269,7 +269,7 @@ const schemaOrgJsonLd = {
           name: "What is ar-agents?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "ar-agents is a Mercado Pago Agent Toolkit for the Vercel AI SDK 6. It ships 89 typed tools that an LLM agent can call directly to drive Mercado Pago billing flows: subscriptions, payments, refunds, checkout pro, marketplace OAuth, cuotas (installments), QR in-store, 3DS challenge resolution, point-of-sale devices, webhooks. Sidecar packages cover AFIP/ARCA, WhatsApp Business Cloud, banking (CBU/CVU + BCRA), and shipping (Andreani/OCA/Correo Argentino).",
+            text: "ar-agents is open-source infrastructure for AI societies in Argentina: RFCs, npm packages, registry, demos, audit logs, and local integrations for agents that need to incorporate, invoice, pay, attest identity, and operate through Argentine rails. Mercado Pago is one mature integration inside the broader toolkit.",
           },
         },
         {

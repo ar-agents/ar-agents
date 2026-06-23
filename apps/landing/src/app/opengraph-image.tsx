@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
-export const alt = "Mercado Pago Agent Toolkit. Built on Vercel.";
+export const alt = "ar-agents · infraestructura abierta para sociedades de IA en Argentina";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -31,7 +31,7 @@ export default function OpengraphImage() {
             fontWeight: 500,
           }}
         >
-          @ar-agents/mercadopago · v0.15.2
+          ar-agents · Argentina
         </div>
 
         <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
@@ -46,8 +46,8 @@ export default function OpengraphImage() {
               color: "#171717",
             }}
           >
-            <span>Mercado Pago Agent Toolkit.</span>
-            <span>Built on Vercel.</span>
+            <span>Infraestructura abierta</span>
+            <span>para sociedades de IA.</span>
           </div>
 
           <div
@@ -60,8 +60,8 @@ export default function OpengraphImage() {
               letterSpacing: "-0.5px",
             }}
           >
-            89 typed tools across the agent-relevant Mercado Pago API surface,
-            for the Vercel AI SDK 6.
+            RFCs, SDKs, registro público y logs auditables para agentes que
+            operan sobre rieles argentinos.
           </div>
         </div>
 

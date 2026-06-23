@@ -20,5 +20,18 @@
       "name": "firma_verify_cms_signature",
       "description": "Verify a PKCS#7/CMS detached or attached signature against a payload. Returns the signer chain + claim of authenticity."
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-firma",
+    "articles": [
+      "art-5",
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "estado-digital-xroad"
+    ]
+  }
 }

@@ -55,8 +55,8 @@ const PATHS = [
         link: "/incorporar",
       },
       {
-        title: "Descargar los 4 archivos",
-        body: "package.json, lib/agent.ts, .env.example, README.md.",
+        title: "Descargar los archivos",
+        body: "agent/instructions.md, agent/skills/*.md, lib/agent.ts, package.json, .env.example, README.md.",
       },
       {
         title: "Click 'Deploy en Vercel'",
@@ -92,8 +92,8 @@ const PATHS = [
         link: "/sdk",
       },
       {
-        title: "Materialize the 4 files",
-        body: "Object.entries(result.config).map(([path, contents]) => writeFile(path, contents))",
+        title: "Materialize the files",
+        body: "Object.entries(result.config).map(([path, contents]) => writeFile(path, contents)). mkdir nested dirs first (agent/skills/…).",
       },
       {
         title: "Deploy + verify",

@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "slug": "ar-agents-sociedad",
+  "provider": "ar-agents",
+  "providerUrl": "https://ar-agents.ar",
+  "logo": "logo.svg",
+  "demo": {
+    "title": "incorporate.ts",
+    "language": "typescript",
+    "code": "import { incorporate } from \"@ar-agents/incorporate\";\n\nconst r = await incorporate({\n  denominacion: \"ACME-AI SAS\",\n  tipo: \"SOCIEDAD-IA\",\n  capitalSocial: 1,\n  objeto: \"Operación de servicios digitales y desarrollo de software propio.\",\n});\n\nif (r.ok) {\n  console.log(\"Deploy:\", r.deploy.oneClickUrl);\n  console.log(\"Audit:\", r.audit.url);\n}"
+  },
+  "setup": [
+    "npm i @ar-agents/incorporate",
+    "Call incorporate({ denominacion, tipo: 'SOCIEDAD-IA', capitalSocial: 1, objeto }) — it POSTs to https://ar-agents.ar/api/auto-incorporate",
+    "Present the returned one-click deploy URL and the signed audit URL to the user",
+    "Pass an optional human representante (art. 88/92) when available for the human-in-the-loop attachment point"
+  ],
+  "install": {
+    "type": "bankr",
+    "repoPath": "ar-agents-sociedad",
+    "command": "install the ar-agents-sociedad skill from https://github.com/BankrBot/skills/tree/main/ar-agents-sociedad"
+  }
+}

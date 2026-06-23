@@ -43,13 +43,16 @@ console.log("Deploy URL:  ", result.deploy.oneClickUrl);
 console.log("Audit log:   ", result.audit.dashboardUrl);
 console.log("HMAC:        ", result.audit.entry.hmac);
 
-// Persist the four generated files. \`config\` is { path: contents }.
+// Persist the generated files. \`config\` is { path: contents } and includes
+// nested paths (agent/instructions.md, agent/skills/*.md), so make each
+// file's directory before writing.
 import { writeFile, mkdir } from "node:fs/promises";
-await mkdir("./out/lib", { recursive: true });
+import { dirname } from "node:path";
 await Promise.all(
-  Object.entries(result.config).map(([path, content]) =>
-    writeFile(\`./out/\${path}\`, content),
-  ),
+  Object.entries(result.config).map(async ([path, content]) => {
+    await mkdir(\`./out/\${dirname(path)}\`, { recursive: true });
+    await writeFile(\`./out/\${path}\`, content);
+  }),
 );`;
 
 const CHAIN_SESSIONS = `// Pass the same sessionId across multiple calls to chain them under
@@ -212,8 +215,10 @@ export default function SdkPage() {
         </Li>
         <Li>
           <code style={inlineCode}>config</code>: object with{" "}
-          <code style={inlineCode}>package.json</code>,{" "}
+          <code style={inlineCode}>agent/instructions.md</code>,{" "}
+          <code style={inlineCode}>agent/skills/*.md</code>,{" "}
           <code style={inlineCode}>lib/agent.ts</code>,{" "}
+          <code style={inlineCode}>package.json</code>,{" "}
           <code style={inlineCode}>.env.example</code>,{" "}
           <code style={inlineCode}>README.md</code>{" "}
           as string values

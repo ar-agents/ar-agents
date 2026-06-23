@@ -9,7 +9,7 @@ Mayo 2026
 
 ## Resumen
 
-El 28 de abril de 2026, en el marco de Expo EFI, el Ministerio de Desregulación y Transformación del Estado anunció la creación de un régimen de Sociedades de Inteligencia Artificial mediante reforma a la Ley General de Sociedades (Ley 19.550). El presente documento es una implementación de referencia abierta y verificable de la infraestructura técnica que ese régimen requiere para ser operable. Está dirigido al equipo que redacte el proyecto de ley y a las áreas técnicas del Ministerio.
+El 1 de junio de 2026 el Poder Ejecutivo envió al Senado un anteproyecto de reforma de la Ley General de Sociedades (Ley 19.550) que incluye la Sociedad Automatizada y la DAO. El texto todavía no es ley. El presente documento es una implementación de referencia abierta y verificable de la infraestructura técnica que ese régimen requeriría para ser operable. Está dirigido al equipo redactor, áreas técnicas del Estado, operadores privados y cualquier tercero que necesite auditar sociedades de IA en Argentina.
 
 Cubre cinco frentes: (1) las decisiones técnicas que el drafting va a tener que tomar; (2) una arquitectura de referencia construida sobre estándares abiertos; (3) el estado actual de la implementación, publicada como software libre; (4) cinco cláusulas operables sugeridas para el texto del proyecto, con justificación técnica de cada una; (5) respuesta puntual a las objeciones jurídicas que circulan en el debate público.
 

@@ -2,6 +2,13 @@
  * The agent loop. One Experimental_Agent that composes 8 packages from
  * the @ar-agents/* toolkit.
  *
+ * Operating instructions live in `agent/instructions.md` and each
+ * capability's playbook in `agent/skills/*.md`. Edit that Markdown to
+ * retune the agent (no TypeScript changes needed); this mirrors the eve
+ * agent convention, so the sociedad reads as a canonical eve agent on top
+ * of an @ar-agents/* governance floor. `next.config.ts` ships those files
+ * into the serverless function via `outputFileTracingIncludes`.
+ *
  * Wired tools (always available, fall back to unconfigured shims when
  * env vars are missing):
  *
@@ -15,8 +22,9 @@
  *   - gde-tad          · DEC inbox + IGJ pre-flight + Mis Trámites
  */
 
+import { readFileSync, readdirSync } from "node:fs";
+import { join } from "node:path";
 import { Experimental_Agent as Agent, stepCountIs } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { identityTools } from "@ar-agents/identity";
 import { bankingTools } from "@ar-agents/banking";
 import { facturacionTools } from "@ar-agents/facturacion";
@@ -37,32 +45,34 @@ import {
   getAfipPadronAdapter,
 } from "./clients";
 
-const SYSTEM_PROMPT = `Sos el agente operador de una sociedad-IA argentina.
-Operás bajo el marco de RFC-001 (https://ar-agents.ar/rfcs/001):
+const AGENT_DIR = join(process.cwd(), "agent");
 
-1. Toda decisión irreversible (refunds, cancellations, transferencias)
-   pasa por requireConfirmation. Nunca la ejecutes vos directamente.
-
-2. Cada tool call queda en el audit log con timestamp HMAC-firmado.
-   No hay "mode oculto" — todo lo que hagas es auditable.
-
-3. Si un tool devuelve "available: false", surface el mensaje verbatim
-   al usuario antes de seguir. Es señal de configuración faltante o
-   problema upstream del lado del Estado/proveedor.
-
-4. Para validaciones ARCA (CUIT padron) y BCRA (Central de Deudores),
-   confiá en el resultado del tool. No alucines monotributo categorías
-   ni situaciones crediticias.
-
-5. Para emisión de facturas: corré primero validate_solicitar_cae
-   (pre-flight) y solo después solicitar_cae. Esto evita el ~30% de
-   rechazos mecánicos de AFIP.
-
-6. Para WhatsApp: usá templates aprobados por Meta para mensajes
-   iniciados por la sociedad. Free-form sólo dentro de la ventana de
-   24h post-inbound.
-
-Idioma: español rioplatense para clientes; inglés en errores técnicos.`;
+/**
+ * System prompt = agent/instructions.md + agent/skills/*.md (sorted, joined).
+ * Markdown is the source of truth; cached after the first read. A missing
+ * skills/ directory is fine: instructions.md alone is a valid agent.
+ */
+let cachedInstructions: string | null = null;
+export function loadInstructions(): string {
+  if (cachedInstructions !== null) return cachedInstructions;
+  const base = readFileSync(join(AGENT_DIR, "instructions.md"), "utf8").trim();
+  let skills = "";
+  try {
+    const dir = join(AGENT_DIR, "skills");
+    const files = readdirSync(dir)
+      .filter((f) => f.endsWith(".md"))
+      .sort();
+    if (files.length > 0) {
+      skills =
+        "\n\n# Skills\n\n" +
+        files.map((f) => readFileSync(join(dir, f), "utf8").trim()).join("\n\n");
+    }
+  } catch {
+    // No skills/ directory is fine: instructions.md alone is a valid agent.
+  }
+  cachedInstructions = base + skills;
+  return cachedInstructions;
+}
 
 export function buildAgent() {
   const mp = getMpClient();
@@ -71,9 +81,11 @@ export function buildAgent() {
   const afip = getAfipPadronAdapter();
 
   return new Agent({
-    model: anthropic("claude-sonnet-4-5"),
+    // Bare model string routes through the Vercel AI Gateway (spend cap +
+    // observability). Needs AI_GATEWAY_API_KEY, or a gateway-enabled team.
+    model: "anthropic/claude-sonnet-4-6",
     stopWhen: stepCountIs(20),
-    instructions: SYSTEM_PROMPT,
+    instructions: loadInstructions(),
     tools: {
       // Always-on (algorithm or default-OK adapter).
       ...identityTools({ afip }),

@@ -48,6 +48,13 @@ const nextConfig: NextConfig = {
     "@ar-agents/mercadopago",
     "@ar-agents/whatsapp",
   ],
+  // The agent reads its prompt from agent/instructions.md + agent/skills/*.md
+  // at runtime (see src/lib/agent.ts). Ship those files into every function
+  // that builds the agent; globs resolve from this app's root.
+  outputFileTracingIncludes: {
+    "/api/agent": ["./agent/**/*"],
+    "/api/cron/morning": ["./agent/**/*"],
+  },
   async headers() {
     return [
       {

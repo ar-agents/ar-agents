@@ -9,8 +9,10 @@ import {
   generateAgentTs,
   generateChecklist,
   generateEnvExample,
+  generateInstructionsMd,
   generatePackageJson,
   generateReadme,
+  generateSkillMd,
   normalizeCuit,
   REQUIRED_PIEZAS,
   resolvePiezas,
@@ -145,9 +147,9 @@ describe("resolvePiezas()", () => {
 });
 
 describe("envVarsFor()", () => {
-  it("always includes ANTHROPIC_API_KEY + AUDIT_HMAC_SECRET", () => {
+  it("always includes AI_GATEWAY_API_KEY + AUDIT_HMAC_SECRET", () => {
     const v = envVarsFor(["identity"]).map((x) => x.name);
-    expect(v).toContain("ANTHROPIC_API_KEY");
+    expect(v).toContain("AI_GATEWAY_API_KEY");
     expect(v).toContain("AUDIT_HMAC_SECRET");
   });
   it("includes AFIP_CERT_PEM when identity is present", () => {
@@ -221,6 +223,14 @@ describe("generateAgentTs()", () => {
     expect(ts).toContain("getMpClient");
     expect(ts).toContain("getAfipPadronAdapter");
   });
+  it("loads the system prompt from agent/instructions.md (not an inline string)", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity"]);
+    expect(ts).toContain("instructions: loadInstructions()");
+    expect(ts).toContain('readFileSync(join(AGENT_DIR, "instructions.md")');
+    expect(ts).toContain('from "node:fs"');
+    // The Spanish prompt is no longer baked into the generated TypeScript.
+    expect(ts).not.toContain("Sos el agente operador de");
+  });
 });
 
 describe("generateEnvExample()", () => {
@@ -260,5 +270,35 @@ describe("generateChecklist()", () => {
       Body.parse({ ...baseInput, tipo: "SOCIEDAD-IA", capitalSocial: 1 }),
     );
     expect(steps.some((s) => s.includes("aún no fue sancionado"))).toBe(true);
+  });
+});
+
+describe("generateInstructionsMd()", () => {
+  it("includes denominación, tipo, objeto, RFC-001 + governance rules", () => {
+    const md = generateInstructionsMd(Body.parse(baseInput));
+    expect(md).toContain("ACME-AI SAS");
+    expect(md).toContain("(SAS)");
+    expect(md).toContain(baseInput.objeto);
+    expect(md).toContain("rfcs/001");
+    expect(md).toContain("requireConfirmation");
+  });
+});
+
+describe("generateSkillMd()", () => {
+  it("returns a Markdown playbook for a wired pieza", () => {
+    const md = generateSkillMd("facturacion");
+    expect(md).not.toBeNull();
+    expect(md).toContain("## facturacion");
+    expect(md).toContain("validate_solicitar_cae");
+  });
+  it("returns null for infra piezas (ap2, mcp, agentic-commerce-bridge)", () => {
+    expect(generateSkillMd("ap2")).toBeNull();
+    expect(generateSkillMd("mcp")).toBeNull();
+    expect(generateSkillMd("agentic-commerce-bridge")).toBeNull();
+  });
+  it("has a doc for every required pieza", () => {
+    for (const id of REQUIRED_PIEZAS) {
+      expect(generateSkillMd(id)).not.toBeNull();
+    }
   });
 });

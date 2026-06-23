@@ -94,9 +94,9 @@ export default function PlaybookEsPage() {
         tesorería.
       </DocP>
       <DocP>
-        Cubrimos 16 de las 17. La pieza 17, filing programático de
-        trámites en TAD, requiere integración por organismo que el Estado
-        argentino aún está rolleando out. Lectura solo (DEC inbox + Mis
+        El toolkit cubre las superficies operativas principales. El filing
+        programático de trámites en TAD requiere integración por organismo que
+        el Estado argentino aún está rolleando out. Lectura solo (DEC inbox + Mis
         Trámites) está disponible hoy vía{" "}
         <DocCode>@ar-agents/gde-tad</DocCode>; capacidad de escritura
         depende del cronograma de RFC-001 § 3.4.

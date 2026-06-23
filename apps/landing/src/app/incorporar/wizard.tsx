@@ -252,7 +252,7 @@ function validateLive(s: FormState): { valid: boolean; findings: Finding[] } {
 
 function envVarsFor(selected: Set<string>): Array<{ name: string; description: string }> {
   const vars: Array<{ name: string; description: string }> = [
-    { name: "ANTHROPIC_API_KEY", description: "LLM provider for the agent loop. OPENAI_API_KEY also works." },
+    { name: "AI_GATEWAY_API_KEY", description: "Vercel AI Gateway for the agent loop (spend cap + observability). Or link a gateway-enabled Vercel team." },
   ];
   if (selected.has("identity")) {
     vars.push(
@@ -563,7 +563,7 @@ function generateChecklist(state: FormState): string[] {
   ];
   if (state.tipo === "SOCIEDAD-IA") {
     out.push(
-      "7. (espera regulatoria) Sociedad-IA propiamente dicha, anuncio Sturzenegger 28-abril-2026, ley estimada H1 2027. Mientras tanto el código corre bajo SAS estándar con representante humano por RFC-001 § 3.1 (responsabilidad por capas).",
+      "7. (espera regulatoria) Sociedad-IA propiamente dicha: el anteproyecto fue enviado al Senado el 1-jun-2026 y todavía no es ley. Mientras tanto el código corre bajo SAS estándar con representante humano por RFC-001 § 3.1 (responsabilidad por capas).",
     );
   } else {
     out.push(

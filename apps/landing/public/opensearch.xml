@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <OpenSearchDescription xmlns="http://a9.com/-/spec/opensearch/1.1/">
   <ShortName>ar-agents</ShortName>
-  <Description>Mercado Pago Agent Toolkit for the Vercel AI SDK 6 — search the cookbook, packages, AGENTS.md.</Description>
+  <Description>Open infrastructure for AI societies in Argentina — search the RFCs, packages, registry, cookbook, and AGENTS.md.</Description>
   <InputEncoding>UTF-8</InputEncoding>
   <Image height="32" width="32" type="image/png">https://ar-agents.vercel.app/icon.png</Image>
   <Url type="text/html" template="https://github.com/ar-agents/ar-agents/search?q={searchTerms}"/>

@@ -194,10 +194,10 @@ const wrapped = wrap(payload, [sigA, sigB]);`}
 
       <DocH2>8. Implementación de referencia</DocH2>
       <DocP>
-        Este RFC no es teoría, el toolkit{" "}
-        <DocCode>@ar-agents/*</DocCode> ya implementa 16 de los 17 pasos
-        técnicos del régimen propuesto. La lista cruzada de qué pieza
-        técnica resuelve cada problema:
+        Este RFC está acompañado por una implementación de referencia en el
+        toolkit <DocCode>@ar-agents/*</DocCode>. La lista cruzada muestra qué
+        piezas técnicas cubren cada parte del régimen propuesto y qué gaps
+        siguen abiertos:
       </DocP>
       <DocP>
         <strong>(a) Identidad</strong>:{" "}

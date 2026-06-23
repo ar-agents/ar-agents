@@ -20,10 +20,14 @@ import {
 import {
   Body,
   generateAgentTs,
+  generateCharterMd,
   generateChecklist,
   generateEnvExample,
+  generateGovernanceTs,
+  generateInstructionsMd,
   generatePackageJson,
   generateReadme,
+  generateSkillMd,
   envVarsFor,
   PIEZA_IDS,
   REQUIRED_PIEZAS,
@@ -65,12 +69,20 @@ export async function POST(req: Request) {
 
   const piezas = resolvePiezas(input.piezas);
   const envVars = envVarsFor(piezas);
-  const config = {
-    "package.json": generatePackageJson(input, piezas),
+  const config: Record<string, string> = {
+    "CHARTER.md": generateCharterMd(input, piezas),
+    "agent/instructions.md": generateInstructionsMd(input),
     "lib/agent.ts": generateAgentTs(input, piezas),
+    "lib/governance.ts": generateGovernanceTs(),
+    "package.json": generatePackageJson(input, piezas),
     ".env.example": generateEnvExample(envVars),
     "README.md": generateReadme(input),
   };
+  // One agent/skills/<pieza>.md per selected capability (infra piezas have none).
+  for (const id of piezas) {
+    const skill = generateSkillMd(id);
+    if (skill) config[`agent/skills/${id}.md`] = skill;
+  }
 
   const sessionId =
     input.sessionId && isSessionIdValid(input.sessionId)
@@ -154,6 +166,7 @@ export async function GET() {
         capitalSocial: "number > 0 (ARS)",
         objeto: "string (20-2000 chars)",
         representante: "{ nombre: string, cuit: string }? (optional)",
+        beneficiarioPublico: "{ entidad: string, porcentaje: number 0-100 }? (ALE: public beneficiary for calibrated liability relief)",
         emailContacto: "string? (email)",
         piezas: `string[]?, subset of [${PIEZA_IDS.join(", ")}]; required pieces auto-added`,
         sessionId: "string?, for audit log continuity across calls",

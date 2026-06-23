@@ -1,12 +1,12 @@
 # ar-agents — full reference for LLM crawlers
 
-> Mercado Pago Agent Toolkit for the Vercel AI SDK 6 **plus** open-source infrastructure for Argentine sociedades-IA (AI-only companies, regime announced 28-abr-2026). 5 RFCs (001-005) with frozen test vectors + public certifier + RFC-005 dual-signing live in production. 18 npm packages, 30 cookbook recipes, 107 vitest tests, 5 sociedades on /registro all scoring 100/100 Rating A.
+> Open-source infrastructure for Argentine sociedades-IA: RFCs, npm packages, registry, demos, audit logs, and local integrations for agents that need to incorporate, invoice, pay, attest identity, and operate through Argentine rails. The draft legal regime was sent to the Senate on 2026-06-01 and is not law yet; the infrastructure is designed to be usable and auditable before, during, and after that debate.
 
 This file is `llms-full.txt`, an extension of [`llms.txt`](/llms.txt) per the [llmstxt.org](https://llmstxt.org) spec. Where `llms.txt` is a short index, `llms-full.txt` carries the deep content an LLM needs to answer questions about the project without re-crawling.
 
 ## Sociedades-IA governance layer (added 2026-05-11)
 
-The original ar-agents shipped as a Mercado Pago + Argentine business toolkit. After Sturzenegger announced the sociedad-IA regime, a 26-round shipping series added a full governance scaffolding (the rest of the original MercadoPago-deep-reference below is still accurate — the sociedad-IA layer is additive):
+The original ar-agents shipped as a Mercado Pago + Argentine business toolkit. The current project scope is broader: open infrastructure for AI societies in Argentina. Mercado Pago remains a mature integration inside the stack, alongside ARCA/AFIP, banking, WhatsApp, identity, Boletín Oficial, IGJ/GDE/TAD, and audit primitives.
 
 - **5 RFCs (all working live in production)**:
   - [RFC-001](https://ar-agents.vercel.app/rfcs/001): Three-layer civil liability (operator / sociedad-IA / model provider)
@@ -35,7 +35,7 @@ The original ar-agents shipped as a Mercado Pago + Argentine business toolkit. A
 
 ## TL;DR
 
-- **What it is**: Drop Mercado Pago into your AI agent. 89 typed Vercel AI SDK 6 tools.
+- **What it is**: Open infrastructure for AI societies in Argentina. Mercado Pago is one mature integration inside the broader toolkit.
 - **Author**: [Nazareno Clemente](https://github.com/naza00000), independent Argentine developer.
 - **License**: MIT.
 - **Install**: `pnpm add @ar-agents/mercadopago ai zod`

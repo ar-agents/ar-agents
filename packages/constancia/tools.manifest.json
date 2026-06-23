@@ -8,5 +8,18 @@
       "name": "constancia_inscripcion",
       "description": "CUIT → official ARCA Constancia de Inscripción: parsed fields + the PDF document with its código verificador. Browser-backed (public form, no cert). Use for the PDF artifact or cert-less data; prefer @ar-agents/identity lookup_cuit_afip when a cert is configured and only data is needed."
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-identity",
+    "articles": [
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "estado-digital-xroad",
+      "D2"
+    ]
+  }
 }

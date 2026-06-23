@@ -59,7 +59,6 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@ai-sdk/anthropic": "^2.0.0",
     "@ar-agents/banking": "workspace:*",
     "@ar-agents/boletin-oficial": "workspace:*",
     "@ar-agents/facturacion": "workspace:*",

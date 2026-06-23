@@ -25,5 +25,20 @@
   "meta": {
     "generated_by": "scripts/regen-manifests.mjs",
     "tool_count": 4
+  },
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-interop",
+    "articles": [
+      "art-6",
+      "art-8"
+    ],
+    "normas": [
+      "estado-digital-xroad",
+      "D2",
+      "D5",
+      "D8"
+    ]
   }
 }

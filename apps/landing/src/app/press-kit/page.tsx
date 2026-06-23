@@ -16,15 +16,15 @@ const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
   { label: "Autor", value: "Nazareno Clemente, 26 años, monotributista, Buenos Aires." },
   { label: "Licencia", value: "MIT, copy, fork, comercializar permitido." },
   { label: "Origen", value: "Build privado iniciado nov 2025; npm pública desde may 2026." },
-  { label: "Estado régimen", value: "Anuncio Sturzenegger 28-abr-2026; ley estimada H1 2027." },
-  { label: "Alcance funcional", value: "16 de las 17 piezas (TAD escritura sigue rolling out)." },
+  { label: "Estado régimen", value: "Anteproyecto enviado al Senado el 1-jun-2026; todavía no es ley." },
+  { label: "Alcance funcional", value: "Infraestructura abierta: RFCs, SDKs, registro, auditoría e integraciones argentinas." },
   { label: "Filosofía", value: "Edge-Runtime first, Web Crypto only, AbortSignal everywhere." },
 ];
 
 const ONE_LINERS_ES = [
-  "ar-agents es la implementación de referencia open-source para sociedades-IA argentinas, la propuesta del ministro Sturzenegger del 28 de abril de 2026.",
+  "ar-agents es infraestructura abierta para sociedades de IA en Argentina: RFCs, SDKs, registro, auditoría e integraciones locales.",
   "17 paquetes npm, 168 herramientas, todas auditables. MIT-licensed. Cualquier operador serio puede leer el código línea por línea.",
-  "El stack cubre 16 de las 17 piezas operativas que una empresa argentina necesita: identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, AP2, ACP bridge.",
+  "El stack cubre superficies operativas argentinas: identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, AP2, ACP bridge.",
   "RFC-001 es el marco de responsabilidad propuesto: tres capas (operador / proveedor de modelo / autor de librería) que convierten el ataque ¿quién paga si la IA rompe algo? en una conversación contractual concreta.",
   "El threat model público (18 amenazas explícitas, 18 mitigaciones) está en /security. No esconde nada.",
 ];

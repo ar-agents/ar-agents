@@ -28,5 +28,18 @@
       "name": "igj_get_asambleas",
       "description": "List filed shareholder/partner asambleas for an entity (date, type, registered minutes ID)."
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-incorporate",
+    "articles": [
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "estado-digital-xroad",
+      "D2"
+    ]
+  }
 }

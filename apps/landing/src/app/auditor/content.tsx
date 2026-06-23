@@ -406,8 +406,8 @@ const T = {
     en: "Live numbers (npm, GitHub, packages, tests). Auto-refreshed every 6 hours.",
   },
   s7li7: {
-    es: "Contexto político-jurídico del régimen propuesto (28-abr-2026).",
-    en: "Political-legal context of the proposed regime (Apr 28, 2026).",
+    es: "Contexto político-jurídico del anteproyecto enviado al Senado el 1-jun-2026.",
+    en: "Political-legal context of the draft bill sent to the Senate on Jun 1, 2026.",
   },
   s8Title: { es: "8 · Reunión técnica", en: "8 · Technical meeting" },
   s8p: {

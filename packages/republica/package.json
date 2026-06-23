@@ -1,0 +1,47 @@
+{
+  "name": "@ar-agents/republica",
+  "version": "0.1.0",
+  "description": "MCP server that lets any AI agent introspect AND cryptographically verify the Autonomous Republic (República Autónoma) — its Constitution, laws, decrees, rails and signed census — as one sealed object. Serves proofs, not just data.",
+  "keywords": ["mcp", "model-context-protocol", "ar-agents", "argentina", "republica-autonoma", "ed25519", "verifiable", "constitution-as-code", "claude-desktop", "cursor"],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/republica",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/republica"
+  },
+  "bugs": { "url": "https://github.com/ar-agents/ar-agents/issues" },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": { "types": "./dist/index.d.ts", "default": "./dist/index.js" },
+      "require": { "types": "./dist/index.d.cts", "default": "./dist/index.cjs" }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
+  },
+  "bin": { "ar-agents-republica": "./bin/ar-agents-republica.js" },
+  "files": ["dist", "bin", "README.md", "AGENTS.md", "tools.manifest.json", "server.json", "LICENSE"],
+  "scripts": {
+    "build": "tsup",
+    "typecheck": "tsc --noEmit",
+    "verify": "node bin/ar-agents-republica.js verify",
+    "clean": "rm -rf dist"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.0.0",
+    "@noble/ed25519": "^2.3.0",
+    "@noble/hashes": "^1.8.0"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3"
+  },
+  "publishConfig": { "access": "public", "provenance": true },
+  "engines": { "node": ">=20.0.0" },
+  "mcpName": "io.github.ar-agents/republica"
+}

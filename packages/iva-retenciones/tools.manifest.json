@@ -24,5 +24,18 @@
       "idempotent": true,
       "requiresConfirmation": true
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-retenciones",
+    "articles": [
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "modernizacion-tributaria",
+      "estado-digital-xroad"
+    ]
+  }
 }

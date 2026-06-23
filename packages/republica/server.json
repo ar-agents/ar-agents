@@ -1,0 +1,28 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.ar-agents/republica",
+  "description": "Introspect and cryptographically verify the Autonomous Republic (Constitution, laws, rails, signed census) as one sealed object. Serves proofs, not just data.",
+  "repository": {
+    "url": "https://github.com/ar-agents/ar-agents",
+    "source": "github",
+    "subfolder": "packages/republica"
+  },
+  "version": "0.1.0",
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@ar-agents/republica",
+      "version": "0.1.0",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "AR_REPUBLIC_URL",
+          "description": "Base URL of the Republic to introspect. Default: https://ar-panel-one.vercel.app",
+          "isRequired": false,
+          "format": "string",
+          "isSecret": false
+        }
+      ]
+    }
+  ]
+}

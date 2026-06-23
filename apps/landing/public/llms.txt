@@ -1,8 +1,8 @@
 # ar-agents
 
-> Open-source toolkit and reference implementation for Argentine **sociedades-IA** — AI-only companies under Argentina's proposed regime (anuncio Sturzenegger 28-abr-2026). 18 npm packages, 169 tools, 8 hosted endpoints, 4 RFCs (001..004), conformance test vectors, public certifier. MIT + CC-BY-4.0, SLSA-provenanced. Every tool call lands in an HMAC-SHA256-signed audit log persisted to Vercel KV.
+> Open-source infrastructure for Argentine **sociedades-IA**: RFCs, npm packages, registry, demos, audit logs, and local integrations for agents that need to incorporate, invoice, pay, attest identity, and operate through Argentine rails. The draft legal regime was sent to the Senate on 2026-06-01 and is not law yet. MIT + CC-BY-4.0, SLSA-provenanced.
 
-The toolkit covers 16 of the 17 operating pieces an Argentine business needs (identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD). RFC-001 proposes a three-layer liability framework. RFC-004 normatively pins down the operational-log wire format with 7 frozen conformance vectors at `/test-vectors/rfc-004-v1.json`. The companion human-facing demo at `/play` is operable in 30 seconds with zero setup, and an external orchestrator can self-incorporate an AR sociedad-IA programmatically via `POST /api/auto-incorporate` (or the typed npm client `@ar-agents/incorporate`).
+The toolkit covers the main operating surfaces an Argentine agent-run business needs: identity, banking, factura electrónica, payments, Mercado Libre, WhatsApp, BCRA, Boletín Oficial, IGJ, and GDE/TAD. RFC-001 proposes a three-layer liability framework. RFC-004 normatively pins down the operational-log wire format with frozen conformance vectors. The companion human-facing demo at `/play` is operable with zero setup, and an external orchestrator can self-incorporate an AR sociedad-IA programmatically via `POST /api/auto-incorporate` (or the typed npm client `@ar-agents/incorporate`).
 
 ## Start here
 
@@ -30,7 +30,7 @@ The toolkit covers 16 of the 17 operating pieces an Argentine business needs (id
 - [Glossary](https://ar-agents.vercel.app/glossary): 21 alphabetized term definitions across concepts/protocols/specs/tools.
 - [Outreach templates](https://ar-agents.vercel.app/share): copy-paste social + email drafts for sharing ar-agents with regulators, journalists, ministry asesores.
 - [Academic references](https://ar-agents.vercel.app/refs): BibTeX, APA, Chicago citations for the 4 RFCs + datasets + toolkit.
-- [Timeline](https://ar-agents.vercel.app/timeline): visual chronology from the Sturzenegger 28-abr-2026 announcement onwards.
+- [Timeline](https://ar-agents.vercel.app/timeline): visual chronology from the initial public announcement through the 2026-06-01 Senate submission.
 - [Architecture / audit-log deep-dive](https://ar-agents.vercel.app/architecture/audit-log): 11-section code-level breakdown.
 - [Architecture / security model](https://ar-agents.vercel.app/architecture/security): code-level threat walkthrough (T1-T14).
 - [Security threat model](https://ar-agents.vercel.app/security): 14 explicit threats, 14 explicit mitigations. STRIDE + OWASP LLM Top 10.

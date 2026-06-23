@@ -93,8 +93,8 @@ export default function PlaybookPage() {
         treasury decisions.
       </DocP>
       <DocP>
-        We cover 16 of the 17. The 17th, programmatic filing of trámites
-        at TAD (Trámites a Distancia), requires per-organism integration
+        The toolkit covers the main operating surfaces. Programmatic filing of
+        trámites at TAD (Trámites a Distancia) requires per-organism integration
         the AR government is still rolling out. Read-only access to the
         DEC inbox and Mis Trámites is shipped today via{" "}
         <DocCode>@ar-agents/gde-tad</DocCode>; write capability lands per

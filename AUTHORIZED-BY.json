@@ -1,0 +1,363 @@
+{
+  "$comment": "Binding bidireccional Art. 9: cada paquete @ar-agents declara la(s) norma(s) y artículo(s) de la República Autónoma que lo autorizan. Fuente de verdad del lado del OS; el lado de la polity vive en ar-panel CARTA_RIELES + /.well-known/republica.json. Generado mapeando los 34 paquetes contra el Codex AR.",
+  "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+  "algorithm_note": "Verificá la autoridad citada en https://ar-panel-one.vercel.app/verify",
+  "packages": {
+    "@ar-agents/aduana": {
+      "rail": "rail-aduana",
+      "articles": [
+        "art-5",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/agentic-commerce-bridge": {
+      "rail": "rail-comercio",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "D32"
+      ]
+    },
+    "@ar-agents/anses": {
+      "rail": "rail-anses",
+      "articles": [
+        "art-5",
+        "art-6",
+        "art-8"
+      ],
+      "normas": [
+        "reforma-previsional",
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/ap2": {
+      "rail": "rail-pagos-agente",
+      "articles": [
+        "art-6",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D5"
+      ]
+    },
+    "@ar-agents/banking-bcra": {
+      "rail": "rail-banca",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D5"
+      ]
+    },
+    "@ar-agents/banking": {
+      "rail": "rail-banca",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D5"
+      ]
+    },
+    "@ar-agents/boletin-oficial": {
+      "rail": "rail-boletin",
+      "articles": [
+        "art-5",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/cnv-emisor": {
+      "rail": "rail-cnv",
+      "articles": [
+        "art-5",
+        "art-8"
+      ],
+      "normas": [
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/constancia": {
+      "rail": "rail-identity",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D2"
+      ]
+    },
+    "@ar-agents/core": {
+      "rail": null,
+      "articles": [],
+      "normas": []
+    },
+    "@ar-agents/dnrpa": {
+      "rail": "rail-automotor",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": []
+    },
+    "@ar-agents/facturacion": {
+      "rail": "rail-pagos",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D5"
+      ]
+    },
+    "@ar-agents/firma-digital": {
+      "rail": "rail-firma",
+      "articles": [
+        "art-5",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/gde-tad": {
+      "rail": "rail-interop",
+      "articles": [
+        "art-6",
+        "art-8"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D2",
+        "D5",
+        "D8"
+      ]
+    },
+    "@ar-agents/identity-attest": {
+      "rail": "rail-identidad-attest",
+      "articles": [
+        "art-4",
+        "art-5",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D4",
+        "D26"
+      ]
+    },
+    "@ar-agents/identity": {
+      "rail": "rail-identity",
+      "articles": [
+        "art-4",
+        "art-8"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D1",
+        "D3",
+        "D26"
+      ]
+    },
+    "@ar-agents/igj": {
+      "rail": "rail-incorporate",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D2"
+      ]
+    },
+    "@ar-agents/iibb": {
+      "rail": "rail-tributos-prov",
+      "articles": [
+        "art-6",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "modernizacion-tributaria",
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/incorporate": {
+      "rail": "rail-incorporate",
+      "articles": [
+        "art-6",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D2"
+      ]
+    },
+    "@ar-agents/inpi": {
+      "rail": "rail-marcas",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D2",
+        "D5"
+      ]
+    },
+    "@ar-agents/iva-percepciones": {
+      "rail": "rail-retenciones",
+      "articles": [
+        "art-5",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "modernizacion-tributaria",
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/iva-retenciones": {
+      "rail": "rail-retenciones",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "modernizacion-tributaria",
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/mcp": {
+      "rail": "rail-interop",
+      "articles": [
+        "art-6",
+        "art-8"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D2",
+        "D5",
+        "D8"
+      ]
+    },
+    "@ar-agents/mercadolibre": {
+      "rail": null,
+      "articles": [],
+      "normas": []
+    },
+    "@ar-agents/mercadopago": {
+      "rail": "rail-pagos",
+      "articles": [
+        "art-8"
+      ],
+      "normas": [
+        "D5"
+      ]
+    },
+    "@ar-agents/mi-argentina": {
+      "rail": "rail-mi-argentina",
+      "articles": [
+        "art-4",
+        "art-8"
+      ],
+      "normas": [
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/shipping": {
+      "rail": "rail-logistica",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "belgrano-cargas"
+      ]
+    },
+    "@ar-agents/sicore": {
+      "rail": "rail-retenciones",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "modernizacion-tributaria",
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/suss": {
+      "rail": "rail-nomina",
+      "articles": [
+        "art-5",
+        "art-6",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad"
+      ]
+    },
+    "@ar-agents/tienda-nube": {
+      "rail": "rail-comercio",
+      "articles": [
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "D32"
+      ]
+    },
+    "@ar-agents/uala": {
+      "rail": "rail-uala",
+      "articles": [
+        "art-5",
+        "art-8"
+      ],
+      "normas": [
+        "D5",
+        "D18"
+      ]
+    },
+    "@ar-agents/whatsapp": {
+      "rail": "rail-mensajeria",
+      "articles": [
+        "art-5"
+      ],
+      "normas": [
+        "D4"
+      ]
+    },
+    "@ar-agents/wscdc": {
+      "rail": "rail-comprobantes",
+      "articles": [
+        "art-5",
+        "art-8",
+        "art-9"
+      ],
+      "normas": [
+        "estado-digital-xroad",
+        "D2",
+        "D5"
+      ]
+    }
+  }
+}

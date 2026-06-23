@@ -25,6 +25,10 @@
 import { NextResponse } from "next/server";
 import { buildAgent } from "@/lib/agent";
 
+// Multi-step morning loop (DEC inbox + Boletín Oficial). Fluid Compute makes
+// the idle tail cheap; raise to 300 on Pro if the digest grows.
+export const maxDuration = 60;
+
 export async function GET(req: Request) {
   const expectedSecret = process.env.CRON_SECRET?.trim();
   if (expectedSecret) {

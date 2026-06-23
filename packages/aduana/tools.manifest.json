@@ -16,10 +16,25 @@
     {
       "name": "aduana_lookup_ncm",
       "description": "Look up an Argentine NCM tariff code (8 digits).",
-      "input": { "code": "8-digit NCM" },
+      "input": {
+        "code": "8-digit NCM"
+      },
       "returns": "NcmLookupResult | {code, found: false}",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-aduana",
+    "articles": [
+      "art-5",
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "estado-digital-xroad"
+    ]
+  }
 }

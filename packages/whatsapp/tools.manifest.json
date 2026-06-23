@@ -59,5 +59,16 @@
   "meta": {
     "generated_by": "scripts/regen-manifests.mjs",
     "tool_count": 6
+  },
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-mensajeria",
+    "articles": [
+      "art-5"
+    ],
+    "normas": [
+      "D4"
+    ]
   }
 }

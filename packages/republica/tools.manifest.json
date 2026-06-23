@@ -1,0 +1,20 @@
+{
+  "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
+  "package": "@ar-agents/republica",
+  "version": "0.1.0",
+  "description": "MCP server to introspect and cryptographically verify the Autonomous Republic as one sealed, Ed25519-signed object. Serves proofs (verify_republic), not just data.",
+  "authorizedBy": {
+    "rail": "rail-interop",
+    "articles": ["art-8", "art-9", "art-14"],
+    "normas": ["estado-digital-xroad"],
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json"
+  },
+  "tools": [
+    { "name": "verify_republic", "description": "Recompute corpus seal, verify all Ed25519 signatures, walk the census chain, check foreign keys. Returns proofs." },
+    { "name": "get_republic", "description": "The full sealed, signed manifest." },
+    { "name": "get_constitution", "description": "The Constitution's articles (one by id, or all)." },
+    { "name": "resolve_article", "description": "An article plus the rails that invoke it." },
+    { "name": "get_rails", "description": "The rails: articles, normas, npm package, State endpoint shadowed." },
+    { "name": "get_codex", "description": "Pillars, laws, decrees, counts, seals, public keys." }
+  ]
+}

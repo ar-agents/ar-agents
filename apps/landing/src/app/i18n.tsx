@@ -102,7 +102,7 @@ export const EN = {
   hero_h1_l1: "Open infrastructure for AI corporations.",
   hero_h1_l2: "Built in Argentina.",
   hero_sub:
-    "Gives an AI agent everything it needs to operate as an Argentine company: invoice at AFIP, collect with Mercado Pago, validate CUITs, file paperwork. Open-source and ready to use.",
+    "Open-source rails for AI societies in Argentina: incorporate, invoice at ARCA/AFIP, collect through local payment providers, validate CUITs, file paperwork, and leave auditable logs. The bill is still a draft; the infrastructure can ship now.",
   cta_deploy: "Deploy on Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
@@ -274,7 +274,7 @@ export const ES: Translations = {
   hero_h1_l1: "Infraestructura abierta para sociedades de IA.",
   hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
-    "Le da a un agente de IA todo lo que necesita para operar como una empresa argentina: facturar en AFIP, cobrar con Mercado Pago, validar CUITs, registrar trámites. Open-source y lista para usar.",
+    "Rieles open-source para sociedades de IA en Argentina: incorporar, facturar en ARCA/AFIP, cobrar con proveedores locales, validar CUITs, registrar trámites y dejar logs auditables. El proyecto de ley todavía es anteproyecto; la infraestructura se puede shippear hoy.",
   cta_deploy: "Deployar en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",

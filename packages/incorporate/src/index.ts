@@ -78,6 +78,11 @@ export interface IncorporateInput {
   objeto: string;
   /** Optional human representante for the legal-facade layer per RFC-001 § 3.1. */
   representante?: { nombre: string; cuit: string };
+  /**
+   * ALE (Kargieman): designate a public beneficiary (e.g. a sovereign wealth fund)
+   * with a % of net returns to unlock calibrated relief from solidary liability.
+   */
+  beneficiarioPublico?: { entidad: string; porcentaje: number };
   /** Optional contact email. */
   emailContacto?: string;
   /**
@@ -128,7 +133,12 @@ export interface IncorporateSuccess {
   };
   validation: { valid: true; findings: ValidationFinding[] };
   config: Record<
-    "package.json" | "lib/agent.ts" | ".env.example" | "README.md",
+    | "CHARTER.md"
+    | "package.json"
+    | "lib/agent.ts"
+    | "lib/governance.ts"
+    | ".env.example"
+    | "README.md",
     string
   >;
   envVars: Array<{ name: string; description: string }>;

@@ -14,6 +14,11 @@ import { z } from "zod";
 import { buildAgent } from "@/lib/agent";
 import { clientStatus } from "@/lib/clients";
 
+// The agent loop makes up to 20 model + tool round-trips. Fluid Compute (on by
+// default for new Vercel projects) bills active CPU, not idle wall-clock, so
+// this headroom is cheap. Raise to 300 on Pro for long incorporations.
+export const maxDuration = 60;
+
 const Body = z.object({
   prompt: z.string().min(1).max(8000),
   system: z.string().max(4000).optional(),

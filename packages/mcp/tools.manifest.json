@@ -3,5 +3,20 @@
   "package": "@ar-agents/mcp",
   "version": "0.9.0",
   "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package — exposes the underlying tool surface via stdio transport.",
-  "tools": []
+  "tools": [],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-interop",
+    "articles": [
+      "art-6",
+      "art-8"
+    ],
+    "normas": [
+      "estado-digital-xroad",
+      "D2",
+      "D5",
+      "D8"
+    ]
+  }
 }

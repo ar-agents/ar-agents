@@ -31,5 +31,19 @@
       "idempotent": true,
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-tributos-prov",
+    "articles": [
+      "art-6",
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "modernizacion-tributaria",
+      "estado-digital-xroad"
+    ]
+  }
 }

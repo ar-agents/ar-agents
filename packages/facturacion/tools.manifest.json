@@ -78,5 +78,18 @@
   "meta": {
     "generated_by": "scripts/regen-manifests.mjs",
     "tool_count": 10
+  },
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-pagos",
+    "articles": [
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "estado-digital-xroad",
+      "D5"
+    ]
   }
 }

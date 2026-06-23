@@ -3,5 +3,17 @@
   "package": "@ar-agents/agentic-commerce-bridge",
   "version": "5.0.0",
   "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP). LLM-buyer-facing checkout sessions, signed webhooks, /.well-known/acp.json discovery, AR-fiscal compliance (auto-issued AFIP/ARCA factura). Infrastructure package — no LLM tool surface.",
-  "tools": []
+  "tools": [],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-comercio",
+    "articles": [
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "D32"
+    ]
+  }
 }

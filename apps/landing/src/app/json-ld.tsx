@@ -39,7 +39,7 @@ export function HomeJsonLd() {
           url: SITE_URL,
           logo: `${SITE_URL}/icon.png`,
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades-IA, AI-only companies under Argentina's proposed regime.",
+            "Open-source infrastructure for Argentine AI societies: RFCs, SDKs, registry, audit logs, and local integrations. The draft legal regime was sent to the Senate on 2026-06-01 and is not law yet.",
           sameAs: [REPO_URL, "https://www.npmjs.com/org/ar-agents"],
           founder: {
             "@type": "Person",
@@ -59,7 +59,7 @@ export function HomeJsonLd() {
           url: SITE_URL,
           name: "ar-agents",
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades-IA. 17 npm packages, 168 tools, 5 hosted endpoints.",
+            "Open-source infrastructure for AI societies in Argentina: RFCs, SDKs, registry, audit logs, and local integrations for agent-operated companies.",
           inLanguage: ["es-AR", "en"],
           potentialAction: {
             "@type": "SearchAction",
@@ -183,7 +183,7 @@ export function IncorporarJsonLd() {
         "@type": "HowTo",
         name: "Cómo constituir una sociedad-IA argentina",
         description:
-          "Wizard guiado para constituir una empresa argentina operada por IA bajo el régimen propuesto por Sturzenegger (anuncio 28-abr-2026).",
+          "Wizard guiado para preparar una empresa argentina operada por IA. El anteproyecto de Sociedad Automatizada fue enviado al Senado el 1-jun-2026 y todavía no es ley.",
         url: `${SITE_URL}/incorporar`,
         totalTime: "PT10M",
         estimatedCost: { "@type": "MonetaryAmount", currency: "USD", value: 0 },
@@ -207,8 +207,8 @@ export function IncorporarJsonLd() {
           {
             "@type": "HowToStep",
             position: 2,
-            name: "Descargar los 4 archivos generados",
-            text: "package.json, lib/agent.ts, .env.example, README.md.",
+            name: "Descargar los archivos generados",
+            text: "agent/instructions.md, agent/skills/*.md, lib/agent.ts, package.json, .env.example, README.md.",
           },
           {
             "@type": "HowToStep",

@@ -59,5 +59,18 @@
       "idempotent": true,
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-uala",
+    "articles": [
+      "art-5",
+      "art-8"
+    ],
+    "normas": [
+      "D5",
+      "D18"
+    ]
+  }
 }

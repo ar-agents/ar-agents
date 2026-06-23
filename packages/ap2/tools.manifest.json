@@ -3,5 +3,19 @@
   "package": "@ar-agents/ap2",
   "version": "0.2.0",
   "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
-  "tools": []
+  "tools": [],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-pagos-agente",
+    "articles": [
+      "art-6",
+      "art-8",
+      "art-9"
+    ],
+    "normas": [
+      "estado-digital-xroad",
+      "D5"
+    ]
+  }
 }

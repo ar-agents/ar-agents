@@ -5,7 +5,9 @@
     {
       "name": "cnv_get_issuer",
       "description": "Look up a CNV issuer by code.",
-      "input": { "code": "issuer code, e.g. YPF" },
+      "input": {
+        "code": "issuer code, e.g. YPF"
+      },
       "returns": "IssuerRecord | null",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
@@ -26,10 +28,25 @@
     {
       "name": "cnv_list_financial_statements",
       "description": "List quarterly / annual / intermediate financials.",
-      "input": { "issuerCode": "string", "limit": "1-100" },
+      "input": {
+        "issuerCode": "string",
+        "limit": "1-100"
+      },
       "returns": "FinancialStatementRecord[]",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "authorizedBy": {
+    "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+    "verify": "https://ar-panel-one.vercel.app/verify",
+    "rail": "rail-cnv",
+    "articles": [
+      "art-5",
+      "art-8"
+    ],
+    "normas": [
+      "estado-digital-xroad"
+    ]
+  }
 }
