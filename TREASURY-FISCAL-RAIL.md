@@ -14,6 +14,8 @@ A Sociedad Automatizada earns in crypto (USDC on Base). **How does it get Argent
 
 `chat-eve.md` called x402/Base "the #1 gap"; that is only rail 1. This doc designs rails **2 + 3**, the half that makes the jurisdiction real.
 
+**STATUS (2026-06-24): all three rails BUILT + unit-tested.** Rail 1 = `@ar-agents/x402@0.1.0` (x402 HTTP-402 intake on Base: local EIP-712/EIP-3009 verify + facilitator settle, 22 tests). Rails 2 + 3 = `@ar-agents/treasury@0.2.0` (Manteca **and** Ripio off-ramp adapters + AFIP fiscal layer + 8 AI SDK tools + a full-bridge integration test, 67 tests). All wired into the generated society (`treasury` + `x402` piezas). The only thing left is LIVE runs against real PSAV / facilitator accounts, which are sales-gated (Naza's action).
+
 ## 3. Verified facts (jun-2026)
 
 **Off-ramp (crypto→ARS):** Lemon, Buenbit, Belo, Ripio, Fiwind sell crypto for ARS and withdraw to a bank/CVU in 24-48h. **Fiwind supports USDC on Base** and issues a CVU (instant ARS in/out to any bank/wallet). These are consumer apps; **programmatic B2B API availability is the open question (§5).**
@@ -62,7 +64,9 @@ Secondary unknowns: can monotributo débito automático be enrolled/paid program
 3. ✅ `OffRampAdapter` + **Manteca impl** (`MantecaOffRampAdapter`) + the `getStatus` async-settlement extension.
 4. ✅ AFIP layer — but the **honest** version: no fully-autonomous payment exists (WSCREATEVEP gov-only; débito automático can't be enrolled by API; no MP-pay-VEP API). So it **computes the obligation + funds the buffer + emits the settlement instruction** (`settlementPlan`, `canAutoExecute: false`). It does not pretend to pay AFIP.
 5. ✅ Wire into the generated society: the `treasury` pieza (8 tools) + `MANTECA_*` env + `getOffRamp()` in the starter; a `treasury` skill playbook. (A charter clause declaring the fiscal posture is the small remaining polish.)
-6. ⏭️ **Next:** Ripio B2B adapter (same interface) · x402/Base intake (rail 1) · a live integration test once a Manteca account exists.
+6. ✅ **Ripio B2B adapter** (`RipioOffRampAdapter`, same `OffRampAdapter` interface — provider-optionality, no single-PSAV lock-in).
+7. ✅ **x402/Base intake** (`@ar-agents/x402`, rail 1) + ✅ full-bridge integration test (x402 → treasury → AFIP composed end-to-end) + ✅ wired into the society (`x402` pieza + starter `/api/x402` route + charter fiscal clause).
+8. ⏭️ **Remaining:** LIVE integration tests once a Manteca / Ripio business account + (for mainnet) a CDP facilitator key exist. All sales-gated — Naza's action. Everything controllable in code is done.
 
 ## 8. Why this is the right "build big" bet
 
