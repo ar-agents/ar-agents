@@ -14,7 +14,7 @@ A Sociedad Automatizada earns in crypto (USDC on Base). **How does it get Argent
 
 `chat-eve.md` called x402/Base "the #1 gap"; that is only rail 1. This doc designs rails **2 + 3**, the half that makes the jurisdiction real.
 
-**STATUS (2026-06-24): all three rails BUILT + unit-tested.** Rail 1 = `@ar-agents/x402@0.1.0` (x402 HTTP-402 intake on Base: local EIP-712/EIP-3009 verify + facilitator settle, 22 tests). Rails 2 + 3 = `@ar-agents/treasury@0.2.0` (Manteca **and** Ripio off-ramp adapters + AFIP fiscal layer + 8 AI SDK tools + a full-bridge integration test, 67 tests). All wired into the generated society (`treasury` + `x402` piezas). The only thing left is LIVE runs against real PSAV / facilitator accounts, which are sales-gated (Naza's action).
+**STATUS (2026-06-24): all three rails BUILT + unit-tested.** Rail 1 = `@ar-agents/x402@0.1.0` (x402 HTTP-402 intake on Base: local EIP-712/EIP-3009 verify + facilitator settle, 22 tests). Rails 2 + 3 = `@ar-agents/treasury@0.2.0` (Manteca **and** Ripio off-ramp adapters + AFIP fiscal layer + 8 AI SDK tools + a full-bridge integration test, 67 tests). All wired into the generated society (`treasury` + `x402` piezas). **Rail 1 is now LIVE-PROVEN on Base Sepolia (2026-06-24):** a real 0.01 USDC settled through the public x402.org facilitator (tx `0x040725…df37f`, status `0x1`, gasless for the payer — see `packages/x402/README.md`). The off-ramps (rails 2/3) are wire-verified against the real PSAV servers up to the credential boundary (Ripio sandbox OAuth2 + quotes endpoints confirmed live; Manteca host reachable); the only thing left there is a LIVE off-ramp run, which needs a sales-gated Manteca/Ripio account (Naza's action). Turnkey runner: `packages/treasury/scripts/live-offramp.mjs`.
 
 ## 3. Verified facts (jun-2026)
 
@@ -66,7 +66,10 @@ Secondary unknowns: can monotributo débito automático be enrolled/paid program
 5. ✅ Wire into the generated society: the `treasury` pieza (8 tools) + `MANTECA_*` env + `getOffRamp()` in the starter; a `treasury` skill playbook. (A charter clause declaring the fiscal posture is the small remaining polish.)
 6. ✅ **Ripio B2B adapter** (`RipioOffRampAdapter`, same `OffRampAdapter` interface — provider-optionality, no single-PSAV lock-in).
 7. ✅ **x402/Base intake** (`@ar-agents/x402`, rail 1) + ✅ full-bridge integration test (x402 → treasury → AFIP composed end-to-end) + ✅ wired into the society (`x402` pieza + starter `/api/x402` route + charter fiscal clause).
-8. ⏭️ **Remaining:** LIVE integration tests once a Manteca / Ripio business account + (for mainnet) a CDP facilitator key exist. All sales-gated — Naza's action. Everything controllable in code is done.
+8. 🔄 **Remaining:** LIVE runs against real accounts.
+   - ✅ **Rail 1 DONE (2026-06-24)** — x402/Base intake proven on Base Sepolia (real 0.01 USDC, tx `0x0407257c…aedf37f`, status `0x1`, gasless). The public x402.org facilitator needs no account; funded via the Circle faucet (no login). En route, found + fixed a live-wire bug (facilitator returns failures in `errorReason`, not `error`) the mock tests couldn't catch.
+   - ⏭️ **Off-ramp LIVE run** still needs a sales-gated Manteca/Ripio B2B account — but the wire is now verified against the real servers: Ripio sandbox `/oauth2/token/` returns `invalid_client` (401) and `/api/v1/quotes/` returns 401, the exact shapes the adapter handles; Manteca host reachable. `scripts/live-offramp.mjs` makes the live quote/convert one command the moment creds exist (and runs an offline full-loop demo with none). **Ripio is the faster path** (open sandbox; Manteca has no self-serve keys + a per-account API host).
+   - ⏭️ Mainnet x402 needs a CDP facilitator key. Everything controllable in code is done.
 
 ## 8. Why this is the right "build big" bet
 

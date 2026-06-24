@@ -28,8 +28,11 @@
  *
  * NOT yet integration-tested: Manteca onboarding is sales-gated (no self-serve
  * keys), so this client is unit-tested against mocked HTTP (the request contract
- * is pinned exactly). Going live = set the 3 config items above + run against the
- * sandbox. See ../../TREASURY-FISCAL-RAIL.md §5.
+ * is pinned exactly). LIVE-PROBED 2026-06-24: api.manteca.dev is reachable but the
+ * live API host + price path ship per-account (GET /v2/prices/direct/USDC_ARS ->
+ * 404 unauth), so there is no public proving surface — confirm the host + ticker
+ * at onboarding. Going live = set the 3 config items above. See
+ * ../../TREASURY-FISCAL-RAIL.md §5. Run: `scripts/live-offramp.mjs manteca`.
  */
 
 import type {

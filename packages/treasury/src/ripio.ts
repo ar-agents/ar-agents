@@ -28,9 +28,12 @@
  *     in static examples; confirm Base/USDC is enabled via GET /api/v1/depositNetworks/.
  *   - The exact offrampSession request body + status enum (parsed defensively here).
  *
- * Request contract pinned + unit-tested vs mocked HTTP; not yet live-integration-
- * tested (Ripio B2B keys are sales-gated). Ripio does expose a public sandbox with
- * deposit simulation, so it is the soonest path to a live test.
+ * Request contract pinned + unit-tested vs mocked HTTP. LIVE-PROBED 2026-06-24:
+ * the sandbox host is up and `POST /oauth2/token/` returns `{error:"invalid_client"}`
+ * (401) while `POST /api/v1/quotes/` returns 401 — the exact wire + error shapes
+ * this adapter handles (RipioAuthError), verified up to the credential boundary.
+ * Only sales-gated client creds remain; Ripio is the soonest path to a full live
+ * run (open sandbox + deposit simulation). Run: `scripts/live-offramp.mjs ripio`.
  */
 
 import type {
