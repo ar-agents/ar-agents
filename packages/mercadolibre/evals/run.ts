@@ -1,24 +1,23 @@
 // Run the eval suite. Reads scenarios, asks the judge LLM to grade each
 // agent transcript, prints a markdown report. Headless — no UI needed.
 //
-// Usage:
-//   ANTHROPIC_API_KEY=… pnpm tsx evals/run.ts
-//   ANTHROPIC_API_KEY=… pnpm tsx evals/run.ts --judge-model claude-sonnet-4-6
+// Usage (routes through the Vercel AI Gateway; bare "provider/model" strings):
+//   AI_GATEWAY_API_KEY=… pnpm tsx evals/run.ts
+//   AI_GATEWAY_API_KEY=… pnpm tsx evals/run.ts --judge-model anthropic/claude-sonnet-4-6
 //
 // Cost note: each scenario runs the SUT agent (~$0.001) + the judge agent
 // (~$0.002). 10 scenarios = ~$0.03. Cheap enough to run on every PR.
 
 import { generateObject, generateText } from "ai";
-import { anthropic } from "@ai-sdk/anthropic";
 import { mockFetch, makeMeliClient } from "../src/testing";
 import { meliTools } from "../src/ai-sdk";
 import { SCENARIOS, ScoreSchema, type Score, type Scenario } from "./scenarios";
 
 const JUDGE_MODEL = process.argv.includes("--judge-model")
   ? process.argv[process.argv.indexOf("--judge-model") + 1]!
-  : "claude-sonnet-4-6";
+  : "anthropic/claude-sonnet-4-6";
 
-const SUT_MODEL = "claude-sonnet-4-6"; // system-under-test
+const SUT_MODEL = "anthropic/claude-sonnet-4-6"; // system-under-test (gateway-routed)
 
 // ---------------------------------------------------------------------------
 // MOCK MELI BACKEND. Returns canned data shaped like real MELI responses so
@@ -276,7 +275,7 @@ async function runScenario(
   const tools = meliTools(client, { siteId: "MLA", sellerId: 12345 });
 
   const r = await generateText({
-    model: anthropic(SUT_MODEL),
+    model: SUT_MODEL,
     tools,
     system:
       "Sos un asistente para vendedores de Mercado Libre Argentina. Hablás español rioplatense. Sos breve y específico. Usás las tools cuando hace falta información real; no inventes datos.",
@@ -334,7 +333,7 @@ Score on a 1-5 scale (5 = perfect):
 Also write notes (1-2 sentences) summarizing what worked / didn't.`;
 
   const r = await generateObject({
-    model: anthropic(JUDGE_MODEL),
+    model: JUDGE_MODEL,
     schema: ScoreSchema,
     prompt: judgePrompt,
   });

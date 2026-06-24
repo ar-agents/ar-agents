@@ -479,7 +479,7 @@ export function buildHandlers(store: FakeMpStore) {
     http.get(`${MP_BASE}/users/me`, () => {
       return HttpResponse.json({
         id: 999999999,
-        email: "naza@helloastro.co",
+        email: "naza@naza.ar",
         nickname: "TESTUSER123",
         country_id: "AR",
         site_id: "MLA",

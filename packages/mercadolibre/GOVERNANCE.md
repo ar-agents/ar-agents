@@ -4,7 +4,7 @@
 
 ## Current state
 
-- **Maintainer:** Nazareno Clemente ([@naza00000](https://github.com/naza00000), naza@helloastro.co).
+- **Maintainer:** Nazareno Clemente ([@naza00000](https://github.com/naza00000), naza@naza.ar).
 - **Bus factor:** 1.
 - **Decisions:** Made by the maintainer. Documented via PRs + CHANGELOG entries. No formal review process beyond GitHub PR review.
 
@@ -37,7 +37,7 @@ We are **actively seeking** a second maintainer. The bar isn't "best contributor
 
 1. **Open 3+ substantive PRs.** Bug fixes, new test coverage, cookbook recipes, doc improvements. Substance > volume.
 2. **Stay engaged for 30+ days.** Respond to issue questions, review other people's PRs, answer questions on GitHub Discussions.
-3. **Email** `naza@helloastro.co` with subject `[co-maintain]` and links to your PRs. The maintainer responds within 7 days.
+3. **Email** `naza@naza.ar` with subject `[co-maintain]` and links to your PRs. The maintainer responds within 7 days.
 4. **Trial period (30 days).** Triage rights on the repo. Joint decision-making on PRs.
 5. **Permanent slot.** npm publish rights, GitHub admin, decision authority.
 
@@ -75,7 +75,7 @@ This minimizes the risk of an abandoned-but-still-installed package shipping sil
 
 ## Contact
 
-- General: `naza@helloastro.co`
-- Co-maintain: `naza@helloastro.co` subject `[co-maintain]`
-- Security: `naza@helloastro.co` subject `[security]`
-- Vendor / commercial: `naza@helloastro.co` subject `[vendor]`
+- General: `naza@naza.ar`
+- Co-maintain: `naza@naza.ar` subject `[co-maintain]`
+- Security: `naza@naza.ar` subject `[security]`
+- Vendor / commercial: `naza@naza.ar` subject `[vendor]`

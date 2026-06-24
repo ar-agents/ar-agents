@@ -1,4 +1,4 @@
-export { createServer, startStdio } from "./server";
+export { createServer, startStdio, startHttp, type HttpOptions } from "./server";
 export {
   adaptToolSetToMcp,
   combineToolSets,

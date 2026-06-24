@@ -9,10 +9,10 @@ description = "Zero-dependency Python client for the ar-agents.vercel.app/api/au
 readme = "README.md"
 license = { text = "MIT" }
 authors = [
-    { name = "Nazareno Clemente", email = "naza@helloastro.co" },
+    { name = "Nazareno Clemente", email = "naza@naza.ar" },
 ]
 maintainers = [
-    { name = "Nazareno Clemente", email = "naza@helloastro.co" },
+    { name = "Nazareno Clemente", email = "naza@naza.ar" },
 ]
 requires-python = ">=3.10"
 keywords = [

@@ -4,7 +4,7 @@
 >
 > **Last reviewed:** 2026-05-09 (v0.4.1).
 >
-> **Disclosure:** Email `naza@helloastro.co` with subject `[security]`.
+> **Disclosure:** Email `naza@naza.ar` with subject `[security]`.
 > Encrypted (Signal / age-encryption) preferred for non-trivial findings; PGP key on request.
 > First-response target: 72 hours. Coordinated disclosure window: 30 days minimum.
 
@@ -141,6 +141,6 @@ Dev-time dependencies (NOT in the published bundle):
 
 ## Reporting a vulnerability
 
-Email `naza@helloastro.co` with subject prefix `[security]`. We aim to triage within 72 hours.
+Email `naza@naza.ar` with subject prefix `[security]`. We aim to triage within 72 hours.
 
 For coordinated disclosure with MELI's security team, file via [hackerone.com/mercadolibre](https://hackerone.com/mercadolibre) — this package is not affiliated with Mercado Libre S.R.L.

@@ -36,7 +36,7 @@ const tn = new HttpTiendaNubeAdapter({
   storeId: token.storeId,
   accessToken: token.accessToken,
   appName: "Vultur",
-  contactEmail: "naza@helloastro.co",
+  contactEmail: "naza@naza.ar",
 });
 
 // 3) Use directly OR wire as agent tools:

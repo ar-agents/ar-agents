@@ -78,7 +78,7 @@ describe("Address", () => {
 
 describe("Buyer", () => {
   it("requires only email", () => {
-    const r = Buyer.safeParse({ email: "naza@helloastro.co" });
+    const r = Buyer.safeParse({ email: "naza@naza.ar" });
     expect(r.success).toBe(true);
   });
 

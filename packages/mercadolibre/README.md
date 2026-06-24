@@ -12,11 +12,11 @@
 | | |
 | --- | --- |
 | **Maturity** | Beta — surface-stable but iterating in public |
-| **Maintainership** | Solo-maintained ([Nazareno Clemente](mailto:naza@helloastro.co)) |
+| **Maintainership** | Solo-maintained ([Nazareno Clemente](mailto:naza@naza.ar)) |
 | **SLA** | None — best-effort community support |
 | **Affiliation** | **Independent.** Not endorsed, sponsored, or vetted by Mercado Libre S.R.L. |
 | **Trademark** | `MERCADOLIBRE®` is a registered trademark of Mercado Libre S.R.L. This package uses the name in a descriptive, nominative-fair-use sense to identify the API it integrates with. |
-| **Security disclosures** | Email `naza@helloastro.co` with subject `[security]`. See [SECURITY.md](./SECURITY.md). |
+| **Security disclosures** | Email `naza@naza.ar` with subject `[security]`. See [SECURITY.md](./SECURITY.md). |
 | **Bus factor** | 1. Plan accordingly. |
 
 If you're considering this for production:

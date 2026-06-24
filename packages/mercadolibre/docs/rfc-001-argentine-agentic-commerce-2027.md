@@ -144,7 +144,7 @@ These are MIT-licensed, npm-published, daily-tested against MELI's live public A
 This RFC is a draft for public comment. The text above is intentionally specific — the right way to argue with it is to point at a section and say "this is wrong because…", not to reject the framing.
 
 - **GitHub Discussions** at [github.com/ar-agents/ar-agents/discussions](https://github.com/ar-agents/ar-agents/discussions)
-- **Direct contact** at `naza@helloastro.co` subject `[rfc-001]`
+- **Direct contact** at `naza@naza.ar` subject `[rfc-001]`
 - **Public canonical URL** at [mercadolibre.ar-agents.ar/rfc/001](https://mercadolibre.ar-agents.ar/rfc/001)
 
 If you're at a LATAM marketplace and want to evaluate this for ratification, see [`POSITIONING.md`](../POSITIONING.md) for the strategic argument and [`/integrate`](https://mercadolibre.ar-agents.ar/integrate) for the three adoption paths (try / partner / license).

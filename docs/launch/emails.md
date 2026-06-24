@@ -49,7 +49,7 @@ Reunión: 30 minutos cuando puedan. Estoy en Buenos Aires y respondo
 mails en menos de 48 horas.
 
 Naza Clemente
-naza@helloastro.co
+naza@naza.ar
 github.com/ar-agents/ar-agents
 ar-agents.ar
 ```
@@ -95,7 +95,7 @@ y open.
 ¿Café o un call de 20 minutos cuando puedas?
 
 Naza
-naza@helloastro.co
+naza@naza.ar
 ```
 
 **Word count:** ~210.
@@ -139,7 +139,7 @@ Press kit: ar-agents.ar/press-kit
 Demo en vivo: ar-agents.ar/play
 
 Naza Clemente
-naza@helloastro.co
+naza@naza.ar
 WhatsApp/llamadas: +34 695 63 22 37
 ```
 

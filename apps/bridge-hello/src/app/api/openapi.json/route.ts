@@ -27,7 +27,7 @@ export async function GET(req: Request) {
         "This bridge mounts the ACP checkout endpoints, an opt-in product feed, and the AP2 issue/verify flow.",
       contact: {
         name: "Nazareno Clemente",
-        email: "naza@helloastro.co",
+        email: "naza@naza.ar",
         url: "https://github.com/ar-agents/ar-agents",
       },
       license: { name: "MIT", identifier: "MIT" },

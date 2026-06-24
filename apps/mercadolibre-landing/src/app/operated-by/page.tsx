@@ -79,14 +79,14 @@ export default function OperatedByPage() {
         </Section>
 
         <Section title="2. Contact + Disclosure">
-          <Row k="General contact" v={<Link2 href="mailto:naza@helloastro.co">naza@helloastro.co</Link2>} />
+          <Row k="General contact" v={<Link2 href="mailto:naza@naza.ar">naza@naza.ar</Link2>} />
           <Row
             k="Security disclosures"
             v={
               <span>
                 Email{" "}
-                <Link2 href="mailto:naza@helloastro.co?subject=%5Bsecurity%5D">
-                  naza@helloastro.co
+                <Link2 href="mailto:naza@naza.ar?subject=%5Bsecurity%5D">
+                  naza@naza.ar
                 </Link2>{" "}
                 with subject prefix <code>[security]</code>. PGP / age-encryption available on request.
               </span>
@@ -125,7 +125,7 @@ export default function OperatedByPage() {
           />
           <Row
             k="Co-maintainer invitation"
-            v="Open. Email naza@helloastro.co with subject [co-maintain] and a sample PR. Response in 7 days."
+            v="Open. Email naza@naza.ar with subject [co-maintain] and a sample PR. Response in 7 days."
           />
           <Row
             k="Estimated total cost-to-replace"
@@ -226,8 +226,8 @@ export default function OperatedByPage() {
           procurement, and legal reviewers. Every answer is honest. If your
           adoption bar requires more (dedicated SLA, indemnification, audit
           rights, etc.), email{" "}
-          <Link2 href="mailto:naza@helloastro.co?subject=%5Bvendor%5D">
-            naza@helloastro.co
+          <Link2 href="mailto:naza@naza.ar?subject=%5Bvendor%5D">
+            naza@naza.ar
           </Link2>{" "}
           to discuss a commercial agreement.
         </p>

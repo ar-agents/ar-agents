@@ -248,7 +248,7 @@ export default function RFC001Page() {
             </Ext>
           </Bullet>
           <Bullet>
-            Direct: <code>naza@helloastro.co</code> subject{" "}
+            Direct: <code>naza@naza.ar</code> subject{" "}
             <code>[rfc-001]</code>
           </Bullet>
           <Bullet>

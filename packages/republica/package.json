@@ -4,7 +4,7 @@
   "description": "MCP server that lets any AI agent introspect AND cryptographically verify the Autonomous Republic (República Autónoma) — its Constitution, laws, decrees, rails and signed census — as one sealed object. Serves proofs, not just data.",
   "keywords": ["mcp", "model-context-protocol", "ar-agents", "argentina", "republica-autonoma", "ed25519", "verifiable", "constitution-as-code", "claude-desktop", "cursor"],
   "license": "MIT",
-  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "author": "Nazareno Clemente <naza@naza.ar>",
   "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/republica",
   "repository": {
     "type": "git",

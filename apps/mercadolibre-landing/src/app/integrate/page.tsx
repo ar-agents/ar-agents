@@ -133,7 +133,7 @@ const tools = meliTools(client, {
             },
             {
               n: 2,
-              t: "Email naza@helloastro.co with subject [co-maintain]",
+              t: "Email naza@naza.ar with subject [co-maintain]",
               c: (
                 <span>
                   Include links to your PRs and a 1-line statement of intent.
@@ -172,7 +172,7 @@ const tools = meliTools(client, {
           steps={[
             {
               n: 1,
-              t: "Email naza@helloastro.co with subject [vendor]",
+              t: "Email naza@naza.ar with subject [vendor]",
               c: (
                 <span>
                   Tell us your jurisdiction, the scope (exclusive vs

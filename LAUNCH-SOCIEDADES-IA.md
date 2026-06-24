@@ -684,7 +684,7 @@ RFC: ar-agents.ar/rfcs/001
 Manifiesto: ar-agents.ar/manifiesto
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@naza.ar · +34 695 63 22 37
 X: @nazanazanazanaz
 ```
 
@@ -723,7 +723,7 @@ Repo: github.com/ar-agents/ar-agents
 RFC: ar-agents.ar/rfcs/001
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@naza.ar · +34 695 63 22 37
 X: @nazanazanazanaz
 ```
 
@@ -765,7 +765,7 @@ Repo: github.com/ar-agents/ar-agents
 RFC: ar-agents.ar/rfcs/001
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@naza.ar · +34 695 63 22 37
 X: @nazanazanazanaz
 ```
 
@@ -805,7 +805,7 @@ Repo: github.com/ar-agents/ar-agents
 RFC: ar-agents.ar/rfcs/001
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@naza.ar · +34 695 63 22 37
 X: @nazanazanazanaz
 ```
 
@@ -846,7 +846,7 @@ RFC: ar-agents.ar/rfcs/001
 Manifiesto: ar-agents.ar/manifiesto (sección "Lo que NO hace /arg" — explícito que no vende a la SIDE ni firma con el Estado)
 
 — Naza Clemente
-naza@helloastro.co · +34 695 63 22 37
+naza@naza.ar · +34 695 63 22 37
 X: @nazanazanazanaz
 ```
 
@@ -908,7 +908,7 @@ Reunión: 30 minutos cuando puedan. Estoy en Buenos Aires y respondo
 mails en menos de 48 horas.
 
 Naza Clemente
-naza@helloastro.co
+naza@naza.ar
 github.com/ar-agents/ar-agents
 ar-agents.ar
 ```
@@ -1033,7 +1033,7 @@ ideal que esta sea la opción default y open.
 ¿Café o un call de 20 minutos cuando puedas?
 
 Naza
-naza@helloastro.co
+naza@naza.ar
 ```
 
 ### Mutual connections via MELI
@@ -1283,7 +1283,7 @@ ar-agents.ar
 github.com/ar-agents/ar-agents
 
 — Naza Clemente
-naza@helloastro.co
+naza@naza.ar
 ```
 
 ### doola — Arjun (founder)
@@ -1339,7 +1339,7 @@ If MIDAO is exploring jurisdictional bridges, ar-agents.ar is
 open. MIT.
 
 — Naza Clemente
-naza@helloastro.co
+naza@naza.ar
 ```
 
 ---
@@ -1384,7 +1384,7 @@ Focus: agent ergonomics for LATAM-regional regulatory compliance.
 Available for a 30-min call to discuss.
 
 — Naza Clemente
-naza@helloastro.co
+naza@naza.ar
 github.com/naza00000
 ```
 

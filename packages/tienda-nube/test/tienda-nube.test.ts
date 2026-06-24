@@ -108,14 +108,14 @@ describe("HttpTiendaNubeAdapter request layer", () => {
       storeId: 999,
       accessToken: "tn_xyz",
       appName: "Vultur",
-      contactEmail: "naza@helloastro.co",
+      contactEmail: "naza@naza.ar",
       fetch: fetchImpl,
     });
     await a.getStore();
     expect(captured).not.toBeNull();
     expect(captured!.url).toBe("https://api.tiendanube.com/v1/999/store");
     expect(captured!.headers?.authentication).toBe("bearer tn_xyz");
-    expect(captured!.headers?.["user-agent"]).toBe("Vultur (naza@helloastro.co)");
+    expect(captured!.headers?.["user-agent"]).toBe("Vultur (naza@naza.ar)");
   });
 
   it("maps 401/403 to TiendaNubeAuthError", async () => {
@@ -300,12 +300,12 @@ describe("InMemoryTiendaNubeAdapter", () => {
     });
     const a = new InMemoryTiendaNubeAdapter({
       customers: [
-        customer(1, "Naza", "naza@helloastro.co"),
+        customer(1, "Naza", "naza@naza.ar"),
         customer(2, "Cliente Demo", "demo@x.com"),
       ],
     });
     expect((await a.listCustomers({ q: "NAZA" })).data).toHaveLength(1);
-    expect((await a.listCustomers({ q: "helloastro" })).data).toHaveLength(1);
+    expect((await a.listCustomers({ q: "NAZA.AR" })).data).toHaveLength(1);
   });
 
   it("paginate honors page + perPage + hasMore", async () => {

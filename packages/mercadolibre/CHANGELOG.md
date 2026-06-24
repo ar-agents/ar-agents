@@ -92,7 +92,7 @@ Positioning + posture pass driven by an adversarial review (skeptical MELI engin
 The README now opens with explicit disclosures:
 
 - **Maturity**: Beta — surface-stable but iterating in public.
-- **Maintainership**: Solo-maintained ([Nazareno Clemente](mailto:naza@helloastro.co)).
+- **Maintainership**: Solo-maintained ([Nazareno Clemente](mailto:naza@naza.ar)).
 - **SLA**: None.
 - **Affiliation**: Independent. Not endorsed, sponsored, or vetted by Mercado Libre S.R.L.
 - **Trademark**: `MERCADOLIBRE®` is a registered trademark of Mercado Libre S.R.L. The package name uses it in a descriptive, nominative-fair-use sense.
@@ -113,7 +113,7 @@ The discovery payload at `/.well-known/agentic-feed.json` honestly advertises th
 
 ### Added — SECURITY.md hardening
 
-- Disclosure address (`naza@helloastro.co`) + 72h response target + 30d coordinated-disclosure window.
+- Disclosure address (`naza@naza.ar`) + 72h response target + 30d coordinated-disclosure window.
 - Explicit "Known limitations" section: bus factor 1, no SLA, not vetted by MELI.
 - Agent-runtime-specific threat vectors documented:
   - Prompt injection via tool-result content (question / claim text)

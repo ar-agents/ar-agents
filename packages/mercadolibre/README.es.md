@@ -14,11 +14,11 @@
 | | |
 | --- | --- |
 | **Madurez** | Beta — superficie estable, iteración pública |
-| **Mantenimiento** | Solo-mantenido ([Nazareno Clemente](mailto:naza@helloastro.co)) |
+| **Mantenimiento** | Solo-mantenido ([Nazareno Clemente](mailto:naza@naza.ar)) |
 | **SLA** | Ninguno — soporte best-effort de la comunidad |
 | **Afiliación** | **Independiente.** Sin endoso, patrocinio o validación de Mercado Libre S.R.L. |
 | **Marca registrada** | `MERCADOLIBRE®` es marca registrada de Mercado Libre S.R.L. Este package usa el nombre en sentido descriptivo y de fair-use nominativo para identificar la API que integra. |
-| **Disclosures de seguridad** | Email a `naza@helloastro.co` con asunto `[security]`. Ver [SECURITY.md](./SECURITY.md). |
+| **Disclosures de seguridad** | Email a `naza@naza.ar` con asunto `[security]`. Ver [SECURITY.md](./SECURITY.md). |
 | **Bus factor** | 1. Plan accordingly. |
 
 Si lo estás considerando para producción, leé [CHANGELOG.md](./CHANGELOG.md) (señal de velocidad), [SECURITY.md](./SECURITY.md) (threat model), [POSITIONING.md](./POSITIONING.md) (posicionamiento estratégico) y [`evals/results.md`](./evals/results.md) (benchmark LLM-as-judge).

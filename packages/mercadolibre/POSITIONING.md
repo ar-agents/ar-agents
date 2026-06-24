@@ -110,6 +110,6 @@ Path of least resistance: open a substantive PR to [`mercadolibre/mercadolibre-m
 
 ## Contact
 
-- **Strategic / commercial:** `naza@helloastro.co` subject `[meli-strategic]`
-- **Technical:** `naza@helloastro.co` subject `[meli-technical]`
+- **Strategic / commercial:** `naza@naza.ar` subject `[meli-strategic]`
+- **Technical:** `naza@naza.ar` subject `[meli-technical]`
 - **Repo for direct review:** [github.com/ar-agents/ar-agents/tree/main/packages/mercadolibre](https://github.com/ar-agents/ar-agents/tree/main/packages/mercadolibre)

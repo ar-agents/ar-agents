@@ -39,6 +39,7 @@ if (sub === "doctor") {
 
 Usage:
   ar-agents-mcp                  Start the MCP server (default — speak JSON-RPC over stdio).
+  ar-agents-mcp http             Start the MCP server over Streamable HTTP (remote/hostable; env AR_MCP_HTTP_PORT, default 3030).
   ar-agents-mcp doctor           Diagnose which subpackages are wired in this env.
   ar-agents-mcp version          Print installed version.
   ar-agents-mcp help             Print this message.
@@ -61,6 +62,20 @@ Docs: https://github.com/ar-agents/ar-agents/tree/main/packages/mcp
   const pkg = JSON.parse(await fs.readFile(url, "utf-8"));
   process.stdout.write(`@ar-agents/mcp ${pkg.version}\n`);
   process.exit(0);
+} else if (sub === "http" || sub === "serve") {
+  // Remote transport: Streamable HTTP (hostable on Vercel Services; unblocks x402).
+  const { startHttp } = await import("../dist/index.js");
+  startHttp().catch((err) => {
+    console.error("ar-agents MCP HTTP server failed to start:", err);
+    process.exit(1);
+  });
+} else if (process.env.AR_MCP_HTTP_PORT) {
+  // No subcommand but an HTTP port is set: start HTTP (convenient for hosting).
+  const { startHttp } = await import("../dist/index.js");
+  startHttp().catch((err) => {
+    console.error("ar-agents MCP HTTP server failed to start:", err);
+    process.exit(1);
+  });
 } else {
   // Default: start the actual MCP server (stdio JSON-RPC).
   const { startStdio } = await import("../dist/index.js");
