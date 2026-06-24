@@ -258,6 +258,28 @@ export function envVarsFor(piezas: string[]): Array<{ name: string; description:
         description:
           "Optional Manteca API base URL (default https://api.manteca.dev; confirm at onboarding).",
       },
+      {
+        name: "RIPIO_CLIENT_ID",
+        description:
+          "Ripio B2B OAuth2 client id for the USDC->ARS off-ramp (alternative PSAV; the open sandbox is the soonest live path). Set the RIPIO_* group OR the MANTECA_* group.",
+      },
+      {
+        name: "RIPIO_CLIENT_SECRET",
+        description: "Ripio B2B OAuth2 client secret.",
+      },
+      {
+        name: "RIPIO_CUSTOMER_ID",
+        description: "Ripio B2B customer id (the KYC'd society).",
+      },
+      {
+        name: "RIPIO_FIAT_ACCOUNT_ID",
+        description: "Registered Ripio fiat account id (the society's CVU) for ARS payout.",
+      },
+      {
+        name: "RIPIO_BASE_URL",
+        description:
+          "Optional Ripio API base URL (default = prod https://b2b-api.ripio.com; set the sandbox https://sandbox-b2b.ripio.com while testing).",
+      },
     );
   }
   if (set.has("x402")) {

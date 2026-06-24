@@ -15,7 +15,12 @@ import {
   UnconfiguredAfipPadronAdapter,
 } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
-import { MantecaOffRampAdapter, type OffRampAdapter } from "@ar-agents/treasury";
+import {
+  MantecaOffRampAdapter,
+  RipioOffRampAdapter,
+  RIPIO_PROD,
+  type OffRampAdapter,
+} from "@ar-agents/treasury";
 import {
   X402Receiver,
   HostedFacilitatorClient,
@@ -89,27 +94,48 @@ export function getAfipPadronAdapter(): AfipPadronAdapter {
 
 let _offramp: OffRampAdapter | null | "missing" = null;
 /**
- * The registered-PSAV off-ramp (Manteca) for USDC->ARS payout to the society's
- * CVU. Returns undefined when MANTECA_* is unset — the pure treasury tools still
- * run; only the off-ramp tools report available:false.
+ * The registered-PSAV off-ramp for USDC->ARS payout to the society's CVU. Tries
+ * Ripio B2B first (RIPIO_*), then Manteca (MANTECA_*) — provider-optional, no
+ * single-PSAV lock-in. Returns undefined when neither is configured; the pure
+ * treasury tools still run, only the off-ramp tools report available:false.
  */
 export function getOffRamp(): OffRampAdapter | undefined {
   if (_offramp !== null) return _offramp === "missing" ? undefined : _offramp;
+
+  // Ripio B2B (OAuth2 client-credentials) — the soonest live path (open sandbox).
+  // Defaults to the prod host; set RIPIO_BASE_URL to the sandbox while testing.
+  const clientId = have("RIPIO_CLIENT_ID");
+  const clientSecret = have("RIPIO_CLIENT_SECRET");
+  const customerId = have("RIPIO_CUSTOMER_ID");
+  const fiatAccountId = have("RIPIO_FIAT_ACCOUNT_ID");
+  if (clientId && clientSecret && customerId && fiatAccountId) {
+    _offramp = new RipioOffRampAdapter({
+      clientId,
+      clientSecret,
+      customerId,
+      fiatAccountId,
+      baseUrl: have("RIPIO_BASE_URL") ?? RIPIO_PROD,
+    });
+    return _offramp;
+  }
+
+  // Manteca PSAV (md-api-key) — sell-from-balance off-ramp.
   const apiKey = have("MANTECA_API_KEY");
   const userId = have("MANTECA_USER_ID");
   const bankAccountId = have("MANTECA_BANK_ACCOUNT_ID");
-  if (!apiKey || !userId || !bankAccountId) {
-    _offramp = "missing";
-    return undefined;
+  if (apiKey && userId && bankAccountId) {
+    const baseUrl = have("MANTECA_BASE_URL");
+    _offramp = new MantecaOffRampAdapter({
+      apiKey,
+      userId,
+      bankAccountId,
+      ...(baseUrl ? { baseUrl } : {}),
+    });
+    return _offramp;
   }
-  const baseUrl = have("MANTECA_BASE_URL");
-  _offramp = new MantecaOffRampAdapter({
-    apiKey,
-    userId,
-    bankAccountId,
-    ...(baseUrl ? { baseUrl } : {}),
-  });
-  return _offramp;
+
+  _offramp = "missing";
+  return undefined;
 }
 
 let _x402:
@@ -163,7 +189,11 @@ export function clientStatus(): Record<
         ? "wired"
         : "missing-env",
     "treasury-offramp":
-      have("MANTECA_API_KEY") && have("MANTECA_USER_ID") && have("MANTECA_BANK_ACCOUNT_ID")
+      (have("RIPIO_CLIENT_ID") &&
+        have("RIPIO_CLIENT_SECRET") &&
+        have("RIPIO_CUSTOMER_ID") &&
+        have("RIPIO_FIAT_ACCOUNT_ID")) ||
+      (have("MANTECA_API_KEY") && have("MANTECA_USER_ID") && have("MANTECA_BANK_ACCOUNT_ID"))
         ? "wired"
         : "missing-env",
     "x402-intake": have("X402_PAY_TO") ? "wired" : "missing-env",
