@@ -1,21 +1,17 @@
 {
-  "name": "@ar-agents/treasury",
-  "version": "0.2.0",
-  "description": "Treasury + fiscal rail for an Argentine Sociedad Automatizada: pure-logic core (balances, tax buffer, just-in-time crypto->ARS conversion policy, Ganancias cedular accounting) plus an OffRampAdapter to a registered PSAV (Manteca / Ripio B2B) for USDC->ARS payout to a CVU. The moat half of the crypto<->fiat bridge: how an autonomous society gets pesos to pay AFIP.",
+  "name": "@ar-agents/x402",
+  "version": "0.1.0",
+  "description": "x402 crypto intake (rail 1 of the bridge) for an Argentine Sociedad Automatizada: receive USDC on Base via the x402 HTTP-402 protocol. v1 wire format, local EIP-712 (EIP-3009 transferWithAuthorization) verification, pluggable facilitator for on-chain settlement. The crypto-in half that feeds @ar-agents/treasury.",
   "keywords": [
     "ar-agents",
-    "argentina",
-    "treasury",
-    "off-ramp",
-    "stablecoin",
+    "x402",
+    "base",
     "usdc",
-    "afip",
-    "monotributo",
-    "cedular",
-    "psav",
-    "manteca",
-    "ai-sdk",
+    "eip-3009",
+    "http-402",
+    "crypto-payments",
     "agent",
+    "argentina",
     "sociedad-automatizada"
   ],
   "license": "MIT",
@@ -24,11 +20,11 @@
     "type": "github",
     "url": "https://github.com/sponsors/naza00000"
   },
-  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/treasury",
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/x402",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/ar-agents/ar-agents.git",
-    "directory": "packages/treasury"
+    "directory": "packages/x402"
   },
   "bugs": {
     "url": "https://github.com/ar-agents/ar-agents/issues"
@@ -47,22 +43,10 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    },
-    "./tools": {
-      "import": {
-        "types": "./dist/tools.d.ts",
-        "default": "./dist/tools.js"
-      },
-      "require": {
-        "types": "./dist/tools.d.cts",
-        "default": "./dist/tools.cjs"
-      }
-    },
-    "./tools.manifest.json": "./tools.manifest.json"
+    }
   },
   "files": [
     "dist",
-    "tools.manifest.json",
     "README.md"
   ],
   "scripts": {
@@ -72,21 +56,16 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "dependencies": {
+    "viem": "^2.21.0"
+  },
   "peerDependencies": {
-    "ai": ">=6.0.0",
     "zod": ">=3.0.0"
   },
-  "peerDependenciesMeta": {
-    "ai": { "optional": true },
-    "zod": { "optional": true }
-  },
   "devDependencies": {
-    "@ar-agents/x402": "workspace:*",
     "@types/node": "^20.19.39",
-    "ai": "^6.0.0",
     "tsup": "^8.3.5",
     "typescript": "^5.9.3",
-    "viem": "^2.21.0",
     "vitest": "^2.1.8",
     "zod": "^4.0.0"
   },

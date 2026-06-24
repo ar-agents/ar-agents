@@ -150,6 +150,12 @@ export interface OffRampReceipt {
   /** ARS per USD actually realized (net of spread). */
   rate: number;
   txId: string;
+  /**
+   * Set by session-model PSAVs (Ripio): the on-chain address the society must
+   * send `amountUsd` USDC to in order to complete the off-ramp. Manteca (which
+   * sells from the platform balance) leaves it undefined.
+   */
+  depositAddress?: string;
 }
 
 /** Apply a completed off-ramp conversion to the state (USDC down, ARS up). */
@@ -290,6 +296,17 @@ export {
   MantecaAuthError,
   MantecaRateLimitError,
 } from "./manteca";
+
+export {
+  RipioOffRampAdapter,
+  type RipioConfig,
+  RipioApiError,
+  RipioAuthError,
+  RipioRateLimitError,
+  normalizeRipioStatus,
+  RIPIO_SANDBOX,
+  RIPIO_PROD,
+} from "./ripio";
 
 export {
   MONOTRIBUTO_2026,

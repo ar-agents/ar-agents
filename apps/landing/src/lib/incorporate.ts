@@ -25,6 +25,7 @@ export const PIEZA_IDS = [
   "agentic-commerce-bridge",
   "ap2",
   "mcp",
+  "x402",
 ] as const;
 
 export const REQUIRED_PIEZAS: ReadonlyArray<(typeof PIEZA_IDS)[number]> = [
@@ -151,6 +152,7 @@ const PIEZA_VERSIONS: Record<string, string> = {
   "agentic-commerce-bridge": "^5.0.0",
   ap2: "^0.2.0",
   mcp: "^0.9.0",
+  x402: "^0.1.0",
 };
 
 const TOOLS_FN_NAME: Record<string, string> = {
@@ -178,7 +180,7 @@ const REQUIRES_CLIENT = new Set([
   "mi-argentina",
 ]);
 
-const INFRA_PACKAGES = new Set(["ap2", "agentic-commerce-bridge", "mcp"]);
+const INFRA_PACKAGES = new Set(["ap2", "agentic-commerce-bridge", "mcp", "x402"]);
 
 export function slugFor(s: string): string {
   return (
@@ -255,6 +257,23 @@ export function envVarsFor(piezas: string[]): Array<{ name: string; description:
         name: "MANTECA_BASE_URL",
         description:
           "Optional Manteca API base URL (default https://api.manteca.dev; confirm at onboarding).",
+      },
+    );
+  }
+  if (set.has("x402")) {
+    vars.push(
+      {
+        name: "X402_PAY_TO",
+        description: "The society's EVM receiving address (0x...) for x402 USDC intake.",
+      },
+      {
+        name: "X402_NETWORK",
+        description: 'x402 network: "base" or "base-sepolia" (default base-sepolia).',
+      },
+      {
+        name: "X402_FACILITATOR_URL",
+        description:
+          "Optional x402 facilitator URL (default: free x402.org testnet; CDP URL for mainnet).",
       },
     );
   }
@@ -540,7 +559,17 @@ Toda decisión consecuente queda en un audit log append-only firmado (HMAC), leg
 regulador, asegurador y Consejo de Stewards:
 - Lectura: https://ar-agents.ar/api/play/audit/{sessionId}
 - Verificación recomputable (no confiable): el mismo endpoint con ?verify=1.
-
+${
+  piezas.includes("treasury") || piezas.includes("x402")
+    ? `
+## 11. Puente cripto-pesos y postura fiscal
+${piezas.includes("x402") ? `- **Intake (x402/Base):** la sociedad cobra en USDC sobre Base vía x402 (rail 1); cada pago se verifica por firma EIP-3009 y queda asentado en el audit log.
+` : ""}${piezas.includes("treasury") ? `- **Tesorería + off-ramp:** convierte USDC a pesos solo lo necesario (just-in-time) vía un PSAV registrado (Manteca/Ripio); integramos uno, no nos volvemos uno (CNV RG 1058/2025). Toda conversión y pago es irreversible: pasa por requireConfirmation y el kill-switch.
+- **Impuestos:** Ganancias cedular 5% (pesos) / 15% (moneda extranjera) sobre la ganancia; cripto exento de IVA. La sociedad mantiene un buffer en pesos dimensionado a los próximos vencimientos.
+- **Pago a AFIP (honesto):** ningún canal oficial permite hoy el pago 100% autónomo. La sociedad computa, financia y emite la instrucción de pago (débito automático pasivo, o VEP para un humano); no simula una autonomía que no existe.
+` : ""}`
+    : ""
+}
 ---
 Marco: Autonomous Legal Entities (Kargieman, 2026), RFC-001 (https://ar-agents.ar/rfcs/001),
 art. 14/88/92/102 del Anteproyecto de Ley General de Sociedades.

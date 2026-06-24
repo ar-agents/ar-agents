@@ -16,6 +16,11 @@ import {
 } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
 import { MantecaOffRampAdapter, type OffRampAdapter } from "@ar-agents/treasury";
+import {
+  X402Receiver,
+  HostedFacilitatorClient,
+  type SupportedNetwork,
+} from "@ar-agents/x402";
 
 const have = (key: string): string | null => {
   const v = process.env[key]?.trim();
@@ -107,9 +112,40 @@ export function getOffRamp(): OffRampAdapter | undefined {
   return _offramp;
 }
 
+let _x402:
+  | { receiver: X402Receiver; payTo: `0x${string}`; network: SupportedNetwork }
+  | null
+  | "missing" = null;
+/**
+ * x402 crypto intake (rail 1): the receiver + the society's receiving address +
+ * network, from env. Returns undefined when X402_PAY_TO is unset. Default
+ * facilitator = the free x402.org testnet; set X402_FACILITATOR_URL (+ CDP creds)
+ * for mainnet.
+ */
+export function getX402():
+  | { receiver: X402Receiver; payTo: `0x${string}`; network: SupportedNetwork }
+  | undefined {
+  if (_x402 !== null) return _x402 === "missing" ? undefined : _x402;
+  const payTo = have("X402_PAY_TO");
+  if (!payTo) {
+    _x402 = "missing";
+    return undefined;
+  }
+  const network = (have("X402_NETWORK") ?? "base-sepolia") as SupportedNetwork;
+  const url = have("X402_FACILITATOR_URL");
+  _x402 = {
+    receiver: new X402Receiver({
+      facilitator: new HostedFacilitatorClient(url ? { url } : {}),
+    }),
+    payTo: payTo as `0x${string}`,
+    network,
+  };
+  return _x402;
+}
+
 /** Diagnostic: reports which clients are wired vs. missing config. */
 export function clientStatus(): Record<
-  "mercadopago" | "whatsapp" | "wsfe" | "afip-padron" | "treasury-offramp",
+  "mercadopago" | "whatsapp" | "wsfe" | "afip-padron" | "treasury-offramp" | "x402-intake",
   "wired" | "missing-env"
 > {
   return {
@@ -130,5 +166,6 @@ export function clientStatus(): Record<
       have("MANTECA_API_KEY") && have("MANTECA_USER_ID") && have("MANTECA_BANK_ACCOUNT_ID")
         ? "wired"
         : "missing-env",
+    "x402-intake": have("X402_PAY_TO") ? "wired" : "missing-env",
   };
 }

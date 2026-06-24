@@ -336,3 +336,21 @@ describe("treasury wiring", () => {
     expect(md).toContain("treasury_offramp_convert");
   });
 });
+
+describe("x402 intake wiring", () => {
+  it("treats x402 as infra: dep installed, not spread as agent tools", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity", "x402"]);
+    expect(ts).not.toContain("@ar-agents/x402"); // infra: no agent-tool import
+    const json = generatePackageJson(Body.parse(baseInput), ["identity", "x402"]);
+    expect(JSON.parse(json).dependencies["@ar-agents/x402"]).toBeDefined();
+  });
+  it("adds X402_* env vars only when x402 is selected", () => {
+    const withX = envVarsFor(["x402"]).map((x) => x.name);
+    expect(withX).toContain("X402_PAY_TO");
+    expect(withX).toContain("X402_NETWORK");
+    expect(envVarsFor(["identity"]).map((x) => x.name)).not.toContain("X402_PAY_TO");
+  });
+  it("has no skill doc (infra pieza)", () => {
+    expect(generateSkillMd("x402")).toBeNull();
+  });
+});

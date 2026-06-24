@@ -128,3 +128,20 @@ describe("generateInstructionsMd() ALE wiring", () => {
     expect(md).toContain("requireConfirmation");
   });
 });
+
+describe("generateCharterMd() — fiscal/treasury clause", () => {
+  it("declares the crypto->pesos bridge + honest AFIP posture when treasury/x402 are selected", () => {
+    const md = generateCharterMd(Body.parse(baseInput), ["identity", "treasury", "x402"]);
+    expect(md).toContain("## 11. Puente cripto-pesos y postura fiscal");
+    expect(md).toContain("Intake (x402/Base)");
+    expect(md).toContain("cedular 5%");
+    expect(md).toContain("Pago a AFIP (honesto)");
+    // No em dashes in the section we authored (hard copy rule).
+    const fiscal = md.slice(md.indexOf("## 11."));
+    expect(fiscal).not.toContain("—");
+  });
+  it("omits the fiscal clause when neither treasury nor x402 is selected", () => {
+    const md = generateCharterMd(Body.parse(baseInput), ["identity", "banking"]);
+    expect(md).not.toContain("Puente cripto-pesos");
+  });
+});
