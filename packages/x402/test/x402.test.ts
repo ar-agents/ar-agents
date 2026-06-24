@@ -183,6 +183,35 @@ describe("HostedFacilitatorClient", () => {
     expect(s.success).toBe(false);
     expect(s.error).toBe("unexpected_settle_error");
   });
+  // Regression: the LIVE x402.org facilitator's dialect, captured from a real Base
+  // Sepolia probe (2026-06-24). It carries the failure cause in `errorReason` (the
+  // verify path uses a facilitator-specific reason; the settle path returns the raw
+  // on-chain revert string), NOT in `error`. The adapter must surface that cause,
+  // not flatten it to "unexpected_*", or a failed live settle becomes undiagnosable.
+  it("normalizes the live facilitator's verify dialect (errorReason + payer)", async () => {
+    const fetchImpl = (async () =>
+      new Response(
+        JSON.stringify({
+          isValid: false,
+          invalidReason: "invalid_exact_evm_insufficient_balance",
+          payer: PAYER,
+        }),
+      )) as unknown as typeof fetch;
+    const fac = new HostedFacilitatorClient({ url: "https://fac.test", fetchImpl });
+    const v = await fac.verify(await signed(), reqs);
+    expect(v.isValid).toBe(false);
+    expect(v.invalidReason).toBe("invalid_exact_evm_insufficient_balance");
+    expect(v.payer).toBe(PAYER);
+  });
+  it("surfaces the live facilitator's settle revert (errorReason, not error)", async () => {
+    const revert = "transferWithAuthorization reverted: ERC20: transfer amount exceeds balance";
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ success: false, errorReason: revert }))) as unknown as typeof fetch;
+    const fac = new HostedFacilitatorClient({ url: "https://fac.test", fetchImpl });
+    const s = await fac.settle(await signed(), reqs);
+    expect(s.success).toBe(false);
+    expect(s.error).toBe(revert); // NOT swallowed to "unexpected_settle_error"
+  });
 });
 
 describe("X402Receiver", () => {

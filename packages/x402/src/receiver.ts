@@ -22,8 +22,8 @@ import {
   NETWORKS,
   atomicToUsdc,
   usdcToAtomic,
-  type ErrorReason,
   type PaymentRequirements,
+  type ReasonText,
   type PaymentRequirementsResponse,
   type SettleResponse,
   type SupportedNetwork,
@@ -92,7 +92,7 @@ export type X402Result =
       headerName: string;
       headerValue: string;
     }
-  | { ok: false; reason: ErrorReason };
+  | { ok: false; reason: ReasonText };
 
 export interface X402ReceiverConfig {
   facilitator: Facilitator;
@@ -149,7 +149,7 @@ export class X402Receiver {
 
     const settlement = await this.config.facilitator.settle(payload, requirements);
     if (!settlement.success) {
-      return { ok: false, reason: (settlement.error as ErrorReason) ?? "unexpected_settle_error" };
+      return { ok: false, reason: settlement.error ?? "unexpected_settle_error" };
     }
 
     const amountAtomic = payload.payload.authorization.value;

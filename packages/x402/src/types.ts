@@ -147,7 +147,7 @@ export type SettleResponse = z.infer<typeof SettleResponseSchema>;
 
 export interface VerifyResponse {
   isValid: boolean;
-  invalidReason?: ErrorReason;
+  invalidReason?: ReasonText;
   payer?: string;
 }
 
@@ -174,3 +174,13 @@ export const ERROR_REASONS = [
   "unexpected_settle_error",
 ] as const;
 export type ErrorReason = (typeof ERROR_REASONS)[number];
+
+/**
+ * A failure reason as seen on the wire. Our own local `verify.ts` always emits an
+ * `ErrorReason` enum value, but a hosted facilitator speaks its own vocabulary:
+ * the live x402.org facilitator returns `invalid_exact_evm_insufficient_balance`
+ * on verify and a raw on-chain revert string on settle, neither of which is in
+ * our enum. This type keeps enum autocomplete while accepting those passthroughs,
+ * so the real cause reaches the caller instead of being flattened to "unexpected".
+ */
+export type ReasonText = ErrorReason | (string & {});

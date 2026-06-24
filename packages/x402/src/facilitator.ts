@@ -19,6 +19,7 @@ import { verifyPayment, type VerifyOptions } from "./verify";
 import type {
   PaymentPayload,
   PaymentRequirements,
+  ReasonText,
   SettleResponse,
   VerifyResponse,
 } from "./types";
@@ -87,7 +88,17 @@ export class HostedFacilitatorClient implements Facilitator {
       auth?.verify,
     );
     if (!ok) return { isValid: false, invalidReason: "unexpected_verify_error" };
-    return parsed as VerifyResponse;
+    // Normalize the live facilitator's dialect: it returns a facilitator-specific
+    // `invalidReason` (e.g. "invalid_exact_evm_insufficient_balance"); some
+    // deployments carry the cause in `errorReason`. Keep `payer` for the receipt.
+    const r = (parsed ?? {}) as Record<string, unknown>;
+    const invalidReason = (r.invalidReason ?? r.errorReason) as ReasonText | undefined;
+    const payer = r.payer as string | undefined;
+    return {
+      isValid: Boolean(r.isValid),
+      ...(invalidReason !== undefined ? { invalidReason } : {}),
+      ...(payer !== undefined ? { payer } : {}),
+    };
   }
 
   async settle(payload: PaymentPayload, requirements: PaymentRequirements): Promise<SettleResponse> {
@@ -105,7 +116,19 @@ export class HostedFacilitatorClient implements Facilitator {
         error: "unexpected_settle_error",
       };
     }
-    return parsed as SettleResponse;
+    // The live x402.org facilitator returns the failure cause in `errorReason`
+    // (a raw on-chain revert string), not `error`; the tx hash is in `transaction`
+    // on success. Normalize so the receiver surfaces the real cause instead of
+    // swallowing it to "unexpected_settle_error".
+    const r = (parsed ?? {}) as Record<string, unknown>;
+    const payer = r.payer as string | undefined;
+    return {
+      success: Boolean(r.success),
+      transaction: (r.transaction as string) ?? "",
+      network: (r.network as string) ?? payload.network,
+      ...(payer !== undefined ? { payer } : {}),
+      error: (r.errorReason ?? r.error ?? null) as string | null,
+    };
   }
 
   async supported(): Promise<SupportedKind[]> {
