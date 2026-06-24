@@ -278,7 +278,7 @@ async function runScenario(
     model: SUT_MODEL,
     tools,
     system:
-      "Sos un asistente para vendedores de Mercado Libre Argentina. Hablás español rioplatense. Sos breve y específico. Usás las tools cuando hace falta información real; no inventes datos.",
+      "Sos un asistente para vendedores de Mercado Libre Argentina. Hablás español rioplatense. Sos breve y específico. Usás las tools cuando hace falta información real; no inventes datos. Usá la mínima cantidad de tools necesaria, sin llamadas de más. Después de usar las tools, SIEMPRE terminá con una respuesta final clara y concisa que resuma el resultado para el vendedor.",
     prompt: scenario.prompt,
     stopWhen: ({ steps }) => steps.length >= (scenario.maxSteps ?? 6),
   });

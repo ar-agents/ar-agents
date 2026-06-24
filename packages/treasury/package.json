@@ -1,0 +1,76 @@
+{
+  "name": "@ar-agents/treasury",
+  "version": "0.1.0",
+  "description": "Treasury + fiscal rail for an Argentine Sociedad Automatizada: pure-logic core (balances, tax buffer, just-in-time crypto->ARS conversion policy, Ganancias cedular accounting) plus an OffRampAdapter to a registered PSAV (Manteca / Ripio B2B) for USDC->ARS payout to a CVU. The moat half of the crypto<->fiat bridge: how an autonomous society gets pesos to pay AFIP.",
+  "keywords": [
+    "ar-agents",
+    "argentina",
+    "treasury",
+    "off-ramp",
+    "stablecoin",
+    "usdc",
+    "afip",
+    "monotributo",
+    "cedular",
+    "psav",
+    "manteca",
+    "ai-sdk",
+    "agent",
+    "sociedad-automatizada"
+  ],
+  "license": "MIT",
+  "author": "Nazareno Clemente <naza@naza.ar>",
+  "funding": {
+    "type": "github",
+    "url": "https://github.com/sponsors/naza00000"
+  },
+  "homepage": "https://github.com/ar-agents/ar-agents/tree/main/packages/treasury",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ar-agents/ar-agents.git",
+    "directory": "packages/treasury"
+  },
+  "bugs": {
+    "url": "https://github.com/ar-agents/ar-agents/issues"
+  },
+  "type": "module",
+  "main": "./dist/index.cjs",
+  "module": "./dist/index.js",
+  "types": "./dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": {
+        "types": "./dist/index.d.ts",
+        "default": "./dist/index.js"
+      },
+      "require": {
+        "types": "./dist/index.d.cts",
+        "default": "./dist/index.cjs"
+      }
+    }
+  },
+  "files": [
+    "dist",
+    "README.md"
+  ],
+  "scripts": {
+    "build": "tsup",
+    "test": "vitest run",
+    "test:watch": "vitest",
+    "typecheck": "tsc --noEmit",
+    "clean": "rm -rf dist"
+  },
+  "devDependencies": {
+    "@types/node": "^20.19.39",
+    "tsup": "^8.3.5",
+    "typescript": "^5.9.3",
+    "vitest": "^2.1.8"
+  },
+  "publishConfig": {
+    "access": "public",
+    "provenance": true
+  },
+  "engines": {
+    "node": ">=20.0.0"
+  }
+}

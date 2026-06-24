@@ -32,7 +32,11 @@ A Sociedad Automatizada earns in crypto (USDC on Base). **How does it get Argent
 4. **The rail does the tax accounting:** cedular 5/15% on each conversion gain; income via monotributo or Ganancias on services; crypto IVA-exempt; IIBB per jurisdiction. It keeps an ARS **tax buffer** sized to upcoming obligations.
 5. **Every irreversible money move (convert, withdraw, pay) goes through `requireConfirmation` (RFC-001) and the signed audit log.** The treasury is autonomous but supervised.
 
-## 5. The gating unknown (verify BEFORE coding)
+## 5. The gating unknown — RESOLVED (2026-06-24)
+
+**Does any registered AR PSAV expose a programmatic B2B API for off-ramp + CVU? YES.** **Manteca** (manteca.dev, docs.manteca.dev) offers **API Cripto + API Rampa**: programmatic USDC/USDT to ARS on/off-ramp with payout to a CVU, regulated, **zero integration cost** (revenue via shared commission), integrable in under 3 weeks. **Ripio B2B** ("Crypto as a Service", a registered PSAV) is the alternative. So the `OffRampAdapter` targets **Manteca first**. The `@ar-agents/treasury` pure-logic core + the adapter interface + an in-memory impl are **BUILT** (15 tests, `packages/treasury`). Next: the real Manteca adapter (thin client to their API) + AI SDK tool wrappers.
+
+Original framing (kept for context):
 
 **Does any registered AR PSAV expose a programmatic B2B API for off-ramp + CVU?** (Fiwind/Belo/Ripio are consumer apps; we need their developer/B2B docs or a partnership.) Everything downstream depends on this:
 - If YES (a PSAV has an off-ramp API): build the `OffRampAdapter` against it. Clean.
