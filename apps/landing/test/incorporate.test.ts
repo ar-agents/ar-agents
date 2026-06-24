@@ -302,3 +302,37 @@ describe("generateSkillMd()", () => {
     }
   });
 });
+
+describe("treasury wiring", () => {
+  it("envVarsFor adds the MANTECA_* vars only when treasury is selected", () => {
+    const withT = envVarsFor(["treasury"]).map((x) => x.name);
+    expect(withT).toContain("MANTECA_API_KEY");
+    expect(withT).toContain("MANTECA_BANK_ACCOUNT_ID");
+    const withoutT = envVarsFor(["identity"]).map((x) => x.name);
+    expect(withoutT).not.toContain("MANTECA_API_KEY");
+  });
+
+  it("generateAgentTs imports treasuryTools from the /tools subpath and wires getOffRamp", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity", "treasury"]);
+    expect(ts).toContain('import { treasuryTools } from "@ar-agents/treasury/tools"');
+    expect(ts).toContain("getOffRamp");
+    expect(ts).toContain("treasuryTools({ offramp: getOffRamp() })");
+  });
+
+  it("does not pull getOffRamp into the clients import when treasury is absent", () => {
+    const ts = generateAgentTs(Body.parse(baseInput), ["identity", "mercadopago"]);
+    expect(ts).not.toContain("getOffRamp");
+  });
+
+  it("generatePackageJson includes @ar-agents/treasury when selected", () => {
+    const json = generatePackageJson(Body.parse(baseInput), ["identity", "treasury"]);
+    expect(JSON.parse(json).dependencies["@ar-agents/treasury"]).toBeDefined();
+  });
+
+  it("ships a treasury skill playbook", () => {
+    const md = generateSkillMd("treasury");
+    expect(md).not.toBeNull();
+    expect(md).toContain("## treasury");
+    expect(md).toContain("treasury_offramp_convert");
+  });
+});

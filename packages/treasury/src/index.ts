@@ -184,14 +184,39 @@ export interface OffRampQuote {
   spread: number;
 }
 
+/** Settlement state of an off-ramp, normalized across PSAVs. */
+export type OffRampStatus =
+  | "PENDING"
+  | "PROCESSING"
+  | "COMPLETED"
+  | "FAILED"
+  | "UNKNOWN";
+
+export interface OffRampStatusReport {
+  txId: string;
+  status: OffRampStatus;
+  /** ARS actually settled to the CVU once COMPLETED, if the PSAV reports it. */
+  arsSettled?: Ars;
+  /** Provider-native status string, kept for the signed audit log / forensics. */
+  raw?: string;
+}
+
 export interface OffRampAdapter {
   /** Quote a USDC->ARS conversion (net of spread). No side effects. */
   quote(amountUsd: Usd): Promise<OffRampQuote>;
   /**
    * Execute the conversion + payout of ARS to the society's CVU. IRREVERSIBLE:
    * the caller MUST gate this behind requireConfirmation (RFC-001) and log it.
+   * `opts.externalId` is an idempotency key so a retried convert never double-spends.
    */
-  convert(amountUsd: Usd): Promise<OffRampReceipt>;
+  convert(amountUsd: Usd, opts?: { externalId?: string }): Promise<OffRampReceipt>;
+  /**
+   * Poll the settlement of a prior convert(). A real off-ramp is ASYNCHRONOUS:
+   * the PSAV sells the crypto, then settles ARS to the CVU over seconds-to-minutes
+   * (Manteca models this as a multi-stage "synthetic"). Optional because the
+   * in-memory adapter settles instantly.
+   */
+  getStatus?(txId: string): Promise<OffRampStatusReport>;
 }
 
 /**
@@ -215,9 +240,14 @@ export class InMemoryOffRampAdapter implements OffRampAdapter {
     };
   }
 
-  async convert(amountUsd: Usd): Promise<OffRampReceipt> {
+  async convert(amountUsd: Usd, _opts?: { externalId?: string }): Promise<OffRampReceipt> {
     const q = await this.quote(amountUsd);
     return { amountUsd, arsReceived: q.arsOut, rate: this.rate * (1 - this.spread), txId: `mem-${++this.seq}` };
+  }
+
+  /** The in-memory adapter settles instantly: any tx it issued is COMPLETED. */
+  async getStatus(txId: string): Promise<OffRampStatusReport> {
+    return { txId, status: "COMPLETED", raw: "in-memory" };
   }
 }
 
@@ -246,3 +276,32 @@ export async function fundTaxBuffer(args: {
   const receipt = await args.offramp.convert(plan.convertUsd);
   return { plan, receipt, state: applyConversion(args.state, receipt) };
 }
+
+// ─────────────────────────────────────────────────────────────────────────────
+// Concrete PSAV adapter (Manteca) + the AFIP fiscal layer. Re-exported so the
+// pure core and the real-world rails share one import. These are still ai/zod-
+// free; only `@ar-agents/treasury/tools` pulls in the Vercel AI SDK.
+// ─────────────────────────────────────────────────────────────────────────────
+
+export {
+  MantecaOffRampAdapter,
+  type MantecaConfig,
+  MantecaApiError,
+  MantecaAuthError,
+  MantecaRateLimitError,
+} from "./manteca";
+
+export {
+  MONOTRIBUTO_2026,
+  MONOTRIBUTO_TABLE_EFFECTIVE,
+  type MonotributoCategory,
+  type MonotributoActivity,
+  type MonotributoRow,
+  monotributoCuota,
+  categoryForAnnualIncome,
+  type SettlementMethod,
+  type SettlementAutonomy,
+  type SettlementPlan,
+  settlementPlan,
+  WSCREATEVEP_IS_GOV_ONLY,
+} from "./afip";

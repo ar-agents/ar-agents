@@ -15,6 +15,7 @@ import {
   UnconfiguredAfipPadronAdapter,
 } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
+import { MantecaOffRampAdapter, type OffRampAdapter } from "@ar-agents/treasury";
 
 const have = (key: string): string | null => {
   const v = process.env[key]?.trim();
@@ -81,9 +82,34 @@ export function getAfipPadronAdapter(): AfipPadronAdapter {
   return _afip;
 }
 
+let _offramp: OffRampAdapter | null | "missing" = null;
+/**
+ * The registered-PSAV off-ramp (Manteca) for USDC->ARS payout to the society's
+ * CVU. Returns undefined when MANTECA_* is unset — the pure treasury tools still
+ * run; only the off-ramp tools report available:false.
+ */
+export function getOffRamp(): OffRampAdapter | undefined {
+  if (_offramp !== null) return _offramp === "missing" ? undefined : _offramp;
+  const apiKey = have("MANTECA_API_KEY");
+  const userId = have("MANTECA_USER_ID");
+  const bankAccountId = have("MANTECA_BANK_ACCOUNT_ID");
+  if (!apiKey || !userId || !bankAccountId) {
+    _offramp = "missing";
+    return undefined;
+  }
+  const baseUrl = have("MANTECA_BASE_URL");
+  _offramp = new MantecaOffRampAdapter({
+    apiKey,
+    userId,
+    bankAccountId,
+    ...(baseUrl ? { baseUrl } : {}),
+  });
+  return _offramp;
+}
+
 /** Diagnostic: reports which clients are wired vs. missing config. */
 export function clientStatus(): Record<
-  "mercadopago" | "whatsapp" | "wsfe" | "afip-padron",
+  "mercadopago" | "whatsapp" | "wsfe" | "afip-padron" | "treasury-offramp",
   "wired" | "missing-env"
 > {
   return {
@@ -98,6 +124,10 @@ export function clientStatus(): Record<
         : "missing-env",
     "afip-padron":
       have("AFIP_CERT_PEM") && have("AFIP_KEY_PEM") && have("AFIP_CUIT")
+        ? "wired"
+        : "missing-env",
+    "treasury-offramp":
+      have("MANTECA_API_KEY") && have("MANTECA_USER_ID") && have("MANTECA_BANK_ACCOUNT_ID")
         ? "wired"
         : "missing-env",
   };

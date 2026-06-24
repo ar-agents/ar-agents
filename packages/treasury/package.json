@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/treasury",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Treasury + fiscal rail for an Argentine Sociedad Automatizada: pure-logic core (balances, tax buffer, just-in-time crypto->ARS conversion policy, Ganancias cedular accounting) plus an OffRampAdapter to a registered PSAV (Manteca / Ripio B2B) for USDC->ARS payout to a CVU. The moat half of the crypto<->fiat bridge: how an autonomous society gets pesos to pay AFIP.",
   "keywords": [
     "ar-agents",
@@ -47,10 +47,22 @@
         "types": "./dist/index.d.cts",
         "default": "./dist/index.cjs"
       }
-    }
+    },
+    "./tools": {
+      "import": {
+        "types": "./dist/tools.d.ts",
+        "default": "./dist/tools.js"
+      },
+      "require": {
+        "types": "./dist/tools.d.cts",
+        "default": "./dist/tools.cjs"
+      }
+    },
+    "./tools.manifest.json": "./tools.manifest.json"
   },
   "files": [
     "dist",
+    "tools.manifest.json",
     "README.md"
   ],
   "scripts": {
@@ -60,11 +72,21 @@
     "typecheck": "tsc --noEmit",
     "clean": "rm -rf dist"
   },
+  "peerDependencies": {
+    "ai": ">=6.0.0",
+    "zod": ">=3.0.0"
+  },
+  "peerDependenciesMeta": {
+    "ai": { "optional": true },
+    "zod": { "optional": true }
+  },
   "devDependencies": {
     "@types/node": "^20.19.39",
+    "ai": "^6.0.0",
     "tsup": "^8.3.5",
     "typescript": "^5.9.3",
-    "vitest": "^2.1.8"
+    "vitest": "^2.1.8",
+    "zod": "^4.0.0"
   },
   "publishConfig": {
     "access": "public",

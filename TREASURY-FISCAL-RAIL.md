@@ -34,7 +34,9 @@ A Sociedad Automatizada earns in crypto (USDC on Base). **How does it get Argent
 
 ## 5. The gating unknown — RESOLVED (2026-06-24)
 
-**Does any registered AR PSAV expose a programmatic B2B API for off-ramp + CVU? YES.** **Manteca** (manteca.dev, docs.manteca.dev) offers **API Cripto + API Rampa**: programmatic USDC/USDT to ARS on/off-ramp with payout to a CVU, regulated, **zero integration cost** (revenue via shared commission), integrable in under 3 weeks. **Ripio B2B** ("Crypto as a Service", a registered PSAV) is the alternative. So the `OffRampAdapter` targets **Manteca first**. The `@ar-agents/treasury` pure-logic core + the adapter interface + an in-memory impl are **BUILT** (15 tests, `packages/treasury`). Next: the real Manteca adapter (thin client to their API) + AI SDK tool wrappers.
+**Does any registered AR PSAV expose a programmatic B2B API for off-ramp + CVU? YES.** **Manteca** (manteca.dev, docs.manteca.dev) offers **API Cripto + API Rampa**: programmatic USDC/USDT to ARS on/off-ramp with payout to a CVU, regulated, **zero integration cost** (revenue via shared commission), integrable in under 3 weeks. **Ripio B2B** ("Crypto as a Service", a registered PSAV, sandbox-documented) is the alternative. So the `OffRampAdapter` targets **Manteca first**.
+
+**SHIPPED (2026-06-24), `@ar-agents/treasury@0.2.0`, 52 tests:** the pure-logic core + the **real `MantecaOffRampAdapter`** (a thin client over Manteca's documented v2 API — `GET /v2/prices/direct/{ticker}`, `POST /v2/synthetics/ramp-off`, `GET /v2/synthetics/{id}`, `add-bank-account`, `md-api-key` auth, idempotent on `externalId`) + the **AFIP fiscal layer** (2026 monotributo table + the honest settlement model) + **8 Vercel AI SDK tools** (`@ar-agents/treasury/tools`), **wired into the generated society** (the `treasury` pieza → `MANTECA_*` env → `getOffRamp()`). The Manteca **request contract is pinned + unit-tested against mocked HTTP**; live integration is pending a Manteca business account (onboarding is sales-gated, no self-serve keys). **Next:** the Ripio B2B adapter (same interface) + x402/Base intake (rail 1).
 
 Original framing (kept for context):
 
@@ -55,11 +57,12 @@ Secondary unknowns: can monotributo débito automático be enrolled/paid program
 
 ## 7. Build sequence
 
-1. **Verify §5** (the off-ramp B2B API question). This decides the architecture.
-2. `@ar-agents/treasury` **pure-logic core** (balances, tax buffer, conversion/payment policy) + tests. (Buildable NOW, independent of §5 — it is the brain; adapters plug in after.)
-3. `OffRampAdapter` + the first PSAV impl (per §5's answer).
-4. AFIP payment automation (monotributo débito / VEP-via-MP).
-5. Wire into the generated society: a `treasury` skill in the agent + a charter clause declaring the tax-compliance posture (and the cedular/monotributo it operates under).
+1. ✅ **Verify §5** (the off-ramp B2B API question). Resolved: Manteca primary, Ripio second.
+2. ✅ `@ar-agents/treasury` **pure-logic core** (balances, tax buffer, conversion policy) + tests.
+3. ✅ `OffRampAdapter` + **Manteca impl** (`MantecaOffRampAdapter`) + the `getStatus` async-settlement extension.
+4. ✅ AFIP layer — but the **honest** version: no fully-autonomous payment exists (WSCREATEVEP gov-only; débito automático can't be enrolled by API; no MP-pay-VEP API). So it **computes the obligation + funds the buffer + emits the settlement instruction** (`settlementPlan`, `canAutoExecute: false`). It does not pretend to pay AFIP.
+5. ✅ Wire into the generated society: the `treasury` pieza (8 tools) + `MANTECA_*` env + `getOffRamp()` in the starter; a `treasury` skill playbook. (A charter clause declaring the fiscal posture is the small remaining polish.)
+6. ⏭️ **Next:** Ripio B2B adapter (same interface) · x402/Base intake (rail 1) · a live integration test once a Manteca account exists.
 
 ## 8. Why this is the right "build big" bet
 
