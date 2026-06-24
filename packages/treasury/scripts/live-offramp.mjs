@@ -33,7 +33,9 @@ import {
   InMemoryOffRampAdapter,
   MantecaOffRampAdapter,
   RipioOffRampAdapter,
+  MuralOffRampAdapter,
   RIPIO_SANDBOX,
+  MURAL_SANDBOX,
   fundTaxBuffer,
   requiredArsBuffer,
   monotributoCuota,
@@ -43,7 +45,7 @@ import {
 } from "../dist/index.js";
 
 const argv = process.argv.slice(2);
-const provider = argv.find((a) => a === "ripio" || a === "manteca") ?? null;
+const provider = argv.find((a) => a === "ripio" || a === "manteca" || a === "mural") ?? null;
 const doConvert = argv.includes("--convert");
 const usd = Number((argv.find((a) => a.startsWith("--usd=")) ?? "--usd=25").split("=")[1]);
 const ars = (n) => `ARS ${n.toLocaleString("es-AR", { maximumFractionDigits: 2 })}`;
@@ -70,6 +72,35 @@ function mantecaFromEnv() {
   const missing = ["apiKey", "userId", "bankAccountId"].filter((k) => !c[k]);
   return { c, missing };
 }
+function muralFromEnv() {
+  const c = {
+    apiKey: process.env.MURAL_API_KEY,
+    transferApiKey: process.env.MURAL_TRANSFER_API_KEY,
+    sourceAccountId: process.env.MURAL_SOURCE_ACCOUNT_ID,
+    ...(process.env.MURAL_ORGANIZATION_ID ? { organizationId: process.env.MURAL_ORGANIZATION_ID } : {}),
+    bankName: process.env.MURAL_BANK_NAME ?? "",
+    bankAccountOwner: process.env.MURAL_BANK_ACCOUNT_OWNER ?? "",
+    cvu: process.env.MURAL_CVU,
+    cvuType: process.env.MURAL_CVU_TYPE ?? "CVU",
+    documentNumber: process.env.MURAL_DOCUMENT_NUMBER,
+    recipient: {
+      type: "business",
+      name: process.env.MURAL_BANK_ACCOUNT_OWNER ?? "Sociedad Automatizada",
+      physicalAddress: process.env.MURAL_RECIPIENT_ADDRESS_JSON
+        ? JSON.parse(process.env.MURAL_RECIPIENT_ADDRESS_JSON)
+        : { country: "AR" },
+    },
+    baseUrl: process.env.MURAL_BASE_URL ?? MURAL_SANDBOX,
+  };
+  const missing = ["apiKey", "transferApiKey", "sourceAccountId", "cvu", "documentNumber"].filter((k) => !c[k]);
+  return { c, missing };
+}
+const ENV = { ripio: ripioFromEnv, manteca: mantecaFromEnv, mural: muralFromEnv };
+const ADAPTER = {
+  ripio: (c) => new RipioOffRampAdapter(c),
+  manteca: (c) => new MantecaOffRampAdapter(c),
+  mural: (c) => new MuralOffRampAdapter(c),
+};
 
 const HELP = {
   ripio:
@@ -85,6 +116,14 @@ const HELP = {
     "  (adapter.registerBankAccount()). Then:\n" +
     "  MANTECA_API_KEY=… MANTECA_USER_ID=… MANTECA_BANK_ACCOUNT_ID=… \\\n" +
     "    node packages/treasury/scripts/live-offramp.mjs manteca",
+  mural:
+    "Mural: create a Mural Organization + complete KYB (self-driven, no sales gate), then\n" +
+    "  Settings > Developers for the API key + transfer-api-key. Sandbox = " +
+    MURAL_SANDBOX +
+    "\n  (auto-approves KYB, testnet-faucet funding). Then:\n" +
+    "  MURAL_API_KEY=… MURAL_TRANSFER_API_KEY=… MURAL_SOURCE_ACCOUNT_ID=… MURAL_CVU=… \\\n" +
+    "    MURAL_DOCUMENT_NUMBER=… MURAL_BANK_NAME=… MURAL_BANK_ACCOUNT_OWNER=… \\\n" +
+    "    node packages/treasury/scripts/live-offramp.mjs mural",
 };
 
 // ── offline full-loop demo: rail 1 (real EIP-712 intake) -> rails 2/3 ──────────
@@ -140,14 +179,14 @@ async function offlineDemo() {
 
 // ── live quote (read-only) against a real PSAV; optional irreversible convert ──
 async function liveRun(which) {
-  const { c, missing } = which === "ripio" ? ripioFromEnv() : mantecaFromEnv();
+  const { c, missing } = ENV[which]();
   if (missing.length) {
     console.log(`No ${which} credentials in env (missing: ${missing.join(", ")}).\n`);
     console.log(HELP[which] + "\n");
     console.log("Falling back to the offline demo so you can still see the loop:\n");
     return offlineDemo();
   }
-  const adapter = which === "ripio" ? new RipioOffRampAdapter(c) : new MantecaOffRampAdapter(c);
+  const adapter = ADAPTER[which](c);
   console.log(`── Live ${which} quote: ${usd} USDC -> ARS (read-only) ──\n`);
   try {
     const q = await adapter.quote(usd);
@@ -170,7 +209,7 @@ async function liveRun(which) {
     if (status === 401 || status === 403) {
       // Expected boundary: we reached the REAL API, it rejected the credentials.
       console.log(`Reached the real ${which} API — it rejected the credentials (HTTP ${status}${reason ? `, "${reason}"` : ""}).`);
-      console.log("That proves the wire path end-to-end; you just need valid sales-gated creds:\n");
+      console.log("That proves the wire path end-to-end; you just need valid credentials:\n");
       console.log(HELP[which]);
       return;
     }

@@ -309,6 +309,17 @@ export {
 } from "./ripio";
 
 export {
+  MuralOffRampAdapter,
+  type MuralConfig,
+  MuralApiError,
+  MuralAuthError,
+  MuralRateLimitError,
+  normalizeMuralStatus,
+  MURAL_PROD,
+  MURAL_SANDBOX,
+} from "./mural";
+
+export {
   MONOTRIBUTO_2026,
   MONOTRIBUTO_TABLE_EFFECTIVE,
   type MonotributoCategory,

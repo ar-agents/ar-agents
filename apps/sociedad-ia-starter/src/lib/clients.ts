@@ -18,7 +18,9 @@ import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
 import {
   MantecaOffRampAdapter,
   RipioOffRampAdapter,
+  MuralOffRampAdapter,
   RIPIO_PROD,
+  MURAL_PROD,
   type OffRampAdapter,
 } from "@ar-agents/treasury";
 import {
@@ -94,15 +96,46 @@ export function getAfipPadronAdapter(): AfipPadronAdapter {
 
 let _offramp: OffRampAdapter | null | "missing" = null;
 /**
- * The registered-PSAV off-ramp for USDC->ARS payout to the society's CVU. Tries
- * Ripio B2B first (RIPIO_*), then Manteca (MANTECA_*) — provider-optional, no
- * single-PSAV lock-in. Returns undefined when neither is configured; the pure
- * treasury tools still run, only the off-ramp tools report available:false.
+ * The off-ramp for USDC->ARS payout to the society's CVU. Tries Mural first
+ * (MURAL_*, the self-onboard payout rail), then Ripio B2B (RIPIO_*), then Manteca
+ * (MANTECA_*) — provider-optional, no single-PSAV lock-in. Returns undefined when
+ * none is configured; the pure treasury tools still run, only the off-ramp tools
+ * report available:false.
  */
 export function getOffRamp(): OffRampAdapter | undefined {
   if (_offramp !== null) return _offramp === "missing" ? undefined : _offramp;
 
-  // Ripio B2B (OAuth2 client-credentials) — the soonest live path (open sandbox).
+  // Mural (Bearer + transfer-api-key) — self-onboard payout rail; full USDC->ARS
+  // -to-bank. Defaults to the prod host; set MURAL_BASE_URL to the sandbox to test.
+  const muralKey = have("MURAL_API_KEY");
+  const muralTransferKey = have("MURAL_TRANSFER_API_KEY");
+  const muralAccount = have("MURAL_SOURCE_ACCOUNT_ID");
+  const muralCvu = have("MURAL_CVU");
+  const muralDoc = have("MURAL_DOCUMENT_NUMBER");
+  if (muralKey && muralTransferKey && muralAccount && muralCvu && muralDoc) {
+    const owner = have("MURAL_BANK_ACCOUNT_OWNER") ?? "Sociedad Automatizada";
+    const addr = have("MURAL_RECIPIENT_ADDRESS_JSON");
+    _offramp = new MuralOffRampAdapter({
+      apiKey: muralKey,
+      transferApiKey: muralTransferKey,
+      sourceAccountId: muralAccount,
+      ...(have("MURAL_ORGANIZATION_ID") ? { organizationId: have("MURAL_ORGANIZATION_ID")! } : {}),
+      bankName: have("MURAL_BANK_NAME") ?? "",
+      bankAccountOwner: owner,
+      cvu: muralCvu,
+      cvuType: (have("MURAL_CVU_TYPE") as "CVU" | "CBU" | "ALIAS") ?? "CVU",
+      documentNumber: muralDoc,
+      recipient: {
+        type: "business",
+        name: owner,
+        physicalAddress: addr ? JSON.parse(addr) : { country: "AR" },
+      },
+      baseUrl: have("MURAL_BASE_URL") ?? MURAL_PROD,
+    });
+    return _offramp;
+  }
+
+  // Ripio B2B (OAuth2 client-credentials) — open sandbox; alternative PSAV.
   // Defaults to the prod host; set RIPIO_BASE_URL to the sandbox while testing.
   const clientId = have("RIPIO_CLIENT_ID");
   const clientSecret = have("RIPIO_CLIENT_SECRET");
@@ -189,6 +222,11 @@ export function clientStatus(): Record<
         ? "wired"
         : "missing-env",
     "treasury-offramp":
+      (have("MURAL_API_KEY") &&
+        have("MURAL_TRANSFER_API_KEY") &&
+        have("MURAL_SOURCE_ACCOUNT_ID") &&
+        have("MURAL_CVU") &&
+        have("MURAL_DOCUMENT_NUMBER")) ||
       (have("RIPIO_CLIENT_ID") &&
         have("RIPIO_CLIENT_SECRET") &&
         have("RIPIO_CUSTOMER_ID") &&

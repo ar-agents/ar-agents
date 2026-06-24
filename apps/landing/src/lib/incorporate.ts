@@ -280,6 +280,48 @@ export function envVarsFor(piezas: string[]): Array<{ name: string; description:
         description:
           "Optional Ripio API base URL (default = prod https://b2b-api.ripio.com; set the sandbox https://sandbox-b2b.ripio.com while testing).",
       },
+      {
+        name: "MURAL_API_KEY",
+        description:
+          "Mural API key (Bearer) for the USDC->ARS payout off-ramp (self-onboard via KYB, no sales gate; recommended path). Set the MURAL_* group OR RIPIO_* OR MANTECA_*.",
+      },
+      {
+        name: "MURAL_TRANSFER_API_KEY",
+        description: "Mural transfer-api-key, required to execute (commit) a payout.",
+      },
+      {
+        name: "MURAL_SOURCE_ACCOUNT_ID",
+        description: "Mural Account id holding the USDC balance on Base (the payout source).",
+      },
+      {
+        name: "MURAL_ORGANIZATION_ID",
+        description: "Optional Mural Organization id, sent as the on-behalf-of header.",
+      },
+      {
+        name: "MURAL_CVU",
+        description: "The society's CBU/CVU/alias (destination for the ARS payout).",
+      },
+      {
+        name: "MURAL_CVU_TYPE",
+        description: "How MURAL_CVU is identified: CVU (default), CBU, or ALIAS.",
+      },
+      {
+        name: "MURAL_DOCUMENT_NUMBER",
+        description: "Recipient tax/ID number for the payout (e.g. the society's CUIT).",
+      },
+      {
+        name: "MURAL_BANK_NAME",
+        description: "Destination bank name for the ARS payout.",
+      },
+      {
+        name: "MURAL_BANK_ACCOUNT_OWNER",
+        description: "Account holder name on the destination ARS account (the society).",
+      },
+      {
+        name: "MURAL_BASE_URL",
+        description:
+          "Optional Mural API base URL (default = prod https://api.muralpay.com; set the sandbox https://api-staging.muralpay.com while testing).",
+      },
     );
   }
   if (set.has("x402")) {
