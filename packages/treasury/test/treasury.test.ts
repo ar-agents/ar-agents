@@ -15,8 +15,11 @@ import {
   applyPayment,
   fundTaxBuffer,
   InMemoryOffRampAdapter,
+  withOffRampIdempotency,
   type Obligation,
   type TreasuryState,
+  type OffRampAdapter,
+  type OffRampReceipt,
 } from "../src/index";
 
 const DAY = 86_400_000;
@@ -159,5 +162,58 @@ describe("fundTaxBuffer (end-to-end)", () => {
     expect(out.receipt).toBeUndefined();
     expect(out.plan.convertUsd).toBe(0);
     expect(out.state).toEqual(state);
+  });
+});
+
+describe("withOffRampIdempotency (double-send guard)", () => {
+  // A fake PSAV adapter that creates a NEW payout every call (like Mural's raw
+  // convert, which only echoes the key as a memo) so we can prove the wrapper
+  // dedupes instead of double-sending.
+  function countingAdapter() {
+    let payouts = 0;
+    const adapter: OffRampAdapter = {
+      quote: async (amountUsd) => ({ amountUsd, arsOut: amountUsd * 1000, rate: 1000, spread: 0 }),
+      convert: async (amountUsd): Promise<OffRampReceipt> => {
+        payouts += 1;
+        return { amountUsd, arsReceived: amountUsd * 1000, rate: 1000, txId: `payout-${payouts}` };
+      },
+    };
+    return { adapter, payouts: () => payouts };
+  }
+
+  it("a retried convert with the same key returns the original receipt — no second payout", async () => {
+    const { adapter, payouts } = countingAdapter();
+    const guarded = withOffRampIdempotency(adapter);
+    const first = await guarded.convert(100, { externalId: "op-1" });
+    const second = await guarded.convert(100, { externalId: "op-1" });
+    expect(second).toEqual(first);
+    expect(payouts()).toBe(1); // executed exactly once despite two convert calls
+  });
+
+  it("concurrent converts with the same key share ONE payout", async () => {
+    const { adapter, payouts } = countingAdapter();
+    const guarded = withOffRampIdempotency(adapter);
+    const [a, b] = await Promise.all([
+      guarded.convert(100, { externalId: "op-2" }),
+      guarded.convert(100, { externalId: "op-2" }),
+    ]);
+    expect(a).toEqual(b);
+    expect(payouts()).toBe(1);
+  });
+
+  it("different keys still create distinct payouts", async () => {
+    const { adapter, payouts } = countingAdapter();
+    const guarded = withOffRampIdempotency(adapter);
+    await guarded.convert(100, { externalId: "op-3" });
+    await guarded.convert(100, { externalId: "op-4" });
+    expect(payouts()).toBe(2);
+  });
+
+  it("rejects a missing idempotency key", async () => {
+    const { adapter } = countingAdapter();
+    const guarded = withOffRampIdempotency(adapter);
+    await expect(
+      guarded.convert(100, { externalId: "" }),
+    ).rejects.toThrow(/externalId/);
   });
 });

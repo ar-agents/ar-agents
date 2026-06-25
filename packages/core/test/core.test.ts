@@ -157,7 +157,7 @@ describe("withTimeout", () => {
     expect(r).toBe("ok");
   });
 
-  it("rejects with a retryable ArAgentsError on timeout", async () => {
+  it("rejects with a NON-retryable ArAgentsError on timeout (uncancelled work must not be retried)", async () => {
     const tool = mkTool(() => new Promise(() => {}));
     const wrapped = withTimeout("t", 30)(tool);
     try {
@@ -167,9 +167,24 @@ describe("withTimeout", () => {
       expect(isArAgentsError(err)).toBe(true);
       if (isArAgentsError(err)) {
         expect(err.code).toBe("timeout");
-        expect(err.retryable).toBe(true);
+        // Security: a timeout does NOT cancel the underlying execute(), so it must
+        // be non-retryable — else withRetry would double-execute a side-effectful tool.
+        expect(err.retryable).toBe(false);
       }
     }
+  });
+
+  it("withRetry does NOT re-execute a timed-out tool (no double-execution of side effects)", async () => {
+    let calls = 0;
+    const tool = mkTool(() => {
+      calls++;
+      return new Promise(() => {}); // never resolves -> always times out
+    });
+    const wrapped = withRetry({ maxAttempts: 3, baseMs: 1 })(withTimeout("t", 20)(tool));
+    await expect(
+      (wrapped.execute as (a: unknown, c: unknown) => Promise<unknown>)(undefined, {}),
+    ).rejects.toMatchObject({ code: "timeout" });
+    expect(calls).toBe(1); // ran exactly once — never retried while still in flight
   });
 });
 
