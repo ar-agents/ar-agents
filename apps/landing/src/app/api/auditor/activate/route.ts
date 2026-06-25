@@ -4,10 +4,10 @@ import { kv } from "@vercel/kv";
 import {
   appendAudit,
   backend as auditBackend,
-  isSessionIdValid,
   pinSession,
 } from "@/lib/audit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { pendingKey, type PendingSubscription } from "@/lib/auditor-sub";
 
 /**
  * POST /api/auditor/activate, close the El Auditor money loop.
@@ -179,12 +179,36 @@ export async function POST(req: Request) {
     );
   }
 
-  // Issue the entitlement. The audit session is the one the subscribe call
-  // provisioned (external_reference), kept if valid; else a fresh one.
-  const sessionId =
-    mp.external_reference && isSessionIdValid(mp.external_reference)
-      ? mp.external_reference
-      : crypto.randomUUID();
+  // Bind the entitlement to the SERVER-RECORDED session for this preapproval —
+  // written by /subscribe, keyed to the MP preapproval id. We do NOT trust
+  // mp.external_reference (caller-influenced at subscribe time), which is how an
+  // attacker could previously point a paid key at a victim's public session
+  // (DeepSec cross-tenant-id). No pending row ⇒ this preapproval wasn't created
+  // through our subscribe flow (or it expired) ⇒ refuse rather than mint on a
+  // wrong/fresh session.
+  const pending = await kv.get<PendingSubscription>(pendingKey(preapprovalId));
+  if (!pending || typeof pending.sessionId !== "string") {
+    return jsonCors(
+      {
+        ok: false,
+        error: "subscription_unknown",
+        note: "No hay registro de esta suscripción. Iniciala con POST /api/auditor/subscribe.",
+      },
+      { status: 409 },
+    );
+  }
+  // Defense in depth: the authorized payer must match the one who subscribed.
+  if (
+    mp.payer_email &&
+    pending.payerEmail &&
+    mp.payer_email.toLowerCase() !== pending.payerEmail.toLowerCase()
+  ) {
+    return jsonCors(
+      { ok: false, error: "payer_mismatch", note: "El pagador no coincide con la suscripción." },
+      { status: 409 },
+    );
+  }
+  const sessionId = pending.sessionId;
   const apiKey = newApiKey();
 
   // Atomic idempotency claim: only the FIRST concurrent activation sets the

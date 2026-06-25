@@ -1,7 +1,19 @@
 import { jsonCors, preflight } from "@/lib/cors";
 import { z } from "zod";
+import { kv } from "@vercel/kv";
 import { appendAudit, backend as auditBackend, isSessionIdValid } from "@/lib/audit";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import {
+  mintCapabilityToken,
+  verifyCapabilityToken,
+} from "@/lib/capability-token";
+import {
+  AUDITOR_SESSION_KIND,
+  AUDITOR_SESSION_PREFIX,
+  PENDING_TTL_SECONDS,
+  pendingKey,
+  type PendingSubscription,
+} from "@/lib/auditor-sub";
 
 /**
  * POST /api/auditor/subscribe, sell "El Auditor" (hosted proof-of-autonomy,
@@ -38,16 +50,19 @@ type PlanId = keyof typeof PLANS;
 const Body = z.object({
   payerEmail: z.string().email(),
   plan: z.enum(["mensual", "anual"]).default("mensual"),
-  sessionId: z.string().optional(),
   entityCuit: z.string().max(13).optional(),
-  // Must satisfy isSessionIdValid: it becomes the MP external_reference, which
-  // activate later reads back AS the sessionId. A non-conforming value would
-  // make activate fall to a fresh UUID, orphaning this subscription's signed
-  // audit entry from the customer's activated session.
-  externalReference: z
+  // Session continuity is OPT-IN and OWNERSHIP-PROVEN: to bind this
+  // subscription to an existing audit session you MUST present that session's
+  // capability token (returned once by the first subscribe that created it).
+  // Without both, a fresh server-side session is generated — a caller can no
+  // longer point a subscription (or its signed entries) at a session it doesn't
+  // control (DeepSec cross-tenant-id). `externalReference` was removed; MP's
+  // external_reference is now always the server-resolved session.
+  sessionId: z
     .string()
     .regex(/^[A-Za-z0-9_-]{8,64}$/)
     .optional(),
+  sessionToken: z.string().optional(),
 });
 
 function arsAmount(plan: PlanId): number {
@@ -90,10 +105,42 @@ export async function POST(req: Request) {
   }
   const input = parsed.data;
   const plan = input.plan as PlanId;
-  const sessionId =
-    input.sessionId && isSessionIdValid(input.sessionId)
-      ? input.sessionId
-      : crypto.randomUUID();
+
+  // Resolve the session SERVER-SIDE before any signed write. Continuing an
+  // existing session requires proving control of it via its capability token;
+  // otherwise a fresh, unguessable session is minted (and its token returned
+  // once). This is what stops a caller from binding a subscription — or
+  // injecting signed entries — into a session it does not own.
+  let sessionId: string;
+  let sessionToken: string | null = null;
+  if (input.sessionId) {
+    if (
+      !input.sessionToken ||
+      !isSessionIdValid(input.sessionId) ||
+      !(await verifyCapabilityToken(
+        AUDITOR_SESSION_KIND,
+        input.sessionId,
+        input.sessionToken,
+      ))
+    ) {
+      return jsonCors(
+        {
+          ok: false,
+          error: "session_token_required",
+          note: "Para continuar una sesión existente pasá su sessionToken (el que devolvió el primer subscribe). Omití sessionId para crear una nueva.",
+        },
+        { status: 403 },
+      );
+    }
+    sessionId = input.sessionId;
+  } else {
+    sessionId = crypto.randomUUID();
+    sessionToken = await mintCapabilityToken(
+      AUDITOR_SESSION_KIND,
+      AUDITOR_SESSION_PREFIX,
+      sessionId,
+    );
+  }
 
   const mpToken = process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
 
@@ -115,6 +162,8 @@ export async function POST(req: Request) {
         plan: { id: plan, priceUsd: PLANS[plan].usd },
         subscription: null,
         checkout: null,
+        // Returned ONCE — keep it to continue this session in a later subscribe.
+        sessionToken,
         audit: { backend: auditBackend(), entry, ...auditUrls(sessionId) },
       },
       { headers: { "x-play-session": sessionId, "x-audit-backend": auditBackend() } },
@@ -129,7 +178,8 @@ export async function POST(req: Request) {
   // notification_url closes the lifecycle loop: MP calls it on cancel/pause/auth
   // so /api/auditor/webhook can revoke access. Without it, churn is invisible.
   const notificationUrl = process.env.AUDITOR_WEBHOOK_URL?.trim() || `${SITE}/api/auditor/webhook`;
-  const externalReference = input.externalReference || sessionId;
+  // Always the server-resolved session — never a caller-chosen reference.
+  const externalReference = sessionId;
 
   let mp: { id?: string; init_point?: string; status?: string };
   try {
@@ -190,6 +240,19 @@ export async function POST(req: Request) {
     );
   }
 
+  // Server-authoritative binding: record which session THIS preapproval
+  // activates. `activate` reads the session from here (by preapproval id), not
+  // from MP's external_reference — closing the cross-tenant session takeover.
+  if (mp.id) {
+    const pending: PendingSubscription = {
+      sessionId,
+      payerEmail: input.payerEmail,
+      plan,
+      createdAt: new Date().toISOString(),
+    };
+    await kv.set(pendingKey(mp.id), pending, { ex: PENDING_TTL_SECONDS });
+  }
+
   // Forensic entry: the subscription intent itself is logged + signed.
   const entry = await appendAudit(sessionId, {
     tool: "auditor_subscribe",
@@ -227,6 +290,8 @@ export async function POST(req: Request) {
         note:
           "Una vez autorizado el checkout, este POST devuelve tu API key para POST /api/auditor/log (entradas firmadas durables). MP también te redirige a /auditor/gracias, que lo hace solo.",
       },
+      // Returned ONCE — keep it to continue this session in a later subscribe.
+      sessionToken,
       audit: { backend: auditBackend(), entry, ...auditUrls(sessionId) },
     },
     { headers: { "x-play-session": sessionId, "x-audit-backend": auditBackend() } },
@@ -252,7 +317,8 @@ export async function GET() {
       request: {
         payerEmail: "string (email, distinto al de la cuenta vendedora)",
         plan: "mensual | anual",
-        sessionId: "opcional (continuidad de auditoría)",
+        sessionId: "opcional (continuidad) — requiere sessionToken para probar control",
+        sessionToken: "requerido si pasás sessionId; es el token que devolvió el primer subscribe",
         entityCuit: "opcional",
       },
       live: mpReady,
