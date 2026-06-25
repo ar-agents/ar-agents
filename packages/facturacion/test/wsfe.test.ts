@@ -252,6 +252,80 @@ describe("solicitarCAE — rechazado", () => {
   });
 });
 
+describe("solicitarCAE — SOAP-XML injection hardening (DeepSec MEDIUM)", () => {
+  async function captureBody(extra: Record<string, unknown>) {
+    let body = "";
+    const fetchImpl = vi.fn(async (_u: string, init: RequestInit) => {
+      body = init.body as string;
+      return new Response(FE_SOLICITAR_CAE_APROBADO, { status: 200 });
+    }) as unknown as typeof fetch;
+    await solicitarCAE({
+      ...baseOpts,
+      fetchImpl,
+      ptoVta: 1,
+      cbteTipo: CbteTipo.FACTURA_C,
+      concepto: Concepto.SERVICIOS,
+      docTipo: DocTipo.CUIT,
+      docNro: "20123456786",
+      cbteDesde: 1,
+      cbteHasta: 1,
+      cbteFch: "20260506",
+      impTotal: 100,
+      impNeto: 100,
+      impIVA: 0,
+      fchServDesde: "20260501",
+      fchServHasta: "20260531",
+      fchVtoPago: "20260615",
+      ...extra,
+    });
+    return body;
+  }
+
+  const PAYLOAD = `</fev1:X><fev1:Injected>&pwn;`;
+
+  it("escapes a hostile fchVtoPago instead of letting it break the envelope", async () => {
+    const body = await captureBody({ fchVtoPago: PAYLOAD });
+    expect(body).not.toContain("<fev1:Injected>");
+    expect(body).toContain("&lt;/fev1:X&gt;&lt;fev1:Injected&gt;&amp;pwn;");
+  });
+
+  it("escapes a hostile monId", async () => {
+    const body = await captureBody({ monId: `PES></fev1:MonId><evil/>` });
+    expect(body).not.toContain("<evil/>");
+    expect(body).toContain("PES&gt;&lt;/fev1:MonId&gt;&lt;evil/&gt;");
+  });
+
+  it("escapes a hostile docNro (string|number field, coerced)", async () => {
+    const body = await captureBody({ docNro: `0</fev1:DocNro><x>` });
+    expect(body).not.toContain("</fev1:DocNro><x>");
+    expect(body).toContain("0&lt;/fev1:DocNro&gt;&lt;x&gt;");
+  });
+
+  it("escapes hostile cbtesAsoc cuit + fecha", async () => {
+    const body = await captureBody({
+      cbtesAsoc: [
+        {
+          tipo: CbteTipo.FACTURA_C,
+          ptoVta: 1,
+          nro: 1,
+          cuit: `<inj/>`,
+          fecha: `<inj2/>`,
+        },
+      ],
+    });
+    expect(body).not.toContain("<inj/>");
+    expect(body).not.toContain("<inj2/>");
+    expect(body).toContain("&lt;inj/&gt;");
+    expect(body).toContain("&lt;inj2/&gt;");
+  });
+
+  it("escapes a hostile auth CUIT in the Auth block", async () => {
+    const body = await captureBody({ cuit: `20123456786</fev1:Cuit><evil/>` });
+    expect(body).not.toContain("<evil/>");
+    expect(body).toContain("&lt;/fev1:Cuit&gt;&lt;evil/&gt;");
+  });
+});
+
 describe("consultarComprobante", () => {
   it("returns found=false when AFIP returns errors", async () => {
     const errorResponse = `<?xml version="1.0"?>
