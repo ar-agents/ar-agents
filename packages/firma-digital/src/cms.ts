@@ -79,31 +79,37 @@ export function verifyDetachedCmsSignature(
   // For RSA-only signatures this is enough; ECDSA needs more work.
   p7.content = forge.util.createBuffer(uint8ArrayToString(payload));
 
+  // Verify the message signature once (forge's verify() checks every signerInfo
+  // and returns true only if all of them verify against the payload).
+  let sigValid = false;
+  let sigError: string | null = null;
+  try {
+    sigValid = p7.verify();
+  } catch (err) {
+    sigValid = false;
+    sigError = (err as Error).message;
+  }
+
+  const certs = p7.certificates ?? [];
   const signerResults: CmsSignatureVerificationResult["signers"] = [];
-  let allValid = true;
-  let firstFailure: string | null = null;
+  let allChainsValid = true;
 
   for (let i = 0; i < p7.signers.length; i++) {
-    let valid = false;
-    try {
-      // forge's verify() returns boolean; takes no args.
-      valid = p7.verify();
-    } catch (err) {
-      valid = false;
-      if (firstFailure === null) firstFailure = `Signer ${i}: ${(err as Error).message}`;
-    }
-    if (!valid && firstFailure === null) {
-      firstFailure = `Signer ${i}: signature does not verify against the supplied payload.`;
-    }
-    if (!valid) allValid = false;
-
-    const certs = p7.certificates ?? [];
-    const signerCertForge = certs[i] ?? certs[0]; // forge stores cert in same order; fallback first
+    // Resolve THIS signer's certificate by its IssuerAndSerialNumber, never by
+    // array position — array order does not bind a cert to a signerInfo.
+    const signer = p7.signers[i] as { serialNumber?: string; issuer?: unknown };
+    const signerCertForge = findSignerCert(signer, certs);
     if (!signerCertForge) {
+      allChainsValid = false;
       signerResults.push({
         cert: emptyCertStub(),
-        chainValid: false,
-        chainReason: "Signer cert not embedded in the CMS message.",
+        ...(wantChain
+          ? {
+              chainValid: false,
+              chainReason:
+                "No embedded certificate matches this signer's IssuerAndSerialNumber.",
+            }
+          : {}),
       });
       continue;
     }
@@ -115,6 +121,7 @@ export function verifyDetachedCmsSignature(
       const result = walkSignerChain(signerCertForge, certs, options);
       chainValid = result.valid;
       chainReason = result.reason;
+      if (!chainValid) allChainsValid = false;
     }
     signerResults.push({
       cert: signerParsed,
@@ -123,18 +130,53 @@ export function verifyDetachedCmsSignature(
     });
   }
 
-  if (!allValid) {
-    return {
-      valid: false,
-      reason: firstFailure ?? "One or more signers failed verification.",
-      signers: signerResults,
-    };
+  // Top-level validity = signature verifies AND (when requested) every signer's
+  // chain anchors at a configured trust anchor. A valid signature with an
+  // untrusted/missing chain is NOT authentic.
+  const valid = sigValid && (!wantChain || allChainsValid);
+  if (!valid) {
+    const reason = !sigValid
+      ? sigError
+        ? `Signature does not verify: ${sigError}`
+        : "Signature does not verify against the supplied payload."
+      : "Signature verifies but signer certificate chain validation failed (see per-signer chainReason).";
+    return { valid: false, reason, signers: signerResults };
   }
   return {
     valid: true,
-    reason: `All ${signerResults.length} signer(s) verified.`,
+    reason: `All ${signerResults.length} signer(s) verified${wantChain ? " with valid chains" : ""}.`,
     signers: signerResults,
   };
+}
+
+/**
+ * Resolve a CMS signerInfo to its embedded certificate by IssuerAndSerialNumber.
+ * Matching by serial (disambiguated by issuer DN) binds the cert to the signer;
+ * array position does NOT. Returns null when no embedded cert matches.
+ */
+function findSignerCert(
+  signer: { serialNumber?: string; issuer?: unknown },
+  certs: forge.pki.Certificate[],
+): forge.pki.Certificate | null {
+  const sn = (signer.serialNumber ?? "").toLowerCase().replace(/^0+/, "");
+  if (!sn) return null;
+  const matches = certs.filter(
+    (c) => (c.serialNumber ?? "").toLowerCase().replace(/^0+/, "") === sn,
+  );
+  if (matches.length === 1) return matches[0]!;
+  if (matches.length > 1) {
+    // Disambiguate same-serial certs by issuer DN (compare attribute sets).
+    const want = normalizeDn((signer.issuer ?? []) as forge.pki.CertificateField[]);
+    return matches.find((c) => normalizeDn(c.issuer.attributes) === want) ?? null;
+  }
+  return null;
+}
+
+function normalizeDn(attrs: forge.pki.CertificateField[]): string {
+  return attrs
+    .map((a) => `${a.shortName ?? a.name ?? a.type}=${String(a.value ?? "")}`)
+    .sort()
+    .join(",");
 }
 
 function walkSignerChain(

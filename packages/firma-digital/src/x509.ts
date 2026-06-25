@@ -62,12 +62,16 @@ export function verifyChain(
     trustAnchors?: ParsedCert[];
     /** ISO 8601 reference time. Defaults to `new Date()`. */
     now?: Date;
-    /** When true, accept any AR-ONTI-looking root even if not in trustAnchors. */
+    /**
+     * @deprecated SECURITY no-op. A DN name heuristic must never establish
+     * trust (DN strings are forgeable). This flag no longer grants validity:
+     * `valid:true` always requires a configured `trustAnchors` fingerprint
+     * match. The result's `looksLikeArRoot` is set for triage only.
+     */
     acceptArOntiRoot?: boolean;
   } = {},
 ): ChainVerificationResult {
   const now = options.now ?? new Date();
-  const acceptArRoot = options.acceptArOntiRoot ?? true;
 
   let forgeChain: forge.pki.Certificate[];
   try {
@@ -91,10 +95,19 @@ export function verifyChain(
   }
 
   const summarized = forgeChain.map(summarize);
-
-  // Validity window check, leaf only (root is implicitly trusted by anchor).
   const trace: ChainVerificationResult["trace"] = [];
 
+  // Reject weak signature algorithms (SHA-1/MD5-era) anywhere in the chain.
+  for (let i = 0; i < forgeChain.length; i++) {
+    const oid = forgeChain[i]!.signatureOid ?? "";
+    if (!STRONG_SIG_OIDS.has(oid)) {
+      const note = `cert[${i}] uses a disallowed/weak signature algorithm (${oidToFriendlyName(oid)}).`;
+      trace.push({ cert: summarized[i]!, verified: false, note });
+      return { valid: false, reason: note, trace };
+    }
+  }
+
+  // Validity window check.
   for (let i = 0; i < forgeChain.length; i++) {
     const cert = forgeChain[i]!;
     const parsed = summarized[i]!;
@@ -120,6 +133,13 @@ export function verifyChain(
       trace.push({ cert: summarized[i]!, verified: false, note });
       return { valid: false, reason: note, trace };
     }
+    // The signing cert MUST be a CA (basicConstraints cA + keyCertSign): an
+    // end-entity certificate may never sign another certificate.
+    if (!isCaCert(issuer)) {
+      const note = `cert[${i + 1}] is not a valid CA (needs basicConstraints cA + keyCertSign) yet signs cert[${i}].`;
+      trace.push({ cert: summarized[i + 1]!, verified: false, note });
+      return { valid: false, reason: note, trace };
+    }
     let verified = false;
     try {
       verified = issuer.verify(subject);
@@ -138,9 +158,11 @@ export function verifyChain(
     });
   }
 
-  // Anchor — last cert in chain. Match against trustAnchors first, then heuristic.
+  // Anchor — the last cert MUST match a CONFIGURED trust anchor (pinned by
+  // SHA-256 fingerprint). A DN name heuristic NEVER establishes trust.
   const root = forgeChain[forgeChain.length - 1]!;
   const rootParsed = summarized[summarized.length - 1]!;
+  const heuristicRoot = rootParsed.isOntiRoot || looksLikeArRoot(rootParsed);
   const anchorMatch = (options.trustAnchors ?? []).find(
     (a) => a.fingerprintSha256 === rootParsed.fingerprintSha256,
   );
@@ -148,44 +170,30 @@ export function verifyChain(
     trace.push({
       cert: rootParsed,
       verified: true,
-      note: "Root matches a configured trust anchor.",
+      note: "Root matches a configured trust anchor (pinned fingerprint).",
     });
-    return { valid: true, reason: "Chain valid against configured trust store.", anchor: anchorMatch, trace };
+    return {
+      valid: true,
+      reason: "Chain valid against configured trust store.",
+      anchor: anchorMatch,
+      looksLikeArRoot: heuristicRoot,
+      trace,
+    };
   }
-  // Self-signed sanity check on the root.
+  // No configured anchor: the root is UNTRUSTED regardless of how its DN looks.
   let selfSigned = false;
   try {
     selfSigned = root.verify(root);
   } catch {
     selfSigned = false;
   }
-  if (!selfSigned) {
-    trace.push({
-      cert: rootParsed,
-      verified: false,
-      note: "Root cert is not self-signed and not in trust store.",
-    });
-    return { valid: false, reason: trace[trace.length - 1]!.note, trace };
-  }
-  if (acceptArRoot && (rootParsed.isOntiRoot || looksLikeArRoot(rootParsed))) {
-    trace.push({
-      cert: rootParsed,
-      verified: true,
-      note: "Root is self-signed and matches AR ONTI / AC-Raíz heuristic — accepted.",
-    });
-    return {
-      valid: true,
-      reason: "Chain anchored at an AR-ONTI-looking self-signed root (heuristic).",
-      anchor: rootParsed,
-      trace,
-    };
-  }
-  trace.push({
-    cert: rootParsed,
-    verified: false,
-    note: "Root self-signed but does not match any trust anchor and is not recognized as AR ONTI.",
-  });
-  return { valid: false, reason: trace[trace.length - 1]!.note, trace };
+  const note = selfSigned
+    ? heuristicRoot
+      ? "Root is self-signed and its DN looks like an AR ONTI / AC-Raíz root, but a name heuristic cannot establish trust (DN strings are forgeable). Pin the AC-Raíz SHA-256 fingerprint via trustAnchors to validate."
+      : "Root is self-signed and does NOT match any configured trust anchor — untrusted. Provide the issuing root via trustAnchors."
+    : "Root cert is not self-signed and not in the trust store (chain is incomplete or untrusted).";
+  trace.push({ cert: rootParsed, verified: false, note });
+  return { valid: false, reason: note, looksLikeArRoot: heuristicRoot, trace };
 }
 
 /** Convert a forge.pki.Certificate into the public ParsedCert shape. */
@@ -253,6 +261,28 @@ function describePublicKey(pk: forge.pki.PublicKey): ParsedCert["publicKey"] {
     return { algorithm: "RSA", bitLength };
   }
   return { algorithm: "other" };
+}
+
+// Allowed signature algorithms for chain validation: SHA-256/384/512 with RSA,
+// or ECDSA P-256/384/521. SHA-1/MD5-era OIDs are intentionally excluded and are
+// rejected during verifyChain (they are no longer collision-resistant).
+const STRONG_SIG_OIDS: ReadonlySet<string> = new Set<string>([
+  "1.2.840.113549.1.1.11", // sha256WithRSA
+  "1.2.840.113549.1.1.12", // sha384WithRSA
+  "1.2.840.113549.1.1.13", // sha512WithRSA
+  "1.2.840.10045.4.3.2", // ecdsaWithSHA256
+  "1.2.840.10045.4.3.3", // ecdsaWithSHA384
+  "1.2.840.10045.4.3.4", // ecdsaWithSHA512
+]);
+
+// A certificate may sign other certificates only if it is a CA: basicConstraints
+// cA === true, and (when a keyUsage extension is present) keyCertSign asserted.
+function isCaCert(cert: forge.pki.Certificate): boolean {
+  const bc = cert.getExtension("basicConstraints") as { cA?: boolean } | undefined;
+  if (!bc || bc.cA !== true) return false;
+  const ku = cert.getExtension("keyUsage") as { keyCertSign?: boolean } | undefined;
+  if (ku && ku.keyCertSign !== true) return false;
+  return true;
 }
 
 const SIG_OID_NAMES: Record<string, string> = {
