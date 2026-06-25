@@ -16,7 +16,7 @@ const sampleData: Constancia = {
   condicion: "monotributo",
   monotributoCategoria: "A",
   domicilioFiscal: {
-    direccion: "Cabo Corrientes 468",
+    direccion: "Calle Falsa 123",
     localidad: "Monte Grande",
     provincia: "Buenos Aires",
     codigoPostal: "1842",

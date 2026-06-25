@@ -54,7 +54,7 @@ describe("custom AfipPadronAdapter implementation", () => {
               condicion: "MONOTRIBUTO",
               monotributoCategoria: "A",
               fechaInscripcion: "2026-04-17",
-              domicilioFiscal: "Cabo Corrientes 468",
+              domicilioFiscal: "Calle Falsa 123",
               actividades: ["Servicios informáticos"],
             },
           },

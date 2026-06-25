@@ -29,12 +29,14 @@ import {
   InMemoryBoSubscriptionAdapter,
 } from "@ar-agents/boletin-oficial";
 import { gdeTadTools } from "@ar-agents/gde-tad";
+import { treasuryTools, treasurySideEffectsFor } from "@ar-agents/treasury/tools";
 
 import {
   getMpClient,
   getWhatsAppClient,
   getWsfeClient,
   getAfipPadronAdapter,
+  getOffRamp,
 } from "./clients";
 import { enforceRiskPolicy } from "@ar-agents/core";
 import { approve, isHalted } from "./governance";
@@ -91,6 +93,9 @@ export function buildAgent() {
           subscriptions: new InMemoryBoSubscriptionAdapter(),
         }),
         ...facturacionTools(wsfe ? { wsfe } : {}),
+        // Treasury: pure fiscal calculators + the USDC->ARS off-ramp. The off-ramp
+        // convert is IRREVERSIBLE and gated by enforceRiskPolicy below.
+        ...treasuryTools({ offramp: getOffRamp() }),
         // Tools that need a client — register only if config present.
         ...(mp
           ? mercadoPagoTools(mp, {
@@ -102,7 +107,7 @@ export function buildAgent() {
           : {}),
         ...(wa ? whatsappTools(wa) : {}),
       },
-      { approve, isHalted },
+      { approve, isHalted, sideEffectsFor: treasurySideEffectsFor },
     ),
   });
 }

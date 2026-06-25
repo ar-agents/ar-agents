@@ -22,6 +22,16 @@ jobs:
           node-version: "20"
           cache: pnpm
 
+      # Real PII (CUIT/name/address/birthdate/phone) leaked into fixtures before;
+      # fail the build if any known real-PII literal reappears. Use the fictional
+      # identity instead (CUIT 20123456786 / PEREZ JUAN / Calle Falsa 123).
+      - name: Guard against real-PII reintroduction
+        run: |
+          if git grep -nE '20417581015|CLEMENTE NAZARENO|Cabo Corrientes|1999-02-10|695 63 22 37' -- ':!.github/workflows'; then
+            echo "::error::Real PII found in the tree — replace it with the fictional identity."
+            exit 1
+          fi
+
       - name: Install
         run: pnpm install --frozen-lockfile
 

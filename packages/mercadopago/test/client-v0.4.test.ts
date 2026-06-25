@@ -76,7 +76,7 @@ describe("Stores + POS (v0.4)", () => {
     const store = await client.createStore("999", {
       name: "Sucursal Centro",
       externalId: "centro_1",
-      location: { addressLine: "Cabo Corrientes 468", cityName: "Monte Grande", countryId: "AR" },
+      location: { addressLine: "Calle Falsa 123", cityName: "Monte Grande", countryId: "AR" },
     });
     expect(store.id).toMatch(/^store_/);
     expect(store.name).toBe("Sucursal Centro");
