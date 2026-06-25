@@ -132,10 +132,54 @@ describe("verifyChain", () => {
     });
     const leaf = makeChildCert({ parent: root, cn: "Empresa Cliente", o: "ACME SA" });
     const chain = `${leaf.pem}\n${root.pem}`;
-    const r = verifyChain(chain);
+    // valid:true now REQUIRES a pinned trust anchor (not a name heuristic).
+    const r = verifyChain(chain, { trustAnchors: [parseCert(root.pem)] });
     expect(r.valid).toBe(true);
     expect(r.trace.length).toBe(2);
     expect(r.anchor?.commonName).toBe("Autoridad Certificante Raíz");
+  });
+
+  it("REJECTS an AR-ONTI-looking self-signed root that is not a pinned anchor (forgeable-DN bypass closed)", () => {
+    const root = makeSelfSignedCert({
+      cn: "Autoridad Certificante Raíz",
+      o: "Sistema Nacional de Firma Digital",
+      isCa: true,
+    });
+    const leaf = makeChildCert({ parent: root, cn: "Empresa Cliente" });
+    // No trustAnchors; the legacy acceptArOntiRoot flag must NOT grant trust.
+    const r = verifyChain(`${leaf.pem}\n${root.pem}`, { acceptArOntiRoot: true });
+    expect(r.valid).toBe(false);
+    expect(r.looksLikeArRoot).toBe(true); // informational classification only
+    expect(r.reason).toMatch(/name heuristic|trustAnchors|untrusted/i);
+  });
+
+  it("rejects a chain where a non-CA cert signs another cert", () => {
+    const root = makeSelfSignedCert({ cn: "Root CA", isCa: true });
+    const intermediate = makeChildCert({ parent: root, cn: "Intermediate (not a CA)" });
+    const leaf = makeChildCert({ parent: intermediate, cn: "leaf" });
+    const r = verifyChain(`${leaf.pem}\n${intermediate.pem}\n${root.pem}`, {
+      trustAnchors: [parseCert(root.pem)],
+    });
+    expect(r.valid).toBe(false);
+    expect(r.reason).toMatch(/not a valid CA|basicConstraints|keyCertSign/i);
+  });
+
+  it("rejects a chain whose cert uses a weak (SHA-1) signature algorithm", () => {
+    const keys = forge.pki.rsa.generateKeyPair(2048);
+    const cert = forge.pki.createCertificate();
+    cert.publicKey = keys.publicKey;
+    cert.serialNumber = "01";
+    cert.validity.notBefore = new Date(Date.now() - 60_000);
+    cert.validity.notAfter = new Date(Date.now() + 365 * 24 * 60 * 60 * 1000);
+    const attrs: forge.pki.CertificateField[] = [{ name: "commonName", value: "SHA1 Root" }];
+    cert.setSubject(attrs);
+    cert.setIssuer(attrs);
+    cert.setExtensions([{ name: "basicConstraints", cA: true }]);
+    cert.sign(keys.privateKey, forge.md.sha1.create()); // weak
+    const pem = forge.pki.certificateToPem(cert);
+    const r = verifyChain(pem, { trustAnchors: [parseCert(pem)] });
+    expect(r.valid).toBe(false);
+    expect(r.reason).toMatch(/weak|disallowed|algorithm/i);
   });
 
   it("rejects a chain with mismatched issuer DN", () => {
