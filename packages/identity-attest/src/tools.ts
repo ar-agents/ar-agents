@@ -1,6 +1,23 @@
 import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { AttestationClient } from "./client";
+import type { VerificationSubject } from "./types";
+
+/**
+ * Context passed to {@link IdentityAttestToolsOptions.authorizeRead}. Carries
+ * the fetched record's binding info so the host can decide if the current
+ * caller owns it (e.g., compare `externalReference` to the caller's session).
+ */
+export interface IdentityAttestReadContext {
+  /** Which read tool is requesting the data. */
+  tool: "check_verification_status" | "get_attestation";
+  /** The request_id the agent asked about (caller-controlled). */
+  requestId: string;
+  /** The verification's external reference (your-system id), or null. */
+  externalReference: string | null;
+  /** The subject under verification (type + value), or null. */
+  subject: VerificationSubject | null;
+}
 
 export interface IdentityAttestToolsOptions {
   /**
@@ -11,6 +28,29 @@ export interface IdentityAttestToolsOptions {
   allowedMethods?: string[];
   /** Override default tool descriptions. */
   descriptions?: Partial<Record<ToolName, string>>;
+  /**
+   * Ownership gate for the READ tools (`check_verification_status`,
+   * `get_attestation`). These take a caller-controlled `request_id` and return
+   * PII (subject, claims, signature, external reference). Without a check, any
+   * caller who learns a request_id — via logs, transcripts, callbacks — could
+   * read another user's attestation.
+   *
+   * Construct the tools per request with the caller's identity bound, and
+   * return `false` to deny: the tool then responds with `not_authorized` and
+   * exposes no data. When omitted, reads are NOT access-controlled (kept for
+   * back-compat / single-tenant use) — multi-tenant or shared-agent
+   * deployments SHOULD set this and bind via `externalReference`.
+   *
+   * @example
+   * ```ts
+   * identityAttestTools(client, {
+   *   authorizeRead: (ctx) => ctx.externalReference === currentSession.ref,
+   * });
+   * ```
+   */
+  authorizeRead?: (
+    ctx: IdentityAttestReadContext,
+  ) => boolean | Promise<boolean>;
 }
 
 type ToolName =
@@ -155,6 +195,18 @@ export function identityAttestTools(
       inputSchema: z.object({ request_id: z.string() }),
       execute: async ({ request_id }) => {
         const status = await client.getRequestStatus(request_id);
+        // Ownership gate BEFORE returning any subject/claims/signature.
+        if (
+          options.authorizeRead &&
+          !(await options.authorizeRead({
+            tool: "check_verification_status",
+            requestId: request_id,
+            externalReference: status.externalReference ?? null,
+            subject: status.subject ?? null,
+          }))
+        ) {
+          return notAuthorized(request_id);
+        }
         const attestation =
           status.status === "verified" ? await client.getAttestation(request_id) : null;
         return {
@@ -180,24 +232,49 @@ export function identityAttestTools(
       inputSchema: z.object({ request_id: z.string() }),
       execute: async ({ request_id }) => {
         const attestation = await client.getAttestation(request_id);
-        return attestation
-          ? {
-              found: true,
-              request_id: attestation.requestId,
-              verifier: attestation.verifier,
-              method: attestation.method,
-              trust_level: attestation.trustLevel,
-              subject: attestation.subject,
-              claims: attestation.claims,
-              verified_at: attestation.verifiedAt,
-              expires_at: attestation.expiresAt,
-              signature: attestation.signature,
-              external_reference: attestation.externalReference,
-            }
-          : { found: false };
+        if (!attestation) return { found: false };
+        // Ownership gate BEFORE returning subject/claims/signature.
+        if (
+          options.authorizeRead &&
+          !(await options.authorizeRead({
+            tool: "get_attestation",
+            requestId: request_id,
+            externalReference: attestation.externalReference ?? null,
+            subject: attestation.subject ?? null,
+          }))
+        ) {
+          return notAuthorized(request_id);
+        }
+        return {
+          found: true,
+          request_id: attestation.requestId,
+          verifier: attestation.verifier,
+          method: attestation.method,
+          trust_level: attestation.trustLevel,
+          subject: attestation.subject,
+          claims: attestation.claims,
+          verified_at: attestation.verifiedAt,
+          expires_at: attestation.expiresAt,
+          signature: attestation.signature,
+          external_reference: attestation.externalReference,
+        };
       },
     }),
   } satisfies ToolSet;
+}
+
+/** Denial response for the read tools — exposes no attestation data. */
+function notAuthorized(requestId: string): {
+  error: string;
+  message: string;
+  request_id: string;
+} {
+  return {
+    error: "not_authorized",
+    message:
+      "Caller is not authorized to read this verification (authorizeRead policy). No attestation data returned.",
+    request_id: requestId,
+  };
 }
 
 function trustDescription(level: number): string {
