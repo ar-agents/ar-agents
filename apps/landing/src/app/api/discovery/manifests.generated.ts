@@ -83,7 +83,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/banking",
-    "version": "0.5.0",
+    "version": "0.5.2",
     "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
     "tools": [
       {
@@ -340,7 +340,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/facturacion",
-    "version": "0.4.0",
+    "version": "0.4.2",
     "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
     "tools": [
       {
@@ -488,7 +488,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/gde-tad",
-    "version": "0.3.0",
+    "version": "0.3.2",
     "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
     "tools": [
       {
@@ -517,7 +517,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity",
-    "version": "0.8.0",
+    "version": "0.8.2",
     "factory": "identityTools",
     "tools": [
       {
@@ -576,7 +576,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity-attest",
-    "version": "0.5.0",
+    "version": "0.5.2",
     "factory": "identityAttestTools",
     "tools": [
       {
@@ -1154,7 +1154,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/mercadopago",
-    "version": "0.18.0",
+    "version": "0.18.3",
     "factory": "mercadoPagoTools",
     "tools": [
       {
@@ -1844,7 +1844,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/shipping",
-    "version": "0.3.0",
+    "version": "0.3.2",
     "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",
     "tools": [
       {
@@ -2060,6 +2060,164 @@ export const MANIFESTS = [
     ]
   },
   {
+    "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
+    "package": "@ar-agents/treasury",
+    "name": "@ar-agents/treasury",
+    "version": "0.2.0",
+    "factory": "treasuryTools",
+    "tools": [
+      {
+        "name": "treasury_buffer_status",
+        "description": "Given the ARS balance and upcoming AFIP obligations, compute the peso buffer needed within a horizon (with a safety multiple) and any shortfall. Pure (clock injected).",
+        "input": {
+          "arsBalance": "number",
+          "obligations": "Array<{id,kind,amountArs,dueAtMs}>",
+          "horizonDays": "number (default 30)",
+          "safety": "number >=1 (default 1.1)"
+        },
+        "output": {
+          "requiredArs": "number",
+          "shortfallArs": "number",
+          "funded": "boolean",
+          "nextObligation": "object | null"
+        },
+        "idempotent": true,
+        "sideEffect": "none"
+      },
+      {
+        "name": "treasury_monotributo",
+        "description": "Monthly monotributo cuota (ARS) and/or the category for an annual income. Values eff. 2026-02-01 (IPC-indexed). Monotributo is for a persona-humana operator; a SAS/SRL is in the general regime. Pure.",
+        "input": {
+          "activity": "'servicios' | 'bienes'",
+          "category": "'A'..'K'? (one of)",
+          "annualIncomeArs": "number?"
+        },
+        "output": {
+          "category": "string",
+          "cuotaArs": "number",
+          "tableEffective": "string"
+        },
+        "idempotent": true,
+        "sideEffect": "none"
+      },
+      {
+        "name": "treasury_offramp_convert",
+        "description": "EXECUTE an off-ramp: sell USDC and pay out ARS to the society's CVU via the PSAV. IRREVERSIBLE. Requires human approval (RFC-001) and is kill-switch gated. Async settlement; confirm with treasury_offramp_status.",
+        "input": {
+          "amountUsd": "number positive",
+          "externalId": "string? (idempotency key)"
+        },
+        "output": {
+          "available": "boolean",
+          "amountUsd": "number",
+          "arsReceived": "number",
+          "rate": "number",
+          "txId": "string"
+        },
+        "idempotent": false,
+        "sideEffect": "IRREVERSIBLE: moves real money (crypto sale + ARS payout to CVU)"
+      },
+      {
+        "name": "treasury_offramp_quote",
+        "description": "Live USDC->ARS quote from the configured registered-PSAV off-ramp (Manteca). Read-only. Returns {available:false} if no off-ramp is configured.",
+        "input": {
+          "amountUsd": "number positive"
+        },
+        "output": {
+          "available": "boolean",
+          "arsOut": "number",
+          "rate": "number",
+          "spread": "number"
+        },
+        "idempotent": true,
+        "sideEffect": "read-only (PSAV price call)"
+      },
+      {
+        "name": "treasury_offramp_status",
+        "description": "Poll the settlement status of a prior treasury_offramp_convert by txId. Confirm the ARS landed in the CVU before marking an obligation funded. Returns {available:false} without an off-ramp.",
+        "input": {
+          "txId": "string"
+        },
+        "output": {
+          "available": "boolean",
+          "status": "'PENDING'|'PROCESSING'|'COMPLETED'|'FAILED'|'UNKNOWN'",
+          "arsSettled": "number?"
+        },
+        "idempotent": true,
+        "sideEffect": "read-only (PSAV status call)"
+      },
+      {
+        "name": "treasury_plan_conversion",
+        "description": "Plan a just-in-time USDC->ARS conversion: how much USDC to convert to top the ARS buffer, net of spread, capped by available USDC. Never over-converts. Plans only; does not execute. Pure.",
+        "input": {
+          "usd": "number",
+          "ars": "number",
+          "costBasisPerUsd": "number (default 1)",
+          "requiredArs": "number",
+          "fxRate": "number positive",
+          "spread": "number 0..1 (default 0.01)"
+        },
+        "output": {
+          "convertUsd": "number",
+          "expectedArs": "number",
+          "reason": "string"
+        },
+        "idempotent": true,
+        "sideEffect": "none"
+      },
+      {
+        "name": "treasury_settlement_plan",
+        "description": "How a tax obligation actually gets paid, honestly. No method pays autonomously at pay-time (canAutoExecute is always false); debito_automatico is passive after one-time enrolment, vep/mp need a human. Pure.",
+        "input": {
+          "amountArs": "number",
+          "dueAtMs": "number",
+          "kind": "'monotributo'|'vep'|'iibb'|'cedular' (default 'monotributo')",
+          "method": "'debito_automatico'|'vep_manual'|'mp_manual'"
+        },
+        "output": {
+          "method": "string",
+          "autonomy": "'passive'|'human-required'",
+          "canAutoExecute": "false",
+          "instruction": "string",
+          "oneTimeSetup": "string"
+        },
+        "idempotent": true,
+        "sideEffect": "none"
+      },
+      {
+        "name": "treasury_tax_estimate",
+        "description": "Estimate the Ganancias cedular owed (ARS) on disposing crypto: 5% (sold in pesos, no adjustment clause) or 15% (foreign currency), on the GAIN only. Crypto is IVA-exempt. Pure.",
+        "input": {
+          "amountUsd": "number positive",
+          "costBasisPerUsd": "number (default 1)",
+          "fxRate": "number positive (ARS per USD)",
+          "denom": "'ARS' | 'FOREIGN' (default 'ARS')"
+        },
+        "output": {
+          "taxArs": "number",
+          "gainArs": "number",
+          "ratePct": "5 | 15",
+          "denom": "string"
+        },
+        "idempotent": true,
+        "sideEffect": "none"
+      }
+    ],
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 8
+    },
+    "authorizedBy": {
+      "republic": "https://ar-panel-one.vercel.app/.well-known/republica.json",
+      "verify": "https://ar-panel-one.vercel.app/verify",
+      "rail": "rail-fiscal",
+      "articles": [
+        "art-14"
+      ],
+      "normas": []
+    }
+  },
+  {
     "$schema": "https://agents.md/tools.manifest.schema.json",
     "package": "@ar-agents/uala",
     "version": "0.2.0",
@@ -2125,7 +2283,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/whatsapp",
-    "version": "0.5.0",
+    "version": "0.5.1",
     "tools": [
       {
         "name": "mark_whatsapp_read"
