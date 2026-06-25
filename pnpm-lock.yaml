@@ -82,6 +82,9 @@ importers:
 
   apps/cuit-hello:
     dependencies:
+      '@ar-agents/core':
+        specifier: workspace:*
+        version: link:../../packages/core
       '@ar-agents/identity':
         specifier: workspace:*
         version: link:../../packages/identity
