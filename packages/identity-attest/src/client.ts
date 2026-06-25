@@ -274,24 +274,47 @@ export class AttestationClient {
       );
     }
 
-    const result = await adapter.verify({
-      requestId,
-      storedSecret: internal.secret,
-      submitted,
-      subject: request.subject,
-    });
+    // Atomically CLAIM an attempt slot BEFORE verifying. Doing this first (and
+    // atomically) means even a fully-concurrent burst of guesses can never run
+    // more than `maxAttempts` verifications — the previous read-modify-write
+    // let N concurrent wrong codes all read the same counter, all verify, and
+    // all write back the same decremented value (brute-force bypass).
+    const remaining = await this.consumeAttempt(requestId);
+    if (remaining === null) throw new VerificationRequestNotFoundError(requestId);
+    if (remaining < 0) {
+      // No budget left (exhausted by prior/concurrent submissions).
+      await this.store.updateRequest(requestId, {
+        attemptsRemaining: 0,
+        status: "failed" as VerificationStatus,
+      });
+      throw new TooManyAttemptsError(requestId);
+    }
+
+    let result: Awaited<ReturnType<typeof adapter.verify>>;
+    try {
+      result = await adapter.verify({
+        requestId,
+        storedSecret: internal.secret,
+        submitted,
+        subject: request.subject,
+      });
+    } catch (err) {
+      // Adapter infrastructure error (e.g., external IdP/API failure), NOT a
+      // wrong guess — refund the claimed slot so a transient failure doesn't
+      // burn a legitimate user's attempt.
+      await this.refundAttempt(requestId);
+      throw err;
+    }
 
     if (!result.verified) {
-      const newAttempts = internal.attemptsRemaining - 1;
-      if (newAttempts <= 0) {
+      if (remaining <= 0) {
         await this.store.updateRequest(requestId, {
           attemptsRemaining: 0,
           status: "failed" as VerificationStatus,
         });
         throw new TooManyAttemptsError(requestId);
       }
-      await this.store.updateRequest(requestId, { attemptsRemaining: newAttempts });
-      throw new InvalidOtpCodeError(newAttempts);
+      throw new InvalidOtpCodeError(remaining);
     }
 
     // Success — issue attestation
@@ -316,6 +339,36 @@ export class AttestationClient {
       claims: result.claims ?? null,
     });
     return attestation;
+  }
+
+  /**
+   * Atomically claim one verification attempt, returning the new
+   * `attemptsRemaining` (may be negative if none were left). Prefers the
+   * store's atomic `decrementAttempts`; falls back to a read-modify-write for
+   * stores that don't implement it (single-process safe only).
+   */
+  private async consumeAttempt(requestId: string): Promise<number | null> {
+    if (this.store.decrementAttempts) {
+      return this.store.decrementAttempts(requestId);
+    }
+    const found = await this.store.getRequest(requestId);
+    if (!found) return null;
+    const next = found.internal.attemptsRemaining - 1;
+    await this.store.updateRequest(requestId, { attemptsRemaining: next });
+    return next;
+  }
+
+  /** Refund one attempt (see {@link AttestationStore.incrementAttempts}). */
+  private async refundAttempt(requestId: string): Promise<void> {
+    if (this.store.incrementAttempts) {
+      await this.store.incrementAttempts(requestId);
+      return;
+    }
+    const found = await this.store.getRequest(requestId);
+    if (!found) return;
+    await this.store.updateRequest(requestId, {
+      attemptsRemaining: found.internal.attemptsRemaining + 1,
+    });
   }
 
   private async signAttestation(a: Attestation): Promise<string> {
