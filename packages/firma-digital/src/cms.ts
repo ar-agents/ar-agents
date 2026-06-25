@@ -154,7 +154,11 @@ export function verifyDetachedCmsSignature(
  * Matching by serial (disambiguated by issuer DN) binds the cert to the signer;
  * array position does NOT. Returns null when no embedded cert matches.
  */
-function findSignerCert(
+// Exported for direct unit testing (NOT re-exported from the package index).
+// forge's parse-side does not populate `p7.signers`, so this signer→cert binding
+// cannot be exercised end-to-end without a real firma.p7s fixture — so we unit
+// test the binding logic here directly.
+export function findSignerCert(
   signer: { serialNumber?: string; issuer?: unknown },
   certs: forge.pki.Certificate[],
 ): forge.pki.Certificate | null {
@@ -172,7 +176,7 @@ function findSignerCert(
   return null;
 }
 
-function normalizeDn(attrs: forge.pki.CertificateField[]): string {
+export function normalizeDn(attrs: forge.pki.CertificateField[]): string {
   return attrs
     .map((a) => `${a.shortName ?? a.name ?? a.type}=${String(a.value ?? "")}`)
     .sort()
