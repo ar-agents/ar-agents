@@ -1,4 +1,4 @@
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import {
   MercadoPagoClient,
   mercadoPagoTools,
@@ -41,7 +41,7 @@ export function createMpAgent() {
       backUrl:
         process.env.MP_BACK_URL ?? "https://example.com/subscription/done",
     }),
-    stopWhen: stepCountIs(8),
+    stopWhen: isStepCount(8),
   });
 }
 

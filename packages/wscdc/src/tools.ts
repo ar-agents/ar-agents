@@ -9,7 +9,7 @@
  * locally). Default `UnconfiguredWscdcAdapter` throws, so an agent
  * configured without a real adapter never silently lies.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { WscdcAdapter } from "./adapter";
 import { UnconfiguredWscdcAdapter } from "./adapter";
@@ -46,7 +46,7 @@ export const ALL_TOOL_NAMES = [
 
 export type WscdcToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function wscdcTools(opts: WscdcToolsOptions = {}) {
+export function wscdcTools(opts: WscdcToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredWscdcAdapter();
   const wanted = new Set<WscdcToolName>(opts.include ?? ALL_TOOL_NAMES);
 

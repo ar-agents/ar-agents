@@ -13,7 +13,7 @@
  * { ok: false, code: "unconfigured" } result instead of throwing, so an
  * agent can explain the situation to the operator.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import {
   x402Fetch,
@@ -82,7 +82,7 @@ function errorResult(err: unknown): {
   };
 }
 
-export function x402Tools(opts: X402ToolsOptions = {}) {
+export function x402Tools(opts: X402ToolsOptions = {}): ToolSet {
   const wanted = new Set<X402ToolName>(opts.include ?? ALL_TOOL_NAMES);
   const fetchImpl = opts.fetch ?? globalThis.fetch;
 

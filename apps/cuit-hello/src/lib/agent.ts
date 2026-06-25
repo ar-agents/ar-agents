@@ -1,6 +1,7 @@
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import { identityTools, type AfipPadronAdapter } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
+import { toolApprovalFromRisk } from "@ar-agents/core";
 
 const MODEL = process.env.CUIT_AGENT_MODEL ?? "anthropic/claude-sonnet-4-6";
 
@@ -73,6 +74,13 @@ export function createCuitAgent() {
     model: MODEL,
     instructions: INSTRUCTIONS,
     tools: identityTools(afip ? { afip } : {}),
-    stopWhen: stepCountIs(6),
+    stopWhen: isStepCount(6),
+    // AI SDK 7 native tool-approval, driven by the @ar-agents/core risk manifest
+    // (same law as enforceRiskPolicy). cuit-hello exposes only read tools
+    // (validate/lookup), so nothing is gated here — this wires the canonical
+    // pattern. When an agent exposes money/fiscal/legal/irreversible tools, those
+    // resolve to 'user-approval' and the SDK emits a (HMAC-signable, via
+    // experimental_toolApprovalSecret) approval request instead of running them.
+    toolApproval: toolApprovalFromRisk(),
   });
 }

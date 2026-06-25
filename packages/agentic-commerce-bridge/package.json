@@ -151,7 +151,7 @@
     "@ar-agents/mercadopago": "workspace:*",
     "@types/node": "^20.19.39",
     "@vercel/kv": "^3.0.0",
-    "ai": "^6.0.175",
+    "ai": "^7.0.0",
     "tsup": "^8.3.5",
     "typescript": "^5.9.3",
     "vitest": "^2.1.8",

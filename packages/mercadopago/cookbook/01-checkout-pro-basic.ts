@@ -21,7 +21,7 @@
  * as a Vercel Edge Function for sub-100ms global cold starts.
  */
 
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import {
   InMemoryStateAdapter,
   MercadoPagoClient,
@@ -50,7 +50,7 @@ Cuando el cliente quiere comprar:
     backUrl: "https://yourapp.com/payment-result",
     notificationUrl: "https://yourapp.com/api/mp/webhook",
   }),
-  stopWhen: stepCountIs(5),
+  stopWhen: isStepCount(5),
 });
 
 // In a Next.js route handler:

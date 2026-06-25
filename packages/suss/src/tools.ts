@@ -1,7 +1,7 @@
 /**
  * Drop-in tool collection for Vercel AI SDK 6+.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { SussAdapter } from "./adapter";
 import { UnconfiguredSussAdapter } from "./adapter";
@@ -55,7 +55,7 @@ export const ALL_TOOL_NAMES = [
 
 export type SussToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function sussTools(opts: SussToolsOptions = {}) {
+export function sussTools(opts: SussToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredSussAdapter();
   const rateTable = opts.rateTable;
   const wanted = new Set<SussToolName>(opts.include ?? ALL_TOOL_NAMES);

@@ -1,4 +1,4 @@
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import { identityTools, type AfipPadronAdapter } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
 import { mercadoPagoTools, MercadoPagoClient, InMemoryStateAdapter } from "@ar-agents/mercadopago";
@@ -169,7 +169,7 @@ export function createWhatsAppHelloAgent(options: { scopedTo?: string } = {}) {
     model: MODEL,
     instructions: INSTRUCTIONS,
     tools,
-    stopWhen: stepCountIs(12),
+    stopWhen: isStepCount(12),
   });
 
   return { agent, whatsappMode: mode, whatsappClient: wa };

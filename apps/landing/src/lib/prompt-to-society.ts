@@ -78,7 +78,7 @@ const defaultGenerator: DraftGenerator = async ({ system, prompt }) => {
   const { object } = await generateObject({
     model: EXTRACTION_MODEL,
     schema: ExtractionSchema,
-    system,
+    instructions: system,
     prompt,
     // The draft is small; bound the output so a hostile prompt can't run the
     // bill up via a huge generation.

@@ -23,35 +23,34 @@ import {
   RIPIO_PROD,
   type OffRampAdapter,
 } from "@ar-agents/treasury";
+import { resolveServiceToken } from "./connect";
 
 const have = (key: string): string | null => {
   const v = process.env[key]?.trim();
   return v && v.length > 0 ? v : null;
 };
 
-let _mp: MercadoPagoClient | null | "missing" = null;
-export function getMpClient(): MercadoPagoClient | null {
-  if (_mp !== null) return _mp === "missing" ? null : _mp;
-  const token = have("MERCADOPAGO_ACCESS_TOKEN");
-  if (!token) {
-    _mp = "missing";
-    return null;
-  }
-  _mp = new MercadoPagoClient({ accessToken: token });
-  return _mp;
+// MercadoPago + WhatsApp tokens are sourced Vercel-Connect-first (scoped,
+// short-lived, per-request) with a long-lived env token as fallback. Because a
+// Connect token is short-lived, these are NOT memoized — the client is built
+// fresh per agent run (buildAgent runs per request), so each run gets a fresh
+// token. AFIP below stays env/cert-based (custom WSAA, not an OAuth provider).
+export async function getMpClient(): Promise<MercadoPagoClient | null> {
+  const token = await resolveServiceToken({
+    connector: process.env.MERCADOPAGO_CONNECT_CONNECTOR,
+    envToken: process.env.MERCADOPAGO_ACCESS_TOKEN,
+  });
+  return token ? new MercadoPagoClient({ accessToken: token }) : null;
 }
 
-let _wa: WhatsAppClient | null | "missing" = null;
-export function getWhatsAppClient(): WhatsAppClient | null {
-  if (_wa !== null) return _wa === "missing" ? null : _wa;
-  const token = have("WHATSAPP_ACCESS_TOKEN");
+export async function getWhatsAppClient(): Promise<WhatsAppClient | null> {
+  const token = await resolveServiceToken({
+    connector: process.env.WHATSAPP_CONNECT_CONNECTOR,
+    envToken: process.env.WHATSAPP_ACCESS_TOKEN,
+  });
   const phoneNumberId = have("WHATSAPP_PHONE_NUMBER_ID");
-  if (!token || !phoneNumberId) {
-    _wa = "missing";
-    return null;
-  }
-  _wa = new WhatsAppClient({ accessToken: token, phoneNumberId });
-  return _wa;
+  if (!token || !phoneNumberId) return null;
+  return new WhatsAppClient({ accessToken: token, phoneNumberId });
 }
 
 let _wsfe: WsfeClient | null | "missing" = null;
@@ -168,9 +167,13 @@ export function clientStatus(): Record<
   "wired" | "missing-env"
 > {
   return {
-    mercadopago: have("MERCADOPAGO_ACCESS_TOKEN") ? "wired" : "missing-env",
+    mercadopago:
+      have("MERCADOPAGO_CONNECT_CONNECTOR") || have("MERCADOPAGO_ACCESS_TOKEN")
+        ? "wired"
+        : "missing-env",
     whatsapp:
-      have("WHATSAPP_ACCESS_TOKEN") && have("WHATSAPP_PHONE_NUMBER_ID")
+      (have("WHATSAPP_CONNECT_CONNECTOR") || have("WHATSAPP_ACCESS_TOKEN")) &&
+      have("WHATSAPP_PHONE_NUMBER_ID")
         ? "wired"
         : "missing-env",
     wsfe:

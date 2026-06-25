@@ -11,7 +11,7 @@
  *   });
  *   const agent = new Experimental_Agent({ model, tools });
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { UalaAdapter } from "./adapter";
 import { UnconfiguredUalaAdapter } from "./adapter";
@@ -40,7 +40,7 @@ export type UalaToolName = (typeof ALL_TOOL_NAMES)[number];
 
 const currencySchema = z.enum(["ARS", "USD"]);
 
-export function ualaTools(opts: UalaToolsOptions = {}) {
+export function ualaTools(opts: UalaToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredUalaAdapter();
   const wanted = new Set<UalaToolName>(opts.include ?? ALL_TOOL_NAMES);
 

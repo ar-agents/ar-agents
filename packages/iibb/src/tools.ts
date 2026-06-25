@@ -6,7 +6,7 @@
  * `iibb_lookup_padron`. Agents that only need to assemble DDJJ data and
  * compute retentions can run with the default UnconfiguredIibbAdapter.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { IibbAdapter } from "./adapter";
 import { UnconfiguredIibbAdapter } from "./adapter";
@@ -78,7 +78,7 @@ export const ALL_TOOL_NAMES = [
 
 export type IibbToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function iibbTools(opts: IibbToolsOptions = {}) {
+export function iibbTools(opts: IibbToolsOptions = {}): ToolSet {
   const adapters = opts.adapters ?? {};
   const wanted = new Set<IibbToolName>(opts.include ?? ALL_TOOL_NAMES);
 
