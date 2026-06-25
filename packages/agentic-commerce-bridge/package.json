@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/agentic-commerce-bridge",
-  "version": "8.0.1",
+  "version": "9.0.0",
   "description": "Open-source merchant facilitator for the Agentic Commerce Protocol (ACP) bridging ChatGPT, Claude, Gemini, and other agentic-commerce clients to MercadoLibre and MercadoPago. ACP-compliant checkout sessions, signed webhooks, /.well-known/acp.json discovery, pluggable state adapters, and AR-fiscal compliance (auto-issued AFIP/ARCA Factura A/B/C). First LATAM agentic-commerce bridge.",
   "keywords": [
     "agentic-commerce",
@@ -117,8 +117,8 @@
   ],
   "peerDependencies": {
     "@ar-agents/ap2": ">=0.2.2",
-    "@ar-agents/facturacion": ">=0.4.3",
-    "@ar-agents/identity": ">=0.8.3",
+    "@ar-agents/facturacion": ">=0.4.4",
+    "@ar-agents/identity": ">=0.9.0",
     "@ar-agents/mercadopago": ">=0.18.3",
     "@vercel/kv": ">=2.0.0",
     "ai": ">=6.0.0",

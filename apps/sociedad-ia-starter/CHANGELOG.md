@@ -1,5 +1,13 @@
 # sociedad-ia-starter
 
+## 0.1.10
+
+### Patch Changes
+
+- Updated dependencies [[`5c2ff8c`](https://github.com/ar-agents/ar-agents/commit/5c2ff8cc6f0063920ffb0ffe52bda86509c3baf8)]:
+  - @ar-agents/identity@0.9.0
+  - @ar-agents/facturacion@0.4.4
+
 ## 0.1.9
 
 ### Patch Changes

@@ -1,7 +1,7 @@
 {
   "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/facturacion",
-  "version": "0.4.3",
+  "version": "0.4.4",
   "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
   "tools": [
     {
