@@ -141,11 +141,17 @@ export function withMetrics(
 // ── withTimeout ────────────────────────────────────────────────
 
 /**
- * Cap execute() at `timeoutMs`. On timeout, throws an
- * ArAgentsProtocolError(retryable=true). The middleware does NOT
- * cancel underlying network requests (no AbortController is plumbed
- * through here — that's tool-internal); it merely returns control
- * promptly so the caller's response budget is honored.
+ * Cap execute() at `timeoutMs`. On timeout, throws a NON-retryable
+ * ArAgentsError(code="timeout"). The middleware does NOT cancel the underlying
+ * call (no AbortController is plumbed through here — that's tool-internal); it
+ * merely returns control promptly so the caller's response budget is honored.
+ *
+ * SECURITY: the timeout error is `retryable: false` ON PURPOSE. Because the
+ * original execute() keeps running after a timeout, marking it retryable let
+ * withRetry re-invoke a still-running side-effectful tool — turning one approved
+ * money/fiscal/irreversible action into several (double-spend). A timeout is only
+ * safe to retry once execution is genuinely cancelled (AbortSignal) or the tool
+ * is protected by a deterministic idempotency key; until then, do not retry it.
  */
 export function withTimeout(toolName: string, timeoutMs: number): ToolMiddleware {
   return <T extends AnyTool>(tool: T): T => {
@@ -167,7 +173,10 @@ export function withTimeout(toolName: string, timeoutMs: number): ToolMiddleware
                     `Tool "${toolName}" timed out after ${timeoutMs}ms`,
                     {
                       code: "timeout",
-                      retryable: true,
+                      // NOT retryable: execute() is still running (uncancelled), so
+                      // retrying would double-execute a side-effectful tool. See the
+                      // SECURITY note on withTimeout above.
+                      retryable: false,
                       context: { toolName, timeoutMs },
                     },
                   ),

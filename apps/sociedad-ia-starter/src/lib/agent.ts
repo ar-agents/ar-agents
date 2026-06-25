@@ -30,6 +30,7 @@ import {
 } from "@ar-agents/boletin-oficial";
 import { gdeTadTools } from "@ar-agents/gde-tad";
 import { treasuryTools, treasurySideEffectsFor } from "@ar-agents/treasury/tools";
+import { withOffRampIdempotency } from "@ar-agents/treasury";
 
 import {
   getMpClient,
@@ -75,6 +76,12 @@ export async function buildAgent() {
   const wa = await getWhatsAppClient();
   const wsfe = getWsfeClient();
   const afip = getAfipPadronAdapter();
+  // Wrap the off-ramp so a retried/concurrent convert with the same derived key
+  // returns the original receipt instead of double-sending funds (the real PSAV
+  // adapters don't all dedupe server-side). In-memory store dedupes within this
+  // run; inject a durable KV store for cross-instance idempotency in production.
+  const rawOfframp = getOffRamp();
+  const offramp = rawOfframp ? withOffRampIdempotency(rawOfframp) : undefined;
 
   return new Agent({
     model: anthropic("claude-sonnet-4-5"),
@@ -103,7 +110,7 @@ export async function buildAgent() {
         ...facturacionTools(wsfe ? { wsfe } : {}),
         // Treasury: pure fiscal calculators + the USDC->ARS off-ramp. The off-ramp
         // convert is IRREVERSIBLE and gated by enforceRiskPolicy below.
-        ...treasuryTools({ offramp: getOffRamp() }),
+        ...treasuryTools({ offramp }),
         // Tools that need a client — register only if config present.
         ...(mp
           ? mercadoPagoTools(mp, {

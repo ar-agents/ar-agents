@@ -250,16 +250,29 @@ export function treasuryTools(options: TreasuryToolsOptions = {}): ToolSet {
         "Returns {available:false} if no off-ramp is configured.",
       inputSchema: z.object({
         amountUsd: z.number().positive(),
-        externalId: z
+        operationRef: z
           .string()
           .min(1)
           .describe(
-            "REQUIRED stable idempotency key tied to the payment (e.g. the obligation id + " +
-              "period). Reuse the EXACT same key on any retry, or the off-ramp will double-spend.",
+            "Stable identifier of the OPERATION this payout settles (e.g. the obligation id + " +
+              "period, or an invoice id). The idempotency key is DERIVED from this + the amount " +
+              "server-side — reuse the SAME operationRef on any retry of the SAME payment.",
           ),
       }),
-      execute: async ({ amountUsd, externalId }) => {
+      execute: async ({ amountUsd, operationRef }) => {
         if (!offramp) return noOfframp;
+        // Never trust a free-form idempotency key from the model: derive it
+        // deterministically from the operation + amount so a retry of the SAME
+        // payment reuses the SAME key (the off-ramp idempotency wrapper then
+        // dedupes instead of creating a second payout). A different operationRef
+        // is, correctly, a DIFFERENT operation needing its own approval.
+        const slug = operationRef
+          .trim()
+          .toLowerCase()
+          .replace(/[^a-z0-9]+/g, "-")
+          .replace(/(^-+|-+$)/g, "")
+          .slice(0, 64);
+        const externalId = `offramp-${slug}-${amountUsd.toFixed(2)}`;
         const receipt = await offramp.convert(amountUsd, { externalId });
         return { available: true as const, ...receipt };
       },
