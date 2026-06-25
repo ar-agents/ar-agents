@@ -109,6 +109,21 @@ export async function POST(req: Request) {
   // this instance REQUIRES attestation, reject when none is presented. Otherwise
   // self-attestation remains valid (today's default — no behavior change).
   let channelAttestation: ChannelAttestationSummary | undefined;
+  // Fail CLOSED: if attestation is REQUIRED but the verifier isn't configured we
+  // cannot enforce it — refuse to constitute rather than silently fall back to
+  // self-attestation (otherwise an unverifiable/forged attestation would slip
+  // through the configured-only verify branch below).
+  if (attestationRequired() && !attestationConfigured()) {
+    return jsonCors(
+      {
+        ok: false,
+        error: "attestation_requerida_no_configurada",
+        message:
+          "Esta instancia exige verificación de identidad, pero el verificador no está configurado (IDENTITY_ATTEST_SECRET).",
+      },
+      { status: 503 },
+    );
+  }
   if (attestationRequired() && body.attestation == null) {
     return jsonCors(
       {

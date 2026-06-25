@@ -319,7 +319,34 @@ export class AttestationClient {
   }
 
   private async signAttestation(a: Attestation): Promise<string> {
-    const payload = `${a.requestId}|${a.verifier}|${a.method}|${a.trustLevel}|${a.subject.type}:${a.subject.value}|${a.verifiedAt}|${a.expiresAt}`;
+    // Sign a canonical serialization of EVERY security-relevant field — including
+    // `claims` and `externalReference`, which the previous delimiter payload
+    // omitted, letting them be tampered without breaking the signature.
+    // verifyAttestationSignature reuses this method, so sign + verify stay in sync.
+    const payload = canonicalJson({
+      requestId: a.requestId,
+      verifier: a.verifier,
+      method: a.method,
+      trustLevel: a.trustLevel,
+      subject: { type: a.subject.type, value: a.subject.value },
+      claims: a.claims ?? null,
+      verifiedAt: a.verifiedAt,
+      expiresAt: a.expiresAt,
+      externalReference: a.externalReference ?? null,
+    });
     return await hmacSha256Hex(this.signingSecret, payload);
   }
+}
+
+// Deterministic JSON: object keys sorted recursively so the signed payload is
+// stable regardless of key insertion order. (Not for general use — just a stable
+// HMAC input for attestations.)
+function canonicalJson(value: unknown): string {
+  if (value === null || typeof value !== "object") return JSON.stringify(value);
+  if (Array.isArray(value)) return `[${value.map(canonicalJson).join(",")}]`;
+  const obj = value as Record<string, unknown>;
+  return `{${Object.keys(obj)
+    .sort()
+    .map((k) => `${JSON.stringify(k)}:${canonicalJson(obj[k])}`)
+    .join(",")}}`;
 }
