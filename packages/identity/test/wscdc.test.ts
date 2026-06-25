@@ -69,6 +69,49 @@ describe("buildGetPersonaSoap", () => {
     expect(soap).toContain("&gt;");
     expect(soap).toContain("&quot;");
   });
+
+  // SOAP-XML injection hardening (DeepSec MEDIUM): a CUIT is exactly 11
+  // digits, so anything else is rejected before it can break out of the XML
+  // context. escapeXml on the same fields is defense-in-depth.
+  it("rejects a cuitRepresentado that is not 11 digits", () => {
+    expect(() =>
+      buildGetPersonaSoap({
+        ta,
+        cuitRepresentado: "20123456786</cuitRepresentada><evil>x",
+        cuitToQuery: "30707500129",
+      }),
+    ).toThrow(/cuitRepresentado must be exactly 11 digits/);
+  });
+
+  it("rejects a cuitToQuery that is not 11 digits", () => {
+    expect(() =>
+      buildGetPersonaSoap({
+        ta,
+        cuitRepresentado: "20123456786",
+        cuitToQuery: "30707500129 OR 1=1",
+      }),
+    ).toThrow(/cuitToQuery must be exactly 11 digits/);
+  });
+
+  it("rejects short, long, and non-digit CUITs", () => {
+    for (const bad of ["", "123", "201234567860", "2012345678a", "  20123456786  "]) {
+      expect(() =>
+        buildGetPersonaSoap({ ta, cuitRepresentado: bad, cuitToQuery: "30707500129" }),
+      ).toThrow(/must be exactly 11 digits/);
+    }
+  });
+
+  it("does not echo the full hostile value in the error message", () => {
+    const huge = "9".repeat(500) + "<script>";
+    let msg = "";
+    try {
+      buildGetPersonaSoap({ ta, cuitRepresentado: huge, cuitToQuery: "30707500129" });
+    } catch (e) {
+      msg = (e as Error).message;
+    }
+    expect(msg).toMatch(/must be exactly 11 digits/);
+    expect(msg.length).toBeLessThan(120);
+  });
 });
 
 describe("parseGetPersonaResponse — error paths", () => {
