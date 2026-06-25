@@ -193,17 +193,18 @@ const DEFAULT_RATELIMIT_PREFIX = "mp:rl:";
  *
  * # Algorithm
  *
- * Standard token bucket with lazy refill: every `acquire()` call:
+ * Standard token bucket with lazy refill. Each `acquire()` / `tryAcquire()`
+ * runs a single server-side Lua script ({@link LUA_CONSUME}) that, in one
+ * atomic Redis execution:
  * 1. Reads `{ tokens, lastRefill }` from KV
  * 2. Computes refill since `lastRefill`
  * 3. If tokens >= 1: decrements and writes back
- * 4. Otherwise: computes wait time, sleeps, retries
+ * 4. Otherwise: returns the refilled count so the caller can compute its wait
  *
- * The read-modify-write isn't atomic per-call, so under heavy contention
- * a small over-spend window is possible (worst case: ~N concurrent
- * acquires can succeed when only 1 token was available). Acceptable for
- * MP rate limiting — the "actual" budget is much higher than what we
- * provision.
+ * Because the refill → check → decrement → write happens inside one Lua
+ * script, the decrement is atomic across all instances: concurrent callers can
+ * never both consume the same token, so the global limit holds exactly (no
+ * over-spend window). `learnFromHeaders` uses the same atomic primitive.
  *
  * # Usage — wire via `withRateLimit` middleware
  *
@@ -236,20 +237,18 @@ const DEFAULT_RATELIMIT_PREFIX = "mp:rl:";
  * );
  * ```
  *
- * # Concurrency caveats
+ * # Concurrency
  *
- * Read-modify-write is NOT strictly atomic per `acquire()`. Under heavy
- * contention a small over-spend window is possible, acceptable for **API
- * call** rate limiting where the actual MP budget exceeds what we
- * provision. **Do NOT repurpose this limiter as a money/spend cap** —
- * the over-spend window means you could exceed a money budget by the
- * concurrent-instance count × per-call cost. For money budgets, use
- * Upstash's `EVAL`-based atomic Lua script (or a stricter primitive).
+ * Token consumption is atomic (one Upstash `EVAL` Lua script per acquire), so
+ * the configured limit holds exactly across all serverless instances even
+ * under heavy concurrent contention — there is no over-spend window. The
+ * `acquire()` retry loop still applies randomized jitter (±30%) to spread
+ * waiting acquirers across refill windows, mitigating the thundering-herd that
+ * would otherwise hit Upstash the instant a bucket refills.
  *
- * The `acquire()` retry loop applies randomized jitter (±30%) to spread
- * concurrent acquirers across multiple refill windows, mitigating the
- * thundering-herd that would otherwise hit Upstash with N reads + N
- * writes the instant a bucket refills.
+ * Note this caps **count** of calls, not monetary spend. For a hard money
+ * budget, enforce it at the payment layer (amount checks + idempotency), not
+ * with a request-rate limiter.
  *
  * # Marketplace setups (per-seller rate limit)
  *
@@ -293,6 +292,85 @@ interface BucketState {
   tokens: number;
   lastRefillMs: number;
 }
+
+/** Bucket TTL (seconds). Long-idle buckets are GC'd; capacity rebuilds. */
+const RATELIMIT_TTL_SECONDS = 3600;
+
+/**
+ * Atomic token-bucket consume, executed server-side as a single Redis Lua
+ * script so the read → refill → check → decrement → write sequence cannot
+ * interleave across concurrent callers (the previous JS-side read-modify-write
+ * let N concurrent acquirers all observe the same lone token and each succeed).
+ *
+ * KEYS[1] = bucket key.
+ * ARGV    = [capacity, refillPerSecond, nowMs, cost, ttlSeconds].
+ * Returns [allowed (0|1), tokensRemaining (string)]. Persists ONLY on success
+ * (a denied attempt leaves lastRefill untouched, so accrual stays continuous).
+ *
+ * State is a JSON string compatible with `@upstash/redis`'s auto (de)serializer
+ * — `cjson` is available in Upstash's Lua runtime.
+ */
+const LUA_CONSUME = `-- @op:consume
+local raw = redis.call('GET', KEYS[1])
+local capacity = tonumber(ARGV[1])
+local refillPerSecond = tonumber(ARGV[2])
+local now = tonumber(ARGV[3])
+local cost = tonumber(ARGV[4])
+local ttl = tonumber(ARGV[5])
+local tokens = capacity
+local lastRefill = now
+if raw then
+  local ok, data = pcall(cjson.decode, raw)
+  if ok and type(data) == 'table' and type(data.tokens) == 'number' and type(data.lastRefillMs) == 'number' then
+    tokens = data.tokens
+    lastRefill = data.lastRefillMs
+  end
+end
+local elapsed = now - lastRefill
+if elapsed < 0 then elapsed = 0 end
+tokens = math.min(capacity, tokens + (elapsed / 1000.0) * refillPerSecond)
+local allowed = 0
+if tokens >= cost then
+  tokens = tokens - cost
+  allowed = 1
+  redis.call('SET', KEYS[1], cjson.encode({tokens = tokens, lastRefillMs = now}), 'EX', ttl)
+end
+return {allowed, tostring(tokens)}`;
+
+/**
+ * Atomic adaptive clamp for `learnFromHeaders`: refill, then lower the bucket
+ * to MP's stated remaining if that is smaller. Same atomicity guarantee as
+ * {@link LUA_CONSUME} so a concurrent acquire can't race the clamp.
+ *
+ * KEYS[1] = bucket key.
+ * ARGV    = [capacity, refillPerSecond, nowMs, remaining, ttlSeconds].
+ * Returns tokensRemaining (string).
+ */
+const LUA_CLAMP = `-- @op:clamp
+local raw = redis.call('GET', KEYS[1])
+local capacity = tonumber(ARGV[1])
+local refillPerSecond = tonumber(ARGV[2])
+local now = tonumber(ARGV[3])
+local remaining = tonumber(ARGV[4])
+local ttl = tonumber(ARGV[5])
+local tokens = capacity
+local lastRefill = now
+if raw then
+  local ok, data = pcall(cjson.decode, raw)
+  if ok and type(data) == 'table' and type(data.tokens) == 'number' and type(data.lastRefillMs) == 'number' then
+    tokens = data.tokens
+    lastRefill = data.lastRefillMs
+  end
+end
+local elapsed = now - lastRefill
+if elapsed < 0 then elapsed = 0 end
+tokens = math.min(capacity, tokens + (elapsed / 1000.0) * refillPerSecond)
+if remaining < tokens then
+  if remaining < 0 then remaining = 0 end
+  tokens = remaining
+end
+redis.call('SET', KEYS[1], cjson.encode({tokens = tokens, lastRefillMs = now}), 'EX', ttl)
+return tostring(tokens)`;
 
 export class VercelKVRateLimiter {
   private readonly kv: VercelKV;
@@ -342,13 +420,34 @@ export class VercelKVRateLimiter {
   private async writeState(state: BucketState): Promise<void> {
     // TTL = 1h. Long-idle buckets get garbage-collected, capacity rebuilds
     // from initial state on next acquire (which is fine — at the right rate).
-    await this.kv.set(this.fullKey(), state, { ex: 3600 });
+    await this.kv.set(this.fullKey(), state, { ex: RATELIMIT_TTL_SECONDS });
+  }
+
+  /**
+   * Atomically refill + conditionally consume `cost` tokens via a single
+   * server-side Lua script ({@link LUA_CONSUME}). This is the enforcement
+   * primitive: because Redis runs the script atomically, concurrent callers
+   * can never both consume the same token.
+   */
+  private async consume(
+    cost: number,
+  ): Promise<{ allowed: boolean; tokens: number }> {
+    const now = Date.now();
+    const res = (await this.kv.eval(
+      LUA_CONSUME,
+      [this.fullKey()],
+      [this.capacity, this.refillPerSecond, now, cost, RATELIMIT_TTL_SECONDS],
+    )) as [number | string, number | string];
+    return { allowed: Number(res[0]) === 1, tokens: Number(res[1]) };
   }
 
   /**
    * Acquire a token. Resolves immediately if the distributed bucket has
    * one available; otherwise waits until refilled. Throws if the wait
    * exceeds `acquireTimeoutMs` or if the retry cap is reached.
+   *
+   * Each attempt consumes via the atomic {@link LUA_CONSUME} script, so the
+   * limit holds globally even under heavy concurrent contention.
    *
    * Caps retries at 8 iterations so a misconfigured bucket (capacity too
    * low for traffic) fails fast for the agent layer to surface, instead
@@ -359,17 +458,11 @@ export class VercelKVRateLimiter {
     const MAX_RETRIES = 8;
     let attempt = 0;
     while (attempt < MAX_RETRIES) {
-      const now = Date.now();
-      const state = this.refill(await this.readState(), now);
-
-      if (state.tokens >= 1) {
-        state.tokens -= 1;
-        await this.writeState(state);
-        return;
-      }
+      const { allowed, tokens } = await this.consume(1);
+      if (allowed) return;
 
       // Compute wait time until next token. Cap at remaining timeout budget.
-      const tokensNeeded = 1 - state.tokens;
+      const tokensNeeded = 1 - tokens;
       const baseWaitMs = Math.ceil((tokensNeeded / this.refillPerSecond) * 1000);
       // Randomized jitter (±30%) prevents thundering herd: without it, all
       // concurrent acquirers compute identical waitMs, sleep identical
@@ -377,7 +470,7 @@ export class VercelKVRateLimiter {
       // KV simultaneously. Jitter spreads them across the refill window.
       const jitterFactor = 0.7 + Math.random() * 0.6; // 0.7–1.3
       const waitMs = Math.ceil(baseWaitMs * jitterFactor);
-      const elapsed = now - start;
+      const elapsed = Date.now() - start;
       if (elapsed + waitMs > this.acquireTimeoutMs) {
         throw new Error(
           `VercelKVRateLimiter acquire timed out after ${elapsed + waitMs}ms (key=${this.key}).`,
@@ -394,19 +487,15 @@ export class VercelKVRateLimiter {
 
   /** Best-effort acquire — returns true if a token was available, false otherwise. */
   async tryAcquire(): Promise<boolean> {
-    const state = this.refill(await this.readState(), Date.now());
-    if (state.tokens >= 1) {
-      state.tokens -= 1;
-      await this.writeState(state);
-      return true;
-    }
-    return false;
+    const { allowed } = await this.consume(1);
+    return allowed;
   }
 
   /**
    * Adaptive learning — call after each MP API response. If MP's stated
    * `x-rate-limit-remaining` is lower than our local count, trust MP and
-   * drop the bucket to match (prevents over-spending).
+   * drop the bucket to match (prevents over-spending). Applied atomically via
+   * {@link LUA_CLAMP} so it can't race a concurrent acquire.
    */
   async learnFromHeaders(headers: {
     remaining: number | null;
@@ -414,11 +503,17 @@ export class VercelKVRateLimiter {
   }): Promise<void> {
     if (!this.adaptive) return;
     if (headers.remaining === null) return;
-    const state = this.refill(await this.readState(), Date.now());
-    if (headers.remaining < state.tokens) {
-      state.tokens = Math.max(0, headers.remaining);
-      await this.writeState(state);
-    }
+    await this.kv.eval(
+      LUA_CLAMP,
+      [this.fullKey()],
+      [
+        this.capacity,
+        this.refillPerSecond,
+        Date.now(),
+        headers.remaining,
+        RATELIMIT_TTL_SECONDS,
+      ],
+    );
   }
 
   /** Inspect bucket state. */
