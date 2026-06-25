@@ -80,6 +80,12 @@ export async function buildAgent() {
     model: anthropic("claude-sonnet-4-5"),
     stopWhen: isStepCount(20),
     instructions: SYSTEM_PROMPT,
+    // AI SDK 7 native timeouts. Every tool here hits a slow Argentine upstream
+    // (AFIP/ARCA WSAA, MercadoPago, BCRA, IGJ CKAN, Boletín, the USDC->ARS
+    // off-ramp). Without a per-tool bound a hung upstream stalls the step until a
+    // hard serverless kill; toolMs surfaces a graceful TimeoutError the agent can
+    // report instead. totalMs caps the whole multi-step run.
+    timeout: { toolMs: 30_000, totalMs: 180_000 },
     // enforceRiskPolicy is the central art. 102 gate: high-stakes tools defer to
     // an async human approval (queue at ar-agents.ar), a suspended society halts
     // every tool (kill-switch), and read tools pass through. See ./governance.
