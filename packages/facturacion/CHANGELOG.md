@@ -1,5 +1,14 @@
 # @ar-agents/facturacion
 
+## 0.4.2
+
+### Patch Changes
+
+- Rebuild and republish from PII-scrubbed source. Versions published before the 2026-06-17 fixture scrub shipped a real CUIT and address in their README/AGENTS/cookbook/dist; this rebuild from the now-clean source removes them. No API changes. The earlier contaminated versions are deprecated on npm.
+
+- Updated dependencies []:
+  - @ar-agents/identity@0.8.2
+
 ## 0.4.1
 
 ### Patch Changes
