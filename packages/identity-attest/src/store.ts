@@ -29,19 +29,13 @@ export interface AttestationStore {
    * brute-force guard: the client claims an attempt via this BEFORE verifying,
    * so a concurrent burst of guesses can never exceed `maxAttempts`.
    *
-   * Optional: when a store omits it, the client falls back to a (non-atomic)
-   * read-modify-write — fine for single-process, but real distributed stores
-   * SHOULD implement this.
+   * Optional: when a store omits it, the client falls back to a read-modify-write
+   * that it serializes per-request with an in-process lock — race-safe only
+   * within ONE process. A MULTI-PROCESS / serverless deployment MUST implement
+   * this atomically (else concurrent submissions across instances can exceed
+   * `maxAttempts`).
    */
   decrementAttempts?(requestId: string): Promise<number | null>;
-
-  /**
-   * Atomically increment `attemptsRemaining` by 1 (refund). Only called when an
-   * adapter raises an infrastructure error (not a wrong guess), so a transient
-   * external-IdP failure doesn't burn a legitimate user's attempt. Optional;
-   * falls back to read-modify-write when omitted.
-   */
-  incrementAttempts?(requestId: string): Promise<void>;
 
   /** Save the issued attestation when verification completes. */
   saveAttestation(attestation: Attestation): Promise<void>;
@@ -118,12 +112,6 @@ export class InMemoryAttestationStore implements AttestationStore {
     const next = existing.internal.attemptsRemaining - 1;
     existing.internal.attemptsRemaining = next;
     return next;
-  }
-
-  async incrementAttempts(requestId: string): Promise<void> {
-    const existing = this.requests.get(requestId);
-    if (!existing) return;
-    existing.internal.attemptsRemaining += 1;
   }
 
   async saveAttestation(attestation: Attestation): Promise<void> {

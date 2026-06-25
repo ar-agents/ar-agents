@@ -88,7 +88,11 @@ export class MercadoPagoIdentityAdapter implements AttestAdapter {
     submitted: { oauthCode?: string; token?: string };
     subject: VerificationSubject;
   }): Promise<
-    | { verified: true; claims?: Record<string, unknown> }
+    | {
+        verified: true;
+        claims?: Record<string, unknown>;
+        verifiedSubject?: VerificationSubject;
+      }
     | { verified: false; reason: string }
   > {
     const paymentId = params.submitted.oauthCode ?? params.submitted.token;
@@ -172,6 +176,39 @@ export class MercadoPagoIdentityAdapter implements AttestAdapter {
         payment_id: paymentId,
         refunded: this.microChargeRefund,
       },
+      // Bind to the payer the payment actually proves. The client rejects if
+      // this doesn't equal request.subject — so an approved payment can't mint
+      // an attestation for an arbitrary subject. When MP can't prove the
+      // requested subject type (e.g. a phone request — MP carries no payer
+      // phone), we return an empty value to force a fail-closed mismatch.
+      verifiedSubject: mpVerifiedSubject(params.subject.type, payment.payer),
     };
   }
+}
+
+/**
+ * Build the subject a MercadoPago payment can authoritatively prove, keyed to
+ * the requested subject type. Empty value = "MP cannot prove this" → the client
+ * fails the binding check (closed).
+ */
+function mpVerifiedSubject(
+  requestedType: VerificationSubject["type"],
+  payer:
+    | { email?: string; identification?: { type?: string; number?: string } }
+    | undefined,
+): VerificationSubject {
+  const idType = (payer?.identification?.type ?? "").toUpperCase();
+  const idNum = payer?.identification?.number ?? "";
+  if (requestedType === "email") {
+    return { type: "email", value: payer?.email ?? "" };
+  }
+  if (requestedType === "cuit") {
+    // AFIP CUIL is a CUIT-shaped key; treat it as cuit.
+    return { type: "cuit", value: idType === "CUIT" || idType === "CUIL" ? idNum : "" };
+  }
+  if (requestedType === "dni") {
+    return { type: "dni", value: idType === "DNI" ? idNum : "" };
+  }
+  // phone / oauth / custom — MP carries no such field; force a mismatch.
+  return { type: requestedType, value: "" };
 }

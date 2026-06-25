@@ -73,6 +73,7 @@ export {
   InvalidOtpCodeError,
   VerificationExpiredError,
   TooManyAttemptsError,
+  SubjectMismatchError,
   InvalidAttestationSignatureError,
   AttestAdapterError,
 } from "./errors";

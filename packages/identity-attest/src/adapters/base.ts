@@ -73,6 +73,16 @@ export interface AttestAdapter {
    * Returns `{ verified: true, claims }` on success. Returns
    * `{ verified: false, reason }` on failure. Optional `claims` are
    * provider-supplied structured data attached to the issued attestation.
+   *
+   * `verifiedSubject` (success branch, optional): when the channel
+   * authoritatively proves WHICH subject was controlled — a provider token that
+   * carries an identity (Auth0 `sub`/email, a Magic.link DIDToken's metadata, a
+   * MercadoPago payer's CUIT/DNI/email) — populate it. The client fails closed
+   * (`SubjectMismatchError`) when `verifiedSubject` is present and does NOT
+   * equal `request.subject`, so a valid token for one identity can't mint an
+   * attestation for another. Adapters whose binding is intrinsic to delivery
+   * (OTP/magic-link sent to `subject.value`) may OMIT it — control of the
+   * channel already proves control of the subject.
    */
   verify(params: {
     requestId: string;
@@ -80,7 +90,11 @@ export interface AttestAdapter {
     submitted: { code?: string; token?: string; oauthCode?: string };
     subject: VerificationSubject;
   }): Promise<
-    | { verified: true; claims?: Record<string, unknown> }
+    | {
+        verified: true;
+        claims?: Record<string, unknown>;
+        verifiedSubject?: VerificationSubject;
+      }
     | { verified: false; reason: string }
   >;
 }
