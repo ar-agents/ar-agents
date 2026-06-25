@@ -51,10 +51,17 @@ export interface ChainVerificationResult {
   /** Plain-language explanation. Surface verbatim. */
   reason: string;
   /**
-   * The trust anchor that was matched (if any). When valid:true, this is
-   * always set; when invalid, may be null.
+   * The trust anchor that was matched (if any). Set ONLY when valid:true, and
+   * only via a configured trust anchor (a pinned fingerprint) — never via a
+   * name heuristic.
    */
   anchor?: ParsedCert;
+  /**
+   * INFORMATIONAL ONLY. True when the root's DN looks like an AR ONTI / AC-Raíz
+   * root by name. A triage hint; it NEVER establishes trust (DN strings are
+   * forgeable). `valid` is decided solely by the configured trust anchors.
+   */
+  looksLikeArRoot?: boolean;
   /** Per-cert verification trace, leaf → root. */
   trace: Array<{
     cert: ParsedCert;
