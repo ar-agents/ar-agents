@@ -400,6 +400,9 @@ importers:
       '@ar-agents/mercadopago':
         specifier: workspace:*
         version: link:../../packages/mercadopago
+      '@ar-agents/treasury':
+        specifier: workspace:*
+        version: link:../../packages/treasury
       '@ar-agents/whatsapp':
         specifier: workspace:*
         version: link:../../packages/whatsapp

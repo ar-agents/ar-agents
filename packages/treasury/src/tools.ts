@@ -52,6 +52,29 @@ export interface TreasuryToolsOptions {
   now?: () => number;
 }
 
+/**
+ * sideEffects classification for the treasury tools, for the host's
+ * enforceRiskPolicy (@ar-agents/core) via its `sideEffectsFor` hook. Only
+ * `treasury_offramp_convert` moves money (gated, needs human approval); the quote
+ * + status hit the network (read); the rest are pure math. Without this the
+ * calculators/quote would fail-closed to "unknown" and be needlessly gated.
+ */
+export const TREASURY_TOOL_SIDE_EFFECTS: Record<string, string> = {
+  treasury_offramp_convert: "irreversible",
+  treasury_offramp_quote: "network read",
+  treasury_offramp_status: "network read",
+  treasury_tax_estimate: "none",
+  treasury_monotributo: "none",
+  treasury_buffer_status: "none",
+  treasury_plan_conversion: "none",
+  treasury_settlement_plan: "none",
+};
+
+/** Pass as enforceRiskPolicy's `sideEffectsFor` so treasury tools classify right. */
+export function treasurySideEffectsFor(toolName: string): string | undefined {
+  return TREASURY_TOOL_SIDE_EFFECTS[toolName];
+}
+
 const DAY_MS = 86_400_000;
 
 const obligationSchema = z.object({
