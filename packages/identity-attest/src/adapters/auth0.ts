@@ -132,7 +132,11 @@ export class Auth0Adapter implements AttestAdapter {
     submitted: { token?: string; oauthCode?: string };
     subject: VerificationSubject;
   }): Promise<
-    | { verified: true; claims?: Record<string, unknown> }
+    | {
+        verified: true;
+        claims?: Record<string, unknown>;
+        verifiedSubject?: VerificationSubject;
+      }
     | { verified: false; reason: string }
   > {
     const code = params.submitted.oauthCode ?? params.submitted.token;
@@ -230,6 +234,13 @@ export class Auth0Adapter implements AttestAdapter {
         // Bump effective trust if MFA — caller can read this and override
         effective_trust_level: mfaCompleted ? 0.85 : this.trustLevel,
       },
+      // Already enforced above; also surface it so the client's subject-binding
+      // guard is the single source of truth (defense in depth if the in-adapter
+      // check ever changes).
+      verifiedSubject:
+        params.subject.type === "oauth"
+          ? { type: "oauth", value: String(payload.sub ?? "") }
+          : { type: "email", value: String(payload.email ?? "") },
     };
   }
 }

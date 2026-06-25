@@ -101,7 +101,11 @@ export class MagicLinkSdkAdapter implements AttestAdapter {
     submitted: { token?: string };
     subject: VerificationSubject;
   }): Promise<
-    | { verified: true; claims?: Record<string, unknown> }
+    | {
+        verified: true;
+        claims?: Record<string, unknown>;
+        verifiedSubject?: VerificationSubject;
+      }
     | { verified: false; reason: string }
   > {
     const didToken = params.submitted.token;
@@ -139,6 +143,36 @@ export class MagicLinkSdkAdapter implements AttestAdapter {
         public_address: metadata.publicAddress ?? null,
         oauth_provider: metadata.oauthProvider ?? null,
       },
+      // Bind to what the DIDToken's metadata actually proves, keyed to the
+      // requested type. A valid token for the holder's OWN account can no longer
+      // satisfy a request created for a different subject. Missing field → empty
+      // value → fail-closed mismatch in the client.
+      verifiedSubject: magicVerifiedSubject(params.subject.type, metadata),
     };
   }
+}
+
+/**
+ * Build the subject a Magic.link DIDToken can authoritatively prove, keyed to
+ * the requested subject type. Empty/absent → fail-closed mismatch.
+ */
+function magicVerifiedSubject(
+  requestedType: VerificationSubject["type"],
+  metadata: {
+    issuer?: string | null;
+    email?: string | null;
+    phoneNumber?: string | null;
+  },
+): VerificationSubject {
+  if (requestedType === "email") {
+    return { type: "email", value: metadata.email ?? "" };
+  }
+  if (requestedType === "phone") {
+    return { type: "phone", value: metadata.phoneNumber ?? "" };
+  }
+  if (requestedType === "oauth") {
+    return { type: "oauth", value: metadata.issuer ?? "" };
+  }
+  // dni / cuit / custom — Magic metadata can't prove these; force a mismatch.
+  return { type: requestedType, value: "" };
 }

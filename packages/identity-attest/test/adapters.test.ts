@@ -131,9 +131,10 @@ describe("MercadoPagoIdentityAdapter", () => {
       accessToken: "TEST-x",
       fetchImpl,
     });
+    // A DNI-subject request matches the payer's DNI identification.
     const result = await adapter.verify({
       submitted: { oauthCode: "p_123" },
-      subject: { type: "phone", value: "5491112345678" },
+      subject: { type: "dni", value: "12345678" },
     });
     expect(result.verified).toBe(true);
     if (!result.verified) throw new Error();
@@ -142,6 +143,35 @@ describe("MercadoPagoIdentityAdapter", () => {
     expect(result.claims?.["identification_type"]).toBe("DNI");
     expect(result.claims?.["identification_number"]).toBe("12345678");
     expect(result.claims?.["payment_id"]).toBe("p_123");
+    // Binds to the payer's proven identity (DeepSec deferred HIGH).
+    expect(result.verifiedSubject).toEqual({ type: "dni", value: "12345678" });
+  });
+
+  it("binds verifiedSubject to the requested type; forces a mismatch when MP can't prove it", async () => {
+    const fetchImpl = makeMockFetch({
+      status: "approved",
+      transaction_amount: 1,
+      payer: {
+        id: 123,
+        email: "lautaro@test.com",
+        identification: { type: "DNI", number: "12345678" },
+      },
+    });
+    const adapter = new MercadoPagoIdentityAdapter({ accessToken: "TEST-x", fetchImpl });
+    // email request → proves the payer email
+    const email = await adapter.verify({
+      submitted: { oauthCode: "p_123" },
+      subject: { type: "email", value: "lautaro@test.com" },
+    });
+    if (!email.verified) throw new Error();
+    expect(email.verifiedSubject).toEqual({ type: "email", value: "lautaro@test.com" });
+    // phone request → MP carries no payer phone → empty value forces a client-side mismatch
+    const phone = await adapter.verify({
+      submitted: { oauthCode: "p_123" },
+      subject: { type: "phone", value: "5491112345678" },
+    });
+    if (!phone.verified) throw new Error();
+    expect(phone.verifiedSubject).toEqual({ type: "phone", value: "" });
   });
 
   it("rejects when payment not approved", async () => {
