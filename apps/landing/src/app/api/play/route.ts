@@ -15,7 +15,8 @@
 // case if someone scrapes the endpoint.
 //
 // Defense in depth (cost + prompt-injection):
-// - Body size capped at 16 KB (Content-Length).
+// - Body size capped at 16 KB, enforced on the actual streamed bytes (not
+//   just the Content-Length header, which can be omitted/understated).
 // - Message count capped at 12, last 6 used for context.
 // - Each user text part truncated to 2000 chars; non-string text dropped.
 // - Only user/assistant roles accepted; tool-result smuggling is filtered.
@@ -23,11 +24,14 @@
 // - System prompt explicitly refuses jailbreaks, role-play, and topics
 //   unrelated to sociedad-IA operations.
 // - Sandbox tools never hit real APIs, there's no SSRF surface.
-// - Per-IP soft rate limit: 30 requests / 60s window via in-memory LRU.
+// - Per-IP soft rate limit: 30 requests / 60s window via in-memory LRU,
+//   keyed on the platform-authenticated client IP (never the spoofable
+//   leftmost x-forwarded-for hop).
 
 import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
 import { z } from "zod";
 import { appendAudit, type AuditGovernance, isSessionIdValid, backend } from "@/lib/audit";
+import { clientIp } from "@/lib/ratelimit";
 
 export const runtime = "edge";
 export const maxDuration = 30;
@@ -547,6 +551,59 @@ const MAX_TEXT_PART_CHARS = 2000;
 type AnyPart = { type: string; text?: unknown; [k: string]: unknown };
 type AnyMsg = { role?: string; parts?: AnyPart[]; [k: string]: unknown };
 
+/**
+ * Read + JSON-parse the request body while enforcing a hard byte cap on the
+ * ACTUAL bytes received — not on the (omittable / spoofable) Content-Length
+ * header. Streams the body and aborts as soon as the accumulated size exceeds
+ * `maxBytes`, so a chunked or mis-declared oversized body can't be buffered or
+ * parsed into a memory/CPU DoS.
+ */
+async function readJsonBounded(
+  req: Request,
+  maxBytes: number,
+): Promise<
+  | { ok: true; value: unknown }
+  | { ok: false; reason: "too_large" | "bad_json" }
+> {
+  const reader = req.body?.getReader();
+  if (!reader) {
+    // No stream available — guard via text() length before parsing.
+    const txt = await req.text();
+    if (new TextEncoder().encode(txt).length > maxBytes) {
+      return { ok: false, reason: "too_large" };
+    }
+    try {
+      return { ok: true, value: JSON.parse(txt) };
+    } catch {
+      return { ok: false, reason: "bad_json" };
+    }
+  }
+  const chunks: Uint8Array[] = [];
+  let total = 0;
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    if (!value) continue;
+    total += value.byteLength;
+    if (total > maxBytes) {
+      await reader.cancel();
+      return { ok: false, reason: "too_large" };
+    }
+    chunks.push(value);
+  }
+  const buf = new Uint8Array(total);
+  let off = 0;
+  for (const c of chunks) {
+    buf.set(c, off);
+    off += c.byteLength;
+  }
+  try {
+    return { ok: true, value: JSON.parse(new TextDecoder().decode(buf)) };
+  } catch {
+    return { ok: false, reason: "bad_json" };
+  }
+}
+
 function sanitize(messages: AnyMsg[]): UIMessage[] {
   const safe: UIMessage[] = [];
   for (const m of messages) {
@@ -602,10 +659,10 @@ export async function POST(req: Request) {
     });
   }
 
-  const ip =
-    req.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    req.headers.get("x-real-ip") ??
-    "unknown";
+  // Platform-authenticated client IP. NEVER the leftmost x-forwarded-for hop
+  // (caller-controlled → rotating it would mint a fresh bucket per request and
+  // defeat the per-IP limit on this expensive LLM endpoint).
+  const ip = clientIp(req);
   const rl = rateLimit(ip);
   if (!rl.ok) {
     return new Response(
@@ -625,15 +682,22 @@ export async function POST(req: Request) {
     );
   }
 
-  let body: { messages?: AnyMsg[] };
-  try {
-    body = await req.json();
-  } catch {
+  // Enforce the cap on ACTUAL bytes read, not just the Content-Length header
+  // (which can be omitted or understated to smuggle an oversized body).
+  const read = await readJsonBounded(req, MAX_BODY_BYTES);
+  if (!read.ok) {
+    if (read.reason === "too_large") {
+      return new Response(
+        JSON.stringify({ error: "body_too_large", limit: MAX_BODY_BYTES }),
+        { status: 413, headers: { "content-type": "application/json" } },
+      );
+    }
     return new Response(JSON.stringify({ error: "bad_json" }), {
       status: 400,
       headers: { "content-type": "application/json" },
     });
   }
+  const body = (read.value ?? {}) as { messages?: AnyMsg[] };
 
   const raw = body.messages;
   if (!Array.isArray(raw) || raw.length === 0) {
