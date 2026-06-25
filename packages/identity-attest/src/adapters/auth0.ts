@@ -197,6 +197,26 @@ export class Auth0Adapter implements AttestAdapter {
       return { verified: false, reason: "MFA was required but not completed (amr did not include 'mfa')" };
     }
 
+    // Bind the verified identity to the REQUESTED subject: a valid id_token for a
+    // DIFFERENT account must not satisfy a verification request for this subject.
+    if (params.subject.type === "oauth") {
+      if (payload.sub !== params.subject.value) {
+        return { verified: false, reason: "Auth0 'sub' does not match the requested oauth subject." };
+      }
+    } else if (params.subject.type === "email") {
+      if (payload.email !== params.subject.value) {
+        return { verified: false, reason: "Auth0 'email' does not match the requested subject." };
+      }
+      if (payload.email_verified !== true) {
+        return { verified: false, reason: "Auth0 email is not verified (email_verified !== true)." };
+      }
+    } else {
+      return {
+        verified: false,
+        reason: `Auth0 adapter only attests 'oauth' or 'email' subjects, not '${params.subject.type}'.`,
+      };
+    }
+
     return {
       verified: true,
       claims: {

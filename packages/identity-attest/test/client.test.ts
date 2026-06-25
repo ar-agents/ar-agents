@@ -239,6 +239,33 @@ describe("Attestation signature verification", () => {
     const tampered = { ...attestation, subject: { type: "phone" as const, value: "5499999999999" } };
     await expect(client.verifyAttestationSignature(tampered)).rejects.toThrow(/signature/i);
   });
+
+  it("rejects an attestation with tampered claims or externalReference (now covered by the HMAC)", async () => {
+    const wa = createMockWa();
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { whatsapp_otp: new WhatsAppOtpAdapter({ whatsappClient: wa }) },
+    });
+    const request = await client.requestVerification({
+      method: "whatsapp_otp",
+      subject: { type: "phone", value: "5491112345678" },
+      externalReference: "order-1",
+    });
+    const code = wa.sends[0]!.text.match(/(\d{6})/)![1]!;
+    const attestation = await client.submitOtp(request.requestId, code);
+
+    // These fields were NOT in the old delimiter HMAC, so tampering used to be
+    // undetectable. They must now break the signature.
+    await expect(
+      client.verifyAttestationSignature({
+        ...attestation,
+        claims: { ...(attestation.claims ?? {}), role: "admin" },
+      }),
+    ).rejects.toThrow(/signature/i);
+    await expect(
+      client.verifyAttestationSignature({ ...attestation, externalReference: "order-999" }),
+    ).rejects.toThrow(/signature/i);
+  });
 });
 
 describe("Subject lookup (findLatestAttestationForSubject)", () => {
