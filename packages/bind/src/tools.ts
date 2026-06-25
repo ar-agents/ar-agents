@@ -12,7 +12,7 @@
  *     requireConfirmation: async (op, args) => myUi.confirm(op, args),
  *   });
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { BindAdapter } from "./adapter";
 import { UnconfiguredBindAdapter } from "./adapter";
@@ -67,9 +67,7 @@ export interface BindToolsOptions {
   ) => Promise<boolean> | boolean;
 }
 
-type ToolSet = Record<string, ReturnType<typeof tool>>;
-
-export function bindTools(opts: BindToolsOptions = {}) {
+export function bindTools(opts: BindToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredBindAdapter();
   const wanted = new Set<BindToolName>(opts.include ?? ALL_TOOL_NAMES);
 
@@ -177,11 +175,11 @@ export function bindTools(opts: BindToolsOptions = {}) {
   }
   const built = filtered as Pick<typeof allTools, BindToolName>;
   return opts.requireConfirmation
-    ? (applyConfirmationGate(
+    ? applyConfirmationGate(
         built as unknown as ToolSet,
         opts.requireConfirmation,
-      ) as unknown as Pick<typeof allTools, BindToolName>)
-    : built;
+      )
+    : (built as unknown as ToolSet);
 }
 
 function applyConfirmationGate(

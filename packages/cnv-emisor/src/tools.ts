@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import type { CnvAdapter } from "./adapter";
 import { UnconfiguredCnvAdapter } from "./adapter";
 
@@ -14,7 +14,7 @@ export interface CnvToolsOptions {
   adapter?: CnvAdapter;
 }
 
-export function cnvTools(opts: CnvToolsOptions = {}) {
+export function cnvTools(opts: CnvToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredCnvAdapter();
   return {
     cnv_get_issuer: tool({

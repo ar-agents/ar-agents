@@ -27,9 +27,9 @@ import { z } from "zod";
 export interface PredictCategoryInput {
   title: string;
   /** Optional price (currency-aware predictions). */
-  price?: number;
+  price?: number | undefined;
   /** Optional listing condition. */
-  condition?: "new" | "used";
+  condition?: "new" | "used" | undefined;
 }
 
 export async function predictCategory(

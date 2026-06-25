@@ -278,7 +278,7 @@ async function runScenario(
   const r = await generateText({
     model: anthropic(SUT_MODEL),
     tools,
-    system:
+    instructions:
       "Sos un asistente para vendedores de Mercado Libre Argentina. Hablás español rioplatense. Sos breve y específico. Usás las tools cuando hace falta información real; no inventes datos.",
     prompt: scenario.prompt,
     stopWhen: ({ steps }) => steps.length >= (scenario.maxSteps ?? 6),

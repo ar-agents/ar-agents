@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import type { AnsesAdapter } from "./adapter";
 import { UnconfiguredAnsesAdapter } from "./adapter";
 import { AnsesValidationError } from "./errors";
@@ -25,7 +25,7 @@ function normalizeCuil(value: string): string {
   return clean;
 }
 
-export function ansesTools(opts: AnsesToolsOptions = {}) {
+export function ansesTools(opts: AnsesToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredAnsesAdapter();
   return {
     anses_get_cuil_status: tool({

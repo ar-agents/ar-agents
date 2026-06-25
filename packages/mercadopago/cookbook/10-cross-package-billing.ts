@@ -22,7 +22,7 @@
  *   ATTESTATION_HMAC_SECRET
  */
 
-import { Experimental_Agent as Agent, stepCountIs, type ToolSet } from "ai";
+import { Experimental_Agent as Agent, isStepCount, type ToolSet } from "ai";
 
 // 1. Mercado Pago — always present, the headline package.
 import {
@@ -135,7 +135,7 @@ export async function buildBillingAgent() {
       "comprobante por WhatsApp con `send_text`. Respondé en castellano " +
       "rioplatense, breve, sin emojis.",
     tools,
-    stopWhen: stepCountIs(15), // higher than usual — multi-package flows take steps
+    stopWhen: isStepCount(15), // higher than usual — multi-package flows take steps
   });
 }
 

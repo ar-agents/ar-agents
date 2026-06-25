@@ -15,7 +15,7 @@
  *   - gde-tad          · DEC inbox + IGJ pre-flight + Mis Trámites
  */
 
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { identityTools } from "@ar-agents/identity";
 import { bankingTools } from "@ar-agents/banking";
@@ -76,7 +76,7 @@ export function buildAgent() {
 
   return new Agent({
     model: anthropic("claude-sonnet-4-5"),
-    stopWhen: stepCountIs(20),
+    stopWhen: isStepCount(20),
     instructions: SYSTEM_PROMPT,
     // enforceRiskPolicy is the central art. 102 gate: high-stakes tools defer to
     // an async human approval (queue at ar-agents.ar), a suspended society halts

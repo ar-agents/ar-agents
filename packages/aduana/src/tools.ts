@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import type { AduanaAdapter } from "./adapter";
 import { UnconfiguredAduanaAdapter } from "./adapter";
 import { AduanaValidationError } from "./errors";
@@ -24,7 +24,7 @@ export interface AduanaToolsOptions {
  *
  *   const tools = aduanaTools({ adapter: new HttpAduanaAdapter() });
  */
-export function aduanaTools(opts: AduanaToolsOptions = {}) {
+export function aduanaTools(opts: AduanaToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredAduanaAdapter();
 
   return {

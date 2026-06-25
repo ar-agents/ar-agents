@@ -6,7 +6,7 @@
  * adapter is only required for `sicore_submit_ddjj` (currently throws
  * by default; wire a custom adapter if your host has AFIP creds).
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { SicoreAdapter } from "./adapter";
 import { UnconfiguredSicoreAdapter } from "./adapter";
@@ -69,7 +69,7 @@ export const ALL_TOOL_NAMES = [
 
 export type SicoreToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function sicoreTools(opts: SicoreToolsOptions = {}) {
+export function sicoreTools(opts: SicoreToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredSicoreAdapter();
   const rateTable = opts.rateTable ?? DEFAULT_RATE_TABLE;
   const wanted = new Set<SicoreToolName>(opts.include ?? ALL_TOOL_NAMES);

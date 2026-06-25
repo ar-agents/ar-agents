@@ -1,7 +1,7 @@
 /**
  * Drop-in tool collection for Vercel AI SDK 6+.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { IvaRetentionAdapter } from "./adapter";
 import { UnconfiguredIvaRetentionAdapter } from "./adapter";
@@ -49,7 +49,7 @@ export const ALL_TOOL_NAMES = [
 
 export type IvaRetentionToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function ivaRetentionTools(opts: IvaRetentionToolsOptions = {}) {
+export function ivaRetentionTools(opts: IvaRetentionToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredIvaRetentionAdapter();
   const rateTable = opts.rateTable ?? DEFAULT_RATE_TABLE;
   const wanted = new Set<IvaRetentionToolName>(opts.include ?? ALL_TOOL_NAMES);

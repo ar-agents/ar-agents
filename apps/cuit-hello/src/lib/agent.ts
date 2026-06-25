@@ -1,4 +1,4 @@
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import { identityTools, type AfipPadronAdapter } from "@ar-agents/identity";
 import { WsaaWscdcAfipPadronAdapter } from "@ar-agents/identity/wsaa";
 
@@ -73,6 +73,6 @@ export function createCuitAgent() {
     model: MODEL,
     instructions: INSTRUCTIONS,
     tools: identityTools(afip ? { afip } : {}),
-    stopWhen: stepCountIs(6),
+    stopWhen: isStepCount(6),
   });
 }
