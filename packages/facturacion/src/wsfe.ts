@@ -91,7 +91,7 @@ function authBlock(ta: AccessTicket, cuit: string): string {
   return `<fev1:Auth>
         <fev1:Token>${escapeXml(ta.token)}</fev1:Token>
         <fev1:Sign>${escapeXml(ta.sign)}</fev1:Sign>
-        <fev1:Cuit>${cuit}</fev1:Cuit>
+        <fev1:Cuit>${escapeXml(cuit)}</fev1:Cuit>
       </fev1:Auth>`;
 }
 
@@ -417,9 +417,9 @@ export async function solicitarCAE(
 
   const optServiceDates =
     opts.fchServDesde && opts.fchServHasta && opts.fchVtoPago
-      ? `<fev1:FchServDesde>${opts.fchServDesde}</fev1:FchServDesde>
-              <fev1:FchServHasta>${opts.fchServHasta}</fev1:FchServHasta>
-              <fev1:FchVtoPago>${opts.fchVtoPago}</fev1:FchVtoPago>`
+      ? `<fev1:FchServDesde>${escapeXml(opts.fchServDesde)}</fev1:FchServDesde>
+              <fev1:FchServHasta>${escapeXml(opts.fchServHasta)}</fev1:FchServHasta>
+              <fev1:FchVtoPago>${escapeXml(opts.fchVtoPago)}</fev1:FchVtoPago>`
       : "";
 
   const optAsoc =
@@ -430,7 +430,7 @@ export async function solicitarCAE(
                   (c) => `<fev1:CbteAsoc>
                 <fev1:Tipo>${c.tipo}</fev1:Tipo>
                 <fev1:PtoVta>${c.ptoVta}</fev1:PtoVta>
-                <fev1:Nro>${c.nro}</fev1:Nro>${c.cuit ? `\n                <fev1:Cuit>${c.cuit}</fev1:Cuit>` : ""}${c.fecha ? `\n                <fev1:CbteFch>${c.fecha}</fev1:CbteFch>` : ""}
+                <fev1:Nro>${c.nro}</fev1:Nro>${c.cuit ? `\n                <fev1:Cuit>${escapeXml(c.cuit)}</fev1:Cuit>` : ""}${c.fecha ? `\n                <fev1:CbteFch>${escapeXml(c.fecha)}</fev1:CbteFch>` : ""}
               </fev1:CbteAsoc>`,
                 )
                 .join("\n              ")}
@@ -461,10 +461,10 @@ export async function solicitarCAE(
           <fev1:FECAEDetRequest>
             <fev1:Concepto>${opts.concepto}</fev1:Concepto>
             <fev1:DocTipo>${opts.docTipo}</fev1:DocTipo>
-            <fev1:DocNro>${opts.docNro}</fev1:DocNro>
+            <fev1:DocNro>${escapeXml(String(opts.docNro))}</fev1:DocNro>
             <fev1:CbteDesde>${opts.cbteDesde}</fev1:CbteDesde>
             <fev1:CbteHasta>${opts.cbteHasta}</fev1:CbteHasta>
-            <fev1:CbteFch>${opts.cbteFch}</fev1:CbteFch>
+            <fev1:CbteFch>${escapeXml(opts.cbteFch)}</fev1:CbteFch>
             <fev1:ImpTotal>${formatAmount(opts.impTotal)}</fev1:ImpTotal>
             <fev1:ImpTotConc>${formatAmount(opts.impTotConc ?? 0)}</fev1:ImpTotConc>
             <fev1:ImpNeto>${formatAmount(opts.impNeto)}</fev1:ImpNeto>
@@ -472,7 +472,7 @@ export async function solicitarCAE(
             <fev1:ImpTrib>${formatAmount(opts.impTrib ?? 0)}</fev1:ImpTrib>
             <fev1:ImpIVA>${formatAmount(opts.impIVA)}</fev1:ImpIVA>
             ${optServiceDates}
-            <fev1:MonId>${opts.monId ?? "PES"}</fev1:MonId>
+            <fev1:MonId>${escapeXml(opts.monId ?? "PES")}</fev1:MonId>
             <fev1:MonCotiz>${formatAmount(opts.monCotiz ?? 1)}</fev1:MonCotiz>
             <fev1:CondicionIVAReceptorId>${condicionIvaReceptorId}</fev1:CondicionIVAReceptorId>
             ${buildTributosBlock(opts.tributos)}
@@ -582,7 +582,7 @@ export async function getTiposMonedas(
 export async function getCotizacion(
   opts: CommonRequestOptions & { monId: string },
 ): Promise<{ monId: string; cotiz: number; fchCotiz: string }> {
-  const body = `<fev1:MonId>${opts.monId}</fev1:MonId>`;
+  const body = `<fev1:MonId>${escapeXml(opts.monId)}</fev1:MonId>`;
   const xml = await callWsfe(
     "FEParamGetCotizacion",
     body,
