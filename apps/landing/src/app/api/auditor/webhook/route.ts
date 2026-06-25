@@ -41,7 +41,13 @@ const enc = new TextEncoder();
 
 async function signatureValid(req: Request, dataId: string): Promise<boolean> {
   const secret = process.env.MERCADOPAGO_WEBHOOK_SECRET?.trim();
-  if (!secret) return true; // not configured -> skip (status still re-fetched from MP)
+  if (!secret) {
+    // Fail OPEN only when MP isn't live at all. If a prod MP token IS set but the
+    // webhook secret is missing, that's a dangerous misconfiguration — fail CLOSED
+    // so an unauthenticated caller can't drive entitlement (key) changes. The
+    // route still re-fetches authoritative status from MP after this gate.
+    return !process.env.MERCADOPAGO_ACCESS_TOKEN?.trim();
+  }
   const sig = req.headers.get("x-signature");
   const requestId = req.headers.get("x-request-id") ?? "";
   if (!sig) return false;

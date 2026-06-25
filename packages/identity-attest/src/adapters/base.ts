@@ -85,21 +85,47 @@ export interface AttestAdapter {
   >;
 }
 
-/** Generate a random N-digit OTP code (default 6 digits). */
-export function randomOtp(digits = 6): string {
+// CSPRNG bytes (Edge/Node/Workers via Web Crypto). OTP codes and tokens gate
+// identity verification, so they MUST be cryptographically random — Math.random
+// is predictable and would let an attacker guess a pending OTP/token.
+function randomBytes(n: number): Uint8Array {
+  const c = (globalThis as { crypto?: Crypto }).crypto;
+  if (!c?.getRandomValues) {
+    throw new Error(
+      "@ar-agents/identity-attest: Web Crypto getRandomValues unavailable in this runtime.",
+    );
+  }
+  const bytes = new Uint8Array(n);
+  c.getRandomValues(bytes);
+  return bytes;
+}
+
+// Uniform character from `alphabet` via a CSPRNG, rejecting the biased byte tail
+// so every value is equally likely (no modulo bias).
+function randomFromAlphabet(alphabet: string, length: number): string {
+  const range = alphabet.length;
+  const limit = 256 - (256 % range); // reject bytes >= limit to stay unbiased
   let s = "";
-  for (let i = 0; i < digits; i++) {
-    s += Math.floor(Math.random() * 10).toString();
+  while (s.length < length) {
+    for (const b of randomBytes(length - s.length + 8)) {
+      if (b < limit) {
+        s += alphabet[b % range];
+        if (s.length === length) break;
+      }
+    }
   }
   return s;
 }
 
-/** Generate a URL-safe random token (default 32 chars). */
+/** Generate a random N-digit OTP code (default 6) with a CSPRNG. */
+export function randomOtp(digits = 6): string {
+  return randomFromAlphabet("0123456789", digits);
+}
+
+/** Generate a URL-safe random token (default 32 chars) with a CSPRNG. */
 export function randomToken(length = 32): string {
-  const chars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789";
-  let s = "";
-  for (let i = 0; i < length; i++) {
-    s += chars[Math.floor(Math.random() * chars.length)];
-  }
-  return s;
+  return randomFromAlphabet(
+    "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789",
+    length,
+  );
 }
