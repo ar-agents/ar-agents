@@ -8,7 +8,10 @@ import {
   VerificationExpiredError,
   VerificationRequestNotFoundError,
   WhatsAppOtpAdapter,
+  type AttestAdapter,
+  type AttestationStore,
   type EmailSender,
+  type TrustLevel,
   type WhatsAppLikeClient,
 } from "../src";
 
@@ -162,6 +165,156 @@ describe("WhatsApp OTP flow (end-to-end)", () => {
     const att2 = await client.submitOtp(request.requestId, code);
     expect(att1.signature).toBe(att2.signature);
     expect(att1.verifiedAt).toBe(att2.verifiedAt);
+  });
+});
+
+describe("OTP attempt counter — concurrency hardening (DeepSec MEDIUM)", () => {
+  class CountingAdapter implements AttestAdapter {
+    readonly id = "counting";
+    readonly trustLevel = 0.3 as TrustLevel;
+    verifyCalls = 0;
+    generateSecret(): string {
+      return "123456";
+    }
+    async deliverChallenge(): Promise<void> {}
+    async verify(p: {
+      submitted: { code?: string };
+    }): Promise<{ verified: true } | { verified: false; reason: string }> {
+      this.verifyCalls++;
+      return p.submitted.code === "123456"
+        ? { verified: true }
+        : { verified: false, reason: "wrong" };
+    }
+  }
+
+  it("never runs more than maxAttempts verifications under a concurrent burst", async () => {
+    const adapter = new CountingAdapter();
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { counting: adapter },
+      maxAttempts: 3,
+    });
+    const req = await client.requestVerification({
+      method: "counting",
+      subject: { type: "phone", value: "+5491100000000" },
+    });
+    // 20 simultaneous WRONG guesses. The pre-fix read-modify-write let all 20
+    // read the same counter and each verify; the atomic claim caps it.
+    const results = await Promise.allSettled(
+      Array.from({ length: 20 }, () => client.submitOtp(req.requestId, "000000")),
+    );
+    expect(adapter.verifyCalls).toBeLessThanOrEqual(3);
+    expect(results.every((r) => r.status === "rejected")).toBe(true);
+    const status = await client.getRequestStatus(req.requestId);
+    expect(status.status).toBe("failed");
+  });
+
+  it("a correct guess within budget still succeeds under concurrency", async () => {
+    const adapter = new CountingAdapter();
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { counting: adapter },
+      maxAttempts: 3,
+    });
+    const req = await client.requestVerification({
+      method: "counting",
+      subject: { type: "phone", value: "+5491100000001" },
+    });
+    const results = await Promise.allSettled([
+      client.submitOtp(req.requestId, "000000"),
+      client.submitOtp(req.requestId, "123456"), // correct
+    ]);
+    expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
+  });
+
+  it("refunds the attempt when the adapter throws an infrastructure error", async () => {
+    let throwOnce = true;
+    class FlakyAdapter implements AttestAdapter {
+      readonly id = "flaky";
+      readonly trustLevel = 0.3 as TrustLevel;
+      generateSecret(): string {
+        return "123456";
+      }
+      async deliverChallenge(): Promise<void> {}
+      async verify(p: {
+        submitted: { code?: string };
+      }): Promise<{ verified: true } | { verified: false; reason: string }> {
+        if (throwOnce) {
+          throwOnce = false;
+          throw new Error("IdP down");
+        }
+        return p.submitted.code === "123456"
+          ? { verified: true }
+          : { verified: false, reason: "wrong" };
+      }
+    }
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { flaky: new FlakyAdapter() },
+      maxAttempts: 1, // only one attempt — refund must restore it
+    });
+    const req = await client.requestVerification({
+      method: "flaky",
+      subject: { type: "phone", value: "+5491100000002" },
+    });
+    await expect(client.submitOtp(req.requestId, "123456")).rejects.toThrow(/IdP down/);
+    // The throw refunded the slot, so the retry (now succeeding) still has budget.
+    const att = await client.submitOtp(req.requestId, "123456");
+    expect(att.requestId).toBe(req.requestId);
+  });
+
+  it("works against a store WITHOUT atomic decrement/increment (RMW fallback)", async () => {
+    const inner = new InMemoryAttestationStore();
+    // Expose only the required methods → no decrementAttempts/incrementAttempts,
+    // forcing the client's read-modify-write fallback path.
+    const nonAtomic: AttestationStore = {
+      saveRequest: inner.saveRequest.bind(inner),
+      updateRequest: inner.updateRequest.bind(inner),
+      getRequest: inner.getRequest.bind(inner),
+      saveAttestation: inner.saveAttestation.bind(inner),
+      getAttestation: inner.getAttestation.bind(inner),
+      listAttestationsForSubject: inner.listAttestationsForSubject.bind(inner),
+    };
+
+    let throwOnce = true;
+    class FlakyCounting implements AttestAdapter {
+      readonly id = "fc";
+      readonly trustLevel = 0.3 as TrustLevel;
+      generateSecret(): string {
+        return "123456";
+      }
+      async deliverChallenge(): Promise<void> {}
+      async verify(p: {
+        submitted: { code?: string };
+      }): Promise<{ verified: true } | { verified: false; reason: string }> {
+        if (throwOnce) {
+          throwOnce = false;
+          throw new Error("transient");
+        }
+        return p.submitted.code === "123456"
+          ? { verified: true }
+          : { verified: false, reason: "wrong" };
+      }
+    }
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { fc: new FlakyCounting() },
+      store: nonAtomic,
+      maxAttempts: 2,
+    });
+    const req = await client.requestVerification({
+      method: "fc",
+      subject: { type: "phone", value: "+5491100000003" },
+    });
+    // 1st: adapter throws → fallback refund restores the slot.
+    await expect(client.submitOtp(req.requestId, "123456")).rejects.toThrow(/transient/);
+    // 2nd: wrong code → fallback decrement (2 left after refund → 1).
+    await expect(client.submitOtp(req.requestId, "000000")).rejects.toBeInstanceOf(
+      InvalidOtpCodeError,
+    );
+    // 3rd: correct code → success (1 attempt still left).
+    const att = await client.submitOtp(req.requestId, "123456");
+    expect(att.requestId).toBe(req.requestId);
   });
 });
 

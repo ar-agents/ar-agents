@@ -6,6 +6,7 @@ export {
 export {
   identityAttestTools,
   type IdentityAttestToolsOptions,
+  type IdentityAttestReadContext,
 } from "./tools";
 
 export {

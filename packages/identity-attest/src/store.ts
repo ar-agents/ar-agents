@@ -20,6 +20,29 @@ export interface AttestationStore {
   /** Read a request + its internal state. Returns null if not found. */
   getRequest(requestId: string): Promise<{ request: VerificationRequest; internal: InternalRequestState } | null>;
 
+  /**
+   * Atomically decrement `attemptsRemaining` by 1 and return the new value
+   * (which MAY be negative if called with no budget left). Returns null if the
+   * request doesn't exist. MUST be atomic across concurrent callers — a
+   * compare-and-swap or a conditional `UPDATE ... SET attemptsRemaining =
+   * attemptsRemaining - 1 RETURNING attemptsRemaining`. This is the OTP
+   * brute-force guard: the client claims an attempt via this BEFORE verifying,
+   * so a concurrent burst of guesses can never exceed `maxAttempts`.
+   *
+   * Optional: when a store omits it, the client falls back to a (non-atomic)
+   * read-modify-write — fine for single-process, but real distributed stores
+   * SHOULD implement this.
+   */
+  decrementAttempts?(requestId: string): Promise<number | null>;
+
+  /**
+   * Atomically increment `attemptsRemaining` by 1 (refund). Only called when an
+   * adapter raises an infrastructure error (not a wrong guess), so a transient
+   * external-IdP failure doesn't burn a legitimate user's attempt. Optional;
+   * falls back to read-modify-write when omitted.
+   */
+  incrementAttempts?(requestId: string): Promise<void>;
+
   /** Save the issued attestation when verification completes. */
   saveAttestation(attestation: Attestation): Promise<void>;
 
@@ -84,6 +107,23 @@ export class InMemoryAttestationStore implements AttestationStore {
 
   async getRequest(requestId: string) {
     return this.requests.get(requestId) ?? null;
+  }
+
+  // Atomic within a single Node process: the read + mutate run synchronously
+  // (no intervening await), so concurrently-dispatched calls serialize — there
+  // is no read-modify-write window for callers to race through.
+  async decrementAttempts(requestId: string): Promise<number | null> {
+    const existing = this.requests.get(requestId);
+    if (!existing) return null;
+    const next = existing.internal.attemptsRemaining - 1;
+    existing.internal.attemptsRemaining = next;
+    return next;
+  }
+
+  async incrementAttempts(requestId: string): Promise<void> {
+    const existing = this.requests.get(requestId);
+    if (!existing) return;
+    existing.internal.attemptsRemaining += 1;
   }
 
   async saveAttestation(attestation: Attestation): Promise<void> {
