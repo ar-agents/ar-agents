@@ -44,7 +44,7 @@ export async function GET(req: Request) {
   }
 
   try {
-    const agent = buildAgent();
+    const agent = await buildAgent();
     const result = await agent.generate({
       prompt:
         `Es la rutina de mañana. Para la sociedad-IA con CUIT ${cuit}:\n` +

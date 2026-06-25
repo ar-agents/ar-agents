@@ -68,9 +68,11 @@ Operás bajo el marco de RFC-001 (https://ar-agents.ar/rfcs/001):
 
 Idioma: español rioplatense para clientes; inglés en errores técnicos.`;
 
-export function buildAgent() {
-  const mp = getMpClient();
-  const wa = getWhatsAppClient();
+export async function buildAgent() {
+  // MP + WhatsApp tokens resolve via Vercel Connect (scoped/short-lived) when a
+  // connector is configured, else the env token — hence async. See lib/connect.
+  const mp = await getMpClient();
+  const wa = await getWhatsAppClient();
   const wsfe = getWsfeClient();
   const afip = getAfipPadronAdapter();
 
