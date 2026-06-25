@@ -576,7 +576,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity-attest",
-    "version": "0.5.2",
+    "version": "0.6.0",
     "factory": "identityAttestTools",
     "tools": [
       {
