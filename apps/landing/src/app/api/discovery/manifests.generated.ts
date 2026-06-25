@@ -340,7 +340,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/facturacion",
-    "version": "0.4.4",
+    "version": "0.4.5",
     "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
     "tools": [
       {
@@ -517,7 +517,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity",
-    "version": "0.9.0",
+    "version": "0.9.1",
     "factory": "identityTools",
     "tools": [
       {
