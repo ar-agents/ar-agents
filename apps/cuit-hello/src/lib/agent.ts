@@ -75,6 +75,9 @@ export function createCuitAgent() {
     instructions: INSTRUCTIONS,
     tools: identityTools(afip ? { afip } : {}),
     stopWhen: isStepCount(6),
+    // AI SDK 7 native timeout: the AFIP padrón lookup (WSAA) can hang; bound it so
+    // a slow upstream surfaces a graceful TimeoutError instead of stalling.
+    timeout: { toolMs: 20_000, totalMs: 60_000 },
     // AI SDK 7 native tool-approval, driven by the @ar-agents/core risk manifest
     // (same law as enforceRiskPolicy). cuit-hello exposes only read tools
     // (validate/lookup), so nothing is gated here — this wires the canonical
