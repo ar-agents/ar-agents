@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.8
+
+### Patch Changes
+
+- Updated dependencies [[`8f461b7`](https://github.com/ar-agents/ar-agents/commit/8f461b7d1544d16b910951b3bbb84c6ffa2be552)]:
+  - @ar-agents/firma-digital@0.3.0
+
 ## 0.10.7
 
 ### Patch Changes
