@@ -5,15 +5,15 @@
  * tooling generators (codegen, Postman, Swagger UI) prefer YAML. Same
  * content, different serialization.
  *
- * Edge runtime. Fetches the JSON spec same-origin + converts to YAML
- * with a minimal pure-JS serializer (no dependencies). Cached briefly.
+ * Edge runtime. Serializes the SHARED `openApiSpec` object directly with a
+ * minimal pure-JS serializer (no dependencies, no I/O). Previously this
+ * HTTP-fetched /api/openapi from an origin derived from the request URL,
+ * which was a Host-header SSRF vector — sharing the object removes it.
  */
 
-import { NextResponse } from "next/server";
+import { openApiSpec } from "../../../lib/openapi-spec";
 
 export const runtime = "edge";
-
-const SITE = "https://ar-agents.ar";
 
 // ─── minimal YAML serializer ────────────────────────────────────────────────
 // Conservative output: always-quote strings that contain YAML-special chars,
@@ -89,35 +89,13 @@ function toYaml(obj: unknown): string {
   return emit(obj, 0) + "\n";
 }
 
-export async function GET(req: Request) {
-  // Fetch the canonical JSON from our own /api/openapi.
-  const origin = new URL(req.url).origin || SITE;
-  try {
-    const r = await fetch(`${origin}/api/openapi`, {
-      // Bound the fetch so a transient origin issue doesn't hang us.
-      signal: AbortSignal.timeout(5000),
-    });
-    if (!r.ok) {
-      return new Response(`# Failed to fetch /api/openapi: HTTP ${r.status}\n`, {
-        status: 502,
-        headers: { "content-type": "text/yaml; charset=utf-8" },
-      });
-    }
-    const spec = await r.json();
-    const yaml = toYaml(spec);
-    return new Response(yaml, {
-      headers: {
-        "content-type": "application/yaml; charset=utf-8",
-        "cache-control": "public, max-age=300, stale-while-revalidate=86400",
-      },
-    });
-  } catch (e) {
-    return new Response(
-      `# Error generating YAML: ${(e as Error).message}\n`,
-      {
-        status: 500,
-        headers: { "content-type": "text/yaml; charset=utf-8" },
-      },
-    );
-  }
+export function GET() {
+  // No network round trip: serialize the shared spec object in-process.
+  const yaml = toYaml(openApiSpec);
+  return new Response(yaml, {
+    headers: {
+      "content-type": "application/yaml; charset=utf-8",
+      "cache-control": "public, max-age=300, stale-while-revalidate=86400",
+    },
+  });
 }
