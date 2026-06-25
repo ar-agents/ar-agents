@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.10.15
+
+### Patch Changes
+
+- Updated dependencies [[`099abf5`](https://github.com/ar-agents/ar-agents/commit/099abf56bc19ef208a0a55e5340ec1b9b7d968ca)]:
+  - @ar-agents/identity-attest@0.8.0
+
 ## 0.10.14
 
 ### Patch Changes
