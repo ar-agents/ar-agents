@@ -150,22 +150,22 @@ export function validate(input: IncorporateInput): {
 }
 
 const PIEZA_VERSIONS: Record<string, string> = {
-  identity: "^0.7.0",
-  "identity-attest": "^0.4.2",
-  "mi-argentina": "^0.1.0",
-  "firma-digital": "^0.1.0",
-  "gde-tad": "^0.2.0",
-  mercadopago: "^0.17.0",
-  mercadolibre: "^0.1.0",
-  banking: "^0.4.0",
-  facturacion: "^0.3.0",
-  igj: "^0.1.0",
-  "boletin-oficial": "^0.1.0",
-  whatsapp: "^0.4.0",
-  shipping: "^0.2.0",
-  "agentic-commerce-bridge": "^5.0.0",
-  ap2: "^0.2.0",
-  mcp: "^0.9.0",
+  identity: "^0.8.1",
+  "identity-attest": "^0.5.2",
+  "mi-argentina": "^0.2.2",
+  "firma-digital": "^0.2.2",
+  "gde-tad": "^0.3.2",
+  mercadopago: "^0.18.2",
+  mercadolibre: "^0.5.1",
+  banking: "^0.5.1",
+  facturacion: "^0.4.1",
+  igj: "^0.2.2",
+  "boletin-oficial": "^0.2.1",
+  whatsapp: "^0.5.1",
+  shipping: "^0.3.2",
+  "agentic-commerce-bridge": "^8.0.0",
+  ap2: "^0.2.1",
+  mcp: "^0.10.6",
 };
 
 const TOOLS_FN_NAME: Record<string, string> = {

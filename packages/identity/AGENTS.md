@@ -79,7 +79,7 @@ When `valid` is false:
     "condicion": "MONOTRIBUTO",
     "monotributoCategoria": "A",
     "fechaInscripcion": "2026-04-17",
-    "domicilioFiscal": "Cabo Corrientes 468, Monte Grande, Buenos Aires, 1842",
+    "domicilioFiscal": "Calle Falsa 123, CABA, Buenos Aires, 1000",
     "actividades": ["Servicios informáticos"]
   }
 }

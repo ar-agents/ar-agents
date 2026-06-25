@@ -68,6 +68,7 @@
     "@ar-agents/identity": "workspace:*",
     "@ar-agents/igj": "workspace:*",
     "@ar-agents/mercadopago": "workspace:*",
+    "@ar-agents/treasury": "workspace:*",
     "@ar-agents/whatsapp": "workspace:*",
     "ai": "^6.0.0",
     "next": "16.2.4",
