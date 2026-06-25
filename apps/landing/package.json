@@ -1,6 +1,6 @@
 {
   "name": "ar-agents-landing",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "private": true,
   "description": "Landing page for ar-agents, drop-in tools for Vercel AI SDK to operate in Argentina (CUIT, MercadoPago, WhatsApp).",
   "scripts": {

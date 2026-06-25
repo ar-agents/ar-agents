@@ -1,5 +1,17 @@
 # @ar-agents/facturacion
 
+## 0.4.3
+
+### Patch Changes
+
+- [#89](https://github.com/ar-agents/ar-agents/pull/89) [`043a4b1`](https://github.com/ar-agents/ar-agents/commit/043a4b1e3be9108ec71d32fe53f2bd60772a49a1) Thanks [@naza00000](https://github.com/naza00000)! - Harden the AFIP SOAP envelope builders against XML injection (DeepSec MEDIUM).
+
+  - `identity` `buildGetPersonaSoap` now validates `cuitRepresentado` / `cuitToQuery` as exactly 11 digits before building the envelope and XML-escapes them as defense-in-depth, so a malformed or hostile CUIT can no longer break out of the SOAP context.
+  - `facturacion` `solicitarCAE` / `getCotizacion` now XML-escape every interpolated string field (auth CUIT, `fchServDesde` / `fchServHasta` / `fchVtoPago`, `cbteFch`, `docNro`, `monId`, and `cbtesAsoc` `cuit` / `fecha`). Numeric fields were already type-safe.
+
+- Updated dependencies [[`043a4b1`](https://github.com/ar-agents/ar-agents/commit/043a4b1e3be9108ec71d32fe53f2bd60772a49a1)]:
+  - @ar-agents/identity@0.8.3
+
 ## 0.4.2
 
 ### Patch Changes
