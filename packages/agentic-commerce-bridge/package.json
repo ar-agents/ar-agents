@@ -117,8 +117,8 @@
   ],
   "peerDependencies": {
     "@ar-agents/ap2": ">=0.2.2",
-    "@ar-agents/facturacion": ">=0.4.2",
-    "@ar-agents/identity": ">=0.8.2",
+    "@ar-agents/facturacion": ">=0.4.3",
+    "@ar-agents/identity": ">=0.8.3",
     "@ar-agents/mercadopago": ">=0.18.3",
     "@vercel/kv": ">=2.0.0",
     "ai": ">=6.0.0",
