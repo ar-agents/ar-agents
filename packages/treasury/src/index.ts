@@ -271,6 +271,54 @@ export class InMemoryOffRampAdapter implements OffRampAdapter {
 }
 
 /**
+ * Wrap any OffRampAdapter so a retried OR concurrent convert() with the same
+ * externalId returns the ORIGINAL receipt instead of creating a second payout.
+ *
+ * The real PSAV adapters do not all enforce idempotency server-side — e.g. Mural
+ * only echoes the key as a `memo`, so a retry creates AND executes a SECOND
+ * payout (double-send of real funds). This decorator gives every adapter a
+ * deterministic-key dedupe: a store of completed converts (retry-safe) plus an
+ * in-flight map so two simultaneous calls share one payout (concurrency-safe).
+ *
+ * The default store is in-memory (per process instance) — enough for the retry/
+ * concurrency that happens within one invocation chain. For cross-instance
+ * durability inject a shared, atomic store (e.g. KV-backed) via `store`.
+ */
+export function withOffRampIdempotency(
+  adapter: OffRampAdapter,
+  store: Map<string, OffRampReceipt> = new Map(),
+): OffRampAdapter {
+  const inflight = new Map<string, Promise<OffRampReceipt>>();
+  return {
+    quote: (amountUsd) => adapter.quote(amountUsd),
+    ...(adapter.getStatus
+      ? { getStatus: (txId: string) => adapter.getStatus!(txId) }
+      : {}),
+    convert: async (amountUsd, opts) => {
+      if (!opts?.externalId)
+        throw new Error(
+          "withOffRampIdempotency: externalId (idempotency key) is required",
+        );
+      const done = store.get(opts.externalId);
+      if (done) return done; // retry: return the original receipt, never re-pay
+      const running = inflight.get(opts.externalId);
+      if (running) return running; // concurrent: share the single in-flight payout
+      const p = (async () => {
+        const receipt = await adapter.convert(amountUsd, opts);
+        store.set(opts.externalId, receipt);
+        return receipt;
+      })();
+      inflight.set(opts.externalId, p);
+      try {
+        return await p;
+      } finally {
+        inflight.delete(opts.externalId);
+      }
+    },
+  };
+}
+
+/**
  * One-shot helper: given the current state, the obligations, and an off-ramp,
  * compute + (optionally) execute the conversion needed to fund the buffer. Returns
  * the plan; if `offramp` is provided it also performs the conversion and returns

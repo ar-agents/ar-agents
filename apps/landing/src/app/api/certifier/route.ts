@@ -97,6 +97,32 @@ function isValidUrl(u: string): URL | null {
   }
 }
 
+const MAX_REDIRECTS = 4;
+
+// SSRF-safe fetch. The default fetch() follows redirects automatically, so an
+// allowed public URL (or a manifest-supplied auditRead) could 3xx the server to
+// a loopback/metadata/private host WITHOUT re-applying isValidUrl. safeFetch
+// validates the initial URL AND every redirect hop, following redirects MANUALLY.
+// (Edge has no DNS resolution, so DNS-rebinding is out of scope — this closes the
+// reported redirect + manifest-URL bypasses; rate-limiting is the secondary control.)
+async function safeFetch(url: string, init?: RequestInit): Promise<Response> {
+  let current = url;
+  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
+    if (!isValidUrl(current)) {
+      throw new Error(`SSRF guard: refused non-public or invalid URL: ${current}`);
+    }
+    const res = await fetchWithTimeout(current, { ...init, redirect: "manual" });
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location");
+      if (!loc) return res;
+      current = new URL(loc, current).toString(); // resolve relative Location
+      continue;
+    }
+    return res;
+  }
+  throw new Error(`SSRF guard: too many redirects from ${url}`);
+}
+
 function ratingFromScore(score: number): Certification["rating"] {
   if (score >= 90) return "A";
   if (score >= 75) return "B";
@@ -117,7 +143,7 @@ async function runChecks(
   const wellKnownUrl = `${base}/.well-known/agents.json`;
   let manifest: Record<string, unknown> | null = null;
   try {
-    const r = await fetchWithTimeout(wellKnownUrl);
+    const r = await safeFetch(wellKnownUrl);
     if (r.ok) {
       const text = await r.text();
       try {
@@ -267,13 +293,27 @@ async function runChecks(
       : undefined) ??
     auditEndpointsForRead?.auditRead;
   if (typeof auditReadTemplate === "string") {
-    auditUrl = auditReadTemplate.replace("{sessionId}", encodeURIComponent(targetSession));
+    const filled = auditReadTemplate.replace("{sessionId}", encodeURIComponent(targetSession));
+    // Resolve relative templates against the validated base, and REQUIRE the
+    // result to share base's origin. A manifest must not point audit reads at a
+    // third-party or internal host (that was the SSRF bypass) — fall back to the
+    // default same-origin path if it tries. safeFetch re-checks too (defense in depth).
+    let resolved: URL | null = null;
+    try {
+      resolved = new URL(filled, `${base}/`);
+    } catch {
+      resolved = null;
+    }
+    auditUrl =
+      resolved && resolved.origin === new URL(base).origin
+        ? resolved.toString()
+        : `${base}/api/play/audit/${encodeURIComponent(targetSession)}`;
   } else {
     auditUrl = `${base}/api/play/audit/${encodeURIComponent(targetSession)}`;
   }
   let auditPayload: Record<string, unknown> | null = null;
   try {
-    const r = await fetchWithTimeout(auditUrl);
+    const r = await safeFetch(auditUrl);
     if (r.ok) {
       auditPayload = await r.json();
       checks.push({
@@ -312,7 +352,7 @@ async function runChecks(
   // ── Check 4: audit verify=1 endpoint returns verification counts ─────────
   const verifyUrl = `${auditUrl}${auditUrl.includes("?") ? "&" : "?"}verify=1`;
   try {
-    const r = await fetchWithTimeout(verifyUrl);
+    const r = await safeFetch(verifyUrl);
     if (r.ok) {
       const data = (await r.json()) as Record<string, unknown>;
       // Counts may be at top level OR nested under `verification`.
@@ -379,7 +419,7 @@ async function runChecks(
   // ── Check 5: CSV export endpoint ────────────────────────────────────────
   const csvUrl = `${auditUrl}/csv`;
   try {
-    const r = await fetchWithTimeout(csvUrl);
+    const r = await safeFetch(csvUrl);
     if (r.ok) {
       const ct = r.headers.get("content-type") || "";
       const isCSV = ct.includes("text/csv");
@@ -421,7 +461,7 @@ async function runChecks(
   // ── Check 6: OpenAPI discoverability ─────────────────────────────────────
   const openApiUrl = `${base}/api/openapi`;
   try {
-    const r = await fetchWithTimeout(openApiUrl);
+    const r = await safeFetch(openApiUrl);
     if (r.ok) {
       const data = await r.json() as Record<string, unknown>;
       const isOpenApi = typeof data.openapi === "string" && (data.openapi as string).startsWith("3.");
@@ -465,7 +505,7 @@ async function runChecks(
   for (const url of [keysCanonical, keysStatic]) {
     if (keysCheckDone) break;
     try {
-      const r = await fetchWithTimeout(url);
+      const r = await safeFetch(url);
       if (!r.ok) {
         if (url === keysStatic) {
           // Both tried, both failed, emit a single skip.
@@ -529,7 +569,7 @@ async function runChecks(
   // ── Check 7: Discovery endpoint (RFC-002 alt path) ──────────────────────
   const discoveryUrl = `${base}/api/discovery`;
   try {
-    const r = await fetchWithTimeout(discoveryUrl);
+    const r = await safeFetch(discoveryUrl);
     if (r.ok) {
       checks.push({
         id: "rfc-002-discovery-api",
@@ -564,7 +604,7 @@ async function runChecks(
 
   // ── Check 8: Security headers ────────────────────────────────────────────
   try {
-    const r = await fetchWithTimeout(base);
+    const r = await safeFetch(base);
     const hsts = r.headers.get("strict-transport-security");
     const xcto = r.headers.get("x-content-type-options");
     const hasHsts = hsts !== null;
@@ -591,7 +631,7 @@ async function runChecks(
   // ── Check 9: Sitemap ────────────────────────────────────────────────────
   const sitemapUrl = `${base}/sitemap.xml`;
   try {
-    const r = await fetchWithTimeout(sitemapUrl);
+    const r = await safeFetch(sitemapUrl);
     checks.push({
       id: "tooling-sitemap",
       label: "Tooling · sitemap.xml present",

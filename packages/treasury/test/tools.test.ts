@@ -118,16 +118,18 @@ describe("off-ramp tools with an adapter", () => {
     expect(r.arsOut).toBeCloseTo(99_000, 0);
   });
 
-  it("convert executes and returns a receipt", async () => {
+  it("convert derives a deterministic idempotency key from operationRef + amount", async () => {
     const r = (await call(tools, "treasury_offramp_convert", {
       amountUsd: 100,
-      externalId: "obl-2026-06",
+      operationRef: "obl-2026-06",
     })) as {
       available: boolean;
       txId: string;
     };
     expect(r.available).toBe(true);
-    expect(r.txId).toBe("mem-obl-2026-06");
+    // The model supplies a semantic operationRef; the tool derives the key
+    // server-side as `offramp-<slug>-<amount>` (never a free-form model key).
+    expect(r.txId).toBe("mem-offramp-obl-2026-06-100.00");
   });
 
   it("status polls the prior convert", async () => {
