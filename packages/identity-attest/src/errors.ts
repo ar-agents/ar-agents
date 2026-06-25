@@ -66,6 +66,21 @@ export class InvalidAttestationSignatureError extends IdentityAttestError {
   }
 }
 
+/**
+ * The channel proved control of a DIFFERENT subject than the one the request
+ * was created for (the adapter returned a `verifiedSubject` that does not match
+ * `request.subject`). Fail closed — a valid provider token for one identity
+ * must never mint an attestation for another. The request is marked `failed`.
+ */
+export class SubjectMismatchError extends IdentityAttestError {
+  constructor(requestId: string) {
+    super(
+      `Verification ${requestId}: the channel proved control of a different subject than requested. Request is now in 'failed' state.`,
+    );
+    this.name = "SubjectMismatchError";
+  }
+}
+
 /** Adapter-level errors (provider returned 4xx, transport failed, etc.). */
 export class AttestAdapterError extends IdentityAttestError {
   constructor(
