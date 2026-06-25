@@ -130,7 +130,7 @@ describe("convert() — session model", () => {
         },
       };
     });
-    const r = await a.convert(100);
+    const r = await a.convert(100, { externalId: "k1" });
     const sessionCall = calls.find((c) => c.url.endsWith("/api/v1/offrampSession/"));
     expect(sessionCall?.method).toBe("POST");
     expect(JSON.parse(sessionCall!.body!)).toMatchObject({ fiatAccountId: "fiat_1", chain: "BASE" });
@@ -145,7 +145,7 @@ describe("convert() — session model", () => {
       if (url.endsWith("/api/v1/quotes/")) return { body: { rate: 1, finalToAmount: 1 } };
       return { body: { depositAddresses: [] } };
     });
-    await expect(a.convert(1)).rejects.toThrow(/no session id/);
+    await expect(a.convert(1, { externalId: "k2" })).rejects.toThrow(/no session id/);
   });
 });
 

@@ -248,9 +248,11 @@ export class MuralOffRampAdapter implements OffRampAdapter {
    * `arsReceived` is the EXPECTED amount (from a fresh quote), the settled figure
    * comes from getStatus.
    */
-  async convert(amountUsd: Usd, opts?: { externalId?: string }): Promise<OffRampReceipt> {
+  async convert(amountUsd: Usd, opts: { externalId: string }): Promise<OffRampReceipt> {
+    if (!opts?.externalId)
+      throw new Error("MuralOffRampAdapter.convert: externalId (idempotency key) is required");
     const q = await this.quote(amountUsd);
-    const memo = opts?.externalId ?? `rampoff-${this.now()}`;
+    const memo = opts.externalId;
     const isBusiness = (this.config.recipient.type ?? "business") === "business";
     const recipientInfo = isBusiness
       ? {

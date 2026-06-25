@@ -229,15 +229,15 @@ export function treasuryTools(options: TreasuryToolsOptions = {}) {
         amountUsd: z.number().positive(),
         externalId: z
           .string()
-          .optional()
-          .describe("Idempotency key so a retry never double-spends."),
+          .min(1)
+          .describe(
+            "REQUIRED stable idempotency key tied to the payment (e.g. the obligation id + " +
+              "period). Reuse the EXACT same key on any retry, or the off-ramp will double-spend.",
+          ),
       }),
       execute: async ({ amountUsd, externalId }) => {
         if (!offramp) return noOfframp;
-        const receipt = await offramp.convert(
-          amountUsd,
-          externalId ? { externalId } : undefined,
-        );
+        const receipt = await offramp.convert(amountUsd, { externalId });
         return { available: true as const, ...receipt };
       },
     }),

@@ -119,12 +119,15 @@ describe("off-ramp tools with an adapter", () => {
   });
 
   it("convert executes and returns a receipt", async () => {
-    const r = (await call(tools, "treasury_offramp_convert", { amountUsd: 100 })) as {
+    const r = (await call(tools, "treasury_offramp_convert", {
+      amountUsd: 100,
+      externalId: "obl-2026-06",
+    })) as {
       available: boolean;
       txId: string;
     };
     expect(r.available).toBe(true);
-    expect(r.txId).toBe("mem-1");
+    expect(r.txId).toBe("mem-obl-2026-06");
   });
 
   it("status polls the prior convert", async () => {

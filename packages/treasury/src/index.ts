@@ -213,9 +213,11 @@ export interface OffRampAdapter {
   /**
    * Execute the conversion + payout of ARS to the society's CVU. IRREVERSIBLE:
    * the caller MUST gate this behind requireConfirmation (RFC-001) and log it.
-   * `opts.externalId` is an idempotency key so a retried convert never double-spends.
+   * `opts.externalId` is a REQUIRED idempotency key — a STABLE id derived from the
+   * payment (e.g. obligation id + period + amount). Reuse the SAME key on retry so
+   * the PSAV deduplicates it and a retried convert never double-spends.
    */
-  convert(amountUsd: Usd, opts?: { externalId?: string }): Promise<OffRampReceipt>;
+  convert(amountUsd: Usd, opts: { externalId: string }): Promise<OffRampReceipt>;
   /**
    * Poll the settlement of a prior convert(). A real off-ramp is ASYNCHRONOUS:
    * the PSAV sells the crypto, then settles ARS to the CVU over seconds-to-minutes
@@ -231,7 +233,7 @@ export interface OffRampAdapter {
  * with USDC -> POST a conversion -> ARS settles to the CVU -> webhook confirms.
  */
 export class InMemoryOffRampAdapter implements OffRampAdapter {
-  private seq = 0;
+  private readonly settled = new Map<string, OffRampReceipt>();
   constructor(
     private readonly rate: number,
     private readonly spread = 0.01,
@@ -246,9 +248,20 @@ export class InMemoryOffRampAdapter implements OffRampAdapter {
     };
   }
 
-  async convert(amountUsd: Usd, _opts?: { externalId?: string }): Promise<OffRampReceipt> {
+  async convert(amountUsd: Usd, opts: { externalId: string }): Promise<OffRampReceipt> {
+    if (!opts?.externalId)
+      throw new Error("InMemoryOffRampAdapter.convert: externalId (idempotency key) is required");
+    const cached = this.settled.get(opts.externalId);
+    if (cached) return cached; // idempotent: a retry with the same key returns the same receipt
     const q = await this.quote(amountUsd);
-    return { amountUsd, arsReceived: q.arsOut, rate: this.rate * (1 - this.spread), txId: `mem-${++this.seq}` };
+    const receipt = {
+      amountUsd,
+      arsReceived: q.arsOut,
+      rate: this.rate * (1 - this.spread),
+      txId: `mem-${opts.externalId}`,
+    };
+    this.settled.set(opts.externalId, receipt);
+    return receipt;
   }
 
   /** The in-memory adapter settles instantly: any tx it issued is COMPLETED. */
@@ -273,13 +286,23 @@ export async function fundTaxBuffer(args: {
   spread?: number;
   safety?: number;
   offramp?: OffRampAdapter;
+  /**
+   * Idempotency key for the off-ramp convert. Defaults to a deterministic id from
+   * the obligations being funded + the amount, so a retried fundTaxBuffer with the
+   * same inputs is deduplicated by the PSAV and never double-spends. Pass an
+   * explicit stable id to override.
+   */
+  externalId?: string;
 }): Promise<{ plan: ConversionPlan; receipt?: OffRampReceipt; state: TreasuryState }> {
   const required = requiredArsBuffer(args.obligations, args.nowMs, args.horizonMs, args.safety);
   const plan = planConversion(args.state, required, args.fxRate, args.spread);
   if (plan.convertUsd <= 0 || !args.offramp) {
     return { plan, state: args.state };
   }
-  const receipt = await args.offramp.convert(plan.convertUsd);
+  const externalId =
+    args.externalId ??
+    `fund-${args.obligations.map((o) => o.id).join("+")}-${plan.convertUsd.toFixed(2)}`;
+  const receipt = await args.offramp.convert(plan.convertUsd, { externalId });
   return { plan, receipt, state: applyConversion(args.state, receipt) };
 }
 

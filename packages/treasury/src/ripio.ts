@@ -229,7 +229,9 @@ export class RipioOffRampAdapter implements OffRampAdapter {
    * payout; `txId` is the session id for getStatus. `arsReceived` is the EXPECTED
    * amount (from a fresh quote); the settled figure comes from getStatus.
    */
-  async convert(amountUsd: Usd, _opts?: { externalId?: string }): Promise<OffRampReceipt> {
+  async convert(amountUsd: Usd, opts: { externalId: string }): Promise<OffRampReceipt> {
+    if (!opts?.externalId)
+      throw new Error("RipioOffRampAdapter.convert: externalId (idempotency key) is required");
     const q = await this.quote(amountUsd);
     const session = await this.request<Record<string, unknown>>(
       "POST",
@@ -240,6 +242,7 @@ export class RipioOffRampAdapter implements OffRampAdapter {
         toCurrency: this.toCurrency,
         fromAmount: String(amountUsd),
         chain: this.chain,
+        externalId: opts.externalId,
       },
     );
     const txId =

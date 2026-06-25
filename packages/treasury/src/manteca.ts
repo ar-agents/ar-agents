@@ -240,11 +240,12 @@ export class MantecaOffRampAdapter implements OffRampAdapter {
    */
   async convert(
     amountUsd: Usd,
-    opts?: { externalId?: string },
+    opts: { externalId: string },
   ): Promise<OffRampReceipt> {
+    if (!opts?.externalId)
+      throw new Error("MantecaOffRampAdapter.convert: externalId (idempotency key) is required");
     const q = await this.quote(amountUsd);
-    const externalId =
-      opts?.externalId ?? `rampoff-${this.config.userId}-${this.now()}`;
+    const externalId = opts.externalId;
     const synthetic = await this.request<{ id?: string; _id?: string }>(
       "POST",
       "/v2/synthetics/ramp-off",

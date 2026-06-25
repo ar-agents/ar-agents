@@ -109,7 +109,7 @@ describe("convert()", () => {
         ? { body: { price: 1000 } }
         : { status: 201, body: { id: "synth_1", status: "PENDING", stages: [] } },
     );
-    const receipt = await a.convert(100);
+    const receipt = await a.convert(100, { externalId: "k1" });
 
     // calls[0] = the internal quote (GET price); calls[1] = the ramp-off POST.
     const post = calls[1];
@@ -123,7 +123,7 @@ describe("convert()", () => {
       sellAsset: "USDC",
       withdrawAsset: "ARS",
       bankAccountId: "bank_99",
-      externalId: `rampoff-user_42-${FIXED_NOW}`,
+      externalId: "k1",
     });
     expect(receipt).toEqual({ amountUsd: 100, arsReceived: 100_000, rate: 1000, txId: "synth_1" });
   });
@@ -140,7 +140,7 @@ describe("convert()", () => {
     const { a } = adapter((url) =>
       url.includes("/prices/direct/") ? { body: { price: 1 } } : { body: { status: "PENDING" } },
     );
-    await expect(a.convert(5)).rejects.toThrow(/no synthetic id/);
+    await expect(a.convert(5, { externalId: "k2" })).rejects.toThrow(/no synthetic id/);
   });
 });
 

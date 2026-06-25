@@ -102,15 +102,23 @@ describe("state transitions", () => {
 });
 
 describe("InMemoryOffRampAdapter", () => {
-  it("quotes + converts net of spread, with deterministic tx ids", async () => {
+  it("quotes + converts net of spread; idempotent on the externalId key", async () => {
     const a = new InMemoryOffRampAdapter(1000, 0.01);
     const q = await a.quote(100);
     expect(q.arsOut).toBeCloseTo(99_000, 0);
-    const r1 = await a.convert(100);
-    const r2 = await a.convert(100);
+    const r1 = await a.convert(100, { externalId: "pay-1" });
+    const r2 = await a.convert(100, { externalId: "pay-2" });
     expect(r1.arsReceived).toBeCloseTo(99_000, 0);
-    expect(r1.txId).toBe("mem-1");
-    expect(r2.txId).toBe("mem-2");
+    expect(r1.txId).toBe("mem-pay-1");
+    expect(r2.txId).toBe("mem-pay-2");
+    // a retry with the SAME key returns the SAME receipt (no double-spend)
+    const retry = await a.convert(100, { externalId: "pay-1" });
+    expect(retry).toEqual(r1);
+  });
+  it("convert requires an externalId idempotency key", async () => {
+    const a = new InMemoryOffRampAdapter(1000, 0.01);
+    // @ts-expect-error — externalId is required by the OffRampAdapter contract
+    await expect(a.convert(100, {})).rejects.toThrow(/externalId/);
   });
 });
 
