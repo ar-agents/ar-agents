@@ -99,6 +99,14 @@ export function identityAttestTools(
           .describe("Your-system identifier (e.g., the order id this verification is gating)."),
       }),
       execute: async (input) => {
+        // Fail closed: a method outside the allowlist must not be REQUESTABLE,
+        // not merely hidden from list_verification_methods.
+        if (options.allowedMethods && !options.allowedMethods.includes(input.method)) {
+          return {
+            error: "method_not_allowed",
+            message: `Verification method "${input.method}" is not permitted by this deployment.`,
+          };
+        }
         const request = await client.requestVerification({
           method: input.method,
           subject: { type: input.subject_type, value: input.subject_value },
