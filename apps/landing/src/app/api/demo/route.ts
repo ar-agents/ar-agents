@@ -23,6 +23,7 @@
 import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
 import { z } from "zod";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { checkBotId } from "botid/server";
 
 export const runtime = "edge";
 export const maxDuration = 30;
@@ -234,6 +235,17 @@ function sanitize(messages: AnyMsg[]): UIMessage[] {
 }
 
 export async function POST(req: Request) {
+  // BotID first: stop automated abuse BEFORE the (IP-based) rate limiter, which
+  // a bot rotating IPs would otherwise evade to drain the AI Gateway balance.
+  // Vercel-native, invisible to real users; returns isBot:false in local dev.
+  const verification = await checkBotId();
+  if (verification.isBot) {
+    return new Response(JSON.stringify({ error: "bot_detected" }), {
+      status: 403,
+      headers: { "content-type": "application/json" },
+    });
+  }
+
   // Every call streams real Claude tokens through the AI Gateway = real money.
   // Without a limit a bot drains the gateway balance (and a negative balance
   // 402s everything, including the live chat). 20/min/IP is generous for a demo.
