@@ -51,7 +51,7 @@
  */
 
 import { trace, context as otelContext } from "@opentelemetry/api";
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import {
   MercadoPagoClient,
   mercadoPagoTools,
@@ -108,7 +108,7 @@ export const agent = new Agent({
   model: "anthropic/claude-sonnet-4-6",
   instructions: "You are a billing assistant for a SaaS in Argentina.",
   tools,
-  stopWhen: stepCountIs(8),
+  stopWhen: isStepCount(8),
 });
 
 /**

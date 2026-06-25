@@ -1,7 +1,7 @@
 /**
  * Drop-in tool collection for Vercel AI SDK 6+. Pair with an Agent.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { IvaPerceptionAdapter } from "./adapter";
 import { UnconfiguredIvaPerceptionAdapter } from "./adapter";
@@ -52,7 +52,7 @@ export const ALL_TOOL_NAMES = [
 
 export type IvaPerceptionToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function ivaPerceptionTools(opts: IvaPerceptionToolsOptions = {}) {
+export function ivaPerceptionTools(opts: IvaPerceptionToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredIvaPerceptionAdapter();
   const rateTable = opts.rateTable ?? DEFAULT_RATE_TABLE;
   const wanted = new Set<IvaPerceptionToolName>(opts.include ?? ALL_TOOL_NAMES);

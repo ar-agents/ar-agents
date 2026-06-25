@@ -16,7 +16,7 @@
     "typecheck": "tsgo"
   },
   "dependencies": {
-    "ai": "7.0.0-beta.178",
+    "ai": "^7.0.0",
     "eve": "^0.11.2",
     "zod": "4.4.3"
   },

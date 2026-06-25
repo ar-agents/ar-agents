@@ -24,7 +24,7 @@
  * (@ar-agents/treasury) is pure and pulls in neither.
  */
 
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import {
   cedularTax,
@@ -84,7 +84,7 @@ const obligationSchema = z.object({
   dueAtMs: z.number().describe("Epoch ms the obligation is due."),
 });
 
-export function treasuryTools(options: TreasuryToolsOptions = {}) {
+export function treasuryTools(options: TreasuryToolsOptions = {}): ToolSet {
   const now = options.now ?? Date.now;
   const offramp = options.offramp;
   const noOfframp = {

@@ -59,7 +59,7 @@
  * # Sample agent loop (USA-LLC side, using Vercel AI SDK 6 + MCP client)
  */
 
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 // In a USA agent's project, you'd use the MCP client from `ai` v6 (or `@modelcontextprotocol/sdk`)
 // to connect to the locally-spawned ar-agents MCP server. The agent then sees
 // every @ar-agents/* tool in its tool list.
@@ -86,7 +86,7 @@ async function exampleAgentLoop() {
       "yourself.",
     // tools, // injected from MCP client
     tools: {} as Record<string, unknown>,
-    stopWhen: stepCountIs(10),
+    stopWhen: isStepCount(10),
   });
 
   // What the agent does behind this prompt:

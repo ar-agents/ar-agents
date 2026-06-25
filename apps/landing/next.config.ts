@@ -1,5 +1,10 @@
 import type { NextConfig } from "next";
 import path from "node:path";
+// BotID: sets up same-origin proxy rewrites so the bot challenge can't be
+// blocked by ad-blockers/CSP (everything stays first-party — the strict CSP's
+// 'self' covers it). Only /api/demo (browser live-chat) is protected; the public
+// API/MCP routes are intentionally machine-callable and must NOT be gated here.
+import { withBotId } from "botid/next/config";
 
 // Static-CSP approach (no nonces), fine here because the landing renders
 // only Next.js framework scripts + Tailwind inline styles, no third-party.
@@ -111,4 +116,4 @@ const nextConfig: NextConfig = {
   },
 };
 
-export default nextConfig;
+export default withBotId(nextConfig);

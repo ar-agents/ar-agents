@@ -670,7 +670,7 @@ export async function POST(req: Request) {
   try {
     const result = streamText({
       model: "anthropic/claude-sonnet-4-6",
-      system: SYSTEM,
+      instructions: SYSTEM,
       messages: modelMessages,
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       tools: wrapWithAudit(tools as any, sessionId),

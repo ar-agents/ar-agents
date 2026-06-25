@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import type { DnrpaAdapter } from "./adapter";
 import { UnconfiguredDnrpaAdapter } from "./adapter";
 import { DnrpaValidationError } from "./errors";
@@ -12,7 +12,7 @@ export interface DnrpaToolsOptions {
   adapter?: DnrpaAdapter;
 }
 
-export function dnrpaTools(opts: DnrpaToolsOptions = {}) {
+export function dnrpaTools(opts: DnrpaToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredDnrpaAdapter();
   return {
     dnrpa_lookup_dominio: tool({

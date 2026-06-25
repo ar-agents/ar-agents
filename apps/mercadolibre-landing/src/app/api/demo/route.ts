@@ -33,7 +33,7 @@ export async function POST(req: Request) {
 
   const result = streamText({
     model: "anthropic/claude-sonnet-4-6",
-    system: SYSTEM_PROMPT,
+    instructions: SYSTEM_PROMPT,
     messages: await convertToModelMessages(messages),
     tools,
     stopWhen: ({ steps }) => steps.length >= 8,

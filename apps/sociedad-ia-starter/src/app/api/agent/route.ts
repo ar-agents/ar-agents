@@ -39,7 +39,7 @@ export async function POST(req: Request) {
   }
 
   try {
-    const agent = buildAgent();
+    const agent = await buildAgent();
     const result = await agent.generate({
       prompt: parsed.data.prompt,
     });

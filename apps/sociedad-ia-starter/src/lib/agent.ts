@@ -15,7 +15,7 @@
  *   - gde-tad          · DEC inbox + IGJ pre-flight + Mis Trámites
  */
 
-import { Experimental_Agent as Agent, stepCountIs } from "ai";
+import { Experimental_Agent as Agent, isStepCount } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { identityTools } from "@ar-agents/identity";
 import { bankingTools } from "@ar-agents/banking";
@@ -68,15 +68,17 @@ Operás bajo el marco de RFC-001 (https://ar-agents.ar/rfcs/001):
 
 Idioma: español rioplatense para clientes; inglés en errores técnicos.`;
 
-export function buildAgent() {
-  const mp = getMpClient();
-  const wa = getWhatsAppClient();
+export async function buildAgent() {
+  // MP + WhatsApp tokens resolve via Vercel Connect (scoped/short-lived) when a
+  // connector is configured, else the env token — hence async. See lib/connect.
+  const mp = await getMpClient();
+  const wa = await getWhatsAppClient();
   const wsfe = getWsfeClient();
   const afip = getAfipPadronAdapter();
 
   return new Agent({
     model: anthropic("claude-sonnet-4-5"),
-    stopWhen: stepCountIs(20),
+    stopWhen: isStepCount(20),
     instructions: SYSTEM_PROMPT,
     // enforceRiskPolicy is the central art. 102 gate: high-stakes tools defer to
     // an async human approval (queue at ar-agents.ar), a suspended society halts

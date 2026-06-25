@@ -12,7 +12,7 @@
  * `UnconfiguredFecredAdapter` throws, so an agent configured without a
  * real adapter never silently lies.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { FecredAdapter } from "./adapter";
 import { UnconfiguredFecredAdapter } from "./adapter";
@@ -45,7 +45,7 @@ export const ALL_TOOL_NAMES = [
 
 export type FecredToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function fecredTools(opts: FecredToolsOptions = {}) {
+export function fecredTools(opts: FecredToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredFecredAdapter();
   const wanted = new Set<FecredToolName>(opts.include ?? ALL_TOOL_NAMES);
 

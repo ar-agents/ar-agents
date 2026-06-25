@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import type { InpiAdapter } from "./adapter";
 import { UnconfiguredInpiAdapter } from "./adapter";
 import { InpiValidationError } from "./errors";
@@ -14,7 +14,7 @@ export interface InpiToolsOptions {
   adapter?: InpiAdapter;
 }
 
-export function inpiTools(opts: InpiToolsOptions = {}) {
+export function inpiTools(opts: InpiToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredInpiAdapter();
   return {
     inpi_search_trademark: tool({

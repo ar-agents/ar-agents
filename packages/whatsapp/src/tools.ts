@@ -1,4 +1,4 @@
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { WhatsAppClient } from "./client";
 
@@ -43,7 +43,7 @@ import type { WhatsAppClient } from "./client";
 export function whatsappTools(
   client: WhatsAppClient,
   options: WhatsAppToolsOptions = {},
-) {
+): ToolSet {
   const { scopedTo } = options;
 
   if (scopedTo) {

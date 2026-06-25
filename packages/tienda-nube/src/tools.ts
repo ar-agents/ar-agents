@@ -7,7 +7,7 @@
  * in v0.2 once we settle the typing for the variant-rich Tienda Nube
  * product schema.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { TiendaNubeAdapter } from "./adapter";
 import { UnconfiguredTiendaNubeAdapter } from "./adapter";
@@ -34,7 +34,7 @@ export const ALL_TOOL_NAMES = [
 
 export type TiendaNubeToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function tiendaNubeTools(opts: TiendaNubeToolsOptions = {}) {
+export function tiendaNubeTools(opts: TiendaNubeToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredTiendaNubeAdapter();
   const wanted = new Set<TiendaNubeToolName>(opts.include ?? ALL_TOOL_NAMES);
 

@@ -7,7 +7,7 @@
  * day-to-day, the raw entries are exposed for cases where the
  * agent does its own scoring.
  */
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import type { BcraAdapter } from "./adapter";
 import { UnconfiguredBcraAdapter } from "./adapter";
@@ -32,7 +32,7 @@ export const ALL_TOOL_NAMES = [
 
 export type BcraToolName = (typeof ALL_TOOL_NAMES)[number];
 
-export function bcraTools(opts: BcraToolsOptions = {}) {
+export function bcraTools(opts: BcraToolsOptions = {}): ToolSet {
   const adapter = opts.adapter ?? new UnconfiguredBcraAdapter();
   const wanted = new Set<BcraToolName>(opts.include ?? ALL_TOOL_NAMES);
 

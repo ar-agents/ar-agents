@@ -45,3 +45,10 @@ export {
   levelRequiresApproval,
   enforceRiskPolicy,
 } from "./risk-manifest";
+
+export {
+  type ToolApprovalCallInfo,
+  type RiskToolApprovalStatus,
+  type ToolApprovalFromRiskOptions,
+  toolApprovalFromRisk,
+} from "./tool-approval";

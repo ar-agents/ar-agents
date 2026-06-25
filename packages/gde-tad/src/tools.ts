@@ -13,7 +13,7 @@
  * This is the moat: nobody else has even shipped this much.
  */
 
-import { tool } from "ai";
+import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import {
   UnconfiguredDomicilioAdapter,
@@ -68,7 +68,7 @@ export type GdeTadToolName =
   | "get_critical_notifications"
   | "validate_igj_inscription";
 
-export function gdeTadTools(options: GdeTadToolsOptions = {}) {
+export function gdeTadTools(options: GdeTadToolsOptions = {}): ToolSet {
   const domicilio = options.domicilio ?? new UnconfiguredDomicilioAdapter();
   const tramites = options.tramites ?? new UnconfiguredTramitesAdapter();
 
