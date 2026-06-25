@@ -5,6 +5,11 @@ import {
   UnconfiguredAfipPadronAdapter,
 } from "./afip";
 import { describePersonType, parseCuit } from "./cuit";
+import {
+  sanitizeAfipData,
+  withRegistryProvenance,
+} from "./sanitize";
+import type { AfipPadronResult } from "./types";
 
 /**
  * Optional configuration for `identityTools()`. All fields are optional;
@@ -26,7 +31,55 @@ export interface IdentityToolsOptions {
    * descriptions in another language for better tool-selection scoring.
    */
   descriptions?: Partial<Record<IdentityToolName, string>>;
+  /**
+   * Host authorization / throttling hook for `lookup_cuit_afip`. Called AFTER
+   * the CUIT passes checksum validation but BEFORE the AFIP adapter is
+   * queried. Return `false` (or `{ allowed: false, reason }`) to deny the
+   * lookup — the tool then returns `{ available: false, error }` WITHOUT
+   * hitting AFIP, so the description's "call validate_cuit first" guidance is
+   * backed by real enforcement, not just an instruction the model may ignore.
+   *
+   * Use it to bind lookups to an authenticated caller, enforce a per-tenant
+   * allowlist, or apply a rate limit (the registry exposes name, fiscal
+   * condition, monotributo category, and address, so an unthrottled public
+   * agent is a PII-scraping surface). Malformed CUITs are rejected before this
+   * hook runs, so you never pay an AFIP request — or a hook call — for invalid
+   * input.
+   *
+   * @example Rate-limit + allowlist
+   * ```ts
+   * identityTools({
+   *   afip,
+   *   authorizeLookup: async ({ normalizedCuit }) => {
+   *     if (!(await rateLimiter.tryAcquire())) {
+   *       return { allowed: false, reason: "Rate limit exceeded, try later." };
+   *     }
+   *     return allowedCuits.has(normalizedCuit);
+   *   },
+   * });
+   * ```
+   */
+  authorizeLookup?: (
+    ctx: IdentityLookupContext,
+  ) => IdentityLookupDecision | Promise<IdentityLookupDecision>;
 }
+
+/** Context passed to {@link IdentityToolsOptions.authorizeLookup}. */
+export interface IdentityLookupContext {
+  /** The raw CUIT string the agent passed to the tool, before normalization. */
+  cuit: string;
+  /** The validated, normalized 11-digit CUIT that will be sent to AFIP. */
+  normalizedCuit: string;
+}
+
+/**
+ * Return value of {@link IdentityToolsOptions.authorizeLookup}. `true` allows
+ * the lookup; `false` denies it with a generic message; an object lets you
+ * supply a caller-facing `reason` (surfaced as the tool's `error`).
+ */
+export type IdentityLookupDecision =
+  | boolean
+  | { allowed: boolean; reason?: string };
 
 export type IdentityToolName = "validate_cuit" | "lookup_cuit_afip";
 
@@ -105,8 +158,49 @@ export function identityTools(options: IdentityToolsOptions = {}): ToolSet {
           ),
       }),
       execute: async ({ cuit }) => {
-        const result = await afip.lookup(cuit);
-        return result;
+        // Enforce the checksum in code, not just in the tool description.
+        // A malformed/hostile CUIT never reaches the adapter (or AFIP).
+        const parsed = parseCuit(cuit);
+        if (!parsed.valid) {
+          return withRegistryProvenance({
+            cuit: parsed.normalized,
+            available: false,
+            error: `CUIT inválido — no se consultó AFIP. ${parsed.error ?? "Formato incorrecto."} Llamá a validate_cuit primero.`,
+            data: null,
+          } satisfies AfipPadronResult);
+        }
+
+        // Host-provided authorization / throttling gate (authz, rate limit,
+        // allowlist). Fail closed: deny if it returns false / { allowed:false }.
+        if (options.authorizeLookup) {
+          const decision = await options.authorizeLookup({
+            cuit,
+            normalizedCuit: parsed.normalized,
+          });
+          const allowed =
+            typeof decision === "boolean" ? decision : decision.allowed;
+          if (!allowed) {
+            const reason =
+              typeof decision === "object" ? decision.reason : undefined;
+            return withRegistryProvenance({
+              cuit: parsed.normalized,
+              available: false,
+              error:
+                reason ??
+                "AFIP lookup denied by the application's authorizeLookup policy (host-side authorization or rate limit). This is not an AFIP error.",
+              data: null,
+            } satisfies AfipPadronResult);
+          }
+        }
+
+        // Query with the validated/normalized CUIT, then sanitize the
+        // taxpayer-controlled free-text and tag provenance so the result
+        // re-enters the agent loop as untrusted data, not instructions.
+        const result = await afip.lookup(parsed.normalized);
+        return withRegistryProvenance({
+          ...result,
+          data: sanitizeAfipData(result.data),
+        });
       },
     }),
   } satisfies ToolSet;
