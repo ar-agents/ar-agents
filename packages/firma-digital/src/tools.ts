@@ -13,6 +13,7 @@ import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { verifyDetachedCmsSignature } from "./cms";
 import { parseCert, verifyChain } from "./x509";
+import type { ParsedCert } from "./types";
 
 export type FirmaDigitalToolName =
   | "firma_inspect_cert"
@@ -22,6 +23,15 @@ export type FirmaDigitalToolName =
 
 export interface FirmaDigitalToolsOptions {
   descriptions?: Partial<Record<FirmaDigitalToolName, string>>;
+  /**
+   * Pinned trust anchors (parsed AC-Raíz / ONTI root certs) the HOST trusts.
+   * Required for `firma_verify_chain` / `firma_verify_cms_signature` to ever
+   * return `valid:true` — trust is established by pinned fingerprint, never by
+   * a DN name heuristic, and never by a model-supplied parameter. Parse the
+   * official AC-Raíz PEMs with `parseCert()` and pass them here. When empty,
+   * those tools return `valid:false` with an informational `looksLikeArRoot`.
+   */
+  trustAnchors?: ParsedCert[];
 }
 
 const DEFAULT_DESCRIPTIONS: Record<FirmaDigitalToolName, string> = {
@@ -29,7 +39,7 @@ const DEFAULT_DESCRIPTIONS: Record<FirmaDigitalToolName, string> = {
     "Inspect an Argentine Firma Digital X.509 certificate (inspeccionar certificado de firma digital, PEM-encoded) and return its subject, issuer, validity window, CUIT (when embedded), public-key info, and signature algorithm. Detects whether the cert is issued under AR ONTI / AC-Raíz Argentina. USE THIS WHEN: the user pastes a cert and asks 'who is this' or 'is this real'. PURE FUNCTION, no I/O, sub-millisecond.",
 
   firma_verify_chain:
-    "Verify an X.509 certificate chain (verificar cadena de certificados; PEM bundle, leaf → root), checks issuer-by-subject linking, RSA signatures, validity window. Returns valid/reason + per-cert trace. By default accepts AR-ONTI-looking self-signed roots; pass explicit trust anchors for stricter checks. USE THIS WHEN: the user has a chain and needs to know whether to trust it. DO NOT USE for end-to-end document signature verification, for that use `firma_verify_cms_signature`.",
+    "Verify an X.509 certificate chain (verificar cadena de certificados; PEM bundle, leaf → root): checks issuer-by-subject linking, RSA/ECDSA signatures, CA basic-constraints, strong signature algorithms, and the validity window. Returns valid/reason + per-cert trace. `valid:true` REQUIRES the chain to anchor at a trust anchor the host has pinned; an AR-ONTI-looking root with no pinned anchor returns valid:false with an informational `looksLikeArRoot` (a name match is NOT proof of authenticity). USE THIS WHEN: the user has a chain and needs to know whether to trust it. DO NOT USE for end-to-end document signature verification, for that use `firma_verify_cms_signature`.",
 
   firma_is_onti_issued:
     "Check if a cert was issued under Argentine Firma Digital (¿es un certificado de firma digital argentina? AC-Raíz / ONTI ecosystem); quick yes/no. Heuristic-based on issuer DN attributes. PURE FUNCTION. USE THIS WHEN: triaging incoming signed docs to decide which verification path to take.",
@@ -63,12 +73,6 @@ export function firmaDigitalTools(options: FirmaDigitalToolsOptions = {}): ToolS
           .describe(
             "PEM bundle: concatenated CERTIFICATE blocks, leaf first, root last.",
           ),
-        accept_ar_onti_root: z
-          .boolean()
-          .optional()
-          .describe(
-            "Accept AR-ONTI-looking self-signed roots without an explicit trust anchor. Default true.",
-          ),
         now_iso: z
           .string()
           .optional()
@@ -77,8 +81,10 @@ export function firmaDigitalTools(options: FirmaDigitalToolsOptions = {}): ToolS
           ),
       }),
       execute: async (input) => {
+        // Trust anchors come from the HOST config, never from the model — the
+        // model cannot widen what is trusted.
         const opts: Parameters<typeof verifyChain>[1] = {};
-        if (input.accept_ar_onti_root !== undefined) opts.acceptArOntiRoot = input.accept_ar_onti_root;
+        if (options.trustAnchors) opts.trustAnchors = options.trustAnchors;
         if (input.now_iso !== undefined) opts.now = new Date(input.now_iso);
         return verifyChain(input.chain_pem, opts);
       },
@@ -122,6 +128,7 @@ export function firmaDigitalTools(options: FirmaDigitalToolsOptions = {}): ToolS
         const sigInput = bytesLooksPem(sigBytes) ? bytesToString(sigBytes) : sigBytes;
         const opts: Parameters<typeof verifyDetachedCmsSignature>[2] = {};
         if (input.verify_chain !== undefined) opts.verifyChain = input.verify_chain;
+        if (options.trustAnchors) opts.trustAnchors = options.trustAnchors;
         if (input.now_iso !== undefined) opts.now = new Date(input.now_iso);
         return verifyDetachedCmsSignature(sigInput, base64ToBytes(input.payload_b64), opts);
       },

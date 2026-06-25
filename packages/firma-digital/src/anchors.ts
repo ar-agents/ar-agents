@@ -1,20 +1,17 @@
 /**
- * Argentine Firma Digital — known trust anchors and recognized issuers.
+ * Argentine Firma Digital — trust anchors and (separately) issuer classification.
  *
- * Verification of an AR Firma Digital chain works by matching either
- * (a) the cert's issuer DN against AR-ONTI subject DN patterns, or
- * (b) a known SHA-256 fingerprint of an AR-ONTI / AC-Raíz cert.
+ * TRUST is established ONLY by pinned SHA-256 fingerprints of AC-Raíz / ONTI
+ * certs (a `TrustStore` the caller provides — `verifyChain`'s `trustAnchors`).
+ * DN/CN name matching below is CLASSIFICATION METADATA ONLY: DN strings are
+ * attacker-forgeable (anyone can mint a self-signed cert whose subject says
+ * "Autoridad Certificante Raíz"), so a name match must NEVER make a chain valid.
+ * The `looksLike*` helpers feed the informational `looksLikeArRoot` flag / the
+ * `isOnti*` summary fields for triage; chain validity ignores them entirely.
  *
- * The package ships a minimal default list. Production callers should
- * pass their own trust store with current AC-Raíz certs from
+ * The package ships an EMPTY default fingerprint list — production callers MUST
+ * pass current AC-Raíz certs from
  * `https://www.argentina.gob.ar/jefatura/innovacion-publica/ic/ac-raiz`.
- *
- * # Why both DN patterns and fingerprints?
- *
- * Argentine government CAs rotate periodically — pinning ONLY by
- * fingerprint is brittle. The DN patterns catch the general "issued by
- * AR national PKI" case even when the specific cert hasn't been added
- * to our list.
  */
 
 import type { ParsedCert } from "./types";
