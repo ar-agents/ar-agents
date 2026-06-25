@@ -4,6 +4,7 @@ import {
   IdentityAttestConfigError,
   InvalidAttestationSignatureError,
   InvalidOtpCodeError,
+  SubjectMismatchError,
   TooManyAttemptsError,
   VerificationExpiredError,
   VerificationRequestNotFoundError,
@@ -15,6 +16,48 @@ import type {
   VerificationStatus,
   VerificationSubject,
 } from "./types";
+
+/**
+ * In-process per-request lock. Serializes `completeVerification` for the same
+ * requestId so a store WITHOUT an atomic `decrementAttempts` can't be raced by
+ * concurrent submissions within this process. Cross-process safety requires an
+ * atomic `store.decrementAttempts`.
+ */
+const requestLocks = new Map<string, Promise<unknown>>();
+function withRequestLock<T>(key: string, fn: () => Promise<T>): Promise<T> {
+  const prev = requestLocks.get(key) ?? Promise.resolve();
+  const run = prev.then(fn, fn); // run fn after prev settles (success OR failure)
+  const tail = run.then(
+    () => {},
+    () => {},
+  );
+  requestLocks.set(key, tail);
+  void tail.finally(() => {
+    if (requestLocks.get(key) === tail) requestLocks.delete(key);
+  });
+  return run;
+}
+
+/** Type-aware equality for verification subjects (used for subject binding). */
+function subjectsMatch(a: VerificationSubject, b: VerificationSubject): boolean {
+  if (a.type !== b.type) return false;
+  return (
+    normalizeSubjectValue(a.type, a.value) ===
+    normalizeSubjectValue(b.type, b.value)
+  );
+}
+
+function normalizeSubjectValue(type: string, value: string): string {
+  const v = (value ?? "").trim();
+  if (type === "email") return v.toLowerCase();
+  if (type === "phone") {
+    // Preserve a single leading "+", drop every other non-digit.
+    const plus = v.startsWith("+") ? "+" : "";
+    return plus + v.replace(/\D/g, "");
+  }
+  // oauth / dni / cuit / custom: exact match after trim.
+  return v;
+}
 
 const DEFAULT_TTL_MINUTES = 15;
 const DEFAULT_ATTESTATION_VALIDITY_DAYS = 30;
@@ -274,11 +317,27 @@ export class AttestationClient {
       );
     }
 
-    // Atomically CLAIM an attempt slot BEFORE verifying. Doing this first (and
-    // atomically) means even a fully-concurrent burst of guesses can never run
-    // more than `maxAttempts` verifications — the previous read-modify-write
-    // let N concurrent wrong codes all read the same counter, all verify, and
-    // all write back the same decremented value (brute-force bypass).
+    // Run the attempt. Stores with an atomic `decrementAttempts` bound attempts
+    // in the store itself. Stores WITHOUT it need an in-process lock so the
+    // read-modify-write claim can't be raced within this process (a non-atomic
+    // store still cannot bound attempts ACROSS processes — implement
+    // `decrementAttempts` for a multi-process guarantee).
+    const run = (): Promise<Attestation> =>
+      this.runAttempt(requestId, request, internal, adapter, submitted);
+    return this.store.decrementAttempts
+      ? run()
+      : withRequestLock(requestId, run);
+  }
+
+  private async runAttempt(
+    requestId: string,
+    request: VerificationRequest,
+    internal: { secret: string },
+    adapter: AttestAdapter,
+    submitted: { code?: string; token?: string; oauthCode?: string },
+  ): Promise<Attestation> {
+    // CLAIM an attempt slot BEFORE verifying, so even a fully-concurrent burst
+    // can never run more than `maxAttempts` verifications.
     const remaining = await this.consumeAttempt(requestId);
     if (remaining === null) throw new VerificationRequestNotFoundError(requestId);
     if (remaining < 0) {
@@ -290,21 +349,21 @@ export class AttestationClient {
       throw new TooManyAttemptsError(requestId);
     }
 
-    let result: Awaited<ReturnType<typeof adapter.verify>>;
-    try {
-      result = await adapter.verify({
-        requestId,
-        storedSecret: internal.secret,
-        submitted,
-        subject: request.subject,
-      });
-    } catch (err) {
-      // Adapter infrastructure error (e.g., external IdP/API failure), NOT a
-      // wrong guess — refund the claimed slot so a transient failure doesn't
-      // burn a legitimate user's attempt.
-      await this.refundAttempt(requestId);
-      throw err;
-    }
+    // The claimed attempt is consumed UNCONDITIONALLY — a thrown adapter error
+    // counts as a used attempt. This bounds the TOTAL number of adapter.verify()
+    // calls (including ones that throw) to `maxAttempts`, closing both the OTP
+    // brute-force vector AND the cost/DoS vector where an attacker induces
+    // verify() to throw to drive unlimited external API calls. We deliberately
+    // do NOT refund on throw: "verify threw" is attacker-influenceable, so a
+    // refund there reopened the unbounded-attempts hole. (OTP/email adapters
+    // verify locally and never throw on a wrong code; for network-backed
+    // adapters, size `maxAttempts` with transient-error tolerance in mind.)
+    const result = await adapter.verify({
+      requestId,
+      storedSecret: internal.secret,
+      submitted,
+      subject: request.subject,
+    });
 
     if (!result.verified) {
       if (remaining <= 0) {
@@ -315,6 +374,24 @@ export class AttestationClient {
         throw new TooManyAttemptsError(requestId);
       }
       throw new InvalidOtpCodeError(remaining);
+    }
+
+    // Subject binding (defense in depth). If the channel authoritatively proved
+    // WHICH subject it controlled (a provider token carries an identity), it
+    // MUST equal the requested subject — otherwise a valid token for one
+    // identity could mint an attestation for another (the MercadoPago/Magic.link
+    // adapters returned the payer/token identity without comparing it). Fail
+    // closed and mark failed: this is an attack, not a retry, so do NOT leave it
+    // pending or refund. Adapters that bind via the delivery channel (OTP /
+    // magic-link sent to subject.value) omit verifiedSubject and skip this.
+    if (
+      result.verifiedSubject &&
+      !subjectsMatch(result.verifiedSubject, request.subject)
+    ) {
+      await this.store.updateRequest(requestId, {
+        status: "failed" as VerificationStatus,
+      });
+      throw new SubjectMismatchError(requestId);
     }
 
     // Success — issue attestation
@@ -342,10 +419,12 @@ export class AttestationClient {
   }
 
   /**
-   * Atomically claim one verification attempt, returning the new
-   * `attemptsRemaining` (may be negative if none were left). Prefers the
-   * store's atomic `decrementAttempts`; falls back to a read-modify-write for
-   * stores that don't implement it (single-process safe only).
+   * Claim one verification attempt, returning the new `attemptsRemaining` (may
+   * be negative if none were left). Prefers the store's ATOMIC
+   * `decrementAttempts`; falls back to a read-modify-write for stores that omit
+   * it — that fallback is only race-safe within a single process (the caller
+   * wraps it in {@link withRequestLock}); a multi-process deployment MUST
+   * implement `decrementAttempts`.
    */
   private async consumeAttempt(requestId: string): Promise<number | null> {
     if (this.store.decrementAttempts) {
@@ -356,19 +435,6 @@ export class AttestationClient {
     const next = found.internal.attemptsRemaining - 1;
     await this.store.updateRequest(requestId, { attemptsRemaining: next });
     return next;
-  }
-
-  /** Refund one attempt (see {@link AttestationStore.incrementAttempts}). */
-  private async refundAttempt(requestId: string): Promise<void> {
-    if (this.store.incrementAttempts) {
-      await this.store.incrementAttempts(requestId);
-      return;
-    }
-    const found = await this.store.getRequest(requestId);
-    if (!found) return;
-    await this.store.updateRequest(requestId, {
-      attemptsRemaining: found.internal.attemptsRemaining + 1,
-    });
   }
 
   private async signAttestation(a: Attestation): Promise<string> {

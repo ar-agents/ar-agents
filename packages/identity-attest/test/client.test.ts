@@ -4,6 +4,7 @@ import {
   EmailMagicLinkAdapter,
   InMemoryAttestationStore,
   InvalidOtpCodeError,
+  SubjectMismatchError,
   TooManyAttemptsError,
   VerificationExpiredError,
   VerificationRequestNotFoundError,
@@ -12,6 +13,7 @@ import {
   type AttestationStore,
   type EmailSender,
   type TrustLevel,
+  type VerificationSubject,
   type WhatsAppLikeClient,
 } from "../src";
 
@@ -227,46 +229,48 @@ describe("OTP attempt counter — concurrency hardening (DeepSec MEDIUM)", () =>
     expect(results.filter((r) => r.status === "fulfilled")).toHaveLength(1);
   });
 
-  it("refunds the attempt when the adapter throws an infrastructure error", async () => {
-    let throwOnce = true;
-    class FlakyAdapter implements AttestAdapter {
-      readonly id = "flaky";
+  it("CONSUMES the attempt when the adapter throws (no refund — bounds total verify calls)", async () => {
+    // A thrown verify() is attacker-influenceable, so it must NOT be free:
+    // every submission, throw or not, costs one attempt. This caps total
+    // adapter.verify() invocations (the cost/DoS + brute-force vector).
+    class ThrowingAdapter implements AttestAdapter {
+      readonly id = "throwing";
       readonly trustLevel = 0.3 as TrustLevel;
+      verifyCalls = 0;
       generateSecret(): string {
         return "123456";
       }
       async deliverChallenge(): Promise<void> {}
-      async verify(p: {
-        submitted: { code?: string };
-      }): Promise<{ verified: true } | { verified: false; reason: string }> {
-        if (throwOnce) {
-          throwOnce = false;
-          throw new Error("IdP down");
-        }
-        return p.submitted.code === "123456"
-          ? { verified: true }
-          : { verified: false, reason: "wrong" };
+      async verify(): Promise<{ verified: true } | { verified: false; reason: string }> {
+        this.verifyCalls++;
+        throw new Error("IdP down");
       }
     }
+    const adapter = new ThrowingAdapter();
     const client = new AttestationClient({
       signingSecret: SIGNING_SECRET,
-      adapters: { flaky: new FlakyAdapter() },
-      maxAttempts: 1, // only one attempt — refund must restore it
+      adapters: { throwing: adapter },
+      maxAttempts: 2,
     });
     const req = await client.requestVerification({
-      method: "flaky",
+      method: "throwing",
       subject: { type: "phone", value: "+5491100000002" },
     });
-    await expect(client.submitOtp(req.requestId, "123456")).rejects.toThrow(/IdP down/);
-    // The throw refunded the slot, so the retry (now succeeding) still has budget.
-    const att = await client.submitOtp(req.requestId, "123456");
-    expect(att.requestId).toBe(req.requestId);
+    await expect(client.submitOtp(req.requestId, "x")).rejects.toThrow(/IdP down/);
+    await expect(client.submitOtp(req.requestId, "x")).rejects.toThrow(/IdP down/);
+    // Budget exhausted by the two throws — no unlimited retries.
+    await expect(client.submitOtp(req.requestId, "x")).rejects.toBeInstanceOf(
+      TooManyAttemptsError,
+    );
+    expect(adapter.verifyCalls).toBe(2); // capped at maxAttempts, NOT unbounded
   });
 
-  it("works against a store WITHOUT atomic decrement/increment (RMW fallback)", async () => {
+  it("caps attempts under concurrency even when the store lacks atomic decrement (in-process lock)", async () => {
     const inner = new InMemoryAttestationStore();
-    // Expose only the required methods → no decrementAttempts/incrementAttempts,
-    // forcing the client's read-modify-write fallback path.
+    // Expose only the required methods → no decrementAttempts → forces the
+    // read-modify-write fallback, which the client serializes per-request with
+    // an in-process lock. Without that lock, 20 concurrent guesses race to 20
+    // verify() calls (the bypass); with it, the cap holds.
     const nonAtomic: AttestationStore = {
       saveRequest: inner.saveRequest.bind(inner),
       updateRequest: inner.updateRequest.bind(inner),
@@ -275,45 +279,82 @@ describe("OTP attempt counter — concurrency hardening (DeepSec MEDIUM)", () =>
       getAttestation: inner.getAttestation.bind(inner),
       listAttestationsForSubject: inner.listAttestationsForSubject.bind(inner),
     };
-
-    let throwOnce = true;
-    class FlakyCounting implements AttestAdapter {
-      readonly id = "fc";
-      readonly trustLevel = 0.3 as TrustLevel;
-      generateSecret(): string {
-        return "123456";
-      }
-      async deliverChallenge(): Promise<void> {}
-      async verify(p: {
-        submitted: { code?: string };
-      }): Promise<{ verified: true } | { verified: false; reason: string }> {
-        if (throwOnce) {
-          throwOnce = false;
-          throw new Error("transient");
-        }
-        return p.submitted.code === "123456"
-          ? { verified: true }
-          : { verified: false, reason: "wrong" };
-      }
-    }
+    const adapter = new CountingAdapter();
     const client = new AttestationClient({
       signingSecret: SIGNING_SECRET,
-      adapters: { fc: new FlakyCounting() },
+      adapters: { counting: adapter },
       store: nonAtomic,
-      maxAttempts: 2,
+      maxAttempts: 3,
     });
     const req = await client.requestVerification({
-      method: "fc",
+      method: "counting",
       subject: { type: "phone", value: "+5491100000003" },
     });
-    // 1st: adapter throws → fallback refund restores the slot.
-    await expect(client.submitOtp(req.requestId, "123456")).rejects.toThrow(/transient/);
-    // 2nd: wrong code → fallback decrement (2 left after refund → 1).
-    await expect(client.submitOtp(req.requestId, "000000")).rejects.toBeInstanceOf(
-      InvalidOtpCodeError,
+    const results = await Promise.allSettled(
+      Array.from({ length: 20 }, () => client.submitOtp(req.requestId, "000000")),
     );
-    // 3rd: correct code → success (1 attempt still left).
-    const att = await client.submitOtp(req.requestId, "123456");
+    expect(adapter.verifyCalls).toBeLessThanOrEqual(3);
+    expect(results.every((r) => r.status === "rejected")).toBe(true);
+    expect((await client.getRequestStatus(req.requestId)).status).toBe("failed");
+  });
+});
+
+describe("subject binding (verifiedSubject) — DeepSec deferred HIGH", () => {
+  class StubAdapter implements AttestAdapter {
+    readonly id = "stub";
+    readonly trustLevel = 0.5 as TrustLevel;
+    constructor(private readonly vs?: VerificationSubject) {}
+    generateSecret(): string {
+      return "x";
+    }
+    async deliverChallenge(): Promise<void> {}
+    async verify(): Promise<
+      | { verified: true; verifiedSubject?: VerificationSubject }
+      | { verified: false; reason: string }
+    > {
+      return this.vs ? { verified: true, verifiedSubject: this.vs } : { verified: true };
+    }
+  }
+
+  it("rejects (fail closed) when the proven subject differs from the requested subject", async () => {
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { stub: new StubAdapter({ type: "email", value: "attacker@evil.com" }) },
+    });
+    const req = await client.requestVerification({
+      method: "stub",
+      subject: { type: "email", value: "victim@good.com" },
+    });
+    await expect(client.submitOtp(req.requestId, "anything")).rejects.toBeInstanceOf(
+      SubjectMismatchError,
+    );
+    expect(await client.getAttestation(req.requestId)).toBeNull(); // no attestation minted
+    expect((await client.getRequestStatus(req.requestId)).status).toBe("failed");
+  });
+
+  it("issues when the proven subject matches (case/whitespace-insensitive for email)", async () => {
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { stub: new StubAdapter({ type: "email", value: " USER@Good.com " }) },
+    });
+    const req = await client.requestVerification({
+      method: "stub",
+      subject: { type: "email", value: "user@good.com" },
+    });
+    const att = await client.submitOtp(req.requestId, "x");
+    expect(att.subject).toEqual({ type: "email", value: "user@good.com" });
+  });
+
+  it("issues normally when the adapter OMITS verifiedSubject (channel-bound adapters)", async () => {
+    const client = new AttestationClient({
+      signingSecret: SIGNING_SECRET,
+      adapters: { stub: new StubAdapter() },
+    });
+    const req = await client.requestVerification({
+      method: "stub",
+      subject: { type: "phone", value: "+5491111111111" },
+    });
+    const att = await client.submitOtp(req.requestId, "x");
     expect(att.requestId).toBe(req.requestId);
   });
 });
