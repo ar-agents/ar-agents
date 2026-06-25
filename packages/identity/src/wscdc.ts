@@ -98,6 +98,19 @@ export function buildGetPersonaSoap(params: {
 }): string {
   const service = params.service ?? CONSTANCIA_INSCRIPCION_SERVICE_NAME;
   const { prefix, uri } = SERVICE_NAMESPACES[service];
+  // CUIT fields MUST be exactly 11 digits. Validate before building the envelope
+  // so a malformed/hostile value can't break out of the XML context (SOAP
+  // injection); escapeXml below is defense-in-depth.
+  for (const [field, value] of [
+    ["cuitRepresentado", params.cuitRepresentado],
+    ["cuitToQuery", params.cuitToQuery],
+  ] as const) {
+    if (!/^\d{11}$/.test(value)) {
+      throw new Error(
+        `buildGetPersonaSoap: ${field} must be exactly 11 digits (CUIT), got ${JSON.stringify(value).slice(0, 40)}.`,
+      );
+    }
+  }
   return `<?xml version="1.0" encoding="UTF-8"?>
 <soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:${prefix}="${uri}">
   <soapenv:Header/>
@@ -105,8 +118,8 @@ export function buildGetPersonaSoap(params: {
     <${prefix}:getPersona>
       <token>${escapeXml(params.ta.token)}</token>
       <sign>${escapeXml(params.ta.sign)}</sign>
-      <cuitRepresentada>${params.cuitRepresentado}</cuitRepresentada>
-      <idPersona>${params.cuitToQuery}</idPersona>
+      <cuitRepresentada>${escapeXml(params.cuitRepresentado)}</cuitRepresentada>
+      <idPersona>${escapeXml(params.cuitToQuery)}</idPersona>
     </${prefix}:getPersona>
   </soapenv:Body>
 </soapenv:Envelope>`;
