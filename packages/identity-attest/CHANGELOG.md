@@ -1,5 +1,16 @@
 # Changelog
 
+## 0.7.0
+
+### Minor Changes
+
+- [#92](https://github.com/ar-agents/ar-agents/pull/92) [`f200577`](https://github.com/ar-agents/ar-agents/commit/f200577ee4f1f09aab8b27055b2b12cb817884df) Thanks [@naza00000](https://github.com/naza00000)! - Harden identity attestation against OTP brute-force races and cross-tenant reads (DeepSec MEDIUM).
+
+  - **OTP attempt counter race** (`rate-limit-bypass`): `completeVerification` decremented `attemptsRemaining` with a non-atomic read-modify-write, so concurrent wrong submissions could all read the same counter and exceed `maxAttempts`. The client now atomically CLAIMS an attempt (new `AttestationStore.decrementAttempts`) BEFORE verifying, so even a fully concurrent burst can never run more than `maxAttempts` verifications. Infrastructure errors from an adapter refund the slot (new `AttestationStore.incrementAttempts`) so a transient external-IdP failure doesn't burn a legitimate user's attempt. Both new store methods are optional — stores that omit them fall back to a (single-process-safe) read-modify-write. `InMemoryAttestationStore` implements both atomically.
+  - **Cross-tenant attestation reads** (`cross-tenant-id`): `check_verification_status` and `get_attestation` returned subject/claims/signature for any caller-supplied `request_id`. New optional `IdentityAttestToolsOptions.authorizeRead(ctx)` hook gates both read tools — construct the tools per request with the caller bound (e.g. compare `ctx.externalReference`), return `false` to deny, and the tool responds with `not_authorized` exposing no data. Omitting it preserves current behavior.
+
+  New exports: `IdentityAttestReadContext`.
+
 ## 0.6.0
 
 ### Minor Changes
@@ -12,8 +23,8 @@
     signature. Signing is now a canonical (sorted-key) serialization of every
     security-relevant field. BREAKING: signatures issued by older versions no
     longer verify (they were forgeable on those fields).
-  - **Auth0 verification binds to the requested subject.** A valid Auth0 id_token
-    for a _different_ account no longer satisfies a request: `subject.type:"oauth"`
+  - **Auth0 verification binds to the requested subject.** A valid Auth0 id*token
+    for a \_different* account no longer satisfies a request: `subject.type:"oauth"`
     requires `payload.sub === subject.value`; `"email"` requires
     `payload.email === subject.value` and `email_verified === true`; other subject
     types are rejected.
