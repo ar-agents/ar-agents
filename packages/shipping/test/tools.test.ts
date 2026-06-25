@@ -5,7 +5,7 @@ import type { Address, PackageInfo } from "../src/types";
 
 const origin: Address = {
   name: "Naza",
-  street: "Cabo Corrientes",
+  street: "Calle Falsa",
   number: "468",
   city: "Monte Grande",
   state: "B",

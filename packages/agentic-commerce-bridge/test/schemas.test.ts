@@ -54,7 +54,7 @@ describe("Address", () => {
   it("requires name, line_one, city, state, country (alpha-2), postal_code", () => {
     const ok = Address.safeParse({
       name: "Naza Clemente",
-      line_one: "Cabo Corrientes 468",
+      line_one: "Calle Falsa 123",
       city: "Monte Grande",
       state: "Buenos Aires",
       country: "AR",
