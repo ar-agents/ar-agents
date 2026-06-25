@@ -1,5 +1,13 @@
 # whatsapp-hello
 
+## 0.1.19
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/identity@0.8.2
+  - @ar-agents/mercadopago@0.18.3
+
 ## 0.1.18
 
 ### Patch Changes

@@ -1,5 +1,11 @@
 # @ar-agents/wscdc
 
+## 0.2.3
+
+### Patch Changes
+
+- Rebuild and republish from PII-scrubbed source. Versions published before the 2026-06-17 fixture scrub shipped a real CUIT and address in their README/AGENTS/cookbook/dist; this rebuild from the now-clean source removes them. No API changes. The earlier contaminated versions are deprecated on npm.
+
 ## 0.2.2
 
 ### Patch Changes

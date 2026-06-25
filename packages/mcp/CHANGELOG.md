@@ -1,5 +1,18 @@
 # Changelog
 
+## 0.10.7
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/banking@0.5.2
+  - @ar-agents/boletin-oficial@0.2.2
+  - @ar-agents/facturacion@0.4.2
+  - @ar-agents/firma-digital@0.2.3
+  - @ar-agents/identity@0.8.2
+  - @ar-agents/igj@0.2.3
+  - @ar-agents/mercadopago@0.18.3
+
 ## 0.10.6
 
 ### Patch Changes

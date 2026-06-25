@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/firma-digital",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "Argentine Firma Digital (Ley 25.506 / ONTI) verification primitives as drop-in tools for the Vercel AI SDK. Parse X.509 certs, validate chains anchored at AC-Raíz Argentina, verify CMS/PKCS#7 detached signatures, extract CUIT from signer subject. Read-only: intended for verification, not signing (signing requires hardware tokens).",
   "keywords": [
     "firma-digital",

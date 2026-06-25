@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/ap2",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "First faithful TypeScript implementation of the Agent Payments Protocol (AP2) v0.2. Schemas, ES256 SD-JWT VC mandates (Checkout + Payment, open + closed), 8 constraint evaluators, and signed Checkout/Payment receipts. Edge-Runtime-compatible. Aligned with the FIDO Alliance Agentic Auth Working Group reference Python SDK.",
   "keywords": [
     "ap2",
