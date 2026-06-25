@@ -30,7 +30,18 @@ export {
   validateCuitTool,
   type IdentityToolName,
   type IdentityToolsOptions,
+  type IdentityLookupContext,
+  type IdentityLookupDecision,
 } from "./tools";
+
+// Prompt-injection / provenance helpers for AFIP registry data.
+export {
+  sanitizeRegistryText,
+  sanitizeAfipData,
+  withRegistryProvenance,
+  REGISTRY_PROVENANCE,
+  type RegistryProvenance,
+} from "./sanitize";
 
 // Result types for AFIP lookups.
 export type {

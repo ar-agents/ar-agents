@@ -1,5 +1,6 @@
 import { fetchWithRetry, type AccessTicket, type AfipEnv } from "./wsaa";
 import type { AfipPadronData } from "./types";
+import { sanitizeAfipData, sanitizeRegistryText } from "./sanitize";
 
 /**
  * AFIP padrón webservice client. Two related services live behind almost the
@@ -213,12 +214,12 @@ export function parseGetPersonaResponse(
   // AFIP returns errorConstancia or a fault if the CUIT isn't found.
   const errMsg = extractTag(responseXml, "error");
   if (errMsg && /no.*encontrad|inexistente|no.*registr/i.test(errMsg)) {
-    return { found: false, data: null, rawError: errMsg };
+    return { found: false, data: null, rawError: sanitizeRegistryText(errMsg) };
   }
   // SRValidationException: AFIP signals "no encontrada" via SOAP fault too.
   const faultString = extractTag(responseXml, "faultstring");
   if (faultString && /no.*encontrad|inexistente|no.*registr|no se encontr/i.test(faultString)) {
-    return { found: false, data: null, rawError: faultString };
+    return { found: false, data: null, rawError: sanitizeRegistryText(faultString) };
   }
 
   // Detect shape: constancia has <datosGenerales>; A13 has flat <persona>.
@@ -326,7 +327,9 @@ export function parseGetPersonaResponse(
     return {
       found: false,
       data: null,
-      rawError: "AFIP response did not include persona data. Raw: " + responseXml.slice(0, 300),
+      rawError:
+        "AFIP response did not include persona data. Raw: " +
+        sanitizeRegistryText(responseXml.slice(0, 300)),
     };
   }
 
@@ -334,16 +337,20 @@ export function parseGetPersonaResponse(
     razonSocial ??
     [apellido, nombreSimple].filter(Boolean).join(" ").trim();
 
+  // AFIP free-text fields are taxpayer-controlled and re-enter the agent loop
+  // via the tool layer; neutralize the covert-instruction channel here so even
+  // direct `getPersona` callers get sanitized data (defense-in-depth — the
+  // tool layer also sanitizes + tags provenance for non-WSCDC adapters).
   return {
     found: true,
-    data: {
+    data: sanitizeAfipData({
       nombre: nombre || (tipoPersona ?? "Sin nombre"),
       condicion,
       monotributoCategoria,
       fechaInscripcion,
       domicilioFiscal: domicilioStr,
       actividades,
-    },
+    }),
     rawError: null,
   };
 }
