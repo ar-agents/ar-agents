@@ -1,5 +1,12 @@
 # sociedad-ia-starter
 
+## 0.1.11
+
+### Patch Changes
+
+- Updated dependencies [[`e73be19`](https://github.com/ar-agents/ar-agents/commit/e73be1945206b3f2ebce0eed13a74ada238b6c22)]:
+  - @ar-agents/mercadopago@0.18.4
+
 ## 0.1.10
 
 ### Patch Changes

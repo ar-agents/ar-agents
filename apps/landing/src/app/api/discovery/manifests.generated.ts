@@ -1154,7 +1154,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/mercadopago",
-    "version": "0.18.3",
+    "version": "0.18.4",
     "factory": "mercadoPagoTools",
     "tools": [
       {

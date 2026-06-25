@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/mercadopago",
-  "version": "0.18.3",
+  "version": "0.18.4",
   "description": "Mercado Pago Agent Toolkit for the Vercel AI SDK 6. 89 typed tools across the agent-relevant Mercado Pago API surface: Subscriptions, Payments, Checkout Pro, Marketplace OAuth, Order Management, Customers, Cards, Cuotas, QR, 3DS, Point devices, Webhooks, Stores+POS, Account/Balance/Settlements, Disputes, Lookups, Bank Accounts. Edge Runtime. Vercel KV adapters. OpenTelemetry. Deterministic idempotency. Programmatic HITL on irreversible ops.",
   "keywords": [
     "mercadopago",
