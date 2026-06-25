@@ -1,5 +1,18 @@
 # @ar-agents/core
 
+## 0.2.1
+
+### Patch Changes
+
+- [#85](https://github.com/ar-agents/ar-agents/pull/85) [`d2b62d9`](https://github.com/ar-agents/ar-agents/commit/d2b62d9d576312e0f2f2789a5a9613cfc56472ac) Thanks [@naza00000](https://github.com/naza00000)! - Security: `withTimeout` now throws a NON-retryable timeout error. Previously it
+  marked the timeout `retryable: true` while NOT cancelling the underlying call,
+  so composing `withApproval` + `withRetry` + `withTimeout` could re-invoke a
+  still-running side-effectful tool after a timeout — turning one approved
+  money/fiscal/irreversible action into several (double-execution). An uncancelled
+  timeout must not be retried; retry-on-timeout is only safe once execution is
+  genuinely aborted (AbortSignal) or protected by a deterministic idempotency key.
+  (Found by a DeepSec audit; regression test added.)
+
 ## 0.1.0
 
 ### Minor Changes
