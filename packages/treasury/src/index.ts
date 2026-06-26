@@ -391,6 +391,18 @@ export {
 } from "./mural";
 
 export {
+  BitsoOffRampAdapter,
+  type BitsoConfig,
+  BitsoApiError,
+  BitsoAuthError,
+  BitsoRateLimitError,
+  normalizeBitsoStatus,
+  deriveOriginId,
+  BITSO_PROD,
+  BITSO_SANDBOX,
+} from "./bitso";
+
+export {
   MONOTRIBUTO_2026,
   MONOTRIBUTO_TABLE_EFFECTIVE,
   type MonotributoCategory,
