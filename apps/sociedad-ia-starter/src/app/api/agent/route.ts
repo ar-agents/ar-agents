@@ -13,6 +13,7 @@ import { NextResponse } from "next/server";
 import { z } from "zod";
 import { buildAgent } from "@/lib/agent";
 import { clientStatus } from "@/lib/clients";
+import { clientIp, guardResponse, rateLimit, requireApiKey } from "@/lib/guard";
 
 const Body = z.object({
   prompt: z.string().min(1).max(8000),
@@ -20,6 +21,20 @@ const Body = z.object({
 });
 
 export async function POST(req: Request) {
+  // Fail-closed auth: the agent loop wires real @ar-agents/* tools and spends
+  // Anthropic tokens, so it must never run for an anonymous caller. Requires
+  // AGENT_API_KEY (503 until configured) + a valid key (401 otherwise).
+  const auth = requireApiKey(req);
+  if (!auth.ok) return guardResponse(auth);
+
+  // Per-IP abuse limit before the expensive model + external API calls.
+  if (!rateLimit("agent", clientIp(req), 20, 60_000)) {
+    return NextResponse.json(
+      { error: "rate_limited", message: "Too many requests. Try again in a minute." },
+      { status: 429 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await req.json();
@@ -66,7 +81,9 @@ export async function GET() {
   return NextResponse.json({
     endpoint: "/api/agent",
     method: "POST",
-    body: { prompt: "string (1-8000 chars)" },
+    auth: "Required. Authorization: Bearer <AGENT_API_KEY> (or x-api-key). 503 until AGENT_API_KEY is set.",
+    rateLimit: "20 requests / minute / IP",
+    body: { prompt: "string (1-8000 chars)", system: "string (optional, ≤4000 chars)" },
     clientStatus: clientStatus(),
   });
 }
