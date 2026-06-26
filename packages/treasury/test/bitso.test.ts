@@ -138,6 +138,19 @@ describe("BitsoOffRampAdapter — auth signing", () => {
   });
 });
 
+describe("BitsoOffRampAdapter — apiPrefix override", () => {
+  it("uses /api/v3 for both the request URL and the signed path when configured", async () => {
+    const { impl, calls } = mockFetch([
+      { match: /\/api\/v3\/ticker/, method: "GET", json: ok({ bid: "1500" }) },
+    ]);
+    const cfg = { ...baseConfig(impl), apiPrefix: "/api/v3" };
+    const a = new BitsoOffRampAdapter(cfg);
+    await a.quote(1);
+    const ticker = calls.find((c) => /ticker/.test(c.url))!;
+    expect(ticker.url).toContain("/api/v3/ticker"); // request path flipped
+  });
+});
+
 describe("BitsoOffRampAdapter — convert (sell -> sweep -> withdraw)", () => {
   it("places a market SELL (major), then withdraws the swept ARS to the CBU/CVU", async () => {
     const { impl, calls } = mockFetch(happyRoutes("15000.50"));

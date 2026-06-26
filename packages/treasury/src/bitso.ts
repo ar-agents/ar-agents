@@ -91,6 +91,13 @@ export interface BitsoConfig {
   spread?: number;
   /** API base URL. Default = prod. Pass BITSO_SANDBOX while testing. */
   baseUrl?: string;
+  /**
+   * Path prefix before the resource, used for BOTH the request URL and the
+   * signed path (they must match exactly). Default "/v3" (the api.bitso.com
+   * host). Bitso's docs also show a `bitso.com/api/v3/...` form — if your host
+   * needs it, set apiPrefix to "/api/v3". Confirm with one signed call.
+   */
+  apiPrefix?: string;
   /** Injectable fetch (tests / non-global-fetch runtimes). */
   fetchImpl?: typeof fetch;
   /** Injectable nonce clock (ms). Default Date.now. */
@@ -193,6 +200,7 @@ interface BitsoWithdrawal {
 
 export class BitsoOffRampAdapter implements OffRampAdapter {
   private readonly baseUrl: string;
+  private readonly apiPrefix: string;
   private readonly book: string;
   private readonly cvuType: "cvu" | "cbu";
   private readonly withdrawMethod: string;
@@ -208,6 +216,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     if (!config.cvu) throw new Error("BitsoConfig.cvu is required");
     if (!config.recipientName) throw new Error("BitsoConfig.recipientName is required");
     this.baseUrl = (config.baseUrl ?? BITSO_PROD).replace(/\/+$/, "");
+    this.apiPrefix = `/${(config.apiPrefix ?? "/v3").replace(/^\/+|\/+$/g, "")}`;
     this.book = config.book ?? "usdt_ars";
     this.cvuType = config.cvuType ?? "cvu";
     this.withdrawMethod = config.withdrawMethod ?? "bind";
@@ -276,7 +285,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
   async quote(amountUsd: Usd): Promise<OffRampQuote> {
     const t = await this.request<{ bid?: string }>(
       "GET",
-      `/v3/ticker?book=${encodeURIComponent(this.book)}`,
+      `${this.apiPrefix}/ticker?book=${encodeURIComponent(this.book)}`,
       { public: true },
     );
     const bid = num(t?.bid);
@@ -291,7 +300,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
   private async availableArs(): Promise<string | undefined> {
     const bal = await this.request<{ balances?: Array<{ currency?: string; available?: string }> }>(
       "GET",
-      "/v3/balance",
+      `${this.apiPrefix}/balance`,
     );
     const row = (bal?.balances ?? []).find((b) => b.currency === "ars");
     return row?.available;
@@ -302,7 +311,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     try {
       const list = await this.request<BitsoWithdrawal[]>(
         "GET",
-        `/v3/withdrawals?origin_ids=${encodeURIComponent(originId)}`,
+        `${this.apiPrefix}/withdrawals?origin_ids=${encodeURIComponent(originId)}`,
       );
       return Array.isArray(list) ? list.find((w) => w.origin_id === originId) ?? list[0] : undefined;
     } catch {
@@ -337,7 +346,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     }
 
     // 1. Market-sell the USDT for ARS (major = base-asset amount to sell).
-    await this.request<{ oid?: string }>("POST", "/v3/orders", {
+    await this.request<{ oid?: string }>("POST", `${this.apiPrefix}/orders`, {
       body: { book: this.book, side: "sell", type: "market", major: String(amountUsd) },
     });
 
@@ -351,7 +360,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     }
 
     // 3. Withdraw ARS to the CBU/CVU (idempotent via origin_id).
-    const wd = await this.request<BitsoWithdrawal>("POST", "/v3/withdrawals", {
+    const wd = await this.request<BitsoWithdrawal>("POST", `${this.apiPrefix}/withdrawals`, {
       body: {
         asset: "ars",
         currency: "ars",
@@ -380,7 +389,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
   async getStatus(txId: string): Promise<OffRampStatusReport> {
     const wd = await this.request<BitsoWithdrawal>(
       "GET",
-      `/v3/withdrawals/${encodeURIComponent(txId)}`,
+      `${this.apiPrefix}/withdrawals/${encodeURIComponent(txId)}`,
     );
     const raw = typeof wd?.status === "string" ? wd.status : undefined;
     const status = normalizeBitsoStatus(raw);
