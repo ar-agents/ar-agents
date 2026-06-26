@@ -1,5 +1,12 @@
 # sociedad-ia-starter
 
+## 0.1.13
+
+### Patch Changes
+
+- Updated dependencies [[`82e5afa`](https://github.com/ar-agents/ar-agents/commit/82e5afa5ff4b0a4802f5d4576275fe32cfc775d7)]:
+  - @ar-agents/treasury@0.3.0
+
 ## 0.1.12
 
 ### Patch Changes
