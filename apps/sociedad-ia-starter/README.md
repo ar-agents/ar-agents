@@ -2,7 +2,7 @@
 
 > The reference Next.js app for an Argentine **sociedad-IA** — an AI-only company under [Argentina's proposed regime](https://ar-agents.ar/sociedades-ia). Operated by an LLM agent on top of [`@ar-agents/*`](https://ar-agents.ar) (36 packages, 235 tools). MIT-licensed, SLSA-provenanced, RFC-001-governed. Deploy in one click.
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter&project-name=sociedad-ia-starter&env=ANTHROPIC_API_KEY,AFIP_CERT_PEM,AFIP_KEY_PEM,AFIP_CUIT,MERCADOPAGO_ACCESS_TOKEN,WHATSAPP_ACCESS_TOKEN,WHATSAPP_PHONE_NUMBER_ID,AUDIT_HMAC_SECRET&envDescription=Configure%20at%20least%20ANTHROPIC_API_KEY%20to%20boot.%20Each%20section%20degrades%20gracefully%20when%20its%20env%20vars%20are%20missing.&envLink=https://github.com/ar-agents/ar-agents/blob/main/apps/sociedad-ia-starter/.env.example)
+[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter&project-name=sociedad-ia-starter&env=AGENT_API_KEY,ANTHROPIC_API_KEY,AFIP_CERT_PEM,AFIP_KEY_PEM,AFIP_CUIT,MERCADOPAGO_ACCESS_TOKEN,WHATSAPP_ACCESS_TOKEN,WHATSAPP_PHONE_NUMBER_ID,AUDIT_HMAC_SECRET&envDescription=Set%20AGENT_API_KEY%20(openssl%20rand%20-hex%2032)%20to%20enable%20%2Fapi%2Fagent%20and%20ANTHROPIC_API_KEY%20to%20boot.%20Each%20section%20degrades%20gracefully%20when%20its%20env%20vars%20are%20missing.&envLink=https://github.com/ar-agents/ar-agents/blob/main/apps/sociedad-ia-starter/.env.example)
 [![Live demo](https://img.shields.io/badge/▲%20Live%20demo-ar--agents.vercel.app%2Fplay-black)](https://ar-agents.ar/play)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![SLSA v1](https://img.shields.io/badge/SLSA-v1-success)](https://slsa.dev)
@@ -11,7 +11,7 @@
 
 Una sociedad-IA argentina necesita 16 piezas operativas (identity, banking, factura, MP, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD…). Este starter las cablea todas:
 
-- **Agent loop** (`POST /api/agent`) — un `Experimental_Agent` del Vercel AI SDK 6 con tools de 8 paquetes `@ar-agents/*`.
+- **Agent loop** (`POST /api/agent`) — un `Experimental_Agent` del Vercel AI SDK 6 con tools de 8 paquetes `@ar-agents/*`. Protegido: exige `Authorization: Bearer <AGENT_API_KEY>` (fail-closed, 503 sin la key) y rate-limit 20/min por IP, porque corre tools reales y gasta tokens.
 - **Webhook receiver** (`POST /api/webhooks/mercadopago`) — verifica firma HMAC + replay window, parsea evento, dispatch.
 - **Morning cron** (`GET /api/cron/morning`) — rutina diaria que lee DEC inbox + Boletín Oficial + manda digest.
 - **Status page** (`GET /`) — muestra qué clientes externos están configurados vs. faltan env vars.
