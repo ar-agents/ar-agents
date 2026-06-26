@@ -80,6 +80,12 @@ jobs:
         run: pnpm --filter ar-agents-landing run typecheck
       - name: Test landing
         run: pnpm --filter ar-agents-landing run test
+      # Starter app: typecheck + test the security guards (auth/rate-limit) so
+      # the reference template can't regress to the unauthenticated agent loop.
+      - name: Typecheck starter
+        run: pnpm --filter sociedad-ia-starter run typecheck
+      - name: Test starter
+        run: pnpm --filter sociedad-ia-starter run test
       # Lint is informational for now: the landing carries ~180 pre-existing
       # lint errors (mostly react/no-unescaped-entities across marketing pages)
       # from before it was ever in CI. Surfacing them without blocking; the
