@@ -18,14 +18,14 @@ const geistMono = Geist_Mono({
 // truncation). Lead with the umbrella story (open infrastructure for AR
 // sociedades-IA), follow with proof points (36 packages, 6 RFCs, audit log).
 const META_DESCRIPTION =
-  "Creá y registrá una sociedad automatizada en Argentina, una empresa operada por agentes de IA. Rieles abiertas y El Auditor, la prueba firmada de cada decisión. Open source.";
+  "Creá una sociedad automatizada en Argentina, una empresa operada por agentes de IA. Rieles abiertas y El Auditor, la prueba firmada de cada decisión. Open source.";
 
 const SITE_URL = "https://ar-agents.ar";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "ar-agents · creá y registrá una sociedad automatizada en Argentina",
+    default: "ar-agents · creá una sociedad automatizada en Argentina",
     template: "%s · ar-agents",
   },
   description: META_DESCRIPTION,
@@ -71,7 +71,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "ar-agents",
-    title: "ar-agents · creá y registrá una sociedad automatizada en Argentina",
+    title: "ar-agents · creá una sociedad automatizada en Argentina",
     description:
       "Una empresa operada por agentes de IA. Rieles abiertas (pagos, identidad, facturación, banca) y El Auditor, la prueba firmada de cada decisión. Open source.",
     url: SITE_URL,
