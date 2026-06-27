@@ -99,24 +99,24 @@ export default function Home() {
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
         {/* HERO: centered wide title, then content (left) + card (right) */}
         <header style={{ marginBottom: 96, paddingTop: 16 }}>
-          <p style={{ ...eyebrow, textAlign: "center" }}>
+          <p style={eyebrow}>
             {es ? "Sociedades automatizadas · Argentina" : "Automated companies · Argentina"}
           </p>
           <h1
             style={{
-              fontSize: "clamp(22px, 6.4vw, 50px)",
-              margin: "16px auto 0",
+              fontSize: "clamp(20px, 5.7vw, 50px)",
+              margin: "16px 0 0",
               maxWidth: 1200,
               fontWeight: 600,
               lineHeight: 1.12,
               letterSpacing: "-0.035em",
-              textAlign: "center",
+              textAlign: "left",
               textWrap: "wrap",
             }}
           >
-            {es ? "Creá una sociedad" : "Create an automated"}
+            {es ? "Creá una sociedad automatizada" : "Create an automated company"}
             <br className="br-mobile" />
-            {es ? " automatizada en Argentina." : " company in Argentina."}
+            {es ? " en Argentina." : " in Argentina."}
           </h1>
 
           <div className="hero-grid" style={{ marginTop: 52, alignItems: "center" }}>
