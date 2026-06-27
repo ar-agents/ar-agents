@@ -104,18 +104,20 @@ export default function Home() {
           </p>
           <h1
             style={{
-              fontSize: "clamp(40px, 7vw, 72px)",
+              fontSize: "clamp(34px, 4.6vw, 52px)",
               margin: "16px auto 0",
-              maxWidth: 1040,
+              maxWidth: 1200,
               fontWeight: 600,
-              lineHeight: 1.04,
-              letterSpacing: "-0.04em",
+              lineHeight: 1.08,
+              letterSpacing: "-0.035em",
               textAlign: "center",
             }}
           >
             {es
-              ? "Creá y registrá una sociedad automatizada en Argentina."
-              : "Create and register an automated company in Argentina."}
+              ? "Creá y registrá una sociedad automatizada"
+              : "Create and register an automated company"}
+            <br className="br-desktop" />
+            {es ? " en Argentina." : " in Argentina."}
           </h1>
 
           <div className="hero-grid" style={{ marginTop: 52, alignItems: "center" }}>
