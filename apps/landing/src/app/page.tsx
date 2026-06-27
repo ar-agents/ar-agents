@@ -104,13 +104,14 @@ export default function Home() {
           </p>
           <h1
             style={{
-              fontSize: "clamp(34px, 5vw, 50px)",
+              fontSize: "clamp(34px, 10vw, 50px)",
               margin: "16px auto 0",
               maxWidth: 1200,
               fontWeight: 600,
-              lineHeight: 1.1,
+              lineHeight: 1.08,
               letterSpacing: "-0.035em",
               textAlign: "center",
+              textWrap: "wrap",
             }}
           >
             {es
