@@ -96,77 +96,75 @@ export default function Home() {
         padding: "48px 24px 120px",
       }}
     >
-      <div style={{ maxWidth: 920, margin: "0 auto" }}>
-        {/* HERO */}
-        <header style={{ marginBottom: 72 }}>
-          <div className="hero-grid">
-            <div>
-              <p style={eyebrow}>
-                {es ? "Sociedades automatizadas · Argentina" : "Automated companies · Argentina"}
-              </p>
-              <h1
-                style={{
-                  fontSize: "clamp(36px, 6vw, 52px)",
-                  margin: "12px 0 18px",
-                  fontWeight: 600,
-                  lineHeight: 1.08,
-                  letterSpacing: "-0.035em",
-                }}
-              >
-                {es
-                  ? "Creá y registrá una sociedad automatizada en Argentina."
-                  : "Create and register an automated company in Argentina."}
-              </h1>
-              <p
-                style={{
-                  color: "var(--text-body)",
-                  fontSize: "clamp(16px, 2.4vw, 18px)",
-                  margin: 0,
-                  lineHeight: 1.55,
-                }}
-              >
-                {es
-                  ? "Una empresa que opera sola, con agentes de IA. Cobra, factura y paga en pesos, y deja prueba firmada de cada decisión. El núcleo es abierto y gratis."
-                  : "A company that runs itself, with AI agents. It charges, invoices and pays in pesos, and leaves signed proof of every decision. The core is open and free."}
-              </p>
+      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+        {/* HERO, centered + spacious (Geist: 1200 column, generous whitespace) */}
+        <header style={{ marginBottom: 96, textAlign: "center", paddingTop: 16 }}>
+          <p style={eyebrow}>
+            {es ? "Sociedades automatizadas · Argentina" : "Automated companies · Argentina"}
+          </p>
+          <h1
+            style={{
+              fontSize: "clamp(38px, 6.5vw, 64px)",
+              margin: "16px auto 22px",
+              maxWidth: 920,
+              fontWeight: 600,
+              lineHeight: 1.05,
+              letterSpacing: "-0.04em",
+            }}
+          >
+            {es
+              ? "Creá y registrá una sociedad automatizada en Argentina."
+              : "Create and register an automated company in Argentina."}
+          </h1>
+          <p
+            style={{
+              color: "var(--text-body)",
+              fontSize: "clamp(17px, 2.2vw, 20px)",
+              margin: "0 auto",
+              maxWidth: 640,
+              lineHeight: 1.55,
+            }}
+          >
+            {es
+              ? "Una empresa que opera sola, con agentes de IA. Cobra, factura y paga en pesos, y deja prueba firmada de cada decisión. El núcleo es abierto y gratis."
+              : "A company that runs itself, with AI agents. It charges, invoices and pays in pesos, and leaves signed proof of every decision. The core is open and free."}
+          </p>
 
-              {law.banner ? (
-                <div style={lawBanner} role="status">
-                  <span aria-hidden="true" style={lawDot} />
-                  {law.banner}
-                </div>
-              ) : null}
-
-              <div style={{ marginTop: 24, display: "flex", gap: 10, flexWrap: "wrap" }}>
-                <a href="/incorporar" style={ctaPrimary}>
-                  {law.cta}
-                </a>
-                <button type="button" onClick={toggleLive} aria-pressed={liveOpen} style={ctaGhost}>
-                  <span aria-hidden="true" style={pulseDot} />
-                  {es ? "Probalo en vivo" : "Try it live"}
-                </button>
-              </div>
-              <p style={{ margin: "12px 0 0", fontSize: 13 }}>
-                <a href="/sdk" style={inlineLink}>
-                  {es ? "¿Sos developer? Ver la documentación" : "Developer? Read the docs"} →
-                </a>
-              </p>
-              <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "10px 0 0" }}>
-                {law.note}
-              </p>
-
-              <div style={proofStrip}>
-                <span>Open source · MIT</span>
-                <span aria-hidden="true">·</span>
-                <span>36 {es ? "paquetes en npm" : "npm packages"}</span>
-                <span aria-hidden="true">·</span>
-                <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
-              </div>
+          {law.banner ? (
+            <div style={{ ...lawBanner, textAlign: "left" }} role="status">
+              <span aria-hidden="true" style={lawDot} />
+              {law.banner}
             </div>
+          ) : null}
 
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <SocietyCard es={es} />
-            </div>
+          <div style={{ marginTop: 28, display: "flex", gap: 12, flexWrap: "wrap", justifyContent: "center" }}>
+            <a href="/incorporar" style={ctaPrimary}>
+              {law.cta}
+            </a>
+            <button type="button" onClick={toggleLive} aria-pressed={liveOpen} style={ctaGhost}>
+              <span aria-hidden="true" style={pulseDot} />
+              {es ? "Probalo en vivo" : "Try it live"}
+            </button>
+          </div>
+          <p style={{ margin: "14px 0 0", fontSize: 13 }}>
+            <a href="/sdk" style={inlineLink}>
+              {es ? "¿Sos developer? Ver la documentación" : "Developer? Read the docs"} →
+            </a>
+          </p>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "10px 0 0" }}>
+            {law.note}
+          </p>
+
+          <div style={{ ...proofStrip, justifyContent: "center", marginTop: 28 }}>
+            <span>Open source · MIT</span>
+            <span aria-hidden="true">·</span>
+            <span>36 {es ? "paquetes en npm" : "npm packages"}</span>
+            <span aria-hidden="true">·</span>
+            <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
+          </div>
+
+          <div style={{ marginTop: 56, display: "flex", justifyContent: "center" }}>
+            <SocietyCard es={es} />
           </div>
         </header>
 
@@ -197,7 +195,7 @@ export default function Home() {
           eyebrow={es ? "La prueba" : "The proof"}
           title={es ? "Funciona hoy. Mirá." : "It works today. See for yourself."}
         >
-          <section style={{ marginBottom: 24 }}>
+          <section style={{ marginBottom: 24, maxWidth: 900, marginLeft: "auto", marginRight: "auto" }}>
             {liveOpen ? <LiveChat onClose={closeLive} /> : null}
             <DemoTerminal />
           </section>
@@ -567,10 +565,10 @@ const proofStrip: React.CSSProperties = {
 
 const societyCard: React.CSSProperties = {
   width: "100%",
-  maxWidth: 360,
+  maxWidth: 440,
   background: "var(--bg-tint)",
-  borderRadius: 14,
-  padding: 22,
+  borderRadius: 12,
+  padding: 24,
   boxShadow: "var(--card-shadow)",
 };
 
@@ -625,8 +623,8 @@ const h2Sty: React.CSSProperties = {
 
 const card: React.CSSProperties = {
   background: "var(--bg-tint)",
-  borderRadius: 10,
-  padding: "20px 20px 18px",
+  borderRadius: 12,
+  padding: 24,
   boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
 };
 
