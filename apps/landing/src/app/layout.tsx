@@ -18,14 +18,14 @@ const geistMono = Geist_Mono({
 // truncation). Lead with the umbrella story (open infrastructure for AR
 // sociedades-IA), follow with proof points (36 packages, 6 RFCs, audit log).
 const META_DESCRIPTION =
-  "Open-source infrastructure for Argentine AI corporations (sociedades-IA). 36 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. MIT + CC-BY-4.0.";
+  "Creá y registrá una sociedad automatizada en Argentina, una empresa operada por agentes de IA. Rieles abiertas y El Auditor, la prueba firmada de cada decisión. Open source.";
 
 const SITE_URL = "https://ar-agents.ar";
 
 export const metadata: Metadata = {
   metadataBase: new URL(SITE_URL),
   title: {
-    default: "ar-agents · open infrastructure for AI corporations in Argentina",
+    default: "ar-agents · creá y registrá una sociedad automatizada en Argentina",
     template: "%s · ar-agents",
   },
   description: META_DESCRIPTION,
@@ -71,12 +71,12 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: "ar-agents",
-    title: "ar-agents, open infrastructure for AI corporations in Argentina",
+    title: "ar-agents · creá y registrá una sociedad automatizada en Argentina",
     description:
-      "36 npm packages, 6 RFCs, a public registry, an HMAC + Ed25519 audit log. The technical scaffolding for the Argentine sociedades-IA regime.",
+      "Una empresa operada por agentes de IA. Rieles abiertas (pagos, identidad, facturación, banca) y El Auditor, la prueba firmada de cada decisión. Open source.",
     url: SITE_URL,
-    locale: "en_US",
-    alternateLocale: ["es_AR"],
+    locale: "es_AR",
+    alternateLocale: ["en_US"],
   },
   twitter: {
     card: "summary_large_image",
@@ -125,9 +125,9 @@ const schemaOrgJsonLd = {
       "@id": SITE + "/#app",
       name: "ar-agents",
       alternateName: ["ar-agents toolkit", "@ar-agents/*"],
-      headline: "Open infrastructure for AI corporations in Argentina",
+      headline: "Create and register an automated company in Argentina, operated by AI agents",
       description:
-        "Open-source technical scaffolding for the proposed Argentine sociedades-IA regime (AI corporations as legal entities). 36 typed npm packages covering the Argentine state + financial stack (identity, signing, money, customer ops, gazette monitoring, corporate registry). 6 RFCs covering three-layer liability framework, agent discovery, cross-jurisdictional reciprocity, operational-log specification, asymmetric signature upgrade, and ledger projection. A public registry of conformant implementations. Audit log signed dual HMAC-SHA256 + Ed25519. MIT (code) + CC-BY-4.0 (specs). Flagship package: @ar-agents/mercadopago with 89 Vercel AI SDK 6 tools.",
+        "Open-source infrastructure to create, operate, and prove an automated company (sociedad automatizada) in Argentina, run by AI agents. 36 typed npm packages covering the Argentine state + financial stack (identity, signing, money, customer ops, gazette monitoring, corporate registry). 6 RFCs covering three-layer liability framework, agent discovery, cross-jurisdictional reciprocity, operational-log specification, asymmetric signature upgrade, and ledger projection. A public registry of conformant implementations. Audit log signed dual HMAC-SHA256 + Ed25519. MIT (code) + CC-BY-4.0 (specs). Flagship package: @ar-agents/mercadopago with 89 Vercel AI SDK 6 tools.",
       url: SITE,
       image: SITE + "/opengraph-image",
       applicationCategory: ["DeveloperApplication", "BusinessApplication"],
@@ -401,7 +401,15 @@ export default function RootLayout({
         <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <script
           type="application/ld+json"
-          dangerouslySetInnerHTML={{ __html: JSON.stringify(schemaOrgJsonLd) }}
+          dangerouslySetInnerHTML={{
+            __html: JSON.stringify({
+              ...schemaOrgJsonLd,
+              "@graph": schemaOrgJsonLd["@graph"].filter(
+                (n: Record<string, unknown>) =>
+                  n["@type"] !== "FAQPage" && n["@type"] !== "HowTo",
+              ),
+            }),
+          }}
         />
         {/* Resource hints. Vercel AI Gateway is the only third-party origin
             the live-agent demo hits at runtime. Preconnect saves ~150ms on

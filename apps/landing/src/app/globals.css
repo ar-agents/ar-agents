@@ -39,11 +39,11 @@ body {
 html[data-theme="dark"] {
   color-scheme: dark;
 
-  --bg: #000000;
-  --bg-tint: #0a0a0a;
+  --bg: #0a0a0a;
+  --bg-tint: #161616;
   --text: #ededed;
   --text-body: #a1a1a1;
-  --text-muted: #717171;
+  --text-muted: #8a8a8a;
 
   --accent: #00bcff;
   --accent-bg: rgba(0, 188, 255, 0.18);
@@ -171,6 +171,35 @@ button:focus-visible {
 }
 @media (min-width: 640px) {
   .br-mobile {
+    display: none;
+  }
+}
+
+/* Relaunch: responsive hero (two-column on desktop) + primary nav
+   (inline links on desktop, hamburger on mobile). */
+.hero-grid {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 32px;
+  align-items: center;
+}
+.nav-links-desktop {
+  display: none;
+}
+.nav-menu-mobile {
+  display: inline-flex;
+}
+@media (min-width: 900px) {
+  .hero-grid {
+    grid-template-columns: 1.05fr 0.95fr;
+    gap: 44px;
+  }
+}
+@media (min-width: 820px) {
+  .nav-links-desktop {
+    display: flex;
+  }
+  .nav-menu-mobile {
     display: none;
   }
 }
