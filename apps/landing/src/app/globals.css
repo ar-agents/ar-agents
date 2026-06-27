@@ -204,6 +204,17 @@ button:focus-visible {
   }
 }
 
+/* Desktop-only <br>: forces the hero title break ("...automatizada" / "en
+   Argentina") on wide screens; hidden below so the title wraps naturally. */
+.br-desktop {
+  display: none;
+}
+@media (min-width: 1200px) {
+  .br-desktop {
+    display: inline;
+  }
+}
+
 /* Headings balance their wrapping on supporting browsers, avoids
    awkward one-word last lines. Falls back gracefully. */
 h1, h2, h3 {
