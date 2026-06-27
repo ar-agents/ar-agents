@@ -119,7 +119,7 @@ export default function Home() {
             {es ? " en Argentina." : " in Argentina."}
           </h1>
 
-          <div className="hero-grid" style={{ marginTop: 52, alignItems: "center" }}>
+          <div className="hero-grid" style={{ marginTop: "clamp(28px, 3vw, 40px)", alignItems: "center" }}>
             <div>
               <p
                 style={{
