@@ -104,18 +104,18 @@ export default function Home() {
           </p>
           <h1
             style={{
-              fontSize: "clamp(20px, 5.7vw, 50px)",
+              fontSize: "clamp(20px, calc((100vw - 48px) / 15.2), 78px)",
               margin: "16px 0 0",
               maxWidth: 1200,
               fontWeight: 600,
-              lineHeight: 1.12,
-              letterSpacing: "-0.035em",
+              lineHeight: 1.05,
+              letterSpacing: "-0.04em",
               textAlign: "left",
               textWrap: "wrap",
             }}
           >
             {es ? "Creá una sociedad automatizada" : "Create an automated company"}
-            <br className="br-mobile" />
+            <br />
             {es ? " en Argentina." : " in Argentina."}
           </h1>
 
