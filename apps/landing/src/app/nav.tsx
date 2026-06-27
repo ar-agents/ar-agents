@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useLang } from "./i18n";
 import { Toggles } from "./toggles";
+import { LAW_STATUS } from "./law-status";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
@@ -17,51 +18,32 @@ interface NavItem {
   matchPrefixes: ReadonlyArray<string>;
 }
 
+// Simplified to the relaunch IA: one promise, five sections. See RELAUNCH-SCOPE.md.
 const NAV: ReadonlyArray<NavItem> = [
   {
-    href: { es: "/implementacion", en: "/en/implementation" },
-    label: { es: "Implementación", en: "Implementation" },
-    matchPrefixes: ["/implementacion", "/en/implementation"],
-  },
-  {
     href: { es: "/sociedades-ia", en: "/en/ai-corporations" },
-    label: { es: "Tesis", en: "Thesis" },
-    matchPrefixes: ["/sociedades-ia", "/en/ai-corporations"],
-  },
-  {
-    href: { es: "/rfcs/001", en: "/rfcs/001" },
-    label: { es: "Spec", en: "Spec" },
-    matchPrefixes: ["/rfcs"],
+    label: { es: "Cómo funciona", en: "How it works" },
+    matchPrefixes: ["/sociedades-ia", "/en/ai-corporations", "/como-funciona"],
   },
   {
     href: { es: "/play", en: "/play" },
     label: { es: "Demo", en: "Demo" },
-    matchPrefixes: ["/play"],
-  },
-  {
-    href: { es: "/eve", en: "/eve" },
-    label: { es: "eve", en: "eve" },
-    matchPrefixes: ["/eve"],
-  },
-  {
-    href: { es: "/registro", en: "/en/registry" },
-    label: { es: "Registro", en: "Registry" },
-    matchPrefixes: ["/registro", "/en/registry"],
-  },
-  {
-    href: { es: "/sdk", en: "/sdk" },
-    label: { es: "SDK", en: "Docs" },
-    matchPrefixes: ["/sdk"],
-  },
-  {
-    href: { es: "/auditor", en: "/en/auditor" },
-    label: { es: "Auditoría", en: "Policy" },
-    matchPrefixes: ["/auditor", "/en/auditor"],
+    matchPrefixes: ["/play", "/demo"],
   },
   {
     href: { es: "/precios", en: "/en/pricing" },
     label: { es: "Precios", en: "Pricing" },
     matchPrefixes: ["/precios", "/en/pricing"],
+  },
+  {
+    href: { es: "/docs", en: "/docs" },
+    label: { es: "Docs", en: "Docs" },
+    matchPrefixes: ["/docs", "/sdk", "/reference", "/examples"],
+  },
+  {
+    href: { es: "/ley", en: "/ley" },
+    label: { es: "La ley", en: "The law" },
+    matchPrefixes: ["/ley", "/legislacion", "/en/legislation", "/manifiesto", "/rfcs"],
   },
 ];
 
@@ -104,6 +86,14 @@ export function Nav() {
   }, [open]);
 
   const menuLabel = lang === "es" ? "Menú" : "Menu";
+  const ctaLabel =
+    LAW_STATUS === "live"
+      ? lang === "es"
+        ? "Crear sociedad"
+        : "Create company"
+      : lang === "es"
+        ? "Empezar"
+        : "Get started";
 
   return (
     <nav
@@ -121,9 +111,8 @@ export function Nav() {
     >
       <div
         style={{
-          maxWidth: 1100,
-          margin: "0 auto",
-          padding: "10px 20px",
+          width: "100%",
+          padding: "10px 24px",
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
@@ -161,15 +150,57 @@ export function Nav() {
           ar-agents
         </Link>
 
+        <div className="nav-links-desktop" style={{ alignItems: "center", gap: 24 }}>
+          {NAV.map((item) => {
+            const active = isActive(item.matchPrefixes, pathname);
+            const href = item.href[lang];
+            return (
+              <Link
+                key={href}
+                href={href}
+                aria-current={active ? "page" : undefined}
+                style={{
+                  fontSize: 14,
+                  textDecoration: "none",
+                  color: active ? "var(--text)" : "var(--text-body)",
+                  fontWeight: active ? 600 : 500,
+                  whiteSpace: "nowrap",
+                }}
+              >
+                {item.label[lang]}
+              </Link>
+            );
+          })}
+        </div>
+
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <Link
+            href="/incorporar"
+            style={{
+              display: "inline-flex",
+              alignItems: "center",
+              height: 30,
+              padding: "0 14px",
+              background: "var(--primary-bg)",
+              color: "var(--primary-text)",
+              borderRadius: 9999,
+              textDecoration: "none",
+              fontFamily: FONT_SANS,
+              fontSize: 13,
+              fontWeight: 500,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {ctaLabel}
+          </Link>
           <Toggles />
 
           {/* Menu cluster: button + dropdown panel. Relatively positioned so
               the panel anchors to it; wrapRef covers both for click-outside. */}
-          <div ref={wrapRef} style={{ position: "relative" }}>
+          <div ref={wrapRef} className="nav-menu-mobile" style={{ position: "relative" }}>
             <button
               type="button"
-              aria-haspopup="menu"
+              aria-haspopup="true"
               aria-expanded={open}
               aria-controls={menuId}
               aria-label={menuLabel}
@@ -221,7 +252,6 @@ export function Nav() {
             {open && (
               <div
                 id={menuId}
-                role="menu"
                 aria-label={menuLabel}
                 style={{
                   position: "absolute",
@@ -245,7 +275,6 @@ export function Nav() {
                     <Link
                       key={href}
                       href={href}
-                      role="menuitem"
                       aria-current={active ? "page" : undefined}
                       onClick={() => setOpen(false)}
                       style={{
