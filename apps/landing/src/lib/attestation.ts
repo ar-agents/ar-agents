@@ -1,4 +1,13 @@
-import { canonical006, readHead, readLinks, verifyRecordsOnly, type ChainLink } from "./ledger";
+import {
+  canonical006,
+  readAnchorProofs,
+  readAnchors,
+  readHead,
+  readLinks,
+  verifyRecordsOnly,
+  type AnchorProof,
+  type ChainLink,
+} from "./ledger";
 
 /**
  * RFC-006 §8 attestation + export bundle generation.
@@ -70,6 +79,22 @@ function publicKeyB64(): string | null {
 
 // ── Attestation ─────────────────────────────────────────────────────────────
 
+/**
+ * ADDITIVE (RFC-006 §6.1): a public OpenTimestamps anchor-proof reference. When
+ * present, the attestation is time-anchored to Bitcoin without any ar-agents key
+ * in the trust path (the OTS proof commits to the anchor digest, which commits
+ * via headHash to the whole chain). canonical006 sorts keys, so adding this
+ * field changes the signed bytes ONLY for newly-issued attestations — historical
+ * signatures and the frozen vectors (whose body has no `timestamp`) are untouched.
+ */
+export interface AttestationTimestamp {
+  type: "opentimestamps";
+  anchorSeq: number;
+  digest: string;
+  status: "pending" | "bitcoin";
+  bitcoinBlockHeight?: number;
+}
+
 export interface AttestationBody {
   kind: "vultur.compliance.attestation";
   version: 1;
@@ -82,6 +107,8 @@ export interface AttestationBody {
     verification: { valid: boolean; count: number };
   };
   mode: "production";
+  /** Optional public-anchor timestamp. Absent when no OTS proof covers the head. */
+  timestamp?: AttestationTimestamp;
 }
 
 export interface Attestation {
@@ -96,6 +123,36 @@ export interface Attestation {
 export interface AttestationResult {
   attestation: Attestation;
   events: ChainLink[];
+}
+
+/**
+ * Find the most recent OTS-stamped anchor whose headSeq >= the attested head
+ * (so the proof provably covers everything up to and including the head), and
+ * map its stored proof to an AttestationTimestamp. Best-effort: null when no
+ * such proof exists. Reads (not creates) anchors so the attestation hot path
+ * stays free of the KV lock + calendar latency.
+ */
+async function latestTimestampForHead(headSeq: number): Promise<AttestationTimestamp | null> {
+  try {
+    const [anchors, proofs] = await Promise.all([readAnchors(), readAnchorProofs()]);
+    // Anchors covering the head, newest seq first.
+    const covering = anchors
+      .filter((a) => a.headSeq >= headSeq && proofs[a.seq])
+      .sort((a, b) => b.seq - a.seq);
+    const chosen = covering[0];
+    if (!chosen) return null;
+    const p: AnchorProof = proofs[chosen.seq];
+    const out: AttestationTimestamp = {
+      type: "opentimestamps",
+      anchorSeq: chosen.seq,
+      digest: p.digest,
+      status: p.status,
+    };
+    if (p.bitcoinBlockHeight != null) out.bitcoinBlockHeight = p.bitcoinBlockHeight;
+    return out;
+  } catch {
+    return null;
+  }
 }
 
 /**
@@ -128,6 +185,13 @@ export async function buildAttestation(slug: string): Promise<AttestationResult 
     },
     mode: "production",
   };
+
+  // ADDITIVE: bind the latest public OTS anchor-proof that covers this head, if
+  // one exists. Best-effort; absent → the field is omitted (byte-stable for the
+  // no-OTS case, matching the frozen vectors). canonical006 sorts keys so this
+  // only affects newly-issued attestations.
+  const ts = await latestTimestampForHead(head.seq);
+  if (ts) body.timestamp = ts;
 
   const sigBytes = await crypto.subtle.sign(
     { name: "Ed25519" } as unknown as AlgorithmIdentifier,
