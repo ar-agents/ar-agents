@@ -253,6 +253,41 @@ prevAnchor_n = signature_{n-1}`}</CodeBlock>
         is the §1 guarantee against the operator itself.
       </DocP>
 
+      <DocH2>6.1 · OpenTimestamps public-anchor profile (additive)</DocH2>
+      <DocP>
+        The §6 anchor signature is HMAC under the operator&apos;s own secret, so
+        on its own it only convinces a witness who retained an anchor. §6.1
+        closes that gap <strong>without witnesses</strong> by committing the
+        anchor digest to the public Bitcoin calendars via{" "}
+        <strong>OpenTimestamps</strong>. The committed digest is the{" "}
+        <em>same canonical material</em> §6 HMAC-signs, so the public proof and
+        the HMAC anchor commit to one object:
+      </DocP>
+      <CodeBlock>{`digest_n = SHA256( canonical(AnchorBody_n) )   // same bytes signature_n signs`}</CodeBlock>
+      <DocP>
+        The proof starts <DocCode>pending</DocCode> (the calendar received it)
+        and upgrades to <DocCode>bitcoin</DocCode> once a block confirms it, over
+        minutes to hours, with no further producer action. The trust root is
+        Bitcoin&apos;s proof-of-work, <strong>not any ar-agents key</strong>:
+        anyone verifies without trusting the producer and without a retained
+        witness. The raw proof is served for offline verification:
+      </DocP>
+      <CodeBlock>{`GET /api/audit/anchor/{seq}/ots     -> the raw .ots proof (application/octet-stream)
+GET /api/audit/anchor?upgrade=1     -> re-query calendars, upgrade pending proofs
+GET /api/audit/anchor               -> response includes proofs keyed by anchor.seq
+
+ots verify anchor.ots                                   # canonical full check (Bitcoin headers)
+node arg-verify.mjs timestamp anchor.ots --digest <h>   # offline commitment check (optional)`}</CodeBlock>
+      <DocP>
+        A §7 attestation MAY carry an optional <DocCode>body.timestamp</DocCode>
+        referencing the OTS-stamped anchor that covers its head. Because
+        canonical-JSON sorts keys, adding it changes the signed bytes only for
+        newly-issued attestations; historical signatures and the published
+        conformance vectors are unaffected. The trust-free floor stays the §7
+        Ed25519 check; OTS is the public-anchor upgrade. Producer-side stamping
+        is gated behind <DocCode>ANCHOR_OTS_ENABLED</DocCode>.
+      </DocP>
+
       <DocH2>7 · Asymmetric attestation (normative, aligns RFC-005)</DocH2>
       <DocP>
         When an RFC-006 producer publishes a signed compliance attestation

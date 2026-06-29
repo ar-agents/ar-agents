@@ -124,6 +124,7 @@ const anchorsRaw = [
   { headSeq: 3, headHash: links[2].hash, ts: "2026-05-11T00:02:00.000Z" },
 ];
 const anchors = [];
+const anchorBodies = [];
 let prevAnchor = GENESIS;
 anchorsRaw.forEach((a, i) => {
   const body = {
@@ -135,8 +136,51 @@ anchorsRaw.forEach((a, i) => {
   };
   const signature = anchorSig(body);
   anchors.push({ ...body, signature });
+  anchorBodies.push(body);
   prevAnchor = signature;
 });
+
+// ── §6.1 OTS public-anchor proof (ADDITIVE, OPTIONAL) ─────────────────────
+// The trust-minimized layer: sha256(canonical(AnchorBody)) committed to the
+// public Bitcoin calendars via OpenTimestamps. The SAME bytes anchorSig already
+// HMAC-signs are the OTS digest, so the .ots proof and the HMAC anchor commit to
+// one object. This is a DETERMINISTIC fixture (a synthetic .ots over anchor #2's
+// digest with a single pending-calendar attestation) so the generator stays
+// reproducible; a real proof from a live calendar carries the same shape and
+// upgrades to a Bitcoin attestation over hours. `arg-verify timestamp` checks
+// the digest commitment offline; `ots verify` is the full Bitcoin-header proof.
+const OTS_MAGIC = Buffer.from([
+  0x00, 0x4f, 0x70, 0x65, 0x6e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+  0x70, 0x73, 0x00, 0x00, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x00, 0xbf, 0x89, 0xe2,
+  0xe8, 0x84, 0xe8, 0x92, 0x94,
+]);
+const OTS_VERSION = 0x01;
+const OTS_OP_SHA256 = 0x08;
+const OTS_ATTESTATION = 0x00;
+const OTS_PENDING_TAG = Buffer.from([0x83, 0xdf, 0xe3, 0x0d, 0x2e, 0xf9, 0x0c, 0x8e]);
+const sha256hex = (s) => createHash("sha256").update(s, "utf8").digest("hex");
+// Digest = sha256(canonical(AnchorBody #2)) — provably the anchorSig material.
+const tsAnchorBody = anchorBodies[1];
+const tsDigestHex = sha256hex(canonical(tsAnchorBody));
+// Synthetic pending-calendar timestamp body: ATTESTATION marker + pending tag +
+// a 1-byte length + a short calendar-URI payload (deterministic placeholder).
+const tsCalendarUri = Buffer.from("https://a.pool.opentimestamps.org", "utf8");
+const tsPendingBody = Buffer.concat([
+  Buffer.from([tsCalendarUri.length]),
+  tsCalendarUri,
+]);
+const tsSerialized = Buffer.concat([
+  Buffer.from([OTS_ATTESTATION]),
+  OTS_PENDING_TAG,
+  Buffer.from([tsPendingBody.length]),
+  tsPendingBody,
+]);
+const tsOtsFile = Buffer.concat([
+  OTS_MAGIC,
+  Buffer.from([OTS_VERSION, OTS_OP_SHA256]),
+  Buffer.from(tsDigestHex, "hex"),
+  tsSerialized,
+]);
 
 // Negative chain fixtures (original hashes, tampered payloads).
 const chainMutated = links.map((l) => ({ ...l }));
@@ -264,6 +308,16 @@ const doc = {
     genesis: GENESIS,
     anchors,
     expect: { valid: true, count: 2 },
+  },
+  timestampProof: {
+    description:
+      "RFC-006 §6.1 OTS public-anchor proof (ADDITIVE, OPTIONAL). digest = SHA256(canonical(AnchorBody #2)) — the SAME bytes anchors[1].signature HMAC-signs — committed to the public OTS Bitcoin calendars. otsBase64 is a deterministic synthetic .ots over that digest with one pending-calendar attestation. A conformant verifier MUST: confirm the .ots magic header, confirm its embedded leaf digest string-equals `digest`, and report the attestation status (here: pending, no Bitcoin block yet). `node arg-verify.mjs timestamp <file.ots> --digest <digest>` performs this check offline; the full trust-minimized proof (commit -> Bitcoin header) is the official `ots verify`. NOT part of `vectors` (it needs a binary .ots file and would break the zero-dep/offline `vectors` invariant).",
+    anchorSeq: tsAnchorBody.seq,
+    anchorBody: tsAnchorBody,
+    digestAlg: "sha256",
+    digest: tsDigestHex,
+    otsBase64: tsOtsFile.toString("base64"),
+    expect: { magicValid: true, digestCommits: true, status: "pending" },
   },
   projection: {
     description:
