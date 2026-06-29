@@ -657,10 +657,30 @@ function cmdAttestation(args) {
   console.log(`  issuedAt:   ${att.body.issuedAt ?? "-"}`);
   console.log(`  chainHead:  seq ${c.globalHeadSeq ?? "?"} · ${c.globalHeadHash ?? "?"}`);
   console.log(`  ledgerOK:   ${c.verification?.valid ?? "?"}`);
+  printTimestampNote(att.body.timestamp);
   console.log(
     `  ${DIM}note: this verifies the Vultur attestation shape, NOT an RFC-004 entry. See CONFORMANCE.md.${RST}`,
   );
   process.exit(0);
+}
+
+// Surface body.timestamp (RFC-006 6.1 OTS anchor-proof) defensively, without
+// requiring it: the trust-free floor is the Ed25519 check above; OTS is the
+// public-anchor upgrade. Read fields defensively (additive, may be absent).
+function printTimestampNote(t) {
+  if (!t || typeof t !== "object") return;
+  const status = t.status === "bitcoin" ? "Bitcoin-confirmed" : "pending (calendar)";
+  const h = t.bitcoinBlockHeight != null ? ` · block ${t.bitcoinBlockHeight}` : "";
+  console.log(`  timestamp:  ${t.type ?? "?"} · anchor ${t.anchorSeq ?? "?"} · ${status}${h}`);
+  console.log(
+    `  ${DIM}independently verify the public anchor (no ar-agents key in the trust path):${RST}`,
+  );
+  console.log(
+    `  ${DIM}  curl -s https://ar-agents.ar/api/audit/anchor/${t.anchorSeq ?? "<seq>"}/ots -o anchor.ots${RST}`,
+  );
+  console.log(
+    `  ${DIM}  node arg-verify.mjs timestamp anchor.ots --digest ${t.digest ?? "<sha256hex>"}   # then: ots verify anchor.ots${RST}`,
+  );
 }
 
 // ── `bundle` (verify a real Vultur Ley-25.326 export end-to-end) ────────
@@ -755,6 +775,8 @@ function cmdBundle(args) {
       `  ${DIM}skip  recordsOnly (no --secret/AUDIT_SECRET; HMAC is operator-keyed. The Ed25519 attestation above is the trust-free guarantee per RFC-006 §7)${RST}`,
     );
   }
+
+  printTimestampNote(att.body.timestamp);
 
   if (failures === 0) {
     console.log(
@@ -940,6 +962,101 @@ function cmdFile(args) {
   process.exit(1);
 }
 
+// ── `timestamp` (OPTIONAL: OpenTimestamps anchor-proof, RFC-006 6.1) ──────
+// NOT part of `vectors`: this command reads a binary .ots file and reports the
+// embedded attestation. The trust-free FLOOR stays the Ed25519 attestation
+// check above; OTS is the public-anchor UPGRADE (no ar-agents key in the trust
+// path). MINIMAL by design: it validates the .ots commits to the supplied
+// digest and reports any embedded Bitcoin attestation + block height. Full
+// Bitcoin-header verification is the official `ots verify` CLI; this command
+// prints that as the canonical next step. Uses node:crypto (createHash) so it
+// would break the zero-dependency-AND-offline promise if run inside `vectors`;
+// it is excluded there on purpose.
+const OTS_MAGIC = Buffer.from([
+  0x00, 0x4f, 0x70, 0x65, 0x6e, 0x54, 0x69, 0x6d, 0x65, 0x73, 0x74, 0x61, 0x6d,
+  0x70, 0x73, 0x00, 0x00, 0x50, 0x72, 0x6f, 0x6f, 0x66, 0x00, 0xbf, 0x89, 0xe2,
+  0xe8, 0x84, 0xe8, 0x92, 0x94,
+]);
+const OTS_OP_SHA256 = 0x08;
+const OTS_BITCOIN_TAG = Buffer.from([0x05, 0x88, 0x96, 0x0d, 0x73, 0xd7, 0x19, 0x01]);
+const OTS_PENDING_TAG = Buffer.from([0x83, 0xdf, 0xe3, 0x0d, 0x2e, 0xf9, 0x0c, 0x8e]);
+
+function otsReadVaruint(buf, off) {
+  let value = 0;
+  let shift = 0;
+  let i = off;
+  while (i < buf.length) {
+    const b = buf[i];
+    i += 1;
+    value += (b & 0x7f) * 2 ** shift;
+    if ((b & 0x80) === 0) break;
+    shift += 7;
+  }
+  return [value, i];
+}
+
+function cmdTimestamp(args) {
+  const file = args[0];
+  const di = args.indexOf("--digest");
+  const digestHex = di >= 0 ? String(args[di + 1] || "").toLowerCase() : null;
+  if (!file || !digestHex) {
+    console.error("usage: arg-verify timestamp <anchor.ots> --digest <sha256hex>");
+    console.error("  (offline OTS commitment check + attestation report; run `ots verify` for the full Bitcoin-header proof)");
+    process.exit(2);
+  }
+  const ots = readFileSync(resolve(file));
+  if (!ots.subarray(0, OTS_MAGIC.length).equals(OTS_MAGIC)) {
+    fail("ots·magic", "not an OpenTimestamps proof file (bad magic header)");
+    process.exit(1);
+  }
+  let off = OTS_MAGIC.length;
+  const version = ots[off];
+  off += 1;
+  if (ots[off] !== OTS_OP_SHA256) {
+    fail("ots·leaf", "leaf op is not SHA256 (unsupported / not a detached sha256 proof)");
+    process.exit(1);
+  }
+  off += 1;
+  const embedded = ots.subarray(off, off + 32).toString("hex");
+  off += 32;
+  pass("ots·version", `v${version}`);
+  eqConstTime(embedded, digestHex)
+    ? pass("ots·digest", "proof commits to the supplied digest (sha256)")
+    : fail("ots·digest", `proof commits to ${embedded}, not ${digestHex}`);
+
+  // Report (not trust) any embedded attestation in the operations tree.
+  const rest = ots.subarray(off);
+  let bitcoin = false;
+  let pending = false;
+  let height = null;
+  for (let i = 0; i + 9 <= rest.length; i++) {
+    if (rest[i] !== 0x00) continue;
+    const at = i + 1;
+    if (rest.subarray(at, at + 8).equals(OTS_BITCOIN_TAG)) {
+      bitcoin = true;
+      let o = at + 8;
+      const [, afterLen] = otsReadVaruint(rest, o);
+      o = afterLen;
+      const [h] = otsReadVaruint(rest, o);
+      if (Number.isFinite(h) && h > 0 && height === null) height = h;
+    } else if (rest.subarray(at, at + 8).equals(OTS_PENDING_TAG)) {
+      pending = true;
+    }
+  }
+  if (bitcoin) {
+    pass("ots·attestation", `Bitcoin block attestation present${height != null ? ` (height ${height})` : ""}`);
+  } else if (pending) {
+    console.log(`  ${DIM}pending  no Bitcoin attestation yet; the calendar will confirm into a block over hours. Re-fetch the .ots and re-run.${RST}`);
+  } else {
+    console.log(`  ${DIM}note  no recognized attestation in the tree (calendar pending or unknown attestation type)${RST}`);
+  }
+
+  console.log(
+    `  ${DIM}note: this checks the digest commitment + reports the attestation. For the FULL trust-minimized proof (commit -> Bitcoin block header), run the official CLI: ots verify ${file}${RST}`,
+  );
+  process.exit(failures === 0 ? 0 : 1);
+}
+
 // ── dispatch ────────────────────────────────────────────────────────────
 const [cmd, ...rest] = process.argv.slice(2);
 switch (cmd) {
@@ -964,6 +1081,9 @@ switch (cmd) {
   case "file":
     cmdFile(rest);
     break;
+  case "timestamp":
+    cmdTimestamp(rest);
+    break;
   default:
     console.log(
       [
@@ -976,9 +1096,11 @@ switch (cmd) {
         "  node arg-verify.mjs bundle <vultur-export-SLUG.json> [--secret S] [pubkeyB64]",
         "  node arg-verify.mjs project <chain.json> --proj-secret P [--secret S --verify]",
         "  node arg-verify.mjs file <file> [--manifest <file.sig.json>] [--pubkey-b64url X]",
+        "  node arg-verify.mjs timestamp <anchor.ots> --digest <sha256hex>   RFC-006 6.1 (OTS, optional)",
         "",
         "Zero dependencies. Offline. RFC-004 (HMAC) · RFC-005 (Ed25519) ·",
         "RFC-006 (hash-chained ledger + anchoring, projects onto RFC-004).",
+        "`timestamp` is the OPTIONAL OpenTimestamps anchor-proof check (not in `vectors`).",
         "See CONFORMANCE.md for the RFC ⇄ Vultur (@vultur/core) mapping.",
       ].join("\n"),
     );

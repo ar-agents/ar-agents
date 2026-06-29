@@ -1,4 +1,11 @@
 import { kv } from "@vercel/kv";
+import {
+  otsEnabled,
+  sha256Hex,
+  stampDigest,
+  upgradeOts,
+  type OtsAttestationInfo,
+} from "./opentimestamps";
 
 /**
  * RFC-006 live implementation: hash-chained ledger + signed anchor chain.
@@ -118,6 +125,29 @@ export interface Anchor {
   signature: string;
 }
 
+/**
+ * ADDITIVE public-anchor proof (RFC-006 §6.1). A trust-MINIMIZED layer over the
+ * HMAC anchor sub-chain: the SAME bytes the anchor already HMAC-signs —
+ * sha256(canonical006(AnchorBody)) — committed to the public Bitcoin calendars
+ * via OpenTimestamps. The .ots proof is verifiable against Bitcoin headers by
+ * anyone with the official `ots` CLI, with NO ar-agents key in the trust path.
+ * `status` upgrades from "pending" (calendar received it) to "bitcoin" (a block
+ * confirmed it) over hours, without us touching the anchor.
+ */
+export interface AnchorProof {
+  type: "opentimestamps";
+  /** The complete detached .ots file, base64. Served raw at /api/audit/anchor/<seq>/ots. */
+  otsBase64: string;
+  /** sha256(canonical006(anchorBody)) — the EXACT bytes also HMAC-signed (anchorSig). */
+  digest: string;
+  digestAlg: "sha256";
+  status: "pending" | "bitcoin";
+  bitcoinBlockHeight?: number;
+  bitcoinBlockTime?: string;
+  submittedAt: string;
+  upgradedAt?: string;
+}
+
 /** Link timestamp: native `ts` wins; legacy `createdAt` maps to ISO (verifier parity). */
 function linkTs(l: { ts?: string | null; createdAt?: string | number | null }): string | undefined {
   if (l.ts != null) return l.ts;
@@ -143,17 +173,28 @@ export async function chainLinkHash(
   );
 }
 
+/** Canonical AnchorBody — the EXACT bytes both anchorSig (HMAC) and the OTS digest commit to. */
+function anchorBodyCanonical(a: Omit<Anchor, "signature">): string {
+  return canonical006({
+    seq: a.seq,
+    headSeq: a.headSeq,
+    headHash: a.headHash,
+    prevAnchor: a.prevAnchor,
+    ts: a.ts,
+  });
+}
+
 export async function anchorSig(secret: string, a: Omit<Anchor, "signature">): Promise<string> {
-  return hmacHex(
-    secret,
-    canonical006({
-      seq: a.seq,
-      headSeq: a.headSeq,
-      headHash: a.headHash,
-      prevAnchor: a.prevAnchor,
-      ts: a.ts,
-    }),
-  );
+  return hmacHex(secret, anchorBodyCanonical(a));
+}
+
+/**
+ * sha256(canonical006(AnchorBody)) — the OTS commitment digest. Provably the
+ * SAME bytes anchorSig HMAC-signs, so the OTS proof and the HMAC anchor commit
+ * to one object (RFC-006 §6.1 invariant). Edge-safe (crypto.subtle via sha256Hex).
+ */
+export async function anchorDigest(a: Omit<Anchor, "signature">): Promise<string> {
+  return sha256Hex(anchorBodyCanonical(a));
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -231,6 +272,9 @@ const HEAD_KEY = "ledger:head";
 const ANCHORS_KEY = "ledger:anchors";
 const ANCHOR_HEAD_KEY = "ledger:anchors:head";
 const LOCK_KEY = "ledger:lock";
+/** Per-anchor OTS proof, keyed by anchor.seq. ADDITIVE; never gates existing writes. */
+const ANCHOR_PROOF_KEY = (seq: number) => `ledger:anchor:proof:${seq}`;
+const ANCHOR_PROOF_IDS_KEY = "ledger:anchor:proof:ids";
 
 function secretOrNull(): string | null {
   return process.env.AUDIT_HMAC_SECRET?.trim() || null;
@@ -365,7 +409,125 @@ export async function createAnchor(): Promise<Anchor | null> {
   const secret = secretOrNull();
   if (!secret) return null;
   const res = await withLock(() => createAnchorInternal(secret));
-  return res ?? null;
+  if (!res) return null;
+  // OTS stamping is intentionally OUTSIDE the KV lock so calendar latency never
+  // inflates lock-hold time (same rationale as the appendLink comment above).
+  // Best-effort + env-gated: prod behavior is unchanged until ANCHOR_OTS_ENABLED
+  // is flipped, and a failed stamp NEVER fails the anchor write.
+  if (otsEnabled()) {
+    try {
+      await stampAnchor(res);
+    } catch {
+      // best-effort; the HMAC anchor already persisted above is authoritative.
+    }
+  }
+  return res;
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// OTS public-anchor proofs (ADDITIVE — RFC-006 §6.1). Best-effort, never throw.
+// ─────────────────────────────────────────────────────────────────────────────
+
+function attestationToProofPatch(att: OtsAttestationInfo): {
+  status: AnchorProof["status"];
+  bitcoinBlockHeight?: number;
+} {
+  if (att.bitcoin) {
+    return att.bitcoinBlockHeight != null
+      ? { status: "bitcoin", bitcoinBlockHeight: att.bitcoinBlockHeight }
+      : { status: "bitcoin" };
+  }
+  return { status: "pending" };
+}
+
+async function persistProof(seq: number, proof: AnchorProof): Promise<void> {
+  await kv.set(ANCHOR_PROOF_KEY(seq), proof);
+  // sadd is a no-op on a member already in the set; bounds enumeration.
+  await kv.sadd(ANCHOR_PROOF_IDS_KEY, seq);
+}
+
+/**
+ * Submit sha256(canonical006(AnchorBody)) to the public OTS calendars and store
+ * the returned .ots proof under ledger:anchor:proof:<seq>. ADDITIVE: the HMAC
+ * anchor signature is untouched. Best-effort: returns null on ANY failure
+ * (calendars down, KV down, fetch unavailable) and NEVER throws on the write
+ * path — mirrors the appendLink contract.
+ */
+export async function stampAnchor(anchor: Anchor): Promise<AnchorProof | null> {
+  try {
+    const digest = await anchorDigest(anchor);
+    const stamp = await stampDigest(digest);
+    if (!stamp) return null;
+    const patch = attestationToProofPatch(stamp.attestation);
+    const proof: AnchorProof = {
+      type: "opentimestamps",
+      otsBase64: stamp.otsBase64,
+      digest,
+      digestAlg: "sha256",
+      status: patch.status,
+      submittedAt: new Date().toISOString(),
+      ...(patch.bitcoinBlockHeight != null ? { bitcoinBlockHeight: patch.bitcoinBlockHeight } : {}),
+    };
+    await persistProof(anchor.seq, proof);
+    return proof;
+  } catch {
+    return null;
+  }
+}
+
+/**
+ * Re-query the calendars for a pending proof and persist the upgraded
+ * (Bitcoin-attested) .ots + extracted block height. Idempotent: a no-op (still
+ * pending, or already upgraded) returns the existing/unchanged proof or null.
+ * Best-effort: never throws.
+ */
+export async function upgradeAnchorProof(seq: number): Promise<AnchorProof | null> {
+  try {
+    const existing = await kv.get<AnchorProof>(ANCHOR_PROOF_KEY(seq));
+    if (!existing) return null;
+    if (existing.status === "bitcoin") return existing; // already final, idempotent
+    const up = await upgradeOts(existing.otsBase64);
+    if (!up || !up.upgraded) return existing; // still pending; unchanged
+    const patch = attestationToProofPatch(up.attestation);
+    const upgraded: AnchorProof = {
+      ...existing,
+      otsBase64: up.otsBase64,
+      status: patch.status,
+      upgradedAt: new Date().toISOString(),
+      ...(patch.bitcoinBlockHeight != null ? { bitcoinBlockHeight: patch.bitcoinBlockHeight } : {}),
+    };
+    await persistProof(seq, upgraded);
+    return upgraded;
+  } catch {
+    return null;
+  }
+}
+
+/** All stored OTS proofs keyed by anchor.seq. Best-effort: {} on KV failure. */
+export async function readAnchorProofs(): Promise<Record<number, AnchorProof>> {
+  try {
+    const ids = await kv.smembers(ANCHOR_PROOF_IDS_KEY);
+    if (!Array.isArray(ids) || ids.length === 0) return {};
+    const seqs = ids.map((x) => Number(x)).filter((n) => Number.isFinite(n));
+    const proofs = await Promise.all(seqs.map((s) => kv.get<AnchorProof>(ANCHOR_PROOF_KEY(s))));
+    const out: Record<number, AnchorProof> = {};
+    for (let i = 0; i < seqs.length; i++) {
+      const p = proofs[i];
+      if (p) out[seqs[i]] = p;
+    }
+    return out;
+  } catch {
+    return {};
+  }
+}
+
+/** Read one stored OTS proof by anchor.seq (for the /ots delivery route). Null if absent. */
+export async function readAnchorProof(seq: number): Promise<AnchorProof | null> {
+  try {
+    return (await kv.get<AnchorProof>(ANCHOR_PROOF_KEY(seq))) ?? null;
+  } catch {
+    return null;
+  }
 }
 
 export async function readLinks(): Promise<ChainLink[]> {
