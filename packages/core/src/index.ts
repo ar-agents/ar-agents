@@ -52,3 +52,35 @@ export {
   type ToolApprovalFromRiskOptions,
   toolApprovalFromRisk,
 } from "./tool-approval";
+
+// Jurisdiction seam — global-first architecture. AR is jurisdiction #1, not the
+// only one. Pure types + pure helpers; the host injects the real Registry/FiatRail.
+export {
+  type CountryCode,
+  type SubdivisionCode,
+  type CurrencyCode,
+  type Jurisdiction,
+  type JurisdictionRegistry,
+  createJurisdictionRegistry,
+  type FiatRail,
+  type FiatRailQuote,
+  type FiatRailReceipt,
+  type FiatRailStatus,
+  type FiatRailStatusReport,
+  type Registry,
+  type GoodStandingRecord,
+  type GoodStandingAttestation,
+  type PublicAnchor,
+  type AttestationVerification,
+  type TaxRule,
+  type TaxableEvent,
+  type TaxOwed,
+} from "./jurisdiction";
+
+export {
+  type ArTaxRule,
+  AR_CEDULAR,
+  AR_MONOTRIBUTO,
+  AR_TAX_RULES,
+  createArJurisdiction,
+} from "./jurisdictions/ar";

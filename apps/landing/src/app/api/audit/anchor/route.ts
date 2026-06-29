@@ -1,6 +1,13 @@
 import { jsonCors, preflight } from "@/lib/cors";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
-import { createAnchor, readAnchors, readHead, verifyLedger } from "@/lib/ledger";
+import {
+  createAnchor,
+  readAnchorProofs,
+  readAnchors,
+  readHead,
+  upgradeAnchorProof,
+  verifyLedger,
+} from "@/lib/ledger";
 
 /**
  * /api/audit/anchor: the RFC-006 §6 anchor chain.
@@ -16,8 +23,35 @@ import { createAnchor, readAnchors, readHead, verifyLedger } from "@/lib/ledger"
 
 export const runtime = "edge";
 
-export async function GET() {
-  const [anchors, head, v] = await Promise.all([readAnchors(), readHead(), verifyLedger()]);
+export async function GET(req: Request) {
+  const url = new URL(req.url);
+
+  // ?upgrade=1: re-query the OTS calendars for any pending proofs and persist
+  // those that have confirmed into a Bitcoin block. Rate-limited like POST.
+  // ADDITIVE: absent this param the response shape is a superset of the old one.
+  if (url.searchParams.get("upgrade") === "1") {
+    if (!rateLimit("audit-anchor-upgrade", clientIp(req), 4, 60 * 60_000)) {
+      return jsonCors({ ok: false, error: "rate_limited", note: "max 4/hora por IP" }, { status: 429 });
+    }
+    const before = await readAnchorProofs();
+    const pendingSeqs = Object.keys(before)
+      .map(Number)
+      .filter((seq) => before[seq]?.status === "pending");
+    const upgraded: number[] = [];
+    for (const seq of pendingSeqs) {
+      const res = await upgradeAnchorProof(seq);
+      if (res && res.status === "bitcoin") upgraded.push(seq);
+    }
+    const proofs = await readAnchorProofs();
+    return jsonCors({ ok: true, upgraded, proofs }, { status: 200 });
+  }
+
+  const [anchors, head, v, proofs] = await Promise.all([
+    readAnchors(),
+    readHead(),
+    verifyLedger(),
+    readAnchorProofs(),
+  ]);
   return jsonCors(
     {
       $schema: "https://ar-agents.ar/schemas/anchor-chain.v1.json",
@@ -26,6 +60,10 @@ export async function GET() {
       count: anchors.length,
       anchors,
       verification: v.anchors,
+      // ADDITIVE (RFC-006 §6.1): public OpenTimestamps proofs keyed by anchor.seq.
+      proofs,
+      publicTimestamp:
+        "Each proof commits sha256(canonical006(AnchorBody)) — the same bytes the HMAC anchor signs — to the public Bitcoin calendars via OpenTimestamps. Fetch the raw .ots at /api/audit/anchor/{seq}/ots and run `ots verify` against Bitcoin: no ar-agents key is in the trust path. Pending proofs upgrade to a Bitcoin-confirmed attestation over hours (GET ?upgrade=1).",
       witness:
         "Store any anchor you fetch. Once you hold anchor N, history at or below headSeq N cannot be rewritten without detection.",
     },

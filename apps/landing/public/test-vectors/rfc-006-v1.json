@@ -160,6 +160,25 @@
       "count": 2
     }
   },
+  "timestampProof": {
+    "description": "RFC-006 §6.1 OTS public-anchor proof (ADDITIVE, OPTIONAL). digest = SHA256(canonical(AnchorBody #2)) — the SAME bytes anchors[1].signature HMAC-signs — committed to the public OTS Bitcoin calendars. otsBase64 is a deterministic synthetic .ots over that digest with one pending-calendar attestation. A conformant verifier MUST: confirm the .ots magic header, confirm its embedded leaf digest string-equals `digest`, and report the attestation status (here: pending, no Bitcoin block yet). `node arg-verify.mjs timestamp <file.ots> --digest <digest>` performs this check offline; the full trust-minimized proof (commit -> Bitcoin header) is the official `ots verify`. NOT part of `vectors` (it needs a binary .ots file and would break the zero-dep/offline `vectors` invariant).",
+    "anchorSeq": 2,
+    "anchorBody": {
+      "seq": 2,
+      "headSeq": 3,
+      "headHash": "33eb348ae76bf4c12a54d6f97cbf351504bac58ccd7bab5c950f0130dea48fc7",
+      "prevAnchor": "2acf14307564a1bf27e0ff225dacda75ecb55912a8b178d38691bf46eb76fa1b",
+      "ts": "2026-05-11T00:02:00.000Z"
+    },
+    "digestAlg": "sha256",
+    "digest": "91783ead8bff6c9f5268f99350c7bb28cdef9df0f46f8a9014220ee25154c5ed",
+    "otsBase64": "AE9wZW5UaW1lc3RhbXBzAABQcm9vZgC/ieLohOiSlAEIkXg+rYv/bJ9SaPmTUMe7KM3vnfD0b4qQFCIO4lFUxe0Ag9/jDS75DI4iIWh0dHBzOi8vYS5wb29sLm9wZW50aW1lc3RhbXBzLm9yZw==",
+    "expect": {
+      "magicValid": true,
+      "digestCommits": true,
+      "status": "pending"
+    }
+  },
   "projection": {
     "description": "RFC-006 §5 normative projection P(L)→RFC-004 OperationalLogEntry. Each entry MUST canonical-equal the published object, its hmac MUST string-equal, AND it MUST pass RFC-004 §3 verifyEntry with secrets.projection.",
     "secret": "rfc-006-projection-secret",

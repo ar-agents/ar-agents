@@ -33,3 +33,17 @@ jobs:
           node tools/arg-verify/_gen-rfc006-vectors.mjs > /tmp/rfc-006-v1.json
           diff -u apps/landing/public/test-vectors/rfc-006-v1.json /tmp/rfc-006-v1.json \
             || { echo "::error::rfc-006-v1.json is out of sync with _gen-rfc006-vectors.mjs (re-run the generator)"; exit 1; }
+
+      # The two arg-verify.mjs copies (canonical tool + public ASCII twin served
+      # at /arg-verify.mjs) MUST stay logically identical: the public copy is the
+      # canonical one with the em-dash removed and the "/arg" brand swapped for
+      # "ar-agents". This ASCII-normalized diff stops the two from silently
+      # diverging on any future verifier change (a real latent drift risk).
+      - name: arg-verify.mjs copies are in sync (ASCII-normalized)
+        run: |
+          sed -e 's/—/-/g' \
+              -e 's#the published /arg standard#the published ar-agents standard#' \
+              -e 's#verifier for the /arg operational-log#verifier for the ar-agents operational-log#' \
+              tools/arg-verify/arg-verify.mjs > /tmp/arg-verify.normalized.mjs
+          diff -u /tmp/arg-verify.normalized.mjs apps/landing/public/arg-verify.mjs \
+            || { echo "::error::apps/landing/public/arg-verify.mjs has drifted from tools/arg-verify/arg-verify.mjs (apply every verifier change to BOTH copies)"; exit 1; }
