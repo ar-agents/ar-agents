@@ -39,7 +39,7 @@ export function HomeJsonLd() {
           url: SITE_URL,
           logo: `${SITE_URL}/icon.png`,
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades-IA (legally, Sociedad Automatizada, art. 14), companies that run on AI agents under Argentina's proposed regime.",
+            "Open-source toolkit and reference implementation for Argentine sociedades automatizadas (Sociedad Automatizada, art. 14), companies that run on AI agents under Argentina's proposed regime.",
           sameAs: [REPO_URL, "https://www.npmjs.com/org/ar-agents"],
           founder: {
             "@type": "Person",
@@ -59,7 +59,7 @@ export function HomeJsonLd() {
           url: SITE_URL,
           name: "ar-agents",
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades-IA. 36 npm packages, 235 tools, 5 hosted endpoints.",
+            "Open-source toolkit and reference implementation for Argentine sociedades automatizadas. 36 npm packages, 235 tools, 5 hosted endpoints.",
           inLanguage: ["es-AR", "en"],
           potentialAction: {
             "@type": "SearchAction",
@@ -108,7 +108,7 @@ export function SdkJsonLd() {
           "@type": "SoftwareSourceCode",
           name: "@ar-agents/incorporate",
           description:
-            "Zero-dependency TypeScript client for /api/auto-incorporate. One async call returns the full AR sociedad-IA incorporation kit.",
+            "Zero-dependency TypeScript client for /api/auto-incorporate. One async call returns the full AR sociedad automatizada incorporation kit.",
           codeRepository: `${REPO_URL}/tree/main/packages/incorporate`,
           programmingLanguage: "TypeScript",
           runtimePlatform: "Node.js 20+, Edge, Cloudflare Workers, Deno, browser",
@@ -181,7 +181,7 @@ export function IncorporarJsonLd() {
       data={{
         "@context": "https://schema.org",
         "@type": "HowTo",
-        name: "Cómo constituir una sociedad-IA argentina",
+        name: "Cómo constituir una sociedad automatizada argentina",
         description:
           "Wizard guiado para constituir una empresa argentina operada por IA bajo el régimen propuesto por Sturzenegger (anuncio 28-abr-2026).",
         url: `${SITE_URL}/incorporar`,
@@ -242,7 +242,7 @@ export function SociedadesIaJsonLd() {
         "@context": "https://schema.org",
         "@type": "TechArticle",
         headline:
-          "Implementación de referencia para sociedades de IA en Argentina",
+          "Implementación de referencia para sociedades automatizadas en Argentina",
         description:
           "El anuncio de Sturzenegger del 28-abr-2026 derivó en un anteproyecto (texto firmado el 28-may-2026, hoy en el Senado) que crea la Sociedad Automatizada (art. 14): empresas que operan con agentes de IA, sin empleados en relación de dependencia. Esta página documenta cómo el toolkit @ar-agents/* implementa las 17 piezas operativas necesarias.",
         url: `${SITE_URL}/sociedades-ia`,

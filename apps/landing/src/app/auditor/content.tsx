@@ -29,26 +29,26 @@ const T = {
     en: "/auditor · english · 1-page · printable · 2026-05-11",
   },
   h1: {
-    es: "Auditar una sociedad-IA argentina, en una hoja.",
-    en: "Audit an Argentine AI corporation, on a single page.",
+    es: "Auditar una sociedad automatizada argentina, en una hoja.",
+    en: "Audit an Argentine automated company, on a single page.",
   },
   lede: {
     es: (
       <>
         <strong>ar-agents</strong> es la infraestructura open-source sobre la
-        que se está construyendo la primera generación de sociedades-IA
-        argentinas. Esta página tiene un objetivo único: explicarle cómo
-        verificar, sin pedir permiso al operador, qué hizo una sociedad-IA
-        durante un período de tiempo determinado.
+        que se está construyendo la primera generación de sociedades
+        automatizadas argentinas. Esta página tiene un objetivo único:
+        explicarle cómo verificar, sin pedir permiso al operador, qué hizo
+        una sociedad automatizada durante un período de tiempo determinado.
       </>
     ),
     en: (
       <>
         <strong>ar-agents</strong> is the open-source infrastructure
-        underpinning the first generation of Argentine sociedades-IA (AI
-        corporations). This page has a single goal: explain how to verify,
-        without asking the operator for permission, what an AI corporation
-        did during a given time window.
+        underpinning the first generation of Argentine automated companies.
+        This page has a single goal: explain how to verify, without asking
+        the operator for permission, what an automated company did during a
+        given time window.
       </>
     ),
   },
@@ -63,8 +63,9 @@ const T = {
   s1p1: {
     es: (
       <>
-        Toda sociedad-IA que use <strong>ar-agents</strong> escribe cada
-        acción en un registro <em>append-only</em>, firmado al momento de la
+        Toda sociedad automatizada que use <strong>ar-agents</strong>{" "}
+        escribe cada acción en un registro <em>append-only</em>, firmado al
+        momento de la
         escritura con HMAC-SHA256. El registro es público en lectura (las
         entradas no contienen secretos; sí contienen lo que pasó). La clave
         de firma es privada del operador.
@@ -72,7 +73,7 @@ const T = {
     ),
     en: (
       <>
-        Every AI corporation that uses <strong>ar-agents</strong> writes
+        Every automated company that uses <strong>ar-agents</strong> writes
         each action to an <em>append-only</em> log, signed at write time
         with HMAC-SHA256. The log is publicly readable (entries don't
         contain secrets; they contain what happened). The signing key is
@@ -279,7 +280,7 @@ const T = {
   s4p2: {
     es: (
       <>
-        Si una sociedad-IA emite en producción una entrada con{" "}
+        Si una sociedad automatizada emite en producción una entrada con{" "}
         <Code inline>governance: &quot;mocked-upstream&quot;</Code>, está
         haciendo una admisión pública de que el efecto secundario{" "}
         <em>no</em> ocurrió contra el sistema real. Un regulador que lee
@@ -289,7 +290,7 @@ const T = {
     ),
     en: (
       <>
-        If a productive AI corporation emits an entry with{" "}
+        If a productive automated company emits an entry with{" "}
         <Code inline>governance: &quot;mocked-upstream&quot;</Code>, it's
         a public admission that the side effect did <em>not</em> hit the
         real system. A regulator reading the log can distinguish a
@@ -320,14 +321,15 @@ const T = {
   s5li4Body: {
     es: (
       <>
-        : un resumen legible por humanos de qué hizo la sociedad-IA
-        durante la ventana, generado <em>del log</em>, no del recuerdo del
+        : un resumen legible por humanos de qué hizo la sociedad
+        automatizada durante la ventana, generado <em>del log</em>, no del
+        recuerdo del
         operador. Provisto vía <A href="/play">/play</A> + el CSV.
       </>
     ),
     en: (
       <>
-        : a human-readable summary of what the AI corporation did during
+        : a human-readable summary of what the automated company did during
         the window, generated <em>from the log</em>, not from operator
         memory. Provided via <A href="/play">/play</A> + the CSV.
       </>
@@ -338,24 +340,24 @@ const T = {
     en: "With a court order, the regulator can additionally compel the chain of custody for the signing key (who held it, where it was stored, when it was rotated), equivalent to compelling the custody chain of a notary's seal.",
   },
   s6Title: {
-    es: "6 · La sociedad-IA se identifica en pleno",
-    en: "6 · The AI corporation identifies itself fully",
+    es: "6 · La sociedad automatizada se identifica en pleno",
+    en: "6 · The automated company identifies itself fully",
   },
   s6p1: {
     es: (
       <>
-        Toda sociedad-IA construida con <strong>ar-agents</strong> publica
-        en <Code inline>/.well-known/agents.json</Code> su identificación
-        jurisdiccional + sus capacidades. Por ejemplo, para una sociedad
-        cuyo operador es CUIT {SAMPLE_CUIT}:
+        Toda sociedad automatizada construida con <strong>ar-agents</strong>{" "}
+        publica en <Code inline>/.well-known/agents.json</Code> su
+        identificación jurisdiccional + sus capacidades. Por ejemplo, para
+        una sociedad cuyo operador es CUIT {SAMPLE_CUIT}:
       </>
     ),
     en: (
       <>
-        Every AI corporation built with <strong>ar-agents</strong>{" "}
+        Every automated company built with <strong>ar-agents</strong>{" "}
         publishes its jurisdictional identity + capabilities at{" "}
         <Code inline>/.well-known/agents.json</Code>. For example, for a
-        corporation whose operator is CUIT {SAMPLE_CUIT}:
+        company whose operator is CUIT {SAMPLE_CUIT}:
       </>
     ),
   },
@@ -364,7 +366,7 @@ const T = {
       <>
         La convención completa de discovery está en{" "}
         <A href="/rfcs/002">RFC-002</A>. La idea: no hay que adivinar
-        dónde están los endpoints de una sociedad-IA. Hay un lugar
+        dónde están los endpoints de una sociedad automatizada. Hay un lugar
         estándar.
       </>
     ),
@@ -372,7 +374,7 @@ const T = {
       <>
         The complete discovery convention lives in{" "}
         <A href="/rfcs/002">RFC-002</A>. The idea: you don't have to
-        guess where an AI corporation's endpoints are. There's a
+        guess where an automated company's endpoints are. There's a
         standard place.
       </>
     ),
@@ -382,8 +384,8 @@ const T = {
     en: "7 · If you want to go deeper",
   },
   s7li1: {
-    es: "Marco de responsabilidad civil de tres capas para sociedades-IA.",
-    en: "Three-layer civil liability framework for AI corporations.",
+    es: "Marco de responsabilidad civil de tres capas para sociedades automatizadas.",
+    en: "Three-layer civil liability framework for automated companies.",
   },
   s7li2: {
     es: "Especificación normativa del log operativo. Es el documento técnico que la legislación puede citar.",
@@ -469,8 +471,8 @@ const T = {
     ),
   },
   s9p2: {
-    es: "Esta es una página de un proyecto open-source. No es un documento oficial de ningún organismo. El régimen de sociedades-IA fue anunciado el 28 de abril de 2026 por el Ministerio de Desregulación; al momento de esta publicación, no hay aún ley aprobada. Esta infraestructura existe para que la conversación legislativa tenga un referente técnico concreto que mirar.",
-    en: "This is a page from an open-source project. It is not an official document from any agency. The sociedad-IA regime was announced on April 28, 2026 by Argentina's Ministry of Deregulation and State Transformation; at the time of this publication, there is no enacted law yet. This infrastructure exists so the legislative conversation has a concrete technical reference to look at.",
+    es: "Esta es una página de un proyecto open-source. No es un documento oficial de ningún organismo. El régimen de sociedades automatizadas fue anunciado el 28 de abril de 2026 por el Ministerio de Desregulación; al momento de esta publicación, no hay aún ley aprobada. Esta infraestructura existe para que la conversación legislativa tenga un referente técnico concreto que mirar.",
+    en: "This is a page from an open-source project. It is not an official document from any agency. The automated-company regime was announced on April 28, 2026 by Argentina's Ministry of Deregulation and State Transformation; at the time of this publication, there is no enacted law yet. This infrastructure exists so the legislative conversation has a concrete technical reference to look at.",
   },
 } as const;
 

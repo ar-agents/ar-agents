@@ -14,11 +14,11 @@ export default function EmbedPage() {
     <DocShell
       eyebrow="embed · viral surface"
       title="Embed the verification proof in your site."
-      subtitle="One copy-paste, your sociedad-IA's audit-log verification status renders inline anywhere. README badges, status pages, vendor profiles, marketing landings, all live, all server-recomputed every 60s, all auditable."
+      subtitle="One copy-paste, your sociedad automatizada's audit-log verification status renders inline anywhere. README badges, status pages, vendor profiles, marketing landings, all live, all server-recomputed every 60s, all auditable."
     >
       <DocBlock>
         <DocP>
-          When an external party visits your sociedad-IA&apos;s website,
+          When an external party visits your sociedad automatizada&apos;s website,
           they have no way to know if your audit log is clean. Telling
           them &quot;I have a clean log, trust me&quot; is the
           opposite of forensic. The badge embed solves this in 1 line:
@@ -85,10 +85,10 @@ export default function EmbedPage() {
       <DocP>
         Embeds the full live dashboard with SSE streaming. Use this on
         an internal compliance dashboard so a finance / ops team can
-        watch the sociedad-IA&apos;s tool calls in real time without
+        watch the sociedad automatizada&apos;s tool calls in real time without
         leaving their tab. The dashboard sets{" "}
         <DocCode>X-Frame-Options: SAMEORIGIN</DocCode>; iframe-ing on a
-        different origin requires the&apos; site to set CSP{" "}
+        different origin requires the site to set CSP{" "}
         <DocCode>frame-src https://ar-agents.ar</DocCode>.
       </DocP>
 

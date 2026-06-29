@@ -22,7 +22,7 @@ export const revalidate = 3600;
 export const metadata: Metadata = {
   title: "/highlights · what ar-agents is, in 90 seconds · ar-agents",
   description:
-    "What ar-agents is, in 90 seconds: open-source infrastructure for Argentine sociedades-IA. 6 RFCs, 30 cookbook recipes, public certifier scoring 100/100. For anyone arriving cold, investor, recruiter, journalist, ally.",
+    "What ar-agents is, in 90 seconds: open-source infrastructure to create and run an autonomous company (sociedad automatizada) in Argentina. 6 RFCs, 30 cookbook recipes, public certifier scoring 100/100. For anyone arriving cold, investor, recruiter, journalist, ally.",
   alternates: { canonical: "https://ar-agents.ar/highlights" },
 };
 
@@ -76,17 +76,20 @@ export default function HighlightsPage() {
               letterSpacing: "-0.02em",
             }}
           >
-            Open-source infrastructure
+            Infrastructure to create and run
             <br />
-            for Argentine sociedades-IA.
+            an autonomous company in Argentina.
           </h1>
           <p style={{ fontSize: 18, color: "var(--text-body)" }}>
-            Argentina announced a regime for AI-only companies on{" "}
-            <strong>28 April 2026</strong>. We&apos;ve built the
-            technical scaffolding so the legislation has something to
-            cite. Six RFCs, 30 cookbook recipes, a public certifier,
-            test vectors with deterministic signatures, a registry
-            where every implementation scores 100/100.
+            Open-source rails to create and register a sociedad
+            automatizada, a company operated by AI agents. The draft
+            Ley General de Sociedades that enables it was sent to the
+            Argentine Senate on <strong>1 June 2026</strong> and is not
+            yet law. We built the technical scaffolding so the
+            legislation has something to cite. Six RFCs, 30 cookbook
+            recipes, a public certifier, test vectors with deterministic
+            signatures, a registry where every implementation scores
+            100/100.
           </p>
         </header>
 
@@ -145,7 +148,7 @@ export default function HighlightsPage() {
 
         <Section title="What it solves">
           <P>
-            Three concrete problems for the new regime:
+            Three concrete problems for the proposed regime:
           </P>
           <ul style={ulSty}>
             <li style={liSty}>

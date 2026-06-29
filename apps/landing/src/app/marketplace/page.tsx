@@ -374,12 +374,12 @@ export default function MarketplacePage() {
         The hard half, AR fiscal compliance, identity verification, IGJ
         corporate registry, BCRA credit history, digital signature
         verification, Boletín Oficial monitoring, ACP-with-factura, has been
-        un-or-poorly served until now. The toolkit&apos;s thesis is that the
-        agent jurisdiction Argentina is shaping (the Anteproyecto de Ley
-        General de Sociedades, which creates the Sociedad Automatizada in
-        art. 14, text dated 28-may-2026 and in the Senate, not yet law) needs
-        that hard half answered first, before any of the headline marketing
-        about agent corporations becomes meaningful in practice.
+        poorly served until now. The toolkit&apos;s thesis is that the
+        regime Argentina is shaping (the Anteproyecto de Ley General de
+        Sociedades, which creates the Sociedad Automatizada in art. 14, text
+        dated 28-may-2026 and in the Senate, not yet law) needs that hard
+        half answered first, before a sociedad automatizada can actually
+        invoice, pay taxes, and operate in practice.
       </DocP>
 
       <DocH2>How to verify</DocH2>

@@ -2,13 +2,13 @@ import { ImageResponse } from "next/og";
 
 export const runtime = "edge";
 export const alt =
-  "ar-agents · infraestructura abierta para sociedades de IA en Argentina";
+  "ar-agents · infraestructura abierta para sociedades automatizadas en Argentina";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
 // Dark, on-brand link preview (X / WhatsApp / LinkedIn). Black canvas + cyan
 // accent matches the site identity and stands out in feeds. Leads with the
-// sociedades-de-IA standard, names the open-core + El Auditor model.
+// sociedad automatizada standard, names the open-core + El Auditor model.
 export default function OpengraphImage() {
   return new ImageResponse(
     (
@@ -74,7 +74,7 @@ export default function OpengraphImage() {
             }}
           >
             <span>Infraestructura abierta</span>
-            <span>para sociedades de IA.</span>
+            <span>para sociedades automatizadas.</span>
           </div>
 
           <div

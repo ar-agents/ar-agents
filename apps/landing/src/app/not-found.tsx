@@ -11,7 +11,7 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
 
 const SHORTCUTS = [
-  { href: "/play", label: "/play", desc: "Live sociedad-IA agent demo" },
+  { href: "/play", label: "/play", desc: "Live automated-company agent demo" },
   { href: "/reference", label: "/reference", desc: "Every URL on the site" },
   { href: "/sdk", label: "/sdk", desc: "@ar-agents/incorporate docs" },
   { href: "/faq", label: "/faq", desc: "21 questions answered" },

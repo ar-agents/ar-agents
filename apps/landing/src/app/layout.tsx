@@ -220,7 +220,7 @@ const schemaOrgJsonLd = {
       "@type": "WebSite",
       "@id": SITE + "/#website",
       name: "ar-agents",
-      alternateName: "Infraestructura para sociedades de IA",
+      alternateName: "Infraestructura para sociedades automatizadas",
       url: SITE,
       inLanguage: ["en", "es"],
       publisher: { "@id": SITE + "/#org-ar-agents" },

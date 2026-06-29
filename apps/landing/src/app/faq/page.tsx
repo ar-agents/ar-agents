@@ -27,8 +27,8 @@ const FAQS: Q[] = [
   },
   {
     audience: "regulator",
-    q: "Si la ley de sociedades-IA no pasa, ¿qué utilidad tiene?",
-    a: 'Cubre 16 piezas operativas de cualquier empresa argentina hoy (factura electrónica, BCRA, Mercado Pago, WhatsApp, IGJ, Boletín Oficial). Funciona como toolkit estándar para SaaS argentinos sin importar el régimen. La parte sociedad-IA es <em>aditiva</em>: el día que la ley pase, el toolkit ya está listo. Si la ley no pasa, sigue siendo el toolkit más completo del ecosistema.',
+    q: "Si la ley de sociedades automatizadas no pasa, ¿qué utilidad tiene?",
+    a: 'Cubre 16 piezas operativas de cualquier empresa argentina hoy (factura electrónica, BCRA, Mercado Pago, WhatsApp, IGJ, Boletín Oficial). Funciona como toolkit estándar para SaaS argentinos sin importar el régimen. La parte de la sociedad automatizada es <em>aditiva</em>: el día que la ley pase, el toolkit ya está listo. Si la ley no pasa, sigue siendo el toolkit más completo del ecosistema.',
   },
   {
     audience: "regulator",
@@ -42,7 +42,7 @@ const FAQS: Q[] = [
   },
   {
     audience: "regulator",
-    q: "¿Qué autoridad tienen las decisiones que toma una sociedad-IA?",
+    q: "¿Qué autoridad tienen las decisiones que toma una sociedad automatizada?",
     a: 'El nombre legal de la figura es <strong>Sociedad Automatizada</strong> (art. 14 del anteproyecto; texto firmado 28-may-2026, en el Senado desde el 1-jun-2026, todavía no es ley). Si se sanciona, sus decisiones tendrían la misma autoridad que las de cualquier persona jurídica argentina (firmar contratos, emitir facturas, ser titular de cuenta bancaria). La ley es explícita en que el uso de IA en la gestión no excluye la responsabilidad de los administradores ni el deber de configuración y supervisión del sistema (art. 102). El humano representante (RFC-001 § 3.1) firma el acto constitutivo y queda responsable por las decisiones de capa 1 (configuración del operador), no por las decisiones del modelo (capa 2).',
   },
   {
@@ -96,7 +96,7 @@ const FAQS: Q[] = [
   },
   {
     audience: "agent",
-    q: "Si quiero auto-incorporar una sociedad-IA argentina, ¿qué hago?",
+    q: "Si quiero auto-incorporar una sociedad automatizada argentina, ¿qué hago?",
     a: 'Una sola llamada: <code>POST /api/auto-incorporate</code> con <code>{ denominacion, tipo, capitalSocial, objeto }</code>. Recibís: 4 archivos generados (package.json + agent.ts + .env.example + README.md), Vercel deploy URL one-click, lista de env-vars, checklist legal/operativo, audit-log reference firmada. <a href="/sdk">SDK típado: <code>@ar-agents/incorporate</code></a>. Ver <a href="/examples#18">cookbook recipe 18</a>.',
   },
   {
@@ -119,14 +119,14 @@ const FAQS: Q[] = [
   {
     audience: "investor",
     q: "¿Cuál es la moat?",
-    a: '(1) First-mover en la jurisdicción AR + alineación con régimen sociedades-IA. (2) Cobertura del 16/17 piezas operativas, nadie más lo tiene completo. (3) RFC-001 governance framework, marco original. (4) Audit log HMAC + KV, primitivos forenses que requieren disciplina, no solo código. (5) Network: <code>@ar-agents/incorporate</code> es la entrada canónica para agentes externos USA-LLC / DAO LLCs / Estonia e-Residency a operar en AR.',
+    a: '(1) First-mover en la jurisdicción AR + alineación con el régimen de sociedades automatizadas. (2) Cobertura del 16/17 piezas operativas, nadie más lo tiene completo. (3) RFC-001 governance framework, marco original. (4) Audit log HMAC + KV, primitivos forenses que requieren disciplina, no solo código. (5) Network: <code>@ar-agents/incorporate</code> es la entrada canónica para agentes externos USA-LLC / DAO LLCs / Estonia e-Residency a operar en AR.',
   },
 
   // ─── Journalist / general ───────────────────────────────────────────
   {
     audience: "journalist",
     q: "¿Cuándo arrancó el proyecto?",
-    a: 'Primer commit privado nov 2025. Primer package npm published 5-may-2026. Anuncio Sturzenegger 28-abr-2026 reorientó la narrativa de "AR ops toolkit" a "implementación de referencia para sociedades-IA". El monorepo público tiene 200+ commits en ~6 meses.',
+    a: 'Primer commit privado nov 2025. Primer package npm published 5-may-2026. Anuncio Sturzenegger 28-abr-2026 reorientó la narrativa de "AR ops toolkit" a "implementación de referencia para sociedades automatizadas". El monorepo público tiene 200+ commits en ~6 meses.',
   },
   {
     audience: "journalist",

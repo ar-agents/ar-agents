@@ -55,8 +55,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Para el asesor que recibe este link de Sturzenegger, Reidel, Subsec TIC, AAIP, o cualquier organismo del régimen de sociedades-IA. Pensado para leer en una pasada de 10 minutos y reenviar internamente con confianza."
-          : "For the advisor who receives this link from Sturzenegger, Reidel, Subsec TIC, AAIP, or any agency in the sociedades-IA regime. Built to read in one 10-minute pass and forward internally with confidence."
+          ? "Para el asesor que recibe este link de Sturzenegger, Reidel, Subsec TIC, AAIP, o cualquier organismo del régimen de sociedades automatizadas. Pensado para leer en una pasada de 10 minutos y reenviar internamente con confianza."
+          : "For the advisor who receives this link from Sturzenegger, Reidel, Subsec TIC, AAIP, or any agency in the automated company regime. Built to read in one 10-minute pass and forward internally with confidence."
       }
     >
       <JsonLd
@@ -98,8 +98,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
           <li>
             <L
               lang={lang}
-              es="Soy un desarrollador independiente argentino. Construí la implementación técnica de referencia del régimen de sociedades-IA que anunció el Ministro el 28-abr: 36 paquetes npm + 6 specs técnicas CC-BY-4.0 + audit log criptográfico peritable."
-              en="I'm an independent Argentine developer. I built the technical reference implementation for the sociedades-IA regime the Minister announced on April 28: 36 npm packages + 6 technical specs (CC-BY-4.0) + a forensic cryptographic audit log."
+              es="Soy un desarrollador independiente argentino. Construí la implementación técnica de referencia del régimen de sociedades automatizadas que anunció el Ministro el 28-abr: 36 paquetes npm + 6 specs técnicas CC-BY-4.0 + audit log criptográfico peritable."
+              en="I'm an independent Argentine developer. I built the technical reference implementation for the automated company regime the Minister announced on April 28: 36 npm packages + 6 technical specs (CC-BY-4.0) + a forensic cryptographic audit log."
             />
           </li>
           <li>
@@ -414,8 +414,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
             en={
               <>
                 <strong>
-                  Reference implementation any AI corp can use on day 1
-                  of the law:
+                  Reference implementation any automated company can use
+                  on day 1 of the law:
                 </strong>{" "}
                 no license fee, no single-vendor dependency, no lock-in.
                 Lowers adoption friction.
@@ -473,7 +473,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <Link href={cloudPath} style={linkSty}>
                   /cloud
                 </Link>
-                {" "}, pero la infra de base se queda libre por diseño.
+                , pero la infra de base se queda libre por diseño.
               </>
             }
             en={
@@ -490,7 +490,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 <Link href={cloudPath} style={linkSty}>
                   /cloud
                 </Link>
-                {" "}, but the base infrastructure stays free by design.
+                , but the base infrastructure stays free by design.
               </>
             }
           />
@@ -810,7 +810,8 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 Es la única pieza técnica que depende del Estado y que
                 no puedo resolver yo solo. Si el ministerio incluye
                 esto en el alcance de la reforma, el ciclo de
-                incorporación programática de sociedades-IA se cierra.
+                incorporación programática de sociedades automatizadas
+                se cierra.
               </>
             }
             en={
@@ -821,7 +822,7 @@ export function GobiernoContent({ lang }: { lang: Lang }) {
                 This is the only technical piece that depends on the
                 state and that I can't solve alone. If the ministry
                 includes this in the reform scope, the programmatic
-                AI-corp incorporation cycle closes.
+                automated-company incorporation cycle closes.
               </>
             }
           />

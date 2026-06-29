@@ -65,7 +65,7 @@ export function CertifierClient() {
 
   async function runCertification() {
     if (!url.trim()) {
-      setError("Please paste a URL.");
+      setError("Paste a URL first.");
       return;
     }
     setLoading(true);
@@ -124,7 +124,7 @@ export function CertifierClient() {
           Paste any base URL. The certifier fetches its public endpoints
           + scores RFC-002 + RFC-004 conformance in seconds. Score 0-100
           with per-check breakdown. No setup. No install. Run against
-          your sociedad-IA, or someone else&apos;s, or this site itself.
+          your automated company, someone else&apos;s, or this site itself.
         </p>
       </header>
 
@@ -144,7 +144,7 @@ export function CertifierClient() {
             type="url"
             value={url}
             onChange={(e) => setUrl(e.target.value)}
-            placeholder="https://your-sociedad-ia.vercel.app"
+            placeholder="https://your-company.vercel.app"
             style={inputStyle}
           />
         </label>
@@ -370,7 +370,7 @@ export function CertifierClient() {
           <li style={{ marginBottom: 6 }}>
             <strong>Business legitimacy</strong>, passing 100/100 means the
             technical scaffolding is in place. It does NOT mean the
-            sociedad-IA is doing legal business; that&apos;s the
+            automated company is doing legal business; that&apos;s the
             regulator&apos;s job.
           </li>
           <li style={{ marginBottom: 6 }}>

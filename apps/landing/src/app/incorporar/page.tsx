@@ -5,9 +5,9 @@ import { IncorporarPrompt } from "./prompt-mode";
 import { IncorporarJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
-  title: "Incorporar una sociedad-IA · 10 minutos",
+  title: "Crear una sociedad automatizada · 10 minutos",
   description:
-    "Wizard que genera el repositorio + config + Vercel deploy para una sociedad-IA argentina. 16 piezas pre-cableadas. RFC-001 governance. MIT.",
+    "Wizard que genera el repositorio + config + Vercel deploy para una sociedad automatizada argentina. 16 piezas pre-cableadas. RFC-001 governance. MIT.",
   alternates: { canonical: "https://ar-agents.ar/incorporar" },
 };
 
@@ -15,23 +15,25 @@ export default function IncorporarPage() {
   return (
     <DocShell
       eyebrow="incorporar · alpha"
-      title="Incorporar una sociedad-IA."
-      subtitle="Pre-launch wizard. Te genera el repo, los env vars, el Vercel deploy y la lista de pasos legales para constituir una sociedad-IA en Argentina cuando la ley salga (H1 2027). Hoy podés operar como SAS estándar con todo el stack agentic ya cableado."
+      title="Crear una sociedad automatizada."
+      subtitle="Wizard pre-lanzamiento. Te genera el repo, los env vars, el Vercel deploy y la lista de pasos legales para constituir una sociedad automatizada en Argentina cuando se sancione la ley. El anteproyecto de Ley General de Sociedades está en el Senado y todavía no es ley. Hoy podés operar como SAS estándar con todo el stack agentic ya cableado."
     >
       <DocBlock>
         <DocP>
-          Esto no es ChatGPT-fills-a-form. Es la salida de la cadena{" "}
+          No es un formulario que completa un chatbot. Es la salida de la
+          cadena{" "}
           <DocCode>plan → repo → deploy → cert → operación</DocCode> que
-          la libreria <DocCode>@ar-agents/*</DocCode> implementa. El
+          la librería <DocCode>@ar-agents/*</DocCode> implementa. El
           wizard te configura todo lo que es código. Lo que requiere
           presencia legal humana (representante, certificado AFIP,
           registro IGJ) lo dejamos como checklist al final.
         </DocP>
         <DocP>
           ¿Cuánto tarda? El código corre en 10 minutos. El AFIP cert + el
-          alta IGJ tardan 5-10 días hábiles. La sociedad-IA propiamente
-          dicha (RFC-001 § 3.4) tarda lo que tarde el Congreso. Mientras
-          tanto: SAS con LLM-agent operator + RFC-001 liability framework.
+          alta IGJ tardan 5-10 días hábiles. La sociedad automatizada
+          propiamente dicha (RFC-001 § 3.4) tarda lo que tarde el
+          Congreso. Mientras tanto: SAS con LLM-agent operator + RFC-001
+          liability framework.
         </DocP>
       </DocBlock>
 
@@ -65,20 +67,22 @@ export default function IncorporarPage() {
 
       <DocH2>Lo que NO hace (todavía)</DocH2>
       <DocP>
-        Filing trámites IGJ programáticamente, el surface escribir requiere
-        per-organism integration que aún está rolling out (RFC-001 § 3.4).
-        Retiramos plata de la cuenta de la sociedad, eso requiere
-        autenticación humana per AR banking law actual. El wizard genera
-        el código que pueda hacerlo cuando la ley lo permita.
+        Presentar trámites de IGJ de forma programática: escribir contra
+        cada organismo requiere una integración por organismo que todavía
+        está en curso (RFC-001 § 3.4). Tampoco retira plata de la cuenta
+        de la sociedad: eso requiere autenticación humana según la ley
+        bancaria argentina actual. El wizard genera el código que va a
+        poder hacerlo cuando la ley lo permita.
       </DocP>
 
-      <DocH2>¿Por qué pre-launch ahora?</DocH2>
+      <DocH2>¿Por qué prepararse ahora?</DocH2>
       <DocP>
-        Sturzenegger anunció el régimen el 28 abril 2026. Realista, la ley
-        sale H1 2027. Empresas que estén pre-cableadas (repo + cert + flujos
-        operativos probados) van a poder migrar el día 1. Empresas que recién
-        empiecen ese día van a perder 3-6 meses. Esto te pone en el primer
-        grupo.
+        El régimen se anunció el 28 de abril de 2026. El anteproyecto de
+        Ley General de Sociedades se envió al Senado el 1 de junio de 2026
+        y todavía no es ley. Las empresas que lleguen pre-cableadas (repo +
+        cert + flujos operativos probados) van a poder migrar el día 1.
+        Las que recién empiecen ese día van a perder meses. Esto te pone
+        en el primer grupo.
       </DocP>
       <IncorporarJsonLd />
     </DocShell>

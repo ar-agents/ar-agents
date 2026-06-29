@@ -33,8 +33,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Sobre la implementación técnica del régimen de sociedades-IA, y la pieza faltante para que se pueda ejecutar el plan el mismo día que la ley se apruebe."
-          : "On the technical implementation of the sociedades-IA regime, and the missing piece for the plan to be executed the same day the law is passed."
+          ? "Sobre la implementación técnica del régimen de sociedades automatizadas, y la pieza faltante para que se pueda ejecutar el plan el mismo día que la ley se apruebe."
+          : "On the technical implementation of the automated-company regime, and the missing piece for the plan to be executed the same day the law is passed."
       }
     >
       <DocP>
@@ -146,7 +146,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>16 de las 17 piezas operativas</strong> que una
-                sociedad-IA argentina va a necesitar para funcionar:
+                sociedad automatizada argentina va a necesitar para
+                funcionar:
                 identidad (CUIT, ARCA, RENAPER, Mi Argentina), firma
                 digital (Ley 25.506, ONTI), dinero (Mercado Pago +
                 factura electrónica AFIP + BCRA Central de Deudores +
@@ -158,7 +159,7 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             en={
               <>
                 <strong>16 of the 17 operational pieces</strong> an
-                Argentine AI corporation will need to operate: identity
+                Argentine automated company will need to operate: identity
                 (CUIT, ARCA, RENAPER, Mi Argentina), digital signature
                 (Law 25.506, ONTI), money (Mercado Pago + AFIP
                 electronic invoicing + BCRA Central de Deudores + Key
@@ -269,8 +270,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
 
           <L
             lang={lang}
-            es="2:30 minutos de un agente usando 6 paquetes ar-agents para constituir y operar una sociedad-IA argentina ficticia de principio a fin. La forma más rápida de ver de qué se trata sin leer código."
-            en="2:30 minutes of an agent using 6 ar-agents packages to incorporate and operate a fictional Argentine AI corporation from start to finish. The fastest way to see what this is about without reading code."
+            es="2:30 minutos de un agente usando 6 paquetes ar-agents para constituir y operar una sociedad automatizada argentina ficticia de principio a fin. La forma más rápida de ver de qué se trata sin leer código."
+            en="2:30 minutes of an agent using 6 ar-agents packages to incorporate and operate a fictional Argentine automated company from start to finish. The fastest way to see what this is about without reading code."
           />
         </li>
         <li>
@@ -367,8 +368,8 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Un dato para el debate legislativo: la objeción más previsible al proyecto será que construir la infraestructura técnica para sociedades-IA es caro y lento. La implementación de referencia que adjunto demuestra lo contrario. Ya existe, es funcional, está auditada y disponible bajo licencia MIT. El régimen no parte de cero, parte de un stack que ya opera."
-          en="A point for the legislative debate: the most predictable objection to the bill will be that building the technical infrastructure for AI corporations is expensive and slow. The reference implementation enclosed shows the opposite. It already exists, is functional, audited, and available under MIT license. The regime does not start from zero; it starts from a stack that already operates."
+          es="Un dato para el debate legislativo: la objeción más previsible al proyecto será que construir la infraestructura técnica para sociedades automatizadas es caro y lento. La implementación de referencia que adjunto demuestra lo contrario. Ya existe, es funcional, está auditada y disponible bajo licencia MIT. El régimen no parte de cero, parte de un stack que ya opera."
+          en="A point for the legislative debate: the most predictable objection to the bill will be that building the technical infrastructure for automated companies is expensive and slow. The reference implementation enclosed shows the opposite. It already exists, is functional, audited, and available under MIT license. The regime does not start from zero; it starts from a stack that already operates."
         />
       </DocP>
 
