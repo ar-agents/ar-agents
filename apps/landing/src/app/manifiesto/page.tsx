@@ -4,7 +4,7 @@ import { ManifiestoContent } from "./content";
 export const metadata: Metadata = {
   title: "Manifiesto · ar-agents",
   description:
-    "La infraestructura abierta para la jurisdicción de agentes argentina. Manifiesto del proyecto.",
+    "La infraestructura abierta para crear y registrar una sociedad automatizada en Argentina, operada por agentes de IA. Manifiesto del proyecto.",
   alternates: {
     canonical: "https://ar-agents.ar/manifiesto",
     languages: {

@@ -483,8 +483,8 @@ export default async function DataRoomPage() {
       <ul style={listStyle}>
         <li>
           <strong>Revenue / ARR / commercial metrics</strong>. The
-          toolkit is open-source. Commercial activity belongs in a
-          separate venture (out of scope for this page).
+          @ar-agents/* rails are open-source and free. The paid trust
+          layer, El Auditor, is out of scope for this page.
         </li>
         <li>
           <strong>Per-user counts</strong>. No analytics framework

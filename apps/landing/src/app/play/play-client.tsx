@@ -203,7 +203,7 @@ export function PlayClient() {
       >
         {/* CHAT PANE */}
         <section
-          aria-label="Conversación con la sociedad-IA"
+          aria-label="Conversación con la sociedad automatizada"
           style={{
             background: "var(--bg)",
             borderRadius: 8,
@@ -481,7 +481,7 @@ export function PlayClient() {
                   lineHeight: 1.55,
                 }}
               >
-                Cada tool call que invoque la sociedad-IA va a aparecer acá con
+                Cada tool call que invoque la sociedad automatizada va a aparecer acá con
                 timestamp, input, output, y la clasificación de governance
                 (RFC-001 § 9.2, append-only, HMAC-signed timestamps).
               </div>
@@ -587,7 +587,7 @@ function Header() {
             margin: 0,
           }}
         >
-          play · sociedad-IA en vivo
+          play · sociedad automatizada en vivo
         </p>
         <h1
           style={{
@@ -599,7 +599,7 @@ function Header() {
             margin: 0,
           }}
         >
-          Una sociedad-IA argentina,
+          Una sociedad automatizada argentina,
           <br />
           operando en tiempo real.
         </h1>
@@ -875,7 +875,7 @@ function FooterNotes({ sessionId }: { sessionId: string }) {
           POST /api/auto-incorporate
         </code>:{" "}
       un agente externo (USA-LLC, ChatGPT, Claude) puede self-incorporar
-        una sociedad-IA argentina en una sola llamada. Ver{" "}
+        una sociedad automatizada argentina en una sola llamada. Ver{" "}
         <a
           href="/api/auto-incorporate"
           target="_blank"

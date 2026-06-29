@@ -357,7 +357,7 @@ export default function Rfc004Page() {
         Minimum retention: <strong>180 days</strong>. Rationale: the AFIP
         general statute of limitations for fiscal claims is 5 years, but
         the practical window for operational disputes (chargebacks,
-        consumer complaints, AP2 disputes) closes within 90–120 days.
+        consumer complaints, AP2 disputes) closes within 90 to 120 days.
         180 days covers operational + early fiscal challenge.
       </DocP>
       <DocP>

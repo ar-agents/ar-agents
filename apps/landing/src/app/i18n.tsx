@@ -88,7 +88,7 @@ export function LangProvider({ children }: { children: ReactNode }) {
 
 export const EN = {
   // hero
-  hero_h1_l1: "Open infrastructure for AI corporations.",
+  hero_h1_l1: "Create an automated company.",
   hero_h1_l2: "Built in Argentina.",
   hero_sub:
     "A Sociedad Automatizada runs on AI agents, not employees. ar-agents is the open-source code to incorporate and operate one.",
@@ -175,7 +175,7 @@ export const EN = {
   pp_firma_digital:
     "Argentine Firma Digital (Ley 25.506 / ONTI) verification: parse X.509 certs, verify chains anchored at AC-Raíz Argentina, verify CMS / PKCS#7 detached signatures, extract CUIT from signer subject. Verification only, signing requires hardware tokens.",
   pp_gde_tad:
-    "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives: Domicilio Electrónico Constituido notification ingestion, trámite tracking, IGJ inscription pre-flight. The 4th pieza for sociedades-IA, RFC-001 § 3.4. No documented public API yet; adapter pattern + scrape-based defaults.",
+    "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives: Domicilio Electrónico Constituido notification ingestion, trámite tracking, IGJ inscription pre-flight. The 4th pieza for sociedades automatizadas, RFC-001 § 3.4. No documented public API yet; adapter pattern + scrape-based defaults.",
   pp_mercadolibre:
     "Independent SDK + tool collection for the Mercado Libre marketplace API (items, categories, questions, orders, packs, claims, shipments, reputation, promotions, webhooks). OAuth coalescing, /myfeeds replay, HITL gates on irreversible ops. Community-built, not affiliated.",
   pp_agentic_commerce_bridge:
@@ -183,7 +183,7 @@ export const EN = {
   pp_ap2:
     "First faithful TypeScript implementation of the Agent Payments Protocol (AP2) v0.2, schemas, ES256 SD-JWT VC mandates (Checkout + Payment, open + closed), 8 constraint evaluators, signed Checkout/Payment receipts. Edge-Runtime-compatible. Aligned with the FIDO Alliance Agentic Auth WG reference Python SDK.",
   pp_incorporate:
-    "Zero-dependency TypeScript client for `ar-agents.ar/api/auto-incorporate`, lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad-IA in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
+    "Zero-dependency TypeScript client for `ar-agents.ar/api/auto-incorporate`, lets an external agent (USA-LLC, ChatGPT, Claude, Gemini) self-incorporate an Argentine sociedad automatizada in one call. Returns generated source files, Vercel deploy URL, signed audit-log reference.",
   pp_mcp:
     "MCP server bundling all 13 tool-bearing packages. One install in Claude Desktop / Cursor / any MCP host. Auto-detects which packages to enable from env vars.",
 
@@ -260,7 +260,7 @@ export const EN = {
 } as const;
 
 export const ES: Translations = {
-  hero_h1_l1: "Infraestructura abierta para sociedades de IA.",
+  hero_h1_l1: "Creá una sociedad automatizada.",
   hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
     "Una Sociedad Automatizada opera con agentes de IA, no con empleados. ar-agents es el código abierto para constituirla y operarla.",
@@ -345,7 +345,7 @@ export const ES: Translations = {
   pp_firma_digital:
     "Firma Digital argentina (Ley 25.506 / ONTI): parsea certs X.509, verifica cadenas ancladas en AC-Raíz Argentina, verifica firmas CMS / PKCS#7 desligadas, extrae CUIT del subject del firmante. Sólo verificación, la firma real requiere token físico.",
   pp_gde_tad:
-    "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica): ingestión de notificaciones del Domicilio Electrónico Constituido, tracking de trámites, pre-flight de inscripciones IGJ. La 4ta pieza de las sociedades-IA, RFC-001 § 3.4. Sin API pública documentada todavía; adapter pattern + defaults vía scrape.",
+    "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica): ingestión de notificaciones del Domicilio Electrónico Constituido, tracking de trámites, pre-flight de inscripciones IGJ. La 4ta pieza de las sociedades automatizadas, RFC-001 § 3.4. Sin API pública documentada todavía; adapter pattern + defaults vía scrape.",
   pp_mercadolibre:
     "SDK y tool collection independiente para el marketplace de Mercado Libre (items, categorías, preguntas, órdenes, packs, reclamos, shipments, reputación, promociones, webhooks). OAuth coalescing, replay de /myfeeds, gates HITL en operaciones irreversibles. Community-built, sin afiliación.",
   pp_agentic_commerce_bridge:
@@ -353,7 +353,7 @@ export const ES: Translations = {
   pp_ap2:
     "Primera implementación TypeScript fiel del Agent Payments Protocol (AP2) v0.2, schemas, mandatos ES256 SD-JWT VC (Checkout + Payment, open + closed), 8 evaluadores de constraints, recibos Checkout/Payment firmados. Edge-Runtime-compatible. Alineado con el SDK Python de referencia del FIDO Alliance Agentic Auth WG.",
   pp_incorporate:
-    "Cliente TypeScript zero-dependency para `ar-agents.ar/api/auto-incorporate`, permite que un agente externo (USA-LLC, ChatGPT, Claude, Gemini) auto-incorpore una sociedad-IA argentina en una sola llamada. Devuelve los archivos generados, la URL de deploy en Vercel y la referencia firmada del audit-log.",
+    "Cliente TypeScript zero-dependency para `ar-agents.ar/api/auto-incorporate`, permite que un agente externo (USA-LLC, ChatGPT, Claude, Gemini) auto-incorpore una sociedad automatizada argentina en una sola llamada. Devuelve los archivos generados, la URL de deploy en Vercel y la referencia firmada del audit-log.",
   pp_mcp:
     "Servidor MCP que bundlea los 13 packages con tools. Una sola instalación en Claude Desktop / Cursor / cualquier host MCP. Auto-detecta qué packages habilitar a partir de env vars.",
 

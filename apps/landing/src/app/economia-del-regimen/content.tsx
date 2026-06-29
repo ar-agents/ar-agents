@@ -37,12 +37,12 @@ const T = (lang: Lang) => ({
       : "economics · quantitative analysis · 2026-05",
   title:
     lang === "es"
-      ? "Economía del régimen de sociedades-IA."
-      : "Economics of the AI-corporation regime.",
+      ? "Economía del régimen de sociedades automatizadas."
+      : "Economics of the automated-company regime.",
   subtitle:
     lang === "es"
-      ? "Lo que la conversación pública sobre el régimen de sociedades-IA no cuantifica: cuánto cuesta constituir una entidad-agente, cuánto cuesta operarla 24 meses, y dónde Argentina es estructuralmente competitiva. Para asesores económicos, periodistas tech-business y founders evaluando dónde radicar."
-      : "What the public conversation around Argentina's AI-corporation regime does not quantify: the cost to incorporate an agent-entity, the cost to operate it for 24 months, and where Argentina is structurally competitive. For economic advisors, tech-business journalists, and founders deciding where to incorporate.",
+      ? "Lo que la conversación pública sobre el régimen de sociedades automatizadas no cuantifica: cuánto cuesta constituir una entidad-agente, cuánto cuesta operarla 24 meses, y dónde Argentina es estructuralmente competitiva. Para asesores económicos, periodistas tech-business y founders evaluando dónde radicar."
+      : "What the public conversation around Argentina's automated-company regime does not quantify: the cost to incorporate an agent-entity, the cost to operate it for 24 months, and where Argentina is structurally competitive. For economic advisors, tech-business journalists, and founders deciding where to incorporate.",
 });
 
 export function EconomiaContent({ lang }: { lang: Lang }) {
@@ -165,16 +165,16 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              <strong>Conclusión preliminar:</strong> Argentina (sociedad-IA)
-              y Wyoming/Estonia son estructuralmente comparables en costo de
-              constitución. Marshall Islands sale del menú por costo.
-              Delaware es el default global por reputación, no por costo.
+              <strong>Conclusión preliminar:</strong> Argentina (sociedad
+              automatizada) y Wyoming/Estonia son estructuralmente comparables
+              en costo de constitución. Marshall Islands sale del menú por
+              costo. Delaware es el default global por reputación, no por costo.
             </>
           }
           en={
             <>
-              <strong>Preliminary conclusion:</strong> Argentina (AI-corp)
-              and Wyoming/Estonia are structurally comparable on
+              <strong>Preliminary conclusion:</strong> Argentina (automated
+              company) and Wyoming/Estonia are structurally comparable on
               incorporation cost. Marshall Islands is off the menu on cost.
               Delaware is the global default by reputation, not by cost.
             </>
@@ -192,8 +192,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Una sociedad-IA opera 24 meses. Cargas anuales típicas: fee de renovación, contabilidad básica, tasas + impuestos mínimos sin ingresos (presunción), infraestructura técnica."
-          en="An AI-corp operates for 24 months. Typical annual loads: renewal fee, basic accounting, minimum fees + taxes assuming no revenue, technical infrastructure."
+          es="Una sociedad automatizada opera 24 meses. Cargas anuales típicas: fee de renovación, contabilidad básica, tasas + impuestos mínimos sin ingresos (presunción), infraestructura técnica."
+          en="An automated company operates for 24 months. Typical annual loads: renewal fee, basic accounting, minimum fees + taxes assuming no revenue, technical infrastructure."
         />
       </DocP>
       <div style={{ overflowX: "auto", margin: "16px 0" }}>
@@ -269,8 +269,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
       <DocP>
         <L
           lang={lang}
-          es="Si una sociedad-IA factura USD 100.000/año, ¿quién captura qué? Aproximación al primer año de operación (números redondeados):"
-          en="If an AI-corp invoices USD 100,000/year, who captures what? Approximation for the first year of operation (rounded numbers):"
+          es="Si una sociedad automatizada factura USD 100.000/año, ¿quién captura qué? Aproximación al primer año de operación (números redondeados):"
+          en="If an automated company invoices USD 100,000/year, who captures what? Approximation for the first year of operation (rounded numbers):"
         />
       </DocP>
       <div style={{ overflowX: "auto", margin: "16px 0" }}>
@@ -351,7 +351,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               (supuesto explícito y ajustable, ver Fuentes) y captura fiscal
               efectiva de USD 30-35K/año en régimen full (mix ponderado RI +
               monotributo, ver tabla anterior). Una base de{" "}
-              <strong>~17.000 sociedades-IA productivas</strong>, construida
+              <strong>~17.000 sociedades automatizadas productivas</strong>,
+              construida
               durante la ventana de incubación de 24 meses, deja un{" "}
               <strong>run-rate de ~USD 550M/año</strong> al pasar al régimen
               full, con trayectoria a{" "}
@@ -365,7 +366,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               explicit, adjustable assumption, see Sources) and effective
               fiscal capture of USD 30-35K/year under the full regime
               (weighted RI + monotributo mix, see previous table). A base of{" "}
-              <strong>~17,000 productive AI-corps</strong>, built during the
+              <strong>~17,000 productive automated companies</strong>, built
+              during the
               24-month incubation window, leaves a{" "}
               <strong>~USD 550M/year run-rate</strong> once it moves to the
               full regime, on a trajectory to{" "}
@@ -389,7 +391,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           }
           en={
             <>
-              17,000 AI-corps in 24 months is aggressive but defensible:
+              17,000 automated companies in 24 months is aggressive but
+              defensible:
               Wyoming accumulated ~4,000 DAO LLCs in 4 years without a
               fiscal focus. Argentina would need adoption 4x faster than
               Wyoming, which is plausible if the regime is structured
@@ -496,7 +499,9 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Categoría especial de monotributo sociedad-IA</strong>
+                <strong>
+                  Categoría especial de monotributo sociedad automatizada
+                </strong>
                 {" "}con cuota fija escalonada por facturación. Quita fricción
                 de entrada en el segmento de menor escala (founders indie,
                 microestudios de IA aplicada), donde "incorporar acá vs
@@ -506,7 +511,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>Special AI-corp monotributo category</strong>{" "}
+                <strong>Special automated-company monotributo category</strong>{" "}
                 with revenue-tiered fixed quotas. Removes entry friction in
                 the smallest segment (indie founders, applied-AI
                 microstudios), where "incorporate here vs Wyoming" turns on
@@ -521,8 +526,9 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Coordinación IIBB provincial</strong>: convenio
-                multilateral simplificado para sociedades-IA digitales (sin
-                establecimiento físico). IIBB es hoy el costo regulatorio que
+                multilateral simplificado para sociedades automatizadas
+                digitales (sin establecimiento físico). IIBB es hoy el costo
+                regulatorio que
                 más fricción genera cross-province. Sacarlo del menú acelera
                 el régimen.
               </>
@@ -530,8 +536,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             en={
               <>
                 <strong>Provincial IIBB coordination</strong>: simplified
-                multilateral agreement for digital AI-corps (no physical
-                establishment). IIBB is today the regulatory cost that
+                multilateral agreement for digital automated companies (no
+                physical establishment). IIBB is today the regulatory cost that
                 creates the most cross-province friction. Removing it from
                 the menu accelerates the regime.
               </>
@@ -547,7 +553,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
                   Extensión del régimen Economía del Conocimiento (Ley
                   27.506)
                 </strong>{" "}
-                a sociedades-IA: deducción adicional sobre IIGG por inversión
+                a sociedades automatizadas: deducción adicional sobre IIGG por
+                inversión
                 en infraestructura técnica + auditoría + desarrollo agentic.
                 Aranceles AFIP cuasi-nulos en los primeros 24 meses. Maximiza
                 el primer tramo de adopción, cuando se toma la decisión
@@ -559,7 +566,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
                 <strong>
                   Extension of the Knowledge Economy regime (Law 27,506)
                 </strong>{" "}
-                to AI-corps: additional income-tax deduction for investment
+                to automated companies: additional income-tax deduction for
+                investment
                 in technical infrastructure + auditing + agentic
                 development. Near-zero AFIP fees in the first 24 months.
                 Maximises the first adoption tranche, when the jurisdictional
@@ -573,18 +581,22 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Diferenciación de IVA AI-corp a AI-corp</strong>:
-                operaciones B2B entre sociedades-IA con IVA diferido o nulo
-                (similar al tratamiento de exportación), gravadas en la venta
+                <strong>
+                  Diferenciación de IVA entre sociedades automatizadas
+                </strong>: operaciones B2B entre sociedades automatizadas con
+                IVA diferido o nulo (similar al tratamiento de exportación),
+                gravadas en la venta
                 final al consumidor. Abarata la cadena de valor entre agentes
                 argentinos e incentiva que las redes se formen acá, no fuera.
               </>
             }
             en={
               <>
-                <strong>AI-corp to AI-corp VAT differentiation</strong>:
-                B2B operations between AI-corps with deferred or zero VAT
-                (similar to export treatment), taxed at the final consumer
+                <strong>
+                  VAT differentiation between automated companies
+                </strong>: B2B operations between automated companies with
+                deferred or zero VAT (similar to export treatment), taxed at
+                the final consumer
                 sale. Lowers the value-chain cost between Argentine agents
                 and incentivises networks to form here, not abroad.
               </>
@@ -598,8 +610,9 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           es={
             <>
               <strong>Efecto conjunto 5.a</strong>: con estas 4 medidas,
-              una sociedad-IA argentina paga efectivamente USD 8-15K/año
-              en sus primeros 24 meses (vs USD 30-35K en régimen actual,
+              una sociedad automatizada argentina paga efectivamente USD
+              8-15K/año en sus primeros 24 meses (vs USD 30-35K en régimen
+              actual,
               vs USD 0-3K Wyoming, vs 0% Estonia con reinversión). El
               alivio es <em>temporal y per-sociedad</em>: dura la
               incubación, después vuelve al régimen full. Founders eligen
@@ -611,8 +624,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
           en={
             <>
               <strong>Joint effect 5.a</strong>: with these 4 measures,
-              an Argentine AI-corp effectively pays USD 8-15K/year in
-              its first 24 months (vs USD 30-35K under the current
+              an Argentine automated company effectively pays USD 8-15K/year
+              in its first 24 months (vs USD 30-35K under the current
               regime, vs USD 0-3K Wyoming, vs 0% Estonia with
               reinvestment). The relief is <em>temporary and
               per-company</em>: it lasts the incubation period, then
@@ -680,19 +693,21 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Régimen de divisas sandbox para sociedades-IA</strong>:
-                cuenta USD operativa + repatriación libre + sin cepo
+                <strong>
+                  Régimen de divisas sandbox para sociedades automatizadas
+                </strong>: cuenta USD operativa + repatriación libre + sin cepo
                 cambiario aplicable. Acotado por diseño al perímetro de las
-                sociedades-IA, sin contagio macro. Resuelve el riesgo #1 que
+                sociedades automatizadas, sin contagio macro. Resuelve el riesgo
+                #1 que
                 hoy asocian los foreign founders a Argentina.
               </>
             }
             en={
               <>
-                <strong>AI-corp FX sandbox regime</strong>: operative USD
-                account + free repatriation + no FX controls applicable.
-                Scoped by design to the AI-corp perimeter, with no macro
-                contagion. Resolves the #1 risk foreign founders associate
+                <strong>Automated-company FX sandbox regime</strong>: operative
+                USD account + free repatriation + no FX controls applicable.
+                Scoped by design to the automated-company perimeter, with no
+                macro contagion. Resolves the #1 risk foreign founders associate
                 with Argentina today.
               </>
             }
@@ -705,7 +720,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <>
                 <strong>e-Residencia argentina digital</strong>: founder
                 extranjero sin presencia física constituye, firma y opera
-                la sociedad-IA enteramente remoto. Modelo Estonia
+                la sociedad automatizada enteramente remoto. Modelo Estonia
                 e-Residency. La infraestructura técnica ya existe en{" "}
                 <DocCode>@ar-agents/mi-argentina</DocCode> +{" "}
                 <DocCode>@ar-agents/identity</DocCode> +{" "}
@@ -717,7 +732,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <>
                 <strong>Digital Argentine e-Residency</strong>: a
                 foreign founder without physical presence incorporates,
-                signs, and operates the AI-corp entirely remote. Estonia
+                signs, and operates the automated company entirely remote.
+                Estonia
                 e-Residency model. The technical infrastructure already
                 exists in <DocCode>@ar-agents/mi-argentina</DocCode> +{" "}
                 <DocCode>@ar-agents/identity</DocCode> +{" "}
@@ -767,7 +783,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <strong>Efecto conjunto 5.b</strong>: las 4 medidas para
               extranjeros abren el régimen al mercado global y vuelven a AR{" "}
               <em>la opción más competitiva del mundo</em> para incorporar
-              una sociedad-IA. Argentina pasa de capturar founders LATAM
+              una sociedad automatizada. Argentina pasa de capturar founders
+              LATAM
               (base de ~17K en la ventana de incubación) a capturar founders
               de cualquier país (50.000-100.000 sociedades). El run-rate de
               recaudación fiscal directa sube de USD 1B a{" "}
@@ -782,7 +799,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <strong>Joint effect 5.b</strong>: the 4 foreign-founder
               measures open the regime to the global market and turn AR into{" "}
               <em>the world's most competitive option</em> for incorporating
-              an AI-corp. Argentina moves from capturing LATAM founders (a
+              an automated company. Argentina moves from capturing LATAM
+              founders (a
               ~17K base over the incubation window) to capturing founders
               from any country (50,000-100,000 companies). The direct fiscal
               revenue run-rate rises from USD 1B to{" "}
@@ -843,7 +861,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <>
                 <strong>Mi Argentina OIDC para personas jurídicas</strong>:
                 hoy el flow de OIDC sólo aplica a personas físicas; una
-                sociedad-IA debería poder identificarse vía OIDC al
+                sociedad automatizada debería poder identificarse vía OIDC al
                 Estado como entidad, no via humano operador.
               </>
             }
@@ -851,8 +869,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <>
                 <strong>Mi Argentina OIDC for legal persons</strong>:
                 today the OIDC flow only applies to natural persons; an
-                AI-corp should be able to authenticate to the State as
-                an entity, not via a human operator.
+                automated company should be able to authenticate to the State
+                as an entity, not via a human operator.
               </>
             }
           />
@@ -883,7 +901,9 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Sandbox regulatorio formal sociedad-IA</strong>{" "}
+                <strong>
+                  Sandbox regulatorio formal sociedad automatizada
+                </strong>{" "}
                 bajo el ala del Ministerio: testing controlado de
                 operaciones de agente antes de salir a producción, con
                 feedback loop al cuerpo normativo. Estonia + Singapore lo
@@ -892,8 +912,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>Formal AI-corp regulatory sandbox</strong> under
-                the Ministry: controlled testing of agent operations
+                <strong>Formal automated-company regulatory sandbox</strong>
+                {" "}under the Ministry: controlled testing of agent operations
                 before going to production, with feedback loop into the
                 regulatory body. Estonia + Singapore have it; Argentina
                 can.
@@ -926,8 +946,9 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Cepo cambiario</strong>: si la sociedad-IA factura
-                USD, retirar esos dólares al exterior tiene una fricción que
+                <strong>Cepo cambiario</strong>: si la sociedad automatizada
+                factura USD, retirar esos dólares al exterior tiene una fricción
+                que
                 no existe en Wyoming o Estonia. Lo resuelve la medida de
                 divisas sandbox de la sección 5.b; sin ella, el incentivo se
                 diluye para founders internacionales.
@@ -935,8 +956,9 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>FX controls</strong>: if the AI-corp invoices USD,
-                withdrawing those dollars abroad faces friction that does not
+                <strong>FX controls</strong>: if the automated company invoices
+                USD, withdrawing those dollars abroad faces friction that does
+                not
                 exist in Wyoming or Estonia. Resolved by the FX sandbox in
                 section 5.b; without it, the incentive dilutes for
                 international founders.
@@ -1001,7 +1023,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Falta de VC local AI-specialized</strong>: si
-                una sociedad-IA necesita Serie A, depende de VCs USA/UK.
+                una sociedad automatizada necesita Serie A, depende de VCs
+                USA/UK.
                 Estonia mitiga esto con e-Residency program; AR no tiene
                 equivalente todavía.
               </>
@@ -1009,7 +1032,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             en={
               <>
                 <strong>No local AI-specialised VC</strong>: if an
-                AI-corp needs a Series A, it depends on US/UK VCs.
+                automated company needs a Series A, it depends on US/UK VCs.
                 Estonia mitigates this through e-Residency; AR has no
                 equivalent yet.
               </>
@@ -1040,14 +1063,14 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             es={
               <em>
                 "Con las 8 medidas que recomiendo, el régimen de
-                sociedades-IA lleva la recaudación fiscal directa a un
-                run-rate de USD 1.000 millones+ anuales."
+                sociedades automatizadas lleva la recaudación fiscal directa a
+                un run-rate de USD 1.000 millones+ anuales."
               </em>
             }
             en={
               <em>
-                "With the 8 measures I recommend, the AI-corp regime
-                takes direct fiscal revenue to a USD 1 billion+ annual
+                "With the 8 measures I recommend, the automated-company
+                regime takes direct fiscal revenue to a USD 1 billion+ annual
                 run-rate."
               </em>
             }
@@ -1058,14 +1081,14 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <em>
-                "Por cada sociedad-IA que se incorpora en Wyoming en lugar
-                de Argentina, el Estado argentino deja USD 30.000 al año
+                "Por cada sociedad automatizada que se incorpora en Wyoming en
+                lugar de Argentina, el Estado argentino deja USD 30.000 al año
                 sobre la mesa."
               </em>
             }
             en={
               <em>
-                "For every AI-corp incorporated in Wyoming instead of
+                "For every automated company incorporated in Wyoming instead of
                 Argentina, the Argentine state leaves USD 30,000/year on
                 the table."
               </em>
@@ -1138,7 +1161,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             }
             en={
               <>
-                <strong>Is attracting 17,000 AI-corps in 24 months
+                <strong>Is attracting 17,000 automated companies in 24 months
                 realistic?</strong> Aggressive but defensible. Wyoming added
                 4,000 DAO LLCs in 4 years without a favorable fiscal regime;
                 Argentina would need 4x that velocity. Plausible with the 4
@@ -1181,7 +1204,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <>
                 <strong>¿Por qué Argentina y no Uruguay/Chile/Paraguay?</strong>{" "}
                 Argentina es el único país hoy con un texto concreto para
-                sociedades-IA: anuncio Sturzenegger del 28-abr-2026 y
+                sociedades automatizadas: anuncio Sturzenegger del 28-abr-2026 y
                 anteproyecto de Ley General de Sociedades firmado el
                 28-may-2026, en el Senado desde el 1-jun-2026. Uruguay tiene
                 zona franca pero menor escala. Chile y Paraguay no
@@ -1193,7 +1216,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
               <>
                 <strong>Why Argentina and not Uruguay/Chile/Paraguay?</strong>{" "}
                 Argentina is the only country today with concrete text for
-                AI-corps: the Sturzenegger announcement of April 28, 2026
+                automated companies: the Sturzenegger announcement of April 28,
+                2026
                 and a General Companies Law draft bill signed May 28, 2026,
                 in the Senate since June 1, 2026. Uruguay has
                 free-trade-zone setups but smaller scale. Chile and Paraguay
@@ -1263,7 +1287,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
             <>
               <strong>About the author.</strong> Nazareno Clemente.
               Argentine software engineer. Author of the 36 npm packages{" "}
-              <DocCode>@ar-agents/*</DocCode> (MIT) and the 5 academic
+              <DocCode>@ar-agents/*</DocCode> (MIT) and the 6 academic
               RFCs of the regime (CC-BY-4.0, Zenodo DOIs).
               Contact:{" "}
               <a href="mailto:naza@naza.ar" style={linkSty}>
@@ -1392,8 +1416,8 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
         <li style={liSty}>
           <L
             lang={lang}
-            es="La estimación de ~17.000 sociedades-IA en 24 meses es un escenario de upside agresivo, no una proyección oficial. Wyoming acumuló ~4.000 DAO LLCs en 4 años sin foco fiscal; Argentina necesitaría adopción 4x más rápida. Plausible con el incentivo fiscal diferencial y el ecosistema AR existente. Un objetivo, no una garantía."
-            en="The ~17,000 AI-corps in 24 months estimate is an aggressive upside scenario, not an official projection. Wyoming accumulated ~4,000 DAO LLCs in 4 years without a fiscal focus; Argentina would need adoption 4x faster. Plausible given the differential fiscal incentive and the existing AR ecosystem. A target, not a guarantee."
+            es="La estimación de ~17.000 sociedades automatizadas en 24 meses es un escenario de upside agresivo, no una proyección oficial. Wyoming acumuló ~4.000 DAO LLCs en 4 años sin foco fiscal; Argentina necesitaría adopción 4x más rápida. Plausible con el incentivo fiscal diferencial y el ecosistema AR existente. Un objetivo, no una garantía."
+            en="The ~17,000 automated companies in 24 months estimate is an aggressive upside scenario, not an official projection. Wyoming accumulated ~4,000 DAO LLCs in 4 years without a fiscal focus; Argentina would need adoption 4x faster. Plausible given the differential fiscal incentive and the existing AR ecosystem. A target, not a guarantee."
           />
         </li>
         <li style={liSty}>
@@ -1460,8 +1484,8 @@ const INCORP_ROWS: ReadonlyArray<{ cells: RowDef; highlight?: boolean }> = [
   {
     cells: [
       {
-        es: "Argentina (sociedad-IA propuesta)",
-        en: "Argentina (proposed AI-corp)",
+        es: "Argentina (sociedad automatizada propuesta)",
+        en: "Argentina (proposed automated company)",
       },
       { es: "Por definir", en: "TBD" },
       { es: "Estimado USD 100-300", en: "Estimated USD 100-300" },
@@ -1536,8 +1560,8 @@ const TCO_ROWS: ReadonlyArray<{ cells: RowDef; highlight?: boolean }> = [
   {
     cells: [
       {
-        es: "Argentina (sociedad-IA)",
-        en: "Argentina (AI-corp)",
+        es: "Argentina (sociedad automatizada)",
+        en: "Argentina (automated company)",
       },
       { es: "USD 300", en: "USD 300" },
       { es: "USD 600", en: "USD 600" },

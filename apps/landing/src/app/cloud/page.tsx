@@ -4,7 +4,7 @@ import { CloudContent } from "./content";
 export const metadata: Metadata = {
   title: "ar-agents Cloud · hosted platform + government tier · ar-agents",
   description:
-    "El código es MIT y siempre lo será. ar-agents Cloud es la versión hosteada con audit log firmado, dashboards regulator-ready, residencia de datos AR y SLA contractual. Para sociedades-IA que prefieren no operar la infraestructura por su cuenta.",
+    "El código es MIT y siempre lo será. ar-agents Cloud es la versión hosteada con audit log firmado, dashboards regulator-ready, residencia de datos AR y SLA contractual. Para sociedades automatizadas que prefieren no operar la infraestructura por su cuenta.",
   alternates: {
     canonical: "https://ar-agents.ar/cloud",
     languages: {

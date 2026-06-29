@@ -99,22 +99,22 @@ const REGISTRY: ReadonlyArray<RegistryEntry> = [
     publicUrl: "https://bridge-hello.ar-agents.ar",
     rfcConformance: ["rfc-001-v1"],
     disclosure: {
-      es: "Demo de Agentic Commerce Bridge. Superficies AP2 + ACP + MCP conectadas a MP. Muestra cómo un agente extranjero (Wyoming DAO LLC) interactúa con una sociedad-IA argentina según receta 21 del cookbook.",
-      en: "Agentic Commerce Bridge demo. AP2 + ACP + MCP protocol surfaces wired to MP. Shows how a foreign agent (Wyoming DAO LLC) interacts with an AR AI-corp per cookbook recipe 21.",
+      es: "Demo de Agentic Commerce Bridge. Superficies AP2 + ACP + MCP conectadas a MP. Muestra cómo un agente extranjero (Wyoming DAO LLC) interactúa con una sociedad automatizada argentina según receta 21 del cookbook.",
+      en: "Agentic Commerce Bridge demo. AP2 + ACP + MCP protocol surfaces wired to MP. Shows how a foreign agent (Wyoming DAO LLC) interacts with an AR automated company per cookbook recipe 21.",
     },
     status: "live",
     listedSince: "2026-05-05",
   },
   {
-    name: "(your sociedad-IA here)",
+    name: "(your automated company here)",
     type: "productive-sociedad-ia",
     jurisdiction: "AR",
     operator: "-",
     publicUrl: "-",
     rfcConformance: [],
     disclosure: {
-      es: "Abrí un PR agregando los metadatos de tu sociedad-IA a apps/landing/src/app/registro/page.tsx en github.com/ar-agents/ar-agents. Incluí: nombre, operador + CUIT, URL pública, RFCs conformados, disclosure en lenguaje claro. El PR se revisa por honestidad (ej., si reclamás RFC-001 tu /.well-known/agents.json debe resolver).",
-      en: "Open a PR adding your AI-corp's metadata to apps/landing/src/app/registro/page.tsx in github.com/ar-agents/ar-agents. Provide: name, operator name + CUIT, public URL, RFCs you conform to, plain-English disclosure. The PR will be reviewed for honest claims (e.g. claimed RFC-001 conformance must include a /.well-known/agents.json that resolves).",
+      es: "Abrí un PR agregando los metadatos de tu sociedad automatizada a apps/landing/src/app/registro/page.tsx en github.com/ar-agents/ar-agents. Incluí: nombre, operador + CUIT, URL pública, RFCs conformados, disclosure en lenguaje claro. El PR se revisa por honestidad (ej., si reclamás RFC-001 tu /.well-known/agents.json debe resolver).",
+      en: "Open a PR adding your automated company's metadata to apps/landing/src/app/registro/page.tsx in github.com/ar-agents/ar-agents. Provide: name, operator name + CUIT, public URL, RFCs you conform to, plain-English disclosure. The PR will be reviewed for honest claims (e.g. claimed RFC-001 conformance must include a /.well-known/agents.json that resolves).",
     },
     status: "draft",
     listedSince: "-",
@@ -139,7 +139,7 @@ const TYPE_LABEL: Record<
   demo: { es: "Demo", en: "Demo" },
   "productive-sociedad-ia": {
     es: "Sociedad productiva",
-    en: "Productive sociedad",
+    en: "Productive company",
   },
   "library-only": { es: "Sólo librería", en: "Library only" },
 };
@@ -243,8 +243,8 @@ const T = (lang: Lang) => ({
       : "Public registry of implementations.",
   intro:
     lang === "es"
-      ? "Cada sociedad-IA o demo argentina que implementa RFC-001..004 puede listarse aquí."
-      : "Every Argentine AI-corp or demo that implements RFC-001..004 can be listed here.",
+      ? "Cada sociedad automatizada o demo argentina que implementa RFC-001..004 puede listarse aquí."
+      : "Every Argentine automated company or demo that implements RFC-001..004 can be listed here.",
   metadataOnly:
     lang === "es"
       ? "Metadata pública únicamente"
@@ -265,8 +265,8 @@ const T = (lang: Lang) => ({
       : "This is NOT a multi-operator ecosystem",
   disclosureBody3:
     lang === "es"
-      ? ", es una reference implementation + 4 demos del autor del proyecto. Cero (0) sociedades-IA productivas (con clientes reales, facturas reales, cobros reales): la figura legal (Sociedad Automatizada, art. 14 del Anteproyecto de Ley General de Sociedades) tiene texto firmado el 28-may-2026 y está en el Senado desde el 1-jun-2026, pero todavía no es ley, así que el régimen aún no existe jurídicamente. Cuando un tercero adopte los RFCs y opere bajo su propio CUIT, su entrada se sumará vía PR. Mientras tanto, lo que ves es: una propuesta técnica completa, validada end-to-end por una sola persona."
-      : ", it is a reference implementation + 4 demos by the project author. Zero (0) productive AI-corps (with real customers, real invoices, real collections): the legal figure (Sociedad Automatizada, art. 14 of the Anteproyecto de Ley General de Sociedades) has a text signed on 28-may-2026 and has been in the Senate since 1-jun-2026, but it is not yet law, so the regime does not legally exist yet. When a third party adopts the RFCs and operates under its own CUIT, their entry will be added via PR. In the meantime, what you see is a complete technical proposal validated end-to-end by a single person.",
+      ? ", es una reference implementation + 4 demos del autor del proyecto. Cero (0) sociedades automatizadas productivas (con clientes reales, facturas reales, cobros reales): la figura legal (Sociedad Automatizada, art. 14 del Anteproyecto de Ley General de Sociedades) tiene texto firmado el 28-may-2026 y está en el Senado desde el 1-jun-2026, pero todavía no es ley, así que el régimen aún no existe jurídicamente. Cuando un tercero adopte los RFCs y opere bajo su propio CUIT, su entrada se sumará vía PR. Mientras tanto, lo que ves es: una propuesta técnica completa, validada end-to-end por una sola persona."
+      : ", it is a reference implementation + 4 demos by the project author. Zero (0) productive automated companies (with real customers, real invoices, real collections): the legal figure (Sociedad Automatizada, art. 14 of the Anteproyecto de Ley General de Sociedades) has a text signed on 28-may-2026 and has been in the Senate since 1-jun-2026, but it is not yet law, so the regime does not legally exist yet. When a third party adopts the RFCs and operates under its own CUIT, their entry will be added via PR. In the meantime, what you see is a complete technical proposal validated end-to-end by a single person.",
   counters: {
     refImpl:
       lang === "es" ? "Implementación de referencia" : "Reference impl",
@@ -274,14 +274,14 @@ const T = (lang: Lang) => ({
     productive:
       lang === "es"
         ? "Sociedades productivas"
-        : "Productive sociedades",
+        : "Productive companies",
     total: lang === "es" ? "Total en vivo" : "Total live",
   },
   howToAdd:
-    lang === "es" ? "Cómo agregar tu sociedad-IA" : "How to add your AI-corp",
+    lang === "es" ? "Cómo agregar tu sociedad automatizada" : "How to add your automated company",
   steps: {
     step1: {
-      pre: lang === "es" ? "Asegurate de que tu sociedad-IA serve " : "Make sure your AI-corp serves ",
+      pre: lang === "es" ? "Asegurate de que tu sociedad automatizada serve " : "Make sure your automated company serves ",
       post:
         lang === "es"
           ? " con metadata pública (RFC-002)."
@@ -357,8 +357,8 @@ export async function RegistroContent({ lang }: { lang: Lang }) {
           "@type": "ItemList",
           name:
             lang === "es"
-              ? "Registro de implementaciones AR sociedad-IA"
-              : "Registry of known AR AI-corp implementations",
+              ? "Registro de implementaciones AR sociedad automatizada"
+              : "Registry of known AR automated company implementations",
           url: canonical,
           numberOfItems: REGISTRY.filter((e) => e.status === "live").length,
           itemListElement: REGISTRY.filter((e) => e.status === "live").map(

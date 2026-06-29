@@ -88,7 +88,7 @@ export function EmbedClient() {
             marginBottom: 12,
           }}
         >
-          ⚠ Session id inválido. Debe ser 8-64 chars [A-Za-z0-9_-]. Las
+          ⚠ Session id inválido. Debe ser 8-64 chars [A-Za-z0-9_-]. Los
           snippets de abajo usan{" "}
           <code style={{ background: "#fffbe6", padding: "1px 4px" }}>
             {`{sessionId}`}

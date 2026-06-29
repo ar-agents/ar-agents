@@ -26,13 +26,13 @@ export default function DashboardIndexPage() {
     <DocShell
       eyebrow="dashboard · per-session forensics"
       title="Cada sesión tiene su propio dashboard."
-      subtitle="Las vistas forenses de ar-agents están scoped por sessionId. Una sesión = una serie coherente de tool-calls compartiendo un mismo contexto de governance. Cada sociedad-IA emite múltiples sessions; cada session tiene su propio dashboard verificable."
+      subtitle="Las vistas forenses de ar-agents están scoped por sessionId. Una sesión = una serie coherente de tool-calls compartiendo un mismo contexto de governance. Cada sociedad automatizada emite múltiples sessions; cada session tiene su propio dashboard verificable."
     >
       <DocP>
         El dashboard forense vive en{" "}
         <DocCode>/dashboard/&#123;sessionId&#125;</DocCode>. No hay un
         listado global de todas las sessions porque no hay un único
-        operador: cada sociedad-IA gestiona sus propias sessions y las
+        operador: cada sociedad automatizada gestiona sus propias sessions y las
         expone vía su <DocCode>/.well-known/agents.json</DocCode>{" "}
         (definido en RFC-002 § 3.2).
       </DocP>
@@ -40,7 +40,7 @@ export default function DashboardIndexPage() {
       <DocH2>Demo público</DocH2>
       <DocP>
         Para ver cómo se ve un dashboard sin tener que constituir una
-        sociedad-IA primero, abrí el dashboard de la sesión pública de
+        sociedad automatizada primero, abrí el dashboard de la sesión pública de
         referencia:
       </DocP>
       <p style={{ margin: "12px 0 24px" }}>
@@ -63,7 +63,7 @@ export default function DashboardIndexPage() {
 
       <DocH2>Cómo obtener tu sessionId</DocH2>
       <DocP>
-        Si sos operador de una sociedad-IA, cada llamada a tu agent loop
+        Si sos operador de una sociedad automatizada, cada llamada a tu agent loop
         emite entradas con un <DocCode>sessionId</DocCode>. Lo encontrás:
       </DocP>
       <ul style={ulSty}>

@@ -4,7 +4,7 @@ import { ManifiestoContent } from "../../manifiesto/content";
 export const metadata: Metadata = {
   title: "Manifesto · ar-agents",
   description:
-    "Open infrastructure for the Argentine agent jurisdiction. Project manifesto.",
+    "Infrastructure to create and register autonomous companies in Argentina, operated by AI agents. Project manifesto.",
   alternates: {
     canonical: "https://ar-agents.ar/en/manifesto",
     languages: {

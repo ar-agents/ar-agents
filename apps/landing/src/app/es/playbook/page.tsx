@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 
 export const metadata: Metadata = {
-  title: "El playbook sociedad-IA · documento flagship en español",
+  title: "El playbook de la sociedad automatizada · documento flagship en español",
   description:
     "Cómo construir una empresa argentina operada por agentes de IA (Sociedad Automatizada, art. 14) en 2027. La infraestructura, la ley, el marco de responsabilidad y la realidad operativa. Escrito para quienes lo van a aprobar, regular o desplegar primero.",
   alternates: { canonical: "https://ar-agents.ar/es/playbook" },
@@ -14,7 +14,7 @@ export default function PlaybookEsPage() {
   return (
     <DocShell
       eyebrow="playbook · 2026-05 · es"
-      title="El playbook sociedad-IA."
+      title="El playbook de la sociedad automatizada."
       subtitle="Cómo construir una empresa argentina operada por agentes en 2027. La infraestructura, la ley, el marco de responsabilidad y la operación diaria. Versión en español del flagship doc, la inglesa vive en /playbook para audiencia internacional."
     >
       <DocBlock>
@@ -45,7 +45,7 @@ export default function PlaybookEsPage() {
         <DocP>
           Este playbook es la respuesta operativa a una pregunta concreta:{" "}
           <strong>¿qué código hay que escribir hoy para que el día 1 del
-          régimen, una sociedad-IA argentina pueda funcionar de
+          régimen, una sociedad automatizada argentina pueda funcionar de
           verdad?</strong> No es especulación. Cada afirmación de este
           documento mapea a TypeScript específico en{" "}
           <a
@@ -53,8 +53,7 @@ export default function PlaybookEsPage() {
             style={{ color: "var(--accent)" }}
           >
             github.com/ar-agents/ar-agents
-          </a>:{" "}
-        36 paquetes, 235 herramientas, 4 subpaths de testing, 17
+          </a>: 36 paquetes, 235 herramientas, 4 subpaths de testing, 17
           recetas del cookbook. Open source. Licencia MIT. Provenance SLSA.
         </DocP>
       </DocBlock>
@@ -64,7 +63,8 @@ export default function PlaybookEsPage() {
         Una empresa argentina hace 17 cosas distinguibles. Algunas son
         herencia de cualquier empresa en cualquier jurisdicción; la mayoría
         son específicas del marco regulatorio e infraestructural argentino.
-        Una sociedad-IA tiene que ejecutar las 17 sin manos humanas.
+        Una sociedad automatizada tiene que ejecutar las 17 sin manos
+        humanas.
       </DocP>
       <DocP>
         <strong>Existir como entidad</strong> (4): buscar el registro
@@ -142,7 +142,8 @@ export default function PlaybookEsPage() {
       <DocH2>3 · El marco de responsabilidad</DocH2>
       <DocP>
         El primer ataque conceptual contra cualquier propuesta de
-        sociedad-IA es: <em>si la IA rompe algo, ¿quién responde?</em> Sin
+        sociedad automatizada es: <em>si la IA rompe algo, ¿quién
+        responde?</em> Sin
         una respuesta sólida, el proyecto se traba en el Senado. RFC-001 § 9
         propone un modelo de tres capas:
       </DocP>
@@ -290,8 +291,8 @@ export default function PlaybookEsPage() {
 
       <DocH2>7 · Por qué importa fuera de Argentina</DocH2>
       <DocP>
-        Una sociedad-IA es la primera vez que un Estado soberano propone
-        una entidad legal construida en torno a un agente no-humano. Las
+        Una sociedad automatizada es la primera vez que un Estado soberano
+        propone una entidad legal construida en torno a un agente no-humano. Las
         DAO LLCs de Marshall Islands (2022) y Wyoming (2021) se le acercan.
         La propuesta argentina va más allá: bajo el art. 14, una Sociedad
         Automatizada corre su operación ordinaria sin trabajadores en

@@ -23,9 +23,9 @@ export default function AstroCaseStudyPage() {
         <DocP>
           <strong>Disclosure.</strong> Astro and{" "}
           <DocCode>@ar-agents/*</DocCode> are owned by the same person
-          (Nazareno Clemente). Astro is the financial floor that keeps the
-          toolkit&apos;s author employed; the toolkit is the operating
-          system the maintainer wants Astro to run on. Treat this as a{" "}
+          (Nazareno Clemente). Astro is the maintainer&apos;s own production
+          load; the toolkit is the operating system the maintainer wants
+          Astro to run on. Treat this as a{" "}
           <em>migration log</em> from a single founder, not a third-party
           customer testimonial. Other case studies will follow as the user
           base grows.
@@ -268,8 +268,8 @@ export default function AstroCaseStudyPage() {
         <strong>3. Regulatory evidence.</strong> When ARCA / IGJ /
         Sturzenegger&apos;s office ask &quot;is anyone actually using
         this?&quot;, the answer is &quot;yes, the maintainer&apos;s own
-        company runs end-to-end on it&quot;. The first sociedad-IA will
-        not be ACME-AI from a slide deck; it will be a company that has
+        company runs end-to-end on it&quot;. The first sociedad automatizada
+        will not be ACME-AI from a slide deck; it will be a company that has
         already been running at SAS-grade for a year, flipping one config
         flag.
       </DocP>

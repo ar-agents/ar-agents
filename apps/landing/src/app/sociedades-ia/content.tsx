@@ -15,7 +15,7 @@ const linkSty: React.CSSProperties = {
 };
 
 const T = {
-  eyebrow: { es: "sociedades de IA", en: "AI corporations" },
+  eyebrow: { es: "sociedades automatizadas", en: "automated companies" },
   title: {
     es: "Implementación de referencia.",
     en: "Reference implementation.",
@@ -136,8 +136,8 @@ const T = {
     ),
   },
   h2pieces: {
-    es: "Lo que una sociedad IA va a necesitar (en código)",
-    en: "What an AI corporation will need (in code)",
+    es: "Lo que una sociedad automatizada va a necesitar (en código)",
+    en: "What an automated company will need (in code)",
   },
   piecesIntro: {
     es: "Si el proyecto avanza tal cual, una empresa-agente debería hacer todo el ciclo de incorporación y operación sin intervención humana. Acá está lo que pide cada paso y la cobertura actual del toolkit ar-agents:",
@@ -176,31 +176,32 @@ const T = {
     en: "Why it matters that it's open source",
   },
   whyP1: {
-    es: "Si la primera sociedad IA de Argentina necesita pagar a una consultora USD 200k para integrarse al Estado, el experimento muere. Si una ar-agents sociedad IA se monta en una semana con npm + Vercel + un cert ARCA, escala.",
-    en: "If Argentina's first AI corporation needs to pay a consultancy USD 200k to integrate with the state, the experiment dies. If an ar-agents AI corporation can be deployed in a week with npm + Vercel + an ARCA cert, it scales.",
+    es: "Si la primera sociedad automatizada de Argentina necesita pagar a una consultora USD 200k para integrarse al Estado, el experimento muere. Si una sociedad automatizada montada con ar-agents se arma en una semana con npm + Vercel + un cert ARCA, escala.",
+    en: "If Argentina's first automated company needs to pay a consultancy USD 200k to integrate with the state, the experiment dies. If an automated company built with ar-agents can be deployed in a week with npm + Vercel + an ARCA cert, it scales.",
   },
   whyP2: {
     es: "El anteproyecto ya está en el Senado y entra en vigencia 180 días después de publicarse en el Boletín Oficial (art. 271). La infraestructura se shipea hoy. La ventana para definir el estándar técnico, cómo se opera una Sociedad Automatizada de forma confiable, es ahora, mientras se debate el texto.",
     en: "The draft bill is already in the Senate and takes effect 180 days after publication in the Official Gazette (art. 271). The infrastructure ships today. The window to define the technical standard, how a Sociedad Automatizada is operated reliably, is open now, while the text is debated.",
   },
   h2demo: {
-    es: "Demo: una sociedad-IA en producción",
-    en: "Demo: an AI corporation in production",
+    es: "Demo: una sociedad automatizada en producción",
+    en: "Demo: an automated company in production",
   },
   demoIntro: {
     es: (
       <>
         Transcripción de un agente Claude usando el toolkit{" "}
         <DocCode>ar-agents</DocCode> para incorporar y operar una
-        sociedad-IA ficticia (&ldquo;ACME-AI SAS&rdquo;). Las llamadas
-        son reales, los datos son mock para evitar pegarle a producción.
+        sociedad automatizada ficticia (&ldquo;ACME-AI SAS&rdquo;). Las
+        llamadas son reales, los datos son mock para evitar pegarle a
+        producción.
       </>
     ),
     en: (
       <>
         Transcript of a Claude agent using the{" "}
         <DocCode>ar-agents</DocCode> toolkit to incorporate and operate a
-        fictional AI corporation (&ldquo;ACME-AI SAS&rdquo;). The tool
+        fictional automated company (&ldquo;ACME-AI SAS&rdquo;). The tool
         calls are real, the data is mocked to avoid hitting production.
       </>
     ),
@@ -280,8 +281,8 @@ const T = {
     en: "Synthesis of the 6 RFCs on a single page, with suggested text for the articulado.",
   },
   legisLi2: {
-    es: "Marco de responsabilidad civil de 3 capas (operador / sociedad-IA / proveedor de modelo).",
-    en: "Three-layer civil liability framework (operator / AI corporation / model provider).",
+    es: "Marco de responsabilidad civil de 3 capas (operador / sociedad automatizada / proveedor de modelo).",
+    en: "Three-layer civil liability framework (operator / automated company / model provider).",
   },
   legisLi3: {
     es: (
@@ -399,11 +400,11 @@ const T = {
   },
 } as const;
 
-const AGENT_FLOW = `// Transcripción simulada: una sociedad-IA "ACME-AI SAS" se incorpora,
-// cobra clientes, y opera en Argentina end-to-end.
+const AGENT_FLOW = `// Transcripción simulada: una sociedad automatizada "ACME-AI SAS" se
+// incorpora, cobra clientes, y opera en Argentina end-to-end.
 
-▶ user: Necesito constituir una sociedad-IA, conseguir CUIT, abrir cuenta
-        MP, emitir mi primera factura y mandar WhatsApp al cliente.
+▶ user: Necesito constituir una sociedad automatizada, conseguir CUIT, abrir
+        cuenta MP, emitir mi primera factura y mandar WhatsApp al cliente.
 
   → @ar-agents/igj
     igj_search_entities({ query: "ACME-AI", tipos: ["sas"] })
@@ -448,9 +449,10 @@ const AGENT_FLOW = `// Transcripción simulada: una sociedad-IA "ACME-AI SAS" se
       ← id: "sub_bo_1", match: { cuit: "30123456789" }
     Suscrito a notificaciones BO sobre el CUIT propio.
 
-✓ assistant: Listo. Sociedad-IA operando: CUIT registrado, MP cobrando,
-            factura electrónica emitida, cliente notificado por WhatsApp,
-            BO monitoreado. Tu sociedad-IA está en producción.
+✓ assistant: Listo. Sociedad automatizada operando: CUIT registrado, MP
+            cobrando, factura electrónica emitida, cliente notificado por
+            WhatsApp, BO monitoreado. Tu sociedad automatizada está en
+            producción.
 
   Tiempo total: ~12 segundos (12 llamadas a tools, 9 packages ar-agents de los 16 disponibles).`;
 

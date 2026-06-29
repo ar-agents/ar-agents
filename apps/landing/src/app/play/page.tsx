@@ -2,9 +2,9 @@ import type { Metadata } from "next";
 import { PlayClient } from "./play-client";
 
 export const metadata: Metadata = {
-  title: "/play · Sociedad-IA argentina en vivo",
+  title: "/play · sociedad automatizada argentina en vivo",
   description:
-    "Live interactive demo of an Argentine sociedad-IA running on @ar-agents/* under RFC-001 governance. Type a prompt, watch the agent operate the business, every tool call audit-logged with HMAC-signed timestamps in real time. Zero setup.",
+    "Live interactive demo of an Argentine sociedad automatizada running on @ar-agents/* under RFC-001 governance. Type a prompt, watch the agent operate the business, every tool call audit-logged with HMAC-signed timestamps in real time. Zero setup.",
   alternates: { canonical: "https://ar-agents.ar/play" },
 };
 

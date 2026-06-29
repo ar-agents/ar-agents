@@ -268,7 +268,7 @@ export default function PlaybookPage() {
         <a href="/incorporar" style={{ color: "var(--accent)" }}>/incorporar</a>{" "}
         to generate the repo + env-var manifest + Vercel deploy + legal
         checklist. The code runs in 10 minutes; the cert + IGJ inscription
-        take 5–10 working days.
+        take 5 to 10 working days.
       </DocP>
       <DocP>
         When the regime lands, the same code-base flips one config flag

@@ -33,7 +33,7 @@ export async function generateMetadata({
   return {
     title: `Audit timeline · ${sessionId.slice(0, 8)}…`,
     description:
-      "Forensic timeline for an /play sociedad-IA session. HMAC-SHA256-signed audit entries, verifiable end-to-end.",
+      "Forensic timeline for a sociedad automatizada session from /play. HMAC-SHA256-signed audit entries, verifiable end-to-end.",
     robots: { index: false, follow: false },
     alternates: { canonical: `${SITE_URL}/dashboard/${sessionId}` },
   };
@@ -120,7 +120,7 @@ export default async function DashboardPage({
             "@type": "Dataset",
             name: `Audit timeline ${sessionId}`,
             description:
-              "Forensic timeline of tool calls in a sociedad-IA session, RFC-001 § 9.2 conformant.",
+              "Forensic timeline of tool calls in a sociedad automatizada session, RFC-001 § 9.2 conformant.",
             url: `${SITE_URL}/dashboard/${sessionId}`,
             license: "https://opensource.org/licenses/MIT",
             isAccessibleForFree: true,

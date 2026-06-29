@@ -4,28 +4,29 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 export const metadata: Metadata = {
   title: "Press kit · @ar-agents",
   description:
-    "Press-ready material for @ar-agents/*, el toolkit open-source para sociedades-IA argentinas. One-pager, datos verificables, links a code, RFC, threat model, y contacto del autor.",
+    "Material listo para prensa sobre @ar-agents/*, la infraestructura para crear y registrar sociedades automatizadas en Argentina. One-pager, datos verificables, links a código, RFC, threat model y contacto del autor.",
   alternates: { canonical: "https://ar-agents.ar/press-kit" },
 };
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
 const BULLETS_ES: Array<{ label: string; value: string; sub?: string }> = [
-  { label: "Qué es", value: "Toolkit open-source para construir sociedades-IA argentinas." },
-  { label: "Status", value: "36 paquetes en npm, 235 herramientas, MIT, SLSA v1 provenance." },
+  { label: "Qué es", value: "Infraestructura para crear y registrar una sociedad automatizada argentina, operada por agentes." },
+  { label: "Rails", value: "Paquetes open-source @ar-agents/* (pagos, identidad, facturación, banca, off-ramp a pesos). MIT, SLSA v1 provenance." },
+  { label: "El Auditor", value: "Capa de confianza paga: log de auditoría firmado (HMAC + Ed25519) que prueba las decisiones del agente." },
   { label: "Autor", value: "Nazareno Clemente, 26 años, monotributista, Buenos Aires." },
   { label: "Licencia", value: "MIT, copy, fork, comercializar permitido." },
   { label: "Origen", value: "Build privado iniciado nov 2025; npm pública desde may 2026." },
-  { label: "Estado régimen", value: "Anuncio 28-abr-2026; anteproyecto firmado 28-may-2026, en el Senado; todavía no es ley." },
+  { label: "Estado régimen", value: "Anuncio 28-abr-2026; anteproyecto firmado 28-may-2026, enviado al Senado el 1-jun-2026; todavía no es ley." },
   { label: "Alcance funcional", value: "16 de las 17 piezas (TAD escritura sigue rolling out)." },
   { label: "Filosofía", value: "Edge-Runtime first, Web Crypto only, AbortSignal everywhere." },
 ];
 
 const ONE_LINERS_ES = [
-  "ar-agents es la implementación de referencia open-source para sociedades-IA argentinas, la propuesta del ministro Sturzenegger del 28 de abril de 2026.",
-  "36 paquetes npm, 235 herramientas, todas auditables. MIT-licensed. Cualquier operador serio puede leer el código línea por línea.",
-  "El stack cubre 16 de las 17 piezas operativas que una empresa argentina necesita: identity, banking, factura electrónica, MP, ML, WhatsApp, BCRA, Boletín Oficial, IGJ, GDE/TAD, AP2, ACP bridge.",
-  "RFC-001 es el marco de responsabilidad propuesto: tres capas (operador / proveedor de modelo / autor de librería) que convierten el ataque ¿quién paga si la IA rompe algo? en una conversación contractual concreta.",
+  "ar-agents es la infraestructura open-source para crear y registrar una sociedad automatizada argentina, operada por agentes de IA. Se alinea con la propuesta del ministro Sturzenegger del 28 de abril de 2026.",
+  "Los paquetes @ar-agents/* son los rails gratuitos: pagos (Mercado Pago), identidad (CUIT), facturación (AFIP), banca y off-ramp a pesos. MIT, todas las herramientas auditables, el código se lee línea por línea.",
+  "El Auditor es la capa de confianza paga: un log de auditoría firmado (HMAC + Ed25519) que prueba qué decidió el agente. Es la defensa legal del humano bajo el art. 102.",
+  "RFC-001 es el marco de responsabilidad propuesto: tres capas (operador / proveedor de modelo / autor de librería) que convierten la pregunta ¿quién paga si la IA rompe algo? en una conversación contractual concreta.",
   "El threat model público (18 amenazas explícitas, 18 mitigaciones) está en /security. No esconde nada.",
 ];
 
@@ -71,7 +72,7 @@ export default function PressKitPage() {
         </DocP>
       </DocBlock>
 
-      <DocH2>One-pager, qué es @ar-agents en 8 líneas</DocH2>
+      <DocH2>One-pager, qué es @ar-agents en una mirada</DocH2>
 
       <div
         style={{
@@ -203,7 +204,7 @@ export default function PressKitPage() {
       >
         <li>
           <code style={{ fontFamily: FONT_MONO }}>POST /api/auto-incorporate</code>:{" "}
-        auto-incorporación de una sociedad-IA en una sola llamada.
+        auto-incorporación de una sociedad automatizada en una sola llamada.
           Devuelve <code style={{ fontFamily: FONT_MONO }}>package.json</code>,{" "}
           <code style={{ fontFamily: FONT_MONO }}>agent.ts</code>,{" "}
           <code style={{ fontFamily: FONT_MONO }}>.env.example</code>,{" "}

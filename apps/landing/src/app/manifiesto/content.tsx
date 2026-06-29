@@ -113,8 +113,9 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
           es={
             <>
               Lo que falta es la capa técnica. Las{" "}
-              <DocCode>sociedades IA</DocCode> de Sturzenegger todavía
-              no tienen código que las haga existir: no hay librerías
+              <DocCode>sociedades automatizadas</DocCode> de Sturzenegger
+              todavía no tienen código que las haga existir: no hay
+              librerías
               para que un agente registre un CUIT, factura
               electrónicamente, paga monotributo, abre una cuenta MP,
               manda un WhatsApp. Cualquiera que las construya primero
@@ -124,8 +125,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
           en={
             <>
               What's missing is the technical layer. Sturzenegger's{" "}
-              <DocCode>sociedades IA</DocCode> don't yet have code that
-              makes them exist: there are no libraries for an agent to
+              <DocCode>automated companies</DocCode> don't yet have code
+              that makes them exist: there are no libraries for an agent to
               register a CUIT, issue electronic invoices, pay
               monotributo, open a MercadoPago account, send a WhatsApp.
               Whoever builds them first defines the standard.
@@ -398,8 +399,8 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               . Explica qué le puede servir del stack, qué no estoy
               pidiendo (contratos, subsidios, reuniones), y la propuesta
               de working group AAIF para volver el perfil técnico de las
-              sociedades-IA un estándar internacional neutral. CC0:
-              copiá, traducí, citá.
+              sociedades automatizadas un estándar internacional neutral.
+              CC0: copiá, traducí, citá.
             </>
           }
           en={
@@ -417,7 +418,7 @@ export function ManifiestoContent({ lang }: { lang: Lang }) {
               . It explains what may be useful to him from the stack,
               what I'm not asking for (contracts, subsidies, meetings),
               and the AAIF working group proposal to make the technical
-              profile of AI corporations a neutral international
+              profile of automated companies a neutral international
               standard. CC0, copy, translate, cite.
             </>
           }

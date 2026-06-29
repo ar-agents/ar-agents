@@ -85,9 +85,9 @@ export default function CitePage() {
           texto sugerido en /legislación
         </a>{" "}
         propone que la ley argentina cite RFC-001..006 por referencia. El
-        problema obvio: la URL <DocCode>/rfcs/004</DocCode> puede cambiar
-      , yo puedo editarla, Vercel puede caerse, GitHub puede mover el
-        repo. Una ley no puede depender de eso. La fix es estándar
+        problema obvio: la URL <DocCode>/rfcs/004</DocCode> puede
+        cambiar, yo puedo editarla, Vercel puede caerse, GitHub puede
+        mover el repo. Una ley no puede depender de eso. La fix es estándar
         académica: <strong>citar el commit hash</strong>, no la URL
         canónica.
       </DocP>
