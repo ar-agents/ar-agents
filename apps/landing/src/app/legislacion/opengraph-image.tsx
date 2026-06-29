@@ -58,7 +58,7 @@ export default async function Image() {
           reciprocidad, log operativo) con texto sugerido para el
           articulado. La ley fija v1; los RFCs evolucionan en su propio
           gobierno público. Para quien esté redactando la ley de
-          sociedades-IA.
+          sociedades automatizadas.
         </div>
         <div
           style={{

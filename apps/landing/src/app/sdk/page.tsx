@@ -5,7 +5,7 @@ import { SdkJsonLd } from "../json-ld";
 export const metadata: Metadata = {
   title: "/sdk · @ar-agents/incorporate",
   description:
-    "Zero-dependency TypeScript client for /api/auto-incorporate. One async call → an Argentine sociedad-IA's full incorporation kit. Works in Node 20+, Edge Runtime, CF Workers, Deno, browsers. SLSA v1 provenance.",
+    "Zero-dependency TypeScript client for /api/auto-incorporate. One async call returns the full kit to create and register an Argentine sociedad automatizada. Works in Node 20+, Edge Runtime, CF Workers, Deno, browsers. SLSA v1 provenance.",
   alternates: { canonical: "https://ar-agents.ar/sdk" },
 };
 
@@ -101,7 +101,7 @@ export default function SdkPage() {
     <DocShell
       eyebrow="sdk · @ar-agents/incorporate"
       title="The incorporation SDK"
-      subtitle="Zero-dependency TypeScript client for /api/auto-incorporate. One async call returns the full AR sociedad-IA incorporation kit: generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference."
+      subtitle="Zero-dependency TypeScript client for /api/auto-incorporate. One async call returns the full kit to create and register an Argentine sociedad automatizada (the AI-operated company, tipo SOCIEDAD-IA): generated source files, Vercel deploy URL, env-var manifest, legal checklist, signed audit-log reference."
     >
       <DocBlock>
         <div
@@ -180,8 +180,8 @@ export default function SdkPage() {
         <DocP>
           <DocCode>@ar-agents/incorporate</DocCode> is the canonical npm
           surface for an external orchestrator (USA-LLC agent, ChatGPT
-          extension, Claude tool, custom pipeline) to programmatically
-          self-incorporate an Argentine sociedad-IA. The package is a thin
+          extension, Claude tool, custom pipeline) to programmatically create
+          and register an Argentine sociedad automatizada. The package is a thin
           fetch wrapper, no SDK gymnastics, no runtime adapters. The
           companion human-facing UI is at{" "}
           <a href="/incorporar" style={{ color: "var(--accent)" }}>

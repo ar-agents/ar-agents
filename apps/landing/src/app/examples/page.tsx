@@ -3,9 +3,9 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 import { ExamplesJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
-  title: "Cookbook · 17 production patterns",
+  title: "Cookbook · 30 production patterns",
   description:
-    "17 end-to-end recipes wiring @ar-agents/* into real Argentine business workflows: SaaS subscriptions, marketplace OAuth, anti-fraud, ACP checkout with auto-factura, USA-LLC ↔ AR composition.",
+    "30 end-to-end recipes wiring @ar-agents/* into real Argentine business workflows: SaaS subscriptions, marketplace OAuth, anti-fraud, ACP checkout with auto-factura, USA-LLC to AR composition.",
   alternates: { canonical: "https://ar-agents.ar/examples" },
 };
 
@@ -198,11 +198,11 @@ const RECIPES: Recipe[] = [
   {
     id: "18-usa-llc-self-incorporates-ar",
     num: 18,
-    title: "USA-LLC self-incorporates AR sociedad-IA · one-call programmatic flow",
+    title: "USA-LLC self-incorporates AR sociedad automatizada · one-call programmatic flow",
     tier: "infra",
     packages: ["incorporate", "ap2", "agentic-commerce-bridge"],
     summary:
-      "USA-LLC agent calls @ar-agents/incorporate's `incorporate({...})` to spin up an AR sociedad-IA's deploy spec in one call. Receives generated package.json + agent.ts + .env.example + README.md + Vercel deploy URL + signed audit-log reference. Chains incorporation + ongoing operations under a single forensic timeline.",
+      "USA-LLC agent calls @ar-agents/incorporate's `incorporate({...})` to spin up an AR sociedad automatizada's deploy spec in one call. Receives generated package.json + agent.ts + .env.example + README.md + Vercel deploy URL + signed audit-log reference. Chains incorporation + ongoing operations under a single forensic timeline.",
     highlight:
       "The headline claim of /sociedades-ia made fully programmatic. `pnpm add @ar-agents/incorporate` + 1 await.",
   },
@@ -215,27 +215,27 @@ const RECIPES: Recipe[] = [
     summary:
       "Daily cron-driven Node.js script that ingests audit entries via fetchAudit(sessionId, { verify: true }), buckets by tool / governance / latency, surfaces anomalies (tampering, error-rate spikes, p95 regressions), and renders a contador-friendly Spanish summary for monthly compliance reports. The pattern that turns RFC-001 § 9.2's 'legally probative' into actually monitored.",
     highlight:
-      "Multi-tenant marketplaces operating many sociedades-IA scale linearly with this, one digest per tenant, escalation on tampered.",
+      "Multi-tenant marketplaces operating many sociedades automatizadas scale linearly with this, one digest per tenant, escalation on tampered.",
   },
   {
     id: "20-multi-tenant-marketplace",
     num: 20,
-    title: "Multi-tenant marketplace · spawn vendor sociedades-IA on signup",
+    title: "Multi-tenant marketplace · spawn vendor sociedades automatizadas on signup",
     tier: "infra",
     packages: ["incorporate"],
     summary:
-      "Vertical SaaS / marketplace pattern: each new vendor signing up gets a fresh sociedad-IA spec materialized via @ar-agents/incorporate, audit log keyed by tenantId. Pieza selection driven by vendor profile (ecommerce → +shipping, large-revenue → +whatsapp/ACP/AP2). Includes the platform-side compliance sweep that fan-outs recipe 19 across tenants, and the badge SVG embed for vendor profile pages.",
+      "Vertical SaaS / marketplace pattern: each new vendor signing up gets a fresh sociedad automatizada spec materialized via @ar-agents/incorporate, audit log keyed by tenantId. Pieza selection driven by vendor profile (ecommerce → +shipping, large-revenue → +whatsapp/ACP/AP2). Includes the platform-side compliance sweep that fan-outs recipe 19 across tenants, and the badge SVG embed for vendor profile pages.",
     highlight:
       "Pre-toolkit, this was a manual escribano job per vendor. Post-toolkit: ~50 lines + idempotent.",
   },
   {
     id: "21-cross-jurisdictional-ap2",
     num: 21,
-    title: "Cross-jurisdictional commerce · USA-LLC + AR sociedad + AP2 mandate",
+    title: "Cross-jurisdictional commerce · USA-LLC + AR sociedad automatizada + AP2 mandate",
     tier: "infra",
     packages: ["incorporate", "ap2", "facturacion", "identity", "banking"],
     summary:
-      "USA-LLC sells to AR consumer; AR sociedad-IA verifies AP2 mandate (ES256/JWS), enforces per-op + monthly + idempotent caps, runs CUIT validity + BCRA credit checks, then emits factura A/B/C under its own CUIT. Each refusal lands as an audit entry that's challengeable later. The reference implementation of RFC-001 § 7's cross-jurisdictional contract surface.",
+      "USA-LLC sells to AR consumer; AR sociedad automatizada verifies AP2 mandate (ES256/JWS), enforces per-op + monthly + idempotent caps, runs CUIT validity + BCRA credit checks, then emits factura A/B/C under its own CUIT. Each refusal lands as an audit entry that's challengeable later. The reference implementation of RFC-001 § 7's cross-jurisdictional contract surface.",
     highlight:
       "5 verification gates + idempotency + audit-log-as-evidence in ~250 lines. Wyoming DAO LLC plugs into AR jurisdiction without refactoring its agent.",
   },
@@ -264,7 +264,7 @@ const RECIPES: Recipe[] = [
   {
     id: "24-sociedad-ia-disaster-recovery",
     num: 24,
-    title: "Sociedad-IA disaster recovery · export + restore preserving the audit timeline",
+    title: "Sociedad automatizada disaster recovery · export + restore preserving the audit timeline",
     tier: "production",
     packages: ["incorporate"],
     summary:
@@ -286,13 +286,13 @@ const RECIPES: Recipe[] = [
   {
     id: "26-certify-by-fetch",
     num: 26,
-    title: "Certify any sociedad-IA by fetching its public endpoints",
+    title: "Certify any sociedad automatizada by fetching its public endpoints",
     tier: "production",
     packages: ["incorporate"],
     summary:
       "Reusable TypeScript function that takes a target base URL, runs ~9 checks against its public endpoints (well-known, audit-read, audit-verify, CSV, OpenAPI, security headers), and returns a 0-100 conformance score + per-check breakdown. Same function backs the /certifier web flow + the /api/certifier HTTP endpoint. Pure fetch, runs in Edge / Node / browser / deno. Includes a CLI mode that exits non-zero if score < 60, drop into CI as a pre-merge gate.",
     highlight:
-      "Anyone can verify any sociedad-IA's claims from one HTTP call. No install, no setup. Lives behind /certifier (web) + /api/certifier (programmatic).",
+      "Anyone can verify any sociedad automatizada's claims from one HTTP call. No install, no setup. Lives behind /certifier (web) + /api/certifier (programmatic).",
   },
   {
     id: "27-live-conformance-monitoring",
@@ -319,7 +319,7 @@ const RECIPES: Recipe[] = [
   {
     id: "29-publish-your-keys",
     num: 29,
-    title: "Publish your sociedad-IA's Ed25519 public key (RFC-005 § 4)",
+    title: "Publish your sociedad automatizada's Ed25519 public key (RFC-005 § 4)",
     tier: "production",
     packages: ["incorporate"],
     summary:
@@ -330,7 +330,7 @@ const RECIPES: Recipe[] = [
   {
     id: "30-submit-to-registry",
     num: 30,
-    title: "Submit your sociedad-IA to the public /registro",
+    title: "Submit your sociedad automatizada to the public /registro",
     tier: "production",
     packages: ["incorporate"],
     summary:

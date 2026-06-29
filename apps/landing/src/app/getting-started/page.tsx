@@ -21,7 +21,7 @@ const PATHS = [
     color: "#0a72ef",
     bg: "#ebf5ff",
     description:
-      "Para ver una sociedad-IA argentina operando ahora mismo, sin setup, sin cuenta, sin cert.",
+      "Para ver una sociedad automatizada argentina operando ahora mismo, sin setup, sin cuenta, sin cert.",
     steps: [
       {
         title: "Open /play",
@@ -41,13 +41,13 @@ const PATHS = [
   },
   {
     id: "incorporate",
-    label: "Incorporar una sociedad-IA",
+    label: "Constituir una sociedad automatizada",
     time: "~10 minutos + 5-10 días hábiles (ARCA + IGJ)",
     audience: "founder · operador · accountant",
     color: "#22c55e",
     bg: "#ecfdf5",
     description:
-      "Para constituir una empresa argentina operada por IA, hoy. SAS estándar mientras la ley sociedades-IA no esté sancionada, el código pre-cableado migra el día 1.",
+      "Para constituir una empresa argentina operada por IA, hoy. SAS estándar mientras el anteproyecto no esté sancionado, el código pre-cableado migra el día 1.",
     steps: [
       {
         title: "Abrir el wizard",

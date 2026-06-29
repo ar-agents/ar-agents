@@ -49,8 +49,8 @@ const TIERS: ReadonlyArray<Tier> = [
       en: "Managed hosting + audit pipeline.",
     },
     audience: {
-      es: "Sociedades-IA que prefieren no operar infra",
-      en: "AI corporations that prefer not to operate infra",
+      es: "Sociedades automatizadas que prefieren no operar infra",
+      en: "automated companies that prefer not to operate infra",
     },
     price: {
       es: "El Auditor vivo, USD 199/mes · bundle completo en preview",
@@ -159,8 +159,8 @@ export function CloudContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Self-hostear ar-agents es gratis y siempre lo será. Operar un audit log firmado con SLA, residencia de datos AR, rotación de claves, dashboards regulator-ready y soporte 24/7 es otra cosa. Si tu sociedad-IA prefiere consumir eso como servicio, hay un tier para vos."
-          : "Self-hosting ar-agents is free and always will be. Running a signed audit log with SLA, AR data residency, key rotation, regulator-ready dashboards, and 24/7 support is another thing. If your AI corporation prefers to consume that as a service, there's a tier for you."
+          ? "Self-hostear ar-agents es gratis y siempre lo será. Operar un audit log firmado con SLA, residencia de datos AR, rotación de claves, dashboards regulator-ready y soporte 24/7 es otra cosa. Si tu sociedad automatizada prefiere consumir eso como servicio, hay un tier para vos."
+          : "Self-hosting ar-agents is free and always will be. Running a signed audit log with SLA, AR data residency, key rotation, regulator-ready dashboards, and 24/7 support is another thing. If your automated company prefers to consume that as a service, there's a tier for you."
       }
     >
       <DocP>
@@ -302,15 +302,15 @@ export function CloudContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Adopción amplia.</strong> Si fuera cerrada, ninguna
-                sociedad-IA sin presupuesto de licencia podría usarla. Open,
+                sociedad automatizada sin presupuesto de licencia podría usarla. Open,
                 la adopta todo el ecosistema. Pagan los que necesitan SLA,
                 residencia o auditoría, no los que pueden ensamblarlo solos.
               </>
             }
             en={
               <>
-                <strong>Broad adoption.</strong> If it were closed, no AI
-                corporation without a licensing budget could use it. Open,
+                <strong>Broad adoption.</strong> If it were closed, no
+                automated company without a licensing budget could use it. Open,
                 the whole ecosystem adopts it. Payers are those who need
                 SLA, residency, or auditing, not those who can assemble it
                 themselves.
@@ -474,13 +474,13 @@ export function CloudContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Studio</strong> sale en preview Q3 2026, una
-                vez que haya 5+ sociedades-IA buscando managed hosting.
+                vez que haya 5+ sociedades automatizadas buscando managed hosting.
               </>
             }
             en={
               <>
                 <strong>Studio</strong> ships in preview Q3 2026, once
-                there are 5+ AI corporations seeking managed hosting.
+                there are 5+ automated companies seeking managed hosting.
               </>
             }
           />
@@ -492,14 +492,14 @@ export function CloudContent({ lang }: { lang: Lang }) {
               <>
                 <strong>Government</strong> requiere ley sancionada +
                 decisión ministerial de tercerizar la infra. Esperable
-                Q4 2026 - Q1 2027.
+                entre Q4 2026 y Q1 2027.
               </>
             }
             en={
               <>
                 <strong>Government</strong> requires enacted law +
                 ministerial decision to outsource the infrastructure.
-                Expected Q4 2026 - Q1 2027.
+                Expected between Q4 2026 and Q1 2027.
               </>
             }
           />
@@ -510,14 +510,14 @@ export function CloudContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Bespoke</strong> está disponible hoy mismo para
-                early-adopters que estén montando su sociedad-IA en
+                early-adopters que estén montando su sociedad automatizada en
                 anticipación a la ley.
               </>
             }
             en={
               <>
                 <strong>Bespoke</strong> is available today for
-                early-adopters building their AI corporation in
+                early-adopters building their automated company in
                 anticipation of the law.
               </>
             }
@@ -534,7 +534,7 @@ export function CloudContent({ lang }: { lang: Lang }) {
                 naza@naza.ar
               </a>{" "}
               si querés ver el deck completo, el modelo financiero, o
-              coordinar advisory equity en early sociedades-IA.
+              coordinar advisory equity en early sociedades automatizadas.
             </>
           }
           en={
@@ -544,7 +544,7 @@ export function CloudContent({ lang }: { lang: Lang }) {
                 naza@naza.ar
               </a>{" "}
               if you want to see the full deck, financial model, or
-              coordinate advisory equity in early AI corporations.
+              coordinate advisory equity in early automated companies.
             </>
           }
         />

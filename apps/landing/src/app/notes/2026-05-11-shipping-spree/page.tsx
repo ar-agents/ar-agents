@@ -102,7 +102,7 @@ export default function NotePage() {
         <H2>What shipped</H2>
         <P>
           The 18 rounds layered concrete artifacts on top of the
-          existing libraries. Each round took 30–90 minutes; cumulative
+          existing libraries. Each round took 30 to 90 minutes; cumulative
           inventory at the end of round 18:
         </P>
         <ul style={ulStyle}>
@@ -110,8 +110,8 @@ export default function NotePage() {
             <strong>6 RFCs</strong>{" "}(<A href="/rfcs/001">001</A>,{" "}
             <A href="/rfcs/002">002</A>, <A href="/rfcs/003">003</A>,{" "}
             <A href="/rfcs/004">004</A>, <A href="/rfcs/005">005</A>)
-            covering civil liability, agent discovery, cross-
-            jurisdictional reciprocity, normative operational-log wire
+            covering civil liability, agent discovery,
+            cross-jurisdictional reciprocity, normative operational-log wire
             format, and the Ed25519 asymmetric upgrade path. CC-BY-4.0,
             ready for legislation to <em>cite-by-reference</em>.
           </Li>
@@ -255,8 +255,8 @@ export default function NotePage() {
           will be drafted by people who are smart but not necessarily
           steeped in agent infrastructure. The cheapest way to get a
           good outcome is to do the technical groundwork in the open,
-          first, under permissive licenses, with versioned + conformance-
-          tested specs.
+          first, under permissive licenses, with versioned +
+          conformance-tested specs.
         </P>
         <P>
           Then the law has something concrete to cite. Then operators

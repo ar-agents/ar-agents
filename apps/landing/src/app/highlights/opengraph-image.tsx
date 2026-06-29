@@ -1,7 +1,7 @@
 import { ImageResponse } from "next/og";
 
 export const runtime = "nodejs";
-export const alt = "ar-agents · open-source infrastructure for Argentine sociedades-IA";
+export const alt = "ar-agents · open-source infrastructure for Argentine automated companies";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
@@ -54,7 +54,7 @@ export default async function Image() {
             marginBottom: 32,
           }}
         >
-          for Argentine sociedades-IA.
+          for Argentine automated companies.
         </div>
         <div
           style={{
@@ -68,7 +68,7 @@ export default async function Image() {
           <Stat n="30" l="recipes" />
           <Stat n="33" l="packages" />
           <Stat n="103" l="tests" />
-          <Stat n="5/5" l="sociedades A" />
+          <Stat n="5/5" l="companies A" />
         </div>
         <div
           style={{

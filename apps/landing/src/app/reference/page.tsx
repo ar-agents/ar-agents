@@ -40,7 +40,7 @@ const SECTIONS: Section[] = [
         label: "/play",
         tone: "primary",
         description:
-          "12-tool sociedad-IA agent demo. Streaming via Vercel AI Gateway. Each tool call lands in a KV-backed HMAC-signed audit log keyed by a per-page-load session id.",
+          "12-tool sociedad automatizada agent demo. Streaming via Vercel AI Gateway. Each tool call lands in a KV-backed HMAC-signed audit log keyed by a per-page-load session id.",
       },
       {
         url: "/dashboard/{sessionId}",
@@ -194,14 +194,14 @@ const SECTIONS: Section[] = [
         label: "POST /api/auto-incorporate",
         tone: "primary",
         description:
-          "Self-incorporate an AR sociedad-IA in one call. Returns generated source files + Vercel deploy URL + env-vars + checklist + signed audit-log reference. Idempotent.",
+          "Self-incorporate an AR sociedad automatizada in one call. Returns generated source files + Vercel deploy URL + env-vars + checklist + signed audit-log reference. Idempotent.",
       },
       {
         url: "/api/play",
         label: "POST /api/play",
         tone: "infra",
         description:
-          "Live sociedad-IA agent loop. 12 mocked-but-realistic tools. Streaming. Per-IP rate-limited.",
+          "Live sociedad automatizada agent loop. 12 mocked-but-realistic tools. Streaming. Per-IP rate-limited.",
       },
       {
         url: "/api/play/audit/{sessionId}",
@@ -424,8 +424,8 @@ export default function ReferencePage() {
         <DocCode>npm view @ar-agents/incorporate dist.attestations</DocCode>{" "}
         to verify SLSA provenance before installing the SDK, (4) call{" "}
         <DocCode>POST /api/auto-incorporate</DocCode> to spin up an AR
-        sociedad-IA on demand. Every action lands in a HMAC-signed audit
-        log under a sessionId of your choice.
+        sociedad automatizada on demand. Every action lands in a HMAC-signed
+        audit log under a sessionId of your choice.
       </DocP>
     </DocShell>
   );

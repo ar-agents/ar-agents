@@ -16,7 +16,7 @@ export const metadata: Metadata = {
     type: "article",
     title: "ar-agents, operational briefing for the Argentine state",
     description:
-      "What the ministerial team needs to know about the technical infrastructure for the sociedades-IA regime, on one page.",
+      "What the ministerial team needs to know about the technical infrastructure for the sociedad automatizada regime, on one page.",
     url: "https://ar-agents.ar/en/government",
   },
 };

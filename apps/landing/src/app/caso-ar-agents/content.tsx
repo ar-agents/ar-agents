@@ -70,7 +70,8 @@ const T = {
           /incorporar
         </a>
         : denominación <DocCode>ar-agents Automatizada</DocCode>, tipo Sociedad
-        Automatizada (art. 14), objeto = infraestructura para sociedades de IA.
+        Automatizada (art. 14), objeto = infraestructura para sociedades
+        automatizadas.
         El wizard generó el kit real (4 archivos: <DocCode>package.json</DocCode>,{" "}
         <DocCode>lib/agent.ts</DocCode>, <DocCode>.env.example</DocCode>,{" "}
         <DocCode>README.md</DocCode>), corrió el pre-flight de IGJ y firmó la
@@ -87,7 +88,7 @@ const T = {
           /incorporar
         </a>
         : name <DocCode>ar-agents Automatizada</DocCode>, type Automated Company
-        (art. 14), purpose = infrastructure for AI corporations. The wizard
+        (art. 14), purpose = infrastructure for automated companies. The wizard
         generated the real kit (4 files: <DocCode>package.json</DocCode>,{" "}
         <DocCode>lib/agent.ts</DocCode>, <DocCode>.env.example</DocCode>,{" "}
         <DocCode>README.md</DocCode>), ran the IGJ pre-flight, and signed the

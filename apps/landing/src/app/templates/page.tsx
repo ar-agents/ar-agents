@@ -4,7 +4,7 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 export const metadata: Metadata = {
   title: "Templates · 1-click Vercel deploys",
   description:
-    "5 Vercel-deployable templates wiring @ar-agents/* into common production patterns: SaaS billing, marketplace, ACP checkout, MCP host, sociedad-IA starter. Each one ships agentic flows on Edge Runtime.",
+    "5 Vercel-deployable templates wiring @ar-agents/* into common production patterns: SaaS billing, marketplace, ACP checkout, MCP host, automated-company starter. Each one ships agentic flows on Edge Runtime.",
   alternates: { canonical: "https://ar-agents.ar/templates" },
 };
 
@@ -35,7 +35,7 @@ const PKG_BASE = `${REPO}/tree/main/packages`;
 const TEMPLATES: Template[] = [
   {
     id: "sociedad-ia-starter",
-    title: "Sociedad-IA starter",
+    title: "Automated-company starter",
     tier: "starter",
     description:
       "The flagship template. Wires the 8 most-common @ar-agents/* packages (identity, gde-tad, mercadopago, banking, facturacion, igj, boletin-oficial, whatsapp) into a single Next.js app with: agent endpoint, MP webhook receiver, morning-cron operating loop, status page. Configurable via env vars only, degrades gracefully if any client is missing.",
@@ -354,8 +354,8 @@ export default function TemplatesPage() {
         >
           vercel.com/templates
         </a>{" "}
-        in batches. The MCP-host template is in review. Sociedad-IA starter
-        is next. Watch the{" "}
+        in batches. The MCP-host template is in review. The
+        automated-company starter is next. Watch the{" "}
         <a href={`${REPO}/releases`} style={{ color: "var(--accent)" }}>
           releases
         </a>{" "}

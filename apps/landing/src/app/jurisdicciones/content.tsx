@@ -158,7 +158,7 @@ const ROWS: ReadonlyArray<BilingualRow> = [
     capa: { es: "Open-source", en: "Open-source" },
     ar: {
       es: "Todo: 36 packages MIT, 6 RFCs CC-BY-4.0, audit lib reference.",
-      en: "Everything: 33 MIT packages, 6 CC-BY-4.0 RFCs, reference audit lib.",
+      en: "Everything: 36 MIT packages, 6 CC-BY-4.0 RFCs, reference audit lib.",
     },
     wyoming: {
       es: "Statute is public domain. No reference implementation oficial, terceros como Otonomos.",
@@ -216,8 +216,8 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
           "@type": "TechArticle",
           headline:
             lang === "es"
-              ? "Jurisdicciones comparadas para sociedades-IA argentinas"
-              : "Jurisdictions compared for Argentine AI corporations",
+              ? "Jurisdicciones comparadas para sociedades automatizadas argentinas"
+              : "Jurisdictions compared for Argentine automated companies",
           inLanguage: lang === "es" ? "es-AR" : "en-US",
           url:
             lang === "es"
@@ -233,8 +233,9 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              Argentina anunció el régimen de sociedades-IA el 28 de abril
-              de 2026 y el anteproyecto de Ley General de Sociedades (que
+              Argentina anunció el régimen de sociedades automatizadas el
+              28 de abril de 2026 y el anteproyecto de Ley General de
+              Sociedades (que
               crea la <em>Sociedad Automatizada</em>, art. 14) está en el
               Senado desde el 1 de junio de 2026.{" "}
               <strong>
@@ -247,8 +248,9 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
           }
           en={
             <>
-              Argentina announced the sociedades-IA regime on April 28,
-              2026, and the General Companies Law draft bill (which creates
+              Argentina announced the automated company regime on April
+              28, 2026, and the General Companies Law draft bill (which
+              creates
               the <em>Sociedad Automatizada</em>, art. 14) has been in the
               Senate since June 1, 2026.{" "}
               <strong>No other country has exactly this</strong>, but four
@@ -423,8 +425,8 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
                 país chico puede legitimar la figura sin esperar
                 consenso global. <strong>Aplicación AR:</strong>{" "}
                 Argentina puede ser el primer país sudamericano con
-                sociedad-IA, sin necesidad de coordinar con G20 ni
-                Mercosur.
+                sociedad automatizada, sin necesidad de coordinar con G20
+                ni Mercosur.
               </>
             }
             en={
@@ -433,8 +435,8 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
                 explicit national DAO statute. Proves a small country
                 can legitimize the figure without waiting for global
                 consensus. <strong>AR application:</strong> Argentina
-                can be the first South American country with
-                sociedad-IA, without coordinating with G20 or Mercosur.
+                can be the first South American country with an automated
+                company, without coordinating with G20 or Mercosur.
               </>
             }
           />
@@ -667,8 +669,8 @@ export function JurisdiccionesContent({ lang }: { lang: Lang }) {
         <li style={liSty}>
           <L
             lang={lang}
-            es="RFC-003 incluso prevé un envelope para reciprocidad cross-jurisdiccional: una sociedad-IA argentina puede operar con una entidad on-chain (DAO LLC Wyoming, MIDAO, $SAIRI) y ambos lados reconcilian audit logs."
-            en="RFC-003 even provides an envelope for cross-jurisdictional reciprocity: an Argentine AI corporation can transact with an on-chain entity (Wyoming DAO LLC, MIDAO, $SAIRI) and both sides reconcile audit logs."
+            es="RFC-003 incluso prevé un envelope para reciprocidad cross-jurisdiccional: una sociedad automatizada argentina puede operar con una entidad on-chain (DAO LLC Wyoming, MIDAO, $SAIRI) y ambos lados reconcilian audit logs."
+            en="RFC-003 even provides an envelope for cross-jurisdictional reciprocity: an Argentine automated company can transact with an on-chain entity (Wyoming DAO LLC, MIDAO, $SAIRI) and both sides reconcile audit logs."
           />
         </li>
       </ul>

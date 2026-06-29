@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { SociedadesContent } from "../../sociedades-ia/content";
 
 export const metadata: Metadata = {
-  title: "AI corporations · sociedades de IA · ar-agents",
+  title: "AI corporations · ar-agents",
   description:
     "Reference implementation of Argentine AI corporations. How an AI-operated company incorporates, invoices, pays taxes, serves customers, using ar-agents.",
   alternates: {

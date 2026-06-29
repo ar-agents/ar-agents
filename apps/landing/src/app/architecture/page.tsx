@@ -140,7 +140,7 @@ const PACKAGES: PackageRow[] = [
     tools: 5,
     category: "identity",
     external: "WhatsApp / email / Auth0 / Magic.link / MP Identity",
-    notes: "HMAC-signed attestations with trustLevel 0.0–1.0.",
+    notes: "HMAC-signed attestations with trustLevel 0.0 to 1.0.",
   },
   {
     name: "@ar-agents/mi-argentina",
@@ -365,7 +365,7 @@ function MaturityBadge({ name }: { name: string }) {
 
 // Canonical totals (match /api/discovery, agents.json, every other surface).
 // The grid below diagrams the core packages by category; the full set is the
-// 33 published packages / 235 tools.
+// 36 published packages / 235 tools.
 const PUBLISHED_PACKAGES = 36;
 const CANONICAL_TOOLS = 235;
 const CORE_SHOWN = PACKAGES.length;

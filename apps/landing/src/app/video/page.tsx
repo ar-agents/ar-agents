@@ -2,17 +2,17 @@ import type { Metadata } from "next";
 import { DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
 export const metadata: Metadata = {
-  title: "Video: una sociedad-IA en producción · ar-agents",
+  title: "Video: una sociedad automatizada en producción · ar-agents",
   description:
-    "Demo 2:30, agente Claude usando 6 paquetes ar-agents para constituir, facturar y operar una sociedad-IA argentina end-to-end. Hecho con Remotion. CC0.",
+    "Demo 2:30, agente Claude usando 6 paquetes ar-agents para constituir, facturar y operar una sociedad automatizada argentina de punta a punta. Hecho con Remotion. CC0.",
   alternates: {
     canonical: "https://ar-agents.ar/video",
   },
   openGraph: {
     type: "video.other",
-    title: "Una sociedad-IA en producción, demo ar-agents",
+    title: "Una sociedad automatizada en producción, demo ar-agents",
     description:
-      "2:30 · 6 paquetes · operación autónoma, supervisión humana mínima. Implementación de referencia para el régimen de sociedades-IA de Sturzenegger.",
+      "2:30 · 6 paquetes · operación autónoma, supervisión humana mínima. Implementación de referencia para constituir y registrar una sociedad automatizada en Argentina.",
     url: "https://ar-agents.ar/video",
     videos: [
       {
@@ -29,8 +29,8 @@ export default function VideoPage() {
   return (
     <DocShell
       eyebrow="demo en video"
-      title="Una sociedad-IA en producción."
-      subtitle="2:30 · 6 paquetes · operación autónoma, supervisión humana mínima. Un agente Claude ejecutando el ciclo completo: constituir → CUIT → MP → factura → WhatsApp → BO. Datos mock, paquetes reales."
+      title="Una sociedad automatizada en producción."
+      subtitle="2:30 · 6 paquetes · operación autónoma, supervisión humana mínima. Un agente Claude ejecutando el ciclo completo: constituir, CUIT, MP, factura, WhatsApp, BO. Datos de prueba, paquetes reales."
     >
       <div
         style={{
@@ -72,8 +72,8 @@ export default function VideoPage() {
       <DocH2>Qué muestra</DocH2>
       <DocP>
         El agente recibe una sola consigna: <em>&ldquo;Necesito constituir una
-        sociedad-IA, conseguir CUIT, abrir cuenta MP, emitir factura y
-        notificar al cliente por WhatsApp&rdquo;</em>. Sin más input humano, el
+        sociedad automatizada, conseguir CUIT, abrir cuenta MP, emitir factura y
+        notificar al cliente por WhatsApp&rdquo;</em>. Sin más intervención humana, el
         agente atraviesa el ciclo llamando 6 paquetes ar-agents en secuencia:
       </DocP>
 
@@ -115,15 +115,15 @@ export default function VideoPage() {
           style={{ color: "var(--accent)", textDecoration: "underline" }}
         >
           Remotion
-        </a>:{" "}
-      un framework de React para generar video programáticamente. El
+        </a>
+        , un framework de React para generar video por código. El
         código está en{" "}
         <DocCode>apps/demo-video/</DocCode> del monorepo: 6 scenes (intro, contexto,
         tesis, stats, terminal, outro) compuestas en una <DocCode>Composition</DocCode>{" "}
         de 1920×1080 a 30fps, total ~2:30. Las llamadas a tools en la pantalla del
         terminal son mocks deterministas, la lógica de cada paquete está en el monorepo
-        para que cualquiera la verifique. Sin actores, sin foley, sin AI-generation: todo
-        es código React renderizado frame-por-frame con Chromium headless.
+        para que cualquiera la verifique. Sin actores, sin foley, sin generación por IA: todo
+        es código React renderizado cuadro por cuadro con Chromium headless.
       </DocP>
 
       <DocH2>Subtítulos y accesibilidad</DocH2>
@@ -136,8 +136,8 @@ export default function VideoPage() {
           style={{ color: "var(--accent)", textDecoration: "underline" }}
         >
           /video/sociedad-ia-demo.es.vtt
-        </a>:{" "}
-      también CC0. Para traducirlo, abrí un PR contra{" "}
+        </a>
+        , también CC0. Para traducirlo, abrí un PR contra{" "}
         <DocCode>
           apps/landing/public/video/sociedad-ia-demo.es.vtt
         </DocCode>

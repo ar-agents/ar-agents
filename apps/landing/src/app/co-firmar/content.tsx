@@ -22,8 +22,8 @@ const RFCS: ReadonlyArray<Rfc> = [
       en: "Identity and signing of agents in Argentina",
     },
     needs: {
-      es: "Revisión jurídica del marco de responsabilidad civil tripartito (operador / sociedad-IA / proveedor de modelo). Análisis comparado con derecho societario y de daños argentino.",
-      en: "Legal review of the three-layer civil-liability framework (operator / AI corporation / model provider). Comparative analysis with Argentine corporate and tort law.",
+      es: "Revisión jurídica del marco de responsabilidad civil tripartito (operador / sociedad automatizada / proveedor de modelo). Análisis comparado con derecho societario y de daños argentino.",
+      en: "Legal review of the three-layer civil-liability framework (operator / automated company / model provider). Comparative analysis with Argentine corporate and tort law.",
     },
     profile: {
       es: "Abogado/a corporativo matriculado · especialista en derecho de daños o societario · académico UBA/UTDT/UCEMA/UCA Derecho.",
@@ -67,8 +67,8 @@ const RFCS: ReadonlyArray<Rfc> = [
       en: "Normative specification of the operational log",
     },
     needs: {
-      es: "Revisión del valor probatorio (Art. 286+287 CPCCN) + retención (180 días - 5 años) + interfaz con AAIP. Es el documento clave para enforcement.",
-      en: "Review of probative value (Art. 286+287 CPCCN) + retention (180 days - 5 years) + AAIP interface. The key document for enforcement.",
+      es: "Revisión del valor probatorio (Art. 286+287 CPCCN) + retención (180 días a 5 años) + interfaz con AAIP. Es el documento clave para enforcement.",
+      en: "Review of probative value (Art. 286+287 CPCCN) + retention (180 days to 5 years) + AAIP interface. The key document for enforcement.",
     },
     profile: {
       es: "Especialista en derecho procesal (medios de prueba electrónicos) · auditor forense · académico de derecho de la prueba.",
@@ -118,15 +118,15 @@ export function CoFirmarContent({ lang }: { lang: Lang }) {
       }
       subtitle={
         lang === "es"
-          ? "Los RFCs de ar-agents son drafts open-source bajo CC-BY-4.0. Si sos académico, jurista, especialista AAIP o experto en derecho corporativo argentino con interés en el régimen de sociedades-IA, podés sumar tu autoría a uno o más documentos. Es invitación abierta, sin compromiso comercial, y tu nombre queda en cita formal."
-          : "ar-agents RFCs are open-source drafts under CC-BY-4.0. If you're an academic, jurist, AAIP specialist, or Argentine corporate-law expert with interest in the sociedades-IA regime, you can add your authorship to one or more documents. Open invitation, no commercial commitment, and your name lands in the formal citation."
+          ? "Los RFCs de ar-agents son drafts open-source bajo CC-BY-4.0. Si sos académico, jurista, especialista AAIP o experto en derecho corporativo argentino con interés en el régimen de sociedades automatizadas, podés sumar tu autoría a uno o más documentos. Es invitación abierta, sin compromiso comercial, y tu nombre queda en cita formal."
+          : "ar-agents RFCs are open-source drafts under CC-BY-4.0. If you're an academic, jurist, AAIP specialist, or Argentine corporate-law expert with interest in the automated-company regime, you can add your authorship to one or more documents. Open invitation, no commercial commitment, and your name lands in the formal citation."
       }
     >
       <DocP>
         <L
           lang={lang}
-          es="El régimen de sociedades-IA (nombre legal: Sociedad Automatizada, art. 14), anunciado por Sturzenegger el 28 de abril de 2026 y con anteproyecto de Ley General de Sociedades en el Senado desde el 1 de junio de 2026, requiere infraestructura técnica + sustento jurídico. La técnica está escrita; el sustento jurídico requiere revisores con matrícula profesional y/o peso académico que el autor original (Nazareno Clemente, dev independiente) no tiene."
-          en="The sociedades-IA regime (legal name: Sociedad Automatizada, art. 14), announced by Sturzenegger on April 28, 2026 and with a General Companies Law draft bill in the Senate since June 1, 2026, requires technical infrastructure + legal grounding. The technical side is written; the legal grounding requires reviewers with a professional license and/or academic weight the original author (Nazareno Clemente, independent dev) doesn't have."
+          es="El régimen de sociedades automatizadas (nombre legal: Sociedad Automatizada, art. 14), anunciado por Sturzenegger el 28 de abril de 2026 y con anteproyecto de Ley General de Sociedades en el Senado desde el 1 de junio de 2026, requiere infraestructura técnica + sustento jurídico. La técnica está escrita; el sustento jurídico requiere revisores con matrícula profesional y/o peso académico que el autor original (Nazareno Clemente, dev independiente) no tiene."
+          en="The automated-company regime (legal name: Sociedad Automatizada, art. 14), announced by Sturzenegger on April 28, 2026 and with a General Companies Law draft bill in the Senate since June 1, 2026, requires technical infrastructure + legal grounding. The technical side is written; the legal grounding requires reviewers with a professional license and/or academic weight the original author (Nazareno Clemente, independent dev) doesn't have."
         />
       </DocP>
 
@@ -450,10 +450,10 @@ export function CoFirmarContent({ lang }: { lang: Lang }) {
             es={
               <>
                 <strong>Defendibilidad ética.</strong> El proyecto
-                declaró desde el manifiesto que <em>no vende a la SIDE</em>
-               , no participa de contratos con servicios de
-                inteligencia ni seguridad estatal. La infraestructura es
-                civil-comercial-OSS, revisable en{" "}
+                declaró desde el manifiesto que{" "}
+                <em>no vende a la SIDE</em>, no participa de contratos con
+                servicios de inteligencia ni seguridad estatal. La
+                infraestructura es civil-comercial-OSS, revisable en{" "}
                 <Link href={manPath} style={linkSty}>
                   /manifiesto
                 </Link>

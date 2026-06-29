@@ -347,8 +347,8 @@ export function CodegenClient() {
             margin: 0,
           }}
         >
-          Fill in your sociedad-IA&apos;s details, get equivalent code in
-          6 languages. Copy, paste, run. The form fields mirror{" "}
+          Fill in your automated company&apos;s details, get equivalent code
+          in 6 languages. Copy, paste, run. The form fields mirror{" "}
           <code style={{ fontFamily: FONT_MONO }}>POST /api/auto-incorporate</code>
           &apos;s input schema. Everything happens client-side, no data
           leaves your browser until you actually run the snippet.
@@ -373,7 +373,7 @@ export function CodegenClient() {
             display: "grid",
             gap: 14,
           }}
-          aria-label="Sociedad-IA parameters"
+          aria-label="Automated company parameters"
         >
           <Field
             label="Denominación"
