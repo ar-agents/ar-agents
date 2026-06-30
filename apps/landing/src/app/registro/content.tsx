@@ -1,6 +1,12 @@
 import Link from "next/link";
 import { JsonLd } from "../json-ld";
 import type { Lang } from "../i18n";
+import {
+  SEED,
+  listRecords,
+  type RegistryRecord,
+  type GoodStandingState,
+} from "@/lib/registry-store";
 
 /**
  * Shared bilingual content for `/registro` (ES, default) and
@@ -10,116 +16,15 @@ import type { Lang } from "../i18n";
  *
  * Live conformance fetch + JSON-LD remain server-side here so both
  * URLs share the cache.
+ *
+ * The entry list comes from lib/registry-store#listRecords() (the SEED
+ * array merged with any KV-stored self-listed entries). If KV is down the
+ * store falls back to SEED, but we ALSO guard here so a thrown error never
+ * 500s the page: on failure we render the SEED directly.
  */
 
-interface RegistryEntry {
-  name: string;
-  type:
-    | "reference-implementation"
-    | "demo"
-    | "productive-sociedad-ia"
-    | "library-only";
-  jurisdiction: string;
-  operator: string;
-  operatorCuit?: string;
-  publicUrl: string;
-  rfcConformance: string[];
-  disclosure: { es: string; en: string };
-  status: "live" | "draft" | "deprecated";
-  listedSince: string;
-}
-
-const REGISTRY: ReadonlyArray<RegistryEntry> = [
-  {
-    name: "ar-agents (this site, reference implementation)",
-    type: "reference-implementation",
-    jurisdiction: "AR",
-    operator: "Nazareno Clemente",
-    publicUrl: "https://ar-agents.ar",
-    rfcConformance: [
-      "rfc-001-v1",
-      "rfc-002-v1",
-      "rfc-003-draft",
-      "rfc-004-draft",
-    ],
-    disclosure: {
-      es: "Implementación de referencia de la especificación. Aloja /play (demo interactivo), /verify (verificación HMAC), /api/play/audit/* (endpoints de auditoría), /test-vectors (vectores de conformidad). No es una sociedad productiva, no transacciona con clientes reales, no emite facturas, no cobra. Fuente de verdad del spec.",
-      en: "Reference implementation of the spec. Hosts /play (interactive demo), /verify (HMAC verification), /api/play/audit/* (audit endpoints), /test-vectors (conformance vectors). Not a productive company, i.e. does not transact with real customers, does not emit invoices, does not collect. Source of truth for the spec.",
-    },
-    status: "live",
-    listedSince: "2026-05-05",
-  },
-  {
-    name: "mp-hello demo",
-    type: "demo",
-    jurisdiction: "AR",
-    operator: "Nazareno Clemente",
-    publicUrl: "https://mp-hello.ar-agents.ar",
-    rfcConformance: ["rfc-001-v1"],
-    disclosure: {
-      es: "Demo de integración con Mercado Pago Subscriptions. Conectado a un MP sandbox real + producción app 178743372667921. Muestra la lib @ar-agents/mercadopago end-to-end. No es una sociedad productiva.",
-      en: "Mercado Pago Subscriptions integration demo. Wired to a real MP sandbox + production app 178743372667921. Shows the @ar-agents/mercadopago lib end-to-end. Not a productive company.",
-    },
-    status: "live",
-    listedSince: "2026-05-05",
-  },
-  {
-    name: "cuit-hello demo",
-    type: "demo",
-    jurisdiction: "AR",
-    operator: "Nazareno Clemente",
-    publicUrl: "https://cuit-hello.ar-agents.ar",
-    rfcConformance: ["rfc-001-v1"],
-    disclosure: {
-      es: "Demo de consulta a padrón AFIP/ARCA + validación de CUIT. Usa un cert AFIP real (homo por seguridad; cert prod disponible). Muestra la lib @ar-agents/identity end-to-end. No es una sociedad productiva.",
-      en: "AFIP/ARCA padron lookup + CUIT validation demo. Uses a real AFIP cert (homo for safety; prod cert available). Shows the @ar-agents/identity lib end-to-end. Not a productive company.",
-    },
-    status: "live",
-    listedSince: "2026-05-05",
-  },
-  {
-    name: "whatsapp-hello demo",
-    type: "demo",
-    jurisdiction: "AR",
-    operator: "Nazareno Clemente",
-    publicUrl: "https://whatsapp-hello.ar-agents.ar",
-    rfcConformance: ["rfc-001-v1"],
-    disclosure: {
-      es: "Demo de WhatsApp Business Cloud API combinando libs de identity + MP + WhatsApp. Handler de webhook + UI de chat. Limitado por el cap de 5 destinatarios en dev hasta que pase la verificación de negocio de Meta.",
-      en: "WhatsApp Business Cloud API demo combining identity + MP + WhatsApp libs. Webhook handler + chat UI. Limited by Meta verification 5-recipient dev cap until business verification passes.",
-    },
-    status: "live",
-    listedSince: "2026-05-05",
-  },
-  {
-    name: "bridge-hello demo",
-    type: "demo",
-    jurisdiction: "AR",
-    operator: "Nazareno Clemente",
-    publicUrl: "https://bridge-hello.ar-agents.ar",
-    rfcConformance: ["rfc-001-v1"],
-    disclosure: {
-      es: "Demo de Agentic Commerce Bridge. Superficies AP2 + ACP + MCP conectadas a MP. Muestra cómo un agente extranjero (Wyoming DAO LLC) interactúa con una sociedad automatizada argentina según receta 21 del cookbook.",
-      en: "Agentic Commerce Bridge demo. AP2 + ACP + MCP protocol surfaces wired to MP. Shows how a foreign agent (Wyoming DAO LLC) interacts with an AR automated company per cookbook recipe 21.",
-    },
-    status: "live",
-    listedSince: "2026-05-05",
-  },
-  {
-    name: "(your automated company here)",
-    type: "productive-sociedad-ia",
-    jurisdiction: "AR",
-    operator: "-",
-    publicUrl: "-",
-    rfcConformance: [],
-    disclosure: {
-      es: "Abrí un PR agregando los metadatos de tu sociedad automatizada a apps/landing/src/app/registro/page.tsx en github.com/ar-agents/ar-agents. Incluí: nombre, operador + CUIT, URL pública, RFCs conformados, disclosure en lenguaje claro. El PR se revisa por honestidad (ej., si reclamás RFC-001 tu /.well-known/agents.json debe resolver).",
-      en: "Open a PR adding your automated company's metadata to apps/landing/src/app/registro/page.tsx in github.com/ar-agents/ar-agents. Provide: name, operator name + CUIT, public URL, RFCs you conform to, plain-English disclosure. The PR will be reviewed for honest claims (e.g. claimed RFC-001 conformance must include a /.well-known/agents.json that resolves).",
-    },
-    status: "draft",
-    listedSince: "-",
-  },
-];
+// Local alias kept so the rest of the file reads as before.
+type RegistryEntry = RegistryRecord;
 
 const TYPE_COLOR: Record<RegistryEntry["type"], string> = {
   "reference-implementation": "#a855f7",
@@ -157,6 +62,23 @@ const STATUS_LABEL: Record<
   live: { es: "live", en: "live" },
   draft: { es: "draft", en: "draft" },
   deprecated: { es: "deprecated", en: "deprecated" },
+};
+
+const GOOD_STANDING_COLOR: Record<GoodStandingState, string> = {
+  active: "#22c55e",
+  unverified: "#737373",
+  suspended: "#f97316",
+  revoked: "#ef4444",
+};
+
+const GOOD_STANDING_LABEL: Record<
+  GoodStandingState,
+  { es: string; en: string }
+> = {
+  active: { es: "buen estado", en: "good standing" },
+  unverified: { es: "sin verificar", en: "unverified" },
+  suspended: { es: "suspendido", en: "suspended" },
+  revoked: { es: "revocado", en: "revoked" },
 };
 
 interface HistoryPoint {
@@ -317,9 +239,43 @@ const T = (lang: Lang) => ({
   },
   listedSince:
     lang === "es" ? "listado desde" : "listed since",
+  selfListTitle:
+    lang === "es"
+      ? "O auto-listate por API (sin PR)"
+      : "Or self-list via API (no PR)",
+  selfListIntro:
+    lang === "es"
+      ? "Hacé un POST a "
+      : "POST to ",
+  selfListBody:
+    lang === "es"
+      ? " con tu metadata. El servidor corre el certificador contra tu URL declarada y te devuelve un token de propietario (una sola vez). Tu entrada nace en draft / sin verificar y pasa a live / buen estado solo cuando el certificador puntúa ≥ C (60) sobre los endpoints que vos declarás. Es conformidad automática de endpoints declarados, no un juicio de solvencia, identidad ni fraude; el CUIT auto-declarado queda fuera de la afirmación de confianza hasta verificarse."
+      : " with your metadata. The server runs the certifier against your declared URL and returns a write-once owner token. Your entry starts draft / unverified and auto-flips to live / good standing only when the certifier scores ≥ C (60) over the endpoints you declare. This is automated conformance of self-declared endpoints, not a solvency, identity, or fraud judgement; a self-declared CUIT stays outside the trust claim until verified.",
+  oracleTitle:
+    lang === "es"
+      ? "Oracle público de buen estado"
+      : "Public good-standing oracle",
+  oracleBody:
+    lang === "es"
+      ? "Cualquier contraparte (banco, PSP, marketplace, framework de agentes) puede consultar el estado de una entrada antes de transaccionar: "
+      : "Any counterparty (bank, PSP, marketplace, agent framework) can query an entry's standing before transacting: ",
+  oracleBody2:
+    lang === "es"
+      ? ". Devuelve una respuesta chica, cacheable y firmada con Ed25519, verificable offline con arg-verify; la firma de ar-agents es conveniencia, la confianza de fondo son los anclajes públicos del propio target que el oracle reenvía."
+      : ". It returns a small, cacheable, Ed25519-signed answer, offline-verifiable with arg-verify; the ar-agents signature is convenience, the load-bearing trust is the target's own public anchors that the oracle forwards.",
 });
 
 export async function RegistroContent({ lang }: { lang: Lang }) {
+  // Source of truth: the registry store (SEED merged with KV self-listings).
+  // listRecords() already falls back to SEED on KV errors, but we guard once
+  // more so a thrown error here never 500s the shared page render.
+  let REGISTRY: RegistryEntry[];
+  try {
+    REGISTRY = await listRecords();
+  } catch {
+    REGISTRY = [...SEED];
+  }
+
   const histories = await Promise.all(
     REGISTRY.map(async (e) =>
       e.status === "live" && e.publicUrl !== "-"
@@ -327,8 +283,8 @@ export async function RegistroContent({ lang }: { lang: Lang }) {
         : [],
     ),
   );
-  const historyByName = new Map<string, HistoryPoint[]>();
-  REGISTRY.forEach((e, i) => historyByName.set(e.name, histories[i]));
+  const historyById = new Map<string, HistoryPoint[]>();
+  REGISTRY.forEach((e, i) => historyById.set(e.id, histories[i]));
 
   const counts = REGISTRY.reduce(
     (acc, e) => {
@@ -481,9 +437,9 @@ export async function RegistroContent({ lang }: { lang: Lang }) {
           <ul style={{ listStyle: "none", padding: 0, margin: 0 }}>
             {REGISTRY.map((entry) => (
               <Entry
-                key={entry.name}
+                key={entry.id}
                 entry={entry}
-                history={historyByName.get(entry.name) ?? []}
+                history={historyById.get(entry.id) ?? []}
                 lang={lang}
                 listedSinceLabel={t.listedSince}
               />
@@ -537,6 +493,42 @@ export async function RegistroContent({ lang }: { lang: Lang }) {
             </li>
             <li style={liStyle}>{t.steps.step4}</li>
           </ol>
+
+          <h3
+            style={{
+              fontSize: 15,
+              marginTop: 24,
+              marginBottom: 8,
+              fontWeight: 500,
+              color: "var(--text-strong)",
+            }}
+          >
+            {t.selfListTitle}
+          </h3>
+          <p style={{ fontSize: 13.5, lineHeight: 1.55, marginBottom: 16 }}>
+            {t.selfListIntro}
+            <code style={codeStyle}>POST /api/registry</code>
+            {t.selfListBody}
+          </p>
+
+          <h3
+            style={{
+              fontSize: 15,
+              marginTop: 24,
+              marginBottom: 8,
+              fontWeight: 500,
+              color: "var(--text-strong)",
+            }}
+          >
+            {t.oracleTitle}
+          </h3>
+          <p style={{ fontSize: 13.5, lineHeight: 1.55 }}>
+            {t.oracleBody}
+            <code style={codeStyle}>
+              GET /api/registry/good-standing?url=
+            </code>
+            {t.oracleBody2}
+          </p>
         </section>
 
         <footer
@@ -671,7 +663,15 @@ function Entry({
             {entry.operatorCuit ? ` · CUIT ${entry.operatorCuit}` : ""}
           </div>
         </div>
-        <div style={{ display: "flex", gap: 6, flexShrink: 0 }}>
+        <div
+          style={{
+            display: "flex",
+            gap: 6,
+            flexShrink: 0,
+            flexWrap: "wrap",
+            justifyContent: "flex-end",
+          }}
+        >
           <Badge
             text={TYPE_LABEL[entry.type][lang]}
             color={TYPE_COLOR[entry.type]}
@@ -679,6 +679,16 @@ function Entry({
           <Badge
             text={STATUS_LABEL[entry.status][lang]}
             color={STATUS_COLOR[entry.status]}
+          />
+          <Badge
+            text={
+              GOOD_STANDING_LABEL[entry.goodStanding.state][lang] +
+              (entry.goodStanding.lastRating &&
+              entry.goodStanding.lastRating !== "N/A"
+                ? ` · ${entry.goodStanding.lastRating}`
+                : "")
+            }
+            color={GOOD_STANDING_COLOR[entry.goodStanding.state]}
           />
         </div>
       </div>

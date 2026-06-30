@@ -56,12 +56,27 @@ const RFC_CONFORMANCE_COLOR: Record<Certification["rfcConformance"]["rfc-002-v1"
   skip: "#737373",
 };
 
+interface IssuedCertificate {
+  certId: string;
+  status: "valid" | "revoked" | "expired";
+  certifierReport: { score: number; rating: string };
+}
+
 export function CertifierClient() {
   const [url, setUrl] = useState("https://ar-agents.ar");
   const [sessionId, setSessionId] = useState("ar-agents-sociedad-automatizada");
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [cert, setCert] = useState<Certification | null>(null);
+
+  // ADDITIVE (Sprint 2 Part B): operator-only "issue a signed certificate" flow.
+  // Anonymous viewers never touch this — it sits behind a collapsed disclosure
+  // and only acts when the operator supplies their registry-owner token.
+  const [registryId, setRegistryId] = useState("");
+  const [registryToken, setRegistryToken] = useState("");
+  const [issuing, setIssuing] = useState(false);
+  const [issueError, setIssueError] = useState<string | null>(null);
+  const [issued, setIssued] = useState<IssuedCertificate | null>(null);
 
   async function runCertification() {
     if (!url.trim()) {
@@ -71,6 +86,8 @@ export function CertifierClient() {
     setLoading(true);
     setError(null);
     setCert(null);
+    setIssued(null);
+    setIssueError(null);
     try {
       const params = new URLSearchParams({ url: url.trim() });
       if (sessionId.trim()) params.set("sessionId", sessionId.trim());
@@ -82,6 +99,37 @@ export function CertifierClient() {
       setError((e as Error).message);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function issueSignedCertificate() {
+    if (!registryId.trim() || !registryToken.trim()) {
+      setIssueError("Enter your registry id + registry-owner token.");
+      return;
+    }
+    setIssuing(true);
+    setIssueError(null);
+    setIssued(null);
+    try {
+      const r = await fetch("/api/certifier/issue", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-registry-token": registryToken.trim(),
+        },
+        body: JSON.stringify({ url: url.trim(), registryId: registryId.trim() }),
+      });
+      const data = await r.json();
+      if (!r.ok) {
+        throw new Error(
+          data.detail || data.error || `HTTP ${r.status}`,
+        );
+      }
+      setIssued(data.certificate as IssuedCertificate);
+    } catch (e) {
+      setIssueError((e as Error).message);
+    } finally {
+      setIssuing(false);
     }
   }
 
@@ -322,6 +370,131 @@ export function CertifierClient() {
             >
               {JSON.stringify(cert, null, 2)}
             </pre>
+          </details>
+
+          {/* ADDITIVE: operator-only signed-certificate issuance. Collapsed by
+              default; anonymous viewers see the unchanged scan above. A cert can
+              only be minted by the listed operator (registry-owner token). */}
+          <details style={{ marginTop: 20 }}>
+            <summary style={{ cursor: "pointer", fontSize: 13, color: "var(--accent)" }}>
+              Operator? Issue a signed, revocable certificate for this URL
+            </summary>
+            <div
+              style={{
+                marginTop: 12,
+                padding: 16,
+                background: "var(--bg-tint)",
+                borderRadius: 8,
+                boxShadow: "var(--card-shadow)",
+              }}
+            >
+              <p style={{ fontSize: 13.5, marginBottom: 12, color: "var(--text-body)" }}>
+                If you own this URL&apos;s registry entry, mint a signed
+                certificate (Ed25519, offline-verifiable). It is listed,
+                dereferenceable, and revocable. Requires your{" "}
+                <strong>registry-owner token</strong> and a score of at least C
+                (60).
+              </p>
+              <label style={labelStyle}>
+                Registry id
+                <input
+                  type="text"
+                  value={registryId}
+                  onChange={(e) => setRegistryId(e.target.value)}
+                  placeholder="your-sociedad-id"
+                  style={inputStyle}
+                />
+              </label>
+              <label style={labelStyle}>
+                Registry-owner token (x-registry-token)
+                <input
+                  type="password"
+                  value={registryToken}
+                  onChange={(e) => setRegistryToken(e.target.value)}
+                  placeholder="rgo_…"
+                  style={inputStyle}
+                />
+              </label>
+              <button
+                type="button"
+                onClick={issueSignedCertificate}
+                disabled={issuing}
+                style={{
+                  marginTop: 14,
+                  background: "var(--accent)",
+                  color: "var(--bg)",
+                  border: "none",
+                  padding: "10px 20px",
+                  borderRadius: 6,
+                  fontSize: 14,
+                  fontWeight: 500,
+                  cursor: issuing ? "wait" : "pointer",
+                  opacity: issuing ? 0.6 : 1,
+                }}
+              >
+                {issuing ? "Issuing…" : "Issue signed certificate"}
+              </button>
+
+              {issueError && (
+                <div
+                  style={{
+                    marginTop: 12,
+                    padding: 12,
+                    background: "#ef444422",
+                    color: "#ef4444",
+                    borderRadius: 6,
+                    fontSize: 13,
+                  }}
+                >
+                  {issueError}
+                </div>
+              )}
+
+              {issued && (
+                <div style={{ marginTop: 14 }}>
+                  <div style={{ fontSize: 13.5, marginBottom: 8, color: "var(--text-strong)" }}>
+                    Certificate issued ·{" "}
+                    <Badge text={issued.status.toUpperCase()} color={
+                      issued.status === "valid" ? "#22c55e" : issued.status === "revoked" ? "#ef4444" : "#737373"
+                    } />
+                  </div>
+                  <p style={{ fontSize: 13, marginBottom: 8 }}>
+                    Public URL:{" "}
+                    <a
+                      href={`/api/certifier/cert/${issued.certId}`}
+                      target="_blank"
+                      rel="noreferrer"
+                      style={linkStyle}
+                    >
+                      /api/certifier/cert/{issued.certId}
+                    </a>
+                  </p>
+                  <p style={{ fontSize: 13, marginBottom: 6, color: "var(--text-muted)" }}>
+                    Verify offline (no trust in this server):
+                  </p>
+                  <pre
+                    style={{
+                      padding: 12,
+                      background: "var(--bg)",
+                      borderRadius: 6,
+                      fontSize: 11.5,
+                      fontFamily: "var(--font-geist-mono), ui-monospace, monospace",
+                      overflow: "auto",
+                    }}
+                  >
+{`curl -s https://ar-agents.ar/api/certifier/cert/${issued.certId} > cert.json
+curl -s https://ar-agents.ar/arg-verify.mjs -o arg-verify.mjs
+node arg-verify.mjs certificate cert.json`}
+                  </pre>
+                  <p style={{ fontSize: 12.5, marginTop: 8, color: "var(--text-muted)" }}>
+                    README badge:{" "}
+                    <code style={codeStyle}>
+                      https://ar-agents.ar/api/cert-badge?certId={issued.certId}
+                    </code>
+                  </p>
+                </div>
+              )}
+            </div>
           </details>
         </section>
       )}
