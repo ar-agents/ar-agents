@@ -1,0 +1,112 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ar-agents.ar/schemas/good-standing.v1.json",
+  "title": "Registry good-standing oracle answer v1",
+  "description": "Output of GET /api/registry/good-standing. A small, cacheable, Ed25519-signed answer a counterparty queries before transacting with an Argentine automated company. The `body` is offline-verifiable with `arg-verify attestation` (sig = Ed25519 over canonical(body); publicKey = standard-base64 SPKI). The ar-agents signature is CONVENIENCE; the load-bearing trust-minimization is body.attestation, which forwards the target's own publicly-anchored attestation + the witness anchor chain (verifiable against Bitcoin with no ar-agents key in the path).",
+  "type": "object",
+  "required": ["$schema", "body", "keyId", "verify"],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "body": {
+      "type": "object",
+      "required": [
+        "kind",
+        "version",
+        "issuedAt",
+        "query",
+        "found",
+        "record",
+        "goodStanding",
+        "attestation"
+      ],
+      "properties": {
+        "kind": { "type": "string", "const": "ar-agents.registry.good-standing" },
+        "version": { "type": "integer", "const": 1 },
+        "issuedAt": { "type": "string", "format": "date-time" },
+        "query": {
+          "type": "object",
+          "required": ["by", "value"],
+          "properties": {
+            "by": { "type": "string", "enum": ["url", "id", "cuit"] },
+            "value": { "type": "string" }
+          }
+        },
+        "found": { "type": "boolean" },
+        "record": {
+          "type": ["object", "null"],
+          "required": ["id", "name", "jurisdiction", "operator", "publicUrl", "type", "status"],
+          "properties": {
+            "id": { "type": "string" },
+            "name": { "type": "string" },
+            "jurisdiction": { "type": "string" },
+            "operator": { "type": "string" },
+            "operatorCuit": {
+              "type": "string",
+              "description": "AUTHORITATIVE operator CUIT. Present ONLY for seed/independently-verified entries. A self-declared CUIT is NEVER here — it appears in selfDeclaredCuit, outside the trust claim."
+            },
+            "selfDeclaredCuit": {
+              "type": "string",
+              "description": "SELF-DECLARED, UNPROVEN CUIT for a self-listed entry. OUTSIDE the trust claim: treat as a hint, not an identity assertion. The oracle never resolves a ?cuit= query against this value."
+            },
+            "publicUrl": { "type": "string" },
+            "type": { "type": "string" },
+            "status": { "type": "string", "enum": ["live", "draft", "deprecated"] }
+          }
+        },
+        "goodStanding": {
+          "type": ["object", "null"],
+          "required": ["state", "asOf", "score", "rating", "basis"],
+          "properties": {
+            "state": {
+              "type": "string",
+              "enum": ["active", "suspended", "revoked", "unverified"]
+            },
+            "asOf": { "type": ["string", "null"], "format": "date-time" },
+            "score": { "type": ["integer", "null"], "minimum": 0, "maximum": 100 },
+            "rating": {
+              "type": ["string", "null"],
+              "enum": ["A", "B", "C", "D", "F", "N/A", null]
+            },
+            "basis": {
+              "type": "string",
+              "description": "The honest SCOPE of this verdict, carried inside the signed body so the caveat travels with the offline-verifiable artifact: automated conformance of self-declared endpoints; NOT a solvency, identity, or fraud judgement."
+            },
+            "reason": { "type": "string" }
+          }
+        },
+        "attestation": {
+          "type": "object",
+          "description": "Forwarded trust-minimized pointers. The load-bearing trust path, NOT the ar-agents convenience signature.",
+          "required": ["note", "publicAnchor", "publicAnchorOts", "publicKeyUrl", "keyId"],
+          "properties": {
+            "note": { "type": "string" },
+            "targetAttestation": { "type": ["string", "null"], "format": "uri" },
+            "publicAnchor": { "type": "string", "format": "uri" },
+            "publicAnchorOts": { "type": "string" },
+            "publicKeyUrl": { "type": "string", "format": "uri" },
+            "keyId": { "type": "string" }
+          }
+        }
+      }
+    },
+    "sig": {
+      "type": "string",
+      "description": "Ed25519 over canonical(body), standard base64. Absent only when no signing key is configured."
+    },
+    "publicKey": {
+      "type": "string",
+      "description": "SubjectPublicKeyInfo (SPKI) DER, standard base64. Resolvable + pinnable at /.well-known/sociedad-ia/keys."
+    },
+    "alg": { "type": "string", "const": "Ed25519" },
+    "keyId": { "type": "string" },
+    "verify": {
+      "type": "object",
+      "required": ["offline", "publicKeyUrl"],
+      "properties": {
+        "offline": { "type": "string" },
+        "publicKeyUrl": { "type": "string", "format": "uri" },
+        "note": { "type": "string" }
+      }
+    }
+  }
+}
