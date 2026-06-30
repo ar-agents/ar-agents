@@ -301,6 +301,44 @@ export const openApiSpec = {
         responses: { "200": { description: "Certification JSON", content: { "application/json": { schema: { type: "object" } } } } },
       },
     },
+    "/api/registry/good-standing": {
+      get: {
+        operationId: "registryGoodStanding",
+        summary: "Public good-standing oracle, the JUDGED leg of the born/operate/judged lifecycle",
+        description:
+          "Resolve an automated company by url, id, or cuit and get a small Ed25519-signed, offline-verifiable answer about its good standing before transacting. The signature is convenience; the load-bearing trust is the target's own forwarded public anchor. Forming and stale entries are returned as explicitly non-attesting.",
+        tags: ["discovery"],
+        parameters: [
+          { name: "url", in: "query", required: false, schema: { type: "string", format: "uri" } },
+          { name: "id", in: "query", required: false, schema: { type: "string" } },
+          { name: "cuit", in: "query", required: false, schema: { type: "string" } },
+        ],
+        responses: { "200": { description: "Signed good-standing answer { body, sig, publicKey }", content: { "application/json": { schema: { type: "object" } } } } },
+      },
+    },
+    "/api/registry": {
+      get: {
+        operationId: "registryList",
+        summary: "Machine-readable registry list",
+        description:
+          "List registry entries, filterable by jurisdiction, type, status. No auth, cacheable.",
+        tags: ["discovery"],
+        parameters: [
+          { name: "jurisdiction", in: "query", required: false, schema: { type: "string" } },
+          { name: "type", in: "query", required: false, schema: { type: "string" } },
+          { name: "status", in: "query", required: false, schema: { type: "string" } },
+        ],
+        responses: { "200": { description: "Registry list JSON", content: { "application/json": { schema: { type: "object" } } } } },
+      },
+      post: {
+        operationId: "registrySelfList",
+        summary: "Self-list an entity in the registry",
+        description:
+          "Mints a write-once owner token. The entry starts unverified and auto-flips to active only when the certifier scores its declared URL high enough. Rate-limited.",
+        tags: ["discovery"],
+        responses: { "200": { description: "Created entry + owner token JSON" }, "429": { description: "Rate limited" } },
+      },
+    },
     "/api/conformance-history": {
       get: {
         operationId: "conformanceHistoryRead",

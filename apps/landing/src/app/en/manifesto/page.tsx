@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../../noindex";
 import { ManifiestoContent } from "../../manifiesto/content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Manifesto · ar-agents",
   description:
     "Infrastructure to create and register autonomous companies in Argentina, operated by AI agents. Project manifesto.",
