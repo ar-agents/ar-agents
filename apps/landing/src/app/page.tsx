@@ -216,10 +216,10 @@ export default function Home() {
             />
             <LinkCard
               href="/registro"
-              eyebrow={es ? "Registro" : "Registry"}
-              title={es ? "Quién ya está sobre los rieles" : "Who is already on the rails"}
-              body={es ? "El registro público de sociedades e implementaciones conformes." : "The public registry of conformant companies and implementations."}
-              cta={es ? "Ver registro" : "See the registry"}
+              eyebrow={es ? "Registro de buen estado" : "Good-standing registry"}
+              title={es ? "Tu reputación, verificable por cualquiera" : "Your standing, verifiable by anyone"}
+              body={es ? "Un oráculo público: una contraparte consulta y verifica una sociedad antes de operar con ella. Sin pedirte la clave." : "A public oracle: a counterparty looks up and verifies a company before transacting with it. Without asking for your key."}
+              cta={es ? "Ver el registro" : "See the registry"}
             />
           </div>
         </Section>
@@ -249,25 +249,26 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* EL AUDITOR, the paid peak */}
+        {/* EL AUDITOR + good-standing, the recurring product (day-1 buyer) */}
         <section style={{ marginBottom: 80, paddingTop: 32, borderTop: "1px solid var(--border-color)" }}>
-          <p style={eyebrowSty}>{es ? "El Auditor · pago" : "El Auditor · paid"}</p>
-          <h2 style={h2Sty}>{es ? "Siempre listo para una auditoría" : "Always audit-ready"}</h2>
+          <p style={eyebrowSty}>{es ? "El Auditor · producto recurrente" : "El Auditor · recurring product"}</p>
+          <h2 style={h2Sty}>{es ? "Confianza verificable para tu agente, hoy" : "Verifiable trust for your agent, today"}</h2>
           <div className="hero-grid">
             <div>
               <p style={{ ...cardBody, fontSize: 16 }}>
                 {es
-                  ? "El art. 102 te hace responsable a vos, el humano detrás de la sociedad. El Auditor firma cada decisión del agente, HMAC + Ed25519, en un log que cualquiera puede verificar sin pedirte la clave. Ese log es tu defensa."
-                  : "Art. 102 makes you, the human behind the company, liable. El Auditor signs every agent decision, HMAC + Ed25519, into a log anyone can verify without asking for your key. That log is your defense."}
+                  ? "¿Tu agente ya mueve plata? El Auditor firma cada decisión (HMAC + Ed25519) en un log que cualquiera verifica sin pedirte la clave, anclado a Bitcoin. Es la prueba de que tu agente es responsable, auditado y está en buen estado. Con o sin ley."
+                  : "Already moving money with an agent? El Auditor signs every decision (HMAC + Ed25519) into a log anyone can verify without asking for your key, anchored to Bitcoin. It is the proof your agent is accountable, audited and in good standing. With or without a law."}
               </p>
               <p style={{ ...cardBody, margin: "12px 0 0" }}>
                 {es
-                  ? "Lo opera el mismo agente, en vivo. Es el único producto pago hoy."
-                  : "The agent operates it, live. It is the only paid product today."}
+                  ? "Cualquier contraparte, un banco, un marketplace u otro agente, puede consultar tu buen estado antes de operar con vos. En Argentina, ese mismo log es tu defensa ante el art. 102."
+                  : "Any counterparty, a bank, a marketplace or another agent, can check your good standing before transacting with you. In Argentina, that same log is your art. 102 defense."}
               </p>
               <div style={{ marginTop: 20, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-                <a href="/precios" style={ctaPrimary}>{es ? "Ver precios" : "See pricing"}</a>
+                <a href="/precios" style={ctaPrimary}>{es ? "USD 199/mes · ver precios" : "USD 199/mo · see pricing"}</a>
                 <a href="/auditor" style={inlineLink}>{es ? "Cómo funciona" : "How it works"} →</a>
+                <a href="/registro" style={inlineLink}>{es ? "Ver el registro" : "See the registry"} →</a>
               </div>
             </div>
             <div style={{ display: "flex", justifyContent: "center" }}>
