@@ -589,13 +589,14 @@ export async function setGoodStanding(
  * good-standing oracle route). The two MUST stay in sync; both are pure.
  */
 function slugForDenominacion(s: string): string {
-  return (
-    String(s ?? "")
-      .toLowerCase()
-      .replace(/[^a-z0-9]+/g, "-")
-      .replace(/(^-+|-+$)/g, "")
-      .slice(0, 40) || "sociedad-ia"
-  );
+  const slug = String(s ?? "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/(^-+|-+$)/g, "")
+    .slice(0, 40);
+  // ID_RE requires >= 2 chars; a 1-char (or empty) slug would be rejected by
+  // upsertRecord and silently drop the entity. Fall back to the default.
+  return slug.length >= 2 ? slug : "sociedad-ia";
 }
 
 /** The fields createFormingStub needs — a structural subset of IncorporateInput. */
@@ -665,16 +666,18 @@ export async function createFormingStub(
     const base = slugForDenominacion(input.denominacion);
     const id = await dedupedFormingId(base);
 
-    const operatorCuit = input.representante?.cuit?.trim() || undefined;
     const rec: RegistryRecord = {
       id,
       name: input.denominacion,
       type: "productive-sociedad-ia",
       jurisdiction: "AR",
       operator: input.representante?.nombre?.trim() || "-",
-      // SELF-DECLARED at birth → NOT verified. hasAuthoritativeCuit() returns
-      // false for source:"formed", so the oracle never presents it as authoritative.
-      ...(operatorCuit ? { operatorCuit } : {}),
+      // NO operatorCuit on a forming stub: the administrator's CUIT is SELF-DECLARED
+      // at birth (never authoritative), and carrying it here would collide with
+      // upsertRecord's CUIT-dedup guard — silently dropping legit entities (one
+      // human running several sociedades) and enabling a CUIT-squat denial-of-
+      // registry. The declared CUIT lives in the signed incorporation audit entry;
+      // operatorCuit is set authoritatively only when the entity is verified.
       publicUrl: input.publicUrl?.trim() || "-",
       rfcConformance: [],
       disclosure: {
@@ -704,9 +707,9 @@ export async function createFormingStub(
     await bindSessionToStub(sessionId, id);
 
     // upsertRecord is guarded only for source!=="seed" NEW ids on self-list; a
-    // "formed" source has publicUrl "-" (no origin) so neither the url-claim nor
-    // the cuit-dedup guard fires (a forming stub's self-declared cuit is not an
-    // authoritative claim, and "-" has no origin). Returns null only at capacity.
+    // "formed" source has publicUrl "-" (no origin) and carries NO operatorCuit,
+    // so neither the url-claim nor the cuit-dedup guard can fire. Returns null
+    // only at capacity (MAX_IDS).
     return await upsertRecord(rec);
   } catch {
     return null; // best-effort: never block the constitution

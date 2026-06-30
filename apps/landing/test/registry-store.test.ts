@@ -58,6 +58,7 @@ import {
   getRecord,
   getRecordByUrl,
   upsertRecord,
+  createFormingStub,
   setGoodStanding,
   isSeedOrigin,
   hasAuthoritativeCuit,
@@ -66,6 +67,67 @@ import {
   __resetMemoryForTests,
   type RegistryRecord,
 } from "../src/lib/registry-store";
+
+// ── createFormingStub regression: the loop's SUPPLY side (HIGH/MEDIUM bugs the
+//    post-merge Wave-1 review found). Uses the module-scoped resetAll()/KV mock. ──
+describe("registry-store · createFormingStub (loop supply side)", () => {
+  beforeEach(() => {
+    resetAll();
+    delete process.env.KV_REST_API_URL;
+    delete process.env.KV_REST_API_TOKEN;
+  });
+  afterEach(() => {
+    delete process.env.KV_REST_API_URL;
+    delete process.env.KV_REST_API_TOKEN;
+  });
+
+  it("mints distinct stubs for two incorporations with the SAME declared CUIT (no false CuitTaken drop)", async () => {
+    const a = await createFormingStub(
+      { denominacion: "Pampa Uno SA", tipo: "automatizada", representante: { nombre: "Juan Perez", cuit: "20-12345678-6" } },
+      "sess-a",
+    );
+    const b = await createFormingStub(
+      { denominacion: "Pampa Dos SA", tipo: "automatizada", representante: { nombre: "Juan Perez", cuit: "20-12345678-6" } },
+      "sess-b",
+    );
+    expect(a).not.toBeNull();
+    expect(b).not.toBeNull();
+    expect(a!.id).not.toBe(b!.id);
+    expect(a!.status).toBe("forming");
+    // The self-declared CUIT must NOT be an authoritative operatorCuit (that caused
+    // the dedup-drop + enabled a CUIT-squat denial-of-registry).
+    expect(a!.operatorCuit).toBeUndefined();
+    expect(b!.operatorCuit).toBeUndefined();
+  });
+
+  it("a CUIT-squatter cannot block a victim's incorporation stub", async () => {
+    await createFormingStub(
+      { denominacion: "Squatter SA", tipo: "automatizada", representante: { cuit: "27-99999999-3" } },
+      "sess-attacker",
+    );
+    const victim = await createFormingStub(
+      { denominacion: "Victima Real SA", tipo: "automatizada", representante: { cuit: "27-99999999-3" } },
+      "sess-victim",
+    );
+    expect(victim).not.toBeNull();
+    expect(victim!.status).toBe("forming");
+  });
+
+  it("a denominacion that slugifies to <2 chars still mints a stub (ID_RE fallback)", async () => {
+    const s = await createFormingStub({ denominacion: "X", tipo: "automatizada" }, "sess-x");
+    expect(s).not.toBeNull();
+    expect(s!.id.length).toBeGreaterThanOrEqual(2);
+    expect(s!.status).toBe("forming");
+  });
+
+  it("is idempotent per sessionId (a retry returns the same stub, no second entity)", async () => {
+    const first = await createFormingStub({ denominacion: "Idem SA", tipo: "automatizada" }, "sess-idem");
+    const again = await createFormingStub({ denominacion: "Idem SA", tipo: "automatizada" }, "sess-idem");
+    expect(first).not.toBeNull();
+    expect(again!.id).toBe(first!.id);
+    expect((await listRecords()).filter((r) => r.source === "formed").length).toBe(1);
+  });
+});
 
 function makeRecord(id: string, url: string): RegistryRecord {
   const now = new Date().toISOString();
