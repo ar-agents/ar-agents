@@ -34,6 +34,8 @@ const FORBIDDEN = [
   "captura de valor",
   "monopoly",
   "monopolio",
+  "moat",
+  "runway",
   "shadow-onboarding",
   "shadow onboarding",
   "shadow metric",
@@ -82,6 +84,12 @@ describe("served machine surfaces are neutral (no capture / shadow / admin langu
 
   it("the shared /api/openapi spec is clean", () => {
     assertClean("openapi-spec", JSON.stringify(openApiSpec));
+  });
+
+  it("the /faq page copy is clean (indexed → must be neutral, not just noindexed)", () => {
+    // /faq stays publicly indexed + emits FAQPage JSON-LD, so robots:noindex would
+    // not stop crawlers — the COPY itself must be free of moat/strategy language.
+    assertClean("faq/page.tsx", read("src/app/faq/page.tsx"));
   });
 });
 

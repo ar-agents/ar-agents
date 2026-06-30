@@ -111,16 +111,8 @@ const FAQS: Q[] = [
   },
 
   // ─── Investor / partner ──────────────────────────────────────────────
-  {
-    audience: "investor",
-    q: "¿Es un negocio o un proyecto open-source?",
-    a: 'Open-source MIT con runway potencial via servicios hosted (incorporación llave-en-mano, KV multi-tenant, audit-log compliance dashboard). El toolkit en sí queda libre. La <em>plataforma</em> que lo opera (auth, billing, multi-tenant KV) es donde vive un negocio si crece.',
-  },
-  {
-    audience: "investor",
-    q: "¿Cuál es la moat?",
-    a: '(1) First-mover en la jurisdicción AR + alineación con el régimen de sociedades automatizadas. (2) Cobertura del 16/17 piezas operativas, nadie más lo tiene completo. (3) RFC-001 governance framework, marco original. (4) Audit log HMAC + KV, primitivos forenses que requieren disciplina, no solo código. (5) Network: <code>@ar-agents/incorporate</code> es la entrada canónica para agentes externos USA-LLC / DAO LLCs / Estonia e-Residency a operar en AR.',
-  },
+  // (investor-audience Q&A intentionally omitted: business/strategy framing stays
+  //  internal per the neutral public posture)
 
   // ─── Journalist / general ───────────────────────────────────────────
   {
@@ -155,7 +147,6 @@ const AUDIENCES_ORDER: Q["audience"][] = [
   "regulator",
   "developer",
   "agent",
-  "investor",
   "journalist",
 ];
 
@@ -177,9 +168,9 @@ export default function FaqPage() {
 
   return (
     <DocShell
-      eyebrow="faq · 21 preguntas"
+      eyebrow="faq · 19 preguntas"
       title="FAQ."
-      subtitle="21 preguntas que un asesor de Sturzenegger, un developer, un LLM agent, un investor o un periodista podría hacer, respondidas con links verificables. Schema.org FAQPage para rich results en buscadores."
+      subtitle="19 preguntas que un asesor de Sturzenegger, un developer, un LLM agent o un periodista podría hacer, respondidas con links verificables. Schema.org FAQPage para rich results en buscadores."
     >
       <DocBlock>
         <DocP>
