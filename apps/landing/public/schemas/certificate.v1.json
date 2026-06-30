@@ -1,0 +1,101 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://ar-agents.ar/schemas/certificate.v1.json",
+  "title": "ar-agents signed certificate v1",
+  "description": "A signed, listed, revocable certificate over a /api/certifier run. Dereferenceable at /api/certifier/cert/{certId}. The Ed25519 signature over canonical006(body) is a CONVENIENCE integrity/origin check (verifiable offline with arg-verify.mjs, no secret); the load-bearing trust-minimization is the subject's own publicly-anchored attestation + witness anchor chain, forwarded in attestationRef (tesis #2).",
+  "type": "object",
+  "required": [
+    "kind",
+    "version",
+    "certId",
+    "issuedAt",
+    "expiresAt",
+    "subject",
+    "certifierReport",
+    "attestationRef",
+    "status",
+    "signature",
+    "sig",
+    "publicKey",
+    "keyId",
+    "alg"
+  ],
+  "properties": {
+    "$schema": { "type": "string", "format": "uri" },
+    "kind": { "type": "string", "const": "ar-agents.certificate" },
+    "version": { "type": "integer", "const": 1 },
+    "certId": { "type": "string", "pattern": "^cert_[a-f0-9]{8,64}$" },
+    "issuedAt": { "type": "string", "format": "date-time" },
+    "expiresAt": { "type": "string", "format": "date-time" },
+    "subject": {
+      "type": "object",
+      "required": ["baseUrl"],
+      "properties": {
+        "baseUrl": { "type": "string", "format": "uri" },
+        "registryId": { "type": "string", "pattern": "^[a-z0-9][a-z0-9-]{1,62}$" },
+        "operator": { "type": "string" },
+        "jurisdiction": { "type": "string" }
+      }
+    },
+    "certifierReport": {
+      "type": "object",
+      "required": ["score", "rating", "rfcConformance"],
+      "properties": {
+        "score": { "type": "integer", "minimum": 0, "maximum": 100 },
+        "rating": { "type": "string", "enum": ["A", "B", "C", "D", "F", "N/A"] },
+        "rfcConformance": {
+          "type": "object",
+          "required": ["rfc-002-v1", "rfc-004-draft"],
+          "properties": {
+            "rfc-002-v1": { "type": "string", "enum": ["pass", "partial", "fail", "skip"] },
+            "rfc-004-draft": { "type": "string", "enum": ["pass", "partial", "fail", "skip"] }
+          }
+        }
+      }
+    },
+    "attestationRef": {
+      "type": "object",
+      "description": "Pointers to the SUBJECT's own publicly-anchored attestation + witness chain — the trust root the caller should actually verify, not the ar-agents key.",
+      "required": ["note", "anchorChainUrl", "anchorOtsUrlTemplate", "verify"],
+      "properties": {
+        "note": { "type": "string" },
+        "attestationUrl": { "type": ["string", "null"], "format": "uri" },
+        "anchorChainUrl": { "type": "string", "format": "uri" },
+        "anchorOtsUrlTemplate": { "type": "string" },
+        "verify": {
+          "type": "object",
+          "required": ["offline", "publicKeyUrl"],
+          "properties": {
+            "offline": { "type": "string" },
+            "publicKeyUrl": { "type": "string", "format": "uri" },
+            "timestampHowto": { "type": "string" }
+          }
+        }
+      }
+    },
+    "status": { "type": "string", "enum": ["valid", "revoked", "expired"] },
+    "revocation": {
+      "type": "object",
+      "required": ["at", "reason", "by"],
+      "properties": {
+        "at": { "type": "string", "format": "date-time" },
+        "reason": { "type": "string" },
+        "by": { "type": "string", "enum": ["owner", "admin"] }
+      }
+    },
+    "signature": {
+      "type": "string",
+      "description": "Ed25519 over canonical006(body without signature/sig/publicKey/keyId/alg), STANDARD base64."
+    },
+    "sig": {
+      "type": "string",
+      "description": "Alias of signature, for arg-verify parity with the {body,sig,publicKey} attestation shape."
+    },
+    "publicKey": {
+      "type": "string",
+      "description": "SubjectPublicKeyInfo (SPKI) DER, STANDARD base64 — the same key published at /.well-known/sociedad-ia/keys."
+    },
+    "keyId": { "type": "string" },
+    "alg": { "type": "string", "const": "Ed25519" }
+  }
+}
