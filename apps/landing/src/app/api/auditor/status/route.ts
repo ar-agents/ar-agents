@@ -1,6 +1,7 @@
 import { kv } from "@vercel/kv";
 import { jsonCors, preflight } from "@/lib/cors";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { getUsage } from "@/lib/metering";
 
 /**
  * GET /api/auditor/status: let a paying customer (or their agent) check their
@@ -51,6 +52,7 @@ export async function GET(req: Request) {
       since: ent.createdAt,
       active: ent.status === "active",
     },
+    usage: await getUsage(apiKey),
     audit: {
       sessionId: ent.sessionId,
       url: `${SITE}/api/play/audit/${ent.sessionId}`,
