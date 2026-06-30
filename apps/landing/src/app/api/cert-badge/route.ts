@@ -1,9 +1,12 @@
 /**
  * GET /api/cert-badge?url={baseUrl}
+ * GET /api/cert-badge?certId={cert_...}   (ADDITIVE — Sprint 2 Part B)
  *
- * Returns a shields.io-style SVG badge showing the live RFC-002 + RFC-004
- * conformance score for the target URL. Pull the score from
- * /api/certifier?url=... and render:
+ * Returns a shields.io-style SVG badge showing the RFC-002 + RFC-004
+ * conformance score for the target.
+ *
+ * DEFAULT (?url=, no ?certId): a LIVE score from /api/certifier?url=... — byte
+ * -identical to the original behaviour:
  *
  *   `RFC-002 · A · 100/100`   , score >= 90, green
  *   `RFC-002 · B · 78/100`    , score 75-89, lime
@@ -11,6 +14,15 @@
  *   `RFC-002 · D · 42/100`    , score 40-59, orange
  *   `RFC-002 · F · 25/100`    , score < 40, red
  *   `RFC-002 · error`         , fetch failed, gray
+ *
+ * NEW (?certId=cert_...): reads the STORED signed certificate and renders its
+ * status, so a revoked or expired cert is visibly reflected in READMEs (the
+ * "teeth" propagate to the badge, not just the cert JSON):
+ *
+ *   `cert · A · 92/100`       , valid
+ *   `cert · revoked`          , revoked, red
+ *   `cert · expired`          , past expiresAt, gray
+ *   `cert · not found`        , unknown id, gray
  *
  * Designed for embedding in READMEs of operators who want to show off
  * their conformance. The badge auto-refreshes (60s GitHub camo cache).
@@ -21,10 +33,12 @@
 import { buildSvg, type BadgeState, escapeXml } from "@/lib/badge";
 import { safeExternalUrl } from "@/lib/ssrf";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { getCertificate } from "@/lib/certificate";
 
 export const runtime = "edge";
 
 const SITE = "https://ar-agents.ar";
+const CERT_ID_RE = /^cert_[a-f0-9]{8,64}$/;
 
 function svgResponse(state: BadgeState, status = 200): Response {
   return new Response(buildSvg(state), {
@@ -58,6 +72,34 @@ export async function GET(req: Request) {
   }
 
   const { searchParams } = new URL(req.url);
+  const certId = (searchParams.get("certId") || "").trim();
+
+  // ADDITIVE: ?certId reads the STORED signed certificate (no live re-scan), so a
+  // revoked/expired cert is visibly reflected. Absent → original live-score path
+  // below runs unchanged (byte-identical to today).
+  if (certId) {
+    if (!CERT_ID_RE.test(certId)) {
+      return svgResponse({ label: "cert", message: "bad id", color: "#666666" }, 400);
+    }
+    const cert = await getCertificate(certId);
+    if (!cert) {
+      return svgResponse({ label: "cert", message: "not found", color: "#666666" }, 404);
+    }
+    if (cert.status === "revoked") {
+      return svgResponse({ label: "cert", message: "revoked", color: "#ef4444" });
+    }
+    if (cert.status === "expired") {
+      return svgResponse({ label: "cert", message: "expired", color: "#666666" });
+    }
+    const score = cert.certifierReport.score;
+    const rating = cert.certifierReport.rating;
+    return svgResponse({
+      label: "cert",
+      message: `${rating} · ${score}/100`,
+      color: colorForScore(score),
+    });
+  }
+
   const url = (searchParams.get("url") || "").trim();
   const sessionId = (searchParams.get("sessionId") || "").trim() || null;
 

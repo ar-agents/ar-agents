@@ -664,6 +664,166 @@ function cmdAttestation(args) {
   process.exit(0);
 }
 
+// ── `good-standing` (registry good-standing oracle answer) ───────────────
+// The artifact GET /api/registry/good-standing returns:
+//   { $schema, body, sig, publicKey, alg, keyId, verify }
+// Exactly the `attestation` {body,sig,publicKey} shape, so the Ed25519 check
+// is byte-identical: sig = Ed25519 over canonical(body), publicKey = STANDARD
+// base64 SPKI. The ar-agents signature is CONVENIENCE (it proves the registry
+// returned this body unmodified); the load-bearing trust is body.attestation,
+// the FORWARDED public-anchor pointers (no ar-agents key in that path). When
+// the deployment has no signing key the answer omits sig/publicKey - there is
+// nothing to verify offline, so this fails loudly rather than pass silently.
+function cmdGoodStanding(args) {
+  const file = args[0];
+  if (!file) {
+    console.error("usage: arg-verify good-standing <answer.json> [expectedPubKeyB64]");
+    process.exit(2);
+  }
+  const ans = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const expected = args[1];
+  if (expected && ans.publicKey !== expected) {
+    console.error(`${RED}✗${RST} embedded public key does NOT match the expected key`);
+    process.exit(1);
+  }
+  if (!ans.body || !ans.sig || !ans.publicKey) {
+    console.error(
+      `${RED}✗${RST} not a signed good-standing answer (missing body/sig/publicKey - the deployment may have no signing key; follow body.attestation pointers instead)`,
+    );
+    process.exit(1);
+  }
+  const pub = createPublicKey({
+    key: Buffer.from(ans.publicKey, "base64"),
+    format: "der",
+    type: "spki",
+  });
+  const ok = edVerify(
+    null,
+    Buffer.from(canonical(ans.body), "utf8"),
+    pub,
+    Buffer.from(ans.sig, "base64"),
+  );
+  if (!ok) {
+    console.error(`${RED}✗ INVALID${RST} - good-standing answer was altered or forged`);
+    process.exit(1);
+  }
+  const b = ans.body;
+  const r = b.record ?? {};
+  const g = b.goodStanding ?? {};
+  console.log(`${GREEN}✓ VALID${RST} ar-agents.registry.good-standing`);
+  console.log(`  query:      ${b.query?.by ?? "-"} = ${b.query?.value ?? "-"}`);
+  console.log(`  found:      ${b.found ?? "?"}`);
+  console.log(`  record:     ${r.name ?? "-"} (${r.id ?? "-"}) · ${r.jurisdiction ?? "-"}`);
+  console.log(`  operator:   ${r.operator ?? "-"}${r.operatorCuit ? ` · ${r.operatorCuit}` : ""}`);
+  console.log(
+    `  standing:   ${g.state ?? "-"} · score ${g.score ?? "?"} · rating ${g.rating ?? "?"}`,
+  );
+  console.log(`  issuedAt:   ${b.issuedAt ?? "-"}`);
+  console.log(
+    `  ${DIM}note: the ar-agents signature is convenience; the load-bearing trust is body.attestation - the target's OWN public anchor (no ar-agents key in that path). See CONFORMANCE.md.${RST}`,
+  );
+  if (b.attestation?.publicAnchorOts) {
+    console.log(
+      `  ${DIM}  publicAnchor: ${b.attestation.publicAnchor}  ·  raw .ots: ${b.attestation.publicAnchorOts}${RST}`,
+    );
+  }
+  process.exit(0);
+}
+
+// ── `certificate` (ar-agents signed/listed/revocable certificate) ────────
+// The artifact GET /api/certifier/cert/{certId} returns: a FLAT document - the
+// CertificateBody fields at top level PLUS the detached-signature fields
+// (signature, sig, publicKey, keyId, alg). The signature covers
+// canonical(CertificateBody), i.e. the served doc minus those five fields
+// (revocation included when present - a revoke RE-SIGNS the body so status and
+// sig always agree). We reconstruct that body the same way lib/certificate.ts
+// certificateSignedBody() does, then Ed25519-verify over canonical(body) with
+// the STANDARD-base64 SPKI publicKey - byte-identical to the `attestation`
+// verb. The ar-agents sig is CONVENIENCE (origin + integrity); the load-bearing
+// trust is the subject's own anchored attestation, forwarded in attestationRef.
+function certificateSignedBody(cert) {
+  const body = {
+    $schema: cert.$schema,
+    kind: cert.kind,
+    version: cert.version,
+    certId: cert.certId,
+    issuedAt: cert.issuedAt,
+    expiresAt: cert.expiresAt,
+    subject: cert.subject,
+    certifierReport: cert.certifierReport,
+    attestationRef: cert.attestationRef,
+    status: cert.status,
+  };
+  if (cert.revocation) body.revocation = cert.revocation;
+  return body;
+}
+
+function cmdCertificate(args) {
+  const file = args[0];
+  if (!file) {
+    console.error("usage: arg-verify certificate <cert.json> [expectedPubKeyB64]");
+    process.exit(2);
+  }
+  const cert = JSON.parse(readFileSync(resolve(file), "utf8"));
+  const expected = args[1];
+  if (expected && cert.publicKey !== expected) {
+    console.error(`${RED}✗${RST} embedded public key does NOT match the expected key`);
+    process.exit(1);
+  }
+  // `sig` is the alias kept for parity with the {body,sig,publicKey} shape;
+  // `signature` is its canonical name. Accept either.
+  const sig = cert.sig ?? cert.signature;
+  if (!cert.certId || !sig || !cert.publicKey || cert.kind !== "ar-agents.certificate") {
+    console.error(
+      `${RED}✗${RST} not an ar-agents.certificate (missing certId/sig/publicKey or wrong kind)`,
+    );
+    process.exit(1);
+  }
+  const pub = createPublicKey({
+    key: Buffer.from(cert.publicKey, "base64"),
+    format: "der",
+    type: "spki",
+  });
+  const ok = edVerify(
+    null,
+    Buffer.from(canonical(certificateSignedBody(cert)), "utf8"),
+    pub,
+    Buffer.from(sig, "base64"),
+  );
+  if (!ok) {
+    console.error(`${RED}✗ INVALID${RST} - certificate was altered or forged`);
+    process.exit(1);
+  }
+  const s = cert.subject ?? {};
+  const rep = cert.certifierReport ?? {};
+  console.log(`${GREEN}✓ VALID${RST} ar-agents.certificate`);
+  console.log(`  certId:     ${cert.certId}`);
+  console.log(`  subject:    ${s.baseUrl ?? "-"}${s.registryId ? ` (${s.registryId})` : ""}`);
+  console.log(`  operator:   ${s.operator ?? "-"} · ${s.jurisdiction ?? "-"}`);
+  console.log(`  report:     score ${rep.score ?? "?"} · rating ${rep.rating ?? "?"}`);
+  console.log(`  status:     ${cert.status ?? "?"}`);
+  console.log(`  issuedAt:   ${cert.issuedAt ?? "-"}`);
+  console.log(`  expiresAt:  ${cert.expiresAt ?? "-"}`);
+  if (cert.revocation) {
+    console.log(
+      `  revoked:    ${cert.revocation.at ?? "-"} by ${cert.revocation.by ?? "-"} - ${cert.revocation.reason ?? "-"}`,
+    );
+  }
+  // A signature can be valid over a body whose status reads "valid" while the
+  // clock says the cert has expired (expiry is recomputed at read, never
+  // re-signed). Surface that so a caller does not treat a verified-but-expired
+  // cert as live.
+  if (cert.status !== "revoked" && cert.expiresAt && Date.parse(cert.expiresAt) <= Date.now()) {
+    console.log(
+      `  ${DIM}note: signature is valid but expiresAt is in the past - this certificate has EXPIRED (status is recomputed at read, not re-signed).${RST}`,
+    );
+  }
+  console.log(
+    `  ${DIM}note: the ar-agents signature is convenience (origin + integrity); the load-bearing trust is the subject's own anchored attestation in attestationRef. See CONFORMANCE.md.${RST}`,
+  );
+  process.exit(0);
+}
+
 // Surface body.timestamp (RFC-006 6.1 OTS anchor-proof) defensively, without
 // requiring it: the trust-free floor is the Ed25519 check above; OTS is the
 // public-anchor upgrade. Read fields defensively (additive, may be absent).
@@ -1069,6 +1229,12 @@ switch (cmd) {
   case "attestation":
     cmdAttestation(rest);
     break;
+  case "good-standing":
+    cmdGoodStanding(rest);
+    break;
+  case "certificate":
+    cmdCertificate(rest);
+    break;
   case "chain":
     cmdChain(rest);
     break;
@@ -1092,6 +1258,8 @@ switch (cmd) {
         "  node arg-verify.mjs vectors [--vectors-dir DIR]      RFC-004/005/006 vectors",
         "  node arg-verify.mjs entry <entry.json> [--secret S] [--keys keys.json]",
         "  node arg-verify.mjs attestation <attestation.json> [expectedPubKeyB64]",
+        "  node arg-verify.mjs good-standing <answer.json> [expectedPubKeyB64]   registry oracle",
+        "  node arg-verify.mjs certificate <cert.json> [expectedPubKeyB64]       signed cert",
         "  node arg-verify.mjs chain <chain.json> --secret S    RFC-006 ledger",
         "  node arg-verify.mjs bundle <vultur-export-SLUG.json> [--secret S] [pubkeyB64]",
         "  node arg-verify.mjs project <chain.json> --proj-secret P [--secret S --verify]",
