@@ -162,6 +162,20 @@ export class CuitTakenError extends Error {
   }
 }
 
+/**
+ * Signals an attempt to move an entity OUT of the terminal `revoked` good-standing
+ * state. `revoked` is the kill-switch terminal: once killed, an entity stays
+ * killed. This is enforced at the storage seam (setGoodStanding) so NO write path
+ * — the lifecycle wrappers, the PATCH /api/registry admin override, the oracle
+ * re-certify — can silently re-activate a killed entity. Callers map it to 409.
+ */
+export class RevokedTerminalError extends Error {
+  constructor() {
+    super("revoked_terminal");
+    this.name = "RevokedTerminalError";
+  }
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Seed (NEVER deleted). The 5 live entries + the placeholder, ported verbatim
 // from the old hardcoded REGISTRY in registro/content.tsx. Every entry gets an
@@ -569,6 +583,16 @@ export async function setGoodStanding(
 ): Promise<RegistryRecord | null> {
   const current = await getRecord(id);
   if (!current) return null;
+  // TERMINAL kill-state guard (system-wide, AT THE STORAGE CHOKEPOINT). Once an
+  // entity is `revoked`, good-standing can ONLY stay revoked. Every good-standing
+  // write goes through here — the lifecycle wrappers, the PATCH /api/registry
+  // operator override, the oracle re-certify — so a killed entity cannot be
+  // silently re-activated by any path. Updating other fields (e.g. a re-certify's
+  // score) while STAYING revoked is allowed. Un-revoking is intentionally NOT a
+  // quiet flag flip; it would be a separate, explicitly-audited operation.
+  if (current.goodStanding.state === "revoked" && patch.state !== "revoked") {
+    throw new RevokedTerminalError();
+  }
   const next: RegistryRecord = {
     ...current,
     goodStanding: { ...current.goodStanding, ...patch },
