@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { VsOnChainContent } from "./content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "vs On-chain, ar-agents y $SAIRI son pistas complementarias",
   description:
     "Posicionamiento explícito frente a $SAIRI / WAGMI.law / Democracy Earth. No competimos: ar-agents es civil-comercial-OSS para que una sociedad-IA argentina opere bajo derecho positivo. Los experimentos on-chain son tokenizados, sin jurisdicción, sin CUIT, otra pista válida pero distinta.",

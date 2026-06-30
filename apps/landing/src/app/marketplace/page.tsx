@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Benchmark, what an Argentine agent stack answers",
   description:
     "Side-by-side: 12 real questions about an Argentine business operation, answered by @ar-agents/* tools vs. AfipSDK + ChatGPT + the official mercadopago SDK. The gap is the product.",

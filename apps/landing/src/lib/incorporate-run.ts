@@ -19,6 +19,7 @@ import {
   backend as auditBackend,
   isSessionIdValid,
 } from "./audit";
+import { createFormingStub, type ChecklistItem } from "./registry-store";
 import {
   envVarsFor,
   type Finding,
@@ -106,6 +107,19 @@ export type RunIncorporationResult =
   | { ok: true; status: 200; sessionId: string; body: Record<string, unknown> };
 
 /**
+ * Promote the prose checklist (string[]) into addressable ChecklistItem[] for the
+ * registry stub's formation state. The prose line is kept verbatim as `label` so
+ * the human UI is unchanged; every step starts `pending`. Pure.
+ */
+function checklistItems(prose: string[]): ChecklistItem[] {
+  return prose.map((label, i) => ({
+    id: `step-${i + 1}`,
+    label,
+    state: "pending" as const,
+  }));
+}
+
+/**
  * Run the incorporation pipeline for an already-parsed, already-authorized
  * input. `opts.approver` is the attestation the route built from the credential
  * + declared human; it is bound into the signed audit entry. `opts.tool` is the
@@ -154,6 +168,33 @@ export async function runIncorporation(
     { durable: true },
   );
 
+  // ── Registry stub at BIRTH (best-effort; NEVER blocks the constitution) ──────
+  // Mint a `forming` registry entity so every real incorporation feeds the
+  // registry's supply side. createFormingStub is best-effort by contract (it
+  // swallows its own errors and returns null on KV-down), but we ALSO guard here
+  // so nothing in this path can throw past the already-completed legal act.
+  let registryStub: { id: string; status: string; checklistUrl: string } | null = null;
+  try {
+    const stub = await createFormingStub(
+      {
+        denominacion: input.denominacion,
+        tipo: input.tipo,
+        representante: input.representante,
+      },
+      sessionId,
+      { checklist: checklistItems(s.checklist) },
+    );
+    if (stub) {
+      registryStub = {
+        id: stub.id,
+        status: stub.status,
+        checklistUrl: `https://ar-agents.ar/api/registry/good-standing?id=${stub.id}`,
+      };
+    }
+  } catch {
+    // swallow: the registry stub is an additive convenience, not part of the act
+  }
+
   const body = {
     ok: true,
     sociedad: {
@@ -180,6 +221,10 @@ export async function runIncorporation(
       verifyUrl: `https://ar-agents.ar/api/play/audit/${sessionId}?verify=1`,
       dashboardUrl: `https://ar-agents.ar/dashboard/${sessionId}`,
     },
+    // Additive: the registry stub minted at birth (the `forming` entity). Present
+    // only when the best-effort write succeeded; omitted on KV-down so the act
+    // still returns 200. NON-ATTESTING until it goes live.
+    ...(registryStub ? { registry: registryStub } : {}),
     rfc001: { version: "1.0", url: "https://ar-agents.ar/rfcs/001" },
     generatedAt: new Date().toISOString(),
   };

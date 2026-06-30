@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { AlMinistroContent } from "./content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Carta abierta al ministro · ar-agents",
   description:
     "Carta abierta al Ministro Federico Sturzenegger sobre la implementación técnica del régimen de sociedades-IA. Reference implementation MIT, 36 paquetes en npm, 235 herramientas, AAIF working-group propuesto. Listo para usar el día que la ley salga.",

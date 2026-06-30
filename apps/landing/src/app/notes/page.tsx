@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import Link from "next/link";
 
 /**
@@ -28,6 +29,7 @@ const NOTES: ReadonlyArray<NoteIndex> = [
 ];
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "/notes · long-form posts · ar-agents",
   description:
     "Hand-written narrative notes about ar-agents, shipping recaps, design rationale, retrospectives. Distinct from /changelog (auto-pulled from package CHANGELOGs).",

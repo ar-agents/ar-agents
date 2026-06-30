@@ -323,20 +323,17 @@ export function CloudContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Defensividad contra captura.</strong> Si una
-                consultora grande (Globant, Accenture, BGH) entra al
-                espacio, puede ofrecer servicios sobre el código abierto,
-                pero no puede cerrarlo. El moat es la velocidad de evolución
-                del maintainer y el dashboard cerrado, no la licencia.
+                <strong>Código abierto, servicios encima.</strong> Cualquiera
+                puede ofrecer servicios sobre el código abierto; el código
+                sigue siendo libre. Lo que se paga es el servicio gestionado y
+                el soporte, no la licencia.
               </>
             }
             en={
               <>
-                <strong>Defensibility against capture.</strong> If a large
-                consultancy (Globant, Accenture, BGH) enters, it can offer
-                services over the open code but can't close it. The moat is
-                the maintainer's evolution speed and the closed dashboard,
-                not the license.
+                <strong>Open code, services on top.</strong> Anyone can offer
+                services over the open code; the code stays free. What you pay
+                for is the managed service and support, not the license.
               </>
             }
           />

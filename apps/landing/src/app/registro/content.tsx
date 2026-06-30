@@ -53,6 +53,8 @@ const STATUS_COLOR: Record<RegistryEntry["status"], string> = {
   live: "#22c55e",
   draft: "#737373",
   deprecated: "#ef4444",
+  forming: "#3b82f6",
+  stale: "#a3a3a3",
 };
 
 const STATUS_LABEL: Record<
@@ -62,6 +64,8 @@ const STATUS_LABEL: Record<
   live: { es: "live", en: "live" },
   draft: { es: "draft", en: "draft" },
   deprecated: { es: "deprecated", en: "deprecated" },
+  forming: { es: "en formación", en: "forming" },
+  stale: { es: "inactivo", en: "stale" },
 };
 
 const GOOD_STANDING_COLOR: Record<GoodStandingState, string> = {

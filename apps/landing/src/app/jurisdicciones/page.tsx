@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { JurisdiccionesContent } from "./content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Jurisdicciones comparadas · ar-agents",
   description:
     "Comparativa honesta: cómo Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify resuelven identidad, firma, registro y auditoría de entidades algorítmicas, y qué primitivas argentinas ar-agents propone como análogo. Para legisladores, periodistas, asesores.",

@@ -28,6 +28,7 @@
 
 import { preflight, CORS_HEADERS } from "@/lib/cors";
 import { clientIp, rateLimit, kvRateLimit } from "@/lib/ratelimit";
+import { recordShadow } from "@/lib/shadow";
 import { safeExternalUrl } from "@/lib/ssrf";
 import { constantTimeEqual } from "@/lib/incorporate-auth";
 import { verifyCapabilityToken } from "@/lib/capability-token";
@@ -53,6 +54,24 @@ const OWNER_KIND = "registry-owner";
  * so the caveat travels with the offline-verifiable artifact (no overclaim). */
 const GOOD_STANDING_BASIS =
   "automated conformance of self-declared endpoints; not a solvency, identity, or fraud judgement";
+
+/**
+ * NON-ATTESTING basis for a registry entry that exists but is NOT good-standing:
+ *  - `forming`: a stub minted at the entity's birth; the entity is not yet
+ *    operative, so the oracle must NOT present it as good-standing.
+ *  - `stale`: a `forming` entry the garbage collector flipped after a long stall.
+ * The oracle still answers found:true (the entity IS in the registry), but the
+ * goodStanding block is explicitly non-attesting and its `state` is NEVER "active".
+ */
+const FORMING_BASIS =
+  "registry stub created at incorporation; entity in formation, not yet operative — NOT a good-standing attestation";
+const STALE_BASIS =
+  "stalled formation (no formation progress past the staleness threshold); not operative — NOT a good-standing attestation";
+
+/** Whether a record's registry status is non-attesting (in/abandoned formation). */
+function isNonAttestingStatus(status: string): boolean {
+  return status === "forming" || status === "stale";
+}
 
 /** Don't re-run the certifier if it ran within this window (coalesce ?fresh=1). */
 const FRESH_COALESCE_MS = 5 * 60 * 1000;
@@ -252,6 +271,13 @@ interface AnswerBody {
     rating: Rating | null;
     /** The honest scope of this verdict — travels with the signed artifact. */
     basis: string;
+    /**
+     * ADDITIVE (forming/stale): false when the entry exists but is NOT a
+     * good-standing attestation (in formation / stalled). Present only on
+     * non-attesting answers, so existing answers' canonical bytes are unchanged.
+     * A counterparty MUST treat `attesting:false` as "not bankable".
+     */
+    attesting?: boolean;
     reason?: string;
   } | null;
   /**
@@ -396,18 +422,35 @@ export async function GET(req: Request): Promise<Response> {
     fresh,
   };
 
+  const ip = clientIp(req);
+
   // Baseline read rate-limit (cheap, in-memory).
-  if (!rateLimit("good-standing", clientIp(req), 60, 60_000)) {
+  if (!rateLimit("good-standing", ip, 60, 60_000)) {
+    // Shadow metric (INTERNAL, best-effort, no PII): a throttled hit is still
+    // latent demand. recordShadow only bumps private aggregate counters — it adds
+    // NOTHING to this public response.
+    void recordShadow({ ip, reqType: "rate_limited", found: false });
     return jsonWithCors({ error: "rate_limited" }, { status: 429, cacheControl: "no-store" });
   }
 
   const resolved = await resolveRecord(q);
   if ("error" in resolved) {
+    // Distinguish a missing query from a malformed one for the latent-demand
+    // breakdown (still no PII; only the request TYPE is counted).
+    const reqType = resolved.error.startsWith("missing query") ? "missing_query" : "malformed";
+    void recordShadow({ ip, reqType, found: false });
     return jsonWithCors({ error: resolved.error }, { status: 400, cacheControl: "no-store" });
   }
 
   let { rec } = resolved;
   const { by, value } = resolved;
+
+  // Shadow metric: a well-formed query for an entity we do NOT yet list is the
+  // PUREST latent-demand signal (a counterparty wanted to check an entity that
+  // isn't here). Counted internally; the public answer is unchanged (found:false).
+  if (!rec) {
+    void recordShadow({ ip, reqType: "not_found", found: false });
+  }
 
   // ── ?fresh=1 handling (FIX 5) ──────────────────────────────────────────────
   // ?fresh=1 fans out the ~11-fetch certifier (amplifier) and, in the old code,
@@ -421,7 +464,6 @@ export async function GET(req: Request): Promise<Response> {
   //     anonymous ?fresh=1 may COMPUTE + RETURN a fresh verdict but never writes.
   let freshComputed: { score: number; rating: Rating; state: string } | null = null;
   if (fresh && rec && rec.publicUrl && rec.publicUrl !== "-") {
-    const ip = clientIp(req);
     if (!rateLimit("good-standing-fresh", ip, 6, 60_000)) {
       return jsonWithCors(
         { error: "rate_limited", note: "?fresh=1 is limited; the stored answer is cacheable" },
@@ -486,6 +528,21 @@ export async function GET(req: Request): Promise<Response> {
     ? new Date().toISOString()
     : rec?.goodStanding.lastCheckedAt ?? null;
 
+  // ── NON-ATTESTING guard (forming/stale) ─────────────────────────────────────
+  // A `forming`/`stale` registry entry IS found, but it is NOT good-standing: the
+  // entity is in (or abandoned) formation, not operative. The signed answer must
+  // (1) carry a non-attesting basis, (2) set attesting:false, and (3) NEVER report
+  // state "active" (defence-in-depth — a forming stub's stored state is already
+  // "unverified", but we force it so no recompute can ever leak an "active").
+  const nonAttesting = Boolean(rec) && isNonAttestingStatus(rec!.status);
+  const gsStateFinal =
+    nonAttesting && gsState === "active" ? "unverified" : (gsState as string | null);
+  const gsBasis = nonAttesting
+    ? rec!.status === "stale"
+      ? STALE_BASIS
+      : FORMING_BASIS
+    : GOOD_STANDING_BASIS;
+
   const body: AnswerBody = {
     kind: "ar-agents.registry.good-standing",
     version: 1,
@@ -495,11 +552,15 @@ export async function GET(req: Request): Promise<Response> {
     record: rec ? buildRecordSummary(rec) : null,
     goodStanding: rec
       ? {
-          state: gsState as string,
+          state: gsStateFinal as string,
           asOf: gsAsOf,
           score: gsScore,
           rating: gsRating as Rating | null,
-          basis: GOOD_STANDING_BASIS,
+          basis: gsBasis,
+          // Additive: only emitted for the non-attesting case, so attesting
+          // answers' canonical bytes (and their already-issued signatures) are
+          // unchanged. Key-sorted canonical() places it deterministically.
+          ...(nonAttesting ? { attesting: false } : {}),
           ...(rec.goodStanding.reason ? { reason: rec.goodStanding.reason } : {}),
         }
       : null,
