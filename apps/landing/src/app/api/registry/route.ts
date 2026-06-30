@@ -37,6 +37,7 @@ import {
   ID_RE,
   UrlTakenError,
   CuitTakenError,
+  RevokedTerminalError,
   type RegistryRecord,
   type RegistryType,
   type RegistryStatus,
@@ -393,10 +394,23 @@ export async function PATCH(req: Request): Promise<Response> {
     }
     const target = await getRecord(id);
     if (!target) return jsonCors({ error: "not_found" }, { status: 404 });
-    const updated = await setGoodStanding(id, {
-      state: goodStanding.state,
-      ...(goodStanding.reason ? { reason: goodStanding.reason } : {}),
-    });
+    let updated: RegistryRecord | null;
+    try {
+      updated = await setGoodStanding(id, {
+        state: goodStanding.state,
+        ...(goodStanding.reason ? { reason: goodStanding.reason } : {}),
+      });
+    } catch (e) {
+      // The entity is `revoked` (terminal kill-state) and this override tried to
+      // move it elsewhere. Refuse loudly — a killed entity is not quietly restored.
+      if (e instanceof RevokedTerminalError) {
+        return jsonCors(
+          { error: "revoked_terminal", note: "this entity is revoked; the kill-state is terminal and cannot be reverted via override" },
+          { status: 409 },
+        );
+      }
+      throw e;
+    }
     if (!updated) return jsonCors({ error: "unwritable" }, { status: 503 });
     return jsonCors(
       { ok: true, id, by: "admin", record: updated },
