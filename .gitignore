@@ -49,6 +49,8 @@ coverage/
 # Personal / not part of the public project
 apps/portfolio/
 outreach/
+# INTERNAL strategy/ops — must NEVER be committed to this PUBLIC repo (HARD RULE).
+internal/
 
 # App-level pnpm lock files (monorepo uses root pnpm-lock.yaml only)
 apps/*/pnpm-lock.yaml
