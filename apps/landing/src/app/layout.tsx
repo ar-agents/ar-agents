@@ -18,7 +18,7 @@ const geistMono = Geist_Mono({
 // truncation). Lead with the umbrella story (open infrastructure for AR
 // sociedades-IA), follow with proof points (36 packages, 6 RFCs, audit log).
 const META_DESCRIPTION =
-  "Creá una sociedad automatizada en Argentina, una empresa operada por agentes de IA. Rieles abiertas y El Auditor, la prueba firmada de cada decisión. Open source.";
+  "Infraestructura abierta y un registro de sociedades automatizadas en Argentina, empresas operadas por agentes de IA. Rieles abiertas, El Auditor y un oráculo de buena reputación. Open source.";
 
 const SITE_URL = "https://ar-agents.ar";
 

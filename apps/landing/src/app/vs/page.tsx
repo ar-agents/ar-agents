@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "vs · cómo se compara con las alternativas",
   description:
     "Cómo se compara @ar-agents/* con las alternativas: AfipSDK, integración handrolled, consultoría Globant, MercadoPago SDK oficial, Mi Argentina sin librería, soluciones cerradas. Tabla honesta, qué cubre cada uno y qué no.",

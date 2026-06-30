@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import Link from "next/link";
 import { JsonLd } from "../json-ld";
 
@@ -20,6 +21,7 @@ export const runtime = "nodejs";
 export const revalidate = 3600;
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "/highlights · what ar-agents is, in 90 seconds · ar-agents",
   description:
     "What ar-agents is, in 90 seconds: open-source infrastructure to create and run an autonomous company (sociedad automatizada) in Argentina. 6 RFCs, 30 cookbook recipes, public certifier scoring 100/100. For anyone arriving cold, investor, recruiter, journalist, ally.",

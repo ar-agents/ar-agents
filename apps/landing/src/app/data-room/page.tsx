@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description:
     "Every number a journalist, investor, or regulator might cite, pulled live from npm + GitHub + the filesystem at build time. Each number links to the source so the recipient can re-verify. Refresh: 6 hours.",
   alternates: { canonical: "https://ar-agents.ar/data-room" },
-  robots: { index: true, follow: true },
+  robots: { index: false, follow: false, nocache: true },
 };
 
 // Server-rendered Node.js runtime; refetch every 6 hours so the numbers
@@ -522,8 +522,8 @@ export default async function DataRoomPage() {
         <a href="/architecture/audit-log" style={{ color: "var(--accent)" }}>
           /architecture/audit-log
         </a>{" "}
-        deep-dive is the moat (the forensic primitive Wyoming / MIDAO
-        haven&apos;t shipped). For a 20-min intro call:{" "}
+        deep-dive covers the forensic audit-log primitive. For a 20-min
+        intro call:{" "}
         <a href="mailto:naza@naza.ar" style={{ color: "var(--accent)" }}>
           naza@naza.ar
         </a>:{" "}

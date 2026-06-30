@@ -1,8 +1,10 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import Link from "next/link";
 import { ShareClient } from "./share-client";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "/share · prepared social + email templates · ar-agents",
   description:
     "Copy-paste-ready social media drafts, email templates, and outreach copy for journalists, legislators, and regulators interested in ar-agents. All assets are CC-BY-4.0, use freely, attribute the spec.",

@@ -32,7 +32,18 @@ export type RegistryType =
   | "productive-sociedad-ia"
   | "library-only";
 
-export type RegistryStatus = "live" | "draft" | "deprecated";
+export type RegistryStatus =
+  | "live"
+  | "draft"
+  | "deprecated"
+  // ── NEW (additive) — the formation lifecycle the BIRTH wedge feeds ──
+  // A "forming" entry was created by an incorporation but is NOT yet operative:
+  // it is the registry stub minted at birth (the supply side of the loop). It is
+  // NEVER good-standing/attesting until it actually goes live. The garbage
+  // collector flips a long-stalled "forming" entry to "stale" (reversible). Both
+  // are explicitly non-attesting in the oracle, so the corpus stays high-signal.
+  | "forming"
+  | "stale";
 
 export type GoodStandingState =
   | "active"
@@ -51,6 +62,34 @@ export interface GoodStanding {
   lastRating: Rating | null;
   /** Optional human-readable reason (e.g. why suspended/revoked). */
   reason?: string;
+}
+
+/** A formation-checklist step, addressable so a founder/agent can advance it. */
+export type ChecklistState = "pending" | "in_progress" | "done" | "blocked";
+export interface ChecklistItem {
+  /** Stable slug id for the step (e.g. "constituir", "afip-alta"). */
+  id: string;
+  /** Human label (the prose generateChecklist() string is reused here). */
+  label: string;
+  state: ChecklistState;
+  /** Optional free-form pointer to proof the step was done (url, hash, note). */
+  evidence?: string;
+  /** ISO of the last state change, if any. */
+  advancedAt?: string;
+}
+
+/**
+ * Formation sub-record carried by a `forming`/`stale` entry. ALL fields optional
+ * so a record can carry a partial formation state, and so the seed array (which
+ * has no formation block) casts in unchanged. `lastProgressAt` is the signal the
+ * garbage collector reads to decide staleness.
+ */
+export interface FormationState {
+  checklist?: ChecklistItem[];
+  /** sha256 of the Formation Pack manifest, when one was generated. */
+  packHash?: string;
+  /** ISO of the last checklist advance or audit-log activity for this entry. */
+  lastProgressAt?: string;
 }
 
 /**
@@ -87,7 +126,15 @@ export interface RegistryRecord {
   ownerTokenHash?: string;
   createdAt: string;
   updatedAt: string;
-  source: "seed" | "self-listed";
+  /**
+   * "formed" marks a stub minted by an incorporation (the BIRTH wedge). A
+   * self-declared CUIT on a "formed" entry is NEVER authoritative — same posture
+   * as "self-listed" (see hasAuthoritativeCuit). Additive: pre-existing call
+   * sites that compare against "seed"/"self-listed" are unaffected.
+   */
+  source: "seed" | "self-listed" | "formed";
+  /** Present only on `forming`/`stale` entries (the formation lifecycle). Optional → seed casts unchanged. */
+  formation?: FormationState;
 }
 
 export const ID_RE = /^[a-z0-9][a-z0-9-]{1,62}$/;
@@ -530,9 +577,176 @@ export async function setGoodStanding(
   return upsertRecord(next);
 }
 
+// ─────────────────────────────────────────────────────────────────────────────
+// Formation stub (the BIRTH wedge → the registry's supply side)
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * Slugify a denominacion into a registry id. Byte-identical to incorporate.ts's
+ * slugFor (lowercase, collapse non-alnum to '-', trim dashes, cap 40, fallback).
+ * INLINED here rather than imported so registry-store stays edge-safe and free of
+ * the zod dependency incorporate.ts pulls in (this module is loaded by the EDGE
+ * good-standing oracle route). The two MUST stay in sync; both are pure.
+ */
+function slugForDenominacion(s: string): string {
+  return (
+    String(s ?? "")
+      .toLowerCase()
+      .replace(/[^a-z0-9]+/g, "-")
+      .replace(/(^-+|-+$)/g, "")
+      .slice(0, 40) || "sociedad-ia"
+  );
+}
+
+/** The fields createFormingStub needs — a structural subset of IncorporateInput. */
+export interface FormingStubInput {
+  denominacion: string;
+  tipo: string;
+  /** The art.102 administrator's CUIT, if declared. SELF-DECLARED → never authoritative. */
+  representante?: { nombre?: string; cuit?: string };
+  publicUrl?: string;
+}
+
+/** The slug `createFormingStub` would write for this denominacion (without persisting). */
+export function formingStubId(denominacion: string): string {
+  return slugForDenominacion(denominacion);
+}
+
+/**
+ * Pick a free id for a new forming stub: the base slug, else `${base}-2`, `-3`, …
+ * (deduping against existing entries). Bounded so a denominacion collision storm
+ * can't loop unboundedly. Seed-safe: listRecords() never throws.
+ */
+async function dedupedFormingId(base: string): Promise<string> {
+  const existing = new Set((await listRecords()).map((r) => r.id));
+  if (!existing.has(base)) return base;
+  for (let n = 2; n <= 1000; n++) {
+    // Keep within the ID_RE length bound (<=63) by trimming the base.
+    const suffix = `-${n}`;
+    const id = `${base.slice(0, 62 - suffix.length)}${suffix}`;
+    if (!existing.has(id)) return id;
+  }
+  // Pathological collision: fall back to a random, still-valid id.
+  return `${base.slice(0, 50)}-${crypto.randomUUID().slice(0, 8)}`;
+}
+
+/**
+ * Create the REGISTRY STUB minted at an entity's BIRTH. This is the supply side
+ * of the one loop: every real incorporation becomes a `forming` registry entity.
+ *
+ * Writes status:"forming", goodStanding.state:"unverified", source:"formed",
+ * id = deduped slug(denominacion), keyed (continuity) by sessionId. A `forming`
+ * entry is explicitly NON-ATTESTING in the oracle — it is NOT good-standing until
+ * it goes live. The `checklist` becomes the addressable formation state.
+ *
+ * BEST-EFFORT by contract: NEVER throws. On KV-down it falls back to the same
+ * in-memory store the rest of this module uses; on any error it returns null so
+ * the caller (runIncorporation) is never blocked from completing the legal act.
+ *
+ * Idempotent per sessionId: if a stub already exists for this sessionId we return
+ * it unchanged (a retried/idempotent incorporation does not mint a second entity
+ * nor reset its formation progress).
+ */
+export async function createFormingStub(
+  input: FormingStubInput,
+  sessionId: string,
+  opts?: { checklist?: ChecklistItem[]; packHash?: string; now?: string },
+): Promise<RegistryRecord | null> {
+  try {
+    const now = opts?.now ?? new Date().toISOString();
+
+    // Continuity: if this sessionId already minted a stub, return it (idempotent).
+    const existingId = await formingStubIdForSession(sessionId);
+    if (existingId) {
+      const prior = await getRecord(existingId);
+      if (prior) return prior;
+    }
+
+    const base = slugForDenominacion(input.denominacion);
+    const id = await dedupedFormingId(base);
+
+    const operatorCuit = input.representante?.cuit?.trim() || undefined;
+    const rec: RegistryRecord = {
+      id,
+      name: input.denominacion,
+      type: "productive-sociedad-ia",
+      jurisdiction: "AR",
+      operator: input.representante?.nombre?.trim() || "-",
+      // SELF-DECLARED at birth → NOT verified. hasAuthoritativeCuit() returns
+      // false for source:"formed", so the oracle never presents it as authoritative.
+      ...(operatorCuit ? { operatorCuit } : {}),
+      publicUrl: input.publicUrl?.trim() || "-",
+      rfcConformance: [],
+      disclosure: {
+        es: "Sociedad en formación. Stub de registro creado en la constitución; todavía no operativa. No está en buen estado (good standing) hasta activarse.",
+        en: "Company in formation. Registry stub created at incorporation; not yet operative. Not in good standing until it goes live.",
+      },
+      status: "forming",
+      listedSince: now.slice(0, 10),
+      goodStanding: {
+        state: "unverified",
+        lastCheckedAt: null,
+        lastScore: null,
+        lastRating: null,
+      },
+      createdAt: now,
+      updatedAt: now,
+      source: "formed",
+      formation: {
+        ...(opts?.checklist ? { checklist: opts.checklist } : {}),
+        ...(opts?.packHash ? { packHash: opts.packHash } : {}),
+        lastProgressAt: now,
+      },
+    };
+
+    // Bind sessionId → id for continuity/idempotency BEFORE the entry write, so a
+    // retry resolves the same stub. Best-effort (errors swallowed below).
+    await bindSessionToStub(sessionId, id);
+
+    // upsertRecord is guarded only for source!=="seed" NEW ids on self-list; a
+    // "formed" source has publicUrl "-" (no origin) so neither the url-claim nor
+    // the cuit-dedup guard fires (a forming stub's self-declared cuit is not an
+    // authoritative claim, and "-" has no origin). Returns null only at capacity.
+    return await upsertRecord(rec);
+  } catch {
+    return null; // best-effort: never block the constitution
+  }
+}
+
+const KEY_STUB_BY_SESSION = (sessionId: string) => `registry:formed-by-session:${sessionId}`;
+const memStubBySession = new Map<string, string>();
+
+/** Resolve the stub id previously minted for a sessionId, if any. Seed-safe. */
+export async function formingStubIdForSession(sessionId: string): Promise<string | null> {
+  if (!sessionId) return null;
+  if (isKvWired()) {
+    try {
+      const id = await kv.get<string>(KEY_STUB_BY_SESSION(sessionId));
+      return id ?? null;
+    } catch {
+      return null;
+    }
+  }
+  return memStubBySession.get(sessionId) ?? null;
+}
+
+async function bindSessionToStub(sessionId: string, id: string): Promise<void> {
+  if (!sessionId) return;
+  if (isKvWired()) {
+    try {
+      await kv.set(KEY_STUB_BY_SESSION(sessionId), id);
+    } catch {
+      // best-effort
+    }
+  } else {
+    memStubBySession.set(sessionId, id);
+  }
+}
+
 /** Test-only: clear the in-memory fallback stores between cases. */
 export function __resetMemoryForTests(): void {
   memEntries.clear();
   memIds.clear();
   memByUrl.clear();
+  memStubBySession.clear();
 }

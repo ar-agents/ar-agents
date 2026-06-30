@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Press kit · @ar-agents",
   description:
     "Material listo para prensa sobre @ar-agents/*, la infraestructura para crear y registrar sociedades automatizadas en Argentina. One-pager, datos verificables, links a código, RFC, threat model y contacto del autor.",

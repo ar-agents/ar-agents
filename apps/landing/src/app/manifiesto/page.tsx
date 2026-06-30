@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { ManifiestoContent } from "./content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Manifiesto · ar-agents",
   description:
     "La infraestructura abierta para crear y registrar una sociedad automatizada en Argentina, operada por agentes de IA. Manifiesto del proyecto.",

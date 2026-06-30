@@ -1,4 +1,5 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import Link from "next/link";
 
 /**
@@ -264,6 +265,7 @@ const KIND_LABEL: Record<Event["kind"], string> = {
 };
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "/timeline · chronology of ar-agents, from Sturzenegger announcement onwards · ar-agents",
   description:
     "Visual timeline of every event in the ar-agents story so far: the Sturzenegger sociedad-IA announcement (28-abr-2026), the initial launch (05-may), the RFCs (001-004), the shipping rounds, the certifier reaching 100/100. Helps any reader arriving mid-story get oriented in one scroll.",

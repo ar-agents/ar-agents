@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../../noindex";
 import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../../doc-shell";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Case study · Astro (astro.ar)",
   description:
     "Astro is an Argentine AI products company running its WhatsApp / clipper / chat surfaces on @ar-agents/* end-to-end. The reference customer for the toolkit, written by the maintainer.",

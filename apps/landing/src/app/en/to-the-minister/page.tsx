@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../../noindex";
 import { AlMinistroContent } from "../../al-ministro/content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Open letter to the Minister · ar-agents",
   description:
     "Open letter to Minister Federico Sturzenegger on the technical implementation of the sociedades-IA regime. MIT reference implementation, 36 packages on npm, 235 tools, AAIF working group proposed. Ready to use the day the law passes.",
