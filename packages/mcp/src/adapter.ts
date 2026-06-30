@@ -16,6 +16,19 @@ export interface McpTool {
   name: string;
   description: string;
   inputSchema: object; // JSON Schema
+  /**
+   * The tool's `sideEffects` classification, when the source AI-SDK tool object
+   * carries one (a string like "moves money" / "irreversible" / "creates
+   * resource" / "network read"). Threaded through so the art. 102 gate can pass
+   * it into `@ar-agents/core` `classifyTool` — restoring parity with the local
+   * `enforceRiskPolicy` path, where sideEffects is a POSITIVE risk signal that
+   * wins over a read-ish name. `undefined` when the tool ships none.
+   *
+   * NOTE: MCP's wire protocol has no `sideEffects` field; the MCP SDK strips
+   * unknown keys from ListTools responses, so this never leaks to the host. It
+   * exists purely for server-side classification.
+   */
+  sideEffects?: string | undefined;
 }
 
 export interface McpAdapter {
@@ -44,8 +57,14 @@ export function adaptToolSetToMcp(toolSet: ToolSet): McpAdapter {
       "inputSchema" in tool && tool.inputSchema
         ? (z.toJSONSchema(tool.inputSchema as z.ZodType) as object)
         : { type: "object", properties: {}, additionalProperties: false };
+    // Carry the source tool's `sideEffects` (if it ships one) so the art. 102
+    // gate can use it as a POSITIVE risk signal — parity with enforceRiskPolicy.
+    const sideEffects =
+      "sideEffects" in tool && typeof tool.sideEffects === "string"
+        ? tool.sideEffects
+        : undefined;
 
-    tools.push({ name, description, inputSchema });
+    tools.push({ name, description, inputSchema, sideEffects });
 
     const exec = "execute" in tool ? (tool.execute as (args: unknown) => Promise<unknown>) : null;
     if (!exec) {

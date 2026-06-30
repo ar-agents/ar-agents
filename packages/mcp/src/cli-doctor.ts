@@ -1,14 +1,34 @@
 /**
  * `ar-agents-mcp doctor` — diagnoses the MCP host bundle.
  *
- * The bundle exposes any of the 7 underlying packages over MCP, deciding
+ * The bundle exposes any of the underlying packages over MCP, deciding
  * which to enable based on env vars. The doctor's job is to make that
  * decision visible: which packages are wired, which tools each one
- * contributes, which env vars are missing for the rest.
+ * contributes, which env vars are missing for the rest — AND, in the
+ * GOVERNANCE section, the art. 102 gate's exact blast radius: every exposed
+ * tool, its resolved risk level, and whether it is GATED under the current
+ * config. So an operator sees what default-ON refuses BEFORE/after upgrading.
  *
  * Treat this as the canonical "is my MCP host configured for AR ops"
  * checklist. Useful in Claude Desktop / Cursor / Continue configs.
  */
+
+import { classifyTool, levelRequiresApproval } from "@ar-agents/core";
+import { combineToolSets, type McpTool } from "./adapter";
+import { describeGovernance, resolveGovernance } from "./governance";
+import { buildBankingTools } from "./registries/banking";
+import { buildBoletinOficialTools } from "./registries/boletin-oficial";
+import { buildFacturacionTools } from "./registries/facturacion";
+import { buildFirmaDigitalTools } from "./registries/firma-digital";
+import { buildGdeTadTools } from "./registries/gde-tad";
+import { buildIdentityTools } from "./registries/identity";
+import { buildIdentityAttestTools } from "./registries/identity-attest";
+import { buildIgjTools } from "./registries/igj";
+import { buildMercadoLibreTools } from "./registries/mercadolibre";
+import { buildMercadoPagoTools } from "./registries/mercadopago";
+import { buildMiArgentinaTools } from "./registries/mi-argentina";
+import { buildShippingTools } from "./registries/shipping";
+import { buildWhatsAppTools } from "./registries/whatsapp";
 
 const C = {
   reset: "\x1b[0m",
@@ -76,6 +96,132 @@ function fmtSub(s: SubpackageState): string[] {
   }
   if (s.status === "disabled") {
     lines.push(c("dim", `    requires: ${s.required.join(", ")}`));
+  }
+  return lines;
+}
+
+/**
+ * Build the exact tool surface the real server registers (same registries, same
+ * order as {@link createServer}). Mirrors server.ts so the doctor's GOVERNANCE
+ * section reflects what would actually be exposed under the current env.
+ */
+function buildExposedTools(): McpTool[] {
+  return combineToolSets([
+    buildIdentityTools(),
+    buildMiArgentinaTools(),
+    buildMercadoPagoTools(),
+    buildMercadoLibreTools(),
+    buildWhatsAppTools(),
+    buildIdentityAttestTools(),
+    buildBankingTools(),
+    buildFacturacionTools(),
+    buildShippingTools(),
+    buildBoletinOficialTools(),
+    buildIgjTools(),
+    buildFirmaDigitalTools(),
+    buildGdeTadTools(),
+  ]).tools;
+}
+
+const LEVEL_COLOR: Record<string, keyof typeof C> = {
+  read: "green",
+  create: "cyan",
+  money: "red",
+  fiscal: "red",
+  legal: "red",
+  irreversible: "red",
+  unknown: "yellow",
+};
+
+/**
+ * GOVERNANCE section: the art. 102 gate's blast radius under the current config.
+ * Lists every exposed tool with its resolved risk level and whether it is GATED,
+ * then the effective enforce / approve-hook / halt state. The classification is
+ * the SAME path the running server uses (name + description + sideEffects ->
+ * @ar-agents/core classifyTool), so what you read here is what the gate does.
+ */
+function fmtGovernance(): string[] {
+  const lines: string[] = [];
+  const gov = resolveGovernance(); // reads env: enforce / halt
+  lines.push(c("bold", "Governance (art. 102 gate)"));
+  lines.push(c("dim", `  ${describeGovernance(gov)}`));
+
+  // Building the surface can throw (e.g. a tool-name collision when two
+  // registries both expose `get_order`). Degrade to a clear note rather than
+  // crashing the whole doctor.
+  let exposed: McpTool[];
+  try {
+    exposed = buildExposedTools();
+  } catch (err) {
+    const why = err instanceof Error ? err.message : String(err);
+    lines.push(c("red", `  could not enumerate tools: ${why}`));
+    lines.push("");
+    return lines;
+  }
+
+  const tools = exposed
+    .map((t) => {
+      const level = classifyTool({
+        name: t.name,
+        description: t.description,
+        sideEffects: t.sideEffects,
+      });
+      return { name: t.name, level, gated: levelRequiresApproval(level) };
+    })
+    .sort(
+      (a, b) =>
+        Number(b.gated) - Number(a.gated) || a.name.localeCompare(b.name),
+    );
+
+  const gatedCount = tools.filter((t) => t.gated).length;
+  // What the gate DOES to a gated tool right now, given enforce/halt/hook.
+  const haltOn = gov.isHalted != null;
+  const fate = haltOn
+    ? "ALL tools refuse (society_suspended)"
+    : !gov.enforce
+      ? "gate OFF — gated tools run ungated (passthrough)"
+      : gov.approve
+        ? "gated tools defer to your approve hook"
+        : "gated tools fail-closed DENY (no approve hook)";
+  lines.push(
+    `  ${c("magenta", String(gatedCount))} of ${c("magenta", String(tools.length))} exposed tools are GATED → ${c("bold", fate)}`,
+  );
+  lines.push("");
+
+  for (const t of tools) {
+    const col = LEVEL_COLOR[t.level] ?? "yellow";
+    // Pad the PLAIN label first, then colorize, so columns align with color on.
+    const markLabel = t.gated
+      ? haltOn
+        ? "HALTED"
+        : !gov.enforce
+          ? "ungated"
+          : "GATED"
+      : "allowed";
+    const markCol: keyof typeof C = t.gated
+      ? haltOn
+        ? "red"
+        : !gov.enforce
+          ? "dim"
+          : "red"
+      : "green";
+    const mark = c(markCol, markLabel.padEnd(7));
+    lines.push(`  ${mark} ${c(col, t.level.padEnd(12))} ${t.name}`);
+  }
+  lines.push("");
+  if (gatedCount > 0 && gov.enforce && !gov.approve && !haltOn) {
+    lines.push(
+      c(
+        "yellow",
+        "  NOTE: default-ON fail-closed. ANY tool whose name is not a recognized " +
+          "read verb classifies as `unknown` and is GATED — this currently includes " +
+          "some registry/Boletín/firma/AFIP-catalog READ tools (e.g. igj_get_entity, " +
+          "bo_search, firma_inspect_cert, obtener_alicuotas_iva). To let them run: wire " +
+          "an approve hook via createServer({ governance: { approve } }), or set " +
+          "AR_AGENTS_MCP_ENFORCE=off (ungated — NOT recommended for money/fiscal/legal acts).",
+      ),
+    );
+    lines.push("");
   }
   return lines;
 }
@@ -178,6 +324,9 @@ export async function runDoctor(): Promise<number> {
   lines.push(`  ${c("green", `enabled: ${enabled}`)} · ${c("yellow", `partial: ${partial}`)} · ${c("dim", `disabled: ${disabled}`)}`);
   lines.push(`  exposed tools: ${c("magenta", String(totalTools))}/133 (with current env)`);
   lines.push("");
+
+  // GOVERNANCE: the art. 102 gate's exact blast radius under the current config.
+  for (const line of fmtGovernance()) lines.push(line);
 
   // Suggest the canonical Claude Desktop / Cursor config snippet
   if (enabled === 0) {
