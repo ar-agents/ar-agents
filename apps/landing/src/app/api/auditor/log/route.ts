@@ -3,6 +3,7 @@ import { z } from "zod";
 import { kv } from "@vercel/kv";
 import { appendAudit, backend as auditBackend } from "@/lib/audit";
 import { rateLimit } from "@/lib/ratelimit";
+import { recordUsage } from "@/lib/metering";
 
 /**
  * POST /api/auditor/log, the thing El Auditor customers actually pay for.
@@ -134,10 +135,15 @@ export async function POST(req: Request) {
     { durable: true },
   );
 
+  // One billable unit per signed write. Best-effort: a metering failure never
+  // fails the customer's paid write (recordUsage swallows + returns null).
+  const monthToDate = await recordUsage(apiKey);
+
   return jsonCors(
     {
       ok: true,
       entry,
+      ...(monthToDate !== null ? { usage: { monthToDate } } : {}),
       audit: {
         backend: auditBackend(),
         sessionId: ent.sessionId,
