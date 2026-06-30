@@ -1,22 +1,20 @@
 /**
- * Shadow-onboarding metric (INTERNAL ONLY).
+ * Oracle request analytics (admin-only).
  *
- * Counts UNAUTHENTICATED / malformed hits on the public good-standing oracle as a
- * latent-demand signal: how many distinct sources tried to read a good-standing
- * profile (and how often, by request type, and how often for an entity we do NOT
- * yet list). It is the cheapest demand-side artifact — it measures interest the
- * registry has not yet captured.
+ * Counts UNAUTHENTICATED / malformed hits on the public good-standing oracle: how
+ * many distinct sources tried to read a good-standing profile, by request type,
+ * and how often for an entity that is not (yet) listed. Used for capacity planning
+ * and abuse insight.
  *
- * HARD PRIVACY + POSTURE RULES (do not relax without a privacy/legal call):
+ * HARD PRIVACY RULES (do not relax without a privacy/legal call):
  *  - NO PII, NO raw payloads, NO secrets stored. We store ONLY aggregate counters.
  *  - The source is an UN-REVERSIBLE, MONTHLY-ROTATING-salt HMAC of the client IP,
  *    truncated to 12 hex chars. The monthly rotation gives a ~30-day distinct-
  *    source cardinality window while killing any long-term cross-month tracker.
  *  - Counters carry a ~70-day TTL (KV INCR + EXPIRE, copied from metering.ts).
- *  - This module + its admin stats endpoint are INTERNAL: they MUST NEVER appear
- *    in agents.json / /api/discovery / openapi / any public response body
- *    (PLAN.md public-posture hard rule). recordShadow writes nothing into any
- *    public answer; it only bumps private counters.
+ *  - This module + its admin stats endpoint are admin-only: they MUST NEVER appear
+ *    in agents.json / /api/discovery / openapi / any public response body.
+ *    recordShadow writes nothing into any public answer; it only bumps private counters.
  *
  * Best-effort by contract: a metering failure must NEVER affect the public answer
  * (the oracle stays fully functional). Every function swallows KV errors.
@@ -27,13 +25,12 @@ import { kv } from "@vercel/kv";
 const enc = new TextEncoder();
 
 const SHADOW_PREFIX = "shadow:";
-// Daily aggregate counters retained ~70 days (covers the 30-day pitch window with
-// headroom), mirroring metering.ts's DAY_TTL_SEC.
+// Daily aggregate counters retained ~70 days, mirroring metering.ts's DAY_TTL_SEC.
 const DAY_TTL_SEC = 70 * 24 * 60 * 60;
 
-/** The kinds of unauth/malformed oracle hit we count as latent demand. */
+/** The kinds of unauth/malformed oracle hit we count. */
 export type ShadowReqType =
-  | "not_found" // a well-formed query for an entity we do NOT yet list (purest signal)
+  | "not_found" // a well-formed query for an entity we do NOT yet list
   | "malformed" // an invalid/badly-shaped query (bad url/cuit, etc.)
   | "missing_query" // no ?url=/?id=/?cuit= provided
   | "rate_limited"; // throttled — still demand, just shaped by abuse controls
@@ -146,8 +143,7 @@ export async function recordShadow(ev: ShadowEvent): Promise<void> {
     const srcHash = await sourceHashFor(ev.ip, now);
     await incrWithTtl(dayKey(day, ev.reqType));
     await incrWithTtl(srcKey(day, srcHash));
-    // The purest latent-demand signal: a real, well-formed query for an entity we
-    // do not list (someone wanted to bank/transact with an entity not yet here).
+    // A real, well-formed query for an entity we do not (yet) list.
     if (ev.reqType === "not_found" && !ev.found) {
       await incrWithTtl(notFoundKey(day));
     }
@@ -165,7 +161,7 @@ export interface ShadowStats {
   total: number;
   /** Distinct hashed sources observed over the window (cardinality estimate). */
   distinctSources: number;
-  /** Queries for entities not yet listed — the headline latent-demand number. */
+  /** Queries for entities not yet listed. */
   notFound: number;
   /** UTC day buckets the window covers (most recent last). */
   days: string[];
@@ -192,8 +188,8 @@ function dayKeysBack(n: number, now: Date): string[] {
  * convention (the route gates it on REGISTRY_ADMIN_TOKEN). Returns zeros on
  * KV-down. Distinct-source cardinality is the count of distinct `src:` keys that
  * exist across the window (it can double-count an IP that appears in two months,
- * which is acceptable for a demand signal and is the privacy/cardinality tradeoff
- * of the monthly salt rotation).
+ * which is acceptable for an aggregate signal and is the privacy/cardinality
+ * tradeoff of the monthly salt rotation).
  */
 export async function getShadowStats(windowDays = 30): Promise<ShadowStats> {
   const n = Math.max(1, Math.min(windowDays, 70));

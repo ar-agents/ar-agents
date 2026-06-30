@@ -5,7 +5,7 @@ import { getShadowStats } from "@/lib/shadow";
 /**
  * GET /api/admin/shadow-stats  — INTERNAL, admin-only.
  *
- * The READER for the shadow-onboarding latent-demand metric (lib/shadow.ts):
+ * The READER for the oracle request-analytics counters (lib/shadow.ts):
  * aggregate counters only, NO PII. Gated on the global REGISTRY_ADMIN_TOKEN
  * (constant-time, fail-closed when unset). INTERNAL by posture: this route is
  * deliberately NOT advertised in agents.json / /api/discovery / openapi /
