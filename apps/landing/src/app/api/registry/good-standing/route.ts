@@ -41,7 +41,11 @@ import {
   hasAuthoritativeCuit,
   type RegistryRecord,
   type Rating,
+  type GoodStandingState,
 } from "@/lib/registry-store";
+import { scoreEntry, type ScoreResult } from "@/lib/good-standing-score";
+import { incidentSummary } from "@/lib/registry-incidents";
+import { recordHistoryPoint } from "@/lib/registry-history";
 
 export const runtime = "edge";
 
@@ -279,6 +283,17 @@ interface AnswerBody {
      */
     attesting?: boolean;
     reason?: string;
+    /**
+     * ADDITIVE (Registry hardening): the dimensional breakdown of the verdict
+     * (conformance / freshness / liveness / incidents) + the weighted composite.
+     * Present ONLY for an ATTESTING found entry; omitted for not-found / non-
+     * attesting answers so their canonical bytes are unchanged. The flat `score`
+     * above stays the endpoint-conformance HEADLINE (backward compat);
+     * `dimensionalScore` is the richer composite a sophisticated counterparty reads.
+     */
+    dimensions?: ScoreResult["dimensions"];
+    dimensionalScore?: number | null;
+    dimensionalRating?: Rating | null;
   } | null;
   /**
    * Forwarded trust-minimized anchors. These point at the TARGET's own publicly
@@ -426,16 +441,15 @@ export async function GET(req: Request): Promise<Response> {
 
   // Baseline read rate-limit (cheap, in-memory).
   if (!rateLimit("good-standing", ip, 60, 60_000)) {
-    // Shadow metric (INTERNAL, best-effort, no PII): a throttled hit is still
-    // latent demand. recordShadow only bumps private aggregate counters — it adds
-    // NOTHING to this public response.
+    // Request analytics (best-effort, no PII): count the throttled hit. It only
+    // bumps private aggregate counters and adds NOTHING to this public response.
     void recordShadow({ ip, reqType: "rate_limited", found: false });
     return jsonWithCors({ error: "rate_limited" }, { status: 429, cacheControl: "no-store" });
   }
 
   const resolved = await resolveRecord(q);
   if ("error" in resolved) {
-    // Distinguish a missing query from a malformed one for the latent-demand
+    // Distinguish a missing query from a malformed one for the analytics
     // breakdown (still no PII; only the request TYPE is counted).
     const reqType = resolved.error.startsWith("missing query") ? "missing_query" : "malformed";
     void recordShadow({ ip, reqType, found: false });
@@ -445,9 +459,8 @@ export async function GET(req: Request): Promise<Response> {
   let { rec } = resolved;
   const { by, value } = resolved;
 
-  // Shadow metric: a well-formed query for an entity we do NOT yet list is the
-  // PUREST latent-demand signal (a counterparty wanted to check an entity that
-  // isn't here). Counted internally; the public answer is unchanged (found:false).
+  // Analytics: a well-formed query for an entity we do NOT yet list is counted
+  // privately (aggregate only); the public answer is unchanged (found:false).
   if (!rec) {
     void recordShadow({ ip, reqType: "not_found", found: false });
   }
@@ -502,7 +515,23 @@ export async function GET(req: Request): Promise<Response> {
             lastScore: verdict.score,
             lastRating: verdict.rating,
           });
-          if (updated) rec = updated;
+          if (updated) {
+            rec = updated;
+            // Historize the persisted verdict (best-effort; owner/admin path only,
+            // so anonymous fresh computes never pollute the trend).
+            const hsc = scoreEntry({
+              status: updated.status,
+              state: updated.goodStanding.state,
+              conformanceScore: updated.goodStanding.lastScore,
+              lastCheckedAt: updated.goodStanding.lastCheckedAt,
+            });
+            void recordHistoryPoint(updated.id, {
+              status: updated.status,
+              state: updated.goodStanding.state,
+              score: hsc.overall,
+              rating: hsc.rating,
+            });
+          }
         } else {
           // Anonymous: compute + return, but DO NOT persist (no setGoodStanding).
           freshComputed = { score: verdict.score, rating: verdict.rating, state: nextState };
@@ -543,6 +572,33 @@ export async function GET(req: Request): Promise<Response> {
       : FORMING_BASIS
     : GOOD_STANDING_BASIS;
 
+  // Dimensional breakdown (ADDITIVE). Computed only for an ATTESTING found entry:
+  // a non-attesting (forming/stale) answer is already flagged attesting:false, so a
+  // dimensional score there would be noise. Best-effort: an incident-store read
+  // failure degrades to "no open incidents".
+  let dimensions: ScoreResult["dimensions"] | null = null;
+  let dimensionalScore: number | null = null;
+  let dimensionalRating: Rating | null = null;
+  if (rec && !nonAttesting) {
+    let incs: { openCritical: number; openWarning: number; openInfo: number } | undefined;
+    try {
+      const s = await incidentSummary(rec.id);
+      incs = { openCritical: s.openCritical, openWarning: s.openWarning, openInfo: s.openInfo };
+    } catch {
+      incs = undefined;
+    }
+    const sc = scoreEntry({
+      status: rec.status,
+      state: (gsStateFinal as GoodStandingState | null) ?? rec.goodStanding.state,
+      conformanceScore: gsScore,
+      lastCheckedAt: gsAsOf,
+      ...(incs ? { incidents: incs } : {}),
+    });
+    dimensions = sc.dimensions;
+    dimensionalScore = sc.overall;
+    dimensionalRating = sc.rating;
+  }
+
   const body: AnswerBody = {
     kind: "ar-agents.registry.good-standing",
     version: 1,
@@ -562,6 +618,7 @@ export async function GET(req: Request): Promise<Response> {
           // unchanged. Key-sorted canonical() places it deterministically.
           ...(nonAttesting ? { attesting: false } : {}),
           ...(rec.goodStanding.reason ? { reason: rec.goodStanding.reason } : {}),
+          ...(dimensions ? { dimensions, dimensionalScore, dimensionalRating } : {}),
         }
       : null,
     attestation: buildAttestationPointers(rec, targetAnchor),
