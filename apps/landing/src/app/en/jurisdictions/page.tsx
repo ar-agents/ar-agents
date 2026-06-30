@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../../noindex";
 import { JurisdiccionesContent } from "../../jurisdicciones/content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Jurisdictions compared · ar-agents",
   description:
     "Honest comparison: how Wyoming DAO LLC, Marshall Islands MIDAO, Estonia e-Residency, Singapore VCC + AI Verify solve identity, signing, registry, and auditing of algorithmic entities, and what Argentine primitives ar-agents proposes as an analogue. For legislators, journalists, advisors.",

@@ -290,7 +290,6 @@ export default function Home() {
           <div style={{ marginTop: 16, display: "flex", gap: 14, flexWrap: "wrap" }}>
             <a href={es ? "/legislacion" : "/en/legislation"} style={inlineLink}>{es ? "Síntesis legislativa" : "Legislative synthesis"} →</a>
             <a href="/rfcs/001" style={inlineLink}>{es ? "Leer los RFCs" : "Read the RFCs"} →</a>
-            <a href="/manifiesto" style={inlineLink}>{es ? "Manifiesto" : "Manifesto"} →</a>
           </div>
         </Section>
 
@@ -385,16 +384,16 @@ function Footer({ es }: { es: boolean }) {
     {
       h: es ? "La ley" : "The law",
       links: [
+        { l: es ? "Por qué ahora" : "Why now", href: "/ley" },
         { l: es ? "Síntesis" : "Synthesis", href: es ? "/legislacion" : "/en/legislation" },
         { l: "RFCs", href: "/rfcs/001" },
-        { l: es ? "Manifiesto" : "Manifesto", href: "/manifiesto" },
       ],
     },
     {
       h: es ? "Recursos" : "Resources",
       links: [
         { l: es ? "El caso ar-agents" : "The ar-agents case", href: es ? "/caso-ar-agents" : "/en/ar-agents-case" },
-        { l: "Press kit", href: "/press-kit" },
+        { l: es ? "Referencia" : "Reference", href: "/reference" },
         { l: "Changelog", href: "/changelog" },
         { l: es ? "Privacidad" : "Privacy", href: "/privacy" },
       ],

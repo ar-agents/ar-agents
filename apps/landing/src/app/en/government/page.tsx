@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../../noindex";
 import { GobiernoContent } from "../../gobierno/content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "For the Argentine state · operational briefing · ar-agents",
   description:
     "Operational briefing for advisors at the Ministry of Deregulation and State Transformation, Subsec TIC, AAIP and related agencies. Executive summary + technical capabilities + institutional proposal + what we are NOT requesting.",

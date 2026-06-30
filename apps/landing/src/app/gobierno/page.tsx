@@ -1,7 +1,9 @@
 import type { Metadata } from "next";
+import { NOINDEX } from "../noindex";
 import { GobiernoContent } from "./content";
 
 export const metadata: Metadata = {
+  robots: NOINDEX,
   title: "Para el Estado argentino · briefing operativo · ar-agents",
   description:
     "Briefing operativo para asesores del Ministerio de Desregulación + Subsecretaría TIC + organismos relacionados con el régimen de sociedades-IA. Resumen ejecutivo + capacidades técnicas + propuesta de relación institucional + lo que NO pedimos.",

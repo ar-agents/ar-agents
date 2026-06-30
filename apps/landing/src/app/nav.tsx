@@ -43,7 +43,7 @@ const NAV: ReadonlyArray<NavItem> = [
   {
     href: { es: "/ley", en: "/ley" },
     label: { es: "La ley", en: "The law" },
-    matchPrefixes: ["/ley", "/legislacion", "/en/legislation", "/manifiesto", "/rfcs"],
+    matchPrefixes: ["/ley", "/legislacion", "/en/legislation", "/rfcs"],
   },
 ];
 

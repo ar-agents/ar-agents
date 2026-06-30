@@ -37,6 +37,10 @@ import { jsonCors, preflight } from "@/lib/cors";
 export const runtime = "nodejs";
 export const maxDuration = 60;
 
+// Absolute origin for same-host fetches (the registry/oracle endpoints run on
+// this same deployment). Override with MCP_SITE_ORIGIN in non-prod if needed.
+const SITE_ORIGIN = process.env.MCP_SITE_ORIGIN?.trim() || "https://ar-agents.ar";
+
 // ─────────────────────────────────────────────────────────────────────────────
 // Audit plumbing
 // ─────────────────────────────────────────────────────────────────────────────
@@ -133,17 +137,23 @@ const bcraVars = new BcraVarsPublicApiAdapter();
 const TOOLKIT_INFO = {
   name: "ar-agents",
   description:
-    "Open infrastructure for Argentina's sociedades de IA (AI-operated companies). Typed tools for the Vercel AI SDK 6 covering identity (CUIT/AFIP), payments (Mercado Pago, Uala), banking (CBU/CVU, BCRA), factura electronica, fiscal calculators (IVA, SICORE, SUSS), WhatsApp Business, Mercado Libre, IGJ, Boletin Oficial, GDE/TAD, shipping and more.",
-  packages: 36,
-  tools: 235,
+    "Open infrastructure and a registry of record for automated companies in Argentina. Typed tools for the Vercel AI SDK covering identity (CUIT/AFIP), payments (Mercado Pago, Uala), banking (CBU/CVU, BCRA), factura electronica, fiscal calculators (IVA, SICORE, SUSS), WhatsApp Business, Mercado Libre, IGJ, Boletin Oficial, GDE/TAD, shipping and more.",
+  lifecycle: {
+    born: "https://ar-agents.ar/api/auto-incorporate",
+    operate: "https://www.npmjs.com/org/ar-agents",
+    judged: "https://ar-agents.ar/api/registry/good-standing?url={baseUrl}",
+  },
+  packagesAndToolsSource: "https://ar-agents.ar/api/discovery",
   hostedMcpScope:
-    "This hosted MCP endpoint exposes only the zero-credential subset: pure validation algorithms, fiscal calculators, and public BCRA lookups. The remaining tools need YOUR credentials (MP token, AFIP cert, Meta token) and run locally via the npm packages.",
+    "This hosted MCP endpoint exposes the zero-credential subset: pure validation algorithms, fiscal calculators, public BCRA lookups, and the public registry/good-standing reads (registry_lookup, get_good_standing). The remaining tools need YOUR credentials (MP token, AFIP cert, Meta token) and run locally via the npm packages.",
   links: {
     homepage: "https://ar-agents.ar",
+    discovery: "https://ar-agents.ar/api/discovery",
     llmsTxt: "https://ar-agents.ar/llms.txt",
     npm: "https://www.npmjs.com/org/ar-agents",
     github: "https://github.com/ar-agents/ar-agents",
     mcpPackage: "https://www.npmjs.com/package/@ar-agents/mcp",
+    goodStandingOracle: "https://ar-agents.ar/api/registry/good-standing?url={baseUrl}",
     auditLog: "https://ar-agents.ar/dashboard",
   },
   license: "MIT",
@@ -364,16 +374,84 @@ const mcpHandler = createMcpHandler(
       {
         title: "About the ar-agents toolkit",
         description:
-          "Canonical info about the ar-agents project: 36 npm packages, 235 typed tools for operating in Argentina, what this hosted MCP endpoint exposes vs what requires a local install with your own credentials, plus links (llms.txt, npm, GitHub). Call this to discover the full toolkit beyond the hosted subset.",
+          "Canonical info about the ar-agents project: typed npm packages and tools for operating in Argentina, what this hosted MCP endpoint exposes vs what requires a local install with your own credentials, plus links (llms.txt, npm, GitHub). Call this to discover the full toolkit beyond the hosted subset.",
         inputSchema: {},
       },
       async () => audited("get_toolkit_info", "algorithm-only", {}, () => TOOLKIT_INFO),
+    );
+
+    server.registerTool(
+      "get_good_standing",
+      {
+        title: "Query the good-standing oracle",
+        description:
+          "Resolve an automated company's good standing BEFORE transacting with it. Pass exactly one of url, id, or cuit. Returns a small, Ed25519-signed, offline-verifiable answer ({ body, sig, publicKey }). The body carries found, goodStanding.state, and a basis caveat; forming/stale entries are returned as explicitly non-attesting (not good standing). The JUDGED leg of the born/operate/judged lifecycle. No credentials, public read.",
+        inputSchema: {
+          url: z.string().url().optional().describe("The entity's declared base URL."),
+          id: z.string().optional().describe("The entity's registry slug id."),
+          cuit: cuitSchema.optional().describe("The entity's CUIT."),
+        },
+      },
+      async ({ url, id, cuit }) =>
+        audited(
+          "get_good_standing",
+          "audit-logged",
+          { url, id, cuit },
+          async () => {
+            const q = url
+              ? `url=${encodeURIComponent(url)}`
+              : id
+                ? `id=${encodeURIComponent(id)}`
+                : cuit
+                  ? `cuit=${encodeURIComponent(cuit)}`
+                  : "";
+            if (!q) {
+              return { error: "provide exactly one of url, id, or cuit" };
+            }
+            const r = await fetch(`${SITE_ORIGIN}/api/registry/good-standing?${q}`, {
+              headers: { accept: "application/json" },
+            });
+            return r.json();
+          },
+        ),
+    );
+
+    server.registerTool(
+      "registry_lookup",
+      {
+        title: "List registry entries",
+        description:
+          "List automated companies in the registry, optionally filtered by jurisdiction, type, or status. Public read, no credentials. Use get_good_standing to judge a specific entity before transacting.",
+        inputSchema: {
+          jurisdiction: z.string().optional().describe("Filter by jurisdiction code, e.g. AR."),
+          type: z.string().optional().describe("Filter by company type, e.g. SAS, SRL, SA."),
+          status: z.string().optional().describe("Filter by status, e.g. live, draft."),
+        },
+      },
+      async ({ jurisdiction, type, status }) =>
+        audited(
+          "registry_lookup",
+          "audit-logged",
+          { jurisdiction, type, status },
+          async () => {
+            const params = new URLSearchParams();
+            if (jurisdiction) params.set("jurisdiction", jurisdiction);
+            if (type) params.set("type", type);
+            if (status) params.set("status", status);
+            const qs = params.toString();
+            const r = await fetch(
+              `${SITE_ORIGIN}/api/registry${qs ? `?${qs}` : ""}`,
+              { headers: { accept: "application/json" } },
+            );
+            return r.json();
+          },
+        ),
     );
   },
   {
     serverInfo: { name: "ar-agents", version: "1.0.0" },
     instructions:
-      "Zero-credential subset of the ar-agents toolkit (Argentina): CUIT and CBU/CVU validation, IVA/SICORE/SUSS fiscal calculators, public BCRA lookups. Call get_toolkit_info to discover the full 36-package, 235-tool local toolkit.",
+      "Zero-credential subset of the ar-agents toolkit (Argentina): CUIT and CBU/CVU validation, IVA/SICORE/SUSS fiscal calculators, public BCRA lookups, plus the registry reads. Use get_good_standing to judge an automated company before transacting with it (resolve by url, id, or cuit; forming/stale entries are non-attesting) and registry_lookup to list entries. Call get_toolkit_info to discover the full local toolkit.",
   },
   {
     basePath: "/api",

@@ -48,6 +48,18 @@ const SITE_URL = "https://ar-agents.ar";
 type DiscoveryDoc = {
   $schema: string;
   generatedAt: string;
+  /**
+   * The lifecycle, in order, an agent can run end-to-end on this host:
+   * be born (form an entity), operate (the open rails), and be judged
+   * (the public good-standing oracle a counterparty reads before
+   * transacting). Each leg points at the entry endpoint for that step.
+   */
+  loop: {
+    born: { description: string; endpoint: string; method: "GET" | "POST" };
+    operate: { description: string; packages: string; mcp: string };
+    judged: { description: string; endpoint: string; method: "GET" | "POST" };
+  };
+  packageCount: number;
   packages: Array<{
     name: string;
     version: string;
@@ -106,8 +118,37 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       url: `${SITE_URL}/api/auto-incorporate`,
       method: "POST",
       description:
-        "Self-incorporate an Argentine sociedad-IA in a single call. Returns generated package.json + agent.ts + .env.example + README.md, the env-var manifest, the legal+operational checklist, a Vercel one-click deploy URL, and a signed audit-log reference. Suitable for a USA-LLC agent (or any external orchestrator) to call directly.",
+        "Self-incorporate an Argentine sociedad-IA in a single call. Returns generated package.json + agent.ts + .env.example + README.md, the env-var manifest, the legal+operational checklist, a Vercel one-click deploy URL, and a signed audit-log reference. Suitable for a USA-LLC agent (or any external orchestrator) to call directly. This is the BORN leg of the lifecycle.",
       schema: `${SITE_URL}/api/auto-incorporate`,
+    },
+    {
+      name: "registry_good_standing",
+      url: `${SITE_URL}/api/registry/good-standing?url={baseUrl}`,
+      method: "GET",
+      description:
+        "The public good-standing oracle. Resolve an entity by ?url=, ?id=, or ?cuit= and get a small, Ed25519-signed, offline-verifiable answer about its good standing before you transact with it. The JUDGED leg of the lifecycle: a counterparty (bank, PSP, marketplace, agent framework) queries this first. The basis caveat travels inside the signed body. Forming/stale entities are returned as explicitly non-attesting.",
+      schema: `${SITE_URL}/schemas/good-standing.v1.json`,
+    },
+    {
+      name: "registry_list",
+      url: `${SITE_URL}/api/registry`,
+      method: "GET",
+      description:
+        "Machine-readable list of registry entries, filterable by ?jurisdiction=, ?type=, ?status=. Cacheable, no auth.",
+    },
+    {
+      name: "registry_self_list",
+      url: `${SITE_URL}/api/registry`,
+      method: "POST",
+      description:
+        "Self-list an entity in the registry. Mints a write-once owner token; the entry starts unverified and auto-flips to active only when the server-side certifier scores its declared URL high enough. Bogus entries stay unverified.",
+    },
+    {
+      name: "certifier",
+      url: `${SITE_URL}/api/certifier?url={baseUrl}`,
+      method: "GET",
+      description:
+        "Score any URL 0-100 against RFC-002 + RFC-004 + RFC-005 conformance (~11 checks). Returns a per-check breakdown. The same certifier the registry uses to gate self-listing.",
     },
     {
       name: "play_agent",
@@ -186,6 +227,27 @@ function buildDiscoveryDoc(): DiscoveryDoc {
   return {
     $schema: `${SITE_URL}/schemas/discovery.v1.json`,
     generatedAt: new Date().toISOString().slice(0, 10),
+    loop: {
+      born: {
+        description:
+          "Form an automated company in one call. Returns the source pack, deploy URL, checklist, and a signed audit reference.",
+        endpoint: `${SITE_URL}/api/auto-incorporate`,
+        method: "POST",
+      },
+      operate: {
+        description:
+          "Run on the open rails: typed @ar-agents/* npm packages for payments, identity, facturacion, banking, fiscal, and more, plus a hosted zero-credential MCP server.",
+        packages: "https://www.npmjs.com/org/ar-agents",
+        mcp: `${SITE_URL}/api/mcp`,
+      },
+      judged: {
+        description:
+          "Be judged: a counterparty resolves your good standing via the public Ed25519-signed oracle before transacting, by url, id, or cuit.",
+        endpoint: `${SITE_URL}/api/registry/good-standing?url={baseUrl}`,
+        method: "GET",
+      },
+    },
+    packageCount: packages.length,
     packages,
     totalTools,
     endpoints,
@@ -293,6 +355,57 @@ function buildOpenApiDoc() {
           description: "Validation findings. JSON has validation.findings[] with codes + messages.",
         },
       },
+    },
+  };
+  paths["/api/registry/good-standing"] = {
+    get: {
+      operationId: "registry_good_standing",
+      summary:
+        "Public good-standing oracle. Resolve an entity by url, id, or cuit and get a small Ed25519-signed, offline-verifiable answer before transacting. The JUDGED leg of the lifecycle. Forming/stale entities are returned as explicitly non-attesting.",
+      "x-runtime": "edge",
+      "x-loop-leg": "judged",
+      parameters: [
+        { name: "url", in: "query", required: false, schema: { type: "string", format: "uri" } },
+        { name: "id", in: "query", required: false, schema: { type: "string" } },
+        { name: "cuit", in: "query", required: false, schema: { type: "string" } },
+      ],
+      responses: {
+        "200": {
+          description:
+            "Signed good-standing answer { body, sig, publicKey }. body carries found, goodStanding.state, basis, and forwarded public-anchor pointers.",
+          content: { "application/json": { schema: {} } },
+        },
+      },
+    },
+  };
+  paths["/api/registry"] = {
+    get: {
+      operationId: "registry_list",
+      summary: "Machine-readable registry list, filterable by jurisdiction, type, status.",
+      "x-runtime": "nodejs",
+      "x-loop-leg": "judged",
+      parameters: [
+        { name: "jurisdiction", in: "query", required: false, schema: { type: "string" } },
+        { name: "type", in: "query", required: false, schema: { type: "string" } },
+        { name: "status", in: "query", required: false, schema: { type: "string" } },
+      ],
+    },
+    post: {
+      operationId: "registry_self_list",
+      summary:
+        "Self-list an entity. Mints a write-once owner token; the entry starts unverified and auto-flips to active only when the certifier scores its URL high enough.",
+      "x-runtime": "nodejs",
+      "x-rate-limited": true,
+    },
+  };
+  paths["/api/certifier"] = {
+    get: {
+      operationId: "certifier",
+      summary: "Score any URL 0-100 against RFC-002 + RFC-004 + RFC-005 conformance (~11 checks).",
+      "x-runtime": "edge",
+      parameters: [
+        { name: "url", in: "query", required: true, schema: { type: "string", format: "uri" } },
+      ],
     },
   };
   paths["/api/play"] = {
