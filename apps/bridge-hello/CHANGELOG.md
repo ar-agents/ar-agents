@@ -1,5 +1,13 @@
 # bridge-hello
 
+## 0.1.12
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/mercadolibre@0.5.2
+  - @ar-agents/agentic-commerce-bridge@9.0.0
+
 ## 0.1.11
 
 ### Patch Changes

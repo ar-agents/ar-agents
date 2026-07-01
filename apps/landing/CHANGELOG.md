@@ -1,5 +1,20 @@
 # ar-agents-landing
 
+## 0.1.9
+
+### Patch Changes
+
+- Updated dependencies [[`1a64552`](https://github.com/ar-agents/ar-agents/commit/1a6455234ea83a36cc51b595d449f907f47285f1), [`4e20dac`](https://github.com/ar-agents/ar-agents/commit/4e20dac9461ee81e28387cf799bc0a56867e986c), [`2670917`](https://github.com/ar-agents/ar-agents/commit/2670917a931df2093d0931c05023902cbcc63c3b)]:
+  - @ar-agents/core@0.3.0
+  - @ar-agents/banking@0.5.3
+  - @ar-agents/identity@0.9.2
+  - @ar-agents/identity-attest@0.8.1
+  - @ar-agents/iva-percepciones@0.2.4
+  - @ar-agents/iva-retenciones@0.2.4
+  - @ar-agents/sicore@0.2.4
+  - @ar-agents/suss@0.2.2
+  - @ar-agents/x402@0.2.1
+
 ## 0.1.8
 
 ### Patch Changes

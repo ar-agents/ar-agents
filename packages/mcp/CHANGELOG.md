@@ -1,5 +1,60 @@
 # Changelog
 
+## 0.11.0
+
+### Minor Changes
+
+- [#118](https://github.com/ar-agents/ar-agents/pull/118) [`9bc92a0`](https://github.com/ar-agents/ar-agents/commit/9bc92a063c15eb54aed8284180420feaf393893a) Thanks [@naza00000](https://github.com/naza00000)! - **Behavior change (default-ON):** the art. 102 governance gate is now ENFORCED BY DEFAULT in the published MCP server. A vanilla `npx @ar-agents/mcp` now REFUSES any money / fiscal / legal / irreversible / unclassifiable tool unless a human-approval hook is wired — `READ`-level tools (e.g. `validate_cuit`, `lookup_cuit_afip`, `search_payments`) always pass. The refusal is a clear MCP `isError` telling the operator to wire an `approve` hook or opt out. This is a MINOR (not a silent patch) because a server that previously executed money/fiscal/legal tools autonomously will now block them.
+
+  **Blast radius — read this before upgrading.** The gate is FAIL-CLOSED: the `unknown` risk class is denied by default (correct — a tool we can't classify must never move money or constitute a company silently). But classification is by NAME (plus description / sideEffects): **ANY tool whose name is not a recognized read verb is treated as `unknown` and is GATED by default-ON.** With every registry wired, that is roughly **65 of ~145 exposed tools** — and it currently includes some genuine **READ** tools whose names don't match the read-verb heuristic, e.g.:
+
+  - IGJ registry reads — `igj_get_entity`, `igj_search_entities`, `igj_get_autoridades`, `igj_get_domicilios`, `igj_get_asambleas`
+  - Boletín Oficial reads — `bo_search`, `bo_today`, `bo_get_norma`, `bo_list_subscriptions`
+  - Signature-verification reads — `firma_inspect_cert`, `firma_verify_chain`, `firma_verify_cms_signature`, `firma_is_onti_issued`
+  - AFIP catalog reads — `obtener_alicuotas_iva`, `obtener_tipos_comprobante`, `obtener_tipos_documento`, `obtener_tipos_concepto`, `obtener_tipos_moneda`
+  - Shipping reads — `trackear_envio`, `listar_sucursales`
+  - Plus `lookup_credit_situation`, `mp_health_check`
+
+  So a default-ON server will refuse these reads too, not only money/fiscal/legal acts. To see exactly which tools are gated in YOUR configuration, run **`ar-agents-mcp doctor`** — its GOVERNANCE section lists every exposed tool, its resolved risk level, and whether it is GATED. To let the gated reads (and any approval-level tool) run, either **wire an approve hook** via `createServer({ governance: { approve } })`, or set **`AR_AGENTS_MCP_ENFORCE=off`** for ungated passthrough (not recommended for autonomous money/fiscal/legal acts). Reclassifying these reads as `read` (so they pass while real acts stay gated) is a separate, deliberate change to the cross-package risk manifest — not done here.
+
+  The gate reuses `@ar-agents/core`'s `classifyTool` + `levelRequiresApproval` (the same risk manifest local agents use), now fed each tool's `name`, `description` **and** `sideEffects`, and is applied in the CallTool handler, by tool name, before the tool executes — so a denied money tool never touches the network. Carrying `sideEffects` closes a latent fail-OPEN: a tool with a read-ish name but a `moves money` / `irreversible` side effect is now correctly gated instead of being downgraded to `read`.
+
+  **Opt-out:** set `AR_AGENTS_MCP_ENFORCE=off` to restore the old ungated passthrough. Resolution order is `createServer({ governance: { enforce } })` option > `AR_AGENTS_MCP_ENFORCE` env > default-ON.
+
+  **Wiring HITL:** pass `createServer({ governance: { approve: (toolName, args) => boolean } })` to approve approval-level calls. The boot summary (stderr) now prints the governance mode (`enforce=ON/OFF`, halt) so self-hosters see the default.
+
+  **Kill-switch:** `AR_AGENTS_MCP_HALT=1` (or a `governance.isHalted` hook) suspends EVERY tool with a `society_suspended` error; default is no halt (behavior unchanged unless wired).
+
+  Additive API: `createServer` gains an optional `governance` arg (existing `createServer()` callers are unaffected and stay default-ON). New additive exports: `resolveGovernance`, `decideGovernance`, `describeGovernance`, and the `GovernanceOptions` / `ResolvedGovernance` / `GovernanceDecision` / `ApproveHook` / `HaltHook` / `CreateServerOptions` types. Adds `@ar-agents/core` as a direct dependency (previously transitive).
+
+- [#128](https://github.com/ar-agents/ar-agents/pull/128) [`b1c5443`](https://github.com/ar-agents/ar-agents/commit/b1c54434ee89dc1d40c45096d34732c4f8d6dc01) Thanks [@naza00000](https://github.com/naza00000)! - **Guardrails: spending caps + amount-aware approval + a registry kill-switch.** These extend the art. 102 gate (they do not replace it).
+
+  - **Spending caps (opt-in, amount-aware, FAIL-SAFE).** Pass `createServer({ governance: { caps: { perOpMax, dailyMax, currency, extractAmount } } })`. A MONEY tool whose amount is WITHIN the per-op + daily limits AUTO-APPROVES (so an autonomous entity can make small payments without a human on each one); anything else falls back to the human `approve` hook. Safety is built in: amount-based auto-approval REQUIRES an operator-supplied, tool-aware `caps.extractAmount` that returns the TRUE charge for each of your money tools (e.g. MercadoPago `create_payment` → `args.amount_ars`; a payment preference → `sum(items[].unit_price * quantity)`). We deliberately do NOT guess the amount from generic arg keys — a caller could add a small decoy `amount` key (stripped by the tool's schema before execution) to auto-approve a large real charge. Any doubt (no `extractAmount`, an empty caps object with no limit set, an unreadable/negative/NaN amount, or a throwing extractor) → the human approve hook. **Default behaviour is unchanged:** with no `caps`, every money tool still needs the approve hook (fail-closed); non-money tools are never affected. The running daily total uses an in-memory per-process tally by default; supply your own via `governance.tally`.
+
+  - **`goodStandingHalt` kill-switch wired to the registry.** `createServer({ governance: { isHalted: goodStandingHalt({ entityId }) } })` makes the ar-agents registry able to REMOTELY halt this entity: once it is `suspended`/`revoked` in the registry good-standing oracle, every tool refuses. Best-effort (a transient oracle error does not halt by default; set `haltOnUnreachable: true` for a stricter posture).
+
+  - New exports: `decideSpending`, `inMemoryTally`, `goodStandingHalt`, and the `SpendingCaps` / `SpendingTally` / `SpendingDecision` types. The boot summary line shows the active caps.
+
+  MINOR (not patch): a server configured with `caps` + a correct `extractAmount` will auto-execute in-limit money tools that a no-caps server would have refused. Review your limits and your extractor before enabling.
+
+### Patch Changes
+
+- Updated dependencies [[`1a64552`](https://github.com/ar-agents/ar-agents/commit/1a6455234ea83a36cc51b595d449f907f47285f1), [`4e20dac`](https://github.com/ar-agents/ar-agents/commit/4e20dac9461ee81e28387cf799bc0a56867e986c), [`2670917`](https://github.com/ar-agents/ar-agents/commit/2670917a931df2093d0931c05023902cbcc63c3b)]:
+  - @ar-agents/core@0.3.0
+  - @ar-agents/banking@0.5.3
+  - @ar-agents/boletin-oficial@0.2.3
+  - @ar-agents/facturacion@0.4.6
+  - @ar-agents/firma-digital@0.3.1
+  - @ar-agents/gde-tad@0.3.3
+  - @ar-agents/identity@0.9.2
+  - @ar-agents/identity-attest@0.8.1
+  - @ar-agents/igj@0.2.4
+  - @ar-agents/mercadolibre@0.5.2
+  - @ar-agents/mercadopago@0.18.5
+  - @ar-agents/mi-argentina@0.2.3
+  - @ar-agents/shipping@0.3.3
+  - @ar-agents/whatsapp@0.5.2
+
 ## 0.10.15
 
 ### Patch Changes

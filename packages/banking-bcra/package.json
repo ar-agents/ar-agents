@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/banking-bcra",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "BCRA Central de Deudores agent toolkit for the Vercel AI SDK 6. Read-only credit-history lookup for Argentine CUITs against the BCRA's public Central de Deudores + ChequesRechazados endpoints. The B2B credit-check default before extending any non-trivial line of credit.",
   "keywords": [
     "bcra",

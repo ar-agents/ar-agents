@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/x402",
-  "version": "0.2.0",
+  "version": "0.2.1",
   "description": "HTTP 402 agent payments protocol (x402) client + seller helpers + Vercel AI SDK tools. Fetch wrapper that pays on 402 via a pluggable signer, framework-agnostic seller helpers (402 response, verify, settle), and a facilitator client. Edge Runtime compatible, zero heavy deps.",
   "keywords": [
     "x402",

@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/inpi",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "INPI (Instituto Nacional de la Propiedad Industrial) agent toolkit for the Vercel AI SDK 6. Search trademarks by denomination, check registration status, look up the Nice classification class. Adapter pattern against INPI's public search portal.",
   "keywords": [
     "inpi",
