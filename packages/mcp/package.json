@@ -119,6 +119,7 @@
   "dependencies": {
     "@ar-agents/banking": "workspace:*",
     "@ar-agents/boletin-oficial": "workspace:*",
+    "@ar-agents/core": "workspace:*",
     "@ar-agents/facturacion": "workspace:*",
     "@ar-agents/firma-digital": "workspace:*",
     "@ar-agents/gde-tad": "workspace:*",

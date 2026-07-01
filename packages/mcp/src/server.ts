@@ -5,6 +5,13 @@ import {
   ListToolsRequestSchema,
 } from "@modelcontextprotocol/sdk/types.js";
 import { combineToolSets } from "./adapter";
+import {
+  describeGovernance,
+  decideGovernance,
+  resolveGovernance,
+  type GovernanceOptions,
+  type ResolvedGovernance,
+} from "./governance";
 import { buildBankingTools, describeBankingConfig } from "./registries/banking";
 import {
   buildBoletinOficialTools,
@@ -42,16 +49,38 @@ import {
 } from "./registries/mi-argentina";
 import { buildShippingTools, describeShippingConfig } from "./registries/shipping";
 import { buildWhatsAppTools, describeWhatsAppConfig } from "./registries/whatsapp";
+// Source the version from package.json so the boot line + MCP server version
+// never drift from the published version (esbuild/tsup tree-shakes the JSON
+// import down to just this field — the rest of package.json is not bundled).
+import { version as SERVER_VERSION } from "../package.json";
 
 const SERVER_NAME = "ar-agents";
-const SERVER_VERSION = "0.10.0";
+
+/** Optional inputs to {@link createServer}. Back-compat: every field optional. */
+export interface CreateServerOptions {
+  /**
+   * art. 102 governance gate. Resolution order: this option > env > default-ON.
+   * Omit entirely and the server still enforces the gate (default-ON,
+   * fail-closed). See {@link GovernanceOptions} and {@link resolveGovernance}.
+   */
+  governance?: GovernanceOptions;
+}
 
 /**
  * Build the @ar-agents/mcp server. Inspects environment variables to decide
  * which package's tools to register. Always registers @ar-agents/identity
  * (algorithm-only `validate_cuit` works without any env vars).
+ *
+ * The CallTool handler enforces the art. 102 governance gate by default
+ * (DEFAULT-ON, fail-closed): a money/fiscal/legal/irreversible/unknown tool is
+ * REFUSED unless an approve hook is wired, or `AR_AGENTS_MCP_ENFORCE=off` is set.
+ * READ-level tools always pass. The optional `governance` arg is back-compat —
+ * existing callers (`createServer()`) are unaffected and stay default-ON.
  */
-export async function createServer(): Promise<{ server: Server; summary: string[] }> {
+export async function createServer(
+  options: CreateServerOptions = {},
+): Promise<{ server: Server; summary: string[]; governance: ResolvedGovernance }> {
+  const governance = resolveGovernance(options.governance);
   const adapter = combineToolSets([
     buildIdentityTools(),
     buildMiArgentinaTools(),
@@ -83,7 +112,24 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     `  igj             → ${describeIgjConfig()}`,
     `  firma-digital   → ${describeFirmaDigitalConfig()}`,
     `  gde-tad         → ${describeGdeTadConfig()}`,
+    `  ${describeGovernance(governance)}`,
   ];
+
+  // Description + sideEffects lookups by tool name for risk classification
+  // (combineToolSets discarded the AI-SDK Tool objects, but kept name +
+  // description + sideEffects on McpTool). sideEffects is threaded into
+  // classifyTool so core's layer-3 risk signal is LIVE here — parity with the
+  // local enforceRiskPolicy path, closing a latent fail-OPEN.
+  const descriptionOf = new Map<string, string>(
+    adapter.tools.map((t) => [t.name, t.description]),
+  );
+  const sideEffectsOf = new Map<string, string>(
+    adapter.tools
+      .filter((t): t is typeof t & { sideEffects: string } =>
+        typeof t.sideEffects === "string",
+      )
+      .map((t) => [t.name, t.sideEffects]),
+  );
 
   const server = new Server(
     { name: SERVER_NAME, version: SERVER_VERSION },
@@ -96,8 +142,26 @@ export async function createServer(): Promise<{ server: Server; summary: string[
 
   server.setRequestHandler(CallToolRequestSchema, async (request) => {
     const { name, arguments: args } = request.params;
+    const callArgs = args ?? {};
+
+    // art. 102 gate, BY TOOL NAME, BEFORE adapter.call. Kill-switch + risk gate
+    // decided centrally in decideGovernance (reuses @ar-agents/core classifier).
+    const decision = await decideGovernance(
+      governance,
+      name,
+      descriptionOf.get(name),
+      callArgs,
+      sideEffectsOf.get(name),
+    );
+    if (decision.kind !== "allow") {
+      return {
+        content: [{ type: "text", text: decision.message }],
+        isError: true,
+      };
+    }
+
     try {
-      const result = await adapter.call(name, args ?? {});
+      const result = await adapter.call(name, callArgs);
       return {
         content: [{ type: "text", text: JSON.stringify(result, null, 2) }],
       };
@@ -110,7 +174,7 @@ export async function createServer(): Promise<{ server: Server; summary: string[
     }
   });
 
-  return { server, summary };
+  return { server, summary, governance };
 }
 
 /**

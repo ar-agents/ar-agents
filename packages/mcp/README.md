@@ -12,6 +12,73 @@
 
 This package is the **MCP server wrapper** around the `@ar-agents/*` packages. If you're building agents in Vercel AI SDK 6 directly, you don't need this: install the individual packages. If you want to use the AR toolkit from **Claude Desktop, Cursor, Codeium, or any MCP host**, this is your one-stop install.
 
+## Governance: the art. 102 gate is ON by default
+
+This server moves **real money** (Mercado Pago), files **real taxes** (AFIP/ARCA) and can **constitute real companies** (IGJ). Argentina's Sociedad Automatizada regime (art. 102) makes a **human administrator** responsible for those acts and bars delegating that supervision. So, **by default**, this server enforces a governance gate:
+
+- A **`READ`-level** tool (e.g. `validate_cuit`, `lookup_cuit_afip`, `search_payments`) **always runs**: no gate.
+- A **money / fiscal / legal / irreversible** (or unclassifiable) tool is **REFUSED** unless you wire a human-approval hook. The refusal is a clear MCP error telling you what to do — **no money/fiscal/legal tool ever executes silently**.
+
+Classification reuses the same `@ar-agents/core` risk manifest the local agents use (`classifyTool` / `levelRequiresApproval`), fed each tool's `name`, `description` and `sideEffects`. The gate runs **before** the tool executes, so a denied call never touches the network.
+
+### Blast radius: the gate is fail-closed, so some READ tools are gated too
+
+Classification is by **name** (plus description / sideEffects). The `unknown` class **fails closed** — and **any tool whose name is not a recognized read verb is treated as `unknown` and is GATED by default-ON.** With every registry wired this is roughly **65 of ~145 exposed tools**, and it currently includes some genuine **read** tools whose names don't match the read-verb heuristic:
+
+| Category | Read tools currently GATED by default-ON |
+|---|---|
+| IGJ registry reads | `igj_get_entity`, `igj_search_entities`, `igj_get_autoridades`, `igj_get_domicilios`, `igj_get_asambleas` |
+| Boletín Oficial reads | `bo_search`, `bo_today`, `bo_get_norma`, `bo_list_subscriptions` |
+| Signature verification reads | `firma_inspect_cert`, `firma_verify_chain`, `firma_verify_cms_signature`, `firma_is_onti_issued` |
+| AFIP catalog reads | `obtener_alicuotas_iva`, `obtener_tipos_comprobante`, `obtener_tipos_documento`, `obtener_tipos_concepto`, `obtener_tipos_moneda` |
+| Shipping reads | `trackear_envio`, `listar_sucursales` |
+| Other | `lookup_credit_situation`, `mp_health_check` |
+
+This is intentional fail-safe behavior (better to gate a read than let an unknown tool move money silently), **not** a per-tool allowlist of "these are dangerous". To see the exact resolved risk level for **every** tool in **your** configuration, run:
+
+```bash
+ar-agents-mcp doctor
+```
+
+Its **GOVERNANCE** section lists each exposed tool, its resolved risk level, and whether it is GATED under your current env — so you see the precise blast radius before and after upgrading. To let the gated reads (and any approval-level tool) run, either **wire an approve hook** (below) or set **`AR_AGENTS_MCP_ENFORCE=off`** (ungated — not recommended for autonomous money/fiscal/legal acts). Reclassifying these names as `read` so they pass while real acts stay gated is a separate, deliberate change to the cross-package risk manifest, tracked outside this release.
+
+### Wiring human approval (HITL)
+
+When you embed the server in your own Node app:
+
+```ts
+import { createServer } from "@ar-agents/mcp";
+
+const { server } = await createServer({
+  governance: {
+    // Called before any money/fiscal/legal/irreversible/unknown tool.
+    // Return true to proceed, false (or throw) to refuse.
+    approve: async (toolName, args) => askHumanAdministrator(toolName, args),
+    // Optional kill-switch: when it returns true, EVERY tool refuses.
+    isHalted: async () => isSocietySuspended(),
+  },
+});
+```
+
+### Opting out (ungated passthrough)
+
+To restore the old behavior where every tool runs without a gate, set:
+
+```jsonc
+"env": { "AR_AGENTS_MCP_ENFORCE": "off" }
+```
+
+Resolution order: the explicit `createServer({ governance: { enforce } })` option **>** the `AR_AGENTS_MCP_ENFORCE` env var **>** default-**ON**. The boot summary (printed to **stderr**) shows the active mode, e.g. `governance → enforce=ON (art. 102 gate · NO approve hook → fail-closed DENY)`.
+
+### Kill-switch
+
+Set `AR_AGENTS_MCP_HALT=1` (or wire `governance.isHalted`) to suspend the whole society: **every** tool, read or not, refuses with a `society_suspended` error. Default is no halt — behavior is unchanged unless you wire it.
+
+| Env var | Default | Effect |
+|---|---|---|
+| `AR_AGENTS_MCP_ENFORCE` | **on** | `off` disables the art. 102 gate (ungated passthrough). |
+| `AR_AGENTS_MCP_HALT` | unset | `1` suspends every tool (`society_suspended`). |
+
 ## Quick start (Claude Desktop)
 
 Edit `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows):

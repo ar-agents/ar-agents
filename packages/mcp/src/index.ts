@@ -1,4 +1,14 @@
-export { createServer, startStdio } from "./server";
+export { createServer, startStdio, type CreateServerOptions } from "./server";
+export {
+  resolveGovernance,
+  decideGovernance,
+  describeGovernance,
+  type GovernanceOptions,
+  type ResolvedGovernance,
+  type GovernanceDecision,
+  type ApproveHook,
+  type HaltHook,
+} from "./governance";
 export {
   adaptToolSetToMcp,
   combineToolSets,
