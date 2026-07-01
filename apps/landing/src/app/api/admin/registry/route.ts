@@ -19,8 +19,10 @@ import { constantTimeEqual } from "@/lib/incorporate-auth";
 import {
   getRecord,
   listRecords,
+  setRailPosture,
   type RegistryStatus,
   type GoodStandingState,
+  type RailPosture,
 } from "@/lib/registry-store";
 import {
   transitionStatus,
@@ -120,6 +122,26 @@ export async function POST(req: Request) {
 
   if (!id) return jsonCors({ ok: false, error: "missing id" }, { status: 400, ...NO_STORE });
 
+  // Rail posture: a PII-free USD-rail declaration (not a lifecycle transition).
+  if (target === "rail-posture") {
+    const rp =
+      typeof body.railPosture === "object" && body.railPosture
+        ? (body.railPosture as Record<string, unknown>)
+        : {};
+    const usdRail =
+      rp.usdRail === "ousd" || rp.usdRail === "usdc" || rp.usdRail === "other" || rp.usdRail === null
+        ? (rp.usdRail as "ousd" | "usdc" | "other" | null)
+        : undefined;
+    const posture: RailPosture = {
+      ...(usdRail !== undefined ? { usdRail } : {}),
+      ...(typeof rp.ousdEnabled === "boolean" ? { ousdEnabled: rp.ousdEnabled } : {}),
+      ...(typeof rp.yieldEnabled === "boolean" ? { yieldEnabled: rp.yieldEnabled } : {}),
+    };
+    const rec = await setRailPosture(id, posture);
+    if (!rec) return jsonCors({ ok: false, error: "not_found" }, { status: 404, ...NO_STORE });
+    return jsonCors({ ok: true, record: rec }, NO_STORE);
+  }
+
   const opts = {
     ...(reason ? { reason } : {}),
     source: "admin",
@@ -141,7 +163,7 @@ export async function POST(req: Request) {
     result = await transitionGoodStanding(id, to as GoodStandingState, opts);
   } else {
     return jsonCors(
-      { ok: false, error: "target must be 'status' or 'good-standing'" },
+      { ok: false, error: "target must be 'status', 'good-standing', or 'rail-posture'" },
       { status: 400, ...NO_STORE },
     );
   }

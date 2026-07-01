@@ -310,6 +310,17 @@ interface AnswerBody {
     bankable: boolean;
   };
   /**
+   * ADDITIVE (rail posture): the entity's PII-FREE USD-rail posture (which USD
+   * rail it settles in + OUSD/yield enablement). Present only when set, so existing
+   * answers' canonical bytes are unchanged. NEVER carries amounts or addresses.
+   */
+  railPosture?: {
+    usdRail?: "ousd" | "usdc" | "other" | null;
+    ousdEnabled?: boolean;
+    yieldEnabled?: boolean;
+    asOf?: string;
+  };
+  /**
    * Forwarded trust-minimized anchors. These point at the TARGET's own publicly
    * -anchored attestation + the witness chain — the load-bearing trust, NOT this
    * registry's signature. When the target advertises no anchor, these resolve
@@ -624,6 +635,9 @@ export async function GET(req: Request): Promise<Response> {
     }
   }
 
+  // Rail posture (PII-FREE) is stored directly on the record — no extra read.
+  const railPosture = rec?.railPosture ?? null;
+
   const body: AnswerBody = {
     kind: "ar-agents.registry.good-standing",
     version: 1,
@@ -647,6 +661,7 @@ export async function GET(req: Request): Promise<Response> {
         }
       : null,
     ...(ubo ? { ubo } : {}),
+    ...(railPosture ? { railPosture } : {}),
     attestation: buildAttestationPointers(rec, targetAnchor),
   };
 
