@@ -84,3 +84,22 @@ export {
   AR_TAX_RULES,
   createArJurisdiction,
 } from "./jurisdictions/ar";
+
+// USD-rail architecture (rail-neutral). The accounting_payload makes any USD
+// stablecoin movement local-currency-correct; OpenUsdRail is the flagship FiatRail
+// impl for Open USD (OUSD), MOCK-only until OUSD is live + legally cleared.
+export {
+  type FxRate,
+  type FxOracle,
+  type AccountingPayload,
+  buildAccountingPayload,
+  mockFxOracle,
+} from "./rails/accounting";
+export {
+  OPEN_USD,
+  type OpenUsdRail,
+  type OpenUsdRailOptions,
+  type OpenUsdSettlementBackend,
+  createOpenUsdRail,
+  mockOpenUsdBackend,
+} from "./rails/open-usd";
