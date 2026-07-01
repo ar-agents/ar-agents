@@ -21,7 +21,7 @@
  * Vercel AI Gateway, same as /api/demo and /api/play.
  */
 
-import { generateObject } from "ai";
+import { gwGenerateObject } from "./llm-gateway";
 import { z } from "zod";
 import { Body, PIEZA_IDS, REQUIRED_PIEZAS, type IncorporateInput } from "./incorporate";
 
@@ -62,10 +62,6 @@ export type SocietyExtraction = z.infer<typeof ExtractionSchema>;
 export const SocietyDraftSchema = Body.omit({ sessionId: true });
 export type SocietyDraft = z.infer<typeof SocietyDraftSchema>;
 
-// Gateway-routed model id. The string form needs no provider import (resolved by
-// the Vercel AI Gateway), matching the other LLM routes in this app.
-export const EXTRACTION_MODEL = "anthropic/claude-sonnet-4-6";
-
 /**
  * The model seam. Receives the system + user prompt, returns the raw object the
  * model produced. Swapped for a fake in tests. The return is `unknown` on
@@ -74,17 +70,22 @@ export const EXTRACTION_MODEL = "anthropic/claude-sonnet-4-6";
  */
 export type DraftGenerator = (args: { system: string; prompt: string }) => Promise<unknown>;
 
+// The default seam routes through the llm-gateway: the single boundary that
+// resolves the model (via the Vercel AI Gateway, config-only provider switch) and
+// records a posture-tagged audit. generateObject keeps the output schema-constrained,
+// so the model emits DATA, never executable text ("LLMs suggest, code decides").
 const defaultGenerator: DraftGenerator = async ({ system, prompt }) => {
-  const { object } = await generateObject({
-    model: EXTRACTION_MODEL,
-    schema: ExtractionSchema,
-    instructions: system,
-    prompt,
-    // The draft is small; bound the output so a hostile prompt can't run the
-    // bill up via a huge generation.
-    maxOutputTokens: 800,
-  });
-  return object;
+  return gwGenerateObject(
+    { purpose: "prompt-to-society" },
+    {
+      schema: ExtractionSchema,
+      instructions: system,
+      prompt,
+      // The draft is small; bound the output so a hostile prompt can't run the
+      // bill up via a huge generation.
+      maxOutputTokens: 800,
+    },
+  );
 };
 
 /** Hard cap on the prompt length, so a single request can't drive a large

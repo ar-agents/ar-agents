@@ -7,7 +7,7 @@
 // let regulators, journalists, and curious devs SEE an agent operating
 // an Argentine sociedad-IA without any setup.
 //
-// Routing: model string "anthropic/claude-sonnet-4-6" goes through the
+// Routing: the gateway model (lib/llm-gateway.ts) goes through the
 // Vercel AI Gateway. On a Vercel deployment with the gateway enabled this
 // just works, no provider package, no ANTHROPIC_API_KEY to manage. The
 // gateway gives us per-route observability, single-line billing in the
@@ -28,7 +28,8 @@
 //   keyed on the platform-authenticated client IP (never the spoofable
 //   leftmost x-forwarded-for hop).
 
-import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
+import { convertToModelMessages, tool, type UIMessage } from "ai";
+import { gwStreamText } from "@/lib/llm-gateway";
 import { z } from "zod";
 import { appendAudit, type AuditGovernance, isSessionIdValid, backend } from "@/lib/audit";
 import { clientIp } from "@/lib/ratelimit";
@@ -732,18 +733,20 @@ export async function POST(req: Request) {
   const modelMessages = await convertToModelMessages(messages);
 
   try {
-    const result = streamText({
-      model: "anthropic/claude-sonnet-4-6",
-      instructions: SYSTEM,
-      messages: modelMessages,
-      // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      tools: wrapWithAudit(tools as any, sessionId),
-      stopWhen: ({ steps }) => steps.length >= 12,
-      temperature: 0.4,
-      providerOptions: {
-        anthropic: { maxOutputTokens: 1200 },
+    const result = gwStreamText(
+      { purpose: "play-chat", sessionId, audit: false },
+      {
+        instructions: SYSTEM,
+        messages: modelMessages,
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        tools: wrapWithAudit(tools as any, sessionId),
+        stopWhen: ({ steps }) => steps.length >= 12,
+        temperature: 0.4,
+        providerOptions: {
+          anthropic: { maxOutputTokens: 1200 },
+        },
       },
-    });
+    );
     return result.toUIMessageStreamResponse({
       headers: {
         "x-ratelimit-remaining": String(rl.remaining),
