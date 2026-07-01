@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/treasury",
-  "version": "0.3.0",
+  "version": "0.4.0",
   "description": "Treasury + fiscal rail for an Argentine Sociedad Automatizada: pure-logic core (balances, tax buffer, just-in-time crypto->ARS conversion policy, Ganancias cedular accounting) plus an OffRampAdapter to a registered PSAV (Manteca / Ripio B2B) for USDC->ARS payout to a CVU. The moat half of the crypto<->fiat bridge: how an autonomous society gets pesos to pay AFIP.",
   "keywords": [
     "ar-agents",
