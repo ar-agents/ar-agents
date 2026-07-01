@@ -196,10 +196,14 @@ export async function GET(req: Request): Promise<Response> {
     return true;
   });
 
-  // Strip the owner-token hash from the public mirror.
+  // Strip the owner-token hash AND the formation block from the public mirror:
+  // formation.sidecar carries the representante's SELF-DECLARED name + CUIT (PII)
+  // and the rest is internal operational detail. The Formation Pack is served only
+  // via the admin-gated /api/formation/pack; the public list stays PII-free.
   const records = filtered.map((r) => {
-    const { ownerTokenHash: _omit, ...pub } = r;
+    const { ownerTokenHash: _omit, formation: _formation, ...pub } = r;
     void _omit;
+    void _formation;
     return pub;
   });
 
