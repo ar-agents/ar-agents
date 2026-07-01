@@ -649,6 +649,15 @@ function cmdAttestation(args) {
     console.error(`${RED}✗ INVALID${RST} - attestation was altered or forged`);
     process.exit(1);
   }
+  // Domain separation: a valid signature over a DIFFERENT artifact type (a
+  // good-standing answer, a certificate, a portability manifest — all signed with
+  // the same key) must NOT verify here as an attestation. Assert the discriminator.
+  if (att.body.kind !== "vultur.compliance.attestation") {
+    console.error(
+      `${RED}✗${RST} kind mismatch: expected vultur.compliance.attestation, got ${att.body.kind ?? "(none)"} - a signature over a different artifact type is not an attestation`,
+    );
+    process.exit(1);
+  }
   const s = att.body.society ?? {};
   const c = att.body.chain ?? {};
   console.log(`${GREEN}✓ VALID${RST} vultur.compliance.attestation`);
@@ -708,6 +717,22 @@ function cmdGoodStanding(args) {
     process.exit(1);
   }
   const b = ans.body;
+  // Domain separation: reject a signed body of a different kind presented here.
+  if (b.kind !== "ar-agents.registry.good-standing") {
+    console.error(
+      `${RED}✗${RST} kind mismatch: expected ar-agents.registry.good-standing, got ${b.kind ?? "(none)"}`,
+    );
+    process.exit(1);
+  }
+  // Freshness: a good-standing verdict goes stale (the entity can be suspended,
+  // revoked, or degrade). Reject a body presented after its signed expiresAt so a
+  // captured "active" answer cannot replay forever offline.
+  if (b.expiresAt && Date.parse(b.expiresAt) <= Date.now()) {
+    console.error(
+      `${RED}✗ EXPIRED${RST} good-standing answer expired at ${b.expiresAt} - re-fetch the live oracle; a stale verdict must not be trusted`,
+    );
+    process.exit(1);
+  }
   const r = b.record ?? {};
   const g = b.goodStanding ?? {};
   console.log(`${GREEN}✓ VALID${RST} ar-agents.registry.good-standing`);
@@ -816,6 +841,14 @@ function cmdCertificate(args) {
   if (cert.status !== "revoked" && cert.expiresAt && Date.parse(cert.expiresAt) <= Date.now()) {
     console.log(
       `  ${DIM}note: signature is valid but expiresAt is in the past - this certificate has EXPIRED (status is recomputed at read, not re-signed).${RST}`,
+    );
+  }
+  // A signature is valid over a status:"valid" body forever; a later revocation
+  // re-signs a status:"revoked" body but CANNOT invalidate a previously-captured
+  // copy. Offline VALID therefore does NOT prove the cert is still live — say so.
+  if (cert.status !== "revoked") {
+    console.log(
+      `  ${DIM}note: offline VALID proves origin + integrity, NOT that this cert is still LIVE - a later revocation cannot invalidate this captured copy. Confirm current status online: GET /api/certifier/cert/${cert.certId}.${RST}`,
     );
   }
   console.log(

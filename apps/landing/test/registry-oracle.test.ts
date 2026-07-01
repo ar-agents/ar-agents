@@ -39,6 +39,7 @@ vi.mock("@vercel/kv", () => ({
       kvStore.set(k, n);
       return n;
     },
+    del: async (k: string) => (kvStore.delete(k) ? 1 : 0),
     expire: async () => 1,
   },
 }));
@@ -140,6 +141,56 @@ describe("good-standing oracle", () => {
     expect(json.alg).toBe("Ed25519");
     expect(json.publicKey).toBe(PUB_B64STD);
     expect(verifyOffline(json)).toBe(true);
+  });
+
+  it("C3: the signed body carries a future expiresAt (bounds offline replay)", async () => {
+    const res = await GET(req(`url=${encodeURIComponent(SEED_URL_ENTRY.publicUrl)}`));
+    const json = (await res.json()) as { body: { issuedAt: string; expiresAt: string } };
+    expect(typeof json.body.expiresAt).toBe("string");
+    expect(Date.parse(json.body.expiresAt)).toBeGreaterThan(Date.parse(json.body.issuedAt));
+    expect(Date.parse(json.body.expiresAt)).toBeGreaterThan(Date.now());
+  });
+
+  it("C2: a SUSPENDED society answers attesting:false + state suspended, not active", async () => {
+    const { setSuspended } = await import("../src/lib/suspension");
+    const rec: RegistryRecord = {
+      id: "susp-co",
+      name: "Suspendible Automatizada",
+      type: "productive-sociedad-ia",
+      jurisdiction: "AR",
+      operator: "Test",
+      publicUrl: "https://susp-co.example.com",
+      rfcConformance: [],
+      disclosure: { es: "x", en: "x" },
+      status: "live",
+      listedSince: "2026-01-01",
+      goodStanding: {
+        state: "active",
+        lastCheckedAt: "2026-01-01T00:00:00.000Z",
+        lastScore: 100,
+        lastRating: "A",
+      },
+      createdAt: "2026-01-01T00:00:00.000Z",
+      updatedAt: "2026-01-01T00:00:00.000Z",
+      source: "formed",
+      sessionId: "session-susp-123",
+    };
+    await upsertRecord(rec);
+
+    // Before the kill-switch: active + attesting (no attesting flag emitted).
+    const before = (await (await GET(req("id=susp-co"))).json()) as Record<string, any>;
+    expect(before.body.goodStanding.state).toBe("active");
+    expect(before.body.goodStanding.attesting).toBeUndefined();
+
+    // Throw the art.102 kill-switch (keyed by the incorporation sessionId, a
+    // SEPARATE store the oracle historically ignored — the C2 bug).
+    await setSuspended("session-susp-123", true);
+
+    const after = (await (await GET(req("id=susp-co"))).json()) as Record<string, any>;
+    expect(after.body.goodStanding.state).toBe("suspended");
+    expect(after.body.goodStanding.attesting).toBe(false);
+    // And the answer must NOT carry a dimensional score for a killed entity.
+    expect(after.body.goodStanding.dimensions).toBeUndefined();
   });
 
   it("a tampered body fails offline verification", async () => {

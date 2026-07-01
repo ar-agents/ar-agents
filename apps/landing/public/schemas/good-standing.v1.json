@@ -13,6 +13,7 @@
         "kind",
         "version",
         "issuedAt",
+        "expiresAt",
         "query",
         "found",
         "record",
@@ -23,6 +24,11 @@
         "kind": { "type": "string", "const": "ar-agents.registry.good-standing" },
         "version": { "type": "integer", "const": 1 },
         "issuedAt": { "type": "string", "format": "date-time" },
+        "expiresAt": {
+          "type": "string",
+          "format": "date-time",
+          "description": "Signed validity horizon. A verifier MUST reject a body presented after this instant — it bounds offline replay of a stale verdict (the `good-standing` arg-verify verb enforces it)."
+        },
         "query": {
           "type": "object",
           "required": ["by", "value"],

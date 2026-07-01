@@ -132,6 +132,20 @@ export function validate(input: IncorporateInput): {
       message:
         "El régimen sociedad-IA aún no está sancionado (anuncio Sturzenegger 28-abr-2026; estimado H1 2027).",
     });
+    // art. 14 (anteproyecto): the denomination of a sociedad automatizada must
+    // include "automatizada". Enforced SERVER-SIDE here — not just in the eve tool's
+    // client-side Zod .refine — so every surface that constitutes an automated
+    // society (POST /api/auto-incorporate, /incorporar, the agent) rejects a
+    // non-compliant name identically. Conventional types (SAS/SRL/SA) are exempt.
+    if (!/\bautomatizada\b/i.test(input.denominacion)) {
+      findings.push({
+        code: "denominacion_missing_automatizada",
+        severity: "error",
+        field: "denominacion",
+        message:
+          "Una sociedad automatizada (art. 14) debe incluir la palabra 'automatizada' en su denominación.",
+      });
+    }
   }
   if (input.representante?.cuit) {
     if (!canonicalCuit(input.representante.cuit)) {

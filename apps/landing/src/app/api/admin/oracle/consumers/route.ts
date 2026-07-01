@@ -10,6 +10,7 @@
 import { jsonCors, preflight } from "@/lib/cors";
 import { constantTimeEqual } from "@/lib/incorporate-auth";
 import { mintConsumerKey, listConsumers, revokeConsumer } from "@/lib/oracle-consumer";
+import { deleteWebhooksForConsumer } from "@/lib/oracle-webhooks";
 
 export const runtime = "nodejs";
 
@@ -44,9 +45,14 @@ export async function POST(req: Request) {
   }
 
   if (typeof body.revoke === "string" && body.revoke.trim()) {
-    const ok = await revokeConsumer(body.revoke.trim());
+    const id = body.revoke.trim();
+    const ok = await revokeConsumer(id);
     if (!ok) return jsonCors({ ok: false, error: "not_found" }, { status: 404, ...NO_STORE });
-    return jsonCors({ ok: true, revoked: body.revoke.trim() }, NO_STORE);
+    // Cascade: tear down the consumer's push subscriptions so the revoked party
+    // stops receiving the signed feed (delivery also skips revoked consumers, but
+    // this frees the hooks). Best-effort — revocation itself already succeeded.
+    const webhooksDeleted = await deleteWebhooksForConsumer(id).catch(() => 0);
+    return jsonCors({ ok: true, revoked: id, webhooksDeleted }, NO_STORE);
   }
 
   const label = typeof body.label === "string" ? body.label.trim() : "";

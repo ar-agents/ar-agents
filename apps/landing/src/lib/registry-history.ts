@@ -9,6 +9,7 @@
  */
 
 import { kv } from "@vercel/kv";
+import { withKvLock } from "./kv-lock";
 import type { RegistryStatus, GoodStandingState, Rating } from "./registry-store";
 
 export interface HistoryPoint {
@@ -61,18 +62,22 @@ export async function recordHistoryPoint(
 ): Promise<void> {
   if (!entityId) return;
   try {
-    const date = point.date ?? new Date().toISOString().slice(0, 10);
-    const list = await read(entityId);
-    const next = list.filter((p) => p.date !== date); // idempotent per day
-    next.push({
-      date,
-      status: point.status,
-      state: point.state,
-      score: point.score,
-      rating: point.rating,
+    // Read→dedupe-by-day→write under a per-entity lock so two concurrent points
+    // (e.g. an admin transition racing the daily historize) can't drop each other.
+    await withKvLock(`registry:history:${entityId}`, async () => {
+      const date = point.date ?? new Date().toISOString().slice(0, 10);
+      const list = await read(entityId);
+      const next = list.filter((p) => p.date !== date); // idempotent per day
+      next.push({
+        date,
+        status: point.status,
+        state: point.state,
+        score: point.score,
+        rating: point.rating,
+      });
+      next.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
+      await write(entityId, next);
     });
-    next.sort((a, b) => (a.date < b.date ? -1 : a.date > b.date ? 1 : 0));
-    await write(entityId, next);
   } catch {
     // best-effort
   }

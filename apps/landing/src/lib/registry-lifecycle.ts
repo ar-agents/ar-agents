@@ -15,12 +15,15 @@
 
 import {
   getRecord,
-  upsertRecord,
-  setGoodStanding,
+  upsertRecordRaw,
+  setGoodStandingRaw,
+  withEntityLock,
+  RevokedTerminalError,
   type RegistryRecord,
   type RegistryStatus,
   type GoodStandingState,
 } from "./registry-store";
+import { KvLockError } from "./kv-lock";
 import { appendIncident, incidentSummary, type IncidentSeverity } from "./registry-incidents";
 import { recordHistoryPoint } from "./registry-history";
 import { scoreEntry } from "./good-standing-score";
@@ -53,7 +56,7 @@ export function canTransitionGoodStanding(from: GoodStandingState, to: GoodStand
   return GOOD_STANDING_TRANSITIONS[from].includes(to);
 }
 
-export type TransitionError = "not_found" | "illegal_transition";
+export type TransitionError = "not_found" | "illegal_transition" | "contended";
 export type TransitionResult =
   | { ok: true; record: RegistryRecord }
   | { ok: false; error: TransitionError };
@@ -86,20 +89,35 @@ async function historize(rec: RegistryRecord): Promise<void> {
   });
 }
 
-/** Transition an entity's registry STATUS (lifecycle). Validated + historized. */
+/** Transition an entity's registry STATUS (lifecycle). Validated + historized.
+ * The read + validate + write run under the per-entity lock so a concurrent
+ * good-standing write cannot be clobbered by this transition's stale whole-record
+ * snapshot (the lost-update / revoked→active resurrection race, L3). */
 export async function transitionStatus(
   id: string,
   to: RegistryStatus,
   opts: TransitionOpts = {},
 ): Promise<TransitionResult> {
-  const rec = await getRecord(id);
-  if (!rec) return { ok: false, error: "not_found" };
-  if (!canTransitionStatus(rec.status, to)) return { ok: false, error: "illegal_transition" };
+  let result: TransitionResult;
+  try {
+    result = await withEntityLock(id, async (): Promise<TransitionResult> => {
+      const rec = await getRecord(id);
+      if (!rec) return { ok: false, error: "not_found" };
+      if (!canTransitionStatus(rec.status, to)) return { ok: false, error: "illegal_transition" };
+      const next: RegistryRecord = { ...rec, status: to, updatedAt: new Date().toISOString() };
+      const saved = await upsertRecordRaw(next);
+      if (!saved) return { ok: false, error: "not_found" };
+      return { ok: true, record: saved };
+    });
+  } catch (e) {
+    if (e instanceof KvLockError) return { ok: false, error: "contended" };
+    throw e;
+  }
+  if (!result.ok) return result;
+  const saved = result.record;
 
-  const next: RegistryRecord = { ...rec, status: to, updatedAt: new Date().toISOString() };
-  const saved = await upsertRecord(next);
-  if (!saved) return { ok: false, error: "not_found" };
-
+  // Side-effects run OUTSIDE the entry lock — incidents/history take their own
+  // per-resource locks (no re-entrancy), webhooks are fire-and-forget.
   if (opts.incident) {
     await appendIncident(id, {
       kind: opts.incident.kind ?? `status:${to}`,
@@ -121,17 +139,35 @@ export async function transitionGoodStanding(
   to: GoodStandingState,
   opts: TransitionOpts = {},
 ): Promise<TransitionResult> {
-  const rec = await getRecord(id);
-  if (!rec) return { ok: false, error: "not_found" };
-  if (!canTransitionGoodStanding(rec.goodStanding.state, to)) {
-    return { ok: false, error: "illegal_transition" };
+  let result: TransitionResult;
+  try {
+    result = await withEntityLock(id, async (): Promise<TransitionResult> => {
+      const rec = await getRecord(id);
+      if (!rec) return { ok: false, error: "not_found" };
+      if (!canTransitionGoodStanding(rec.goodStanding.state, to)) {
+        return { ok: false, error: "illegal_transition" };
+      }
+      let saved: RegistryRecord | null;
+      try {
+        saved = await setGoodStandingRaw(id, {
+          state: to,
+          ...(opts.reason ? { reason: opts.reason } : {}),
+        });
+      } catch (e) {
+        // Terminal-revoked guard fired (e.g. a concurrent revoke landed) — the
+        // transition is illegal against the just-read-under-lock state.
+        if (e instanceof RevokedTerminalError) return { ok: false, error: "illegal_transition" };
+        throw e;
+      }
+      if (!saved) return { ok: false, error: "not_found" };
+      return { ok: true, record: saved };
+    });
+  } catch (e) {
+    if (e instanceof KvLockError) return { ok: false, error: "contended" };
+    throw e;
   }
-
-  const saved = await setGoodStanding(id, {
-    state: to,
-    ...(opts.reason ? { reason: opts.reason } : {}),
-  });
-  if (!saved) return { ok: false, error: "not_found" };
+  if (!result.ok) return result;
+  const saved = result.record;
 
   if (opts.incident) {
     await appendIncident(id, {

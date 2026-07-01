@@ -108,6 +108,26 @@ describe("approval queue: gate -> resolve -> consume", () => {
     expect([a.approved, b.approved].filter(Boolean).length).toBe(1); // exactly one proceeds
   });
 
+  it("resolve is ATOMIC: concurrent approve+deny commit exactly ONE decision (C5)", async () => {
+    const token = await seedSociety("soc-c5");
+    const g = await gateAction("soc-c5", "transfer_funds", { x: 1 });
+    const [a, b] = await Promise.all([
+      authorizeAndResolve({ id: g.requestId!, approved: true, adminToken: token, nombre: NOMBRE }),
+      authorizeAndResolve({ id: g.requestId!, approved: false, adminToken: token, nombre: NOMBRE }),
+    ]);
+    // Exactly one commits; the loser gets 409 ya_resuelta (not a second signed act).
+    expect([a, b].filter((r) => r.ok).length).toBe(1);
+    const losers = [a, b].filter((r) => !r.ok) as Array<{ ok: false; status: number; error: string }>;
+    expect(losers.length).toBe(1);
+    expect(losers[0]!.status).toBe(409);
+    expect(losers[0]!.error).toBe("ya_resuelta");
+    // The durable art.102 log carries exactly ONE decision, never two contradictory acts.
+    const acts = (await readAudit("soc-c5")).filter(
+      (e) => e.tool === "aprobar_accion" || e.tool === "denegar_accion",
+    );
+    expect(acts.length).toBe(1);
+  });
+
   it("pendingApprovals lists pending, excludes resolved", async () => {
     const token = await seedSociety("soc-e");
     const g1 = await gateAction("soc-e", "tool_a", { x: 1 });

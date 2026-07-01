@@ -128,8 +128,16 @@ export function decideSpending(
  * A kill-switch (HaltHook) wired to the ar-agents registry good-standing state.
  * Wire it as `createServer({ governance: { isHalted: goodStandingHalt({ entityId }) } })`
  * and the registry can REMOTELY halt this entity: once it is `suspended`/`revoked`
- * in the registry, every tool refuses. Best-effort: a transient oracle error does
- * NOT halt by default (set haltOnUnreachable:true for a stricter fail-closed posture).
+ * in the registry, every tool refuses.
+ *
+ * FAIL-CLOSED by default: an INDETERMINATE oracle answer (non-2xx — including the
+ * 429 an attacker could induce by flooding the operator's egress past the oracle's
+ * rate limit — a 5xx, a timeout, or a network error) HALTS. A kill-switch that
+ * fails OPEN is bypassed precisely when it matters (a suspended entity would keep
+ * authorizing money/fiscal/legal tools during an outage). Only a DEFINITIVE 2xx
+ * answer whose state is neither suspended nor revoked lets tools proceed. An
+ * operator who prefers availability over this safety can set
+ * `haltOnUnreachable:false`, accepting that the kill-switch is unreliable then.
  */
 export function goodStandingHalt(opts: {
   entityId?: string;
@@ -139,6 +147,7 @@ export function goodStandingHalt(opts: {
   timeoutMs?: number;
 }): HaltHook {
   const base = (opts.oracleBase ?? "https://ar-agents.ar").replace(/\/+$/, "");
+  const haltOnUnreachable = opts.haltOnUnreachable ?? true;
   return async () => {
     if (!opts.entityId && !opts.entityUrl) return false;
     const q = opts.entityId
@@ -149,12 +158,25 @@ export function goodStandingHalt(opts: {
         signal: AbortSignal.timeout(opts.timeoutMs ?? 4000),
         headers: { "user-agent": "ar-agents-mcp-killswitch" },
       });
-      if (!r.ok) return opts.haltOnUnreachable ?? false;
-      const d = (await r.json()) as { body?: { goodStanding?: { state?: string } } };
-      const state = d.body?.goodStanding?.state;
+      // Non-2xx (429/5xx/…) is INDETERMINATE — we cannot confirm the entity is in
+      // good standing, so fail closed by default.
+      if (!r.ok) return haltOnUnreachable;
+      const d = (await r.json()) as {
+        body?: { goodStanding?: { state?: unknown } | null };
+      };
+      const gs = d.body?.goodStanding;
+      // A well-formed "not in registry" answer (found:false ⇒ goodStanding null) is
+      // NOT a sanction — proceed (the kill-switch gates suspensions, not registration).
+      if (gs == null) return false;
+      const state = (gs as { state?: unknown }).state;
+      const KNOWN = ["active", "unverified", "suspended", "revoked"];
+      // A present-but-unrecognized/missing state is a MALFORMED authentic-200 body:
+      // indeterminate → fail closed by default (do not proceed on a garbage verdict).
+      if (typeof state !== "string" || !KNOWN.includes(state)) return haltOnUnreachable;
       return state === "suspended" || state === "revoked";
     } catch {
-      return opts.haltOnUnreachable ?? false;
+      // Timeout / network error / unparseable body → indeterminate → fail closed.
+      return haltOnUnreachable;
     }
   };
 }

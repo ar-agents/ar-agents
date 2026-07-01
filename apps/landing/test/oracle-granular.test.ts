@@ -207,6 +207,28 @@ describe("oracle webhooks", () => {
     expect(verifyOffline(payload.body, payload.sig, payload.publicKey)).toBe(true);
   });
 
+  it("L1: does NOT deliver to a REVOKED consumer's webhook (push channel is cut, not just pull)", async () => {
+    const minted = (await mintConsumerKey("Banco Revocable"))!;
+    await registerWebhook(minted.consumer.id, "https://hooks.example.com/revoked-target", "e1");
+    // Delivers while the consumer is active.
+    await fireWebhooks({ entityId: "e1", kind: "good-standing", to: "active" });
+    expect(fetchSpy).toHaveBeenCalledTimes(1);
+    fetchSpy.mockClear();
+    // Revoke → the signed PUSH feed must stop, not only the pull path.
+    expect(await revokeConsumer(minted.consumer.id)).toBe(true);
+    await fireWebhooks({ entityId: "e1", kind: "good-standing", to: "revoked", reason: "fraud" });
+    expect(fetchSpy).toHaveBeenCalledTimes(0);
+  });
+
+  it("L1: deleteWebhooksForConsumer tears down a consumer's hooks (revoke cascade)", async () => {
+    const { deleteWebhooksForConsumer, listWebhooks } = await import("../src/lib/oracle-webhooks");
+    const minted = (await mintConsumerKey("Banco X"))!;
+    await registerWebhook(minted.consumer.id, "https://hooks.example.com/a", "e1");
+    await registerWebhook(minted.consumer.id, "https://hooks.example.com/b");
+    expect(await deleteWebhooksForConsumer(minted.consumer.id)).toBe(2);
+    expect(await listWebhooks(minted.consumer.id)).toHaveLength(0);
+  });
+
   it("route: consumer registers + lists + deletes its own webhook", async () => {
     process.env.REGISTRY_ADMIN_TOKEN = "adm";
     const { key } = (await mintConsumerKey("Banco"))!;
