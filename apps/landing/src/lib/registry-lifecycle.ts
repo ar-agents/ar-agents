@@ -24,6 +24,7 @@ import {
 import { appendIncident, incidentSummary, type IncidentSeverity } from "./registry-incidents";
 import { recordHistoryPoint } from "./registry-history";
 import { scoreEntry } from "./good-standing-score";
+import { fireWebhooks } from "./oracle-webhooks";
 
 /** Allowed status transitions. from===to is always allowed (idempotent no-op). */
 export const STATUS_TRANSITIONS: Record<RegistryStatus, RegistryStatus[]> = {
@@ -108,6 +109,8 @@ export async function transitionStatus(
     });
   }
   await historize(saved);
+  // Notify subscribed consumers (best-effort; never blocks the transition).
+  void fireWebhooks({ entityId: id, kind: "status", to, ...(opts.reason ? { reason: opts.reason } : {}) });
   return { ok: true, record: saved };
 }
 
@@ -139,5 +142,7 @@ export async function transitionGoodStanding(
     });
   }
   await historize(saved);
+  // Notify subscribed consumers (best-effort; never blocks the transition).
+  void fireWebhooks({ entityId: id, kind: "good-standing", to, ...(opts.reason ? { reason: opts.reason } : {}) });
   return { ok: true, record: saved };
 }
