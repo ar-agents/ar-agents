@@ -13,9 +13,9 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "cuit-hello — Fase 3",
+  title: "whatsapp-hello — ar-agents",
   description:
-    "AFIP CUIT validation as a Vercel AI SDK agent tool. Algorithm-only in v0.1; full AFIP padron lookup in v0.2.",
+    "WhatsApp billing assistant for Argentine SaaS: an AI agent combining @ar-agents/identity, identity-attest, mercadopago and whatsapp. WhatsApp sending runs in mock mode until Meta Business verification.",
 };
 
 export default function RootLayout({

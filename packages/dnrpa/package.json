@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/dnrpa",
   "version": "0.2.2",
-  "description": "DNRPA (Dirección Nacional de los Registros Nacionales de la Propiedad del Automotor) agent toolkit for the Vercel AI SDK 6. Browser-backed lookups against the public DNRPA portal: domain/patente status, last known holder, mortgage/encumbrance flags. Adapter pattern: typed mock out of the box, BrowserDnrpaAdapter when wired to a browse runtime.",
+  "description": "DNRPA (Dirección Nacional de los Registros Nacionales de la Propiedad del Automotor) agent toolkit for the Vercel AI SDK 6. Domain/patente lookups: status, last known holder, mortgage/encumbrance flags. Ships Unconfigured (throws) + InMemory (test) adapters only; a real Browser/HTTP DNRPA adapter is not included yet, wire your own.",
   "keywords": [
     "dnrpa",
     "automotor",
@@ -15,7 +15,7 @@
     "vehicle"
   ],
   "license": "MIT",
-  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "author": "Nazareno Clemente <naza@naza.ar>",
   "funding": {
     "type": "github",
     "url": "https://github.com/sponsors/naza00000"

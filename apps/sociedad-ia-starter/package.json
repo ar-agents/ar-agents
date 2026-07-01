@@ -2,7 +2,7 @@
   "name": "sociedad-ia-starter",
   "version": "0.1.14",
   "private": true,
-  "description": "Reference Next.js app for an Argentine sociedad-IA: operated by an LLM agent on top of @ar-agents/* (36 packages, 235 tools). Edge Runtime, Vercel AI SDK 6 native, RFC-001 governance, HMAC-signed audit log. Deploy in one click.",
+  "description": "Reference Next.js app for an Argentine sociedad-IA: operated by an LLM agent on top of @ar-agents/* (37 packages, 243 tools). Edge Runtime, Vercel AI SDK 6 native, RFC-001 governance, HMAC-signed audit log. Deploy in one click.",
   "keywords": [
     "vercel-template",
     "next-app-router",
@@ -27,7 +27,7 @@
     "audit-log"
   ],
   "license": "MIT",
-  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "author": "Nazareno Clemente <naza@naza.ar>",
   "homepage": "https://ar-agents.ar/templates",
   "repository": {
     "type": "git",

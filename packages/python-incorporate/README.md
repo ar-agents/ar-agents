@@ -6,6 +6,8 @@
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 [![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue.svg)](https://www.python.org/downloads/)
 
+> **Status: not yet published to PyPI.** The `pip install ar-agents-incorporate` command below and the PyPI badge above will not resolve until the first release is pushed (publishing is founder-auth-gated). To use it today, install from source (`pip install -e packages/python-incorporate` from a clone). The npm mirror `@ar-agents/incorporate` is published and usable now.
+
 ## Why
 
 The npm `@ar-agents/incorporate` is the canonical surface for TypeScript orchestrators. This package is the same surface, in idiomatic Python, for the very-large slice of agent infrastructure that runs on Python (Anthropic SDK, OpenAI SDK, LangChain, LangGraph, llama-index, custom orchestration scripts, Jupyter notebooks).

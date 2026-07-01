@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/cnv-emisor",
   "version": "0.2.2",
-  "description": "CNV (Comisión Nacional de Valores) issuer agent toolkit for the Vercel AI SDK 6. Read issuer registry, latest hechos relevantes (material facts), financial-statement filings, and security-prospectus metadata from CNV's public Autopista de Información Financiera (AIF). Adapter pattern keeps unit tests offline.",
+  "description": "CNV (Comisión Nacional de Valores) issuer agent toolkit for the Vercel AI SDK 6. Read issuer registry, latest hechos relevantes (material facts), financial-statement filings, and security-prospectus metadata for CNV's public Autopista de Información Financiera (AIF). Ships Unconfigured (throws) + InMemory (test) adapters only; the real AIF HTTP adapter is not included yet, wire your own or supply one. Adapter pattern keeps unit tests offline.",
   "keywords": [
     "cnv",
     "aif",
@@ -16,7 +16,7 @@
     "regtech"
   ],
   "license": "MIT",
-  "author": "Nazareno Clemente <naza@helloastro.co>",
+  "author": "Nazareno Clemente <naza@naza.ar>",
   "funding": {
     "type": "github",
     "url": "https://github.com/sponsors/naza00000"

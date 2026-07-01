@@ -48,7 +48,7 @@ describe("central classifier conformance vs package manifests", () => {
   const mustConfirm = all.filter(({ tool }) => tool.requiresConfirmation === true);
 
   it("reads the real tool inventory off disk", () => {
-    // ~235 tools across ~34 manifests at time of writing; guard a sane floor so
+    // ~243 tools across ~34 manifests at time of writing; guard a sane floor so
     // a glob that silently finds nothing can't make the invariants vacuous.
     expect(all.length).toBeGreaterThan(150);
     expect(mustConfirm.length).toBeGreaterThan(0);

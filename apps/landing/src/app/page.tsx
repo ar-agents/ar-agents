@@ -163,7 +163,7 @@ export default function Home() {
               <div style={{ ...proofStrip, marginTop: 28 }}>
                 <span>Open source · MIT</span>
                 <span aria-hidden="true">·</span>
-                <span>36 {es ? "paquetes en npm" : "npm packages"}</span>
+                <span>37 {es ? "paquetes en npm" : "npm packages"}</span>
                 <span aria-hidden="true">·</span>
                 <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
               </div>

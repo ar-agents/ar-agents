@@ -238,8 +238,8 @@ const LAYERS: ReadonlyArray<Layer> = [
     payer: { es: "Nadie", en: "No one" },
     status: "free",
     fair: {
-      es: "36 paquetes (MIT) + 6 RFCs (CC-BY-4.0) + wizard. Gratis y self-hosteable.",
-      en: "36 packages (MIT) + 6 RFCs (CC-BY-4.0) + wizard. Free and self-hostable.",
+      es: "37 paquetes (MIT) + 6 RFCs (CC-BY-4.0) + wizard. Gratis y self-hosteable.",
+      en: "37 packages (MIT) + 6 RFCs (CC-BY-4.0) + wizard. Free and self-hostable.",
     },
   },
   {
