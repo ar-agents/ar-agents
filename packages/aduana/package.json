@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/aduana",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "ARCA Aduana (formerly AFIP Aduana / María) agent toolkit for the Vercel AI SDK 6. Look up import/export declarations by SUSI/KIM/OM number, status of an in-flight despacho, and the publicly-available tariff nomenclature (NCM). Adapter pattern: typed mock out of the box, pluggable HTTP adapter for the ARCA REST API published in 2025.",
   "keywords": [
     "aduana",

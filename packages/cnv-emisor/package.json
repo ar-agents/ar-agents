@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/cnv-emisor",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "CNV (Comisión Nacional de Valores) issuer agent toolkit for the Vercel AI SDK 6. Read issuer registry, latest hechos relevantes (material facts), financial-statement filings, and security-prospectus metadata from CNV's public Autopista de Información Financiera (AIF). Adapter pattern keeps unit tests offline.",
   "keywords": [
     "cnv",

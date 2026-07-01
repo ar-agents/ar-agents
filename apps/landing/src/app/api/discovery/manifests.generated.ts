@@ -83,7 +83,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/banking",
-    "version": "0.5.2",
+    "version": "0.5.3",
     "description": "Argentine banking primitives (CBU/CVU + bank lookup) and BCRA Central de Deudores adapter as drop-in tools for the Vercel AI SDK.",
     "tools": [
       {
@@ -340,7 +340,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/facturacion",
-    "version": "0.4.5",
+    "version": "0.4.6",
     "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
     "tools": [
       {
@@ -488,7 +488,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/gde-tad",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
     "tools": [
       {
@@ -517,7 +517,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity",
-    "version": "0.9.1",
+    "version": "0.9.2",
     "factory": "identityTools",
     "tools": [
       {
@@ -576,7 +576,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity-attest",
-    "version": "0.8.0",
+    "version": "0.8.1",
     "factory": "identityAttestTools",
     "tools": [
       {
@@ -1154,7 +1154,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/mercadopago",
-    "version": "0.18.4",
+    "version": "0.18.5",
     "factory": "mercadoPagoTools",
     "tools": [
       {
@@ -1844,7 +1844,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/shipping",
-    "version": "0.3.2",
+    "version": "0.3.3",
     "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",
     "tools": [
       {
@@ -2283,7 +2283,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/whatsapp",
-    "version": "0.5.1",
+    "version": "0.5.2",
     "tools": [
       {
         "name": "mark_whatsapp_read"
