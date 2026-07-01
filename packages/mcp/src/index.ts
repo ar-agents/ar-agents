@@ -10,6 +10,14 @@ export {
   type HaltHook,
 } from "./governance";
 export {
+  decideSpending,
+  inMemoryTally,
+  goodStandingHalt,
+  type SpendingCaps,
+  type SpendingTally,
+  type SpendingDecision,
+} from "./guardrails";
+export {
   adaptToolSetToMcp,
   combineToolSets,
   type McpAdapter,
