@@ -173,8 +173,8 @@ const T = {
   },
   h2limits: { es: "Limitaciones honestas", en: "Honest limitations" },
   limitsP: {
-    es: "El régimen de sociedades automatizadas todavía no es ley (anteproyecto en el Senado, vigencia estimada a 180 días de publicarse, ~H1 2027). Esto es una implementación de referencia y un demo verificable, no una empresa inscripta. El día que la ley salga, el mismo flujo inscribe de verdad. El audit log vive 7 días en cache. El snapshot de arriba es permanente y el flujo es re-ejecutable.",
-    en: "The automated-company regime isn't law yet (draft bill in the Senate, taking effect ~180 days after publication, ~H1 2027). This is a reference implementation and a verifiable demo, not a registered company. The day the law passes, the same flow registers for real. The audit log lives 7 days in cache. The snapshot above is permanent and the flow is re-runnable.",
+    es: "El régimen de sociedades automatizadas todavía no es ley (anteproyecto en el Senado, vigencia estimada a 180 días de publicarse, ~H1 2027). Esto es una implementación de referencia y un demo verificable, no una empresa inscripta. El día que la ley salga, el mismo flujo inscribe de verdad. Sobre el log: el self-host gratis vive 7 días en cache, pero el nuestro está en El Auditor y queda durable, por eso lo podés verificar en vivo todavía hoy, semanas después del run. El snapshot de arriba es permanente y el flujo es re-ejecutable.",
+    en: "The automated-company regime isn't law yet (draft bill in the Senate, taking effect ~180 days after publication, ~H1 2027). This is a reference implementation and a verifiable demo, not a registered company. The day the law passes, the same flow registers for real. About the log: the free self-hosted version lives 7 days in cache, but ours is on El Auditor and stays durable, which is why you can still verify it live today, weeks after the run. The snapshot above is permanent and the flow is re-runnable.",
   },
 } as const;
 

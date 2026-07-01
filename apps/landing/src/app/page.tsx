@@ -465,9 +465,9 @@ function SocietyCard({ es }: { es: boolean }) {
         </span>
         <span style={societyBadge}>✓ {es ? "conforme" : "compliant"}</span>
       </div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text)" }}>Pampa Labs SA</div>
+      <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text)" }}>Sociedad Demo SA</div>
       <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: "var(--text-body)", marginTop: 4 }}>
-        CUIT 30-71889999-4
+        CUIT 30-12345678-9
       </div>
       <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
         {rows.map(([k, v]) => (
@@ -487,8 +487,8 @@ function SocietyCard({ es }: { es: boolean }) {
       </div>
       <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "12px 0 0", lineHeight: 1.5 }}>
         {es
-          ? "Generada y operada por agentes. Cada decisión, firmada."
-          : "Generated and operated by agents. Every decision, signed."}
+          ? "Ejemplo ilustrativo. Generada y operada por agentes. Cada decisión, firmada."
+          : "Illustrative example. Generated and operated by agents. Every decision, signed."}
       </p>
     </div>
   );
