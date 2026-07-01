@@ -83,11 +83,11 @@ describe("registry-store · createFormingStub (loop supply side)", () => {
 
   it("mints distinct stubs for two incorporations with the SAME declared CUIT (no false CuitTaken drop)", async () => {
     const a = await createFormingStub(
-      { denominacion: "Pampa Uno SA", tipo: "automatizada", representante: { nombre: "Juan Perez", cuit: "20-12345678-6" } },
+      { denominacion: "Sociedad Uno SA", tipo: "automatizada", representante: { nombre: "Juan Perez", cuit: "20-12345678-6" } },
       "sess-a",
     );
     const b = await createFormingStub(
-      { denominacion: "Pampa Dos SA", tipo: "automatizada", representante: { nombre: "Juan Perez", cuit: "20-12345678-6" } },
+      { denominacion: "Sociedad Dos SA", tipo: "automatizada", representante: { nombre: "Juan Perez", cuit: "20-12345678-6" } },
       "sess-b",
     );
     expect(a).not.toBeNull();

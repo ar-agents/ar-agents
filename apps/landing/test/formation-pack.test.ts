@@ -25,7 +25,7 @@ import { GET as packGet } from "../src/app/api/formation/pack/route";
 import type { IncorporateInput } from "../src/lib/incorporate";
 
 const input: IncorporateInput = {
-  denominacion: "Pampa AI SAS",
+  denominacion: "Demo AI SAS",
   tipo: "SAS",
   capitalSocial: 200_000,
   objeto: "Desarrollo y comercializacion de software propio para empresas argentinas.",
@@ -44,7 +44,7 @@ function resetAll(): void {
 describe("formation-pack · sidecar + hash", () => {
   it("buildSidecar mirrors the legal params and is unvalidated by default", () => {
     const s = buildSidecar(input);
-    expect(s.denominacion).toBe("Pampa AI SAS");
+    expect(s.denominacion).toBe("Demo AI SAS");
     expect(s.tipo).toBe("SAS");
     expect(s.capital).toEqual({ monto: 200_000, moneda: "ARS" });
     expect(s.objeto).toContain("software");
@@ -77,7 +77,7 @@ describe("formation-pack · rendered drafts", () => {
     for (const doc of [pack.documents.estatuto, pack.documents.igj, pack.documents.afip]) {
       expect(doc).toMatch(/BORRADOR/);
       expect(doc).toMatch(/no constituye asesoramiento legal/i);
-      expect(doc).toContain("Pampa AI SAS");
+      expect(doc).toContain("Demo AI SAS");
     }
     expect(pack.documents.estatuto).toContain("ARTICULO 2 (Objeto)");
     expect(pack.documents.afip).toContain("20-12345678-6");
@@ -152,7 +152,7 @@ describe("formation-pack · runIncorporation integration", () => {
     const stub = await getRecord(stubId!);
     expect(stub?.status).toBe("forming");
     expect(stub?.formation?.packHash).toBe(body.formationPack.packHash);
-    expect((stub?.formation?.sidecar as any)?.denominacion).toBe("Pampa AI SAS");
+    expect((stub?.formation?.sidecar as any)?.denominacion).toBe("Demo AI SAS");
   });
 });
 
@@ -191,7 +191,7 @@ describe("/api/formation/pack (admin-gated re-fetch)", () => {
     expect(res.status).toBe(200);
     const json = (await res.json()) as any;
     expect(json.ok).toBe(true);
-    expect(json.formationPack.sidecar.denominacion).toBe("Pampa AI SAS");
+    expect(json.formationPack.sidecar.denominacion).toBe("Demo AI SAS");
     expect(json.formationPack.documents.estatuto).toContain("BORRADOR");
     expect(json.formationPack.validated).toBe(false);
   });
