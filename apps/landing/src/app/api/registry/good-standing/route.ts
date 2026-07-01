@@ -46,6 +46,7 @@ import {
 import { scoreEntry, type ScoreResult } from "@/lib/good-standing-score";
 import { incidentSummary } from "@/lib/registry-incidents";
 import { recordHistoryPoint } from "@/lib/registry-history";
+import { getUboStatus } from "@/lib/ubo";
 
 export const runtime = "edge";
 
@@ -295,6 +296,19 @@ interface AnswerBody {
     dimensionalScore?: number | null;
     dimensionalRating?: Rating | null;
   } | null;
+  /**
+   * ADDITIVE (UBO): PII-FREE ultimate-beneficial-owner status a bank/PSP reads
+   * before transacting. Presence + trust level + method + whether the entity is
+   * `bankable`. NEVER carries the controller's name or gov id (those live only on
+   * authenticated surfaces). Present only when the entity has a UBO on file.
+   */
+  ubo?: {
+    present: boolean;
+    level: number | null;
+    method: string | null;
+    verifiedAt: string | null;
+    bankable: boolean;
+  };
   /**
    * Forwarded trust-minimized anchors. These point at the TARGET's own publicly
    * -anchored attestation + the witness chain — the load-bearing trust, NOT this
@@ -599,6 +613,17 @@ export async function GET(req: Request): Promise<Response> {
     dimensionalRating = sc.rating;
   }
 
+  // UBO status (PII-FREE). Additive; present only when the entity has a UBO on
+  // file. Best-effort: a store failure degrades to no ubo block.
+  let ubo: Awaited<ReturnType<typeof getUboStatus>> = null;
+  if (rec) {
+    try {
+      ubo = await getUboStatus(rec.id);
+    } catch {
+      ubo = null;
+    }
+  }
+
   const body: AnswerBody = {
     kind: "ar-agents.registry.good-standing",
     version: 1,
@@ -621,6 +646,7 @@ export async function GET(req: Request): Promise<Response> {
           ...(dimensions ? { dimensions, dimensionalScore, dimensionalRating } : {}),
         }
       : null,
+    ...(ubo ? { ubo } : {}),
     attestation: buildAttestationPointers(rec, targetAnchor),
   };
 
