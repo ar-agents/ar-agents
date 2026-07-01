@@ -20,9 +20,11 @@ import {
   getRecord,
   listRecords,
   setRailPosture,
+  setKeyPosture,
   type RegistryStatus,
   type GoodStandingState,
   type RailPosture,
+  type KeyPosture,
 } from "@/lib/registry-store";
 import {
   transitionStatus,
@@ -142,6 +144,22 @@ export async function POST(req: Request) {
     return jsonCors({ ok: true, record: rec }, NO_STORE);
   }
 
+  // Key posture: a PII-free key-control declaration (custodial vs ubo_controlled).
+  if (target === "key-posture") {
+    const kp =
+      typeof body.keyPosture === "object" && body.keyPosture
+        ? (body.keyPosture as Record<string, unknown>)
+        : {};
+    const mode =
+      kp.mode === "custodial" || kp.mode === "ubo_controlled"
+        ? (kp.mode as "custodial" | "ubo_controlled")
+        : undefined;
+    const posture: KeyPosture = { ...(mode !== undefined ? { mode } : {}) };
+    const rec = await setKeyPosture(id, posture);
+    if (!rec) return jsonCors({ ok: false, error: "not_found" }, { status: 404, ...NO_STORE });
+    return jsonCors({ ok: true, record: rec }, NO_STORE);
+  }
+
   const opts = {
     ...(reason ? { reason } : {}),
     source: "admin",
@@ -163,7 +181,7 @@ export async function POST(req: Request) {
     result = await transitionGoodStanding(id, to as GoodStandingState, opts);
   } else {
     return jsonCors(
-      { ok: false, error: "target must be 'status', 'good-standing', or 'rail-posture'" },
+      { ok: false, error: "target must be 'status', 'good-standing', 'rail-posture', or 'key-posture'" },
       { status: 400, ...NO_STORE },
     );
   }

@@ -148,6 +148,12 @@ export interface RegistryRecord {
    * unchanged). NEVER carries amounts, balances, or addresses.
    */
   railPosture?: RailPosture;
+  /**
+   * PII-FREE key-control posture a counterparty reads: whether ar-agents is the
+   * custodial signer or the UBO controls the root keys (BYOK). Additive/optional
+   * (seed casts unchanged). NEVER carries key material, addresses, or secrets.
+   */
+  keyPosture?: KeyPosture;
 }
 
 /** The entity's declared USD-rail posture (PII-free). Absent = ARS-only. */
@@ -158,6 +164,22 @@ export interface RailPosture {
   ousdEnabled?: boolean;
   /** Entity opts into OUSD reserve yield (a partner/config choice). */
   yieldEnabled?: boolean;
+  /** ISO of the last posture update. */
+  asOf?: string;
+}
+
+/**
+ * The entity's declared KEY-CONTROL posture (PII-free). Sovereignty tiering: an
+ * entity is only self-sovereign if the UBO controls the root keys. Absent =
+ * unspecified. NEVER carries key material.
+ */
+export interface KeyPosture {
+  /**
+   * custodial: ar-agents is the custodial signer (managed keys).
+   * ubo_controlled: the UBO injects their own root key (BYOK); ar-agents operates
+   * bounded, revocable sub-keys.
+   */
+  mode?: "custodial" | "ubo_controlled";
   /** ISO of the last posture update. */
   asOf?: string;
 }
@@ -639,6 +661,24 @@ export async function setRailPosture(
   const next: RegistryRecord = {
     ...current,
     railPosture: { ...current.railPosture, ...posture, asOf: new Date().toISOString() },
+    updatedAt: new Date().toISOString(),
+  };
+  return upsertRecord(next);
+}
+
+/**
+ * Set (merge) the entity's PII-free key-control posture. No-op-returns-null if the
+ * id is unknown. Materializes a seed-only id into KV (like setRailPosture).
+ */
+export async function setKeyPosture(
+  id: string,
+  posture: KeyPosture,
+): Promise<RegistryRecord | null> {
+  const current = await getRecord(id);
+  if (!current) return null;
+  const next: RegistryRecord = {
+    ...current,
+    keyPosture: { ...current.keyPosture, ...posture, asOf: new Date().toISOString() },
     updatedAt: new Date().toISOString(),
   };
   return upsertRecord(next);
