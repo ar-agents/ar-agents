@@ -69,3 +69,64 @@ export function safeExternalUrl(u: string): URL | null {
     return null;
   }
 }
+
+const DEFAULT_MAX_REDIRECTS = 4;
+const DEFAULT_TIMEOUT_MS = 8000;
+const DEFAULT_USER_AGENT = "ar-agents-ssrf-safe-fetch (https://ar-agents.ar)";
+
+export interface SafeFetchOpts {
+  /** Max redirect hops to follow (each re-validated). Default 4. */
+  maxRedirects?: number;
+  /** Per-hop timeout in ms. Default 8000. */
+  timeoutMs?: number;
+  /** Extra request init (headers, method, body, …). `redirect` is forced to
+   *  "manual" so this guard — not the platform fetch — controls redirects. */
+  init?: RequestInit;
+}
+
+/**
+ * The ONE SSRF-safe server-side fetch. Validates the initial URL AND every
+ * redirect hop with {@link safeExternalUrl}, following redirects MANUALLY.
+ *
+ * The platform `fetch()` auto-follows redirects and would NOT re-apply the guard,
+ * so an allowed public URL could 3xx the server to a loopback / metadata / RFC1918
+ * host. This closes that (the reported redirect-SSRF on the certifier + the oracle
+ * anchor probe). Edge has no DNS resolution, so DNS-rebinding is out of scope here;
+ * pair with rate limiting.
+ *
+ * @throws Error when a hop is refused (non-public / invalid) or redirects exceed the cap.
+ */
+export async function safeFetch(url: string, opts: SafeFetchOpts = {}): Promise<Response> {
+  const maxRedirects = opts.maxRedirects ?? DEFAULT_MAX_REDIRECTS;
+  const timeoutMs = opts.timeoutMs ?? DEFAULT_TIMEOUT_MS;
+  const headers = new Headers(opts.init?.headers);
+  if (!headers.has("user-agent")) headers.set("user-agent", DEFAULT_USER_AGENT);
+
+  let current = url;
+  for (let hop = 0; hop <= maxRedirects; hop++) {
+    if (!safeExternalUrl(current)) {
+      throw new Error(`SSRF guard: refused non-public or invalid URL: ${current}`);
+    }
+    const controller = new AbortController();
+    const t = setTimeout(() => controller.abort(), timeoutMs);
+    let res: Response;
+    try {
+      res = await fetch(current, {
+        ...opts.init,
+        headers,
+        redirect: "manual",
+        signal: controller.signal,
+      });
+    } finally {
+      clearTimeout(t);
+    }
+    if (res.status >= 300 && res.status < 400) {
+      const loc = res.headers.get("location");
+      if (!loc) return res;
+      current = new URL(loc, current).toString(); // resolve relative Location, re-checked next hop
+      continue;
+    }
+    return res;
+  }
+  throw new Error(`SSRF guard: too many redirects from ${url}`);
+}

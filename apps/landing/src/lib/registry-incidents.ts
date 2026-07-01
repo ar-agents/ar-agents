@@ -13,6 +13,7 @@
  */
 
 import { kv } from "@vercel/kv";
+import { withKvLock } from "./kv-lock";
 
 export type IncidentSeverity = "info" | "warning" | "critical";
 
@@ -74,26 +75,31 @@ async function write(entityId: string, list: Incident[]): Promise<void> {
   }
 }
 
-/** Append an incident. Best-effort: returns the stored incident, or null on error. */
+/** Append an incident. Best-effort: returns the stored incident, or null on error.
+ * The read→push→write runs under a per-entity lock so two concurrent appends can't
+ * both read N and both write N+1 (which would drop one incident, and a dropped
+ * open-critical one silently inflates the good-standing score). */
 export async function appendIncident(
   entityId: string,
   partial: { kind: string; severity: IncidentSeverity; note: string; source: string; at?: string },
 ): Promise<Incident | null> {
   if (!entityId) return null;
   try {
-    const inc: Incident = {
-      id: crypto.randomUUID(),
-      entityId,
-      at: partial.at ?? new Date().toISOString(),
-      kind: partial.kind.slice(0, 64),
-      severity: partial.severity,
-      note: partial.note.slice(0, 500),
-      source: partial.source.slice(0, 64),
-    };
-    const list = await read(entityId);
-    list.push(inc);
-    await write(entityId, list);
-    return inc;
+    return await withKvLock(`registry:incidents:${entityId}`, async () => {
+      const inc: Incident = {
+        id: crypto.randomUUID(),
+        entityId,
+        at: partial.at ?? new Date().toISOString(),
+        kind: partial.kind.slice(0, 64),
+        severity: partial.severity,
+        note: partial.note.slice(0, 500),
+        source: partial.source.slice(0, 64),
+      };
+      const list = await read(entityId);
+      list.push(inc);
+      await write(entityId, list);
+      return inc;
+    });
   } catch {
     return null;
   }
@@ -105,17 +111,25 @@ export async function listIncidents(entityId: string): Promise<Incident[]> {
   return list.slice().sort((a, b) => (a.at < b.at ? 1 : a.at > b.at ? -1 : 0));
 }
 
-/** Mark an incident resolved. Returns false if the id is unknown. Idempotent. */
+/** Mark an incident resolved. Returns false if the id is unknown. Idempotent.
+ * Read→modify→write under the per-entity lock so a concurrent append can't clobber
+ * the resolution (or vice-versa). Best-effort: lock contention → false. */
 export async function resolveIncident(entityId: string, incidentId: string): Promise<boolean> {
-  const list = await read(entityId);
-  const idx = list.findIndex((i) => i.id === incidentId);
-  if (idx < 0) return false;
-  const cur = list[idx];
-  if (!cur) return false;
-  if (cur.resolvedAt) return true; // already resolved
-  list[idx] = { ...cur, resolvedAt: new Date().toISOString() };
-  await write(entityId, list);
-  return true;
+  try {
+    return await withKvLock(`registry:incidents:${entityId}`, async () => {
+      const list = await read(entityId);
+      const idx = list.findIndex((i) => i.id === incidentId);
+      if (idx < 0) return false;
+      const cur = list[idx];
+      if (!cur) return false;
+      if (cur.resolvedAt) return true; // already resolved
+      list[idx] = { ...cur, resolvedAt: new Date().toISOString() };
+      await write(entityId, list);
+      return true;
+    });
+  } catch {
+    return false;
+  }
 }
 
 const SEV_RANK: Record<IncidentSeverity, number> = { info: 1, warning: 2, critical: 3 };

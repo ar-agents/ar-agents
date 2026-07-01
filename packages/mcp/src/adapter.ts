@@ -48,15 +48,22 @@ export interface McpAdapter {
 export function adaptToolSetToMcp(toolSet: ToolSet): McpAdapter {
   const tools: McpTool[] = [];
   const lookup = new Map<string, (args: unknown) => Promise<unknown>>();
+  // Keep each tool's Zod input schema so CallTool can RE-VALIDATE args server-side
+  // before dispatching to `execute`. The MCP host, not the AI SDK runtime, supplies
+  // the args here, so without this parse a malformed/hostile args object reaches the
+  // tool body unchecked (the JSON Schema on the wire is advisory metadata only).
+  const schemas = new Map<string, z.ZodType>();
 
   for (const [name, tool] of Object.entries(toolSet)) {
     if (!tool || typeof tool !== "object") continue;
     const description =
       "description" in tool && typeof tool.description === "string" ? tool.description : "";
-    const inputSchema =
-      "inputSchema" in tool && tool.inputSchema
-        ? (z.toJSONSchema(tool.inputSchema as z.ZodType) as object)
-        : { type: "object", properties: {}, additionalProperties: false };
+    const zodSchema =
+      "inputSchema" in tool && tool.inputSchema ? (tool.inputSchema as z.ZodType) : null;
+    const inputSchema = zodSchema
+      ? (z.toJSONSchema(zodSchema) as object)
+      : { type: "object", properties: {}, additionalProperties: false };
+    if (zodSchema) schemas.set(name, zodSchema);
     // Carry the source tool's `sideEffects` (if it ships one) so the art. 102
     // gate can use it as a POSITIVE risk signal — parity with enforceRiskPolicy.
     const sideEffects =
@@ -80,6 +87,17 @@ export function adaptToolSetToMcp(toolSet: ToolSet): McpAdapter {
       const fn = lookup.get(name);
       if (!fn) {
         throw new Error(`Tool "${name}" not found or has no execute fn (MCP requires server-side tools).`);
+      }
+      // Server-side input validation (parity with the AI SDK runtime's own parse).
+      // A ZodError becomes a clean thrown Error, which server.ts turns into an MCP
+      // isError result — never an unvalidated call into a live adapter/upstream.
+      const schema = schemas.get(name);
+      if (schema) {
+        const parsed = schema.safeParse(args);
+        if (!parsed.success) {
+          throw new Error(`Invalid arguments for tool "${name}": ${parsed.error.message}`);
+        }
+        return fn(parsed.data);
       }
       return fn(args);
     },

@@ -11,6 +11,7 @@
 
 import { kv } from "@vercel/kv";
 import { safeExternalUrl } from "./ssrf";
+import { getConsumer } from "./oracle-consumer";
 
 export interface Webhook {
   id: string;
@@ -108,6 +109,22 @@ export async function deleteWebhook(consumerId: string, id: string): Promise<boo
   }
 }
 
+/**
+ * Tear down every webhook owned by a consumer. Call this when a consumer is
+ * REVOKED so its push subscriptions are removed, not merely muted at delivery
+ * (delivery already skips revoked consumers — this is the hygiene half so a
+ * revoked consumer's hooks stop counting toward MAX_HOOKS and disappear). Returns
+ * the number deleted. Best-effort.
+ */
+export async function deleteWebhooksForConsumer(consumerId: string): Promise<number> {
+  const owned = (await allHooks()).filter((h) => h.consumerId === consumerId);
+  let deleted = 0;
+  for (const h of owned) {
+    if (await deleteWebhook(consumerId, h.id)) deleted++;
+  }
+  return deleted;
+}
+
 // ── delivery (Ed25519-signed, best-effort) ──────────────────────────────────────
 
 const enc = new TextEncoder();
@@ -184,7 +201,22 @@ export interface OracleEvent {
  */
 export async function fireWebhooks(event: OracleEvent): Promise<void> {
   try {
-    const hooks = (await allHooks()).filter((h) => !h.entityId || h.entityId === event.entityId);
+    const matched = (await allHooks()).filter((h) => !h.entityId || h.entityId === event.entityId);
+    if (matched.length === 0) return;
+    // Revocation must cut the PUSH channel too: a de-authorized (or compromised)
+    // consumer keeps receiving the signed feed otherwise. Drop hooks whose owning
+    // consumer is explicitly revoked. A consumer that doesn't resolve (null) is
+    // left as-is (deliver) for backward-compat — revokeConsumer sets revoked:true
+    // on the EXISTING record, so a genuinely-revoked consumer is always dropped.
+    const consumerIds = [...new Set(matched.map((h) => h.consumerId))];
+    const revoked = new Set<string>();
+    await Promise.all(
+      consumerIds.map(async (cid) => {
+        const c = await getConsumer(cid);
+        if (c && c.revoked) revoked.add(cid);
+      }),
+    );
+    const hooks = matched.filter((h) => !revoked.has(h.consumerId));
     if (hooks.length === 0) return;
     const body = {
       kind: "ar-agents.oracle.event",

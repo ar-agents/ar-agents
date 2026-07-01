@@ -29,7 +29,8 @@
 import { preflight, CORS_HEADERS } from "@/lib/cors";
 import { clientIp, rateLimit, kvRateLimit } from "@/lib/ratelimit";
 import { recordShadow } from "@/lib/shadow";
-import { safeExternalUrl } from "@/lib/ssrf";
+import { safeExternalUrl, safeFetch } from "@/lib/ssrf";
+import { isSuspended } from "@/lib/suspension";
 import { constantTimeEqual } from "@/lib/incorporate-auth";
 import { verifyCapabilityToken } from "@/lib/capability-token";
 import {
@@ -72,6 +73,18 @@ const FORMING_BASIS =
   "registry stub created at incorporation; entity in formation, not yet operative — NOT a good-standing attestation";
 const STALE_BASIS =
   "stalled formation (no formation progress past the staleness threshold); not operative — NOT a good-standing attestation";
+/** Basis when the administrator has thrown the art.102 kill-switch on the entity. */
+const SUSPENDED_BASIS =
+  "the administrator has SUSPENDED this society under art. 102 (kill-switch); it is not authorized to operate — NOT a good-standing attestation";
+
+/**
+ * The signed answer's validity window (issuedAt + this). A counterparty MUST reject
+ * an answer past `expiresAt` (the offline verifier enforces it): without a signed
+ * expiry, a captured "active/A" answer replays forever after the entity goes bad.
+ * Comfortably exceeds the HTTP cache window (max-age 60 + s-w-r 300 = 360s) so a
+ * legitimately-cached answer is never already expired when served.
+ */
+const ANSWER_TTL_MS = 10 * 60 * 1000;
 
 /** Whether a record's registry status is non-attesting (in/abandoned formation). */
 function isNonAttestingStatus(status: string): boolean {
@@ -252,6 +265,9 @@ interface AnswerBody {
   kind: "ar-agents.registry.good-standing";
   version: 1;
   issuedAt: string;
+  /** Signed validity horizon (issuedAt + ANSWER_TTL_MS). A verifier MUST reject a
+   * body presented after this instant — it bounds offline replay of a stale verdict. */
+  expiresAt: string;
   query: { by: "url" | "id" | "cuit"; value: string };
   found: boolean;
   record: {
@@ -400,12 +416,14 @@ function buildAttestationPointers(
  * auditRead | auditEndpoints.auditRead | an explicit anchor/attestation field).
  */
 async function targetAdvertisesAnchor(origin: string): Promise<boolean> {
-  const safe = safeExternalUrl(origin);
-  if (!safe) return false;
   try {
-    const r = await fetch(`${safe.origin}/.well-known/agents.json`, {
-      headers: { "user-agent": "ar-agents-good-standing-oracle (https://ar-agents.ar)" },
-      signal: AbortSignal.timeout(5000),
+    // Shared SSRF-safe fetch: re-validates EVERY redirect hop, so a record's
+    // (attacker-influenceable) publicUrl cannot 3xx this probe into the cloud
+    // metadata service or an internal host (redirect-SSRF). Plain fetch would
+    // auto-follow the redirect without re-checking.
+    const r = await safeFetch(`${origin}/.well-known/agents.json`, {
+      timeoutMs: 5000,
+      init: { headers: { "user-agent": "ar-agents-good-standing-oracle (https://ar-agents.ar)" } },
     });
     if (!r.ok) return false;
     const m = (await r.json()) as Record<string, unknown>;
@@ -591,20 +609,44 @@ export async function GET(req: Request): Promise<Response> {
     ? new Date().toISOString()
     : rec?.goodStanding.lastCheckedAt ?? null;
 
-  // ── NON-ATTESTING guard (forming/stale) ─────────────────────────────────────
-  // A `forming`/`stale` registry entry IS found, but it is NOT good-standing: the
-  // entity is in (or abandoned) formation, not operative. The signed answer must
-  // (1) carry a non-attesting basis, (2) set attesting:false, and (3) NEVER report
-  // state "active" (defence-in-depth — a forming stub's stored state is already
-  // "unverified", but we force it so no recompute can ever leak an "active").
-  const nonAttesting = Boolean(rec) && isNonAttestingStatus(rec!.status);
-  const gsStateFinal =
-    nonAttesting && gsState === "active" ? "unverified" : (gsState as string | null);
-  const gsBasis = nonAttesting
-    ? rec!.status === "stale"
-      ? STALE_BASIS
-      : FORMING_BASIS
-    : GOOD_STANDING_BASIS;
+  // ── C2: art.102 kill-switch reconciliation ──────────────────────────────────
+  // Suspension is recorded in a SEPARATE store (society:suspended, keyed by the
+  // incorporation sessionId) that the oracle historically never consulted — so a
+  // suspended-but-live entity still answered "active". Read it here, keyed by the
+  // record's bound sessionId, and FAIL CLOSED (a read error ⇒ treat as suspended)
+  // so a KV blip can never present a killed entity as good-standing. A forming stub
+  // is already non-attesting, so the exploitable case is a constituted entity
+  // advanced to live/active — which always carries sessionId (set at birth, kept
+  // through every lifecycle transition).
+  let suspended = false;
+  if (rec?.sessionId) {
+    try {
+      suspended = await isSuspended(rec.sessionId);
+    } catch {
+      suspended = true; // fail closed
+    }
+  }
+
+  // ── NON-ATTESTING guard (suspended / forming / stale) ───────────────────────
+  // A suspended, `forming`, or `stale` entry may be FOUND but is NOT good-standing.
+  // The signed answer must (1) carry a non-attesting basis, (2) set attesting:false,
+  // (3) NEVER report state "active", and for a suspension force state "suspended".
+  const formingOrStale = Boolean(rec) && isNonAttestingStatus(rec!.status);
+  const nonAttesting = Boolean(rec) && (suspended || formingOrStale);
+  const gsStateFinal = !rec
+    ? (gsState as string | null)
+    : suspended
+      ? "suspended"
+      : formingOrStale && gsState === "active"
+        ? "unverified"
+        : (gsState as string | null);
+  const gsBasis = suspended
+    ? SUSPENDED_BASIS
+    : formingOrStale
+      ? rec!.status === "stale"
+        ? STALE_BASIS
+        : FORMING_BASIS
+      : GOOD_STANDING_BASIS;
 
   // Dimensional breakdown (ADDITIVE). Computed only for an ATTESTING found entry:
   // a non-attesting (forming/stale) answer is already flagged attesting:false, so a
@@ -649,10 +691,12 @@ export async function GET(req: Request): Promise<Response> {
   // Key posture (PII-FREE) is likewise stored on the record.
   const keyPosture = rec?.keyPosture ?? null;
 
+  const issuedAtMs = Date.now();
   const body: AnswerBody = {
     kind: "ar-agents.registry.good-standing",
     version: 1,
-    issuedAt: new Date().toISOString(),
+    issuedAt: new Date(issuedAtMs).toISOString(),
+    expiresAt: new Date(issuedAtMs + ANSWER_TTL_MS).toISOString(),
     query: { by, value },
     found: Boolean(rec),
     record: rec ? buildRecordSummary(rec) : null,
@@ -683,10 +727,10 @@ export async function GET(req: Request): Promise<Response> {
     ...(signed ? { body, sig: signed.sig, publicKey: signed.publicKey, alg: signed.alg } : { body }),
     keyId: KEY_ID,
     verify: {
-      offline: "curl -s <this-url> | jq '{body,sig,publicKey}' > gs.json && node arg-verify.mjs attestation gs.json",
+      offline: "curl -s <this-url> | jq '{body,sig,publicKey}' > gs.json && node arg-verify.mjs good-standing gs.json",
       publicKeyUrl: PUBLIC_KEY_URL,
       note: signed
-        ? "Ed25519 over canonical(body), standard base64. Convenience signature; see body.attestation.note for the trust-minimized path (the target's own public anchor when it advertises one)."
+        ? "Ed25519 over canonical(body), standard base64. The `good-standing` verb checks the signature, asserts body.kind, AND rejects a body presented after body.expiresAt. Convenience signature; see body.attestation.note for the trust-minimized path (the target's own public anchor when it advertises one)."
         : "Signing key not configured on this deployment; see body.attestation.note for the trust-minimized path.",
     },
   };

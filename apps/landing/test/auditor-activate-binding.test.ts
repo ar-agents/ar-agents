@@ -18,6 +18,7 @@ vi.mock("@vercel/kv", () => ({
 
 import { POST as subscribe } from "../src/app/api/auditor/subscribe/route";
 import { POST as activate } from "../src/app/api/auditor/activate/route";
+import { POST as logRoute } from "../src/app/api/auditor/log/route";
 
 beforeEach(() => {
   kvStore.clear();
@@ -178,5 +179,55 @@ describe("auditor subscribe/activate — session binding (DeepSec deferred HIGH)
     };
     expect(b.apiKey).toBe(a.apiKey);
     expect(b.alreadyActive).toBe(true);
+  });
+});
+
+describe("auditor/log — signing is a paid-write precondition (A2)", () => {
+  function seedEntitlement(apiKey: string, sessionId: string): void {
+    kvStore.set(`auditor:key:${apiKey}`, {
+      preapprovalId: "pre_x",
+      payerEmail: "buyer@test.com",
+      plan: "mensual",
+      sessionId,
+      createdAt: "2026-01-01T00:00:00.000Z",
+      status: "active",
+    });
+  }
+  async function logPost(apiKey: string, body: Record<string, unknown>): Promise<Response> {
+    return logRoute(
+      new Request("https://ar-agents.ar/api/auditor/log", {
+        method: "POST",
+        headers: {
+          "content-type": "application/json",
+          "x-api-key": apiKey,
+          "x-vercel-forwarded-for": freshIp(),
+        },
+        body: JSON.stringify(body),
+      }),
+    );
+  }
+
+  it("REFUSES (503) and does not bill when the HMAC signing secret is absent", async () => {
+    delete process.env.AUDIT_HMAC_SECRET;
+    const apiKey = "arag_live_" + "a".repeat(48);
+    seedEntitlement(apiKey, "sess-a2-nosecret");
+    const res = await logPost(apiKey, { tool: "pay", input: { amount: 1 } });
+    expect(res.status).toBe(503);
+    expect(res.headers.get("x-audit-signed")).toBe("false");
+    expect(((await res.json()) as { error: string }).error).toBe("signing_unavailable");
+  });
+
+  it("signs, flags signed:true, and returns 200 when the secret is present", async () => {
+    process.env.AUDIT_HMAC_SECRET = "test-secret-32-chars-aaaaaaaaaaaaaaaaaaaa";
+    const apiKey = "arag_live_" + "b".repeat(48);
+    seedEntitlement(apiKey, "sess-a2-signed");
+    const res = await logPost(apiKey, { tool: "pay", input: { amount: 1 } });
+    expect(res.status).toBe(200);
+    expect(res.headers.get("x-audit-signed")).toBe("true");
+    const body = (await res.json()) as { ok: boolean; signed: boolean; entry: { hmac: string | null } };
+    expect(body.ok).toBe(true);
+    expect(body.signed).toBe(true);
+    expect(body.entry.hmac).toMatch(/^sha256:[0-9a-f]+$/);
+    delete process.env.AUDIT_HMAC_SECRET;
   });
 });

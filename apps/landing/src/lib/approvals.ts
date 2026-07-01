@@ -144,6 +144,28 @@ async function claimConsume(id: string): Promise<boolean> {
   return Boolean(got);
 }
 
+const memResolved = new Set<string>();
+
+/**
+ * Atomic single-RESOLVE claim on an approval id. Only the FIRST concurrent
+ * decision wins (SETNX), so a race — a double-click or an agent retry sending
+ * approve+deny for one pending id within a KV round-trip — can never let BOTH
+ * commit. Without it, the plain `status !== "pending"` check in resolveApproval is
+ * pure TOCTOU: both callers read "pending", both write, the durable art.102 log
+ * gets two contradictory signed acts, and if the "approved" write lands last
+ * consumeApproval later succeeds on an action the administrator DENIED. Mirrors
+ * {@link claimConsume}.
+ */
+async function claimResolve(id: string): Promise<boolean> {
+  if (!isKvWired()) {
+    if (memResolved.has(id)) return false;
+    memResolved.add(id);
+    return true;
+  }
+  const got = await kv.set(`appr:resolved:${id}`, "1", { nx: true, ex: REQ_TTL_SECONDS });
+  return Boolean(got);
+}
+
 // ── public API ───────────────────────────────────────────────────────────────
 
 /** Queue a pending approval for an action, deduping on (society, tool, argsHash)
@@ -256,6 +278,11 @@ export async function resolveApproval(
   const req = await getReq(id);
   if (!req) return { ok: false, status: 404, error: "aprobacion_inexistente" };
   if (req.status !== "pending") return { ok: false, status: 409, error: "ya_resuelta" };
+  // Atomic single-resolve claim. The status check above is a cheap early-out but
+  // is pure TOCTOU under concurrency; this SETNX is the authoritative gate, so two
+  // simultaneous approve+deny calls can never both commit (one contradictory,
+  // possibly action-enabling, signed act). The loser gets 409.
+  if (!(await claimResolve(id))) return { ok: false, status: 409, error: "ya_resuelta" };
 
   req.status = approved ? "approved" : "denied";
   req.resolvedAt = new Date().toISOString();

@@ -14,6 +14,7 @@
 
 import { NextResponse } from "next/server";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { safeExternalUrl, safeFetch } from "@/lib/ssrf";
 
 export const runtime = "edge";
 
@@ -42,86 +43,14 @@ interface Certification {
 }
 
 const SAMPLE_SESSION_ID_FOR_VERIFY = "ar-agents-sociedad-automatizada";
-const FETCH_TIMEOUT_MS = 8000;
 
-async function fetchWithTimeout(url: string, init?: RequestInit): Promise<Response> {
-  const controller = new AbortController();
-  const t = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-  try {
-    return await fetch(url, {
-      ...init,
-      signal: controller.signal,
-      headers: {
-        "user-agent": "ar-agents-certifier (https://ar-agents.ar/certifier)",
-        ...(init?.headers ?? {}),
-      },
-    });
-  } finally {
-    clearTimeout(t);
-  }
-}
-
-// SSRF guard: this endpoint fetches a user-supplied URL server-side (~11 sub
-// -fetches), so it must refuse internal/loopback/metadata targets and odd
-// ports. Best-effort on Edge (no DNS resolution): blocks literal private IPs
-// and obvious internal hostnames. Pair with rate limiting.
-function isPrivateHost(host: string): boolean {
-  const h = host.toLowerCase();
-  if (h === "localhost" || h.endsWith(".local") || h.endsWith(".internal")) return true;
-  if (h === "metadata.google.internal") return true;
-  // IPv6 loopback / unique-local
-  if (h === "::1" || h === "[::1]" || h.startsWith("fc") || h.startsWith("fd") || h.startsWith("[fc") || h.startsWith("[fd")) return true;
-  // IPv4 literals
-  const m = h.match(/^(\d{1,3})\.(\d{1,3})\.(\d{1,3})\.(\d{1,3})$/);
-  if (m) {
-    const [a, b] = [Number(m[1]), Number(m[2])];
-    if (a === 10 || a === 127 || a === 0) return true;
-    if (a === 192 && b === 168) return true;
-    if (a === 169 && b === 254) return true; // link-local + cloud metadata
-    if (a === 172 && b >= 16 && b <= 31) return true;
-    if (a === 100 && b >= 64 && b <= 127) return true; // CGNAT
-  }
-  return false;
-}
-
-function isValidUrl(u: string): URL | null {
-  try {
-    const parsed = new URL(u);
-    if (parsed.protocol !== "https:" && parsed.protocol !== "http:") return null;
-    if (isPrivateHost(parsed.hostname)) return null;
-    // Only standard web ports (or none). Blocks probing of internal services.
-    if (parsed.port && parsed.port !== "80" && parsed.port !== "443") return null;
-    return parsed;
-  } catch {
-    return null;
-  }
-}
-
-const MAX_REDIRECTS = 4;
-
-// SSRF-safe fetch. The default fetch() follows redirects automatically, so an
-// allowed public URL (or a manifest-supplied auditRead) could 3xx the server to
-// a loopback/metadata/private host WITHOUT re-applying isValidUrl. safeFetch
-// validates the initial URL AND every redirect hop, following redirects MANUALLY.
-// (Edge has no DNS resolution, so DNS-rebinding is out of scope — this closes the
-// reported redirect + manifest-URL bypasses; rate-limiting is the secondary control.)
-async function safeFetch(url: string, init?: RequestInit): Promise<Response> {
-  let current = url;
-  for (let hop = 0; hop <= MAX_REDIRECTS; hop++) {
-    if (!isValidUrl(current)) {
-      throw new Error(`SSRF guard: refused non-public or invalid URL: ${current}`);
-    }
-    const res = await fetchWithTimeout(current, { ...init, redirect: "manual" });
-    if (res.status >= 300 && res.status < 400) {
-      const loc = res.headers.get("location");
-      if (!loc) return res;
-      current = new URL(loc, current).toString(); // resolve relative Location
-      continue;
-    }
-    return res;
-  }
-  throw new Error(`SSRF guard: too many redirects from ${url}`);
-}
+// This endpoint fans out ~9-11 server-side fetches of a USER-supplied URL, so it
+// is the app's primary SSRF sink. It uses the SHARED, hardened guard in lib/ssrf
+// (safeExternalUrl for the initial parse + safeFetch for every fetch, which
+// re-validates each redirect hop). Do NOT reintroduce an inline guard here — the
+// earlier local copy missed IPv4-mapped IPv6 literals (::ffff:169.254.169.254 →
+// cloud metadata) that lib/ssrf's embeddedIPv4 decoder closes. Pair with rate
+// limiting (the GET handler caps per IP).
 
 function ratingFromScore(score: number): Certification["rating"] {
   if (score >= 90) return "A";
@@ -694,10 +623,10 @@ export async function GET(req: Request): Promise<Response> {
     );
   }
 
-  const parsed = isValidUrl(url);
+  const parsed = safeExternalUrl(url);
   if (!parsed) {
     return NextResponse.json(
-      { error: "Invalid URL. Must be http:// or https://." },
+      { error: "Invalid URL. Must be a public http:// or https:// host." },
       { status: 400 },
     );
   }

@@ -43,6 +43,9 @@ vi.mock("@vercel/kv", () => ({
       kvStore.set(k, n);
       return n;
     },
+    // del is used by the withKvLock compare-and-release; a faithful mock must
+    // implement it or a held lock would never be freed within a test.
+    del: async (k: string) => (kvStore.delete(k) ? 1 : 0),
     expire: async () => 1,
   },
 }));

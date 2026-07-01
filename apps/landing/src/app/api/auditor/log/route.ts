@@ -122,6 +122,22 @@ export async function POST(req: Request) {
     );
   }
 
+  // A paid, forensically-probative write MUST be signed. If the HMAC signing secret
+  // is not configured, REFUSE (503) and do NOT persist or bill — never sell an
+  // unsigned entry as a "signed" record. The entitlement gate above means this path
+  // only runs for real paying customers, so a missing secret is a PRODUCTION
+  // misconfiguration (e.g. a botched AUDIT_HMAC_SECRET rotation), not a dev nicety.
+  if (!process.env.AUDIT_HMAC_SECRET?.trim()) {
+    return jsonCors(
+      {
+        ok: false,
+        error: "signing_unavailable",
+        note: "El Auditor no puede firmar en este momento (config). No se registró ni se cobró la entrada.",
+      },
+      { status: 503, headers: { "x-audit-signed": "false" } },
+    );
+  }
+
   const entry = await appendAudit(
     ent.sessionId,
     {
@@ -135,13 +151,23 @@ export async function POST(req: Request) {
     { durable: true },
   );
 
-  // One billable unit per signed write. Best-effort: a metering failure never
+  // Defence in depth: the secret was present but signing still returned null (an
+  // anomaly — e.g. a Web Crypto import failure). Refuse + do NOT bill an unsigned entry.
+  if (entry.hmac === null) {
+    return jsonCors(
+      { ok: false, error: "signing_unavailable", note: "La entrada no pudo firmarse; no se cobró." },
+      { status: 503, headers: { "x-audit-signed": "false" } },
+    );
+  }
+
+  // One billable unit per SIGNED write. Best-effort: a metering failure never
   // fails the customer's paid write (recordUsage swallows + returns null).
   const monthToDate = await recordUsage(apiKey);
 
   return jsonCors(
     {
       ok: true,
+      signed: true,
       entry,
       ...(monthToDate !== null ? { usage: { monthToDate } } : {}),
       audit: {
@@ -151,7 +177,13 @@ export async function POST(req: Request) {
         dashboardUrl: `${SITE}/dashboard/${ent.sessionId}`,
       },
     },
-    { headers: { "x-play-session": ent.sessionId, "x-audit-backend": auditBackend() } },
+    {
+      headers: {
+        "x-play-session": ent.sessionId,
+        "x-audit-backend": auditBackend(),
+        "x-audit-signed": "true",
+      },
+    },
   );
 }
 

@@ -45,6 +45,21 @@ describe("adaptToolSetToMcp", () => {
     const adapter = adaptToolSetToMcp(makeToolSet());
     await expect(adapter.call("unknown", {})).rejects.toThrow(/not found/i);
   });
+
+  it("REJECTS args that violate the tool's input schema (server-side validation)", async () => {
+    const adapter = adaptToolSetToMcp(makeToolSet());
+    // `a` should be a number; a hostile/malformed call passes a string.
+    await expect(adapter.call("add", { a: "not-a-number", b: 3 })).rejects.toThrow(
+      /invalid arguments/i,
+    );
+    // Missing required field.
+    await expect(adapter.call("greet", {})).rejects.toThrow(/invalid arguments/i);
+  });
+
+  it("passes SCHEMA-VALID args through to execute (parsed data)", async () => {
+    const adapter = adaptToolSetToMcp(makeToolSet());
+    expect(await adapter.call("add", { a: 2, b: 3 })).toEqual({ sum: 5 });
+  });
 });
 
 describe("combineToolSets", () => {

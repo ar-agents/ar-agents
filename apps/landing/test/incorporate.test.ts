@@ -76,13 +76,31 @@ describe("validate()", () => {
     expect(r.findings.some((f) => f.code === "capital_below_minimum")).toBe(true);
   });
 
-  it("warns (but does not fail) on SOCIEDAD-IA", () => {
+  it("warns (but does not fail) on SOCIEDAD-IA with an art.14-compliant name", () => {
     const r = validate(
-      Body.parse({ ...baseInput, tipo: "SOCIEDAD-IA", capitalSocial: 1 }),
+      Body.parse({
+        ...baseInput,
+        tipo: "SOCIEDAD-IA",
+        denominacion: "ACME Automatizada",
+        capitalSocial: 1,
+      }),
     );
     expect(r.valid).toBe(true);
     expect(r.findings.some((f) => f.code === "sociedad_ia_pending_law")).toBe(true);
     expect(r.findings.some((f) => f.severity === "error")).toBe(false);
+  });
+
+  it("requires 'automatizada' in the denomination for SOCIEDAD-IA (art. 14)", () => {
+    const r = validate(
+      Body.parse({ ...baseInput, tipo: "SOCIEDAD-IA", denominacion: "ACME AI", capitalSocial: 1 }),
+    );
+    expect(r.valid).toBe(false);
+    expect(r.findings.some((f) => f.code === "denominacion_missing_automatizada")).toBe(true);
+  });
+
+  it("does NOT require 'automatizada' for conventional SAS/SRL/SA", () => {
+    const r = validate(Body.parse({ ...baseInput, tipo: "SAS" }));
+    expect(r.findings.some((f) => f.code === "denominacion_missing_automatizada")).toBe(false);
   });
 
   it("rejects malformed CUIT in representante", () => {

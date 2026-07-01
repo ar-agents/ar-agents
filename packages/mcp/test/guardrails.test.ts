@@ -132,13 +132,42 @@ describe("guardrails · goodStandingHalt (registry kill-switch)", () => {
     expect(await goodStandingHalt({ entityId: "co" })("t", {})).toBe(false);
   });
 
-  it("does NOT halt on a transient error by default (fail-open on unreachable)", async () => {
+  it("HALTS on a transient error by default (fail-closed on unreachable)", async () => {
     spy = vi.spyOn(globalThis, "fetch").mockImplementation(async () => { throw new Error("net"); });
-    expect(await goodStandingHalt({ entityId: "co" })("t", {})).toBe(false);
-    expect(await goodStandingHalt({ entityId: "co", haltOnUnreachable: true })("t", {})).toBe(true);
+    // A kill-switch must fail CLOSED: an indeterminate answer halts by default.
+    expect(await goodStandingHalt({ entityId: "co" })("t", {})).toBe(true);
+    // Opt-out for operators who prefer availability over safety.
+    expect(await goodStandingHalt({ entityId: "co", haltOnUnreachable: false })("t", {})).toBe(false);
+  });
+
+  it("HALTS on a non-2xx (e.g. 429/5xx) by default — indeterminate ⇒ fail closed", async () => {
+    mockState("active", false); // status 500, body says active but it's indeterminate
+    expect(await goodStandingHalt({ entityId: "co" })("t", {})).toBe(true);
+    spy.mockRestore();
+    mockState("active", false);
+    expect(await goodStandingHalt({ entityId: "co", haltOnUnreachable: false })("t", {})).toBe(false);
   });
 
   it("does nothing (no halt) when neither entityId nor entityUrl is given", async () => {
     expect(await goodStandingHalt({})("t", {})).toBe(false);
+  });
+
+  it("proceeds on a well-formed not-found (goodStanding null) — registration ≠ sanction", async () => {
+    spy = vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
+      new Response(JSON.stringify({ body: { found: false, goodStanding: null } }), { status: 200 }),
+    );
+    expect(await goodStandingHalt({ entityId: "co" })("t", {})).toBe(false);
+  });
+
+  it("HALTS by default on a MALFORMED authentic-200 (unknown/garbage state)", async () => {
+    spy = vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
+      new Response(JSON.stringify({ body: { goodStanding: { state: "🤖garbage" } } }), { status: 200 }),
+    );
+    expect(await goodStandingHalt({ entityId: "co" })("t", {})).toBe(true);
+    spy.mockRestore();
+    spy = vi.spyOn(globalThis, "fetch").mockImplementation(async () =>
+      new Response(JSON.stringify({ body: { goodStanding: {} } }), { status: 200 }),
+    );
+    expect(await goodStandingHalt({ entityId: "co", haltOnUnreachable: false })("t", {})).toBe(false);
   });
 });

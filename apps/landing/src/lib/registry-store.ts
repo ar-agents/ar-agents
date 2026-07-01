@@ -21,6 +21,7 @@
  */
 
 import { kv } from "@vercel/kv";
+import { withKvLock, KvLockError } from "./kv-lock";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Model
@@ -140,6 +141,16 @@ export interface RegistryRecord {
    * sites that compare against "seed"/"self-listed" are unaffected.
    */
   source: "seed" | "self-listed" | "formed";
+  /**
+   * The incorporation sessionId that minted this stub — the audit-log id, and the
+   * key the art. 102 kill-switch / suspension set (`society:suspended`) is keyed on.
+   * Present only on `formed` entries. The slug `id` and the sessionId are otherwise
+   * UNLINKED id-spaces, so the oracle needs this to reconcile a suspended society
+   * with its registry record (see the good-standing route's isSuspended overlay).
+   * NEVER surfaced in the signed answer (buildRecordSummary omits it). Optional →
+   * seed + pre-existing self-listed entries cast in unchanged.
+   */
+  sessionId?: string;
   /** Present only on `forming`/`stale` entries (the formation lifecycle). Optional → seed casts unchanged. */
   formation?: FormationState;
   /**
@@ -556,9 +567,25 @@ async function entryWithCuit(
 }
 
 /**
- * Create or replace a record. Maintains the id set + by-url index. Returns the
- * stored record, or null when the id set is at capacity (abuse bound) for a NEW
- * id. Updating an existing id is always allowed (it keeps its own origin/cuit).
+ * Serialize a read-modify-write on ONE entity's record across isolates. The
+ * caller performs its read + validate + write INSIDE `fn` using the UNLOCKED
+ * `*Raw` writers, so the whole critical section is atomic — closing the lost-update
+ * and the revoked→active resurrection races (two privileged writers each validating
+ * against a pre-mutation snapshot, then blind-writing the whole record). No-op lock
+ * in memory mode (single isolate). Do NOT nest two locks on the same id (see kv-lock).
+ */
+export async function withEntityLock<T>(id: string, fn: () => Promise<T>): Promise<T> {
+  return withKvLock(`registry:entry:${id}`, fn);
+}
+
+/**
+ * UNLOCKED create/replace (claim-guard + set). A caller that read-modify-writes a
+ * record MUST hold `withEntityLock(rec.id)` around its read + this write. Standalone
+ * callers use the locked {@link upsertRecord} wrapper instead.
+ *
+ * Maintains the id set + by-url index. Returns the stored record, or null when the
+ * id set is at capacity (abuse bound) for a NEW id. Updating an existing id is
+ * always allowed (it keeps its own origin/cuit).
  *
  * CLAIM-GUARD (only for a NEW id, i.e. self-listing a fresh entry):
  *  - REFUSE (throw UrlTakenError) if the entry's origin is a SEED origin, or is
@@ -569,7 +596,7 @@ async function entryWithCuit(
  *    entry (CUIT impersonation / dedup).
  * On refusal NOTHING is written (no record, no index, no id-set membership).
  */
-export async function upsertRecord(rec: RegistryRecord): Promise<RegistryRecord | null> {
+export async function upsertRecordRaw(rec: RegistryRecord): Promise<RegistryRecord | null> {
   if (!ID_RE.test(rec.id)) return null;
   const origin = urlOrigin(rec.publicUrl);
 
@@ -619,12 +646,28 @@ export async function upsertRecord(rec: RegistryRecord): Promise<RegistryRecord 
 }
 
 /**
- * Patch the good-standing of an existing record (the certifier verdict, or an
- * admin/owner suspension/revocation). No-op-returns-null if the id is unknown
- * in BOTH KV and seed. For a seed-only id with no KV row yet, this MATERIALIZES
- * the seed entry into KV (so its good-standing becomes mutable) — KV-wins semantics.
+ * Public create/replace. Acquires the per-entity lock so a STANDALONE write (e.g.
+ * a self-list POST) is serialized against concurrent good-standing writes — and so
+ * the claim-guard's origin/cuit check + write is itself atomic. Callers that read
+ * BEFORE writing (the lifecycle transitions) must instead take {@link withEntityLock}
+ * around their read + {@link upsertRecordRaw} to keep the whole section atomic.
+ * UrlTakenError / CuitTakenError propagate; transient lock contention → null.
  */
-export async function setGoodStanding(
+export async function upsertRecord(rec: RegistryRecord): Promise<RegistryRecord | null> {
+  try {
+    return await withEntityLock(rec.id, () => upsertRecordRaw(rec));
+  } catch (e) {
+    if (e instanceof KvLockError) return null;
+    throw e;
+  }
+}
+
+/**
+ * UNLOCKED good-standing patch: read current, terminal-guard, write via
+ * upsertRecordRaw. A caller holding {@link withEntityLock}(id) uses this so its
+ * read+guard+write is one atomic section. Standalone callers use {@link setGoodStanding}.
+ */
+export async function setGoodStandingRaw(
   id: string,
   patch: Partial<GoodStanding> & { state: GoodStandingState },
 ): Promise<RegistryRecord | null> {
@@ -645,43 +688,82 @@ export async function setGoodStanding(
     goodStanding: { ...current.goodStanding, ...patch },
     updatedAt: new Date().toISOString(),
   };
-  return upsertRecord(next);
+  return upsertRecordRaw(next);
+}
+
+/**
+ * Patch the good-standing of an existing record (the certifier verdict, or an
+ * admin/owner suspension/revocation). No-op-returns-null if the id is unknown
+ * in BOTH KV and seed. For a seed-only id with no KV row yet, this MATERIALIZES
+ * the seed entry into KV (so its good-standing becomes mutable) — KV-wins semantics.
+ *
+ * ATOMIC: the read + terminal-guard + write run under the per-entity lock, so two
+ * concurrent writers can never lose one another's update or resurrect a revoked
+ * entity. RevokedTerminalError propagates; transient lock contention → null.
+ */
+export async function setGoodStanding(
+  id: string,
+  patch: Partial<GoodStanding> & { state: GoodStandingState },
+): Promise<RegistryRecord | null> {
+  try {
+    return await withEntityLock(id, () => setGoodStandingRaw(id, patch));
+  } catch (e) {
+    if (e instanceof RevokedTerminalError) throw e; // preserve the terminal contract
+    if (e instanceof KvLockError) return null; // transient contention → no write
+    throw e;
+  }
 }
 
 /**
  * Set (merge) the entity's PII-free USD-rail posture. No-op-returns-null if the id
- * is unknown. Materializes a seed-only id into KV (like setGoodStanding).
+ * is unknown. Materializes a seed-only id into KV (like setGoodStanding). Atomic
+ * read-modify-write under the per-entity lock (transient contention → null).
  */
 export async function setRailPosture(
   id: string,
   posture: RailPosture,
 ): Promise<RegistryRecord | null> {
-  const current = await getRecord(id);
-  if (!current) return null;
-  const next: RegistryRecord = {
-    ...current,
-    railPosture: { ...current.railPosture, ...posture, asOf: new Date().toISOString() },
-    updatedAt: new Date().toISOString(),
-  };
-  return upsertRecord(next);
+  try {
+    return await withEntityLock(id, async () => {
+      const current = await getRecord(id);
+      if (!current) return null;
+      const next: RegistryRecord = {
+        ...current,
+        railPosture: { ...current.railPosture, ...posture, asOf: new Date().toISOString() },
+        updatedAt: new Date().toISOString(),
+      };
+      return upsertRecordRaw(next);
+    });
+  } catch (e) {
+    if (e instanceof KvLockError) return null;
+    throw e;
+  }
 }
 
 /**
  * Set (merge) the entity's PII-free key-control posture. No-op-returns-null if the
- * id is unknown. Materializes a seed-only id into KV (like setRailPosture).
+ * id is unknown. Materializes a seed-only id into KV (like setRailPosture). Atomic
+ * read-modify-write under the per-entity lock (transient contention → null).
  */
 export async function setKeyPosture(
   id: string,
   posture: KeyPosture,
 ): Promise<RegistryRecord | null> {
-  const current = await getRecord(id);
-  if (!current) return null;
-  const next: RegistryRecord = {
-    ...current,
-    keyPosture: { ...current.keyPosture, ...posture, asOf: new Date().toISOString() },
-    updatedAt: new Date().toISOString(),
-  };
-  return upsertRecord(next);
+  try {
+    return await withEntityLock(id, async () => {
+      const current = await getRecord(id);
+      if (!current) return null;
+      const next: RegistryRecord = {
+        ...current,
+        keyPosture: { ...current.keyPosture, ...posture, asOf: new Date().toISOString() },
+        updatedAt: new Date().toISOString(),
+      };
+      return upsertRecordRaw(next);
+    });
+  } catch (e) {
+    if (e instanceof KvLockError) return null;
+    throw e;
+  }
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -807,6 +889,9 @@ export async function createFormingStub(
       createdAt: now,
       updatedAt: now,
       source: "formed",
+      // Bind the audit/suspension id onto the record so the oracle can reconcile a
+      // kill-switched society with its (differently-keyed) registry entry.
+      sessionId,
       formation: {
         ...(opts?.checklist ? { checklist: opts.checklist } : {}),
         ...(opts?.packHash ? { packHash: opts.packHash } : {}),
