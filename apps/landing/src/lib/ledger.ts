@@ -44,33 +44,12 @@ import {
 // RFC-006 §2 canonical JSON (domain-checking; mirrors arg-verify.mjs)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export function canonical006(value: unknown): string {
-  if (value === null) return "null";
-  const t = typeof value;
-  if (t === "number") {
-    if (!Number.isFinite(value as number)) {
-      throw new TypeError(`canonical: non-finite number out of domain (RFC-006 §2): ${value}`);
-    }
-    return JSON.stringify(value);
-  }
-  if (t === "string" || t === "boolean") return JSON.stringify(value);
-  if (t === "bigint" || t === "function" || t === "symbol" || t === "undefined") {
-    throw new TypeError(`canonical: ${t} is out of domain (RFC-006 §2): not a JSON value`);
-  }
-  if (Array.isArray(value)) {
-    let out = "[";
-    for (let i = 0; i < value.length; i++) {
-      if (!(i in value)) {
-        throw new TypeError(`canonical: array hole at index ${i} out of domain (RFC-006 §2)`);
-      }
-      out += (i ? "," : "") + canonical006(value[i]);
-    }
-    return out + "]";
-  }
-  const obj = value as Record<string, unknown>;
-  const keys = Object.keys(obj).sort();
-  return `{${keys.map((k) => `${JSON.stringify(k)}:${canonical006(obj[k])}`).join(",")}}`;
-}
+// canonical006 lives in its own PURE, zero-dependency module (./canonical006) so
+// the Sovereignty Bundle's verify/replay path can share the EXACT bytes without
+// transitively importing @vercel/kv. Re-exported here so every existing
+// `import { canonical006 } from "./ledger"` site is unchanged.
+export { canonical006 } from "./canonical006";
+import { canonical006 } from "./canonical006";
 
 // ─────────────────────────────────────────────────────────────────────────────
 // HMAC-SHA256 hex (Web Crypto, Edge-safe)
