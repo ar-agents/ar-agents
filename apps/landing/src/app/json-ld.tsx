@@ -59,7 +59,7 @@ export function HomeJsonLd() {
           url: SITE_URL,
           name: "ar-agents",
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades automatizadas. 36 npm packages, 235 tools, 5 hosted endpoints.",
+            "Open-source toolkit and reference implementation for Argentine sociedades automatizadas. 37 npm packages, 243 tools, 5 hosted endpoints.",
           inLanguage: ["es-AR", "en"],
           potentialAction: {
             "@type": "SearchAction",
@@ -193,7 +193,7 @@ export function IncorporarJsonLd() {
           { "@type": "HowToSupply", name: "Objeto social específico (mínimo 20 caracteres)" },
         ],
         tool: [
-          { "@type": "HowToTool", name: "@ar-agents/* npm packages (36 paquetes)" },
+          { "@type": "HowToTool", name: "@ar-agents/* npm packages (37 paquetes)" },
           { "@type": "HowToTool", name: "Vercel one-click deploy" },
           { "@type": "HowToTool", name: "ARCA cert X.509 (post-launch)" },
         ],

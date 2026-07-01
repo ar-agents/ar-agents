@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 import { MermaidDiagram } from "./mermaid-diagram";
+import { PUBLISHED_PACKAGES, CANONICAL_TOOLS } from "@/lib/stats";
 
 const COMPOSITION_FLOW = `sequenceDiagram
     autonumber
@@ -110,7 +111,7 @@ const PACKAGE_GRAPH = `flowchart LR
 export const metadata: Metadata = {
   title: "Architecture",
   description:
-    "Canonical reference for the @ar-agents/* stack: 36 packages, 235 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
+    "Canonical reference for the @ar-agents/* stack: 37 packages, 243 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
   alternates: { canonical: "https://ar-agents.ar/architecture" },
 };
 
@@ -363,11 +364,9 @@ function MaturityBadge({ name }: { name: string }) {
   );
 }
 
-// Canonical totals (match /api/discovery, agents.json, every other surface).
-// The grid below diagrams the core packages by category; the full set is the
-// 36 published packages / 235 tools.
-const PUBLISHED_PACKAGES = 36;
-const CANONICAL_TOOLS = 235;
+// Canonical totals come from lib/stats.ts (the single source of truth; matches
+// /api/discovery + agents.json). The grid below diagrams the core packages by
+// category; the full set is PUBLISHED_PACKAGES packages / CANONICAL_TOOLS tools.
 const CORE_SHOWN = PACKAGES.length;
 
 export default function ArchitecturePage() {
@@ -392,7 +391,7 @@ export default function ArchitecturePage() {
         around that fact.
       </DocP>
 
-      <DocH2>The 36 packages</DocH2>
+      <DocH2>The {PUBLISHED_PACKAGES} packages</DocH2>
 
       <DocP>
         The {CORE_SHOWN} core packages are diagrammed below by category; the full

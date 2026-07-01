@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   robots: NOINDEX,
   title: "Open letter to the Minister · ar-agents",
   description:
-    "Open letter to Minister Federico Sturzenegger on the technical implementation of the sociedades-IA regime. MIT reference implementation, 36 packages on npm, 235 tools, AAIF working group proposed. Ready to use the day the law passes.",
+    "Open letter to Minister Federico Sturzenegger on the technical implementation of the sociedades-IA regime. MIT reference implementation, 37 packages on npm, 243 tools, AAIF working group proposed. Ready to use the day the law passes.",
   alternates: {
     canonical: "https://ar-agents.ar/en/to-the-minister",
     languages: {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title:
       "Open letter to Minister Sturzenegger, The technical layer of AI corporations is already written",
     description:
-      "36 npm packages, MIT, 235 tools, 16 of 17 operational pieces covered. Ready the day the law passes.",
+      "37 npm packages, MIT, 243 tools, 16 of 17 operational pieces covered. Ready the day the law passes.",
     url: "https://ar-agents.ar/en/to-the-minister",
   },
 };

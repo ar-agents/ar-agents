@@ -82,7 +82,7 @@ export default function Docs() {
               github.com/ar-agents <span style={{ color: "var(--accent)" }}>→</span>
             </div>
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
-              {es ? "40 paquetes · MIT · provenance" : "40 packages · MIT · provenance"}
+              {es ? "37 paquetes · MIT · provenance" : "37 packages · MIT · provenance"}
             </div>
           </a>
         </div>

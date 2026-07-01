@@ -145,7 +145,7 @@ export function ImplementacionContent() {
         </li>
         <li>
           <strong>Estado actual de la implementación</strong>: qué
-          existe verificable (código MIT, 36 paquetes en npm,
+          existe verificable (código MIT, 37 paquetes en npm,
           reference verifier, despliegues productivos con CAE real) y
           qué no existe todavía.
         </li>

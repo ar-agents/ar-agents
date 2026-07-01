@@ -53,7 +53,7 @@ export default function PlaybookEsPage() {
             style={{ color: "var(--accent)" }}
           >
             github.com/ar-agents/ar-agents
-          </a>: 36 paquetes, 235 herramientas, 4 subpaths de testing, 17
+          </a>: 37 paquetes, 243 herramientas, 4 subpaths de testing, 17
           recetas del cookbook. Open source. Licencia MIT. Provenance SLSA.
         </DocP>
       </DocBlock>

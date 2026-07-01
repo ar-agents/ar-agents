@@ -20,7 +20,7 @@ const SHADOW_BORDER = "rgba(0,0,0,0.08) 0px 0px 0px 1px";
 const SHADOW_CARD =
   "rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px, #fafafa 0px 0px 0px 1px";
 
-type Tone = "ok" | "warn" | "off";
+type Tone = "ok" | "warn" | "off" | "crit";
 
 type Check = {
   group: string;
@@ -91,6 +91,26 @@ function buildChecks(): Check[] {
       : "MP demo runs against synthetic responses. Wire MERCADOPAGO_ACCESS_TOKEN to enable real calls.",
   });
 
+  // ── Integrity guard (cross-cutting) ───────────────────────────────────
+  // El Auditor is a paid product defined by a live MP token. If it is live
+  // while HMAC signing OR durable KV storage is missing, the product would be
+  // CHARGING for "proof" it cannot produce: appendAudit() writes hmac:null
+  // without AUDIT_HMAC_SECRET, and falls back to a per-instance in-memory Map
+  // (lost on cold start, no ledger anchor) without KV. A silent, revenue-bearing
+  // correctness failure, so it reads RED.
+  if (mp && (!hmacWired || !kvWired)) {
+    checks.push({
+      group: "Payments",
+      name: "Paid audit integrity",
+      status: "crit",
+      detail:
+        "MERCADOPAGO_ACCESS_TOKEN is set (El Auditor can charge) but " +
+        (!hmacWired ? "AUDIT_HMAC_SECRET is missing so entries write UNSIGNED. " : "") +
+        (!kvWired ? "durable KV is unwired so entries are in-memory only, lost on cold start. " : "") +
+        "Do not charge until both are configured, or the product bills for proof it cannot produce.",
+    });
+  }
+
   // ── WhatsApp ──────────────────────────────────────────────────────────
   const wa = envSet("WHATSAPP_ACCESS_TOKEN", "WHATSAPP_PHONE_NUMBER_ID");
   checks.push({
@@ -123,7 +143,7 @@ function buildChecks(): Check[] {
   // ── Public surfaces ──────────────────────────────────────────────────
   checks.push({
     group: "Public surfaces",
-    name: "/api/discovery (36 packages, 235 tools, 3 hosted endpoints)",
+    name: "/api/discovery (37 packages, 243 tools, 3 hosted endpoints)",
     status: "ok",
     detail: "JSON inventory + OpenAPI 3.1 stub. Auto-discoverable by external agents.",
   });
@@ -155,6 +175,7 @@ const TONE_STYLE: Record<Tone, { color: string; bg: string; label: string }> = {
   ok: { color: "#0a72ef", bg: "#ebf5ff", label: "OK" },
   warn: { color: "#eab308", bg: "#fffbe6", label: "WARN" },
   off: { color: "#666", bg: "#f5f5f5", label: "DEMO" },
+  crit: { color: "#d4183d", bg: "#fff0f2", label: "CRITICAL" },
 };
 
 export default function StatusPage() {
@@ -163,6 +184,7 @@ export default function StatusPage() {
   const okCount = checks.filter((c) => c.status === "ok").length;
   const warnCount = checks.filter((c) => c.status === "warn").length;
   const offCount = checks.filter((c) => c.status === "off").length;
+  const critCount = checks.filter((c) => c.status === "crit").length;
 
   return (
     <main
@@ -214,7 +236,7 @@ export default function StatusPage() {
           </p>
         </header>
 
-        <Summary ok={okCount} warn={warnCount} off={offCount} />
+        <Summary ok={okCount} warn={warnCount} off={offCount} crit={critCount} />
 
         {/* Live self-certification badge */}
         <div
@@ -275,22 +297,41 @@ function Summary({
   ok,
   warn,
   off,
+  crit,
 }: {
   ok: number;
   warn: number;
   off: number;
+  crit: number;
 }) {
   return (
-    <div
-      style={{
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 10,
-      }}
-    >
-      <Tile label="OK" value={ok} tone="ok" />
-      <Tile label="Warn" value={warn} tone="warn" />
-      <Tile label="Demo mode" value={off} tone="off" />
+    <div style={{ display: "grid", gap: 10 }}>
+      {crit > 0 ? (
+        <div
+          style={{
+            padding: "12px 14px",
+            borderRadius: 8,
+            background: TONE_STYLE.crit.bg,
+            border: `1px solid ${TONE_STYLE.crit.color}`,
+            color: TONE_STYLE.crit.color,
+            fontSize: 13,
+            fontWeight: 600,
+          }}
+        >
+          {crit} CRITICAL — a paid product is billing for proof it cannot produce. See below.
+        </div>
+      ) : null}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          gap: 10,
+        }}
+      >
+        <Tile label="OK" value={ok} tone="ok" />
+        <Tile label="Warn" value={warn} tone="warn" />
+        <Tile label="Demo mode" value={off} tone="off" />
+      </div>
     </div>
   );
 }

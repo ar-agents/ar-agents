@@ -1,7 +1,11 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // Stateful in-memory @vercel/kv mock with a fault toggle to prove best-effort.
-const state = vi.hoisted(() => ({ store: new Map<string, number>(), fail: false }));
+const state = vi.hoisted(() => ({
+  store: new Map<string, number>(),
+  expires: [] as [string, number][],
+  fail: false,
+}));
 vi.mock("@vercel/kv", () => ({
   kv: {
     incr: async (k: string) => {
@@ -10,7 +14,10 @@ vi.mock("@vercel/kv", () => ({
       state.store.set(k, n);
       return n;
     },
-    expire: async () => 1,
+    expire: async (k: string, ttl: number) => {
+      state.expires.push([k, ttl]);
+      return 1;
+    },
     get: async (k: string) => {
       if (state.fail) throw new Error("kv down");
       return state.store.get(k) ?? null;
@@ -22,6 +29,7 @@ import { recordUsage, getUsage } from "../src/lib/metering";
 
 beforeEach(() => {
   state.store.clear();
+  state.expires.length = 0;
   state.fail = false;
 });
 
@@ -44,6 +52,16 @@ describe("metering — billable usage tally", () => {
     await recordUsage(k2);
     expect((await getUsage(k1)).monthToDate).toBe(2);
     expect((await getUsage(k2)).monthToDate).toBe(1);
+  });
+
+  it("sets the month (~13mo) + day (~70d) retention TTL exactly once, on the first write", async () => {
+    const key = "arag_live_" + "c".repeat(48);
+    await recordUsage(key); // first incr -> both expires fire
+    await recordUsage(key); // second incr -> no expire (window not reset)
+    const MONTH_TTL = 400 * 24 * 60 * 60;
+    const DAY_TTL = 70 * 24 * 60 * 60;
+    expect(state.expires.filter(([, t]) => t === MONTH_TTL)).toHaveLength(1);
+    expect(state.expires.filter(([, t]) => t === DAY_TTL)).toHaveLength(1);
   });
 
   it("is best-effort: recordUsage returns null and getUsage zeros on KV error", async () => {

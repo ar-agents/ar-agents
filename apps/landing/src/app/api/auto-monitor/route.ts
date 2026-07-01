@@ -3,17 +3,17 @@
  *
  * Vercel cron-driven endpoint. Hits /api/conformance-history?refresh=1
  * for each entry in the public /registro page, building up a long-term
- * time-series of cert-scores. The cron runs hourly per vercel.json.
+ * time-series of cert-scores. The cron runs once daily (0 4 * * *) per vercel.json.
  *
  * Returns a summary JSON: per-URL latest score + run duration.
  *
- * Designed to be called by Vercel cron (which arrives with no auth
- * header but a CRON_SECRET-protected request from Vercel's
- * infrastructure). For now, this endpoint is publicly callable,
- * if rate-limit pressure builds up, add a CRON_SECRET check.
+ * Called by Vercel cron, which sends Authorization: Bearer <CRON_SECRET>.
+ * Fail-closed: this endpoint refuses (503) when CRON_SECRET is unset and
+ * rejects (401) any request lacking the correct Bearer token, so it is
+ * NOT publicly callable.
  *
  * Node runtime. ~3-5s per URL (the certifier itself does 9 HTTP
- * sub-checks). Six URLs = ~30s worst case, well under Vercel's
+ * sub-checks). Five URLs = ~25s worst case, well under Vercel's
  * 60s function timeout.
  */
 

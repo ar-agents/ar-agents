@@ -191,7 +191,7 @@ const ROWS: ReadonlyArray<Row> = [
     layer: "Open-source posture",
     argentina: {
       description:
-        "Everything: 36 packages MIT, 6 RFCs CC-BY-4.0, audit lib reference.",
+        "Everything: 37 packages MIT, 6 RFCs CC-BY-4.0, audit lib reference.",
       status: "operational",
     },
     wyoming: {
