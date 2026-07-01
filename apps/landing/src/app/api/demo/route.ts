@@ -3,7 +3,7 @@
 // Pago calls (the demo is for the LLM behavior, not for charging cards on
 // the landing).
 //
-// Routing: model string "anthropic/claude-sonnet-4-6" goes through Vercel
+// Routing: the gateway model (lib/llm-gateway.ts) goes through the Vercel
 // AI Gateway. On a Vercel deployment that has the gateway enabled this just
 // works, no provider package needed, no ANTHROPIC_API_KEY to manage. The
 // gateway also gives us per-route observability, a single billing line in
@@ -20,7 +20,8 @@
 //   unrelated to Mercado Pago payments.
 // - Sandbox tools never hit real APIs, there's no SSRF surface.
 
-import { convertToModelMessages, streamText, tool, type UIMessage } from "ai";
+import { convertToModelMessages, tool, type UIMessage } from "ai";
+import { gwStreamText } from "@/lib/llm-gateway";
 import { z } from "zod";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { checkBotId } from "botid/server";
@@ -307,21 +308,23 @@ export async function POST(req: Request) {
   const modelMessages = await convertToModelMessages(messages);
 
   try {
-    const result = streamText({
-      model: "anthropic/claude-sonnet-4-6",
-      instructions: SYSTEM,
-      messages: modelMessages,
-      tools,
-      stopWhen: ({ steps }) => steps.length >= 6,
-      temperature: 0.4,
-      providerOptions: {
-        anthropic: {
-          // Caps a single response to ~800 tokens. Hard ceiling on cost
-          // per request even if someone tries to extract a long monologue.
-          maxOutputTokens: 800,
+    const result = gwStreamText(
+      { purpose: "demo-chat", audit: false },
+      {
+        instructions: SYSTEM,
+        messages: modelMessages,
+        tools,
+        stopWhen: ({ steps }) => steps.length >= 6,
+        temperature: 0.4,
+        providerOptions: {
+          anthropic: {
+            // Caps a single response to ~800 tokens. Hard ceiling on cost
+            // per request even if someone tries to extract a long monologue.
+            maxOutputTokens: 800,
+          },
         },
       },
-    });
+    );
 
     return result.toUIMessageStreamResponse();
   } catch (err) {
