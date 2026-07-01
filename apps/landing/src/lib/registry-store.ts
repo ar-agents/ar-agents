@@ -142,6 +142,24 @@ export interface RegistryRecord {
   source: "seed" | "self-listed" | "formed";
   /** Present only on `forming`/`stale` entries (the formation lifecycle). Optional → seed casts unchanged. */
   formation?: FormationState;
+  /**
+   * PII-FREE USD-rail posture a counterparty reads: which USD rail the entity
+   * settles in, OUSD enablement, yield opt-in. Additive/optional (seed casts
+   * unchanged). NEVER carries amounts, balances, or addresses.
+   */
+  railPosture?: RailPosture;
+}
+
+/** The entity's declared USD-rail posture (PII-free). Absent = ARS-only. */
+export interface RailPosture {
+  /** The USD rail the entity settles in, if any. null/absent = ARS-only. */
+  usdRail?: "ousd" | "usdc" | "other" | null;
+  /** OUSD explicitly enabled for this entity. */
+  ousdEnabled?: boolean;
+  /** Entity opts into OUSD reserve yield (a partner/config choice). */
+  yieldEnabled?: boolean;
+  /** ISO of the last posture update. */
+  asOf?: string;
 }
 
 export const ID_RE = /^[a-z0-9][a-z0-9-]{1,62}$/;
@@ -603,6 +621,24 @@ export async function setGoodStanding(
   const next: RegistryRecord = {
     ...current,
     goodStanding: { ...current.goodStanding, ...patch },
+    updatedAt: new Date().toISOString(),
+  };
+  return upsertRecord(next);
+}
+
+/**
+ * Set (merge) the entity's PII-free USD-rail posture. No-op-returns-null if the id
+ * is unknown. Materializes a seed-only id into KV (like setGoodStanding).
+ */
+export async function setRailPosture(
+  id: string,
+  posture: RailPosture,
+): Promise<RegistryRecord | null> {
+  const current = await getRecord(id);
+  if (!current) return null;
+  const next: RegistryRecord = {
+    ...current,
+    railPosture: { ...current.railPosture, ...posture, asOf: new Date().toISOString() },
     updatedAt: new Date().toISOString(),
   };
   return upsertRecord(next);
