@@ -18,6 +18,12 @@ import {
   levelRequiresApproval,
   type RiskLevel,
 } from "@ar-agents/core";
+import {
+  decideSpending,
+  inMemoryTally,
+  type SpendingCaps,
+  type SpendingTally,
+} from "./guardrails";
 
 /**
  * HITL approval hook. Called BEFORE an approval-level tool runs. Return true to
@@ -58,9 +64,18 @@ export interface GovernanceOptions {
   approve?: ApproveHook;
   /**
    * Kill-switch. Overrides the `AR_AGENTS_MCP_HALT` env var. When it resolves to
-   * a halt, ALL tools refuse with `society_suspended`. Default: no halt.
+   * a halt, ALL tools refuse with `society_suspended`. Default: no halt. See
+   * `goodStandingHalt` to wire this to the ar-agents registry state.
    */
   isHalted?: HaltHook;
+  /**
+   * Spending guardrail (opt-in). With caps set, a MONEY tool within the per-op +
+   * daily limits AUTO-APPROVES; over the caps it falls back to the approve hook.
+   * Absent = the unchanged fail-closed default (every money tool needs approval).
+   */
+  caps?: SpendingCaps;
+  /** Pluggable daily-spend tally (default: in-memory per-process). */
+  tally?: SpendingTally;
 }
 
 /** Fully-resolved governance state used at CallTool time. */
@@ -73,6 +88,10 @@ export interface ResolvedGovernance {
   isHalted?: HaltHook | undefined;
   /** True when enforce is on but NO approve hook was supplied (fail-closed deny). */
   failClosed: boolean;
+  /** Spending caps, if configured (opt-in amount-aware approval). */
+  caps?: SpendingCaps | undefined;
+  /** Running daily-spend tally (always present; consulted only when caps are set). */
+  tally: SpendingTally;
 }
 
 function envFlagOn(raw: string | undefined): boolean | undefined {
@@ -114,6 +133,8 @@ export function resolveGovernance(
     approve: opts.approve,
     isHalted,
     failClosed,
+    caps: opts.caps,
+    tally: opts.tally ?? inMemoryTally(),
   };
 }
 
@@ -174,6 +195,16 @@ export async function decideGovernance(
     return { kind: "allow" };
   }
 
+  // Spending guardrail (amount-aware, opt-in). Only affects MONEY tools when caps
+  // are configured: WITHIN caps -> auto-approve (spend recorded on the tally);
+  // OVER caps (or an unreadable amount) -> fall through to the human approve hook
+  // below. Non-money tools / no caps -> no effect (not_applicable).
+  const spend = decideSpending({ toolName, description, sideEffects, args }, gov.caps, gov.tally);
+  if (spend.kind === "within_caps") {
+    return { kind: "allow" };
+  }
+  const capNote = spend.kind === "over_caps" ? ` Spending guardrail: ${spend.reason}.` : "";
+
   // Approval-level tool. Fail closed when no human-approval hook is wired.
   if (!gov.approve) {
     return {
@@ -181,7 +212,7 @@ export async function decideGovernance(
       level,
       reason: "fail_closed",
       message:
-        `Tool "${toolName}" needs human approval (art. 102): ${level} risk. ` +
+        `Tool "${toolName}" needs human approval (art. 102): ${level} risk.${capNote} ` +
         `This @ar-agents/mcp server enforces the art. 102 governance gate by default. ` +
         `No approval hook is wired, so money/fiscal/legal/irreversible/unknown tools are refused. ` +
         `Either wire an approve hook via createServer({ governance: { approve } }), ` +
@@ -220,5 +251,8 @@ export function describeGovernance(gov: ResolvedGovernance): string {
   }
   const hook = gov.approve ? "approve hook wired" : "NO approve hook → fail-closed DENY";
   const halt = gov.isHalted ? " · HALT active (all tools refuse)" : "";
-  return `governance      → enforce=ON (art. 102 gate · ${hook})${halt}`;
+  const caps = gov.caps
+    ? ` · caps(${gov.caps.perOpMax ?? "none"}/op, ${gov.caps.dailyMax ?? "none"}/day ${gov.caps.currency ?? "ARS"})`
+    : "";
+  return `governance      → enforce=ON (art. 102 gate · ${hook})${caps}${halt}`;
 }
