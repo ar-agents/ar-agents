@@ -402,6 +402,16 @@ export {
   BITSO_SANDBOX,
 } from "./bitso";
 
+// OUSD -> ARS route: orchestrate a licensed PSAV off-ramp + the accounting_payload
+// (we never become the ramp). Mock-until-live (OPEN_USD.status gates real use).
+export {
+  createOusdArsRoute,
+  type OusdArsRoute,
+  type OusdArsRouteOptions,
+  type OusdArsQuote,
+  type OusdArsReceipt,
+} from "./open-usd-route";
+
 export {
   MONOTRIBUTO_2026,
   MONOTRIBUTO_TABLE_EFFECTIVE,

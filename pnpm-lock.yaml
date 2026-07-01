@@ -1350,6 +1350,10 @@ importers:
         version: 4.4.3
 
   packages/treasury:
+    dependencies:
+      '@ar-agents/core':
+        specifier: workspace:*
+        version: link:../core
     devDependencies:
       '@types/node':
         specifier: ^20.19.39

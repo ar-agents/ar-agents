@@ -22,14 +22,21 @@ import type {
 } from "../jurisdiction";
 import { buildAccountingPayload, type AccountingPayload, type FxOracle } from "./accounting";
 
-/** Static facts about Open USD. `status` gates any real integration. */
-export const OPEN_USD = {
+/** Lifecycle of the OUSD asset. Flip to "live" once OUSD is issued + a provider lists it. */
+export type OpenUsdStatus = "pre-launch" | "live";
+
+/** Static facts about Open USD. `status` gates any real integration (MOCK until "live"). */
+export const OPEN_USD: {
+  readonly asset: "OUSD";
+  readonly issuer: string;
+  readonly chains: readonly string[];
+  readonly status: OpenUsdStatus;
+} = {
   asset: "OUSD",
   issuer: "Open Standard",
-  chains: ["solana", "polygon", "aptos", "stellar"] as const,
-  /** "pre-launch" today: ar-agents' OUSD integration is MOCK until this flips to "live". */
-  status: "pre-launch" as const,
-} as const;
+  chains: ["solana", "polygon", "aptos", "stellar"],
+  status: "pre-launch",
+};
 
 /**
  * The on/off-chain settlement backend for OUSD, injected by the host. The default
