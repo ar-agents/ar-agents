@@ -97,6 +97,7 @@ export {
 } from "./rails/accounting";
 export {
   OPEN_USD,
+  type OpenUsdStatus,
   type OpenUsdRail,
   type OpenUsdRailOptions,
   type OpenUsdSettlementBackend,
