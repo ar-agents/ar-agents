@@ -20,6 +20,7 @@ import {
   isSessionIdValid,
 } from "./audit";
 import { createFormingStub, type ChecklistItem } from "./registry-store";
+import { buildFormationPack } from "./formation-pack";
 import {
   envVarsFor,
   type Finding,
@@ -142,6 +143,12 @@ export async function runIncorporation(
     };
   }
 
+  // Formation Pack: the machine sidecar (single source of truth) + deterministically
+  // rendered estatuto/IGJ/AFIP drafts (BORRADOR, behind the legal guardrail). The
+  // packHash is bound into the signed audit below (tamper-evident provenance) and
+  // the sidecar is stored on the registry stub so the drafts re-render without drift.
+  const pack = await buildFormationPack(input, { piezas: s.piezas });
+
   const sessionId =
     input.sessionId && isSessionIdValid(input.sessionId)
       ? input.sessionId
@@ -163,7 +170,12 @@ export async function runIncorporation(
         objeto: input.objeto.slice(0, 200),
         piezas: s.piezas,
       },
-      output: { slug: s.slug, valid: s.validation.valid, files: Object.keys(s.config) },
+      output: {
+        slug: s.slug,
+        valid: s.validation.valid,
+        files: Object.keys(s.config),
+        formationPackHash: pack.packHash,
+      },
     },
     { durable: true },
   );
@@ -182,7 +194,11 @@ export async function runIncorporation(
         representante: input.representante,
       },
       sessionId,
-      { checklist: checklistItems(s.checklist) },
+      {
+        checklist: checklistItems(s.checklist),
+        packHash: pack.packHash,
+        sidecar: pack.sidecar as unknown as Record<string, unknown>,
+      },
     );
     if (stub) {
       registryStub = {
@@ -207,6 +223,16 @@ export async function runIncorporation(
     config: s.config,
     envVars: s.envVars,
     checklist: s.checklist,
+    // Formation Pack: the machine sidecar (single source of truth) + the rendered
+    // estatuto/IGJ/AFIP drafts. BORRADOR: drafts to review with a notary/lawyer,
+    // not legal advice (validated:false). packHash is bound into the audit above.
+    formationPack: {
+      sidecar: pack.sidecar,
+      documents: pack.documents,
+      packHash: pack.packHash,
+      validated: false,
+      disclaimer: pack.sidecar.disclaimer,
+    },
     deploy: {
       target: "vercel",
       oneClickUrl: s.deployUrl,

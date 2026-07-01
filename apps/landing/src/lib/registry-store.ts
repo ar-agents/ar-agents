@@ -88,6 +88,13 @@ export interface FormationState {
   checklist?: ChecklistItem[];
   /** sha256 of the Formation Pack manifest, when one was generated. */
   packHash?: string;
+  /**
+   * The Formation Pack's machine-readable sidecar (the single source of truth for
+   * the entity's legal params). Stored OPAQUE here (Record) so registry-store does
+   * not depend on formation-pack; the formation route casts it back to render the
+   * human drafts deterministically. Optional -> seed casts unchanged.
+   */
+  sidecar?: Record<string, unknown>;
   /** ISO of the last checklist advance or audit-log activity for this entry. */
   lastProgressAt?: string;
 }
@@ -675,7 +682,12 @@ async function dedupedFormingId(base: string): Promise<string> {
 export async function createFormingStub(
   input: FormingStubInput,
   sessionId: string,
-  opts?: { checklist?: ChecklistItem[]; packHash?: string; now?: string },
+  opts?: {
+    checklist?: ChecklistItem[];
+    packHash?: string;
+    sidecar?: Record<string, unknown>;
+    now?: string;
+  },
 ): Promise<RegistryRecord | null> {
   try {
     const now = opts?.now ?? new Date().toISOString();
@@ -722,6 +734,7 @@ export async function createFormingStub(
       formation: {
         ...(opts?.checklist ? { checklist: opts.checklist } : {}),
         ...(opts?.packHash ? { packHash: opts.packHash } : {}),
+        ...(opts?.sidecar ? { sidecar: opts.sidecar } : {}),
         lastProgressAt: now,
       },
     };
