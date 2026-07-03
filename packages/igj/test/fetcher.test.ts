@@ -183,4 +183,16 @@ describe("LiveCkanFetcher", () => {
     await f.search({});
     expect(String(fakeFetch.mock.calls[0]![0])).toContain("resource_id=custom-id");
   });
+
+  it("fails loud on a success:true body whose records isn't an array", async () => {
+    // A malformed 200 (records not an array) must not be coerced into an empty
+    // result set — it throws instead.
+    const fakeFetch = vi.fn(async () =>
+      new Response(JSON.stringify({ success: true, result: { records: "oops" } }), {
+        status: 200,
+      }),
+    );
+    const f = new LiveCkanFetcher({ fetch: fakeFetch as unknown as typeof fetch });
+    await expect(f.search({})).rejects.toThrow(/shape invalid/i);
+  });
 });

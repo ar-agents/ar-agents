@@ -73,7 +73,7 @@
     {
       "name": "CJS",
       "path": "dist/index.cjs",
-      "limit": "10 KB"
+      "limit": "12 KB"
     }
   ],
   "peerDependencies": {
