@@ -1,4 +1,5 @@
 import { describe, it, expect } from "vitest";
+import { ArAgentsResponseValidationError } from "@ar-agents/core";
 import {
   UnconfiguredUalaAdapter,
   UalaApiAdapter,
@@ -107,15 +108,73 @@ describe("UalaApiAdapter request layer (mock fetch)", () => {
     let captured: Headers | null = null;
     const fetchImpl = (async (_url: string, init: RequestInit) => {
       captured = new Headers(init.headers);
-      return new Response(JSON.stringify({ id: "pl_x", status: "open" }), {
-        status: 200,
-      });
+      return new Response(
+        JSON.stringify({
+          id: "pl_x",
+          amount: 100,
+          currency: "ARS",
+          status: "open",
+          shareUrl: "https://pay.uala.test/links/pl_x",
+          createdAt: "2026-05-01T00:00:00.000Z",
+        }),
+        { status: 200 },
+      );
     }) as unknown as typeof fetch;
     const a = new UalaApiAdapter({ apiKey: "k", fetchImpl });
     await a.createPaymentLink({ amount: 100, idempotencyKey: "key-abc-123" });
     expect(captured).not.toBeNull();
     expect(captured?.get("idempotency-key")).toBe("key-abc-123");
     expect(captured?.get("authorization")).toBe("Bearer k");
+  });
+
+  it("fails loud on a malformed financial body (missing required fields)", async () => {
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ currency: "ARS", available: 100 }), {
+        status: 200,
+      })) as unknown as typeof fetch; // missing `pending` + `asOf`
+    const a = new UalaApiAdapter({ apiKey: "k", fetchImpl });
+    await expect(a.getBalance()).rejects.toBeInstanceOf(ArAgentsResponseValidationError);
+  });
+
+  it("does NOT retry a keyless payout on a transient 5xx (no double-spend)", async () => {
+    let calls = 0;
+    const fetchImpl = (async () => {
+      calls += 1;
+      return new Response("upstream down", { status: 503 });
+    }) as unknown as typeof fetch;
+    const a = new UalaApiAdapter({ apiKey: "k", fetchImpl });
+    await expect(
+      a.createPayout({ amount: 1000, destinationCbu: "1".repeat(22) }),
+    ).rejects.toBeInstanceOf(UalaApiError);
+    expect(calls).toBe(1); // POST without an idempotency key must not be retried
+  });
+
+  it("DOES retry a payout that carries an idempotency key", async () => {
+    let calls = 0;
+    const fetchImpl = (async () => {
+      calls += 1;
+      return calls < 2
+        ? new Response("upstream down", { status: 503 })
+        : new Response(
+            JSON.stringify({
+              id: "po_1",
+              amount: 1000,
+              currency: "ARS",
+              destinationCbu: "1".repeat(22),
+              status: "pending",
+              createdAt: "2026-05-01T00:00:00.000Z",
+            }),
+            { status: 200 },
+          );
+    }) as unknown as typeof fetch;
+    const a = new UalaApiAdapter({ apiKey: "k", fetchImpl });
+    const p = await a.createPayout({
+      amount: 1000,
+      destinationCbu: "1".repeat(22),
+      idempotencyKey: "safe-key",
+    });
+    expect(p.status).toBe("pending");
+    expect(calls).toBe(2);
   });
 });
 
