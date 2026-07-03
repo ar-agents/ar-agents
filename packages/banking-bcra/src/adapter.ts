@@ -10,6 +10,16 @@
  */
 
 import {
+  ArAgentsAuthError,
+  ArAgentsProtocolError,
+  ArAgentsRateLimitError,
+  ArAgentsResponseValidationError,
+  HttpClient,
+  isArAgentsError,
+  type HttpRetryOptions,
+} from "@ar-agents/core";
+import { z } from "zod";
+import {
   BcraApiError,
   BcraNotFoundError,
   BcraUnconfiguredError,
@@ -46,6 +56,11 @@ export class UnconfiguredBcraAdapter implements BcraAdapter {
 
 // ── HTTP (real BCRA) ────────────────────────────────────────────
 
+/**
+ * @deprecated The adapter now uses the standard `fetch` from
+ * `@ar-agents/core`'s HttpClient. Pass a real `fetch` (or omit for the global
+ * one). Kept only so existing type imports don't break.
+ */
 export type FetchLike = (
   url: string,
   init?: { method?: string; headers?: Record<string, string> },
@@ -59,53 +74,80 @@ export type FetchLike = (
 export interface HttpBcraAdapterOptions {
   /** Override base URL (mainly for tests / regional proxies). */
   baseUrl?: string;
-  /** Optional fetch override. */
-  fetch?: FetchLike;
+  /** Optional `fetch` override (tests / custom transport). Defaults to global. */
+  fetch?: typeof fetch;
   /** Per-request timeout in ms. Default 10_000. */
   timeoutMs?: number;
   /** User-Agent identifying the client. BCRA doesn't require one but
    * sending an identifier is polite + helps if they ever need to
    * rate-limit aggressive callers separately. */
   userAgent?: string;
+  /** Retry policy override. Default: 3 attempts with jittered backoff — the
+   * reads are idempotent GETs, so retrying a transient 5xx/timeout is safe. */
+  retry?: HttpRetryOptions;
 }
 
 const DEFAULT_BASE_URL = "https://api.bcra.gob.ar";
 const DEFAULT_UA = "@ar-agents/banking-bcra (https://ar-agents.ar)";
 
+/**
+ * Envelope guard for every BCRA read. Its job is NOT to fully type the debt
+ * body (the tolerant field-pickers below handle BCRA's casing quirks) but to
+ * REJECT a response that isn't a recognizable BCRA envelope — an error page, a
+ * truncated body, or `{}` — so it can't slide through the `?? [] / ?? 0`
+ * defaults and fabricate a debt-free / clean result. That fabrication (an
+ * unrecognized body parsing as "no debt") was the audit's headline risk on this
+ * exact credit-check path.
+ */
+const bcraEnvelopeSchema = z
+  .object({
+    results: z.record(z.string(), z.unknown()).nullable().optional(),
+    periodos: z.array(z.unknown()).optional(),
+    entidades: z.array(z.unknown()).optional(),
+    cheques: z.array(z.unknown()).optional(),
+  })
+  .refine(
+    (b) =>
+      b.results !== undefined ||
+      b.periodos !== undefined ||
+      b.entidades !== undefined ||
+      b.cheques !== undefined,
+    {
+      message:
+        "BCRA response has neither `results` nor a debt/cheque array — likely an error page or truncated body, not a real Central de Deudores response",
+    },
+  );
+
 export class HttpBcraAdapter implements BcraAdapter {
+  private readonly client: HttpClient;
   private readonly baseUrl: string;
-  private readonly fetcher: FetchLike;
-  private readonly timeoutMs: number;
-  private readonly ua: string;
 
   constructor(opts: HttpBcraAdapterOptions = {}) {
-    this.baseUrl = (opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
-    const f =
-      opts.fetch ??
-      ((globalThis as { fetch?: FetchLike }).fetch as FetchLike | undefined);
-    if (!f) {
-      throw new BcraUnconfiguredError(
-        "fetch",
-        "no fetch function available",
-      );
+    const baseUrl = (opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
+    const fetchImpl =
+      opts.fetch ?? ((globalThis as { fetch?: typeof fetch }).fetch as typeof fetch | undefined);
+    if (typeof fetchImpl !== "function") {
+      throw new BcraUnconfiguredError("fetch", "no fetch function available");
     }
-    this.fetcher = f;
-    this.timeoutMs = opts.timeoutMs ?? 10_000;
-    this.ua = opts.userAgent ?? DEFAULT_UA;
+    this.baseUrl = baseUrl;
+    this.client = new HttpClient({
+      baseUrl,
+      fetch: fetchImpl,
+      timeoutMs: opts.timeoutMs ?? 10_000,
+      userAgent: opts.userAgent ?? DEFAULT_UA,
+      retry: opts.retry ?? { maxAttempts: 3 },
+    });
   }
 
   async getDebt(cuit: string): Promise<DebtResponse> {
     const clean = normalizeCuit(cuit);
-    const raw = await this.get<{ results?: unknown }>(
-      `/centraldedeudores/v1.0/Deudas/${clean}`,
-      clean,
-    );
+    const raw = await this.get(`/centraldedeudores/v1.0/Deudas/${clean}`, clean);
     return this.parseDebtResponse(clean, raw);
   }
 
   async getHistoricalDebt(cuit: string): Promise<HistoricalDebtResponse> {
     const clean = normalizeCuit(cuit);
-    const raw = await this.get<{ results?: unknown }>(
+    const raw = await this.get(
       `/centraldedeudores/v1.0/Deudas/Historicas/${clean}`,
       clean,
     );
@@ -114,42 +156,49 @@ export class HttpBcraAdapter implements BcraAdapter {
 
   async getBouncedChecks(cuit: string): Promise<BouncedChecksResponse> {
     const clean = normalizeCuit(cuit);
-    const raw = await this.get<{ results?: unknown }>(
+    const raw = await this.get(
       `/centraldedeudores/v1.0/Deudas/ChequesRechazados/${clean}`,
       clean,
     );
     return this.parseBouncedResponse(clean, raw);
   }
 
-  private async get<T>(path: string, cuit: string): Promise<T> {
-    const url = `${this.baseUrl}${path}`;
-    let res;
+  /**
+   * One BCRA GET through the shared HttpClient: real timeout, idempotent-GET
+   * retry with backoff, 429/Retry-After, and an envelope schema that fails
+   * LOUD on a non-BCRA body. Core's typed errors are translated back to the
+   * BCRA taxonomy so the public contract is unchanged; a malformed-body
+   * `ArAgentsResponseValidationError` is surfaced as-is (informative — a human
+   * needs to see the upstream shape drifted, and it must never be swallowed
+   * into a "clean" answer).
+   */
+  private async get(path: string, cuit: string): Promise<unknown> {
     try {
-      res = await this.withTimeout(
-        this.fetcher(url, {
-          method: "GET",
-          headers: { accept: "application/json", "user-agent": this.ua },
-        }),
-      );
+      return await this.client.request({ path, schema: bcraEnvelopeSchema });
     } catch (err) {
-      throw new BcraApiError(0, null, {
-        url,
-        cause: err instanceof Error ? err.message : String(err),
-      });
+      if (err instanceof ArAgentsProtocolError && err.status === 404) {
+        // BCRA's "no records" — the expected clean-taxpayer response.
+        throw new BcraNotFoundError(cuit);
+      }
+      if (err instanceof ArAgentsResponseValidationError) {
+        throw err; // fail loud; do NOT flatten into a generic API error
+      }
+      if (isArAgentsError(err)) {
+        const status =
+          err instanceof ArAgentsProtocolError
+            ? err.status ?? 0
+            : err instanceof ArAgentsRateLimitError
+              ? 429
+              : err instanceof ArAgentsAuthError
+                ? 401
+                : 0;
+        throw new BcraApiError(status, null, {
+          url: `${this.baseUrl}${path}`,
+          cause: err.message,
+        });
+      }
+      throw err;
     }
-    if (res.status === 404) {
-      throw new BcraNotFoundError(cuit);
-    }
-    let body: unknown = null;
-    try {
-      body = await res.json();
-    } catch {
-      // body stays null
-    }
-    if (!res.ok) {
-      throw new BcraApiError(res.status, body, { url });
-    }
-    return body as T;
   }
 
   private parseDebtResponse(cuit: string, raw: unknown): DebtResponse {
@@ -228,20 +277,6 @@ export class HttpBcraAdapter implements BcraAdapter {
     };
   }
 
-  private async withTimeout<T>(p: Promise<T>): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeoutP = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () => reject(new Error(`timeout after ${this.timeoutMs}ms`)),
-        this.timeoutMs,
-      );
-    });
-    try {
-      return await Promise.race([p, timeoutP]);
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
-  }
 }
 
 // ── In-memory (testing / dogfood) ───────────────────────────────

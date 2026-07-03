@@ -50,6 +50,32 @@ export class ArAgentsValidationError extends ArAgentsError {
   }
 }
 
+/**
+ * Upstream returned a 2xx body whose SHAPE failed the response schema.
+ *
+ * This is the single most important error in the SDK's live-integration
+ * story: it is what turns a malformed / partial / silently-changed API
+ * response into a LOUD failure instead of letting `?? 0 / ?? [] / ?? false`
+ * defaults fabricate a clean, creditworthy, zero-debt, invoiced, or canceled
+ * result. Distinct from {@link ArAgentsValidationError} (bad *caller* input) so
+ * a caller can tell "I sent garbage" apart from "the State/bank sent garbage."
+ *
+ * NOT retryable: a contract mismatch does not fix itself on backoff. Surface it
+ * — a human needs to look at whether the upstream shape drifted.
+ */
+export class ArAgentsResponseValidationError extends ArAgentsError {
+  readonly field: string;
+  constructor(field: string, message: string, context?: Record<string, unknown>) {
+    super(`Response validation failed at ${field}: ${message}`, {
+      code: "response_validation_failed",
+      retryable: false,
+      context: { ...context, field },
+    });
+    this.name = "ArAgentsResponseValidationError";
+    this.field = field;
+  }
+}
+
 /** Adapter not wired. Surface to the operator. */
 export class ArAgentsUnconfiguredError extends ArAgentsError {
   constructor(

@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import { ArAgentsResponseValidationError } from "@ar-agents/core";
 import {
   HttpBcraAdapter,
   InMemoryBcraAdapter,
@@ -14,25 +15,28 @@ import {
   BcraUnconfiguredError,
   BcraValidationError,
   type DebtResponse,
-  type FetchLike,
 } from "../src/index";
 
+/**
+ * Fetch mock returning a REAL `Response` (the adapter now runs on
+ * @ar-agents/core's HttpClient, which requires a standard fetch). Optionally
+ * counts calls so retry behavior can be asserted.
+ */
 function mockFetch(
-  responder: (url: string) => {
-    ok: boolean;
-    status: number;
-    body: unknown;
-  },
-): FetchLike {
-  return async (url) => {
-    const r = responder(url);
-    return {
-      ok: r.ok,
+  responder: (url: string, call: number) => { ok?: boolean; status: number; body: unknown },
+): typeof fetch & { calls: number } {
+  const state = { calls: 0 };
+  const fn = async (url: unknown): Promise<Response> => {
+    state.calls += 1;
+    const r = responder(String(url), state.calls);
+    return new Response(JSON.stringify(r.body ?? null), {
       status: r.status,
-      text: async () => JSON.stringify(r.body),
-      json: async () => r.body,
-    };
+      headers: { "content-type": "application/json" },
+    });
   };
+  return Object.defineProperty(fn as unknown as typeof fetch & { calls: number }, "calls", {
+    get: () => state.calls,
+  });
 }
 
 const cleanDebt: DebtResponse = {
@@ -372,6 +376,7 @@ describe("HttpBcraAdapter", () => {
   it("maps 5xx to retryable BcraApiError", async () => {
     const a = new HttpBcraAdapter({
       fetch: mockFetch(() => ({ ok: false, status: 503, body: null })),
+      retry: { maxAttempts: 2, baseDelayMs: 1 },
     });
     try {
       await a.getDebt("30500000018");
@@ -382,6 +387,35 @@ describe("HttpBcraAdapter", () => {
       expect(e.status).toBe(503);
       expect(e.retryable).toBe(true);
     }
+  });
+
+  it("FAILS LOUD on a 200 that isn't a BCRA envelope (never fabricates 'clean')", async () => {
+    // The credit-check fabrication risk: an error page / truncated body served
+    // with HTTP 200 must NOT parse as debt-free. The envelope schema rejects it.
+    const a = new HttpBcraAdapter({
+      fetch: mockFetch(() => ({ status: 200, body: { error: "service unavailable" } })),
+    });
+    await expect(a.getDebt("30500000018")).rejects.toBeInstanceOf(
+      ArAgentsResponseValidationError,
+    );
+  });
+
+  it("retries a transient 5xx (idempotent GET) then succeeds", async () => {
+    const fetchImpl = mockFetch((_url, call) =>
+      call < 2
+        ? { status: 503, body: null }
+        : {
+            status: 200,
+            body: { results: { periodos: [{ periodo: "202601", entidades: [] }] } },
+          },
+    );
+    const a = new HttpBcraAdapter({
+      fetch: fetchImpl,
+      retry: { maxAttempts: 3, baseDelayMs: 1 },
+    });
+    const r = await a.getDebt("30500000018");
+    expect(r.entidades).toHaveLength(0);
+    expect(fetchImpl.calls).toBe(2);
   });
 
   it("clamps situacion to 1..6", async () => {
