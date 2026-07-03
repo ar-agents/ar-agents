@@ -361,4 +361,37 @@ describe("HttpBindAdapter operations", () => {
     await a.listAccounts();
     expect(seen[1]!.url).toBe("https://prod.example.bind/v1/banks/198/accounts/owner");
   });
+
+  it("createTransfer returns ok:true with a validated transfer result", async () => {
+    const fetchImpl = mockFetch((url) => {
+      if (url.endsWith("/login/jwt")) return jsonResponse(LOGIN_OK);
+      return jsonResponse({ id: "tr-42", status: "PENDING", transaction_ids: ["t1"] });
+    });
+    const a = new HttpBindAdapter({ username: "u", password: "p", fetchImpl });
+    const r = await a.createTransfer("21-1-99999-4-6", {
+      origin_id: "1",
+      to: { cbu: "0".repeat(22) },
+      value: { currency: "ARS", amount: 10 },
+      concept: "VAR",
+    });
+    expect(r.ok).toBe(true);
+    if (r.ok) expect(r.data.id).toBe("tr-42");
+  });
+
+  it("fails loud (api_error, not fabricated success) on a malformed transfer body", async () => {
+    // A 200 that isn't a real transfer result (no id/status) must NOT become
+    // ok:true with blind-cast garbage — it becomes a structured error.
+    const fetchImpl = mockFetch((url) => {
+      if (url.endsWith("/login/jwt")) return jsonResponse(LOGIN_OK);
+      return jsonResponse({ unexpected: "shape" });
+    });
+    const a = new HttpBindAdapter({ username: "u", password: "p", fetchImpl });
+    const r = await a.createTransfer("21-1-99999-4-6", {
+      origin_id: "1",
+      to: { cbu: "0".repeat(22) },
+      value: { currency: "ARS", amount: 10 },
+      concept: "VAR",
+    });
+    expect(r).toMatchObject({ ok: false, code: "api_error" });
+  });
 });
