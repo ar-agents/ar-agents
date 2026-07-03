@@ -1,5 +1,20 @@
 # @ar-agents/igj
 
+## 0.3.0
+
+### Minor Changes
+
+- [#148](https://github.com/ar-agents/ar-agents/pull/148) [`024a68f`](https://github.com/ar-agents/ar-agents/commit/024a68f968e1074f1474764c2b82fcdf6dc4ad52) Thanks [@naza00000](https://github.com/naza00000)! - Migrate `LiveCkanFetcher` onto `@ar-agents/core`'s `HttpClient` (SDK-audit P1 [#14](https://github.com/ar-agents/ar-agents/issues/14)).
+
+  IGJ's CKAN datastore lookups now run through the shared client: it keeps the per-request timeout it already had, **adds idempotent-GET retry** with backoff (the reads had none), and typed errors mapped back to `IgjError`. The CKAN action envelope is **schema-validated**, so a `success:true` body whose `result.records` isn't an array now throws instead of being coerced into an empty result set; CKAN's own `success:false` errors still surface with their original message, and a non-200 still maps to `CKAN <status>`.
+
+  New `LiveCkanFetcherOptions.retry`. `baseUrl`/`fetch`/`timeoutMs`/`resourceIds` unchanged.
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+
 ## 0.2.5
 
 ### Patch Changes

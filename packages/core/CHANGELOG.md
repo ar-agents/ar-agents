@@ -1,5 +1,13 @@
 # @ar-agents/core
 
+## 0.4.1
+
+### Patch Changes
+
+- [#152](https://github.com/ar-agents/ar-agents/pull/152) [`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab) Thanks [@naza00000](https://github.com/naza00000)! - Fix a money-safety hole in the `HttpClient` retry classifier: a `429` was retried **unconditionally, ignoring idempotency**. A non-idempotent money `POST` (an off-ramp order, a payout, a transfer) that came back `429` — which can happen when the server rate-limits _after_ partially processing, or where the retry itself re-submits — was auto-retried, risking a double-spend.
+
+  `429` now respects idempotency exactly like `5xx` and network errors: it is retried only when the request is idempotent (GET/PUT/DELETE/HEAD, or a POST/PATCH the caller explicitly marks `idempotent: true`). Idempotent GET reads still retry `429` and honor `Retry-After`. This was caught by an adversarial review of the treasury off-ramp adapters, where all three providers' order/withdraw/session POSTs were verified firing 3× on a `429`.
+
 ## 0.4.0
 
 ### Minor Changes

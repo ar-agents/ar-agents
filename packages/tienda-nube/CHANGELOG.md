@@ -1,5 +1,16 @@
 # @ar-agents/tienda-nube
 
+## 0.3.0
+
+### Minor Changes
+
+- [#152](https://github.com/ar-agents/ar-agents/pull/152) [`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab) Thanks [@naza00000](https://github.com/naza00000)! - Migrate the real-network `HttpTiendaNubeAdapter` off its hand-rolled fetch + `Promise.race` timeout onto the shared `HttpClient` from `@ar-agents/core`. The old transport blind-cast every JSON body with `parsed as T`, so a malformed, partial, or HTML error-page 200 would silently become a clean-looking `Store` / `Order` / `Product` / `Customer` / `Webhook`. Response bodies are now validated against minimal zod schemas (`.loose()` so upstream additions survive) and a bad body fails loud as a `TiendaNubeApiError(502)` instead of fabricating a record. Single-object GETs route through `client.request({ schema })`; list reads use `client.requestRaw` so the `Link: rel="next"` pagination header is still read, then validate the array body via `parseOrThrow`. The non-standard `authentication: bearer <token>` header and the required User-Agent are preserved, 401/403 still map to `TiendaNubeAuthError`, and a genuine 404 still surfaces as `TiendaNubeApiError(404)`. Idempotency is correct by construction: GET reads and the idempotent webhook DELETE retry once on a transient 5xx/429/network fault, while the non-idempotent webhook-create POST is never auto-retried. The deprecated `FetchLike` type alias is retained (now `= typeof fetch`) so external type imports keep compiling.
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+
 ## 0.2.3
 
 ### Patch Changes

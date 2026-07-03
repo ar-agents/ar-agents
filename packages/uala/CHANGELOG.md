@@ -1,5 +1,22 @@
 # @ar-agents/uala
 
+## 0.4.0
+
+### Minor Changes
+
+- [#149](https://github.com/ar-agents/ar-agents/pull/149) [`ad35d80`](https://github.com/ar-agents/ar-agents/commit/ad35d80550e682ac4291bbf5d59eee7deefcdd3f) Thanks [@naza00000](https://github.com/naza00000)! - Migrate `UalaApiAdapter` and the OAuth token helpers onto `@ar-agents/core`'s `HttpClient` (SDK-audit P1 [#14](https://github.com/ar-agents/ar-agents/issues/14)).
+
+  Every Ualá Bis call now runs through the shared client: timeout, backoff retry, `429`/`Retry-After`, and typed errors mapped back to `UalaAuthError`/`UalaApiError`. The responses (payment links, transactions, payouts, balances) are **schema-validated**, so a malformed/partial body fails loud instead of being blind-cast into a `Payout`/`PaymentLink` with an undefined id/amount/status.
+
+  Idempotency is now correct on the money paths: a `POST` (create payment link / **create payout**) is only retried when the caller supplies an idempotency key — a keyless payout is never blind-retried on a transient 5xx (no double-spend). The two OAuth token endpoints (`exchangeCodeForToken`, `refreshAccessToken`), which previously had **no timeout**, now run through a timed one-shot client (`retry: 1`).
+
+  The `fetchImpl`/`baseUrl`/`timeoutMs` options are unchanged.
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+
 ## 0.3.3
 
 ### Patch Changes
