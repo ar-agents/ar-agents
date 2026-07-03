@@ -165,6 +165,9 @@ importers:
       '@ar-agents/banking':
         specifier: workspace:*
         version: link:../../packages/banking
+      '@ar-agents/constancia':
+        specifier: workspace:*
+        version: link:../../packages/constancia
       '@ar-agents/core':
         specifier: workspace:*
         version: link:../../packages/core

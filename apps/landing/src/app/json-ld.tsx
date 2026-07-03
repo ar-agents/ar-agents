@@ -303,6 +303,108 @@ export function SecurityJsonLd() {
   );
 }
 
+/**
+ * /constancia/[cuit], per-CUIT proof page. A `WebPage` whose `mainEntity` is
+ * the yes/no question the page answers, plus `about` the CUIT (and, once the
+ * good-standing verdict is real, the denominación). Honest: only emits data
+ * the page actually has.
+ */
+export function ConstanciaProofJsonLd({
+  cuit,
+  pretty,
+  valid,
+  verdictAvailable,
+  denominacion,
+}: {
+  cuit: string;
+  pretty: string;
+  valid: boolean;
+  verdictAvailable: boolean;
+  denominacion?: string | null;
+}) {
+  const about: object[] = [{ "@type": "Thing", name: `CUIT ${pretty}` }];
+  if (verdictAvailable && denominacion) {
+    about.push({ "@type": "Organization", name: denominacion });
+  }
+  return (
+    <JsonLd
+      data={{
+        "@context": "https://schema.org",
+        "@type": "WebPage",
+        name: `Constancia ${pretty}`,
+        url: `${SITE_URL}/constancia/${cuit}`,
+        inLanguage: "es-AR",
+        isPartOf: { "@type": "WebSite", name: "ar-agents", url: SITE_URL },
+        description: valid
+          ? `El CUIT ${pretty} pasa el dígito verificador (mod-11). Verificado por ar-agents.`
+          : `El CUIT ${pretty} no pasa el dígito verificador (mod-11). Verificado por ar-agents.`,
+        mainEntity: {
+          "@type": "Question",
+          name: `¿El CUIT ${pretty} es válido?`,
+          acceptedAnswer: {
+            "@type": "Answer",
+            text: valid
+              ? "Sí, pasa el dígito verificador (mod-11)."
+              : "No, no pasa el dígito verificador (mod-11).",
+          },
+        },
+        about,
+        publisher: {
+          "@type": "Organization",
+          name: "ar-agents",
+          url: SITE_URL,
+          logo: { "@type": "ImageObject", url: `${SITE_URL}/icon.png` },
+        },
+      }}
+    />
+  );
+}
+
+/**
+ * /constancia hub, FAQPage + SoftwareApplication so the free CUIT-verification
+ * tool is eligible for FAQ rich results and LLM citation. `faq` items come
+ * from the page so copy stays in one place.
+ */
+export function ConstanciaHubJsonLd({
+  faq,
+}: {
+  faq: ReadonlyArray<{ q: string; a: string }>;
+}) {
+  return (
+    <>
+      <JsonLd
+        data={{
+          "@context": "https://schema.org",
+          "@type": "SoftwareApplication",
+          name: "Constancia Oracle",
+          applicationCategory: "BusinessApplication",
+          operatingSystem: "Web",
+          url: `${SITE_URL}/constancia`,
+          description:
+            "Verificá cualquier CUIT argentino: validación del dígito verificador gratis e instantánea, con badge para embeber. La buena situación fiscal de ARCA es un tier premium.",
+          inLanguage: "es-AR",
+          offers: { "@type": "Offer", price: "0", priceCurrency: "USD" },
+          author: { "@type": "Organization", name: "ar-agents", url: SITE_URL },
+        }}
+      />
+      {faq.length > 0 && (
+        <JsonLd
+          data={{
+            "@context": "https://schema.org",
+            "@type": "FAQPage",
+            inLanguage: "es-AR",
+            mainEntity: faq.map((item) => ({
+              "@type": "Question",
+              name: item.q,
+              acceptedAnswer: { "@type": "Answer", text: item.a },
+            })),
+          }}
+        />
+      )}
+    </>
+  );
+}
+
 /** /examples, generic ItemList of cookbook recipes. */
 export function ExamplesJsonLd({
   recipes,

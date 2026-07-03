@@ -12,7 +12,10 @@ import {
   paymentRequiredResponse,
 } from "@ar-agents/x402";
 import {
+  buildConstanciaRequirements,
   buildCuitRequirements,
+  CONSTANCIA_PRICE_ATOMIC,
+  constanciaPriceAtomic,
   CUIT_PRICE_ATOMIC,
   DEFAULT_FACILITATOR_URL,
   readX402Config,
@@ -94,6 +97,69 @@ describe("buildCuitRequirements", () => {
   it("falls back to Base USDC for an unknown network string", () => {
     const req = buildCuitRequirements(RESOURCE, { ...cfg, network: "weird" });
     expect(req.asset).toBe(USDC_BY_NETWORK["base"]!.asset);
+  });
+});
+
+describe("constanciaPriceAtomic", () => {
+  it("defaults to $0.05 USDC (50000 atomic)", () => {
+    expect(constanciaPriceAtomic({})).toBe(CONSTANCIA_PRICE_ATOMIC);
+    expect(constanciaPriceAtomic({})).toBe("50000");
+  });
+
+  it("honors a valid X402_CONSTANCIA_PRICE_ATOMIC override", () => {
+    expect(constanciaPriceAtomic({ X402_CONSTANCIA_PRICE_ATOMIC: " 25000 " })).toBe("25000");
+  });
+
+  it("ignores a non-numeric or zero override", () => {
+    expect(constanciaPriceAtomic({ X402_CONSTANCIA_PRICE_ATOMIC: "free" })).toBe(CONSTANCIA_PRICE_ATOMIC);
+    expect(constanciaPriceAtomic({ X402_CONSTANCIA_PRICE_ATOMIC: "0" })).toBe(CONSTANCIA_PRICE_ATOMIC);
+  });
+});
+
+describe("buildConstanciaRequirements", () => {
+  const cfg = {
+    payTo: PAY_TO,
+    facilitatorUrl: DEFAULT_FACILITATOR_URL,
+    network: "base",
+  };
+  const CONSTANCIA_RESOURCE = "https://ar-agents.ar/api/x402/constancia";
+
+  it("produces spec-valid PaymentRequirements", () => {
+    const req = buildConstanciaRequirements(CONSTANCIA_RESOURCE, cfg);
+    expect(paymentRequirementsSchema.safeParse(req).success).toBe(true);
+  });
+
+  it("prices ~50x the toy /cuit endpoint ($0.05 USDC, string atomic)", () => {
+    const req = buildConstanciaRequirements(CONSTANCIA_RESOURCE, cfg);
+    expect(req.maxAmountRequired).toBe(CONSTANCIA_PRICE_ATOMIC);
+    expect(typeof req.maxAmountRequired).toBe("string");
+    expect(Number(req.maxAmountRequired)).toBeGreaterThan(Number(CUIT_PRICE_ATOMIC));
+  });
+
+  it("honors an explicit price override", () => {
+    const req = buildConstanciaRequirements(CONSTANCIA_RESOURCE, cfg, "12345");
+    expect(req.maxAmountRequired).toBe("12345");
+    expect(paymentRequirementsSchema.safeParse(req).success).toBe(true);
+  });
+
+  it("targets Base USDC with the exact scheme + EIP-712 domain extra", () => {
+    const req = buildConstanciaRequirements(CONSTANCIA_RESOURCE, cfg);
+    expect(req.scheme).toBe("exact");
+    expect(req.network).toBe("base");
+    expect(req.asset).toBe(USDC_BY_NETWORK["base"]!.asset);
+    expect(req.payTo).toBe(PAY_TO);
+    expect(req.resource).toBe(CONSTANCIA_RESOURCE);
+    expect(req.extra).toEqual({ name: "USD Coin", version: "2" });
+  });
+
+  it("switches asset + extra for base-sepolia", () => {
+    const req = buildConstanciaRequirements(CONSTANCIA_RESOURCE, {
+      ...cfg,
+      network: "base-sepolia",
+    });
+    expect(req.asset).toBe(USDC_BY_NETWORK["base-sepolia"]!.asset);
+    expect(req.extra).toEqual({ name: "USDC", version: "2" });
+    expect(paymentRequirementsSchema.safeParse(req).success).toBe(true);
   });
 });
 

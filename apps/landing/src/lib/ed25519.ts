@@ -203,6 +203,69 @@ export async function verifyEntryAsymmetric(
 }
 
 /**
+ * Generic: sign an arbitrary object over its canonical JSON with the
+ * operator's Ed25519 key. Unlike `signEntryAsymmetric`, it makes NO
+ * assumptions about the object shape (no hmac/signature stripping): the
+ * caller passes the exact `body` that will be embedded in the attestation and
+ * later re-canonicalized by a verifier. Returns null if no key is configured.
+ */
+export async function signCanonical(
+  body: unknown,
+  keyId: string,
+  privateKeyPkcs8B64url?: string,
+): Promise<Ed25519Signature | null> {
+  const pkcs8 =
+    privateKeyPkcs8B64url ?? process.env.AUDIT_ED25519_PRIVATE_KEY?.trim();
+  if (!pkcs8) return null;
+  const key = await importPrivateKey(pkcs8);
+  if (!key) return null;
+  const sig = await crypto.subtle.sign(
+    { name: "Ed25519" } as unknown as AlgorithmIdentifier,
+    key,
+    enc.encode(canonical(body)),
+  );
+  return { keyId, alg: "ed25519", value: b64urlEncode(new Uint8Array(sig)) };
+}
+
+/**
+ * Generic: verify a signature produced by `signCanonical` against a public
+ * key (SPKI base64url). Recomputes `canonical(body)` and checks the Ed25519
+ * signature. Returns false on any structural or crypto failure.
+ */
+export async function verifyCanonical(
+  body: unknown,
+  signature: Ed25519Signature,
+  publicKeySpkiB64url: string,
+): Promise<boolean> {
+  if (!signature || signature.alg !== "ed25519") return false;
+  const pub = await importPublicKey(publicKeySpkiB64url);
+  if (!pub) return false;
+  try {
+    const sigBytes = b64urlDecode(signature.value);
+    const sigArrayBuffer = new ArrayBuffer(sigBytes.byteLength);
+    new Uint8Array(sigArrayBuffer).set(sigBytes);
+    return await crypto.subtle.verify(
+      { name: "Ed25519" } as unknown as AlgorithmIdentifier,
+      pub,
+      sigArrayBuffer,
+      enc.encode(canonical(body)),
+    );
+  } catch {
+    return false;
+  }
+}
+
+/** The operator's published SPKI public key (base64url), from env. */
+export function operatorPublicKeySpki(): string | null {
+  return process.env.AUDIT_ED25519_PUBLIC_KEY?.trim() ?? null;
+}
+
+/** The operator's key id, from env, falling back to the published demo keyId. */
+export function operatorKeyId(): string {
+  return process.env.AUDIT_ED25519_KEY_ID?.trim() || "ar-agents-ref-2026-05";
+}
+
+/**
  * Helper: fetch the operator's published key set from
  * /.well-known/sociedad-ia/keys and resolve the key with the given
  * keyId. Returns the SPKI base64url string for use with

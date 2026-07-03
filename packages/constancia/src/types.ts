@@ -120,11 +120,18 @@ export interface ConstanciaResult {
   /** The official PDF artifact. `null` when not captured. */
   pdf: ConstanciaPdf | null;
   /**
-   * Where the result came from. `"browse-skill"` = real run via the
-   * browser runtime; `"mock"` = `MockConstanciaFetcher`;
-   * `"unconfigured"` = no real lookup was made.
+   * Where the result came from.
+   *
+   * - `"browse-skill"` — real run via the browser runtime (drives the public
+   *   ARCA form; the ONLY source that can carry the official PDF artifact).
+   * - `"padron-soap"` — real run via AFIP's SOAP padrón webservice
+   *   (`ws_sr_constancia_inscripcion`, through `@ar-agents/identity`). Returns
+   *   the constancia DATA (régimen, monotributo categoría, domicilio,
+   *   actividades) but never the PDF — the SOAP service exposes no document.
+   * - `"mock"` — `MockConstanciaFetcher`.
+   * - `"unconfigured"` — no real lookup was made.
    */
-  source: "browse-skill" | "mock" | "unconfigured";
+  source: "browse-skill" | "padron-soap" | "mock" | "unconfigured";
 }
 
 /**
