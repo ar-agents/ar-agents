@@ -34,11 +34,91 @@ import type {
   OAuthRefreshArgs,
 } from "./types";
 import {
+  ArAgentsAuthError,
+  ArAgentsProtocolError,
+  ArAgentsRateLimitError,
+  ArAgentsResponseValidationError,
+  HttpClient,
+  isArAgentsError,
+  type HttpMethod,
+  type HttpRetryOptions,
+  type QueryParams,
+  type ResponseSchema,
+} from "@ar-agents/core";
+import { z } from "zod";
+import {
   UalaApiError,
   UalaAuthError,
   UalaUnconfiguredError,
   UalaValidationError,
 } from "./errors";
+
+// Response schemas — the Ualá API returns FINANCIAL data (balances, payouts,
+// payment links). Validated at the boundary so a malformed/partial body fails
+// loud instead of being blind-cast into a Payout/PaymentLink with undefined
+// id/amount/status. Unknown upstream fields are stripped (the contract only
+// promises the named fields; see types.ts).
+const currencySchema = z.enum(["ARS", "USD"]);
+
+const paymentLinkSchema = z.object({
+  id: z.string(),
+  amount: z.number(),
+  currency: currencySchema,
+  status: z.enum(["open", "paid", "expired", "cancelled"]),
+  shareUrl: z.string(),
+  createdAt: z.string(),
+  description: z.string().optional(),
+  externalReference: z.string().optional(),
+  qrCodeUrl: z.string().optional(),
+  expiresAt: z.string().optional(),
+});
+
+const transactionSchema = z.object({
+  id: z.string(),
+  kind: z.enum(["credit", "debit"]),
+  amount: z.number(),
+  currency: currencySchema,
+  createdAt: z.string(),
+  description: z.string().optional(),
+  counterpart: z.string().optional(),
+  externalReference: z.string().optional(),
+  paymentLinkId: z.string().optional(),
+});
+
+const listTransactionsSchema = z.object({
+  transactions: z.array(transactionSchema),
+  nextCursor: z.string().nullable(),
+});
+
+const payoutSchema = z.object({
+  id: z.string(),
+  amount: z.number(),
+  currency: currencySchema,
+  destinationCbu: z.string(),
+  status: z.enum(["pending", "in_review", "approved", "paid", "rejected"]),
+  createdAt: z.string(),
+  reference: z.string().optional(),
+  approvedAt: z.string().optional(),
+  paidAt: z.string().optional(),
+  rejectionReason: z.string().optional(),
+});
+
+const balanceSchema = z.object({
+  currency: currencySchema,
+  available: z.number(),
+  pending: z.number(),
+  asOf: z.string(),
+});
+
+const oauthTokenSchema = z.object({
+  access_token: z.string(),
+  refresh_token: z.string().optional(),
+  expires_in: z.number(),
+  scope: z.string().optional(),
+  merchant_id: z.string().optional(),
+});
+
+const UALA_OAUTH_BASE = "https://api.uala.com.ar";
 
 export interface UalaAdapter {
   createPaymentLink(args: CreatePaymentLinkArgs): Promise<PaymentLink>;
@@ -102,154 +182,157 @@ export interface UalaApiAdapterOptions {
  * contract (UalaAdapter) and tools (tools.ts) stay stable.
  */
 export class UalaApiAdapter implements UalaAdapter {
-  private readonly apiKey: string;
-  private readonly baseUrl: string;
-  private readonly fetchImpl: typeof fetch;
-  private readonly timeoutMs: number;
+  private readonly client: HttpClient;
 
   constructor(opts: UalaApiAdapterOptions) {
     if (!opts.apiKey) {
       throw new UalaValidationError("apiKey", "required");
     }
-    this.apiKey = opts.apiKey;
-    this.baseUrl = (opts.baseUrl ?? "https://api.uala.com.ar/v1").replace(
-      /\/$/,
-      "",
-    );
-    this.fetchImpl = opts.fetchImpl ?? globalThis.fetch;
-    this.timeoutMs = opts.timeoutMs ?? 10_000;
+    this.client = new HttpClient({
+      baseUrl: (opts.baseUrl ?? "https://api.uala.com.ar/v1").replace(/\/$/, ""),
+      auth: `Bearer ${opts.apiKey}`,
+      timeoutMs: opts.timeoutMs ?? 10_000,
+      // Modest retry: idempotent GETs (and 429s) retry with backoff;
+      // non-idempotent POSTs opt in per-call ONLY when an idempotency key
+      // makes a retry safe (see createPaymentLink / createPayout).
+      retry: { maxAttempts: 2 },
+      ...(opts.fetchImpl !== undefined ? { fetch: opts.fetchImpl } : {}),
+    });
   }
 
   private async request<T>(
     path: string,
-    init: RequestInit & { idempotencyKey?: string },
+    opts: {
+      method?: HttpMethod;
+      body?: unknown;
+      query?: QueryParams;
+      schema: ResponseSchema<T>;
+      idempotencyKey?: string;
+      idempotent?: boolean;
+    },
   ): Promise<T> {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), this.timeoutMs);
     try {
-      const headers: Record<string, string> = {
-        authorization: `Bearer ${this.apiKey}`,
-        accept: "application/json",
-        ...(init.body
-          ? { "content-type": "application/json" }
+      return await this.client.request<T>({
+        path,
+        method: opts.method ?? "GET",
+        schema: opts.schema,
+        ...(opts.body !== undefined ? { body: opts.body } : {}),
+        ...(opts.query ? { query: opts.query } : {}),
+        ...(opts.idempotencyKey
+          ? { headers: { "idempotency-key": opts.idempotencyKey } }
           : {}),
-        ...((init.headers as Record<string, string> | undefined) ?? {}),
-      };
-      if (init.idempotencyKey) {
-        headers["idempotency-key"] = init.idempotencyKey;
-      }
-      const res = await this.fetchImpl(`${this.baseUrl}${path}`, {
-        ...init,
-        headers,
-        signal: ctrl.signal,
+        ...(opts.idempotent !== undefined ? { idempotent: opts.idempotent } : {}),
       });
-      if (res.status === 401 || res.status === 403) {
-        throw new UalaAuthError(
-          `Ualá rejected the API key (HTTP ${res.status}).`,
-        );
-      }
-      const text = await res.text();
-      let body: unknown = text;
-      try {
-        body = text ? JSON.parse(text) : null;
-      } catch {
-        // leave body as text
-      }
-      if (!res.ok) throw new UalaApiError(res.status, body);
-      return body as T;
-    } finally {
-      clearTimeout(timer);
+    } catch (err) {
+      throw toUalaError(err);
     }
   }
 
   async createPaymentLink(args: CreatePaymentLinkArgs): Promise<PaymentLink> {
     if (args.amount <= 0)
       throw new UalaValidationError("amount", "must be greater than zero");
-    return this.request<PaymentLink>("/payment-links", {
+    return this.request("/payment-links", {
       method: "POST",
-      body: JSON.stringify({
+      body: {
         amount: args.amount,
         currency: args.currency ?? "ARS",
         description: args.description,
         externalReference: args.externalReference,
         expiresInMinutes: args.expiresInMinutes,
-      }),
+      },
+      schema: paymentLinkSchema,
+      // A POST is safe to retry only when the caller supplies an idempotency key.
       ...(args.idempotencyKey
-        ? { idempotencyKey: args.idempotencyKey }
+        ? { idempotencyKey: args.idempotencyKey, idempotent: true }
         : {}),
-    });
+    }) as Promise<PaymentLink>;
   }
 
   async getPaymentLink(id: string): Promise<PaymentLink> {
-    return this.request<PaymentLink>(
-      `/payment-links/${encodeURIComponent(id)}`,
-      { method: "GET" },
-    );
+    return this.request(`/payment-links/${encodeURIComponent(id)}`, {
+      schema: paymentLinkSchema,
+    }) as Promise<PaymentLink>;
   }
 
   async cancelPaymentLink(id: string): Promise<PaymentLink> {
-    return this.request<PaymentLink>(
-      `/payment-links/${encodeURIComponent(id)}/cancel`,
-      { method: "POST" },
-    );
+    return this.request(`/payment-links/${encodeURIComponent(id)}/cancel`, {
+      method: "POST",
+      schema: paymentLinkSchema,
+    }) as Promise<PaymentLink>;
   }
 
   async listTransactions(
     args: ListTransactionsArgs,
   ): Promise<ListTransactionsResult> {
-    const q = new URLSearchParams();
-    if (args.fromIso) q.set("from", args.fromIso);
-    if (args.toIso) q.set("to", args.toIso);
-    if (args.kind) q.set("kind", args.kind);
-    if (args.limit) q.set("limit", String(args.limit));
-    if (args.cursor) q.set("cursor", args.cursor);
-    const qs = q.toString();
-    return this.request<ListTransactionsResult>(
-      `/transactions${qs ? `?${qs}` : ""}`,
-      { method: "GET" },
-    );
+    const query: QueryParams = {};
+    if (args.fromIso) query["from"] = args.fromIso;
+    if (args.toIso) query["to"] = args.toIso;
+    if (args.kind) query["kind"] = args.kind;
+    if (args.limit) query["limit"] = args.limit;
+    if (args.cursor) query["cursor"] = args.cursor;
+    return this.request("/transactions", {
+      query,
+      schema: listTransactionsSchema,
+    }) as Promise<ListTransactionsResult>;
   }
 
   async getTransaction(id: string): Promise<Transaction> {
-    return this.request<Transaction>(
-      `/transactions/${encodeURIComponent(id)}`,
-      { method: "GET" },
-    );
+    return this.request(`/transactions/${encodeURIComponent(id)}`, {
+      schema: transactionSchema,
+    }) as Promise<Transaction>;
   }
 
   async getBalance(currency?: Currency): Promise<BalanceSnapshot> {
-    const q = currency ? `?currency=${currency}` : "";
-    return this.request<BalanceSnapshot>(`/balance${q}`, { method: "GET" });
+    return this.request("/balance", {
+      schema: balanceSchema,
+      ...(currency ? { query: { currency } } : {}),
+    }) as Promise<BalanceSnapshot>;
   }
 
   async createPayout(args: CreatePayoutArgs): Promise<Payout> {
     if (args.amount <= 0)
       throw new UalaValidationError("amount", "must be greater than zero");
     if (!/^[0-9]{22}$/.test(args.destinationCbu)) {
-      throw new UalaValidationError(
-        "destinationCbu",
-        "must be a 22-digit CBU",
-      );
+      throw new UalaValidationError("destinationCbu", "must be a 22-digit CBU");
     }
-    return this.request<Payout>("/payouts", {
+    return this.request("/payouts", {
       method: "POST",
-      body: JSON.stringify({
+      body: {
         amount: args.amount,
         currency: args.currency ?? "ARS",
         destinationCbu: args.destinationCbu,
         reference: args.reference,
-      }),
+      },
+      schema: payoutSchema,
+      // Money movement: retry ONLY when an idempotency key makes it safe —
+      // never blind-retry a payout on a transient error.
       ...(args.idempotencyKey
-        ? { idempotencyKey: args.idempotencyKey }
+        ? { idempotencyKey: args.idempotencyKey, idempotent: true }
         : {}),
-    });
+    }) as Promise<Payout>;
   }
 
   async getPayout(id: string): Promise<Payout> {
-    return this.request<Payout>(`/payouts/${encodeURIComponent(id)}`, {
-      method: "GET",
-    });
+    return this.request(`/payouts/${encodeURIComponent(id)}`, {
+      schema: payoutSchema,
+    }) as Promise<Payout>;
   }
+}
+
+/** Map a core error into the Ualá taxonomy. A malformed-body validation error
+ * is surfaced as-is (fail loud); auth → UalaAuthError; everything else →
+ * UalaApiError carrying the upstream status + body. */
+function toUalaError(err: unknown): unknown {
+  if (err instanceof ArAgentsResponseValidationError) return err;
+  if (err instanceof ArAgentsAuthError) return new UalaAuthError();
+  if (err instanceof ArAgentsRateLimitError) {
+    return new UalaApiError(429, err.context["body"] ?? null);
+  }
+  if (err instanceof ArAgentsProtocolError) {
+    return new UalaApiError(err.status ?? 0, err.context["body"] ?? null);
+  }
+  if (isArAgentsError(err)) return new UalaApiError(0, null);
+  return err;
 }
 
 // ── OAuth helpers (marketplace integrations) ────────────────────
@@ -274,37 +357,67 @@ export function buildAuthorizeUrl(args: OAuthAuthorizeArgs): string {
  */
 export async function exchangeCodeForToken(
   args: OAuthExchangeArgs,
-  fetchImpl: typeof fetch = globalThis.fetch,
+  fetchImpl?: typeof fetch,
 ): Promise<OAuthTokenSet> {
-  const res = await fetchImpl("https://api.uala.com.ar/oauth/token", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
+  const raw = await oauthTokenRequest(
+    new URLSearchParams({
       grant_type: "authorization_code",
       code: args.code,
       client_id: args.clientId,
       client_secret: args.clientSecret,
       redirect_uri: args.redirectUri,
     }).toString(),
+    "Ualá OAuth rejected client credentials.",
+    fetchImpl,
+  );
+  if (!raw.refresh_token) {
+    // A code exchange must return a refresh_token; a body without one is
+    // malformed — fail loud rather than return a token set with none.
+    throw new UalaApiError(200, { error: "missing_refresh_token" });
+  }
+  return buildTokenSet(raw, raw.refresh_token);
+}
+
+/** Shared, timed token-grant request. `retry: 1` — a token grant is
+ * non-idempotent and one-shot. Maps auth/validation/transport errors. */
+async function oauthTokenRequest(
+  body: string,
+  authRejectMessage: string,
+  fetchImpl?: typeof fetch,
+): Promise<z.infer<typeof oauthTokenSchema>> {
+  const client = new HttpClient({
+    baseUrl: UALA_OAUTH_BASE,
+    timeoutMs: 10_000,
+    retry: { maxAttempts: 1 },
+    ...(fetchImpl !== undefined ? { fetch: fetchImpl } : {}),
   });
-  if (res.status === 401 || res.status === 403) {
-    throw new UalaAuthError("Ualá OAuth rejected client credentials.");
+  try {
+    return await client.request({
+      method: "POST",
+      path: "/oauth/token",
+      headers: { "content-type": "application/x-www-form-urlencoded" },
+      body,
+      schema: oauthTokenSchema,
+    });
+  } catch (err) {
+    if (err instanceof ArAgentsAuthError) throw new UalaAuthError(authRejectMessage);
+    if (err instanceof ArAgentsResponseValidationError) throw err;
+    if (err instanceof ArAgentsProtocolError) {
+      throw new UalaApiError(err.status ?? 0, err.context["body"] ?? null);
+    }
+    if (isArAgentsError(err)) throw new UalaApiError(0, null);
+    throw err;
   }
-  if (!res.ok) {
-    throw new UalaApiError(res.status, await res.text());
-  }
-  type RawToken = {
-    access_token: string;
-    refresh_token: string;
-    expires_in: number;
-    scope?: string;
-    merchant_id?: string;
-  };
-  const raw = (await res.json()) as RawToken;
+}
+
+function buildTokenSet(
+  raw: z.infer<typeof oauthTokenSchema>,
+  refreshToken: string,
+): OAuthTokenSet {
   const expiresAt = new Date(Date.now() + raw.expires_in * 1000).toISOString();
   const out: OAuthTokenSet = {
     accessToken: raw.access_token,
-    refreshToken: raw.refresh_token,
+    refreshToken,
     expiresAt,
     scope: (raw.scope ?? "").split(" ").filter(Boolean),
   };
@@ -323,45 +436,21 @@ export async function exchangeCodeForToken(
  */
 export async function refreshAccessToken(
   args: OAuthRefreshArgs,
-  fetchImpl: typeof fetch = globalThis.fetch,
+  fetchImpl?: typeof fetch,
 ): Promise<OAuthTokenSet> {
-  const res = await fetchImpl("https://api.uala.com.ar/oauth/token", {
-    method: "POST",
-    headers: { "content-type": "application/x-www-form-urlencoded" },
-    body: new URLSearchParams({
+  const raw = await oauthTokenRequest(
+    new URLSearchParams({
       grant_type: "refresh_token",
       refresh_token: args.refreshToken,
       client_id: args.clientId,
       client_secret: args.clientSecret,
     }).toString(),
-  });
-  if (res.status === 401 || res.status === 403) {
-    throw new UalaAuthError(
-      "Ualá OAuth refresh rejected — refresh token may be revoked, expired, or rotated. Re-authorize the user.",
-    );
-  }
-  if (!res.ok) {
-    throw new UalaApiError(res.status, await res.text());
-  }
-  type RawToken = {
-    access_token: string;
-    refresh_token?: string;
-    expires_in: number;
-    scope?: string;
-    merchant_id?: string;
-  };
-  const raw = (await res.json()) as RawToken;
-  const expiresAt = new Date(Date.now() + raw.expires_in * 1000).toISOString();
-  const out: OAuthTokenSet = {
-    accessToken: raw.access_token,
-    // Some OAuth servers omit refresh_token on refresh (the original is
-    // still valid). Preserve the input refresh_token when not returned.
-    refreshToken: raw.refresh_token ?? args.refreshToken,
-    expiresAt,
-    scope: (raw.scope ?? "").split(" ").filter(Boolean),
-  };
-  if (raw.merchant_id) out.merchantId = raw.merchant_id;
-  return out;
+    "Ualá OAuth refresh rejected — refresh token may be revoked, expired, or rotated. Re-authorize the user.",
+    fetchImpl,
+  );
+  // Some OAuth servers omit refresh_token on refresh (the original stays
+  // valid). Preserve the input refresh_token when not returned.
+  return buildTokenSet(raw, raw.refresh_token ?? args.refreshToken);
 }
 
 // ── In-memory adapter (testing / dogfood) ───────────────────────
