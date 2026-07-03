@@ -1,5 +1,22 @@
 # Changelog
 
+## 0.9.0
+
+### Minor Changes
+
+- [#146](https://github.com/ar-agents/ar-agents/pull/146) [`ce478a3`](https://github.com/ar-agents/ar-agents/commit/ce478a3e683c0aa9605e4b73624d33d392546c8a) Thanks [@naza00000](https://github.com/naza00000)! - Migrate the MercadoPago identity adapter onto `@ar-agents/core`'s `HttpClient` (SDK-audit P1 [#14](https://github.com/ar-agents/ar-agents/issues/14), following banking-bcra, inpi, and aduana).
+
+  `MercadoPagoIdentityAdapter` is a trust-critical adapter — a successful MP micro-charge is used as _implicit identity proof_ — and the audit flagged its network path as LOW: **zero timeout** on `api.mercadopago.com` (a hung request blocked verification forever) and a **blind `as {…}` cast with an unguarded JSON parse** on the payment body.
+
+  Now both the payment lookup (`GET /v1/payments/{id}`) and the best-effort refund (`POST …/refunds`) run through the shared client, which adds a real per-request timeout (default 10s), idempotent-GET retry with backoff, and — for the refund — `retry: false` so a non-idempotent refund is never fired twice. Most importantly the payment body is **schema-validated**: a 200 that isn't a real MP payment (missing `status`/`transaction_amount`) now throws `AttestAdapterError` (fail-closed) instead of being cast into a verification and minting an identity attestation from garbage. A non-2xx lookup still returns `{ verified: false }`; approved-payment behavior and subject binding are unchanged.
+
+  New `MercadoPagoIdentityAdapterOptions.timeoutMs`. The `fetchImpl`/`baseUrl`/`accessToken` options are unchanged.
+
+### Patch Changes
+
+- Updated dependencies [[`21e5c38`](https://github.com/ar-agents/ar-agents/commit/21e5c389ca5355567c89c125a53749e3e22a50bf)]:
+  - @ar-agents/core@0.4.0
+
 ## 0.8.2
 
 ### Patch Changes

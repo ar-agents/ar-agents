@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/boletin-oficial",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "Argentine Boletín Oficial as a structured firehose for AI agents on the Vercel AI SDK. Search, filter by sección, match by CUIT or keyword, and turn the daily JSON dump into typed records. The 'Vercel for legal monitoring' missing from the AR ecosystem.",
   "keywords": [
     "boletin-oficial",

@@ -1,5 +1,21 @@
 # sociedad-ia-starter
 
+## 0.1.16
+
+### Patch Changes
+
+- Updated dependencies [[`21e5c38`](https://github.com/ar-agents/ar-agents/commit/21e5c389ca5355567c89c125a53749e3e22a50bf)]:
+  - @ar-agents/core@0.4.0
+  - @ar-agents/banking@0.5.4
+  - @ar-agents/boletin-oficial@0.2.4
+  - @ar-agents/facturacion@0.5.1
+  - @ar-agents/gde-tad@0.3.4
+  - @ar-agents/identity@0.9.4
+  - @ar-agents/igj@0.2.5
+  - @ar-agents/mercadopago@0.18.6
+  - @ar-agents/treasury@0.5.1
+  - @ar-agents/whatsapp@0.6.1
+
 ## 0.1.15
 
 ### Patch Changes

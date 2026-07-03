@@ -1,7 +1,7 @@
 {
   "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/gde-tad",
-  "version": "0.3.3",
+  "version": "0.3.4",
   "description": "TAD (Trámites a Distancia) + GDE (Gestión Documental Electrónica) primitives — DEC inbox polling, Mis Trámites listing, IGJ inscription pre-flight. The 4th pieza for sociedades-IA.",
   "tools": [
     {

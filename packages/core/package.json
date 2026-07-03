@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/core",
-  "version": "0.3.1",
+  "version": "0.4.0",
   "description": "Shared primitives for @ar-agents/* packages: typed error base, tool middleware (compose, withMetrics, withRetry, withTimeout, withApproval HITL gate, withHalt kill-switch), the central risk manifest (classifyTool + enforceRiskPolicy: the art. 102 approval gate + suspension), telemetry hooks, adapter contract conventions. Zero runtime deps beyond Vercel AI SDK's tool shape.",
   "keywords": [
     "ar-agents",
