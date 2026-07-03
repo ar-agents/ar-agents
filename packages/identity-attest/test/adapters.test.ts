@@ -215,4 +215,37 @@ describe("MercadoPagoIdentityAdapter", () => {
     if (result.verified) throw new Error();
     expect(result.reason).toMatch(/payment_id/i);
   });
+
+  it("FAILS LOUD on a malformed 200 body — never mints an attestation from garbage", async () => {
+    // A 200 that isn't a real MP payment (no status/transaction_amount) must
+    // throw, not be blind-cast into a verification.
+    const fetchImpl = (async () =>
+      new Response(JSON.stringify({ foo: "bar" }), {
+        status: 200,
+        headers: { "content-type": "application/json" },
+      })) as unknown as typeof fetch;
+    const adapter = new MercadoPagoIdentityAdapter({ accessToken: "TEST-x", fetchImpl });
+    await expect(
+      adapter.verify({
+        submitted: { oauthCode: "p_123" },
+        subject: { type: "dni", value: "12345678" },
+      }),
+    ).rejects.toThrow(/did not match the expected shape/i);
+  });
+
+  it("returns verified:false on a non-2xx payment lookup (not a crash)", async () => {
+    const fetchImpl = (async () =>
+      new Response("null", { status: 404 })) as unknown as typeof fetch;
+    const adapter = new MercadoPagoIdentityAdapter({
+      accessToken: "TEST-x",
+      fetchImpl,
+    });
+    const result = await adapter.verify({
+      submitted: { oauthCode: "p_missing" },
+      subject: { type: "dni", value: "12345678" },
+    });
+    expect(result.verified).toBe(false);
+    if (result.verified) throw new Error();
+    expect(result.reason).toMatch(/HTTP 404/);
+  });
 });

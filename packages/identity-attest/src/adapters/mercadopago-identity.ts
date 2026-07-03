@@ -1,3 +1,9 @@
+import {
+  ArAgentsProtocolError,
+  ArAgentsResponseValidationError,
+  HttpClient,
+} from "@ar-agents/core";
+import { z } from "zod";
 import type { AttestAdapter } from "./base";
 import { AttestAdapterError } from "../errors";
 import { randomToken } from "./base";
@@ -49,26 +55,53 @@ export interface MercadoPagoIdentityAdapterOptions {
   baseUrl?: string;
   /** Custom fetch — for testing / observability. */
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 10_000. The MP calls had NO timeout —
+   * a hung api.mercadopago.com would block the verification forever. */
+  timeoutMs?: number;
 }
 
 const DEFAULT_BASE_URL = "https://api.mercadopago.com";
+
+// The MP payment fields this adapter needs. Validated at the boundary so a
+// malformed body can't be blind-cast into a verification: an approved-looking
+// payment with no `status`/`transaction_amount` must fail loud, never mint an
+// identity attestation. Unknown MP fields are ignored (stripped).
+const mpPaymentSchema = z.object({
+  status: z.string(),
+  transaction_amount: z.number(),
+  payer: z
+    .object({
+      id: z.union([z.string(), z.number()]).optional(),
+      email: z.string().optional(),
+      first_name: z.string().optional(),
+      last_name: z.string().optional(),
+      identification: z
+        .object({ type: z.string().optional(), number: z.string().optional() })
+        .optional(),
+    })
+    .optional(),
+});
 
 export class MercadoPagoIdentityAdapter implements AttestAdapter {
   readonly id = "mercadopago_identity";
   readonly trustLevel = 0.5;
 
-  private readonly accessToken: string;
   private readonly microChargeAmount: number;
   private readonly microChargeRefund: boolean;
-  private readonly baseUrl: string;
-  private readonly fetchImpl: typeof fetch | undefined;
+  private readonly client: HttpClient;
 
   constructor(options: MercadoPagoIdentityAdapterOptions) {
-    this.accessToken = options.accessToken;
     this.microChargeAmount = options.microChargeAmount ?? 1;
     this.microChargeRefund = options.microChargeRefund ?? true;
-    this.baseUrl = options.baseUrl ?? DEFAULT_BASE_URL;
-    this.fetchImpl = options.fetchImpl;
+    this.client = new HttpClient({
+      baseUrl: options.baseUrl ?? DEFAULT_BASE_URL,
+      auth: `Bearer ${options.accessToken}`,
+      timeoutMs: options.timeoutMs ?? 10_000,
+      // Idempotent GET payment lookups can retry a transient 5xx; the refund
+      // POST opts out per-call (never double-refund).
+      retry: { maxAttempts: 2 },
+      ...(options.fetchImpl !== undefined ? { fetch: options.fetchImpl } : {}),
+    });
   }
 
   /** Random nonce — the actual "secret" is the payment_id the agent submits. */
@@ -103,36 +136,33 @@ export class MercadoPagoIdentityAdapter implements AttestAdapter {
       };
     }
 
-    const fetchFn = this.fetchImpl ?? globalThis.fetch;
-    let res: Response;
+    let payment: z.infer<typeof mpPaymentSchema>;
     try {
-      res = await fetchFn(`${this.baseUrl}/v1/payments/${paymentId}`, {
-        headers: { Authorization: `Bearer ${this.accessToken}` },
+      payment = await this.client.request({
+        path: `/v1/payments/${encodeURIComponent(paymentId)}`,
+        schema: mpPaymentSchema,
       });
     } catch (err) {
+      // A non-2xx from MP (payment not found, bad token, etc.) → not verified.
+      if (err instanceof ArAgentsProtocolError && err.status !== null) {
+        return { verified: false, reason: `MP payment lookup failed: HTTP ${err.status}` };
+      }
+      // A malformed 200 body must NOT be blind-cast into a verification —
+      // fail loud (fail-closed) rather than mint an attestation from garbage.
+      if (err instanceof ArAgentsResponseValidationError) {
+        throw new AttestAdapterError(
+          this.id,
+          `MP payment response did not match the expected shape; refusing to mint an attestation. ${err.message}`,
+          err,
+        );
+      }
+      // Network / timeout.
       throw new AttestAdapterError(
         this.id,
         `MP payment lookup failed (network): ${err instanceof Error ? err.message : String(err)}`,
         err,
       );
     }
-    if (!res.ok) {
-      return {
-        verified: false,
-        reason: `MP payment lookup failed: HTTP ${res.status}`,
-      };
-    }
-    const payment = (await res.json()) as {
-      status: string;
-      transaction_amount: number;
-      payer?: {
-        id?: string | number;
-        email?: string;
-        first_name?: string;
-        last_name?: string;
-        identification?: { type?: string; number?: string };
-      };
-    };
 
     if (payment.status !== "approved") {
       return {
@@ -149,15 +179,15 @@ export class MercadoPagoIdentityAdapter implements AttestAdapter {
       };
     }
 
-    // Auto-refund the micro-charge (best effort; verification succeeds even if refund fails)
+    // Auto-refund the micro-charge (best effort; verification succeeds even if
+    // refund fails). `retry: false` — a refund is non-idempotent; never fire it
+    // twice on a transient error.
     if (this.microChargeRefund) {
       try {
-        await fetchFn(`${this.baseUrl}/v1/payments/${paymentId}/refunds`, {
+        await this.client.requestRaw({
           method: "POST",
-          headers: {
-            Authorization: `Bearer ${this.accessToken}`,
-            "Content-Type": "application/json",
-          },
+          path: `/v1/payments/${encodeURIComponent(paymentId)}/refunds`,
+          retry: false,
         });
       } catch {
         // Swallow — verification already succeeded, refund is best-effort
@@ -193,9 +223,7 @@ export class MercadoPagoIdentityAdapter implements AttestAdapter {
  */
 function mpVerifiedSubject(
   requestedType: VerificationSubject["type"],
-  payer:
-    | { email?: string; identification?: { type?: string; number?: string } }
-    | undefined,
+  payer: z.infer<typeof mpPaymentSchema>["payer"],
 ): VerificationSubject {
   const idType = (payer?.identification?.type ?? "").toUpperCase();
   const idNum = payer?.identification?.number ?? "";
