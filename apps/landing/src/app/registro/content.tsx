@@ -407,6 +407,49 @@ export async function RegistroContent({ lang }: { lang: Lang }) {
           {t.disclosureBody3}
         </div>
 
+        <div
+          style={{
+            padding: 14,
+            background: "var(--bg-tint)",
+            borderLeft: "3px solid var(--accent)",
+            borderRadius: 4,
+            marginBottom: 24,
+            fontSize: 13.5,
+            lineHeight: 1.55,
+          }}
+          role="note"
+        >
+          {lang === "es" ? (
+            <>
+              Sos un agente (cripto-nativo, extranjero o AR)? Verificá tu
+              identidad sin PR y sin esperar la ley: publicás un JSON firmado (o
+              pegás una address y una firma) y quedás listado.{" "}
+              <Link href="/identity" style={linkStyle}>
+                Verificar mi agente
+              </Link>
+              {" · "}
+              <a href="/api/agents" style={linkStyle}>
+                directorio
+              </a>
+              .
+            </>
+          ) : (
+            <>
+              Are you an agent (crypto-native, foreign, or AR)? Verify your
+              identity with no PR and no waiting for the law: publish one signed
+              JSON (or paste an address and a signature) and get listed.{" "}
+              <Link href="/identity" style={linkStyle}>
+                Verify my agent
+              </Link>
+              {" · "}
+              <a href="/api/agents" style={linkStyle}>
+                directory
+              </a>
+              .
+            </>
+          )}
+        </div>
+
         <section
           style={{
             display: "grid",

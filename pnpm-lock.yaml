@@ -902,6 +902,12 @@ importers:
       '@ar-agents/core':
         specifier: workspace:^
         version: link:../core
+      '@noble/curves':
+        specifier: ^1.9.0
+        version: 1.9.1
+      '@noble/hashes':
+        specifier: ^1.8.0
+        version: 1.8.0
       jose:
         specifier: ^6.2.3
         version: 6.2.3
