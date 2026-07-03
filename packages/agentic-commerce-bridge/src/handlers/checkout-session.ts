@@ -483,9 +483,16 @@ export async function handleCompleteSession(
   }
 
   if (!paymentResult.success) {
+    // A declined payment is a NON-terminal failure: the decline may be
+    // transient (issuer timeout, soft decline) and a standard client retry
+    // must be able to re-attempt the charge. Release the idempotency slot
+    // instead of caching the 402 under it — caching would make every retry
+    // replay the decline and never re-charge. (Mirrors the provider-threw
+    // path above, which also releases.)
     await options.state.saveSession(session);
+    await options.state.release(COMPLETE_SCOPE, idempotencyKey);
     const code = paymentResult.code || "payment_declined";
-    const errBody = errorResponse(402, {
+    return errorResponse(402, {
       type: "processing_error",
       code,
       message: paymentResult.message,
@@ -493,12 +500,6 @@ export async function handleCompleteSession(
         ? { details: paymentResult.details }
         : {}),
     });
-    await options.state.complete(COMPLETE_SCOPE, idempotencyKey, {
-      status: errBody.status,
-      body: errBody.body,
-      headers: errBody.headers,
-    });
-    return errBody;
   }
 
   // Build the order. Hooks may attach metadata (e.g. AR-fiscal CAE).

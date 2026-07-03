@@ -19,7 +19,12 @@ import type { Constraint } from "./schemas/constraints";
 import { KNOWN_CONSTRAINT_TYPES } from "./schemas/constraints";
 import type { ClosedCheckoutMandate, CheckoutJwtPayload } from "./schemas/checkout-mandate";
 import type { ClosedPaymentMandate } from "./schemas/payment-mandate";
+import type { Frequency } from "./schemas/common";
 import { divisorFor } from "./schemas/common";
+import {
+  evaluateBudgetWithRecurrence,
+  type BudgetTracker,
+} from "./budget-tracker";
 
 // ---------------------------------------------------------------------------
 // Result shapes
@@ -45,26 +50,32 @@ export interface PaymentConstraintContext {
    */
   linkedCheckoutMandateDigest?: string;
   /**
-   * Stateful tracker for budget + agent_recurrence constraints. Required if
-   * the constraint set contains `payment.budget` or
-   * `payment.agent_recurrence`. Default Phase 2.1 behavior: returns ok with
-   * a non-stateful pass — Phase 2.2 ships a real tracker.
+   * Stateful tracker for budget + agent_recurrence constraints. When present,
+   * `payment.budget` (and its paired `payment.agent_recurrence`) are evaluated
+   * against the tracker snapshot via `evaluateBudgetWithRecurrence`. When
+   * absent, those constraints pass as a documented no-op (caller is
+   * responsible for supplying a tracker in production).
    */
   tracker?: BudgetTracker;
+  /**
+   * Stable digest keying tracker state for this Open Payment Mandate
+   * (typically its sd_hash). Required when `tracker` is supplied — without it
+   * budget/recurrence cannot be evaluated and fail with
+   * `unresolved_constraint`.
+   */
+  openMandateDigest?: string;
+  /**
+   * The paired `payment.agent_recurrence` bound from the same Open Payment
+   * Mandate, if any. `payment.budget` and `payment.agent_recurrence` are
+   * evaluated together (the recurrence cap is meaningless without the budget),
+   * so the caller resolves the recurrence constraint alongside the budget one.
+   */
+  budgetRecurrence?: { frequency: Frequency; max_occurrences: number };
+  /** Override "now" (Unix seconds) for deterministic recurrence tests. */
+  nowSeconds?: number;
 }
 
-export interface BudgetTracker {
-  /**
-   * Returns the current spent amount + occurrence count for a given
-   * (open mandate digest, currency) pair. Phase 2.2 will define this.
-   */
-  inspect(openMandateDigest: string): Promise<{
-    totalSpentMinor: number;
-    occurrences: number;
-    /** Last execution date as Unix seconds. */
-    lastExecutedAt?: number;
-  }>;
-}
+export type { BudgetTracker };
 
 // ---------------------------------------------------------------------------
 // Top-level dispatcher
@@ -143,15 +154,14 @@ export async function evaluatePaymentConstraint(
         context.linkedCheckoutMandateDigest,
       );
     case "payment.budget":
+      return evalBudget(constraint, context);
     case "payment.agent_recurrence":
-      // Stateful — requires tracker. Phase 2.1: pass when no tracker is
-      // wired (caller is responsible for ensuring a tracker exists in prod).
-      if (!context.tracker) {
-        return {
-          ok: true,
-        };
-      }
-      return { ok: true }; // Phase 2.2 will implement the stateful evaluator.
+      // Recurrence is evaluated jointly with its paired `payment.budget`
+      // (see `evalBudget`, which reads `context.budgetRecurrence`). Evaluating
+      // it a second time here would double-count occurrences, so this arm is a
+      // no-op — the budget arm owns the stateful check. With no tracker wired,
+      // it is a documented pass (caller responsibility, matching budget).
+      return { ok: true };
     // Checkout-side constraints are illegal in Open Payment Mandates.
     default:
       if (KNOWN_CONSTRAINT_TYPES.includes(constraint.type)) {
@@ -311,6 +321,42 @@ function checkWindow(
     }
   }
   return { ok: true };
+}
+
+async function evalBudget(
+  constraint: { max: number; currency: string },
+  context: PaymentConstraintContext,
+): Promise<EvaluationResult> {
+  // No tracker: documented pass — the caller is responsible for supplying a
+  // stateful tracker in production. (Matches the pre-existing project posture
+  // for stateful constraints when the host opts out of tracking.)
+  if (!context.tracker) {
+    return { ok: true };
+  }
+  // Tracker present but we can't key it — fail closed rather than silently
+  // skipping the budget check.
+  if (!context.openMandateDigest) {
+    return {
+      ok: false,
+      code: "unresolved_constraint",
+      reason:
+        "payment.budget requires an openMandateDigest to key tracker state; caller supplied a tracker without one.",
+    };
+  }
+  const amount = context.closedMandate.payment_amount;
+  const result = await evaluateBudgetWithRecurrence({
+    tracker: context.tracker,
+    openMandateDigest: context.openMandateDigest,
+    amountMinor: amount.amount,
+    currency: amount.currency,
+    budget: { max: constraint.max, currency: constraint.currency },
+    divisor: divisorFor(amount.currency),
+    ...(context.budgetRecurrence !== undefined
+      ? { recurrence: context.budgetRecurrence }
+      : {}),
+    ...(context.nowSeconds !== undefined ? { nowSeconds: context.nowSeconds } : {}),
+  });
+  return result;
 }
 
 function evalReference(

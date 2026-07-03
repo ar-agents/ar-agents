@@ -466,6 +466,41 @@ describe("handleCompleteSession", () => {
     expect((r.body as { code: string }).code).toBe("card_expired");
   });
 
+  it("a declined 402 is NOT cached under the Idempotency-Key: a retry re-attempts the charge", async () => {
+    // A decline may be transient (issuer timeout, soft decline). A standard
+    // client retry with the SAME Idempotency-Key must re-run processPayment,
+    // not replay the cached 402. First attempt declines, retry succeeds.
+    let attempts = 0;
+    const { facilitator, payment } = buildTestFacilitator({
+      payment: {
+        outcome: () =>
+          ++attempts === 1
+            ? { success: false, code: "card_declined", message: "Try again." }
+            : { success: true, paymentId: "pay_ok", metadata: {} },
+      },
+    });
+    const created = await facilitator.createSession(
+      buildPostRequest("/checkout_sessions", VALID_CREATE_BODY),
+    );
+    const session = created.body as CheckoutSession;
+    const req = buildPostRequest(
+      `/checkout_sessions/${session.id}/complete`,
+      VALID_COMPLETE_BODY,
+      { "Idempotency-Key": "complete-decline-retry" },
+    );
+
+    const r1 = await facilitator.completeSession(req, session.id);
+    expect(r1.status).toBe(402);
+    expect((r1.body as { code: string }).code).toBe("card_declined");
+
+    // Retry with the SAME key + body must re-attempt (not replay).
+    const r2 = await facilitator.completeSession(req, session.id);
+    expect(r2.headers["Idempotent-Replayed"]).not.toBe("true");
+    expect(r2.status).toBe(200);
+    expect(payment.processPaymentCalled).toBe(2);
+    expect((r2.body as CheckoutSession).status).toBe("completed");
+  });
+
   it("returns 400 when handler_id is unknown", async () => {
     const { facilitator } = buildTestFacilitator();
     const created = await facilitator.createSession(

@@ -243,6 +243,7 @@ export class AndreaniAdapter implements ShippingAdapter {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(body),
       },
+      false, // non-idempotent — never retry a shipment creation
     );
     const json = (await res.json()) as {
       numeroAndreani?: string;
@@ -262,11 +263,22 @@ export class AndreaniAdapter implements ShippingAdapter {
         json,
       );
     }
+    if (json.tarifaConIva?.total === undefined) {
+      // Fail loud rather than fabricate costArs:0 — a 0 cost silently corrupts
+      // downstream accounting / reconciliation.
+      throw new ShippingCarrierError(
+        "andreani",
+        "create response missing tarifaConIva",
+        res.status,
+        undefined,
+        json,
+      );
+    }
     const result: ShipmentCreated = {
       carrier: this.carrier,
       trackingNumber,
       shipmentId: json.idEnvio ?? trackingNumber,
-      costArs: json.tarifaConIva?.total ?? 0,
+      costArs: json.tarifaConIva.total,
       raw: json,
     };
     if (json.label || json.etiqueta) {
@@ -324,15 +336,27 @@ export class AndreaniAdapter implements ShippingAdapter {
       "cancelar",
       `${this.baseUrl}/v2/ordenes-de-envio/${encodeURIComponent(trackingNumber)}/cancelar`,
       { method: "POST" },
+      false, // non-idempotent — never retry a cancellation
     );
     const json = (await res.json().catch(() => ({}))) as {
       cancelado?: boolean;
       motivo?: string;
     };
+    if (typeof json.cancelado !== "boolean") {
+      // Fail loud rather than fabricate canceled:true from a bare 2xx — a false
+      // positive here tells the caller a shipment was cancelled when it wasn't.
+      throw new ShippingCarrierError(
+        "andreani",
+        "cancel response missing cancelado",
+        res.status,
+        undefined,
+        json,
+      );
+    }
     return {
       carrier: this.carrier,
       trackingNumber,
-      canceled: json.cancelado ?? res.ok,
+      canceled: json.cancelado,
       ...(json.motivo ? { reason: json.motivo } : {}),
       raw: json,
     };
@@ -381,6 +405,12 @@ export class AndreaniAdapter implements ShippingAdapter {
     op: string,
     url: string,
     init: RequestInit,
+    /**
+     * Whether this op is safe to retry. `crear` / `cancelar` are
+     * non-idempotent POSTs and must pass `false` to avoid duplicate
+     * shipments / double-cancellations on timeout / 5xx. Defaults `true`.
+     */
+    idempotent = true,
   ): Promise<Response> {
     const headers: Record<string, string> = {
       Authorization: this.authHeader,
@@ -392,6 +422,7 @@ export class AndreaniAdapter implements ShippingAdapter {
       init: { ...init, headers },
       carrier: "andreani",
       operation: op,
+      idempotent,
       ...(this.fetchImpl !== undefined ? { fetchImpl: this.fetchImpl } : {}),
       ...(this.requestTimeoutMs !== undefined
         ? { requestTimeoutMs: this.requestTimeoutMs }

@@ -40,6 +40,7 @@ import type {
   WsfeObservacion,
 } from "./types";
 import type { CbteTipoCode, DocTipoCode } from "./catalogs";
+import { WsfeValidationError } from "./errors";
 
 export const WSFE_SERVICE_NAME = "wsfe" as const;
 
@@ -403,9 +404,51 @@ function formatAmount(n: number): string {
  * Inspect `errors` (top-level request issues) and `observaciones` (per-detail
  * issues). The most common rejection codes are documented in `AGENTS.md`.
  */
+/**
+ * Defense-in-depth: assert every numeric field that lands in the CAE XML is a
+ * finite number *before* we build the envelope. The Zod tool wrapper already
+ * enforces this, but non-tool callers (WsfeClient.solicitarCAE and the raw
+ * `solicitarCAE` export) bypass Zod — a crafted non-number (NaN/Infinity/a
+ * string) would otherwise be interpolated straight into the fiscal document.
+ * Throws WsfeValidationError so it never reaches AFIP.
+ */
+function assertFiniteCaeNumbers(input: SolicitarCaeInput): void {
+  const numericFields: [string, unknown][] = [
+    ["ptoVta", input.ptoVta],
+    ["cbteTipo", input.cbteTipo],
+    ["docTipo", input.docTipo],
+    ["cbteDesde", input.cbteDesde],
+    ["cbteHasta", input.cbteHasta],
+    ["impTotal", input.impTotal],
+    ["impNeto", input.impNeto],
+    ["impIVA", input.impIVA],
+    ["impTotConc", input.impTotConc],
+    ["impOpEx", input.impOpEx],
+    ["impTrib", input.impTrib],
+    ["monCotiz", input.monCotiz],
+  ];
+  const bad = numericFields.filter(
+    ([, v]) => v !== undefined && (typeof v !== "number" || !Number.isFinite(v)),
+  );
+  // docNro is string|number by contract; only reject a numeric-but-non-finite
+  // value (a string docNro is escaped downstream, so it's XML-safe as-is).
+  if (typeof input.docNro === "number" && !Number.isFinite(input.docNro)) {
+    bad.push(["docNro", input.docNro]);
+  }
+  if (bad.length > 0) {
+    throw new WsfeValidationError(
+      `Campos numéricos inválidos en solicitarCAE (deben ser números finitos): ${bad
+        .map(([f, v]) => `${f}=${String(v)}`)
+        .join(", ")}`,
+    );
+  }
+}
+
 export async function solicitarCAE(
   opts: CommonRequestOptions & SolicitarCaeInput,
 ): Promise<SolicitarCaeResult> {
+  assertFiniteCaeNumbers(opts);
+
   const cantReg = opts.cbteHasta - opts.cbteDesde + 1;
 
   // AFIP RG 5616: <CondicionIVAReceptorId> is mandatory (rejection obs
@@ -483,7 +526,17 @@ export async function solicitarCAE(
         </fev1:FeDetReq>
       </fev1:FeCAEReq>`;
 
-  const xml = await callWsfe("FECAESolicitar", body, opts, "wsfe.solicitarCAE");
+  // FECAESolicitar is NON-IDEMPOTENT: it authorizes a fiscal comprobante
+  // number. A retry after an AFIP timeout that happened *post-authorization*
+  // would emit a duplicate (or surface a false failure while N is legally
+  // authorized). Force maxRetries=0 for this call specifically — read ops
+  // (FECompUltimoAutorizado, catalogs, dummy) keep their configured retries.
+  const xml = await callWsfe(
+    "FECAESolicitar",
+    body,
+    { ...opts, maxRetries: 0 },
+    "wsfe.solicitarCAE",
+  );
   checkSoapFault(xml);
 
   const errors = extractErrors(xml);

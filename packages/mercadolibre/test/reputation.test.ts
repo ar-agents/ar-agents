@@ -102,4 +102,26 @@ describe("monitorReputation", () => {
     expect(first.value?.alerts.length).toBeGreaterThan(0);
     ctrl.abort();
   });
+
+  it("re-throws a 401 MeliApiError (revoked token) instead of polling a dead endpoint forever", async () => {
+    // A revoked/expired seller token surfaces from the client as a 401
+    // MeliApiError (NOT a MeliAuthError) — MELI's real 401 body shape.
+    const fm = mockFetch()
+      .on("GET", "/users/12345/seller_reputation", () => ({
+        status: 401,
+        body: {
+          message: "invalid access token",
+          error: "not_found",
+          status: 401,
+          cause: [],
+        },
+      }))
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch });
+    const it = monitorReputation(client, 12345, { intervalMs: 5 });
+    await expect(it.next()).rejects.toMatchObject({
+      code: "meli_api_error",
+      status: 401,
+    });
+  });
 });

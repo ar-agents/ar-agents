@@ -210,6 +210,29 @@ describe("createMercadoPagoPaymentProvider — processPayment", () => {
     expect(r.success).toBe(false);
   });
 
+  it("fails when external_reference is absent (payment cannot be bound to session)", async () => {
+    // MP omits external_reference on the payment. We create the preference
+    // with external_reference == session.id, so an absent echo means we can't
+    // prove the payment belongs to this session — reject rather than accept.
+    const { external_reference: _drop, ...noExtRef } = goodPayment;
+    const provider = makeProvider(noExtRef);
+    const r = await provider.processPayment({
+      session: baseSession,
+      paymentData: {
+        handler_id: "mercadopago",
+        instrument: {
+          type: "card",
+          credential: { type: "mp_payment_id", token: "9001" },
+        },
+      },
+    });
+    expect(r.success).toBe(false);
+    if (!r.success) {
+      expect(r.code).toBe("validation_failed");
+      expect(r.message).toContain("missing external_reference");
+    }
+  });
+
   it("fails on rejected status", async () => {
     const provider = makeProvider({ ...goodPayment, status: "rejected" });
     const r = await provider.processPayment({

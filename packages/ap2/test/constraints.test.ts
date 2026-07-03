@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
   evaluateCheckoutConstraint,
   evaluatePaymentConstraint,
+  InMemoryBudgetTracker,
   type Constraint,
 } from "../src";
 import type { CheckoutJwtPayload, ClosedCheckoutMandate } from "../src";
@@ -275,11 +276,60 @@ describe("evaluatePaymentConstraint", () => {
     if (!r.ok) expect(r.code).toBe("unresolved_constraint");
   });
 
-  it("payment.budget passes through when no tracker is wired (Phase 2.1 behavior)", async () => {
+  it("payment.budget passes through when no tracker is wired (documented no-op)", async () => {
     const r = await evaluatePaymentConstraint(
       { type: "payment.budget", max: 1000, currency: "USD" },
       { closedMandate: sampleClosedPaymentMandate },
     );
     expect(r.ok).toBe(true);
+  });
+
+  it("payment.budget passes when tracker shows spend within cap", async () => {
+    // Budget max 1000 USD = 100000 minor; prior spend 50000 + this 30000 = 80000 ≤ 100000.
+    const tracker = new InMemoryBudgetTracker();
+    await tracker.recordPresentation({
+      openMandateDigest: "open_pm_digest",
+      amountMinor: 50000,
+      currency: "USD",
+    });
+    const r = await evaluatePaymentConstraint(
+      { type: "payment.budget", max: 1000, currency: "USD" },
+      {
+        closedMandate: sampleClosedPaymentMandate, // payment_amount = 30000 minor
+        tracker,
+        openMandateDigest: "open_pm_digest",
+      },
+    );
+    expect(r.ok).toBe(true);
+  });
+
+  it("payment.budget FAILS when tracker shows the charge exceeds the cap", async () => {
+    // Budget max 1000 USD = 100000 minor; prior spend 90000 + this 30000 = 120000 > 100000.
+    const tracker = new InMemoryBudgetTracker();
+    await tracker.recordPresentation({
+      openMandateDigest: "open_pm_digest",
+      amountMinor: 90000,
+      currency: "USD",
+    });
+    const r = await evaluatePaymentConstraint(
+      { type: "payment.budget", max: 1000, currency: "USD" },
+      {
+        closedMandate: sampleClosedPaymentMandate, // payment_amount = 30000 minor
+        tracker,
+        openMandateDigest: "open_pm_digest",
+      },
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.code).toBe("invalid_mandate");
+  });
+
+  it("payment.budget FAILS closed when a tracker is supplied without an openMandateDigest", async () => {
+    const tracker = new InMemoryBudgetTracker();
+    const r = await evaluatePaymentConstraint(
+      { type: "payment.budget", max: 1000, currency: "USD" },
+      { closedMandate: sampleClosedPaymentMandate, tracker },
+    );
+    expect(r.ok).toBe(false);
+    if (!r.ok) expect(r.code).toBe("unresolved_constraint");
   });
 });

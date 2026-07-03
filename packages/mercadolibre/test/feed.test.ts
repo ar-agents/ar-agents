@@ -189,6 +189,57 @@ describe("iterateFeed (streaming)", () => {
   });
 });
 
+describe("iterateFeed error handling", () => {
+  it("rejects cleanly when a chunk fails, with NO orphaned unhandled rejection", async () => {
+    // Track any unhandled rejection that escapes iterateFeed. Before the fix,
+    // the front chunk rejecting left the later already-issued multiget promises
+    // unhandled → Node emits `unhandledRejection` → host crash.
+    const unhandled: unknown[] = [];
+    const onUnhandled = (reason: unknown) => unhandled.push(reason);
+    process.on("unhandledRejection", onUnhandled);
+
+    // 60 ids => 3 multiget chunks of 20 (all issued up-front at concurrency 4).
+    const ids = Array.from({ length: 60 }, (_, i) => `MLA${i + 1}`);
+    let itemsCalls = 0;
+    const fm = mockFetch()
+      .on("GET", "/users/12345/items/search", () => ({
+        status: 200,
+        body: { paging: { total: ids.length }, results: ids },
+      }))
+      .on("GET", "/items", async () => {
+        const call = ++itemsCalls;
+        // Every chunk fails with a real MELI 403 body. The FIRST resolves
+        // immediately (so iterateFeed's front `await` rejects and the
+        // generator unwinds), while the LATER chunks reject on a delay — so a
+        // buggy impl that abandons the in-flight queue leaves those rejections
+        // orphaned → `unhandledRejection`. The fix drains them via allSettled.
+        if (call > 1) await new Promise((r) => setTimeout(r, 5));
+        return {
+          status: 403,
+          body: { message: "forbidden", error: "forbidden", status: 403, cause: [] },
+        };
+      })
+      .build();
+    const client = makeMeliClient({ fetch: fm.fetch, skipResponseValidation: true });
+
+    try {
+      await expect(
+        (async () => {
+          for await (const _ of iterateFeed(client, 12345)) {
+            // drain
+          }
+        })(),
+      ).rejects.toMatchObject({ code: "meli_api_error", status: 403 });
+
+      // Give any orphaned rejection a full turn to surface.
+      await new Promise((r) => setTimeout(r, 20));
+      expect(unhandled).toEqual([]);
+    } finally {
+      process.off("unhandledRejection", onUnhandled);
+    }
+  });
+});
+
 describe("buildFeedSnapshot", () => {
   it("returns full catalog as a single array", async () => {
     let scrollCalls = 0;

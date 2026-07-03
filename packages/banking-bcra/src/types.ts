@@ -38,9 +38,11 @@ export type SituacionCrediticia = 1 | 2 | 3 | 4 | 5 | 6;
  * `summarizeDebt` aggregates these into a single rollup.
  */
 export interface DebtEntry {
-  /** Numeric entidad id assigned by BCRA. */
-  entidad: number;
-  /** Human-readable name. */
+  /** Reporting entidad's name, exactly as BCRA returns it in the
+   * `entidad` field (e.g. "BANCO DE LA NACION ARGENTINA"). This
+   * endpoint does NOT expose a numeric entidad code. */
+  entidad: string;
+  /** Human-readable name. Mirrors `entidad`. */
   nombre: string;
   /** YYYYMM as returned by BCRA. */
   periodo: string;

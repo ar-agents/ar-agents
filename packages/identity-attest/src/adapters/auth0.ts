@@ -186,6 +186,10 @@ export class Auth0Adapter implements AttestAdapter {
       const verified = await jwtVerify(tokenJson.id_token, this.jwks, {
         issuer: `https://${this.domain}/`,
         audience: this.clientId,
+        // Pin the signature algorithm (Auth0 id_tokens are RS256 via the JWKS).
+        // Without an explicit allowlist a token could assert a different alg;
+        // this closes the alg-confusion vector (mirrors the ap2 verifier's pinning).
+        algorithms: ["RS256"],
       });
       payload = verified.payload as Record<string, unknown>;
     } catch (err) {

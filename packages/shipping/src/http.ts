@@ -13,6 +13,14 @@ export interface HttpRequestParams {
   requestTimeoutMs?: number;
   /** Default 1. */
   maxRetries?: number;
+  /**
+   * Whether the request is safe to retry. Idempotent reads (GET tariff /
+   * tracking lookups) default to `true`. Non-idempotent writes (Andreani
+   * `crear` / `cancelar` POSTs) MUST pass `false` — retrying them on a timeout
+   * or 5xx would create duplicate shipments / double-cancellations even though
+   * the original request may have succeeded server-side. Default `true`.
+   */
+  idempotent?: boolean;
   /** Carrier name for the observability hook label. */
   carrier: string;
   /** Operation name (cotizar, crear, etc.) for the observability hook label. */
@@ -29,7 +37,10 @@ export interface HttpRequestParams {
 export async function shippingFetch(params: HttpRequestParams): Promise<Response> {
   const fetchImpl = params.fetchImpl ?? globalThis.fetch.bind(globalThis);
   const timeoutMs = params.requestTimeoutMs ?? 30_000;
-  const maxRetries = params.maxRetries ?? 1;
+  // Non-idempotent writes must never be retried: a timeout / 5xx does not mean
+  // the carrier didn't process the request, so a retry risks a duplicate op.
+  const idempotent = params.idempotent ?? true;
+  const maxRetries = idempotent ? params.maxRetries ?? 1 : 0;
   const label = `shipping.${params.carrier}.${params.operation}`;
 
   let lastErr: unknown = null;

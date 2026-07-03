@@ -141,6 +141,142 @@ describe("AndreaniAdapter — trackear", () => {
   });
 });
 
+describe("AndreaniAdapter — crear", () => {
+  it("returns the real cost from tarifaConIva", async () => {
+    const fakeFetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            numeroAndreani: "360000123456789",
+            idEnvio: "env-123",
+            tarifaConIva: { total: 6200 },
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+    ) as unknown as typeof fetch;
+    const a = new AndreaniAdapter({
+      username: "u",
+      password: "p",
+      clientNumber: "1",
+      fetchImpl: fakeFetch,
+      maxRetries: 0,
+    });
+    const r = await a.crear({ origin, destination: dest, packages: [pkg] });
+    expect(r.trackingNumber).toBe("360000123456789");
+    expect(r.costArs).toBe(6200);
+  });
+
+  it("throws (not costArs:0) when the create response omits tarifaConIva", async () => {
+    // Real Andreani create success shape without a rate block.
+    const fakeFetch = vi.fn(
+      async () =>
+        new Response(
+          JSON.stringify({
+            numeroAndreani: "360000123456789",
+            idEnvio: "env-123",
+          }),
+          { status: 200, headers: { "Content-Type": "application/json" } },
+        ),
+    ) as unknown as typeof fetch;
+    const a = new AndreaniAdapter({
+      username: "u",
+      password: "p",
+      clientNumber: "1",
+      fetchImpl: fakeFetch,
+      maxRetries: 0,
+    });
+    await expect(
+      a.crear({ origin, destination: dest, packages: [pkg] }),
+    ).rejects.toThrow(/missing tarifaConIva/);
+  });
+
+  it("does NOT retry a create on timeout (non-idempotent POST)", async () => {
+    const fakeFetch = vi.fn(async (_url: string, init: RequestInit) => {
+      // Simulate the AbortController firing (timeout) exactly like fetch does.
+      return await new Promise<Response>((_resolve, reject) => {
+        const signal = init.signal;
+        const err = new DOMException("The operation was aborted.", "AbortError");
+        if (signal?.aborted) return reject(err);
+        signal?.addEventListener("abort", () => reject(err));
+      });
+    }) as unknown as typeof fetch;
+    const a = new AndreaniAdapter({
+      username: "u",
+      password: "p",
+      clientNumber: "1",
+      fetchImpl: fakeFetch,
+      requestTimeoutMs: 10,
+      // maxRetries defaults to 1 — a create must still not retry.
+    });
+    await expect(
+      a.crear({ origin, destination: dest, packages: [pkg] }),
+    ).rejects.toThrow();
+    expect(fakeFetch).toHaveBeenCalledTimes(1);
+  });
+});
+
+describe("AndreaniAdapter — cancelar", () => {
+  it("reports the real cancelado flag", async () => {
+    const fakeFetch = vi.fn(
+      async () =>
+        new Response(JSON.stringify({ cancelado: true, motivo: "a pedido" }), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    ) as unknown as typeof fetch;
+    const a = new AndreaniAdapter({
+      username: "u",
+      password: "p",
+      clientNumber: "1",
+      fetchImpl: fakeFetch,
+      maxRetries: 0,
+    });
+    const r = await a.cancelar("360000123456789");
+    expect(r.canceled).toBe(true);
+    expect(r.reason).toBe("a pedido");
+  });
+
+  it("throws (not canceled:true) on a 2xx that omits cancelado", async () => {
+    const fakeFetch = vi.fn(
+      async () =>
+        // Bare 2xx with no body → res.ok true but no `cancelado` field.
+        new Response(JSON.stringify({}), {
+          status: 200,
+          headers: { "Content-Type": "application/json" },
+        }),
+    ) as unknown as typeof fetch;
+    const a = new AndreaniAdapter({
+      username: "u",
+      password: "p",
+      clientNumber: "1",
+      fetchImpl: fakeFetch,
+      maxRetries: 0,
+    });
+    await expect(a.cancelar("360000123456789")).rejects.toThrow(
+      /missing cancelado/,
+    );
+  });
+
+  it("does NOT retry a cancel on 5xx (non-idempotent POST)", async () => {
+    const fakeFetch = vi.fn(
+      async () =>
+        new Response("upstream error", {
+          status: 502,
+          headers: { "Content-Type": "text/plain" },
+        }),
+    ) as unknown as typeof fetch;
+    const a = new AndreaniAdapter({
+      username: "u",
+      password: "p",
+      clientNumber: "1",
+      fetchImpl: fakeFetch,
+      // maxRetries defaults to 1 — a cancel must still not retry.
+    });
+    await expect(a.cancelar("360000123456789")).rejects.toThrow(/HTTP 502/);
+    expect(fakeFetch).toHaveBeenCalledTimes(1);
+  });
+});
+
 describe("AndreaniAdapter — error path", () => {
   it("throws ShippingCarrierError on HTTP 4xx", async () => {
     const fakeFetch = vi.fn(

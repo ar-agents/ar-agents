@@ -413,3 +413,102 @@ describe("markAsRead", () => {
     expect(body.message_id).toBe("wamid.inbound");
   });
 });
+
+describe("send retry safety (no duplicate sends)", () => {
+  // POST /messages is not idempotent and Meta exposes no idempotency key, so a
+  // timed-out or 5xx'd send MUST NOT be retried — a retry could deliver the
+  // same message twice.
+
+  it("does NOT retry a send that times out (underlying fetch called once)", async () => {
+    let calls = 0;
+    // Simulate the AbortController firing on timeout: the real fetch rejects
+    // with an AbortError-named DOMException/Error when the signal aborts.
+    const timingOutFetch: typeof fetch = async () => {
+      calls++;
+      const err = new Error("The operation was aborted");
+      err.name = "AbortError";
+      throw err;
+    };
+
+    const client = new WhatsAppClient({
+      accessToken: ACCESS_TOKEN,
+      phoneNumberId: PHONE_NUMBER_ID,
+      fetchImpl: timingOutFetch,
+      maxRetries: 3, // generous budget — proves the send path opts out
+      requestTimeoutMs: 50,
+    });
+
+    await expect(
+      client.sendText({ to: "5491112345678", text: "x" }),
+    ).rejects.toThrow(/timed out/);
+    expect(calls).toBe(1);
+  });
+
+  it("does NOT retry a send that 5xx's (underlying fetch called once)", async () => {
+    let calls = 0;
+    const failingFetch: typeof fetch = async () => {
+      calls++;
+      // Real Meta 5xx body shape.
+      return new Response(
+        JSON.stringify({
+          error: {
+            message: "An unknown error occurred",
+            type: "OAuthException",
+            code: 1,
+            fbtrace_id: "trace_5xx",
+          },
+        }),
+        { status: 500, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    const client = new WhatsAppClient({
+      accessToken: ACCESS_TOKEN,
+      phoneNumberId: PHONE_NUMBER_ID,
+      fetchImpl: failingFetch,
+      maxRetries: 3,
+    });
+
+    await expect(
+      client.sendText({ to: "5491112345678", text: "x" }),
+    ).rejects.toBeInstanceOf(WhatsAppApiError);
+    expect(calls).toBe(1);
+  });
+
+  it("still retries an idempotent GET (downloadMedia) on 5xx", async () => {
+    let calls = 0;
+    const flakyFetch: typeof fetch = async () => {
+      calls++;
+      if (calls === 1) {
+        return new Response(
+          JSON.stringify({ error: { message: "transient", code: 1 } }),
+          { status: 500, headers: { "Content-Type": "application/json" } },
+        );
+      }
+      // Real media-metadata response shape.
+      return new Response(
+        JSON.stringify({
+          url: "https://lookaside.fbsbx.com/whatsapp_business/attachments/media",
+          mime_type: "image/jpeg",
+          sha256: "abc123",
+          file_size: 4,
+          messaging_product: "whatsapp",
+          id: "MEDIA_ID",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    const client = new WhatsAppClient({
+      accessToken: ACCESS_TOKEN,
+      phoneNumberId: PHONE_NUMBER_ID,
+      fetchImpl: flakyFetch,
+      maxRetries: 3,
+    });
+
+    // The metadata GET 5xx's once then succeeds; only assert it retried past
+    // the first metadata call (calls >= 2 means the retry happened).
+    await expect(client.downloadMedia("MEDIA_ID")).resolves.toBeDefined();
+    expect(calls).toBeGreaterThanOrEqual(2);
+  });
+});

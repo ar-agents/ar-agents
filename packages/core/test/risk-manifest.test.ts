@@ -65,6 +65,25 @@ describe("classifyTool", () => {
     expect(classifyTool({ name: "bcra_monetary_variable" })).toBe("read");
     expect(classifyTool({ name: "consultar_padron" })).toBe("read");
   });
+  it("Spanish money/mutating verbs + a read-ish noun are NOT downgraded to read (audit P0)", () => {
+    // Spanish money verbs the English money override missed: pay a balance MUST gate.
+    expect(classifyTool({ name: "pagar_saldo" })).toBe("money");
+    expect(classifyTool({ name: "abonar_deuda" })).toBe("money");
+    expect(classifyTool({ name: "girar_transferencia" })).toBe("money");
+    expect(classifyTool({ name: "retirar_fondos" })).toBe("money");
+    // Non-factura mutating verbs carrying a read noun fail closed, not "read".
+    expect(classifyTool({ name: "emitir_padron" })).toBe("unknown");
+    expect(classifyTool({ name: "anular_deudas" })).toBe("unknown");
+    expect(classifyTool({ name: "presentar_saldo" })).toBe("unknown");
+    expect(requiresApproval({ name: "pagar_saldo" })).toBe(true);
+    // FALSE-POSITIVE GUARD: the NOUN "pagarés" (promissory notes) is a read, not
+    // the verb "pagar" — a listing must stay read, not be gated as money.
+    expect(classifyTool({ name: "list_pagares" })).toBe("read");
+    expect(classifyTool({ name: "consultar_pagares" })).toBe("read");
+    // And genuine reads with those nouns stay read.
+    expect(classifyTool({ name: "consultar_saldo" })).toBe("read");
+    expect(classifyTool({ name: "cedular_calculate" })).toBe("read");
+  });
   it("registrar_decision -> create (auto, low-stakes append to audit log)", () => {
     expect(classifyTool({ name: "registrar_decision" })).toBe("create");
   });

@@ -20,9 +20,12 @@ import {
   encodeDisclosure,
   digestOfDisclosure,
   generateSalt,
+  InMemoryBudgetTracker,
   type Ap2KeyPair,
   type ClosedCheckoutMandate,
   type OpenCheckoutMandate,
+  type ClosedPaymentMandate,
+  type OpenPaymentMandate,
 } from "../src";
 
 // ---------------------------------------------------------------------------
@@ -529,5 +532,151 @@ describe("verifyDsdJwtChain — failure modes", () => {
     if (result.ok) return;
     expect(result.code).toBe("invalid_credential");
     expect(result.reason).toContain("typ");
+  });
+});
+
+// ---------------------------------------------------------------------------
+// verifyDsdJwtChain — Open Payment Mandate constraint enforcement.
+//
+// Regression: previously the chain verifier extracted openMandates + the
+// closed mandate but NEVER evaluated the open-payment-mandate constraints,
+// so a delegated payment that violated the delegating mandate's guardrails
+// (budget, amount cap, allowed payee, ...) passed with ok:true.
+// ---------------------------------------------------------------------------
+
+/** Sample Closed Payment Mandate for a given amount (minor units, USD). */
+function sampleClosedPayment(amountMinor: number): ClosedPaymentMandate {
+  return {
+    vct: "mandate.payment.1",
+    transaction_id: "txn_chain",
+    payee: { id: "merchant_chain" },
+    payment_amount: { amount: amountMinor, currency: "USD" },
+    payment_instrument: { id: "card_x", type: "card" },
+  };
+}
+
+describe("verifyDsdJwtChain — Open Payment Mandate constraint enforcement", () => {
+  it("fails when the closed payment amount exceeds the open mandate's amount_range", async () => {
+    const root = await generateAp2KeyPair("ES256");
+    const agent = await generateAp2KeyPair("ES256");
+
+    const openPayment: OpenPaymentMandate = {
+      vct: "mandate.payment.open.1",
+      constraints: [
+        // Cap at 50000 minor (USD $500).
+        { type: "payment.amount_range", currency: "USD", max: 50000 },
+      ],
+      cnf: { jwk: agent.publicJwk },
+    };
+    const rootHop = await buildRootHop(root, openPayment as unknown as OpenCheckoutMandate);
+
+    // Closed mandate charges 90000 minor — OVER the 50000 cap.
+    const closed = sampleClosedPayment(90000);
+    const terminal = await buildKbHop({
+      signer: agent,
+      prevSdHash: rootHop.sdHash,
+      delegateItem: closed,
+      audience: "merchant_chain",
+      nonce: "merchant-nonce",
+      isTerminal: true,
+    });
+
+    const presentation = `${rootHop.presentation}${CHAIN_SEPARATOR}${terminal.presentation}`;
+    const result = await verifyDsdJwtChain(presentation, {
+      rootIssuerKey: root.publicJwk,
+      expectedAudience: "merchant_chain",
+      expectedNonce: "merchant-nonce",
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.code).toBe("invalid_mandate");
+    expect(result.reason).toContain("exceeds max");
+  });
+
+  it("fails when an over-budget payment flows through the chain (tracker over cap)", async () => {
+    const root = await generateAp2KeyPair("ES256");
+    const agent = await generateAp2KeyPair("ES256");
+
+    const openPayment: OpenPaymentMandate = {
+      vct: "mandate.payment.open.1",
+      constraints: [
+        // Budget max 1000 USD = 100000 minor.
+        { type: "payment.budget", max: 1000, currency: "USD" },
+      ],
+      cnf: { jwk: agent.publicJwk },
+    };
+    const rootHop = await buildRootHop(root, openPayment as unknown as OpenCheckoutMandate);
+
+    // This charge is 30000 minor; the tracker already holds 90000 → 120000 > 100000.
+    const closed = sampleClosedPayment(30000);
+    const terminal = await buildKbHop({
+      signer: agent,
+      prevSdHash: rootHop.sdHash,
+      delegateItem: closed,
+      audience: "merchant_chain",
+      nonce: "merchant-nonce",
+      isTerminal: true,
+    });
+
+    const presentation = `${rootHop.presentation}${CHAIN_SEPARATOR}${terminal.presentation}`;
+
+    // The budget tracker keys on the Open Payment Mandate's hop sd_hash, which
+    // equals rootHop.sdHash for this 2-hop chain.
+    const tracker = new InMemoryBudgetTracker();
+    await tracker.recordPresentation({
+      openMandateDigest: rootHop.sdHash,
+      amountMinor: 90000,
+      currency: "USD",
+    });
+
+    const result = await verifyDsdJwtChain(presentation, {
+      rootIssuerKey: root.publicJwk,
+      expectedAudience: "merchant_chain",
+      expectedNonce: "merchant-nonce",
+      tracker,
+    });
+
+    expect(result.ok).toBe(false);
+    if (result.ok) throw new Error("expected failure");
+    expect(result.code).toBe("invalid_mandate");
+    expect(result.reason).toContain("Budget exceeded");
+  });
+
+  it("passes when the delegated payment satisfies the open mandate's constraints", async () => {
+    const root = await generateAp2KeyPair("ES256");
+    const agent = await generateAp2KeyPair("ES256");
+
+    const openPayment: OpenPaymentMandate = {
+      vct: "mandate.payment.open.1",
+      constraints: [
+        { type: "payment.amount_range", currency: "USD", max: 50000 },
+        { type: "payment.allowed_payees", allowed: [{ id: "merchant_chain" }] },
+      ],
+      cnf: { jwk: agent.publicJwk },
+    };
+    const rootHop = await buildRootHop(root, openPayment as unknown as OpenCheckoutMandate);
+
+    const closed = sampleClosedPayment(30000); // within the 50000 cap.
+    const terminal = await buildKbHop({
+      signer: agent,
+      prevSdHash: rootHop.sdHash,
+      delegateItem: closed,
+      audience: "merchant_chain",
+      nonce: "merchant-nonce",
+      isTerminal: true,
+    });
+
+    const presentation = `${rootHop.presentation}${CHAIN_SEPARATOR}${terminal.presentation}`;
+    const result = await verifyDsdJwtChain(presentation, {
+      rootIssuerKey: root.publicJwk,
+      expectedAudience: "merchant_chain",
+      expectedNonce: "merchant-nonce",
+    });
+
+    expect(result.ok).toBe(true);
+    if (!result.ok) throw new Error(`expected ok, got ${result.reason}`);
+    expect(result.openMandates.length).toBe(1);
+    expect(result.closedMandate?.vct).toBe("mandate.payment.1");
   });
 });
