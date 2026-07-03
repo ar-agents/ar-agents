@@ -11,6 +11,16 @@
  *     public, but write endpoints require WSAA tickets — out of scope here).
  */
 
+import {
+  ArAgentsAuthError,
+  ArAgentsProtocolError,
+  ArAgentsRateLimitError,
+  ArAgentsResponseValidationError,
+  HttpClient,
+  isArAgentsError,
+  type HttpRetryOptions,
+} from "@ar-agents/core";
+import { z } from "zod";
 import { AduanaApiError, AduanaUnconfiguredError } from "./errors";
 import type {
   DespachoIdentifier,
@@ -39,40 +49,125 @@ export interface HttpAduanaAdapterOptions {
   baseUrl?: string;
   /** Custom fetch (for tests / Edge runtimes). */
   fetch?: FetchLike;
+  /** Per-request timeout in ms. Default 10_000. The reads had none before — a
+   * slow ARCA endpoint would hang the agent forever. */
+  timeoutMs?: number;
+  /** Retry policy override. Default: 3 attempts with jittered backoff (the
+   * lookups are idempotent GETs, so retrying a transient 5xx/timeout is safe). */
+  retry?: HttpRetryOptions;
+  /** User-Agent identifying the client. */
+  userAgent?: string;
 }
 
 const DEFAULT_BASE = "https://api.arca.gob.ar/aduana/v1";
+const DEFAULT_UA = "@ar-agents/aduana (https://ar-agents.ar)";
+
+const despachoStatusSchema = z.enum([
+  "registrado",
+  "oficializado",
+  "canalizado_verde",
+  "canalizado_naranja",
+  "canalizado_rojo",
+  "libre_disponibilidad",
+  "anulado",
+]);
+
+const operationKindSchema = z.enum(["IM4", "IT4", "EC4", "ET4", "OTRO"]);
+
+// The anti-fabrication guard for lookupDespacho: the OLD code stamped
+// `found: true` onto ANY 200 body — an error page or an empty `{}` served with
+// HTTP 200 became a "found" customs declaration. Requiring a valid `status`
+// (the core marker of a genuine despacho record) means a non-despacho body now
+// FAILS LOUD instead of masquerading as a real, found declaration.
+const despachoBodySchema = z.object({
+  status: despachoStatusSchema,
+  operationKind: operationKindSchema.optional(),
+  ncmCode: z.string().optional(),
+  registeredAt: z.string().optional(),
+  oficinaAduana: z.string().optional(),
+  cuit: z.string().optional(),
+  note: z.string().optional(),
+});
+
+const ncmBodySchema = z.object({
+  code: z.string(),
+  description: z.string(),
+  active: z.boolean(),
+  aecPercent: z.number().optional(),
+  diePercent: z.number().optional(),
+});
 
 export class HttpAduanaAdapter implements AduanaAdapter {
-  private readonly baseUrl: string;
-  private readonly fetcher: FetchLike;
+  private readonly client: HttpClient;
 
   constructor(opts: HttpAduanaAdapterOptions = {}) {
-    this.baseUrl = (opts.baseUrl ?? DEFAULT_BASE).replace(/\/$/, "");
-    const f =
-      opts.fetch ??
-      ((globalThis as { fetch?: FetchLike }).fetch as FetchLike | undefined);
-    if (!f) {
+    const baseUrl = (opts.baseUrl ?? DEFAULT_BASE).replace(/\/$/, "");
+    const fetchImpl =
+      opts.fetch ?? ((globalThis as { fetch?: FetchLike }).fetch as FetchLike | undefined);
+    if (typeof fetchImpl !== "function") {
       throw new AduanaUnconfiguredError("HttpAduanaAdapter", "no fetch available");
     }
-    this.fetcher = f;
+    this.client = new HttpClient({
+      baseUrl,
+      fetch: fetchImpl,
+      timeoutMs: opts.timeoutMs ?? 10_000,
+      userAgent: opts.userAgent ?? DEFAULT_UA,
+      retry: opts.retry ?? { maxAttempts: 3 },
+    });
   }
 
   async lookupDespacho(id: DespachoIdentifier): Promise<DespachoLookupResult> {
-    const url = `${this.baseUrl}/despachos?kind=${encodeURIComponent(id.kind)}&value=${encodeURIComponent(id.value)}`;
-    const res = await this.fetcher(url, { method: "GET", headers: { accept: "application/json" } });
-    if (res.status === 404) return { identifier: id, found: false };
-    if (!res.ok) throw new AduanaApiError(res.status, await safeJson(res));
-    const body = (await res.json()) as Partial<DespachoLookupResult>;
+    let body;
+    try {
+      body = await this.client.request({
+        path: "/despachos",
+        query: { kind: id.kind, value: id.value },
+        schema: despachoBodySchema,
+      });
+    } catch (err) {
+      // 404 is a legitimate "no such despacho", not an error.
+      if (err instanceof ArAgentsProtocolError && err.status === 404) {
+        return { identifier: id, found: false };
+      }
+      throw this.toAduanaError(err);
+    }
+    // Only reached when the body validated as a real despacho record.
     return { ...body, identifier: id, found: true } as DespachoLookupResult;
   }
 
   async lookupNcm(code: string): Promise<NcmLookupResult | null> {
-    const url = `${this.baseUrl}/ncm/${encodeURIComponent(code)}`;
-    const res = await this.fetcher(url, { method: "GET", headers: { accept: "application/json" } });
-    if (res.status === 404) return null;
-    if (!res.ok) throw new AduanaApiError(res.status, await safeJson(res));
-    return (await res.json()) as NcmLookupResult;
+    try {
+      const body = await this.client.request({
+        path: `/ncm/${encodeURIComponent(code)}`,
+        schema: ncmBodySchema,
+      });
+      return body as NcmLookupResult;
+    } catch (err) {
+      if (err instanceof ArAgentsProtocolError && err.status === 404) return null;
+      throw this.toAduanaError(err);
+    }
+  }
+
+  /**
+   * Translate a core error into the Aduana taxonomy. A malformed-body
+   * `ArAgentsResponseValidationError` is surfaced as-is (fail loud — a
+   * non-despacho body must never be stamped `found: true`); transport errors
+   * become `AduanaApiError` carrying the upstream status.
+   */
+  private toAduanaError(err: unknown): unknown {
+    if (err instanceof ArAgentsResponseValidationError) return err;
+    if (isArAgentsError(err)) {
+      const status =
+        err instanceof ArAgentsProtocolError
+          ? err.status ?? 0
+          : err instanceof ArAgentsRateLimitError
+            ? 429
+            : err instanceof ArAgentsAuthError
+              ? 401
+              : 0;
+      return new AduanaApiError(status, err.context["body"] ?? null);
+    }
+    return err;
   }
 }
 
@@ -92,13 +187,5 @@ export class InMemoryAduanaAdapter implements AduanaAdapter {
   }
   async lookupNcm(code: string): Promise<NcmLookupResult | null> {
     return (this.seed.ncm ?? []).find((n) => n.code === code) ?? null;
-  }
-}
-
-async function safeJson(res: Response): Promise<unknown> {
-  try {
-    return await res.json();
-  } catch {
-    return null;
   }
 }
