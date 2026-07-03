@@ -11,6 +11,14 @@
  * `coverageNote` on every result reflects this — surface it verbatim.
  */
 
+import {
+  ArAgentsProtocolError,
+  ArAgentsResponseValidationError,
+  HttpClient,
+  isArAgentsError,
+  type HttpRetryOptions,
+} from "@ar-agents/core";
+import { z } from "zod";
 import { FetcherNotConfiguredError, IgjError } from "./errors";
 import {
   normalizeCuit,
@@ -137,19 +145,42 @@ export interface LiveCkanFetcherOptions {
   fetch?: typeof fetch;
   /** Timeout in ms. Default 30s. */
   timeoutMs?: number;
+  /** Retry policy override. Default: 2 attempts — CKAN's datastore_search is an
+   * idempotent GET, so a transient 5xx/timeout is safe to retry once. */
+  retry?: HttpRetryOptions;
 }
 
+// CKAN action envelope. Validated at the boundary so a `success:true` body whose
+// `result.records` isn't an array fails loud (via the typed client) rather than
+// being blind-cast and coerced to an empty result set. `success:false` is
+// handled explicitly below to preserve CKAN's own error message.
+const ckanEnvelopeSchema = z.object({
+  success: z.boolean(),
+  result: z
+    .object({
+      records: z.array(z.record(z.string(), z.unknown())).optional(),
+      total: z.number().optional(),
+    })
+    .optional(),
+  error: z.unknown().optional(),
+});
+
+type CkanEnvelope = z.infer<typeof ckanEnvelopeSchema>;
+
+const CKAN_DATASTORE_PATH = "/api/3/action/datastore_search";
+
 export class LiveCkanFetcher implements IgjFetcher {
-  private readonly baseUrl: string;
   private readonly resourceIds: typeof IGJ_RESOURCE_IDS;
-  private readonly fetchImpl: typeof fetch;
-  private readonly timeoutMs: number;
+  private readonly client: HttpClient;
 
   constructor(opts: LiveCkanFetcherOptions = {}) {
-    this.baseUrl = opts.baseUrl ?? "https://datos.jus.gob.ar";
     this.resourceIds = { ...IGJ_RESOURCE_IDS, ...(opts.resourceIds ?? {}) };
-    this.fetchImpl = opts.fetch ?? globalThis.fetch.bind(globalThis);
-    this.timeoutMs = opts.timeoutMs ?? 30_000;
+    this.client = new HttpClient({
+      baseUrl: opts.baseUrl ?? "https://datos.jus.gob.ar",
+      timeoutMs: opts.timeoutMs ?? 30_000,
+      retry: opts.retry ?? { maxAttempts: 2 },
+      ...(opts.fetch !== undefined ? { fetch: opts.fetch } : {}),
+    });
   }
 
   async search(query: IgjSearchQuery): Promise<IgjSearchResult> {
@@ -165,8 +196,7 @@ export class LiveCkanFetcher implements IgjFetcher {
     };
     if (query.query) params["q"] = query.query;
     if (Object.keys(filters).length > 0) params["filters"] = JSON.stringify(filters);
-    const url = `${this.baseUrl}/api/3/action/datastore_search?${new URLSearchParams(params).toString()}`;
-    const json = await this.getJson(url);
+    const json = await this.getJson(params);
     const records = extractRecords(json);
     let entities = records.map(parseEntity);
     if (query.tipos && query.tipos.length > 0) {
@@ -227,36 +257,43 @@ export class LiveCkanFetcher implements IgjFetcher {
       limit: "100",
       ...extras,
     };
-    const url = `${this.baseUrl}/api/3/action/datastore_search?${new URLSearchParams(params).toString()}`;
-    const json = await this.getJson(url);
+    const json = await this.getJson(params);
     return extractRecords(json);
   }
 
-  private async getJson(url: string): Promise<Record<string, unknown>> {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), this.timeoutMs);
+  /** One CKAN datastore_search GET through the shared client: timeout, retry,
+   * typed errors, and an envelope schema. CKAN's own `success:false` is mapped
+   * to the existing IgjError so callers see the CKAN error message. */
+  private async getJson(query: Record<string, string>): Promise<CkanEnvelope> {
+    let json: CkanEnvelope;
     try {
-      const res = await this.fetchImpl(url, {
-        signal: ctrl.signal,
-        headers: { Accept: "application/json" },
+      json = await this.client.request({
+        path: CKAN_DATASTORE_PATH,
+        query,
+        schema: ckanEnvelopeSchema,
       });
-      if (!res.ok) {
+    } catch (err) {
+      if (err instanceof ArAgentsResponseValidationError) {
+        throw new IgjError("ckan_invalid_response", `CKAN response shape invalid: ${err.message}`);
+      }
+      if (err instanceof ArAgentsProtocolError) {
         throw new IgjError(
           "ckan_unreachable",
-          `CKAN ${res.status} ${res.statusText} at ${url}`,
+          `CKAN ${err.status ?? "request"} failed: ${err.message}`,
         );
       }
-      const json = (await res.json()) as Record<string, unknown>;
-      if (json["success"] === false) {
-        throw new IgjError(
-          "ckan_invalid_response",
-          `CKAN action failed: ${JSON.stringify(json["error"] ?? json)}`,
-        );
+      if (isArAgentsError(err)) {
+        throw new IgjError("ckan_unreachable", `CKAN request failed: ${err.message}`);
       }
-      return json;
-    } finally {
-      clearTimeout(timer);
+      throw err;
     }
+    if (json.success === false) {
+      throw new IgjError(
+        "ckan_invalid_response",
+        `CKAN action failed: ${JSON.stringify(json.error ?? json)}`,
+      );
+    }
+    return json;
   }
 }
 
@@ -275,17 +312,10 @@ function matchEntity(e: IgjEntity, q: IgjSearchQuery): boolean {
   return true;
 }
 
-function extractRecords(json: Record<string, unknown>): Array<Record<string, unknown>> {
-  const result = json["result"] as Record<string, unknown> | undefined;
-  if (!result) return [];
-  const records = result["records"];
-  if (!Array.isArray(records)) return [];
-  return records as Array<Record<string, unknown>>;
+function extractRecords(json: CkanEnvelope): Array<Record<string, unknown>> {
+  return json.result?.records ?? [];
 }
 
-function extractTotal(json: Record<string, unknown>): number | undefined {
-  const result = json["result"] as Record<string, unknown> | undefined;
-  if (!result) return undefined;
-  const total = result["total"];
-  return typeof total === "number" ? total : undefined;
+function extractTotal(json: CkanEnvelope): number | undefined {
+  return json.result?.total;
 }
