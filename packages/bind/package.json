@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/bind",
-  "version": "0.2.2",
+  "version": "0.3.0",
   "description": "BIND APIBANK (Banco Industrial BaaS) tools: transfers, DEBIN, echeq, account movements, CBU/CVU ownership. Adapter pattern: real JWT HTTP client behind a pluggable adapter, structured unconfigured default so unit tests never call the network.",
   "keywords": [
     "bind",

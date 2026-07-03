@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.11.3
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab), [`024a68f`](https://github.com/ar-agents/ar-agents/commit/024a68f968e1074f1474764c2b82fcdf6dc4ad52), [`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+  - @ar-agents/igj@0.3.0
+  - @ar-agents/mi-argentina@0.3.0
+
 ## 0.11.2
 
 ### Patch Changes

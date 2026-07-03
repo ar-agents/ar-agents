@@ -1,5 +1,12 @@
 # ar-agents-landing
 
+## 0.1.12
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+
 ## 0.1.11
 
 ### Patch Changes

@@ -1,5 +1,16 @@
 # @ar-agents/mi-argentina
 
+## 0.3.0
+
+### Minor Changes
+
+- [#152](https://github.com/ar-agents/ar-agents/pull/152) [`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab) Thanks [@naza00000](https://github.com/naza00000)! - Migrate the OIDC transport onto the shared `HttpClient` from `@ar-agents/core`. Every network call — token exchange, refresh, userinfo, JWKS, and discovery — was previously an entirely un-timed raw `fetch`; a hung Mi Argentina socket would hang the whole login flow forever. All calls now run through `HttpClient` with a 10s timeout and typed error mapping. The token and userinfo responses are validated against zod schemas, so a partial/proxy-mangled JSON 200 body that drops the required fields now fails LOUD with `ArAgentsResponseValidationError` instead of being blind-cast into a clean-looking `TokenResponse` with `accessToken: ""` or a profile with `sub: ""`; a non-JSON body (an HTML error/maintenance page served with a 200) fails loud even earlier, rejected by the client before the schema runs. Token grants (code exchange + refresh) are one-shot: retry is disabled so a transient 5xx never re-submits and burns the `authorization_code`/`refresh_token` server-side. Core errors are mapped back to the existing taxonomy — 401/403 and HTTP statuses keep the operation's `*_failed` code (carrying status + body in `details`), while network/timeout maps to `network_error`. JWT signature verification (Web Crypto) is unchanged; only the HTTP fetch of JWKS gained a timeout.
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+
 ## 0.2.4
 
 ### Patch Changes

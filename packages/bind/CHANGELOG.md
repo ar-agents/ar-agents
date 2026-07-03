@@ -1,5 +1,20 @@
 # @ar-agents/bind
 
+## 0.3.0
+
+### Minor Changes
+
+- [#150](https://github.com/ar-agents/ar-agents/pull/150) [`80db3cc`](https://github.com/ar-agents/ar-agents/commit/80db3ccd99611867997efbef3cc8e3edfe811a69) Thanks [@naza00000](https://github.com/naza00000)! - Migrate `HttpBindAdapter` onto `@ar-agents/core`'s `HttpClient` (SDK-audit P1 [#14](https://github.com/ar-agents/ar-agents/issues/14)).
+
+  Every BIND APIBANK call now runs through the shared client: timeout, backoff retry, `429`/`Retry-After`, and typed errors. The JWT auth flow (literal `JWT <token>` scheme, lazy login, 60s-early refresh, retry-once-on-401) is preserved, now expressed against the client's typed errors. Responses are **schema-validated** against the package's own zod schemas (accounts, movements, ownership, transfer/DEBIN results, echeqs): a malformed body on the irreversible-transfer surface now resolves to a structured `{ ok: false, code: "api_error" }` instead of being blind-cast into a fabricated `{ ok: true }` success.
+
+  Idempotency is safe by construction: the money `POST`s (TRANSFER / DEBIN) and login are non-idempotent and are **never auto-retried**; only idempotent GET reads retry a transient 5xx. HTTP errors map to `api_error` (with the upstream status); network/timeout failures map to `network_error` — same structured `BindResult` envelope as before. The `fetchImpl`/`baseUrl`/`timeoutMs`/`bankId`/`viewId` options are unchanged.
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+
 ## 0.2.2
 
 ### Patch Changes

@@ -1,5 +1,18 @@
 # @ar-agents/wscdc
 
+## 0.3.0
+
+### Minor Changes
+
+- [#152](https://github.com/ar-agents/ar-agents/pull/152) [`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab) Thanks [@naza00000](https://github.com/naza00000)! - Migrate the real-network `HttpWscdcAdapter` (SOAP — constatación de comprobantes) off its hand-rolled fetch + `Promise.race` timeout onto the shared `HttpClient` from `@ar-agents/core`. The old `withTimeout` raced the fetch against a `setTimeout` reject and could leak the timer's rejection; the core client now supplies a real `AbortSignal.timeout`, bounded jittered backoff, and typed `ArAgentsError` mapping. SOAP stays transport-only: both operations POST the envelope via `requestRaw`, read the raw XML text, and keep the existing `parseConstatarResponse` / `parseDummyResponse` SOAP-fault + observation/error surfacing untouched. AFIP's HTTP-500-with-`<soap:Fault>` (TA expiry) is remapped back to `WscdcProtocolError` with the `faultstring` preserved from the error's body snippet, and network/timeout errors (status null) route to the protocol-error path — every existing error code is preserved.
+
+  `ComprobanteConstatar` and `Dummy` are pure reads, so the POSTs are marked `idempotent: true` to opt into retry on transient 5xx; there is no money mutation here to blind-retry. The parsed result is additionally validated with a zod `constatarResultSchema` / `dummyResultSchema` via `parseOrThrow`, so a drifted/partial body fails loud (`ArAgentsResponseValidationError`) instead of being blind-cast. `FetchLike` is kept exported but deprecated; the `fetch` option is now a standard `typeof fetch`. A new optional `retry` option forwards to the client. New tests cover a malformed 200 failing loud, a transient 5xx retrying-then-succeeding on the idempotent read, and the real-`Response`-based fetch mock the core client requires.
+
+### Patch Changes
+
+- Updated dependencies [[`2d9985d`](https://github.com/ar-agents/ar-agents/commit/2d9985d17894ec7dd731434a3fcbd11391b703ab)]:
+  - @ar-agents/core@0.4.1
+
 ## 0.2.5
 
 ### Patch Changes
