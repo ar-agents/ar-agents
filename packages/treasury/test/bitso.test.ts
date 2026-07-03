@@ -268,6 +268,91 @@ describe("normalizeBitsoStatus", () => {
   });
 });
 
+describe("BitsoOffRampAdapter — core HttpClient migration (schema + idempotency)", () => {
+  it("a malformed (non-object) ticker payload fails LOUD, never a fabricated quote", async () => {
+    // payload is a bare string, not the {bid} object -> objectSchema rejects it
+    // as a response-validation failure, surfaced as BitsoApiError.
+    const { impl } = mockFetch([
+      { match: /\/v3\/ticker/, method: "GET", json: ok("NOT_AN_OBJECT") },
+    ]);
+    const a = new BitsoOffRampAdapter(baseConfig(impl));
+    await expect(a.quote(1)).rejects.toBeInstanceOf(BitsoApiError);
+  });
+
+  it("a malformed (non-array) withdrawal-lookup payload fails LOUD", async () => {
+    // The origin_ids lookup must be an array; a bare object would let a stale
+    // shape sneak through. Since findWithdrawalByOriginId swallows lookup errors,
+    // assert via getStatus which uses objectSchema and DOES surface.
+    const { impl } = mockFetch([
+      { match: /\/v3\/withdrawals\/w_x/, method: "GET", json: ok(["not", "an", "object"]) },
+    ]);
+    const a = new BitsoOffRampAdapter(baseConfig(impl));
+    await expect(a.getStatus("w_x")).rejects.toBeInstanceOf(BitsoApiError);
+  });
+
+  it("the market-sell order POST is NOT retried on a transient 5xx (fired exactly once)", async () => {
+    let orderPosts = 0;
+    const impl = (async (url: string, init: RequestInit) => {
+      const method = init.method ?? "GET";
+      if (/\/v3\/withdrawals\?origin_ids/.test(String(url))) {
+        return new Response(JSON.stringify(ok([])), { status: 200 });
+      }
+      if (/\/v3\/orders$/.test(String(url)) && method === "POST") {
+        orderPosts += 1;
+        return new Response(JSON.stringify({ success: false, error: { message: "boom" } }), {
+          status: 503,
+        });
+      }
+      return new Response(JSON.stringify({ success: false, error: { message: "no route" } }), {
+        status: 404,
+      });
+    }) as unknown as typeof fetch;
+    const a = new BitsoOffRampAdapter(baseConfig(impl));
+    await expect(a.convert(10, { externalId: "no-retry" })).rejects.toBeInstanceOf(BitsoApiError);
+    // The irreversible sale is a non-idempotent POST: exactly one attempt.
+    expect(orderPosts).toBe(1);
+  });
+
+  it("a transient 5xx on the (idempotent GET) balance read retries, then succeeds", async () => {
+    // Drive convert() far enough to hit the balance read; make the FIRST balance
+    // GET a 503 and the second a good body, and assert the sale still completes.
+    let balanceGets = 0;
+    const originId = await deriveOriginId("retry-bal");
+    const impl = (async (url: string, init: RequestInit) => {
+      const u = String(url);
+      const method = init.method ?? "GET";
+      if (/\/v3\/withdrawals\?origin_ids/.test(u)) {
+        return new Response(JSON.stringify(ok([])), { status: 200 });
+      }
+      if (/\/v3\/orders$/.test(u) && method === "POST") {
+        return new Response(JSON.stringify(ok({ oid: "o_1" })), { status: 200 });
+      }
+      if (/\/v3\/balance/.test(u)) {
+        balanceGets += 1;
+        if (balanceGets === 1) {
+          return new Response(JSON.stringify({ success: false, error: { message: "500" } }), {
+            status: 503,
+          });
+        }
+        return new Response(
+          JSON.stringify(ok({ balances: [{ currency: "ars", available: "12000" }] })),
+          { status: 200 },
+        );
+      }
+      if (/\/v3\/withdrawals$/.test(u) && method === "POST") {
+        return new Response(JSON.stringify(ok({ wid: "w_ok", status: "pending" })), { status: 200 });
+      }
+      return new Response(JSON.stringify({ success: false }), { status: 404 });
+    }) as unknown as typeof fetch;
+    const a = new BitsoOffRampAdapter(baseConfig(impl));
+    const r = await a.convert(8, { externalId: "retry-bal" });
+    expect(r.txId).toBe("w_ok");
+    expect(r.arsReceived).toBe(12000);
+    expect(balanceGets).toBe(2); // first 503 was retried
+    expect(originId).toHaveLength(40); // (sanity on the derived key used above)
+  });
+});
+
 describe("BitsoOffRampAdapter — error mapping", () => {
   it("401 -> BitsoAuthError, 429 -> BitsoRateLimitError", async () => {
     const conv401 = new BitsoOffRampAdapter(

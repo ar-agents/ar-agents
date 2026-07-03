@@ -14,7 +14,6 @@ import {
   WscdcValidationError,
   WscdcProtocolError,
   type ConstatarRequest,
-  type FetchLike,
   type AccessTicket,
 } from "../src/index";
 
@@ -41,17 +40,24 @@ function validReq(overrides: Partial<ConstatarRequest> = {}): ConstatarRequest {
   };
 }
 
+// HttpClient (from @ar-agents/core) needs a REAL `Response` — its error
+// path calls `res.clone()`, which a hand-rolled `{ ok, status, text }`
+// fake lacks. Build actual `Response` objects here. The responder still
+// returns the old `{ ok, status, text }` seed shape for convenience.
 function mockFetch(
-  responder: (url: string, init: { method?: string; headers?: Record<string, string>; body?: string }) => {
-    ok: boolean;
-    status: number;
-    text: string;
-  },
-): FetchLike {
-  return async (url, init = {}) => {
-    const r = responder(url, init as { method?: string; headers?: Record<string, string>; body?: string });
-    return { ok: r.ok, status: r.status, text: async () => r.text };
-  };
+  responder: (
+    url: string,
+    init: RequestInit,
+  ) => { ok: boolean; status: number; text: string },
+): typeof fetch {
+  return (async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const url = typeof input === "string" ? input : input.toString();
+    const r = responder(url, init);
+    return new Response(r.text, {
+      status: r.status,
+      headers: { "content-type": "text/xml" },
+    });
+  }) as typeof fetch;
 }
 
 const APPROVED_SOAP = `<?xml version="1.0" encoding="UTF-8"?>
@@ -315,6 +321,83 @@ describe("HttpWscdcAdapter", () => {
       a.validateComprobante(validReq({ codAutorizacion: "short" })),
     ).rejects.toThrow(WscdcValidationError);
     expect(captured).not.toHaveBeenCalled();
+  });
+
+  it("parses an Approved (A) result end-to-end through the core client", async () => {
+    const a = new HttpWscdcAdapter({
+      env: "homo",
+      ticket: goodTicket,
+      fetch: mockFetch(() => ({ ok: true, status: 200, text: APPROVED_SOAP })),
+    });
+    const r = await a.validateComprobante(validReq());
+    expect(r.resultado).toBe("A");
+    expect(r.fchProceso).toBe("20260515123045");
+  });
+
+  it("fails LOUD on a malformed 200 body (no result block) — never a fabricated clean result", async () => {
+    const a = new HttpWscdcAdapter({
+      env: "homo",
+      ticket: goodTicket,
+      // HTTP 200 but a body that is NOT a valid ComprobanteConstatar
+      // response. The old blind-cast path could have returned a
+      // default-filled object; the SOAP parser + schema now reject it.
+      fetch: mockFetch(() => ({
+        ok: true,
+        status: 200,
+        text: `<?xml version="1.0"?><soap:Envelope><soap:Body><nothing/></soap:Body></soap:Envelope>`,
+      })),
+    });
+    await expect(a.validateComprobante(validReq())).rejects.toThrow(
+      WscdcProtocolError,
+    );
+  });
+
+  it("health() runs end-to-end through the core client", async () => {
+    const a = new HttpWscdcAdapter({
+      env: "homo",
+      ticket: goodTicket,
+      fetch: mockFetch(() => ({
+        ok: true,
+        status: 200,
+        text: `<?xml version="1.0"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/"><soap:Body><DummyResponse xmlns="http://ar.gov.afip.dif.wscdc/"><DummyResult><AppServer>OK</AppServer><DbServer>OK</DbServer><AuthServer>OK</AuthServer></DummyResult></DummyResponse></soap:Body></soap:Envelope>`,
+      })),
+    });
+    expect(await a.health()).toEqual({
+      appServer: "OK",
+      dbServer: "OK",
+      authServer: "OK",
+    });
+  });
+
+  it("retries a transient 5xx on the idempotent constatar READ then succeeds", async () => {
+    let calls = 0;
+    const fetchImpl: typeof fetch = (async (
+      _input: RequestInfo | URL,
+      _init: RequestInit = {},
+    ) => {
+      calls += 1;
+      if (calls === 1) {
+        // Transient upstream 503 with NO faultstring — a real outage, not
+        // a TA-expiry SOAP fault. Safe to retry a read.
+        return new Response("<html>502 Bad Gateway</html>", {
+          status: 503,
+          headers: { "content-type": "text/html" },
+        });
+      }
+      return new Response(APPROVED_SOAP, {
+        status: 200,
+        headers: { "content-type": "text/xml" },
+      });
+    }) as typeof fetch;
+    const a = new HttpWscdcAdapter({
+      env: "homo",
+      ticket: goodTicket,
+      fetch: fetchImpl,
+      retry: { maxAttempts: 3, baseDelayMs: 1, maxDelayMs: 2, jitter: 0 },
+    });
+    const r = await a.validateComprobante(validReq());
+    expect(r.resultado).toBe("A");
+    expect(calls).toBe(2);
   });
 });
 

@@ -178,6 +178,46 @@ describe("registerFiatAccount()", () => {
   });
 });
 
+describe("core HttpClient migration — schema validation + idempotency", () => {
+  it("a malformed (non-object) quote body fails LOUD, never a fabricated quote", async () => {
+    const { a } = adapter((url) =>
+      url.endsWith("/oauth2/token/") ? { body: TOKEN_OK } : { body: ["not", "an", "object"] },
+    );
+    await expect(a.quote(1)).rejects.toBeInstanceOf(RipioApiError);
+  });
+
+  it("a transient 5xx on the (idempotent GET) session-status read retries, then succeeds", async () => {
+    let statusGets = 0;
+    const { a, calls } = adapter((url) => {
+      if (url.endsWith("/oauth2/token/")) return { body: TOKEN_OK };
+      statusGets += 1;
+      return statusGets === 1
+        ? { status: 503, body: { error: "unavailable" } }
+        : { body: { status: "PAID", finalToAmount: 98000 } };
+    });
+    const r = await a.getStatus("sess_9");
+    expect(r.status).toBe("COMPLETED");
+    expect(statusGets).toBe(2); // first 503 retried
+    expect(calls.filter((c) => c.url.includes("/offrampSession/sess_9")).length).toBe(2);
+  });
+
+  it("the offramp-session POST is NOT retried on a transient 5xx (fired exactly once)", async () => {
+    let sessionPosts = 0;
+    const { a } = adapter((url) => {
+      if (url.endsWith("/oauth2/token/")) return { body: TOKEN_OK };
+      if (url.endsWith("/api/v1/quotes/")) return { body: { rate: 1, finalToAmount: 1 } };
+      if (url.endsWith("/api/v1/offrampSession/")) {
+        sessionPosts += 1;
+        return { status: 503, body: { error: "unavailable" } };
+      }
+      return { body: {} };
+    });
+    await expect(a.convert(5, { externalId: "no-retry" })).rejects.toBeInstanceOf(RipioApiError);
+    // Session creation is a non-idempotent POST: exactly one attempt.
+    expect(sessionPosts).toBe(1);
+  });
+});
+
 describe("error mapping + status helper", () => {
   it("429 -> RipioRateLimitError", async () => {
     const { a } = adapter((url) =>

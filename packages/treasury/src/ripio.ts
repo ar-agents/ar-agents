@@ -36,6 +36,7 @@
  * run (open sandbox + deposit simulation). Run: `scripts/live-offramp.mjs ripio`.
  */
 
+import { HttpClient } from "@ar-agents/core";
 import type {
   Ars,
   OffRampAdapter,
@@ -45,6 +46,7 @@ import type {
   OffRampStatusReport,
   Usd,
 } from "./index";
+import { mapOffRampError, objectSchema, type OffRampErrorCtors } from "./http";
 
 export const RIPIO_SANDBOX = "https://sandbox-b2b.ripio.com";
 export const RIPIO_PROD = "https://b2b-api.ripio.com";
@@ -67,6 +69,8 @@ export interface RipioConfig {
   /** Default "bank_transfer". */
   paymentMethodType?: string;
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 30_000. */
+  timeoutMs?: number;
   now?: () => number;
 }
 
@@ -109,13 +113,19 @@ export function normalizeRipioStatus(raw: string | undefined): OffRampStatus {
   return "UNKNOWN";
 }
 
+/** Provider error ctors passed to the shared core->taxonomy error mapper. */
+const RIPIO_ERROR_CTORS: OffRampErrorCtors = {
+  api: RipioApiError,
+  auth: RipioAuthError,
+  rateLimit: RipioRateLimitError,
+};
+
 export class RipioOffRampAdapter implements OffRampAdapter {
-  private readonly baseUrl: string;
   private readonly chain: string;
   private readonly fromCurrency: string;
   private readonly toCurrency: string;
   private readonly paymentMethodType: string;
-  private readonly fetchImpl: typeof fetch;
+  private readonly client: HttpClient;
   private readonly now: () => number;
   private token: { value: string; expiresAtMs: number } | null = null;
 
@@ -124,87 +134,77 @@ export class RipioOffRampAdapter implements OffRampAdapter {
       throw new Error("RipioConfig.clientId/clientSecret are required");
     if (!config.customerId) throw new Error("RipioConfig.customerId is required");
     if (!config.fiatAccountId) throw new Error("RipioConfig.fiatAccountId is required");
-    this.baseUrl = (config.baseUrl ?? RIPIO_SANDBOX).replace(/\/+$/, "");
+    const baseUrl = (config.baseUrl ?? RIPIO_SANDBOX).replace(/\/+$/, "");
     this.chain = config.chain ?? "BASE";
     this.fromCurrency = config.fromCurrency ?? "USDC";
     this.toCurrency = config.toCurrency ?? "ARS";
     this.paymentMethodType = config.paymentMethodType ?? "bank_transfer";
-    const f = config.fetchImpl ?? globalThis.fetch;
-    if (!f) throw new Error("no fetch available; pass RipioConfig.fetchImpl");
-    this.fetchImpl = f;
+    this.client = new HttpClient({
+      baseUrl,
+      timeoutMs: config.timeoutMs ?? 30_000,
+      // GET reads (status) retry a transient 5xx. Every POST here — the OAuth
+      // token grant, the quote, and the session-creating offrampSession — is
+      // non-idempotent, so the core client never auto-retries it (on 5xx, 429,
+      // or network); a retried session-create must never spin up a duplicate.
+      retry: { maxAttempts: 3 },
+      // No global `auth` provider: the Authorization header is set explicitly per
+      // request (Basic for the token POST, Bearer for API calls) so casing is
+      // deterministic and a token-refresh never collides with a stale header.
+      ...(config.fetchImpl !== undefined ? { fetch: config.fetchImpl } : {}),
+    });
     this.now = config.now ?? Date.now;
   }
 
-  private async getToken(): Promise<string> {
+  /** OAuth2 client-credentials, cached + refreshed 30s early. */
+  private async ensureToken(): Promise<void> {
     const now = this.now();
-    if (this.token && this.token.expiresAtMs > now + 30_000) return this.token.value;
+    if (this.token && this.token.expiresAtMs > now + 30_000) return;
     const basic = btoa(`${this.config.clientId}:${this.config.clientSecret}`);
-    let res: Response;
+    let body: { access_token?: string; expires_in?: number };
     try {
-      res = await this.fetchImpl(`${this.baseUrl}/oauth2/token/`, {
+      body = await this.client.request<{ access_token?: string; expires_in?: number }>({
         method: "POST",
+        path: "/oauth2/token/",
+        // OAuth token exchange uses Basic auth (clientId:clientSecret) + a form
+        // body, distinct from the Bearer used on the API calls below.
         headers: {
           authorization: `Basic ${basic}`,
           "content-type": "application/x-www-form-urlencoded",
-          accept: "application/json",
         },
         body: "grant_type=client_credentials",
+        schema: objectSchema<{ access_token?: string; expires_in?: number }>("ripio token"),
       });
-    } catch (cause) {
-      throw new RipioApiError(`ripio token transport error: ${String(cause)}`, 0);
-    }
-    const text = await res.text();
-    let parsed: unknown = undefined;
-    if (text) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = text;
+    } catch (err) {
+      // A token failure is always an auth failure (bad creds / rejected grant).
+      const mapped = mapOffRampError(err, "ripio token", RIPIO_ERROR_CTORS);
+      if (mapped instanceof RipioApiError && !(mapped instanceof RipioAuthError)) {
+        throw new RipioAuthError(mapped.message, mapped.status, mapped.body);
       }
+      throw mapped;
     }
-    if (!res.ok) throw new RipioAuthError(`ripio token -> ${res.status}`, res.status, parsed);
-    const body = parsed as { access_token?: string; expires_in?: number };
-    if (!body.access_token) throw new RipioAuthError("ripio token: no access_token", 200, parsed);
+    if (!body.access_token) {
+      throw new RipioAuthError("ripio token: no access_token", 200, body);
+    }
     this.token = {
       value: body.access_token,
       expiresAtMs: now + (body.expires_in ?? 3600) * 1000,
     };
-    return this.token.value;
   }
 
   private async request<T>(method: "GET" | "POST", path: string, body?: unknown): Promise<T> {
-    const token = await this.getToken();
-    const init: RequestInit = {
-      method,
-      headers: {
-        authorization: `Bearer ${token}`,
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-    };
-    if (body !== undefined) init.body = JSON.stringify(body);
-    let res: Response;
+    await this.ensureToken();
+    const token = this.token?.value ?? "";
     try {
-      res = await this.fetchImpl(`${this.baseUrl}${path}`, init);
-    } catch (cause) {
-      throw new RipioApiError(`ripio ${method} ${path} transport error: ${String(cause)}`, 0);
+      return await this.client.request<T>({
+        method,
+        path,
+        headers: { authorization: `Bearer ${token}` },
+        schema: objectSchema<T>(`ripio ${method} ${path}`),
+        ...(body !== undefined ? { body } : {}),
+      });
+    } catch (err) {
+      throw mapOffRampError(err, `ripio ${method} ${path}`, RIPIO_ERROR_CTORS);
     }
-    const text = await res.text();
-    let parsed: unknown = undefined;
-    if (text) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = text;
-      }
-    }
-    if (!res.ok) {
-      const msg = `ripio ${method} ${path} -> ${res.status}`;
-      if (res.status === 401 || res.status === 403) throw new RipioAuthError(msg, res.status, parsed);
-      if (res.status === 429) throw new RipioRateLimitError(msg, res.status, parsed);
-      throw new RipioApiError(msg, res.status, parsed);
-    }
-    return parsed as T;
   }
 
   async quote(amountUsd: Usd): Promise<OffRampQuote> {

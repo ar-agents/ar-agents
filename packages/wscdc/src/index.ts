@@ -36,6 +36,8 @@ export {
   WscdcUnconfiguredError,
 } from "./errors";
 
+export { constatarResultSchema, dummyResultSchema } from "./types";
+
 export type {
   WscdcEnv,
   CbteModo,

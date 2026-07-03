@@ -20,7 +20,6 @@ import {
   FecredProtocolError,
   type AccessTicket,
   type FecredComprobante,
-  type FetchLike,
 } from "../src/index";
 
 const goodTicket: AccessTicket = {
@@ -53,19 +52,35 @@ function seedCmp(overrides: Partial<FecredComprobante> = {}): FecredComprobante 
   };
 }
 
+// HttpClient needs a REAL `Response` (its error path calls `res.clone()`),
+// so the mock returns `new Response(...)` rather than a fake object. The
+// responder still receives the request URL + a normalized init view so the
+// existing assertions on url/headers/body keep working.
 function mockFetch(
   responder: (
     url: string,
     init: { method?: string; headers?: Record<string, string>; body?: string },
   ) => { ok: boolean; status: number; text: string },
-): FetchLike {
-  return async (url, init = {}) => {
-    const r = responder(
-      url,
-      init as { method?: string; headers?: Record<string, string>; body?: string },
-    );
-    return { ok: r.ok, status: r.status, text: async () => r.text };
-  };
+): typeof fetch {
+  return (async (input: RequestInfo | URL, init: RequestInit = {}) => {
+    const url = typeof input === "string" ? input : input.toString();
+    const headers: Record<string, string> = {};
+    if (init.headers) {
+      new Headers(init.headers).forEach((v, k) => {
+        headers[k] = v;
+      });
+    }
+    const view = {
+      method: init.method,
+      headers,
+      body: typeof init.body === "string" ? init.body : undefined,
+    };
+    const r = responder(url, view);
+    return new Response(r.text, {
+      status: r.status,
+      headers: { "content-type": "text/xml; charset=utf-8" },
+    });
+  }) as typeof fetch;
 }
 
 const MONTO_OBLIGADO_SOAP = `<?xml version="1.0" encoding="UTF-8"?>
@@ -416,6 +431,72 @@ describe("HttpFecredAdapter", () => {
     });
     const r = await a.listComprobantes({ rol: "Receptor", fechaTipo: "Emision" });
     expect(r.comprobantes[0]?.estado).toBe("Recepcionado");
+  });
+
+  it("resolves the request to the exact endpoint URL (no injected trailing slash)", async () => {
+    const captured = vi.fn(() => ({ ok: true, status: 200, text: MONTO_OBLIGADO_SOAP }));
+    const a = new HttpFecredAdapter({ env: "prod", ticket: goodTicket, fetch: mockFetch(captured) });
+    await a.checkObligation({ cuitConsultada: "30500000018" });
+    expect(captured.mock.calls[0]?.[0]).toBe(FECRED_URLS.prod);
+  });
+
+  it("preserves the AFIP <faultstring> from an HTTP 500 error body", async () => {
+    const a = new HttpFecredAdapter({
+      env: "homo",
+      ticket: goodTicket,
+      fetch: mockFetch(() => ({
+        ok: false,
+        status: 500,
+        text: `<soap:Fault><faultstring>token expired</faultstring></soap:Fault>`,
+      })),
+    });
+    await expect(a.health()).rejects.toMatchObject({
+      code: "protocol_error",
+      status: 500,
+      message: expect.stringContaining("token expired"),
+    });
+  });
+
+  it("maps a network/timeout failure to the network-error path (status null)", async () => {
+    const a = new HttpFecredAdapter({
+      env: "homo",
+      ticket: goodTicket,
+      fetch: (() => Promise.reject(new Error("connection refused"))) as typeof fetch,
+    });
+    await expect(a.checkObligation({ cuitConsultada: "30500000018" })).rejects.toMatchObject({
+      code: "protocol_error",
+      status: null,
+    });
+  });
+
+  it("does NOT retry an irreversible accept POST on a transient 5xx (called exactly once)", async () => {
+    const captured = vi.fn(() => ({
+      ok: false,
+      status: 503,
+      text: `<soap:Fault><faultstring>service unavailable</faultstring></soap:Fault>`,
+    }));
+    const a = new HttpFecredAdapter({ env: "homo", ticket: goodTicket, fetch: mockFetch(captured) });
+    await expect(
+      a.acceptInvoice({
+        idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+        saldoAceptado: 8_000_000,
+        codMoneda: "PES",
+        cotizacionMonedaUlt: 1,
+      }),
+    ).rejects.toBeInstanceOf(FecredProtocolError);
+    expect(captured).toHaveBeenCalledTimes(1);
+  });
+
+  it("does NOT retry an irreversible reject POST on a transient 429 (called exactly once)", async () => {
+    const captured = vi.fn(() => ({ ok: false, status: 429, text: "" }));
+    const a = new HttpFecredAdapter({ env: "homo", ticket: goodTicket, fetch: mockFetch(captured) });
+    await expect(
+      a.rejectInvoice({
+        idFactura: { cuitEmisor: "20123456786", codTipoCmp: 201, ptoVta: 3, nroCmp: 42 },
+        motivos: [{ codMotivo: 1, descMotivo: "x", justificacion: "y" }],
+      }),
+    ).rejects.toBeInstanceOf(FecredProtocolError);
+    expect(captured).toHaveBeenCalledTimes(1);
   });
 });
 

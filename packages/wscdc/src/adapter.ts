@@ -16,6 +16,13 @@
  *                             envelope, POSTs to AFIP, parses.
  */
 import {
+  HttpClient,
+  isArAgentsError,
+  ArAgentsProtocolError,
+  parseOrThrow,
+  type HttpRetryOptions,
+} from "@ar-agents/core";
+import {
   buildConstatarEnvelope,
   buildDummyEnvelope,
   parseConstatarResponse,
@@ -29,6 +36,10 @@ import {
   WscdcProtocolError,
   WscdcUnconfiguredError,
 } from "./errors";
+import {
+  constatarResultSchema,
+  dummyResultSchema,
+} from "./types";
 import type {
   AccessTicket,
   ConstatarRequest,
@@ -58,6 +69,12 @@ export class UnconfiguredWscdcAdapter implements WscdcAdapter {
 
 // ── HTTP (real AFIP) ────────────────────────────────────────────
 
+/**
+ * @deprecated Kept only so external code that imported this type keeps
+ * compiling. The adapter now builds on `@ar-agents/core`'s `HttpClient`,
+ * whose `fetch` override is a standard `typeof fetch`. Pass a real
+ * `fetch` (`HttpWscdcAdapterOptions.fetch`) instead of this shape.
+ */
 export type FetchLike = (
   url: string,
   init?: {
@@ -79,14 +96,19 @@ export interface HttpWscdcAdapterOptions {
    * client). */
   ticket: AccessTicket;
   /** Optional fetch override (mainly for tests). Defaults to
-   * globalThis.fetch. */
-  fetch?: FetchLike;
+   * globalThis.fetch. Standard `fetch` shape — the adapter builds on
+   * `@ar-agents/core`'s `HttpClient`, which needs a real `Response`. */
+  fetch?: typeof fetch;
   /** Override the endpoint URL (test stubs, regional proxies). */
   endpoint?: string;
   /** Per-request timeout in ms. Default 15_000. */
   timeoutMs?: number;
   /** User-Agent identifying the client. */
   userAgent?: string;
+  /** Retry policy for transient failures on the (read-only) SOAP calls.
+   * Forwarded to `@ar-agents/core`'s `HttpClient`. Both operations are
+   * pure reads, so retries are safe. */
+  retry?: HttpRetryOptions;
 }
 
 const DEFAULT_UA = "@ar-agents/wscdc (https://ar-agents.ar)";
@@ -94,36 +116,60 @@ const DEFAULT_UA = "@ar-agents/wscdc (https://ar-agents.ar)";
 export class HttpWscdcAdapter implements WscdcAdapter {
   private readonly env: WscdcEnv;
   private readonly ticket: AccessTicket;
-  private readonly endpoint: string;
-  private readonly fetcher: FetchLike;
-  private readonly timeoutMs: number;
-  private readonly userAgent: string;
+  private readonly client: HttpClient;
+  private readonly soapPath: string;
 
   constructor(opts: HttpWscdcAdapterOptions) {
     this.env = opts.env;
     this.ticket = opts.ticket;
-    this.endpoint = opts.endpoint ?? WSCDC_URLS[opts.env];
-    const f = opts.fetch ?? (globalThis as { fetch?: FetchLike }).fetch;
+    const endpoint = opts.endpoint ?? WSCDC_URLS[opts.env];
+    const f = opts.fetch ?? (globalThis as { fetch?: typeof fetch }).fetch;
     if (!f) {
       throw new WscdcUnconfiguredError(
         "fetch",
         "no fetch function available (pass `fetch` in HttpWscdcAdapterOptions or polyfill globalThis.fetch)",
       );
     }
-    this.fetcher = f;
-    this.timeoutMs = opts.timeoutMs ?? 15_000;
-    this.userAgent = opts.userAgent ?? DEFAULT_UA;
+    // The endpoint is a full `.asmx` URL. Split origin (→ baseUrl) from
+    // pathname+query (→ per-request `path`) so `buildUrl` reconstructs the
+    // EXACT endpoint (a bare "/" path would resolve to "service.asmx/" and
+    // change the URL AFIP dispatches on). HttpClient gives us a real
+    // per-request timeout, bounded jittered backoff, and typed error
+    // mapping — replacing the old hand-rolled Promise.race timeout that
+    // leaked its timer's rejection.
+    let parsed: URL;
+    try {
+      parsed = new URL(endpoint);
+    } catch {
+      throw new WscdcUnconfiguredError(
+        "endpoint",
+        `invalid endpoint URL: ${JSON.stringify(endpoint)}`,
+      );
+    }
+    this.soapPath = `${parsed.pathname}${parsed.search}`;
+    this.client = new HttpClient({
+      baseUrl: parsed.origin,
+      fetch: f,
+      timeoutMs: opts.timeoutMs ?? 15_000,
+      userAgent: opts.userAgent ?? DEFAULT_UA,
+      defaultHeaders: { "Content-Type": "text/xml; charset=utf-8" },
+      ...(opts.retry ? { retry: opts.retry } : {}),
+    });
   }
 
   async validateComprobante(req: ConstatarRequest): Promise<ConstatarResult> {
     validateConstatarRequest(req);
     const body = buildConstatarEnvelope({ ticket: this.ticket, req });
+    // ComprobanteConstatar is a pure READ (no state change on AFIP's
+    // side), so it is safe to retry a transient 5xx. `idempotent: true`
+    // opts this POST into the client's retry policy.
     const text = await this.postSoap(
       body,
       WSCDC_SOAP_ACTIONS.comprobanteConstatar,
     );
+    let result: ConstatarResult;
     try {
-      return parseConstatarResponse(text);
+      result = parseConstatarResponse(text);
     } catch (err) {
       if (err instanceof SoapFaultError) {
         throw new WscdcProtocolError(
@@ -135,65 +181,80 @@ export class HttpWscdcAdapter implements WscdcAdapter {
         `WSCDC response could not be parsed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
+    // Second boundary: assert the parsed shape so a drifted body fails
+    // LOUD instead of a blind-cast result. Throws
+    // ArAgentsResponseValidationError (surfaced as-is — never swallowed).
+    return parseOrThrow(constatarResultSchema, result, {
+      service: "wscdc",
+      env: this.env,
+    });
   }
 
   async health() {
     const body = buildDummyEnvelope();
     const text = await this.postSoap(body, WSCDC_SOAP_ACTIONS.dummy);
+    let result: { appServer: string; dbServer: string; authServer: string };
     try {
-      return parseDummyResponse(text);
+      result = parseDummyResponse(text);
     } catch (err) {
       throw new WscdcProtocolError(
         `WSCDC Dummy response could not be parsed: ${err instanceof Error ? err.message : String(err)}`,
       );
     }
+    return parseOrThrow(dummyResultSchema, result, {
+      service: "wscdc",
+      env: this.env,
+    });
   }
 
   private async postSoap(body: string, soapAction: string): Promise<string> {
-    let res;
+    let res: Response;
     try {
-      res = await this.withTimeout(
-        this.fetcher(this.endpoint, {
-          method: "POST",
-          headers: {
-            "content-type": "text/xml; charset=utf-8",
-            "user-agent": this.userAgent,
-            soapaction: `"${soapAction}"`,
-          },
-          body,
-        }),
-      );
+      res = await this.client.requestRaw({
+        method: "POST",
+        path: this.soapPath,
+        headers: {
+          soapaction: `"${soapAction}"`,
+        },
+        body,
+        accept: "text/xml",
+        // Constatar/Dummy are reads — safe to retry a transient 5xx.
+        idempotent: true,
+      });
     } catch (err) {
-      throw new WscdcProtocolError(
-        `WSCDC (${this.env}) HTTP error: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      throw this.toProtocolError(err);
     }
-    const text = await res.text();
-    if (!res.ok) {
-      // AFIP often returns 500 with a SOAP fault on TA expiry —
-      // try to parse the body so the protocol-error message is useful.
-      const fault = /<faultstring>([\s\S]*?)<\/faultstring>/i.exec(text)?.[1];
-      throw new WscdcProtocolError(
-        `WSCDC (${this.env}) returned HTTP ${res.status}${fault ? `: ${fault.trim()}` : ""}`,
-        { status: res.status },
-      );
-    }
-    return text;
+    return res.text();
   }
 
-  private async withTimeout<T>(p: Promise<T>): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () => reject(new Error(`timeout after ${this.timeoutMs}ms`)),
-        this.timeoutMs,
+  /**
+   * Map a typed `@ar-agents/core` transport error back onto
+   * `WscdcProtocolError`, preserving the AFIP `faultstring` when the body
+   * carried one. AFIP returns HTTP 500 with a `<soap:Fault>` body on TA
+   * expiry, so the fault message lives in the error's `context.body`.
+   */
+  private toProtocolError(err: unknown): WscdcProtocolError {
+    if (isArAgentsError(err)) {
+      const status =
+        err instanceof ArAgentsProtocolError ? err.status : null;
+      const rawBody = err.context?.["body"];
+      const bodyStr = typeof rawBody === "string" ? rawBody : "";
+      const fault =
+        /<faultstring>([\s\S]*?)<\/faultstring>/i.exec(bodyStr)?.[1];
+      if (status === null) {
+        // Network / timeout (ArAgentsProtocolError with status null).
+        return new WscdcProtocolError(
+          `WSCDC (${this.env}) HTTP error: ${err.message}`,
+        );
+      }
+      return new WscdcProtocolError(
+        `WSCDC (${this.env}) returned HTTP ${status}${fault ? `: ${fault.trim()}` : ""}`,
+        { status },
       );
-    });
-    try {
-      return await Promise.race([p, timeoutPromise]);
-    } finally {
-      if (timer) clearTimeout(timer);
     }
+    return new WscdcProtocolError(
+      `WSCDC (${this.env}) HTTP error: ${err instanceof Error ? err.message : String(err)}`,
+    );
   }
 }
 

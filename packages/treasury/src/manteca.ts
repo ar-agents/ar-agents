@@ -35,6 +35,7 @@
  * ../../TREASURY-FISCAL-RAIL.md §5. Run: `scripts/live-offramp.mjs manteca`.
  */
 
+import { HttpClient } from "@ar-agents/core";
 import type {
   Ars,
   OffRampAdapter,
@@ -44,6 +45,7 @@ import type {
   OffRampStatusReport,
   Usd,
 } from "./index";
+import { mapOffRampError, objectSchema, type OffRampErrorCtors } from "./http";
 
 export interface MantecaConfig {
   /** API key, sent as the `md-api-key` header. */
@@ -69,6 +71,8 @@ export interface MantecaConfig {
   ticker?: string;
   /** Injectable fetch (tests / non-global-fetch runtimes). Default global fetch. */
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 30_000. */
+  timeoutMs?: number;
   /** Injectable clock for the externalId fallback. Default Date.now. */
   now?: () => number;
 }
@@ -145,12 +149,19 @@ export function normalizeMantecaStatus(raw: string | undefined): OffRampStatus {
   return "UNKNOWN";
 }
 
+/** Provider error ctors passed to the shared core->taxonomy error mapper. */
+const MANTECA_ERROR_CTORS: OffRampErrorCtors = {
+  api: MantecaApiError,
+  auth: MantecaAuthError,
+  rateLimit: MantecaRateLimitError,
+};
+
 export class MantecaOffRampAdapter implements OffRampAdapter {
   private readonly baseUrl: string;
   private readonly sellAsset: string;
   private readonly fiatAsset: string;
   private readonly ticker: string;
-  private readonly fetchImpl: typeof fetch;
+  private readonly client: HttpClient;
   private readonly now: () => number;
 
   constructor(private readonly config: MantecaConfig) {
@@ -162,60 +173,57 @@ export class MantecaOffRampAdapter implements OffRampAdapter {
     this.sellAsset = config.sellAsset ?? "USDC";
     this.fiatAsset = config.fiatAsset ?? "ARS";
     this.ticker = config.ticker ?? `${this.sellAsset}_${this.fiatAsset}`;
-    const f = config.fetchImpl ?? globalThis.fetch;
-    if (!f) throw new Error("no fetch available; pass MantecaConfig.fetchImpl");
-    this.fetchImpl = f;
+    this.client = new HttpClient({
+      baseUrl: this.baseUrl,
+      timeoutMs: config.timeoutMs ?? 30_000,
+      // Idempotent GET reads (quote / status) retry a transient 5xx; the money
+      // POST (ramp-off) is IRREVERSIBLE and is never marked idempotent, so it is
+      // never auto-retried — a timeout-after-submit must not fire a second sale.
+      retry: { maxAttempts: 3 },
+      defaultHeaders: { "md-api-key": config.apiKey },
+      ...(config.fetchImpl !== undefined ? { fetch: config.fetchImpl } : {}),
+    });
     this.now = config.now ?? Date.now;
   }
 
-  private async request<T>(
-    method: "GET" | "POST",
-    path: string,
-    body?: unknown,
-  ): Promise<T> {
-    const init: RequestInit = {
-      method,
-      headers: {
-        "md-api-key": this.config.apiKey,
-        "content-type": "application/json",
-        accept: "application/json",
-      },
-    };
-    if (body !== undefined) init.body = JSON.stringify(body);
-    let res: Response;
+  /**
+   * GET read via the shared client. Validated as a JSON object (rejects an HTML
+   * error page / null) and retried on transient 5xx (idempotent).
+   */
+  private async get<T>(path: string, context: string): Promise<T> {
     try {
-      res = await this.fetchImpl(`${this.baseUrl}${path}`, init);
-    } catch (cause) {
-      throw new MantecaApiError(
-        `manteca ${method} ${path} transport error: ${String(cause)}`,
-        0,
-      );
+      return await this.client.request<T>({
+        method: "GET",
+        path,
+        schema: objectSchema<T>(context),
+      });
+    } catch (err) {
+      throw mapOffRampError(err, `manteca GET ${path}`, MANTECA_ERROR_CTORS);
     }
-    const text = await res.text();
-    let parsed: unknown = undefined;
-    if (text) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = text;
-      }
+  }
+
+  /**
+   * POST via the shared client. IRREVERSIBLE money POSTs are NOT marked
+   * idempotent (default), so the client never auto-retries them.
+   */
+  private async post<T>(path: string, body: unknown, context: string): Promise<T> {
+    try {
+      return await this.client.request<T>({
+        method: "POST",
+        path,
+        body,
+        schema: objectSchema<T>(context),
+      });
+    } catch (err) {
+      throw mapOffRampError(err, `manteca POST ${path}`, MANTECA_ERROR_CTORS);
     }
-    if (!res.ok) {
-      const msg = `manteca ${method} ${path} -> ${res.status}`;
-      if (res.status === 401 || res.status === 403)
-        throw new MantecaAuthError(msg, res.status, parsed);
-      if (res.status === 429)
-        throw new MantecaRateLimitError(msg, res.status, parsed);
-      throw new MantecaApiError(msg, res.status, parsed);
-    }
-    return parsed as T;
   }
 
   /** Quote a USDC->ARS off-ramp using the direct sell-side price. */
   async quote(amountUsd: Usd): Promise<OffRampQuote> {
-    const body = await this.request<unknown>(
-      "GET",
+    const body = await this.get<unknown>(
       `/v2/prices/direct/${encodeURIComponent(this.ticker)}`,
+      "manteca price",
     );
     const rate = parseDirectPrice(body, this.ticker);
     if (rate === undefined || rate <= 0) {
@@ -246,8 +254,10 @@ export class MantecaOffRampAdapter implements OffRampAdapter {
       throw new Error("MantecaOffRampAdapter.convert: externalId (idempotency key) is required");
     const q = await this.quote(amountUsd);
     const externalId = opts.externalId;
-    const synthetic = await this.request<{ id?: string; _id?: string }>(
-      "POST",
+    // IRREVERSIBLE money call: routed through post() which never marks the
+    // request idempotent, so the core client never auto-retries it even on a
+    // timeout — a duplicate synthetic would be a double-sale.
+    const synthetic = await this.post<{ id?: string; _id?: string }>(
       "/v2/synthetics/ramp-off",
       {
         userId: this.config.userId,
@@ -257,6 +267,7 @@ export class MantecaOffRampAdapter implements OffRampAdapter {
         bankAccountId: this.config.bankAccountId,
         externalId,
       },
+      "manteca ramp-off",
     );
     const txId = synthetic.id ?? synthetic._id;
     if (!txId) {
@@ -271,9 +282,9 @@ export class MantecaOffRampAdapter implements OffRampAdapter {
 
   /** Poll a ramp-off synthetic and normalize its settlement state. */
   async getStatus(txId: string): Promise<OffRampStatusReport> {
-    const body = await this.request<Record<string, unknown>>(
-      "GET",
+    const body = await this.get<Record<string, unknown>>(
       `/v2/synthetics/${encodeURIComponent(txId)}`,
+      "manteca synthetic status",
     );
     const rawStatus =
       (typeof body.status === "string" && body.status) ||
@@ -302,14 +313,14 @@ export class MantecaOffRampAdapter implements OffRampAdapter {
     cbuOrCvuOrAlias: string;
     label?: string;
   }): Promise<{ bankAccountId: string; raw: unknown }> {
-    const body = await this.request<Record<string, unknown>>(
-      "POST",
+    const body = await this.post<Record<string, unknown>>(
       "/v2/onboarding-actions/add-bank-account",
       {
         userId: this.config.userId,
         accountNumber: input.cbuOrCvuOrAlias,
         description: input.label ?? "Sociedad Automatizada CVU",
       },
+      "manteca add-bank-account",
     );
     const id =
       (typeof body.id === "string" && body.id) ||

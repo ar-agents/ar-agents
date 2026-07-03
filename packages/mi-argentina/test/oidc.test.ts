@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
+import { ArAgentsResponseValidationError } from "@ar-agents/core";
 import {
   ConfigMissingError,
   InMemoryStateAdapter,
   MiArgentinaClient,
+  MiArgentinaError,
   StateMismatchError,
   type MiArgentinaConfig,
 } from "../src";
@@ -128,16 +130,18 @@ describe("exchangeCode", () => {
       c.exchangeCode({ code: "code123", state: auth.state }),
     ).rejects.toThrow();
 
-    expect(fakeFetch).toHaveBeenCalledWith(
-      expect.stringContaining("/oidc/token"),
-      expect.objectContaining({
-        method: "POST",
-        headers: expect.objectContaining({
-          "Content-Type": "application/x-www-form-urlencoded",
-        }),
-      }),
+    // The first fetch is the token POST (a later one is the JWKS fetch during
+    // ID-token verification). HttpClient normalizes header names to
+    // lowercase, so assert against `content-type`.
+    const tokenCall = fakeFetch.mock.calls.find((call) =>
+      String(call[0]).includes("/oidc/token"),
     );
-    const body = String(fakeFetch.mock.calls[0]![1]!.body);
+    expect(tokenCall).toBeTruthy();
+    const init = tokenCall![1]! as RequestInit;
+    expect(init.method).toBe("POST");
+    const headers = new Headers(init.headers as HeadersInit);
+    expect(headers.get("content-type")).toBe("application/x-www-form-urlencoded");
+    const body = String(init.body);
     const params = new URLSearchParams(body);
     expect(params.get("grant_type")).toBe("authorization_code");
     expect(params.get("code")).toBe("code123");
@@ -198,5 +202,144 @@ describe("discover", () => {
       fetch: fakeFetch as unknown as typeof fetch,
     });
     await expect(c.discover()).rejects.toThrow(/missing required endpoints/);
+  });
+});
+
+// A complete, valid token body — the ID token is a real-looking-but-unsigned
+// JWT so the flow reaches JWT verification (which then fails on signature).
+const VALID_TOKEN_BODY = {
+  access_token: "at",
+  token_type: "Bearer",
+  expires_in: 3600,
+  id_token: "header.payload.sig",
+  scope: "openid",
+};
+
+describe("core-HttpClient migration: fail-loud + one-shot grants", () => {
+  it("token exchange with a malformed body (no access_token) fails LOUD, never a blank token", async () => {
+    const state = new InMemoryStateAdapter();
+    const fakeFetch = vi.fn(async () =>
+      // 200 but missing the required `access_token` — the old blind cast would
+      // have fabricated a TokenResponse with accessToken: "".
+      new Response(JSON.stringify({ token_type: "Bearer", scope: "openid" }), {
+        status: 200,
+      }),
+    );
+    const c = new MiArgentinaClient({
+      config: baseConfig,
+      state,
+      fetch: fakeFetch as unknown as typeof fetch,
+    });
+    const auth = await c.getAuthorizationUrl({ scope: ["openid"] });
+    await expect(
+      c.exchangeCode({ code: "code123", state: auth.state }),
+    ).rejects.toBeInstanceOf(ArAgentsResponseValidationError);
+  });
+
+  it("userinfo with a body missing `sub` fails LOUD, never a profile with sub: ''", async () => {
+    const state = new InMemoryStateAdapter();
+    const fakeFetch = vi.fn(async () =>
+      new Response(JSON.stringify({ cuil: "20123456786", name: "Juan Pérez" }), {
+        status: 200,
+      }),
+    );
+    const c = new MiArgentinaClient({
+      config: baseConfig,
+      state,
+      fetch: fakeFetch as unknown as typeof fetch,
+    });
+    await expect(c.getUserInfo("access-token")).rejects.toBeInstanceOf(
+      ArAgentsResponseValidationError,
+    );
+  });
+
+  it("token grant is one-shot: a transient 5xx is NOT retried (fetch called once)", async () => {
+    const state = new InMemoryStateAdapter();
+    const fakeFetch = vi.fn(async () =>
+      new Response(JSON.stringify({ error: "server_error" }), { status: 503 }),
+    );
+    const c = new MiArgentinaClient({
+      config: baseConfig,
+      state,
+      fetch: fakeFetch as unknown as typeof fetch,
+    });
+    const auth = await c.getAuthorizationUrl({ scope: ["openid"] });
+    await expect(
+      c.exchangeCode({ code: "code123", state: auth.state }),
+    ).rejects.toMatchObject({ code: "code_exchange_failed" });
+    expect(fakeFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("refresh maps a 5xx to refresh_failed (also one-shot, single fetch)", async () => {
+    const fakeFetch = vi.fn(async () =>
+      new Response("upstream down", { status: 502 }),
+    );
+    const c = new MiArgentinaClient({
+      config: baseConfig,
+      state: new InMemoryStateAdapter(),
+      fetch: fakeFetch as unknown as typeof fetch,
+    });
+    await expect(c.refreshToken("rt")).rejects.toMatchObject({
+      code: "refresh_failed",
+    });
+    expect(fakeFetch).toHaveBeenCalledTimes(1);
+  });
+
+  it("a network failure on the token POST maps to network_error", async () => {
+    const state = new InMemoryStateAdapter();
+    const fakeFetch = vi.fn(async () => {
+      throw new TypeError("fetch failed");
+    });
+    const c = new MiArgentinaClient({
+      config: baseConfig,
+      state,
+      fetch: fakeFetch as unknown as typeof fetch,
+    });
+    const auth = await c.getAuthorizationUrl({ scope: ["openid"] });
+    await expect(
+      c.exchangeCode({ code: "code123", state: auth.state }),
+    ).rejects.toMatchObject({ code: "network_error" });
+  });
+
+  it("userinfo 401 maps to userinfo_failed carrying the status", async () => {
+    const fakeFetch = vi.fn(async () =>
+      new Response(JSON.stringify({ error: "invalid_token" }), { status: 401 }),
+    );
+    const c = new MiArgentinaClient({
+      config: baseConfig,
+      state: new InMemoryStateAdapter(),
+      fetch: fakeFetch as unknown as typeof fetch,
+    });
+    await expect(c.getUserInfo("bad")).rejects.toMatchObject({
+      code: "userinfo_failed",
+    });
+    try {
+      await c.getUserInfo("bad");
+    } catch (e) {
+      expect(e).toBeInstanceOf(MiArgentinaError);
+      expect((e as MiArgentinaError).details).toMatchObject({ status: 401 });
+    }
+  });
+
+  it("a valid, complete token body passes the schema (reaches JWT verify)", async () => {
+    const state = new InMemoryStateAdapter();
+    const fakeFetch = vi.fn(async (url: string | URL | Request) => {
+      if (String(url).includes("/oidc/token")) {
+        return new Response(JSON.stringify(VALID_TOKEN_BODY), { status: 200 });
+      }
+      // JWKS fetch during verification.
+      return new Response(JSON.stringify({ keys: [] }), { status: 200 });
+    });
+    const c = new MiArgentinaClient({
+      config: baseConfig,
+      state,
+      fetch: fakeFetch as unknown as typeof fetch,
+    });
+    const auth = await c.getAuthorizationUrl({ scope: ["openid"] });
+    // Fails at JWT verification (fake signature) — NOT at schema validation,
+    // proving the complete body was accepted.
+    await expect(
+      c.exchangeCode({ code: "code123", state: auth.state }),
+    ).rejects.not.toBeInstanceOf(ArAgentsResponseValidationError);
   });
 });

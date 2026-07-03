@@ -19,10 +19,20 @@
  */
 
 import {
+  ArAgentsAuthError,
+  ArAgentsProtocolError,
+  ArAgentsRateLimitError,
+  ArAgentsResponseValidationError,
+  HttpClient,
+  type HttpRequest,
+} from "@ar-agents/core";
+import { z } from "zod";
+import {
   ConfigMissingError,
   IdTokenInvalidError,
   MiArgentinaError,
   StateMismatchError,
+  type MiArgentinaErrorCode,
 } from "./errors";
 import { verifyIdToken, type JwksDocument } from "./jwt";
 import { computeCodeChallenge, generateCodeVerifier, generateRandomToken } from "./pkce";
@@ -37,6 +47,46 @@ import type {
   TokenResponse,
   VerifiedIdToken,
 } from "./types";
+
+/**
+ * Per-request timeout for all OIDC HTTP calls (token exchange, refresh,
+ * userinfo, JWKS, discovery). Before the core-HttpClient migration these
+ * fetches were entirely un-timed — a hung provider socket would hang the
+ * whole login flow forever.
+ */
+const OIDC_TIMEOUT_MS = 10_000;
+
+/**
+ * Response schema for the OIDC `/token` endpoint (code exchange + refresh).
+ * `access_token` and `token_type` are required by RFC 6749 §5.1; a JSON body
+ * that omits them (a partial/proxy-mangled response) now fails LOUD
+ * (`ArAgentsResponseValidationError`) instead of being blind-cast into a
+ * clean-looking-but-empty `TokenResponse` with `accessToken: ""`. A non-JSON
+ * body (an HTML error/maintenance page served with a 200) fails loud even
+ * earlier — the client rejects it as a non-JSON body before this schema runs.
+ */
+const tokenResponseSchema = z
+  .object({
+    access_token: z.string().min(1),
+    token_type: z.string().min(1),
+    expires_in: z.union([z.number(), z.string()]).optional(),
+    id_token: z.string().optional(),
+    refresh_token: z.string().optional(),
+    scope: z.string().optional(),
+  })
+  .passthrough();
+
+/**
+ * Response schema for the OIDC userinfo endpoint. `sub` is the one claim OIDC
+ * guarantees and the stable per-user key; a userinfo body missing it is not a
+ * usable identity and must fail loud rather than yield a profile with
+ * `sub: ""`.
+ */
+const userInfoSchema = z
+  .object({
+    sub: z.string().min(1),
+  })
+  .passthrough();
 
 /**
  * Documented Mi Argentina endpoints. Verify against
@@ -100,14 +150,12 @@ export class MiArgentinaClient {
   async discover(): Promise<OidcEndpoints> {
     const issuer = this.opts.config.issuer ?? this.endpoints.issuer;
     const url = `${issuer.replace(/\/$/, "")}/.well-known/openid-configuration`;
-    const res = await this.fetchImpl(url, { headers: { Accept: "application/json" } });
-    if (!res.ok) {
-      throw new MiArgentinaError(
-        "discovery_failed",
-        `OIDC discovery failed: ${res.status} ${res.statusText} at ${url}`,
-      );
-    }
-    const doc = (await res.json()) as Record<string, unknown>;
+    const doc = await this.httpJson<Record<string, unknown>>(
+      url,
+      { method: "GET" },
+      "discovery_failed",
+      "OIDC discovery",
+    );
     const next: OidcEndpoints = {
       issuer: String(doc["issuer"] ?? issuer),
       authorizationEndpoint: String(doc["authorization_endpoint"] ?? ""),
@@ -210,30 +258,19 @@ export class MiArgentinaClient {
       client_secret: this.opts.config.clientSecret,
       code_verifier: stored.codeVerifier,
     });
-    const res = await this.fetchImpl(this.endpoints.tokenEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
-      body: body.toString(),
-    });
-    if (!res.ok) {
-      throw new MiArgentinaError(
-        "code_exchange_failed",
-        `Token exchange failed: HTTP ${res.status} ${res.statusText}`,
-        { status: res.status, body: await safeText(res) },
-      );
-    }
-    const json = (await res.json()) as Record<string, unknown>;
+    const json = await this.postTokenEndpoint(
+      body.toString(),
+      "code_exchange_failed",
+      "Token exchange",
+    );
     const tokens: TokenResponse = {
-      accessToken: String(json["access_token"] ?? ""),
-      tokenType: String(json["token_type"] ?? "Bearer"),
-      expiresIn: Number(json["expires_in"] ?? 0),
-      idToken: String(json["id_token"] ?? ""),
-      scope: String(json["scope"] ?? stored.scope.join(" ")),
+      accessToken: json.access_token,
+      tokenType: json.token_type,
+      expiresIn: Number(json.expires_in ?? 0),
+      idToken: String(json.id_token ?? ""),
+      scope: String(json.scope ?? stored.scope.join(" ")),
     };
-    if (json["refresh_token"]) tokens.refreshToken = String(json["refresh_token"]);
+    if (json.refresh_token) tokens.refreshToken = json.refresh_token;
     if (!tokens.idToken) {
       throw new IdTokenInvalidError("no id_token in token response");
     }
@@ -263,20 +300,16 @@ export class MiArgentinaClient {
 
   /** Fetch the userinfo endpoint with a Bearer access token. */
   async getUserInfo(accessToken: string): Promise<MiArgentinaUserProfile> {
-    const res = await this.fetchImpl(this.endpoints.userinfoEndpoint, {
-      headers: {
-        Authorization: `Bearer ${accessToken}`,
-        Accept: "application/json",
+    const raw = await this.httpJson<Record<string, unknown>>(
+      this.endpoints.userinfoEndpoint,
+      {
+        method: "GET",
+        headers: { Authorization: `Bearer ${accessToken}` },
+        schema: userInfoSchema,
       },
-    });
-    if (!res.ok) {
-      throw new MiArgentinaError(
-        "userinfo_failed",
-        `Userinfo failed: HTTP ${res.status} ${res.statusText}`,
-        { status: res.status, body: await safeText(res) },
-      );
-    }
-    const raw = (await res.json()) as Record<string, unknown>;
+      "userinfo_failed",
+      "Userinfo",
+    );
     return mapUserInfo(raw);
   }
 
@@ -292,30 +325,19 @@ export class MiArgentinaClient {
       client_id: this.opts.config.clientId,
       client_secret: this.opts.config.clientSecret,
     });
-    const res = await this.fetchImpl(this.endpoints.tokenEndpoint, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/x-www-form-urlencoded",
-        Accept: "application/json",
-      },
-      body: body.toString(),
-    });
-    if (!res.ok) {
-      throw new MiArgentinaError(
-        "refresh_failed",
-        `Refresh failed: HTTP ${res.status} ${res.statusText}`,
-        { status: res.status, body: await safeText(res) },
-      );
-    }
-    const json = (await res.json()) as Record<string, unknown>;
+    const json = await this.postTokenEndpoint(
+      body.toString(),
+      "refresh_failed",
+      "Refresh",
+    );
     const out: TokenResponse = {
-      accessToken: String(json["access_token"] ?? ""),
-      tokenType: String(json["token_type"] ?? "Bearer"),
-      expiresIn: Number(json["expires_in"] ?? 0),
-      idToken: String(json["id_token"] ?? ""),
-      scope: String(json["scope"] ?? ""),
+      accessToken: json.access_token,
+      tokenType: json.token_type,
+      expiresIn: Number(json.expires_in ?? 0),
+      idToken: String(json.id_token ?? ""),
+      scope: String(json.scope ?? ""),
     };
-    if (json["refresh_token"]) out.refreshToken = String(json["refresh_token"]);
+    if (json.refresh_token) out.refreshToken = json.refresh_token;
     return out;
   }
 
@@ -337,21 +359,140 @@ export class MiArgentinaClient {
     return this.endpoints;
   }
 
+  /**
+   * POST the token endpoint with a form-urlencoded body and validate the
+   * response against {@link tokenResponseSchema}. A malformed body fails loud
+   * (`ArAgentsResponseValidationError` → surfaced as-is). Token grants are
+   * one-shot and MUST NOT be retried — a duplicate `authorization_code` /
+   * `refresh_token` submission can burn the grant server-side. We disable
+   * retry (`retry: false`) rather than rely on POST-not-retried defaults.
+   */
+  private async postTokenEndpoint(
+    body: string,
+    failCode: MiArgentinaErrorCode,
+    label: string,
+  ): Promise<z.infer<typeof tokenResponseSchema>> {
+    const { client, path } = this.clientFor(this.endpoints.tokenEndpoint);
+    try {
+      return await client.request({
+        method: "POST",
+        path,
+        body,
+        // HttpClient sends a string body as-is and will not override an
+        // explicit content-type — token endpoints are form-urlencoded.
+        headers: { "content-type": "application/x-www-form-urlencoded" },
+        schema: tokenResponseSchema,
+        timeoutMs: OIDC_TIMEOUT_MS,
+        retry: false,
+      });
+    } catch (err) {
+      throw this.mapCoreError(err, failCode, label);
+    }
+  }
+
+  /**
+   * GET/POST an OIDC endpoint (given as an absolute URL) through the shared
+   * HttpClient and return the parsed JSON. When a `schema` is supplied on
+   * `extra`, the body is validated and a malformed body fails loud; otherwise
+   * the raw JSON is returned (used for discovery + JWKS, whose shapes are
+   * validated downstream by their own consumers).
+   */
+  private async httpJson<T>(
+    endpointUrl: string,
+    extra: Pick<HttpRequest<T>, "method" | "headers" | "schema">,
+    failCode: MiArgentinaErrorCode,
+    label: string,
+  ): Promise<T> {
+    const { client, path } = this.clientFor(endpointUrl);
+    try {
+      return (await client.request<T>({
+        path,
+        timeoutMs: OIDC_TIMEOUT_MS,
+        ...extra,
+      })) as T;
+    } catch (err) {
+      throw this.mapCoreError(err, failCode, label);
+    }
+  }
+
+  /**
+   * Build an HttpClient bound to the ORIGIN of an absolute OIDC endpoint URL
+   * and return the request path relative to it. Endpoints are full URLs (they
+   * can be swapped per provider or refreshed by `discover()`), while
+   * HttpClient wants `{ baseUrl, path }` — so we split at request time.
+   */
+  private clientFor(endpointUrl: string): { client: HttpClient; path: string } {
+    const u = new URL(endpointUrl);
+    const client = new HttpClient({
+      baseUrl: u.origin,
+      fetch: this.fetchImpl,
+      timeoutMs: OIDC_TIMEOUT_MS,
+    });
+    return { client, path: `${u.pathname}${u.search}` };
+  }
+
+  /**
+   * Map a core transport error into the Mi Argentina taxonomy, preserving the
+   * existing `code` values callers switch on.
+   *
+   * - `ArAgentsResponseValidationError` (malformed body) → surface LOUD as-is,
+   *   never swallowed into a fabricated clean token/profile.
+   * - `ArAgentsAuthError` (401/403) → the operation's `*_failed` auth error,
+   *   carrying the status so callers can branch relogin-on-401.
+   * - `ArAgentsRateLimitError` (429) → the operation's `*_failed` with status.
+   * - `ArAgentsProtocolError`: `.status` a number → `*_failed` with status +
+   *   body; `.status` null (network / timeout) → `network_error`.
+   */
+  private mapCoreError(
+    err: unknown,
+    failCode: MiArgentinaErrorCode,
+    label: string,
+  ): unknown {
+    if (err instanceof ArAgentsResponseValidationError) {
+      return err;
+    }
+    if (err instanceof ArAgentsAuthError) {
+      const status = err.context["status"];
+      return new MiArgentinaError(failCode, `${label} rejected: not authorized`, {
+        status,
+        body: err.context["body"],
+      });
+    }
+    if (err instanceof ArAgentsRateLimitError) {
+      return new MiArgentinaError(failCode, `${label} rate-limited`, {
+        status: 429,
+        retryAfterMs: err.retryAfterMs,
+        body: err.context["body"],
+      });
+    }
+    if (err instanceof ArAgentsProtocolError) {
+      if (err.status === null) {
+        return new MiArgentinaError(
+          "network_error",
+          `${label} failed: network error or timeout`,
+          { cause: err.message },
+        );
+      }
+      return new MiArgentinaError(
+        failCode,
+        `${label} failed: HTTP ${err.status}`,
+        { status: err.status, body: err.context["body"] },
+      );
+    }
+    return err;
+  }
+
   private async getJwks(): Promise<JwksDocument> {
     const fiveMinutes = 5 * 60 * 1000;
     if (this.cachedJwks && Date.now() - this.cachedJwksAt < fiveMinutes) {
       return this.cachedJwks;
     }
-    const res = await this.fetchImpl(this.endpoints.jwksUri, {
-      headers: { Accept: "application/json" },
-    });
-    if (!res.ok) {
-      throw new MiArgentinaError(
-        "discovery_failed",
-        `JWKS fetch failed: HTTP ${res.status} ${res.statusText}`,
-      );
-    }
-    const json = (await res.json()) as JwksDocument;
+    const json = await this.httpJson<JwksDocument>(
+      this.endpoints.jwksUri,
+      { method: "GET" },
+      "discovery_failed",
+      "JWKS fetch",
+    );
     this.cachedJwks = json;
     this.cachedJwksAt = Date.now();
     return json;
@@ -392,12 +533,4 @@ function mapUserInfo(raw: Record<string, unknown>): MiArgentinaUserProfile {
     profile.domicilio = raw["domicilio"] as NonNullable<MiArgentinaUserProfile["domicilio"]>;
   }
   return profile;
-}
-
-async function safeText(res: Response): Promise<string> {
-  try {
-    return await res.text();
-  } catch {
-    return "";
-  }
 }

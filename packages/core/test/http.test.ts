@@ -285,6 +285,32 @@ describe("HttpClient idempotency", () => {
     expect(fetchImpl.calls).toBe(2);
   });
 
+  it("does NOT retry a 429 on a non-idempotent POST (money double-spend guard)", async () => {
+    const fetchImpl = mockFetch(() => jsonResponse({}, { status: 429, headers: { "Retry-After": "0" } }));
+    const client = new HttpClient({
+      baseUrl: "https://api.test",
+      fetch: fetchImpl,
+      retry: { maxAttempts: 3, baseDelayMs: 1 },
+    });
+    await expect(
+      client.request({ path: "/pay", method: "POST", body: { amount: 100 } }),
+    ).rejects.toBeInstanceOf(ArAgentsRateLimitError);
+    expect(fetchImpl.calls).toBe(1); // 429 must not be retried on a keyless POST
+  });
+
+  it("DOES retry a 429 on a POST explicitly marked idempotent", async () => {
+    const fetchImpl = mockFetch(() => jsonResponse({}, { status: 429, headers: { "Retry-After": "0" } }));
+    const client = new HttpClient({
+      baseUrl: "https://api.test",
+      fetch: fetchImpl,
+      retry: { maxAttempts: 2, baseDelayMs: 1 },
+    });
+    await expect(
+      client.request({ path: "/idem", method: "POST", body: {}, idempotent: true }),
+    ).rejects.toBeInstanceOf(ArAgentsRateLimitError);
+    expect(fetchImpl.calls).toBe(2);
+  });
+
   it("retry:false disables retry entirely", async () => {
     const fetchImpl = mockFetch(() => jsonResponse({}, { status: 503 }));
     const client = new HttpClient({
