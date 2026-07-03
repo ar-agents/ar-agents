@@ -1,7 +1,7 @@
 {
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/mercadopago",
-  "version": "0.18.5",
+  "version": "0.18.6",
   "factory": "mercadoPagoTools",
   "tools": [
     {

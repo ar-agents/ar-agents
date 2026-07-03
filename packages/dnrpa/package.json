@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/dnrpa",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "DNRPA (Dirección Nacional de los Registros Nacionales de la Propiedad del Automotor) agent toolkit for the Vercel AI SDK 6. Domain/patente lookups: status, last known holder, mortgage/encumbrance flags. Ships Unconfigured (throws) + InMemory (test) adapters only; a real Browser/HTTP DNRPA adapter is not included yet, wire your own.",
   "keywords": [
     "dnrpa",

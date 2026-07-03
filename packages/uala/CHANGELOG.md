@@ -1,5 +1,12 @@
 # @ar-agents/uala
 
+## 0.3.3
+
+### Patch Changes
+
+- Updated dependencies [[`21e5c38`](https://github.com/ar-agents/ar-agents/commit/21e5c389ca5355567c89c125a53749e3e22a50bf)]:
+  - @ar-agents/core@0.4.0
+
 ## 0.3.2
 
 ### Patch Changes

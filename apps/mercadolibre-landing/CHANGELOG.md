@@ -1,5 +1,12 @@
 # mercadolibre-landing
 
+## 0.1.5
+
+### Patch Changes
+
+- Updated dependencies []:
+  - @ar-agents/mercadolibre@0.6.1
+
 ## 0.1.4
 
 ### Patch Changes
