@@ -6,6 +6,7 @@
 export {
   ArAgentsError,
   ArAgentsValidationError,
+  ArAgentsResponseValidationError,
   ArAgentsUnconfiguredError,
   ArAgentsAuthError,
   ArAgentsRateLimitError,
@@ -13,6 +14,33 @@ export {
   isArAgentsError,
   type ArAgentsErrorInit,
 } from "./errors";
+
+// Shared HTTP transport + schema-validated response boundary. The one place
+// adapters get a real timeout, bounded backoff, 429/Retry-After, idempotency-
+// aware retry, typed errors, and `parseOrThrow` — so a malformed body fails
+// loud instead of being blind-cast into a clean-looking result.
+export {
+  HttpClient,
+  type HttpClientOptions,
+  type HttpRequest,
+  type HttpMethod,
+  type QueryParams,
+  type AuthProvider,
+  parseOrThrow,
+  type ResponseSchema,
+  type SafeParseResult,
+  type SchemaIssue,
+  fetchWithRetry,
+  runWithRetry,
+  defaultRetryClassifier,
+  parseRetryAfter,
+  sleep,
+  IDEMPOTENT_METHODS,
+  type HttpRetryOptions,
+  type RetryClassifier,
+  type RetryContext,
+  type RetryDecision,
+} from "./http";
 
 export {
   type TelemetryHook,
