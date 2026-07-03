@@ -17,32 +17,41 @@ import {
   type Customer,
 } from "../src/index";
 
+/**
+ * Build a `typeof fetch` mock that returns a REAL `Response`. The core
+ * `HttpClient` needs a genuine `Response` (its error path calls
+ * `res.clone()`), so the old fake `{ ok, status, headers:{get}, ... }` shape
+ * no longer works. The `body` is JSON-serialized; on a 204/202 the body is
+ * dropped (empty body, as the real API returns).
+ */
 function mockFetch(
   responder: (input: {
     url: string;
     method: string;
     body?: string;
   }) => {
-    ok: boolean;
+    ok?: boolean;
     status: number;
     body: unknown;
     headers?: Record<string, string>;
   },
-): FetchLike {
-  return async (url, init = {}) => {
-    const r = responder({
-      url,
-      method: init.method ?? "GET",
-      body: init.body,
+): typeof fetch {
+  return (async (input: RequestInfo | URL, init?: RequestInit) => {
+    const url = String(input);
+    const method = (init?.method ?? "GET").toUpperCase();
+    const bodyStr =
+      typeof init?.body === "string" ? init.body : undefined;
+    const r = responder({ url, method, body: bodyStr });
+    const headers = new Headers({
+      "content-type": "application/json",
+      ...(r.headers ?? {}),
     });
-    return {
-      ok: r.ok,
+    const noBody = r.status === 204 || r.status === 202;
+    return new Response(noBody ? null : JSON.stringify(r.body), {
       status: r.status,
-      headers: { get: (k: string) => r.headers?.[k.toLowerCase()] ?? null },
-      text: async () => JSON.stringify(r.body),
-      json: async () => r.body,
-    };
-  };
+      headers,
+    });
+  }) as unknown as typeof fetch;
 }
 
 describe("UnconfiguredTiendaNubeAdapter", () => {
@@ -93,17 +102,18 @@ describe("HttpTiendaNubeAdapter construction", () => {
 
 describe("HttpTiendaNubeAdapter request layer", () => {
   it("targets /v1/{storeId}/{path} with Authentication header + UA", async () => {
-    let captured: { url: string; method: string; headers?: Record<string, string> } | null = null;
-    const fetchImpl: FetchLike = async (url, init = {}) => {
-      captured = { url, method: init.method ?? "GET", headers: init.headers };
-      return {
-        ok: true,
-        status: 200,
-        headers: { get: () => null },
-        text: async () => "{}",
-        json: async () => ({ id: 1, name: { es: "" }, country: "AR" }),
+    let captured: { url: string; method: string; headers: Headers } | null = null;
+    const fetchImpl = (async (input: RequestInfo | URL, init?: RequestInit) => {
+      captured = {
+        url: String(input),
+        method: (init?.method ?? "GET").toUpperCase(),
+        headers: new Headers(init?.headers),
       };
-    };
+      return new Response(
+        JSON.stringify({ id: 1, name: { es: "" }, country: "AR" }),
+        { status: 200, headers: { "content-type": "application/json" } },
+      );
+    }) as unknown as typeof fetch;
     const a = new HttpTiendaNubeAdapter({
       storeId: 999,
       accessToken: "tn_xyz",
@@ -114,8 +124,11 @@ describe("HttpTiendaNubeAdapter request layer", () => {
     await a.getStore();
     expect(captured).not.toBeNull();
     expect(captured!.url).toBe("https://api.tiendanube.com/v1/999/store");
-    expect(captured!.headers?.authentication).toBe("bearer tn_xyz");
-    expect(captured!.headers?.["user-agent"]).toBe("Vultur (naza@helloastro.co)");
+    // Non-standard TN auth header: `authentication: bearer <token>` (NOT Authorization).
+    expect(captured!.headers.get("authentication")).toBe("bearer tn_xyz");
+    expect(captured!.headers.get("user-agent")).toBe(
+      "Vultur (naza@helloastro.co)",
+    );
   });
 
   it("maps 401/403 to TiendaNubeAuthError", async () => {
@@ -200,6 +213,121 @@ describe("HttpTiendaNubeAdapter request layer", () => {
     await expect(
       a.createWebhook({ event: "order/paid", url: "http://insecure" }),
     ).rejects.toBeInstanceOf(TiendaNubeValidationError);
+  });
+
+  // ── Migration value: schema validation + idempotency ───────────
+
+  it("a malformed 200 store body FAILS LOUD instead of returning a fabricated Store", async () => {
+    // Missing `id` — the pre-migration blind cast would have handed back a
+    // "Store" with no id. The schema now rejects it.
+    const a = new HttpTiendaNubeAdapter({
+      storeId: 1,
+      accessToken: "tn",
+      appName: "X",
+      contactEmail: "x@y.com",
+      fetch: mockFetch(() => ({
+        status: 200,
+        body: { name: { es: "Sin id" }, country: "AR" },
+      })),
+    });
+    await expect(a.getStore()).rejects.toBeInstanceOf(TiendaNubeApiError);
+    try {
+      await a.getStore();
+      expect.fail("should have thrown");
+    } catch (err) {
+      // Malformed body → surfaced as a 502 loud api_error, never a clean result.
+      expect((err as TiendaNubeApiError).status).toBe(502);
+    }
+  });
+
+  it("a non-array error-page 200 body on a list read fails loud", async () => {
+    const a = new HttpTiendaNubeAdapter({
+      storeId: 1,
+      accessToken: "tn",
+      appName: "X",
+      contactEmail: "x@y.com",
+      // Not an array — an object where the schema expects Product[].
+      fetch: mockFetch(() => ({ status: 200, body: { error: "maintenance" } })),
+    });
+    await expect(a.listProducts()).rejects.toBeInstanceOf(TiendaNubeApiError);
+  });
+
+  it("a non-JSON (HTML) 200 body on a requestRaw list read fails loud as api_error(502)", async () => {
+    // The requestRaw paths call res.json() themselves; an HTML error/maintenance
+    // page served with 200 makes res.json() throw a SyntaxError. It must be
+    // mapped in-taxonomy (502), never escape as a raw SyntaxError.
+    const fetchImpl = (async () =>
+      new Response("<html><body>503 upstream</body></html>", {
+        status: 200,
+        headers: { "content-type": "text/html" },
+      })) as unknown as typeof fetch;
+    const a = new HttpTiendaNubeAdapter({
+      storeId: 1,
+      accessToken: "tn",
+      appName: "X",
+      contactEmail: "x@y.com",
+      fetch: fetchImpl,
+    });
+    try {
+      await a.listProducts();
+      expect.fail("should have thrown");
+    } catch (err) {
+      expect(err).toBeInstanceOf(TiendaNubeApiError);
+      expect((err as TiendaNubeApiError).status).toBe(502);
+    }
+  });
+
+  it("a transient 5xx on an idempotent GET retries then succeeds", async () => {
+    let calls = 0;
+    const a = new HttpTiendaNubeAdapter({
+      storeId: 1,
+      accessToken: "tn",
+      appName: "X",
+      contactEmail: "x@y.com",
+      fetch: mockFetch(() => {
+        calls++;
+        if (calls === 1) return { status: 503, body: { description: "down" } };
+        return { status: 200, body: { id: 7, name: { es: "OK" }, country: "AR" } };
+      }),
+    });
+    const store = await a.getStore();
+    expect(store.id).toBe(7);
+    expect(calls).toBe(2); // first 503, retried once, second 200
+  });
+
+  it("a keyless webhook POST is NOT auto-retried on a transient 5xx (called exactly once)", async () => {
+    let calls = 0;
+    const a = new HttpTiendaNubeAdapter({
+      storeId: 1,
+      accessToken: "tn",
+      appName: "X",
+      contactEmail: "x@y.com",
+      fetch: mockFetch(() => {
+        calls++;
+        return { status: 503, body: { description: "down" } };
+      }),
+    });
+    await expect(
+      a.createWebhook({ event: "order/paid", url: "https://x.com/hook" }),
+    ).rejects.toBeInstanceOf(TiendaNubeApiError);
+    // POST is non-idempotent → the core client must NOT retry it.
+    expect(calls).toBe(1);
+  });
+
+  it("createWebhook validates the 201 body (rejects a webhook missing id)", async () => {
+    const a = new HttpTiendaNubeAdapter({
+      storeId: 1,
+      accessToken: "tn",
+      appName: "X",
+      contactEmail: "x@y.com",
+      fetch: mockFetch(() => ({
+        status: 201,
+        body: { event: "order/paid", url: "https://x.com/hook" }, // no id
+      })),
+    });
+    await expect(
+      a.createWebhook({ event: "order/paid", url: "https://x.com/hook" }),
+    ).rejects.toBeInstanceOf(TiendaNubeApiError);
   });
 });
 

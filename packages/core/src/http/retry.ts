@@ -78,8 +78,8 @@ export function parseRetryAfter(value: string): number | null {
  * Default classifier — retry on 5xx, 429, and network/timeout errors, but only
  * for idempotent requests (see {@link RetryContext.idempotent}).
  *
- * - **429**: always retryable (the request wasn't processed); honors
- *   `Retry-After`.
+ * - **429**: retryable only if idempotent — honors `Retry-After`. A
+ *   non-idempotent money POST is NOT retried on a 429 (double-spend risk).
  * - **5xx**: retry only if idempotent — a gateway can persist a write after a
  *   5xx (split-brain), so retrying a POST risks a duplicate.
  * - **network error**: retry if idempotent.
@@ -94,6 +94,12 @@ export const defaultRetryClassifier: RetryClassifier = (error, response, ctx) =>
 
   if (response) {
     if (response.status === 429) {
+      // A 429 is only safe to retry on an idempotent request. Retrying a
+      // non-idempotent money POST on a 429 can double-spend: the server may
+      // have rate-limited AFTER partially processing (or the retry itself
+      // re-submits an order). Gate on idempotency exactly like 5xx — callers
+      // whose POST is genuinely safe opt in with `idempotent: true`.
+      if (!idempotent) return { shouldRetry: false };
       const retryAfter = response.headers.get("Retry-After");
       if (retryAfter) {
         const delayMs = parseRetryAfter(retryAfter);

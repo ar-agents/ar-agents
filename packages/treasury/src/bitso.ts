@@ -52,6 +52,7 @@
  * scripts/live-offramp.mjs bitso (sandbox first).
  */
 
+import { HttpClient, parseOrThrow, type ResponseSchema } from "@ar-agents/core";
 import type {
   Ars,
   OffRampAdapter,
@@ -61,6 +62,12 @@ import type {
   OffRampStatusReport,
   Usd,
 } from "./index";
+import {
+  arraySchema,
+  mapOffRampError,
+  objectSchema,
+  type OffRampErrorCtors,
+} from "./http";
 
 export const BITSO_PROD = "https://api.bitso.com";
 export const BITSO_SANDBOX = "https://api-stage.bitso.com";
@@ -100,6 +107,8 @@ export interface BitsoConfig {
   apiPrefix?: string;
   /** Injectable fetch (tests / non-global-fetch runtimes). */
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 30_000. */
+  timeoutMs?: number;
   /** Injectable nonce clock (ms). Default Date.now. */
   now?: () => number;
 }
@@ -198,6 +207,20 @@ interface BitsoWithdrawal {
   origin_id?: string;
 }
 
+/** Provider error ctors passed to the shared core->taxonomy error mapper. */
+const BITSO_ERROR_CTORS: OffRampErrorCtors = {
+  api: BitsoApiError,
+  auth: BitsoAuthError,
+  rateLimit: BitsoRateLimitError,
+};
+
+/** The Bitso envelope: { success, payload } | { success:false, error:{code,message} }. */
+type BitsoEnvelope = {
+  success?: boolean;
+  payload?: unknown;
+  error?: { code?: unknown; message?: unknown };
+};
+
 export class BitsoOffRampAdapter implements OffRampAdapter {
   private readonly baseUrl: string;
   private readonly apiPrefix: string;
@@ -207,7 +230,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
   private readonly withdrawNetwork: string;
   private readonly maxFee: string;
   private readonly spread: number;
-  private readonly fetchImpl: typeof fetch;
+  private readonly client: HttpClient;
   private readonly now: () => number;
 
   constructor(private readonly config: BitsoConfig) {
@@ -223,23 +246,41 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     this.withdrawNetwork = config.withdrawNetwork ?? "coelsa";
     this.maxFee = config.maxFee ?? "0";
     this.spread = config.spread ?? 0;
-    const f = config.fetchImpl ?? globalThis.fetch;
-    if (!f) throw new Error("no fetch available; pass BitsoConfig.fetchImpl");
-    this.fetchImpl = f;
+    this.client = new HttpClient({
+      baseUrl: this.baseUrl,
+      timeoutMs: config.timeoutMs ?? 30_000,
+      // Idempotent GET reads (ticker / balance / status / withdrawal lookup) retry
+      // a transient 5xx; the money POSTs (place-order, withdrawal) are IRREVERSIBLE
+      // and are never marked idempotent, so the client never auto-retries them.
+      // (Bitso's own origin_id dedupe protects the withdrawal leg, but we still do
+      // NOT blind-retry the sale.)
+      retry: { maxAttempts: 3 },
+      ...(config.fetchImpl !== undefined ? { fetch: config.fetchImpl } : {}),
+    });
     this.now = config.now ?? Date.now;
   }
 
   /**
-   * Signed (or public) request to the Bitso API. Builds the path once and signs
-   * the EXACT path requested. Unwraps the { success, payload, error } envelope.
+   * Signed (or public) request to the Bitso API via the shared client. Bitso's
+   * HMAC signs `nonce + METHOD + request_path + body` and the signed path MUST
+   * equal the requested path exactly (incl. the query string), so we compute the
+   * Authorization header here (per-request nonce/signature) and pass the FULL
+   * path — query string included — as the client's `path` (no separate `query`),
+   * so what the client sends is byte-identical to what we signed.
+   *
+   * Uses `requestRaw` (not `request`) because Bitso enveloped errors arrive with
+   * HTTP 200 + `success:false`; the client only throws on HTTP >= 400, so we
+   * unwrap + validate the envelope ourselves and map every failure into the
+   * Bitso error taxonomy. The `payload` is schema-validated so a malformed body
+   * cannot fabricate a zero balance / false-success order / bogus quote.
    */
   private async request<T>(
     method: "GET" | "POST",
     path: string,
-    opts: { body?: unknown; public?: boolean } = {},
+    opts: { body?: unknown; public?: boolean; schema: (ctx: string) => ResponseSchema<T> },
   ): Promise<T> {
     const payload = opts.body !== undefined ? JSON.stringify(opts.body) : "";
-    const headers: Record<string, string> = { accept: "application/json" };
+    const headers: Record<string, string> = {};
     if (payload) headers["content-type"] = "application/json";
     if (!opts.public) {
       const nonce = String(this.now());
@@ -249,36 +290,47 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
       );
       headers["authorization"] = `Bitso ${this.config.apiKey}:${nonce}:${signature}`;
     }
-    const init: RequestInit = { method, headers };
-    if (payload) init.body = payload;
 
     let res: Response;
     try {
-      res = await this.fetchImpl(`${this.baseUrl}${path}`, init);
+      res = await this.client.requestRaw({
+        method,
+        path,
+        headers,
+        ...(payload ? { body: payload } : {}),
+      });
+    } catch (err) {
+      throw mapOffRampError(err, `bitso ${method} ${path}`, BITSO_ERROR_CTORS);
+    }
+
+    // requestRaw guarantees status < 400; decode + inspect the envelope ourselves.
+    let parsed: unknown;
+    try {
+      const text = await res.text();
+      parsed = text ? JSON.parse(text) : undefined;
     } catch (cause) {
-      throw new BitsoApiError(`bitso ${method} ${path} transport error: ${String(cause)}`, 0);
+      throw new BitsoApiError(`bitso ${method} ${path}: non-JSON body`, res.status, String(cause));
     }
-    const text = await res.text();
-    let parsed: unknown = undefined;
-    if (text) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = text;
-      }
-    }
-    const env = parsed as { success?: boolean; payload?: unknown; error?: unknown } | undefined;
-    const ok = res.ok && env?.success !== false;
-    if (!ok) {
-      const err = env?.error as { code?: unknown; message?: unknown } | undefined;
+    const env = parsed as BitsoEnvelope | undefined;
+    if (env?.success === false) {
+      // Enveloped error on HTTP 200 (or 2xx): surface it in the taxonomy.
       const msg = `bitso ${method} ${path} -> ${res.status}${
-        err?.message ? `: ${String(err.message)}` : ""
+        env.error?.message ? `: ${String(env.error.message)}` : ""
       }`;
-      if (res.status === 401 || res.status === 403) throw new BitsoAuthError(msg, res.status, parsed);
-      if (res.status === 429) throw new BitsoRateLimitError(msg, res.status, parsed);
       throw new BitsoApiError(msg, res.status, parsed);
     }
-    return env?.payload as T;
+    // Validate the payload SHAPE so a malformed body fails loud instead of being
+    // blind-cast into a fabricated result. A validation failure is mapped into the
+    // Bitso taxonomy (BitsoApiError 502) — same as every other failure surface —
+    // rather than escaping as a raw ArAgentsResponseValidationError.
+    try {
+      return parseOrThrow(opts.schema(`bitso ${method} ${path} payload`), env?.payload, {
+        url: res.url,
+        status: res.status,
+      });
+    } catch (err) {
+      throw mapOffRampError(err, `bitso ${method} ${path}`, BITSO_ERROR_CTORS);
+    }
   }
 
   /** Quote a USDT->ARS off-ramp from the public ticker's sell-side (bid). */
@@ -286,7 +338,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     const t = await this.request<{ bid?: string }>(
       "GET",
       `${this.apiPrefix}/ticker?book=${encodeURIComponent(this.book)}`,
-      { public: true },
+      { public: true, schema: objectSchema },
     );
     const bid = num(t?.bid);
     if (bid === undefined || bid <= 0) {
@@ -301,6 +353,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     const bal = await this.request<{ balances?: Array<{ currency?: string; available?: string }> }>(
       "GET",
       `${this.apiPrefix}/balance`,
+      { schema: objectSchema },
     );
     const row = (bal?.balances ?? []).find((b) => b.currency === "ars");
     return row?.available;
@@ -312,6 +365,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
       const list = await this.request<BitsoWithdrawal[]>(
         "GET",
         `${this.apiPrefix}/withdrawals?origin_ids=${encodeURIComponent(originId)}`,
+        { schema: arraySchema },
       );
       return Array.isArray(list) ? list.find((w) => w.origin_id === originId) ?? list[0] : undefined;
     } catch {
@@ -346,8 +400,10 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     }
 
     // 1. Market-sell the USDT for ARS (major = base-asset amount to sell).
+    //    IRREVERSIBLE money POST: not marked idempotent -> never auto-retried.
     await this.request<{ oid?: string }>("POST", `${this.apiPrefix}/orders`, {
       body: { book: this.book, side: "sell", type: "market", major: String(amountUsd) },
+      schema: objectSchema,
     });
 
     // 2. Sweep the realized ARS (post-fee balance of the dedicated off-ramp account).
@@ -359,7 +415,10 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
       });
     }
 
-    // 3. Withdraw ARS to the CBU/CVU (idempotent via origin_id).
+    // 3. Withdraw ARS to the CBU/CVU. IRREVERSIBLE money POST: not marked
+    //    idempotent -> the client never auto-retries it. Bitso's own origin_id
+    //    dedupe (server-side) is the retry-safety net, exercised only by an
+    //    EXPLICIT convert() retry, never by a blind transport retry.
     const wd = await this.request<BitsoWithdrawal>("POST", `${this.apiPrefix}/withdrawals`, {
       body: {
         asset: "ars",
@@ -373,6 +432,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
         cvu: this.config.cvu,
         origin_id: originId,
       },
+      schema: objectSchema,
     });
     if (!wd?.wid) {
       throw new BitsoApiError("bitso withdrawal: response had no wid", 200, wd);
@@ -390,6 +450,7 @@ export class BitsoOffRampAdapter implements OffRampAdapter {
     const wd = await this.request<BitsoWithdrawal>(
       "GET",
       `${this.apiPrefix}/withdrawals/${encodeURIComponent(txId)}`,
+      { schema: objectSchema },
     );
     const raw = typeof wd?.status === "string" ? wd.status : undefined;
     const status = normalizeBitsoStatus(raw);

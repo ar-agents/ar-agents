@@ -14,6 +14,16 @@
  * it gets the request rate-limited.
  */
 import {
+  HttpClient,
+  parseOrThrow,
+  ArAgentsAuthError,
+  ArAgentsProtocolError,
+  ArAgentsRateLimitError,
+  ArAgentsResponseValidationError,
+  type QueryParams,
+  type ResponseSchema,
+} from "@ar-agents/core";
+import {
   TiendaNubeApiError,
   TiendaNubeAuthError,
   TiendaNubeUnconfiguredError,
@@ -31,6 +41,17 @@ import type {
   TnId,
   Webhook,
   WebhookEvent,
+} from "./types";
+import {
+  storeSchema,
+  productSchema,
+  productListSchema,
+  orderSchema,
+  orderListSchema,
+  customerSchema,
+  customerListSchema,
+  webhookSchema,
+  webhookListSchema,
 } from "./types";
 
 export interface TiendaNubeAdapter {
@@ -87,20 +108,70 @@ export class UnconfiguredTiendaNubeAdapter implements TiendaNubeAdapter {
 
 // ── HTTP (real Tienda Nube) ─────────────────────────────────────
 
-export type FetchLike = (
-  url: string,
-  init?: {
-    method?: string;
-    headers?: Record<string, string>;
-    body?: string;
-  },
-) => Promise<{
-  ok: boolean;
-  status: number;
-  headers: { get(name: string): string | null };
-  text(): Promise<string>;
-  json(): Promise<unknown>;
-}>;
+/**
+ * @deprecated The adapter now uses the shared `HttpClient` from
+ * `@ar-agents/core`, whose `fetch` override is a standard `typeof fetch`.
+ * Pass a real `fetch` implementation via `HttpTiendaNubeAdapterOptions.fetch`
+ * instead. This alias is retained so external type imports don't break.
+ */
+export type FetchLike = typeof fetch;
+
+/**
+ * Translate a `@ar-agents/core` transport error into the Tienda Nube
+ * taxonomy. A malformed body (`ArAgentsResponseValidationError`) is
+ * surfaced LOUD as an api_error(502) — never swallowed into a fabricated
+ * clean result. A network/timeout (`ArAgentsProtocolError.status === null`)
+ * maps to `TiendaNubeApiError(0, …)` (the pre-migration network path). An
+ * HTTP status maps to `TiendaNubeApiError(status, body)`. 401/403 are handled
+ * separately (before this helper) so they become `TiendaNubeAuthError`.
+ */
+function mapCoreError(err: unknown, url: string, method: string): unknown {
+  if (err instanceof ArAgentsResponseValidationError) {
+    return new TiendaNubeApiError(
+      502,
+      { error: "malformed_response", description: err.message },
+      { url, method },
+    );
+  }
+  if (err instanceof ArAgentsAuthError) {
+    return new TiendaNubeAuthError(
+      `Tienda Nube rejected the request (${
+        err.context["status"] ?? "auth error"
+      }). Token may have been invalidated by uninstall.`,
+      { url, method },
+    );
+  }
+  if (err instanceof ArAgentsRateLimitError) {
+    return new TiendaNubeApiError(429, err.context["body"] ?? null, {
+      url,
+      method,
+    });
+  }
+  if (err instanceof ArAgentsProtocolError) {
+    return err.status === null
+      ? new TiendaNubeApiError(
+          0,
+          { description: err.message },
+          { url, method },
+        )
+      : new TiendaNubeApiError(err.status, err.context["body"] ?? null, {
+          url,
+          method,
+        });
+  }
+  if (err instanceof SyntaxError) {
+    // The requestRaw paths (list reads + webhook create/list) call res.json()
+    // themselves; a non-JSON or empty 200/201 body (HTML error / maintenance
+    // page) makes res.json() throw a SyntaxError. Surface it IN-taxonomy and
+    // loud — never let a raw SyntaxError escape as a non-TiendaNube error.
+    return new TiendaNubeApiError(
+      502,
+      { error: "malformed_response", description: err.message },
+      { url, method },
+    );
+  }
+  return err;
+}
 
 export interface HttpTiendaNubeAdapterOptions {
   /** Numeric store id received from the OAuth exchange. */
@@ -124,11 +195,7 @@ const DEFAULT_BASE_URL = "https://api.tiendanube.com/v1";
 
 export class HttpTiendaNubeAdapter implements TiendaNubeAdapter {
   private readonly storeId: number;
-  private readonly accessToken: string;
-  private readonly ua: string;
-  private readonly fetcher: FetchLike;
-  private readonly timeoutMs: number;
-  private readonly baseUrl: string;
+  private readonly client: HttpClient;
 
   constructor(opts: HttpTiendaNubeAdapterOptions) {
     if (!opts.accessToken) {
@@ -147,42 +214,54 @@ export class HttpTiendaNubeAdapter implements TiendaNubeAdapter {
       );
     }
     this.storeId = opts.storeId;
-    this.accessToken = opts.accessToken;
-    this.ua = `${opts.appName} (${opts.contactEmail})`;
-    this.baseUrl = (opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
-    this.timeoutMs = opts.timeoutMs ?? 12_000;
-    const f =
-      opts.fetch ??
-      ((globalThis as { fetch?: FetchLike }).fetch as FetchLike | undefined);
-    if (!f) {
-      throw new TiendaNubeUnconfiguredError(
-        "fetch",
-        "no fetch function available",
-      );
-    }
-    this.fetcher = f;
+    const base = (opts.baseUrl ?? DEFAULT_BASE_URL).replace(/\/$/, "");
+    const ua = `${opts.appName} (${opts.contactEmail})`;
+    // Tienda Nube's auth header is the NON-standard `authentication: bearer
+    // <token>` — NOT the standard `Authorization`. So we do NOT use the core
+    // client's `auth` option (which sets `Authorization`); we pass it as a
+    // default header on every request instead.
+    this.client = new HttpClient({
+      baseUrl: `${base}/${opts.storeId}`,
+      ...(opts.fetch ? { fetch: opts.fetch } : {}),
+      timeoutMs: opts.timeoutMs ?? 12_000,
+      userAgent: ua,
+      // Idempotent reads (GET) and idempotent DELETE (webhook removal) retry
+      // once on a transient 5xx/429/network fault. Webhook CREATE is a POST —
+      // non-idempotent, carries no idempotency key, and is NEVER auto-retried
+      // by the core client (we never set `idempotent: true` on it).
+      retry: { maxAttempts: 2 },
+      defaultHeaders: {
+        authentication: `bearer ${opts.accessToken}`,
+      },
+    });
   }
 
   async getStore(): Promise<Store> {
-    return this.get<Store>("/store");
+    return this.getOne("/store", storeSchema) as unknown as Promise<Store>;
   }
 
   async listProducts(args: ListProductsArgs = {}): Promise<PageResult<Product>> {
-    const qs: Record<string, string | number | boolean | undefined> = {
+    const query: QueryParams = {
       ...(args.q ? { q: args.q } : {}),
       ...(args.publishedOnly ? { published: true } : {}),
       ...(args.page ? { page: args.page } : {}),
       ...(args.perPage ? { per_page: args.perPage } : {}),
     };
-    return this.getPaged<Product>("/products", qs, args.page ?? 1, args.perPage ?? 30);
+    return this.getPaged(
+      "/products",
+      query,
+      productListSchema,
+      args.page ?? 1,
+      args.perPage ?? 30,
+    ) as unknown as Promise<PageResult<Product>>;
   }
 
   async getProduct(id: TnId): Promise<Product> {
-    return this.get<Product>(`/products/${id}`);
+    return this.getOne(`/products/${id}`, productSchema) as unknown as Promise<Product>;
   }
 
   async listOrders(args: ListOrdersArgs = {}): Promise<PageResult<Order>> {
-    const qs: Record<string, string | number | undefined> = {
+    const query: QueryParams = {
       ...(args.sinceIso ? { since_id_or_date: args.sinceIso } : {}),
       ...(args.untilIso ? { created_at_max: args.untilIso } : {}),
       ...(args.status ? { status: args.status } : {}),
@@ -191,29 +270,48 @@ export class HttpTiendaNubeAdapter implements TiendaNubeAdapter {
       ...(args.page ? { page: args.page } : {}),
       ...(args.perPage ? { per_page: args.perPage } : {}),
     };
-    return this.getPaged<Order>("/orders", qs, args.page ?? 1, args.perPage ?? 30);
+    return this.getPaged(
+      "/orders",
+      query,
+      orderListSchema,
+      args.page ?? 1,
+      args.perPage ?? 30,
+    ) as unknown as Promise<PageResult<Order>>;
   }
 
   async getOrder(id: TnId): Promise<Order> {
-    return this.get<Order>(`/orders/${id}`);
+    return this.getOne(`/orders/${id}`, orderSchema) as unknown as Promise<Order>;
   }
 
   async listCustomers(args: ListCustomersArgs = {}): Promise<PageResult<Customer>> {
-    const qs: Record<string, string | number | undefined> = {
+    const query: QueryParams = {
       ...(args.q ? { q: args.q } : {}),
       ...(args.page ? { page: args.page } : {}),
       ...(args.perPage ? { per_page: args.perPage } : {}),
     };
-    return this.getPaged<Customer>("/customers", qs, args.page ?? 1, args.perPage ?? 30);
+    return this.getPaged(
+      "/customers",
+      query,
+      customerListSchema,
+      args.page ?? 1,
+      args.perPage ?? 30,
+    ) as unknown as Promise<PageResult<Customer>>;
   }
 
   async getCustomer(id: TnId): Promise<Customer> {
-    return this.get<Customer>(`/customers/${id}`);
+    return this.getOne(`/customers/${id}`, customerSchema) as unknown as Promise<Customer>;
   }
 
   async listWebhooks(): Promise<Webhook[]> {
-    const r = await this.request<Webhook[]>("GET", "/webhooks");
-    return r.body;
+    const method = "GET";
+    const path = "/webhooks";
+    try {
+      const res = await this.client.requestRaw({ path, method });
+      const body = await res.json();
+      return parseOrThrow(webhookListSchema, body, { path }) as unknown as Webhook[];
+    } catch (err) {
+      throw mapCoreError(err, this.url(path), method);
+    }
   }
 
   async createWebhook(args: { event: WebhookEvent | string; url: string }): Promise<Webhook> {
@@ -223,110 +321,74 @@ export class HttpTiendaNubeAdapter implements TiendaNubeAdapter {
         "must be an https:// URL",
       );
     }
-    const r = await this.request<Webhook>("POST", "/webhooks", {
-      event: args.event,
-      url: args.url,
-    });
-    return r.body;
+    const method = "POST";
+    const path = "/webhooks";
+    try {
+      // Creating a webhook is non-idempotent and carries no idempotency key,
+      // so we deliberately leave `idempotent` unset — the core client does NOT
+      // retry POST by default, which is what we want.
+      const res = await this.client.requestRaw({
+        path,
+        method,
+        body: { event: args.event, url: args.url },
+      });
+      const body = await res.json();
+      return parseOrThrow(webhookSchema, body, { path }) as unknown as Webhook;
+    } catch (err) {
+      throw mapCoreError(err, this.url(path), method);
+    }
   }
 
   async deleteWebhook(id: TnId): Promise<void> {
-    await this.request<unknown>("DELETE", `/webhooks/${id}`);
+    const method = "DELETE";
+    const path = `/webhooks/${id}`;
+    try {
+      // 204/202 → empty body; we don't read it.
+      await this.client.requestRaw({ path, method });
+    } catch (err) {
+      throw mapCoreError(err, this.url(path), method);
+    }
   }
 
-  private async get<T>(path: string): Promise<T> {
-    const r = await this.request<T>("GET", path);
-    return r.body;
-  }
-
-  private async getPaged<T>(
+  /** Single-object GET routed through the schema-validating `request<T>`. */
+  private async getOne<T>(
     path: string,
-    qs: Record<string, string | number | boolean | undefined>,
+    schema: ResponseSchema<T>,
+  ): Promise<T> {
+    try {
+      return await this.client.request<T>({ path, method: "GET", schema });
+    } catch (err) {
+      throw mapCoreError(err, this.url(path), "GET");
+    }
+  }
+
+  /**
+   * List GET. Uses `requestRaw` so we can read the `Link` response header
+   * (Tienda Nube signals a next page via `rel="next"`), then parses + validates
+   * the array body via `parseOrThrow`.
+   */
+  private async getPaged<E>(
+    path: string,
+    query: QueryParams,
+    schema: ResponseSchema<E[]>,
     page: number,
     perPage: number,
-  ): Promise<PageResult<T>> {
-    const r = await this.request<T[]>("GET", this.qstring(path, qs));
-    const linkHeader = r.headers.get("link") ?? "";
-    const hasMore = /rel="next"/i.test(linkHeader);
-    return { data: r.body, page, perPage, hasMore };
-  }
-
-  private qstring(
-    path: string,
-    qs: Record<string, string | number | boolean | undefined>,
-  ): string {
-    const parts: string[] = [];
-    for (const [k, v] of Object.entries(qs)) {
-      if (v === undefined) continue;
-      parts.push(`${encodeURIComponent(k)}=${encodeURIComponent(String(v))}`);
-    }
-    return parts.length === 0 ? path : `${path}?${parts.join("&")}`;
-  }
-
-  private async request<T>(
-    method: string,
-    path: string,
-    body?: unknown,
-  ): Promise<{ body: T; headers: { get(name: string): string | null } }> {
-    const url = `${this.baseUrl}/${this.storeId}${path}`;
-    const headers: Record<string, string> = {
-      authentication: `bearer ${this.accessToken}`,
-      "user-agent": this.ua,
-      accept: "application/json",
-    };
-    if (body !== undefined) headers["content-type"] = "application/json";
-
-    let res;
+  ): Promise<PageResult<E>> {
     try {
-      res = await this.withTimeout(
-        this.fetcher(url, {
-          method,
-          headers,
-          ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
-        }),
-      );
+      const res = await this.client.requestRaw({ path, method: "GET", query });
+      const raw = await res.json();
+      const data = parseOrThrow(schema, raw, { path });
+      const linkHeader = res.headers.get("link") ?? "";
+      const hasMore = /rel="next"/i.test(linkHeader);
+      return { data, page, perPage, hasMore };
     } catch (err) {
-      throw new TiendaNubeApiError(
-        0,
-        { description: err instanceof Error ? err.message : "network error" },
-        { url, method },
-      );
+      throw mapCoreError(err, this.url(path), "GET");
     }
-
-    if (res.status === 401 || res.status === 403) {
-      throw new TiendaNubeAuthError(
-        `Tienda Nube rejected the request (HTTP ${res.status}). Token may have been invalidated by uninstall.`,
-        { url, method },
-      );
-    }
-    if (res.status === 204 || res.status === 202) {
-      return { body: undefined as unknown as T, headers: res.headers };
-    }
-    let parsed: unknown;
-    try {
-      parsed = await res.json();
-    } catch {
-      parsed = null;
-    }
-    if (!res.ok) {
-      throw new TiendaNubeApiError(res.status, parsed, { url, method });
-    }
-    return { body: parsed as T, headers: res.headers };
   }
 
-  private async withTimeout<T>(p: Promise<T>): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeoutP = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () => reject(new Error(`timeout after ${this.timeoutMs}ms`)),
-        this.timeoutMs,
-      );
-    });
-    try {
-      return await Promise.race([p, timeoutP]);
-    } finally {
-      if (timer) clearTimeout(timer);
-    }
+  /** Reconstruct the absolute URL (for error context only). */
+  private url(path: string): string {
+    return `${this.client.baseUrl}${path}`;
   }
 }
 

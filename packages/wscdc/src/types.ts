@@ -19,6 +19,8 @@
  * wsfe but a separate authorization step in the AFIP portal.
  */
 
+import { z } from "zod";
+
 export type WscdcEnv = "prod" | "homo";
 
 /** Authorization mode of the comprobante being verified. */
@@ -102,6 +104,36 @@ export interface ConstatarResult {
   /** Raw AFIP response timestamp (the FchProceso field). */
   fchProceso?: string | undefined;
 }
+
+// ── Response schemas ────────────────────────────────────────────
+//
+// The SOAP parsers already reject a body missing the result block or
+// carrying an out-of-range Resultado. These zod schemas are the second
+// boundary the core-HttpClient migration mandates: after string→struct
+// parsing, `parseOrThrow` asserts the SHAPE so a drifted / partial AFIP
+// response fails LOUD (ArAgentsResponseValidationError) instead of a
+// blind-cast object with `?? []` defaults masquerading as a clean
+// "approved"/"not-found" answer.
+
+const constatarObservacionSchema = z.object({
+  code: z.number().int(),
+  msg: z.string(),
+});
+
+/** Validates a parsed {@link ConstatarResult}. */
+export const constatarResultSchema = z.object({
+  resultado: z.enum(["A", "N", "O"]),
+  observaciones: z.array(constatarObservacionSchema),
+  errors: z.array(constatarObservacionSchema),
+  fchProceso: z.string().optional(),
+});
+
+/** Validates a parsed WSCDC Dummy (health) result. */
+export const dummyResultSchema = z.object({
+  appServer: z.string(),
+  dbServer: z.string(),
+  authServer: z.string(),
+});
 
 /** Caller-supplied WSAA access ticket (token + sign). */
 export interface AccessTicket {

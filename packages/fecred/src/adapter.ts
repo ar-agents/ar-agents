@@ -31,6 +31,13 @@ import {
   FecredValidationError,
 } from "./errors";
 import {
+  HttpClient,
+  ArAgentsAuthError,
+  ArAgentsProtocolError,
+  ArAgentsRateLimitError,
+  isArAgentsError,
+} from "@ar-agents/core";
+import {
   acceptInvoiceInputSchema,
   checkObligationInputSchema,
   listComprobantesInputSchema,
@@ -95,18 +102,14 @@ export class UnconfiguredFecredAdapter implements FecredAdapter {
 
 // ── HTTP (real AFIP) ────────────────────────────────────────────
 
-export type FetchLike = (
-  url: string,
-  init?: {
-    method?: string;
-    headers?: Record<string, string>;
-    body?: string;
-  },
-) => Promise<{
-  ok: boolean;
-  status: number;
-  text(): Promise<string>;
-}>;
+/**
+ * @deprecated The adapter now builds on `@ar-agents/core`'s `HttpClient`,
+ * which uses the standard `fetch` shape. Pass `fetch?: typeof fetch`
+ * instead. This alias is kept exported (as `typeof fetch`) so external
+ * type imports don't break; it no longer describes the custom minimal
+ * shape the old raw-fetch transport accepted.
+ */
+export type FetchLike = typeof fetch;
 
 export interface HttpFecredAdapterOptions {
   env: FecredEnv;
@@ -117,7 +120,7 @@ export interface HttpFecredAdapterOptions {
   ticket: AccessTicket;
   /** Optional fetch override (mainly for tests). Defaults to
    * globalThis.fetch. */
-  fetch?: FetchLike;
+  fetch?: typeof fetch;
   /** Override the endpoint URL (test stubs, regional proxies). */
   endpoint?: string;
   /** Per-request timeout in ms. Default 15_000. */
@@ -132,24 +135,51 @@ export class HttpFecredAdapter implements FecredAdapter {
   private readonly env: FecredEnv;
   private readonly ticket: AccessTicket;
   private readonly endpoint: string;
-  private readonly fetcher: FetchLike;
-  private readonly timeoutMs: number;
+  private readonly client: HttpClient;
+  /** Path segment of the endpoint, passed to `client.request({ path })`.
+   * Splitting origin (baseUrl) from pathname keeps the resolved URL byte
+   * -identical to the original endpoint (no injected trailing slash). */
+  private readonly path: string;
   private readonly userAgent: string;
 
   constructor(opts: HttpFecredAdapterOptions) {
     this.env = opts.env;
     this.ticket = opts.ticket;
     this.endpoint = opts.endpoint ?? FECRED_URLS[opts.env];
-    const f = opts.fetch ?? (globalThis as { fetch?: FetchLike }).fetch;
+    this.userAgent = opts.userAgent ?? DEFAULT_UA;
+
+    const f =
+      opts.fetch ?? (globalThis as { fetch?: typeof fetch }).fetch;
     if (!f) {
       throw new FecredUnconfiguredError(
         "fetch",
         "no fetch function available (pass `fetch` in HttpFecredAdapterOptions or polyfill globalThis.fetch)",
       );
     }
-    this.fetcher = f;
-    this.timeoutMs = opts.timeoutMs ?? 15_000;
-    this.userAgent = opts.userAgent ?? DEFAULT_UA;
+
+    // The endpoint is a FULL URL per env. Split it into origin + path so the
+    // core client's baseUrl-relative resolution reproduces the exact URL.
+    let baseUrl: string;
+    let path: string;
+    try {
+      const u = new URL(this.endpoint);
+      baseUrl = u.origin;
+      // Preserve pathname + any query/hash verbatim.
+      path = `${u.pathname}${u.search}${u.hash}`;
+    } catch {
+      throw new FecredUnconfiguredError(
+        "endpoint",
+        `invalid WSFECred endpoint URL: ${this.endpoint}`,
+      );
+    }
+    this.path = path;
+
+    this.client = new HttpClient({
+      baseUrl,
+      fetch: f,
+      timeoutMs: opts.timeoutMs ?? 15_000,
+      userAgent: this.userAgent,
+    });
   }
 
   async checkObligation(input: CheckObligationInput): Promise<CheckObligationResult> {
@@ -215,48 +245,81 @@ export class HttpFecredAdapter implements FecredAdapter {
   }
 
   private async postSoap(body: string, soapAction: string): Promise<string> {
-    let res;
+    // SOAP is text/xml — use requestRaw and decode the body ourselves. The
+    // core client still runs timeout + typed-error mapping; it throws on
+    // status >= 400 BEFORE we can read the body, so we recover AFIP's
+    // <faultstring> (when present) from the error's body snippet.
+    //
+    // IDEMPOTENCY: every FECred operation is a POST (reads + the irreversible
+    // aceptar/rechazar money acts alike) and none carries an idempotency key.
+    // We pass `retry: false` to disable auto-retry ENTIRELY — not just leaving
+    // `idempotent` unset. That closes the one hole in the default classifier
+    // where a 429 is retried regardless of method: an irreversible accept /
+    // reject must never be replayed on a transient 429/5xx.
+    let res: Response;
     try {
-      res = await this.withTimeout(
-        this.fetcher(this.endpoint, {
-          method: "POST",
-          headers: {
-            "content-type": "text/xml; charset=utf-8",
-            "user-agent": this.userAgent,
-            soapaction: `"${soapAction}"`,
-          },
-          body,
-        }),
-      );
+      res = await this.client.requestRaw({
+        method: "POST",
+        path: this.path,
+        headers: {
+          "content-type": "text/xml; charset=utf-8",
+          soapaction: `"${soapAction}"`,
+        },
+        body,
+        accept: "text/xml",
+        retry: false,
+      });
     } catch (err) {
-      throw new FecredProtocolError(
-        `WSFECred (${this.env}) HTTP error: ${err instanceof Error ? err.message : String(err)}`,
-      );
+      throw this.mapTransportError(err);
     }
-    const text = await res.text();
-    if (!res.ok) {
-      const fault = /<faultstring>([\s\S]*?)<\/faultstring>/i.exec(text)?.[1];
-      throw new FecredProtocolError(
-        `WSFECred (${this.env}) returned HTTP ${res.status}${fault ? `: ${fault.trim()}` : ""}`,
-        { status: res.status },
-      );
-    }
-    return text;
+    return res.text();
   }
 
-  private async withTimeout<T>(p: Promise<T>): Promise<T> {
-    let timer: ReturnType<typeof setTimeout> | undefined;
-    const timeoutPromise = new Promise<never>((_, reject) => {
-      timer = setTimeout(
-        () => reject(new Error(`timeout after ${this.timeoutMs}ms`)),
-        this.timeoutMs,
+  /** Map a thrown `@ar-agents/core` transport error to the FECred taxonomy,
+   * preserving the HTTP-status-with-faultstring behaviour of the old
+   * transport (status + AFIP <faultstring>), and routing network/timeout
+   * (status === null) to the network-error path. */
+  private mapTransportError(err: unknown): FecredProtocolError {
+    if (!isArAgentsError(err)) {
+      return new FecredProtocolError(
+        `WSFECred (${this.env}) HTTP error: ${
+          err instanceof Error ? err.message : String(err)
+        }`,
       );
-    });
-    try {
-      return await Promise.race([p, timeoutPromise]);
-    } finally {
-      if (timer) clearTimeout(timer);
     }
+    // Auth failures (401/403) and rate limits (429) are HTTP-status errors:
+    // surface them with their status + any faultstring, same shape as the
+    // generic protocol case (FECred has a single protocol-error class).
+    let status: number | null = null;
+    let bodySnippet: unknown;
+    if (err instanceof ArAgentsAuthError) {
+      status = (err.context?.["status"] as number | undefined) ?? null;
+      bodySnippet = err.context?.["body"];
+    } else if (err instanceof ArAgentsRateLimitError) {
+      status = 429;
+      bodySnippet = err.context?.["body"];
+    } else if (err instanceof ArAgentsProtocolError) {
+      status = err.status;
+      bodySnippet = err.context?.["body"];
+    }
+
+    // status === null ⇒ network/timeout: no HTTP status to report.
+    if (status === null) {
+      return new FecredProtocolError(
+        `WSFECred (${this.env}) HTTP error: ${err.message}`,
+      );
+    }
+
+    const fault =
+      typeof bodySnippet === "string"
+        ? /<faultstring>([\s\S]*?)<\/faultstring>/i.exec(bodySnippet)?.[1]
+        : undefined;
+    return new FecredProtocolError(
+      `WSFECred (${this.env}) returned HTTP ${status}${
+        fault ? `: ${fault.trim()}` : ""
+      }`,
+      { status },
+    );
   }
 }
 

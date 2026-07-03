@@ -116,7 +116,11 @@ describe("convert()", () => {
     expect(post.method).toBe("POST");
     expect(post.url).toBe("https://api.test.manteca.dev/v2/synthetics/ramp-off");
     expect(post.headers["md-api-key"]).toBe("test-key-123");
-    expect(post.headers["content-type"]).toBe("application/json");
+    // The shared HttpClient sets the canonical `Content-Type` (capital-cased)
+    // when it serializes a JSON body; assert case-insensitively.
+    expect(post.headers["content-type"] ?? post.headers["Content-Type"]).toBe(
+      "application/json",
+    );
     expect(post.body).toEqual({
       userId: "user_42",
       sellAmount: "100",
@@ -141,6 +145,21 @@ describe("convert()", () => {
       url.includes("/prices/direct/") ? { body: { price: 1 } } : { body: { status: "PENDING" } },
     );
     await expect(a.convert(5, { externalId: "k2" })).rejects.toThrow(/no synthetic id/);
+  });
+
+  it("does NOT retry the ramp-off money POST on a 429 (no double-sale)", async () => {
+    // Money-safety regression: an irreversible ramp-off POST must fire EXACTLY
+    // once even when the provider returns 429 — the request may have been
+    // rate-limited after partial processing. Guaranteed by core's classifier
+    // (non-idempotent methods never retry 429/5xx/network).
+    const { a, calls } = adapter((url) =>
+      url.includes("/prices/direct/")
+        ? { body: { price: 1000 } }
+        : { status: 429, body: { error: "rate limited" } },
+    );
+    await expect(a.convert(100, { externalId: "k429" })).rejects.toBeTruthy();
+    const posts = calls.filter((c) => c.method === "POST");
+    expect(posts.length).toBe(1);
   });
 });
 
@@ -191,6 +210,45 @@ describe("registerBankAccount()", () => {
       "0000003100010000000001",
     );
     expect(r.bankAccountId).toBe("bank_new");
+  });
+});
+
+describe("core HttpClient migration — schema validation + idempotency", () => {
+  it("a malformed (wrong-shape) 200 price body fails LOUD, never a fabricated quote", async () => {
+    // Valid JSON but NOT an object (an array, or a bare null) -> objectSchema
+    // rejects it as ArAgentsResponseValidationError, surfaced as a MantecaApiError
+    // 502 instead of being blind-cast + silently yielding an undefined price.
+    const { a } = adapter(() => ({ body: ["not", "an", "object"] }));
+    await expect(a.quote(1)).rejects.toBeInstanceOf(MantecaApiError);
+    const { a: b } = adapter(() => ({ text: "<html>502 Bad Gateway</html>", status: 200 }));
+    await expect(b.quote(1)).rejects.toBeInstanceOf(MantecaApiError);
+  });
+
+  it("a transient 5xx on the price GET (idempotent) retries, then succeeds", async () => {
+    let n = 0;
+    const { a, calls } = adapter(() => {
+      n += 1;
+      return n === 1 ? { status: 503, body: { error: "unavailable" } } : { body: { price: 1000 } };
+    });
+    const q = await a.quote(100);
+    expect(q.rate).toBe(1000);
+    expect(calls.length).toBe(2); // first 503 was retried
+  });
+
+  it("the ramp-off money POST is NOT retried on a transient 5xx (fired exactly once)", async () => {
+    let posts = 0;
+    const { a, calls } = adapter((url) => {
+      if (url.includes("/prices/direct/")) return { body: { price: 1000 } };
+      posts += 1;
+      return { status: 503, body: { error: "unavailable" } };
+    });
+    await expect(a.convert(10, { externalId: "k-no-retry" })).rejects.toBeInstanceOf(
+      MantecaApiError,
+    );
+    // Exactly one ramp-off attempt: an irreversible sale must never be blind-retried.
+    expect(posts).toBe(1);
+    const rampOffCalls = calls.filter((c) => c.url.includes("/synthetics/ramp-off"));
+    expect(rampOffCalls.length).toBe(1);
   });
 });
 

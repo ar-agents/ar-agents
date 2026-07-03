@@ -9,6 +9,8 @@
  * optional fields.
  */
 
+import { z } from "zod";
+
 /** ISO 4217 currency code. Tienda Nube returns "ARS" / "USD" / "BRL" etc. */
 export type Currency = string;
 
@@ -240,6 +242,73 @@ export interface PageResult<T> {
   /** True if there's at least one more page. Driven by `Link: rel="next"`. */
   hasMore: boolean;
 }
+
+// ── Response schemas (network boundary validation) ───────────────
+//
+// These minimal zod schemas are validated against the parsed JSON body
+// returned by the real Tienda Nube API. They require the fields the
+// agent layer actually depends on (at minimum an `id`) and are `.loose()`
+// so upstream additions survive on the object. Their PURPOSE is to make
+// a malformed / partial / HTML error-page body FAIL LOUD
+// (`ArAgentsResponseValidationError`) instead of being blind-cast into a
+// clean-looking `Store` / `Order` / etc. The parsed result is cast to the
+// hand-written interface at the adapter return site — the schemas
+// intentionally validate less than the full interface (they gate on the
+// load-bearing fields, not every optional one).
+
+/** A Tienda Nube numeric object id. */
+const tnIdSchema = z.number();
+
+/** Store: id + a localized name (the two fields every consumer reads). */
+export const storeSchema = z
+  .object({
+    id: tnIdSchema,
+    name: z.record(z.string(), z.string().optional()),
+  })
+  .loose();
+
+/** Product: id + published flag + localized name. */
+export const productSchema = z
+  .object({
+    id: tnIdSchema,
+    name: z.record(z.string(), z.string().optional()),
+    published: z.boolean(),
+  })
+  .loose();
+
+export const productListSchema = z.array(productSchema);
+
+/** Order: id + number + status + total (the money/state fields). */
+export const orderSchema = z
+  .object({
+    id: tnIdSchema,
+    number: z.number(),
+    status: z.string(),
+    total: z.string(),
+  })
+  .loose();
+
+export const orderListSchema = z.array(orderSchema);
+
+/** Customer: id is the only always-present field. */
+export const customerSchema = z
+  .object({
+    id: tnIdSchema,
+  })
+  .loose();
+
+export const customerListSchema = z.array(customerSchema);
+
+/** Webhook: id + event + url. */
+export const webhookSchema = z
+  .object({
+    id: tnIdSchema,
+    event: z.string(),
+    url: z.string(),
+  })
+  .loose();
+
+export const webhookListSchema = z.array(webhookSchema);
 
 // ── OAuth ────────────────────────────────────────────────────────
 
