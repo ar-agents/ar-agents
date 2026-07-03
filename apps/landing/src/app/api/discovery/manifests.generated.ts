@@ -340,7 +340,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/facturacion",
-    "version": "0.4.6",
+    "version": "0.5.0",
     "description": "AFIP/ARCA factura electrónica (WSFE) as drop-in tools for the Vercel AI SDK. Reuses WSAA from @ar-agents/identity.",
     "tools": [
       {
@@ -517,7 +517,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity",
-    "version": "0.9.2",
+    "version": "0.9.3",
     "factory": "identityTools",
     "tools": [
       {
@@ -576,7 +576,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/identity-attest",
-    "version": "0.8.1",
+    "version": "0.8.2",
     "factory": "identityAttestTools",
     "tools": [
       {
@@ -1844,7 +1844,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/shipping",
-    "version": "0.3.3",
+    "version": "0.4.0",
     "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",
     "tools": [
       {
@@ -2283,7 +2283,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.dev/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/whatsapp",
-    "version": "0.5.2",
+    "version": "0.6.0",
     "tools": [
       {
         "name": "mark_whatsapp_read"

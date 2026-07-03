@@ -1,5 +1,14 @@
 # ar-agents-landing
 
+## 0.1.10
+
+### Patch Changes
+
+- Updated dependencies [[`1024d51`](https://github.com/ar-agents/ar-agents/commit/1024d5167f7ac8aca07da94354c748df7b2868ea), [`1024d51`](https://github.com/ar-agents/ar-agents/commit/1024d5167f7ac8aca07da94354c748df7b2868ea)]:
+  - @ar-agents/core@0.3.1
+  - @ar-agents/identity-attest@0.8.2
+  - @ar-agents/identity@0.9.3
+
 ## 0.1.9
 
 ### Patch Changes
