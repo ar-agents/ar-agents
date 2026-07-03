@@ -1,6 +1,6 @@
 {
   "name": "@ar-agents/shipping",
-  "version": "0.3.3",
+  "version": "0.4.0",
   "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for the Vercel AI SDK. Cotizar, crear, trackear, cancelar envíos. Pluggable adapters: ships an UnconfiguredAdapter and a MockAdapter for dev; AndreaniAdapter wired to the real REST API.",
   "keywords": [
     "shipping",
