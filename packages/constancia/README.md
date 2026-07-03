@@ -85,6 +85,61 @@ class CachedConstanciaFetcher implements ConstanciaFetcher {
 }
 ```
 
+## Hosted oracle + badge
+
+You don't have to wire a fetcher to get value out of this. There is a free hosted
+Constancia Oracle built on this exact package:
+
+**https://ar-agents.ar/constancia**
+
+Paste any CUIT, get an instant verdict. Two honest tiers:
+
+- **Free, instant, no secret.** CUIT check-digit validation (mod-11) via
+  `@ar-agents/identity`. No Clave Fiscal, no cert, no waiting on any padrón. This
+  is always available, and it's what the badge below reflects.
+- **Good-standing (premium).** The real ARCA constancia (régimen, monotributo /
+  responsable inscripto / exento, impuestos, domicilio) via this package's
+  SOAP / browser backends. It's wired and turns on when an ARCA fetcher is
+  configured on the deployment. Until then the hosted oracle says so plainly and
+  returns no verdict. It never fabricates good standing.
+
+### Free lookup API
+
+```bash
+curl "https://ar-agents.ar/api/constancia/lookup?cuit=20-12345678-6"
+# => { ok, result: { cuit, valid, formatted, personType,
+#     goodStanding, verdictAvailable, reason, proofUrl, badgeUrl } }
+```
+
+`valid` (check digit) is always populated. `verdictAvailable` is `true` only when
+a real ARCA verdict was produced; otherwise `reason` tells you why (e.g. the
+premium fetcher isn't configured on that deployment).
+
+### Shareable "Verificado por ar-agents" badge
+
+Every CUIT gets a self-updating SVG badge and a public proof page. The badge
+message is driven by the free mod-11 check digit, so it works with no secret and
+is safe to embed anywhere you assert a CUIT is real (README, status page, alta de
+proveedor, marketplace profile).
+
+- Badge: `https://ar-agents.ar/api/constancia/badge/<CUIT>`
+- Proof page: `https://ar-agents.ar/constancia/<CUIT>`
+
+Example, using the demo CUIT `20-12345678-6`:
+
+```md
+[![constancia](https://ar-agents.ar/api/constancia/badge/20123456786)](https://ar-agents.ar/constancia/20123456786)
+```
+
+Renders as `constancia · válida` (green) for a valid check digit, or
+`constancia · no válida` (red) otherwise. Strip the dashes in the URL: use the
+11 bare digits (`20123456786`).
+
+> Tiering, restated so nobody overclaims: the badge and the free lookup verify the
+> CUIT **check digit** only. That confirms the number is well-formed, not that the
+> taxpayer is in good standing. The ARCA good-standing verdict is the premium tier
+> and only appears once an ARCA fetcher is configured.
+
 ## License
 
 MIT © Nazareno Clemente

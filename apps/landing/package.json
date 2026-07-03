@@ -15,6 +15,7 @@
   "dependencies": {
     "@ai-sdk/react": "^4.0.0",
     "@ar-agents/banking": "workspace:*",
+    "@ar-agents/constancia": "workspace:*",
     "@ar-agents/core": "workspace:*",
     "@ar-agents/identity": "workspace:*",
     "@ar-agents/identity-attest": "workspace:*",
