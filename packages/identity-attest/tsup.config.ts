@@ -6,7 +6,14 @@ export default defineConfig({
   // AttestationClient + WhatsApp OTP + Email Magic Link adapters (all
   // Web-Crypto based). Auth0 + Magic.link SDK adapters require explicit
   // subpath imports + Node runtime.
-  entry: ["src/index.ts", "src/auth0.ts", "src/magic-link-sdk.ts"],
+  entry: [
+    "src/index.ts",
+    "src/auth0.ts",
+    "src/magic-link-sdk.ts",
+    // Subpath: EVM secp256k1 + Ed25519 key-binding verifier. Isolated so the
+    // secp256k1/keccak deps stay out of the main Edge bundle.
+    "src/key-binding.ts",
+  ],
   format: ["esm", "cjs"],
   dts: true,
   sourcemap: true,
