@@ -45,8 +45,57 @@ import type {
   GetEcheqsArgs,
   BindResult,
 } from "./types";
-import { bindErr, bindOk } from "./types";
+import {
+  bindErr,
+  bindOk,
+  bindAccountSchema,
+  bindMovementSchema,
+  cbuOwnershipSchema,
+  bindTransferResultSchema,
+  bindDebinResultSchema,
+  bindEcheqSchema,
+} from "./types";
 import { BindApiError, BindAuthError, BindValidationError } from "./errors";
+import {
+  ArAgentsAuthError,
+  ArAgentsProtocolError,
+  ArAgentsRateLimitError,
+  ArAgentsResponseValidationError,
+  HttpClient,
+  type HttpMethod,
+  type ResponseSchema,
+} from "@ar-agents/core";
+import { z } from "zod";
+
+/** POST /login/jwt → { token, expires_in }. Validated so a malformed login
+ * body can't yield an undefined token. */
+const loginSchema = z.object({
+  token: z.string(),
+  expires_in: z.number().optional(),
+});
+
+const bindAccountsSchema = z.array(bindAccountSchema);
+const bindMovementsSchema = z.array(bindMovementSchema);
+const bindEcheqsSchema = z.array(bindEcheqSchema);
+
+/** Map a core transport error into the BIND taxonomy. A network/timeout
+ * (`status === null`) is passed through so `run()` classifies it as
+ * `network_error`; an HTTP status → `BindApiError` (`api_error`); a malformed
+ * body → `BindApiError` 502 rather than a blind-cast success. */
+function mapBindError(err: unknown): unknown {
+  if (err instanceof ArAgentsResponseValidationError) {
+    return new BindApiError(502, { error: "malformed_response", detail: err.message });
+  }
+  if (err instanceof ArAgentsRateLimitError) {
+    return new BindApiError(429, err.context["body"] ?? null);
+  }
+  if (err instanceof ArAgentsProtocolError) {
+    return err.status === null
+      ? err
+      : new BindApiError(err.status, err.context["body"] ?? null);
+  }
+  return err;
+}
 
 export interface BindAdapter {
   listAccounts(): Promise<BindResult<BindAccount[]>>;
@@ -135,13 +184,11 @@ interface TokenState {
  * an unexpected 401 (token revoked server-side).
  */
 export class HttpBindAdapter implements BindAdapter {
-  private readonly baseUrl: string;
   private readonly username?: string | undefined;
   private readonly password?: string | undefined;
   private readonly bankId: number;
   private readonly viewId: string;
-  private readonly fetchImpl: typeof fetch;
-  private readonly timeoutMs: number;
+  private readonly client: HttpClient;
   private tokenState: TokenState | null = null;
 
   constructor(opts: HttpBindAdapterOptions = {}) {
@@ -151,13 +198,18 @@ export class HttpBindAdapter implements BindAdapter {
         "provide username + password, or a pre-issued token",
       );
     }
-    this.baseUrl = (opts.baseUrl ?? SANDBOX_BASE_URL).replace(/\/$/, "");
     this.username = opts.username;
     this.password = opts.password;
     this.bankId = opts.bankId ?? BIND_BANK_ID;
     this.viewId = opts.viewId ?? "owner";
-    this.fetchImpl = opts.fetchImpl ?? globalThis.fetch;
-    this.timeoutMs = opts.timeoutMs ?? 15_000;
+    this.client = new HttpClient({
+      baseUrl: (opts.baseUrl ?? SANDBOX_BASE_URL).replace(/\/$/, ""),
+      timeoutMs: opts.timeoutMs ?? 15_000,
+      // Idempotent GET reads retry a transient 5xx; the money POSTs (TRANSFER /
+      // DEBIN) and login are non-idempotent and are NEVER auto-retried.
+      retry: { maxAttempts: 2 },
+      ...(opts.fetchImpl !== undefined ? { fetch: opts.fetchImpl } : {}),
+    });
     if (opts.token) {
       // Unknown expiry for a pre-issued token; assume 1h like the docs.
       this.tokenState = { token: opts.token, expiresAtMs: Date.now() + 3_600_000 };
@@ -166,19 +218,6 @@ export class HttpBindAdapter implements BindAdapter {
 
   // ── Auth ──────────────────────────────────────────────────────
 
-  private async rawFetch(path: string, init: RequestInit): Promise<Response> {
-    const ctrl = new AbortController();
-    const timer = setTimeout(() => ctrl.abort(), this.timeoutMs);
-    try {
-      return await this.fetchImpl(`${this.baseUrl}${path}`, {
-        ...init,
-        signal: ctrl.signal,
-      });
-    } finally {
-      clearTimeout(timer);
-    }
-  }
-
   /** POST /login/jwt -> { token, expires_in }. VERIFIED shape. */
   private async login(): Promise<string> {
     if (!this.username || !this.password) {
@@ -186,18 +225,22 @@ export class HttpBindAdapter implements BindAdapter {
         "BIND token expired and no username/password available to re-login.",
       );
     }
-    const res = await this.rawFetch("/login/jwt", {
-      method: "POST",
-      headers: { "content-type": "application/json", accept: "application/json" },
-      body: JSON.stringify({ username: this.username, password: this.password }),
-    });
-    if (res.status === 401 || res.status === 403) {
-      throw new BindAuthError(`BIND rejected the credentials (HTTP ${res.status}).`);
+    let raw: z.infer<typeof loginSchema>;
+    try {
+      raw = await this.client.request({
+        method: "POST",
+        path: "/login/jwt",
+        body: { username: this.username, password: this.password },
+        schema: loginSchema,
+      });
+    } catch (err) {
+      if (err instanceof ArAgentsAuthError) {
+        throw new BindAuthError(
+          `BIND rejected the credentials (HTTP ${err.context["status"] ?? 401}).`,
+        );
+      }
+      throw mapBindError(err);
     }
-    if (!res.ok) {
-      throw new BindApiError(res.status, await res.text());
-    }
-    const raw = (await res.json()) as { token: string; expires_in?: number };
     const ttlMs = (raw.expires_in ?? 3600) * 1000;
     // Refresh 60s early so in-flight requests never carry a dying token.
     this.tokenState = {
@@ -215,39 +258,41 @@ export class HttpBindAdapter implements BindAdapter {
   }
 
   /**
-   * Authenticated request. Header scheme is the literal `JWT <token>`
-   * (NOT Bearer) per the public docs. Retries once on 401 by forcing a
-   * fresh login (covers server-side token revocation).
+   * Authenticated request via the shared client. Header scheme is the literal
+   * `JWT <token>` (NOT Bearer) per the public docs. Retries once on a 401 by
+   * forcing a fresh login (covers server-side token revocation).
    */
   private async request<T>(
     path: string,
-    init: RequestInit & { extraHeaders?: Record<string, string> } = {},
+    opts: {
+      method?: HttpMethod;
+      body?: unknown;
+      extraHeaders?: Record<string, string>;
+      schema: ResponseSchema<T>;
+    },
     retried = false,
   ): Promise<T> {
     const token = await this.ensureToken();
-    const headers: Record<string, string> = {
-      authorization: `JWT ${token}`,
-      accept: "application/json",
-      ...(init.body ? { "content-type": "application/json" } : {}),
-      ...(init.extraHeaders ?? {}),
-    };
-    const res = await this.rawFetch(path, { ...init, headers });
-    if (res.status === 401 && !retried) {
-      this.tokenState = null; // force re-login
-      return this.request<T>(path, init, true);
-    }
-    if (res.status === 401 || res.status === 403) {
-      throw new BindAuthError(`BIND rejected the token (HTTP ${res.status}).`);
-    }
-    const text = await res.text();
-    let body: unknown = text;
     try {
-      body = text ? JSON.parse(text) : null;
-    } catch {
-      // leave body as text
+      return await this.client.request<T>({
+        path,
+        method: opts.method ?? "GET",
+        schema: opts.schema,
+        headers: { authorization: `JWT ${token}`, ...(opts.extraHeaders ?? {}) },
+        ...(opts.body !== undefined ? { body: opts.body } : {}),
+      });
+    } catch (err) {
+      if (err instanceof ArAgentsAuthError && err.context["status"] === 401 && !retried) {
+        this.tokenState = null; // server-side revocation → force one re-login
+        return this.request<T>(path, opts, true);
+      }
+      if (err instanceof ArAgentsAuthError) {
+        throw new BindAuthError(
+          `BIND rejected the token (HTTP ${err.context["status"] ?? 401}).`,
+        );
+      }
+      throw mapBindError(err);
     }
-    if (!res.ok) throw new BindApiError(res.status, body);
-    return body as T;
   }
 
   /** Wrap a thrown BindError into the structured BindResult envelope. */
@@ -276,8 +321,9 @@ export class HttpBindAdapter implements BindAdapter {
 
   listAccounts(): Promise<BindResult<BindAccount[]>> {
     return this.run(() =>
-      this.request<BindAccount[]>(`/banks/${this.bankId}/accounts/${this.viewId}`, {
+      this.request(`/banks/${this.bankId}/accounts/${this.viewId}`, {
         method: "GET",
+        schema: bindAccountsSchema,
       }),
     );
   }
@@ -289,10 +335,11 @@ export class HttpBindAdapter implements BindAdapter {
       if (args.toDate) extraHeaders["obp_to_date"] = args.toDate;
       if (args.limit !== undefined) extraHeaders["obp_limit"] = String(args.limit);
       if (args.offset !== undefined) extraHeaders["obp_offset"] = String(args.offset);
-      return this.request<BindMovement[]>(
-        `${this.accountBase(args.accountId)}/transactions`,
-        { method: "GET", extraHeaders },
-      );
+      return this.request(`${this.accountBase(args.accountId)}/transactions`, {
+        method: "GET",
+        extraHeaders,
+        schema: bindMovementsSchema,
+      });
     });
   }
 
@@ -305,15 +352,16 @@ export class HttpBindAdapter implements BindAdapter {
         if (!/^[0-9]{22}$/.test(args.cbuCvu)) {
           throw new BindValidationError("cbuCvu", "must be 22 numeric digits");
         }
-        return this.request<CbuOwnership>(`/accounts/cbu/${args.cbuCvu}`, {
+        return this.request(`/accounts/cbu/${args.cbuCvu}`, {
           method: "GET",
+          schema: cbuOwnershipSchema,
         });
       }
       if (args.alias) {
-        return this.request<CbuOwnership>(
-          `/accounts/alias/${encodeURIComponent(args.alias)}`,
-          { method: "GET" },
-        );
+        return this.request(`/accounts/alias/${encodeURIComponent(args.alias)}`, {
+          method: "GET",
+          schema: cbuOwnershipSchema,
+        });
       }
       throw new BindValidationError("cbuCvu/alias", "one of the two is required");
     });
@@ -330,9 +378,9 @@ export class HttpBindAdapter implements BindAdapter {
       if (req.value.amount <= 0) {
         throw new BindValidationError("value.amount", "must be greater than zero");
       }
-      return this.request<BindTransferResult>(
+      return this.request(
         `${this.accountBase(accountId)}/transaction-request-types/TRANSFER/transaction-requests`,
-        { method: "POST", body: JSON.stringify(req) },
+        { method: "POST", body: req, schema: bindTransferResultSchema },
       );
     });
   }
@@ -348,9 +396,9 @@ export class HttpBindAdapter implements BindAdapter {
       if (req.value.amount <= 0) {
         throw new BindValidationError("value.amount", "must be greater than zero");
       }
-      return this.request<BindDebinResult>(
+      return this.request(
         `${this.accountBase(accountId)}/transaction-request-types/DEBIN/transaction-requests`,
-        { method: "POST", body: JSON.stringify(req) },
+        { method: "POST", body: req, schema: bindDebinResultSchema },
       );
     });
   }
@@ -363,9 +411,9 @@ export class HttpBindAdapter implements BindAdapter {
       if (args.offset !== undefined) extraHeaders["obp_offset"] = String(args.offset);
       if (args.issuedFromDate) extraHeaders["obp_issued_from_date"] = args.issuedFromDate;
       if (args.issuedToDate) extraHeaders["obp_issued_to_date"] = args.issuedToDate;
-      return this.request<BindEcheq[]>(
+      return this.request(
         `${this.accountBase(args.accountId)}/transaction-request-types/CHECK`,
-        { method: "GET", extraHeaders },
+        { method: "GET", extraHeaders, schema: bindEcheqsSchema },
       );
     });
   }
