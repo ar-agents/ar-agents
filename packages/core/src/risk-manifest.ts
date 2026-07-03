@@ -67,7 +67,11 @@ const OVERRIDES: ReadonlyArray<readonly [RegExp, RiskLevel]> = [
   // `paid_fetch` is the x402 pay-per-call HTTP tool (settles a micropayment);
   // `(accept|reject)_invoice` is the FCE (factura de crédito) act that creates
   // or declines a legally-enforceable payment obligation.
-  [/transfer|payout|withdraw|reembols|refund|(^|_)cobr|(^|_)depos|(^|_)swap|(^|_)pay(_|$)|(create|cancel|capture|refund|void|process)_payment|charge|checkout|send_money|paid_fetch|(accept|reject)_invoice/i, "money"],
+  // Spanish money verbs (pagar/abonar/girar/retirar) are segment-bounded so a
+  // read like `list_pagares` (promissory notes) is NOT gated as money — only the
+  // verb "pagar", not the noun "pagarés", matches. Closes the gap where a Spanish
+  // money verb + a read-ish noun (`pagar_saldo`) downgraded to "read".
+  [/transfer|payout|withdraw|reembols|refund|(^|_)cobr|(^|_)depos|(^|_)swap|(^|_)pay(_|$)|(^|_)pagar(_|$)|(^|_)abonar(_|$)|(^|_)girar(_|$)|(^|_)retir(ar|o)?(_|$)|(create|cancel|capture|refund|void|process)_payment|charge|checkout|send_money|paid_fetch|(accept|reject)_invoice/i, "money"],
   [/(^|_)delete(_|$)|(^|_)remove(_|$)|revoke|destroy|cancel(_|$)/i, "irreversible"],
   // registrar_decision appends to the signed audit log: a write, but low-stakes
   // and the agent should log its own decisions without a human in the loop.
@@ -85,12 +89,14 @@ const READ_SIGNALS =
   /(calcula|calcular|calculate|calculo|compute|cotiz|estimat|simul|preview|lookup|consulta|(^|_)info(_|$)|status|balance|saldo|variable|deudas|padron)/i;
 
 // Mutating verbs that carry a read-ish noun (set_balance, credit_saldo,
-// modificar_padron). READ_SIGNALS matches the noun ANYWHERE, so without this a
-// mutation would be downgraded to "read" and skip the gate. A name with a
-// mutating verb is NOT downgraded: it falls through to "unknown" (fail closed),
-// or to its true category if an OVERRIDE already caught it.
+// modificar_padron, emitir_padron, presentar_saldo, anular_deudas). READ_SIGNALS
+// matches the noun ANYWHERE, so without this a mutation would be downgraded to
+// "read" and skip the gate. A name whose verb is here is NOT downgraded: it falls
+// through to "unknown" (fail closed) unless an OVERRIDE already caught its true
+// category first. This is a denylist, so keep it broad — a false "mutating" only
+// costs a needless human approval (safe), while a miss silently skips the gate.
 const MUTATING_SIGNALS =
-  /(^|_)(set|update|adjust|credit|debit|deduct|increment|decrement|acreditar|debitar|cargar|modificar|actualizar|incrementar|decrementar|write|overwrite)(_|$)/i;
+  /(^|_)(set|update|adjust|credit|debit|deduct|increment|decrement|acreditar|debitar|cargar|modificar|actualizar|incrementar|decrementar|write|overwrite|emitir|anular|firmar|aprobar|rechazar|ejecutar|confirmar|suspender|reanudar|presentar|enviar|dar_de_baja|dar_de_alta)(_|$)/i;
 
 function fromSideEffects(se?: string): RiskLevel | null {
   switch ((se ?? "").toLowerCase().trim()) {

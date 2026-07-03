@@ -282,14 +282,19 @@ export function createMercadoPagoPaymentProvider(
         };
       }
 
-      if (
-        payment.external_reference !== undefined &&
-        payment.external_reference !== args.session.id
-      ) {
+      // The preference is created with `external_reference: session.id`, so MP
+      // echoes it on the payment. Require the binding: if it is absent we cannot
+      // prove the payment belongs to this session, so reject rather than accept
+      // an unbound payment (which would let a payment for one session settle
+      // another). Only an exact match passes.
+      if (payment.external_reference !== args.session.id) {
         return {
           success: false,
           code: "validation_failed",
-          message: `MP payment external_reference '${payment.external_reference}' does not match session id '${args.session.id}'.`,
+          message:
+            payment.external_reference === undefined
+              ? `MP payment is missing external_reference; cannot bind it to session id '${args.session.id}'.`
+              : `MP payment external_reference '${payment.external_reference}' does not match session id '${args.session.id}'.`,
           details: { mp_payment_id: paymentId },
         };
       }

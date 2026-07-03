@@ -378,14 +378,29 @@ export async function verifyOpenPaymentMandate(
   presentation: string,
   options: VerifyOpenPaymentOptions,
 ): Promise<VerificationOutcome<TOpenPaymentMandate>> {
-  return verifyOpenMandate(presentation, options, OpenPaymentMandate, async (mandate) => {
+  return verifyOpenMandate(presentation, options, OpenPaymentMandate, async (mandate, sdHash) => {
+    // Resolve the paired `payment.agent_recurrence` (if any) so the budget
+    // evaluator can enforce both caps together.
+    const recurrence = mandate.constraints.find(
+      (c): c is Extract<Constraint, { type: "payment.agent_recurrence" }> =>
+        c.type === "payment.agent_recurrence",
+    );
     for (const c of mandate.constraints) {
       const result = await evaluatePaymentConstraint(c as Constraint, {
         closedMandate: options.closedMandate,
+        openMandateDigest: sdHash,
         ...(options.linkedCheckoutMandateDigest !== undefined
           ? { linkedCheckoutMandateDigest: options.linkedCheckoutMandateDigest }
           : {}),
         ...(options.tracker !== undefined ? { tracker: options.tracker } : {}),
+        ...(recurrence !== undefined
+          ? {
+              budgetRecurrence: {
+                frequency: recurrence.frequency,
+                max_occurrences: recurrence.max_occurrences,
+              },
+            }
+          : {}),
       });
       if (!result.ok) return result;
     }
@@ -401,7 +416,7 @@ async function verifyOpenMandate<T>(
   presentation: string,
   options: CommonVerifyOptions & { keyBinding?: KeyBindingVerifyOptions },
   schema: { safeParse: (input: unknown) => { success: true; data: T } | { success: false; error: { issues: Array<{ message?: string }> } } },
-  evaluate: (mandate: T) => EvaluationResult | Promise<EvaluationResult>,
+  evaluate: (mandate: T, sdHash: string) => EvaluationResult | Promise<EvaluationResult>,
 ): Promise<VerificationOutcome<T>> {
   let parts;
   try {
@@ -462,7 +477,7 @@ async function verifyOpenMandate<T>(
   }
 
   // Constraint evaluation.
-  const result = await evaluate(parsedOpen.data);
+  const result = await evaluate(parsedOpen.data, sdHash);
   if (!result.ok) {
     return {
       ok: false,

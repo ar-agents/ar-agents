@@ -7,7 +7,7 @@
 // thermometer drops.
 
 import type { MeliClient } from "./client";
-import { MeliAuthError, MeliValidationError } from "./errors";
+import { MeliApiError, MeliAuthError, MeliValidationError } from "./errors";
 import {
   ReputationAlert,
   SellerReputation,
@@ -209,6 +209,9 @@ export interface MonitorReputationOptions {
  *     stop polling and surface this to the human.
  *   - **`MeliValidationError`** (programmer error — schema drift) →
  *     RE-THROWN. Bugs should fail loud, not silently.
+ *   - **`MeliApiError`** that `isUnauthorized()` / `isForbidden()` (401/403 —
+ *     revoked or expired token) → RE-THROWN. The endpoint is dead; polling it
+ *     forever is useless.
  *   - **`MeliApiError`** with 5xx, **`MeliNetworkError`**, anything else →
  *     swallowed and reported via `onTransientError`. The loop keeps polling
  *     because transient failures are normal.
@@ -233,7 +236,12 @@ export async function* monitorReputation(
       // Permanent errors must surface — never silently retry forever.
       if (
         err instanceof MeliAuthError ||
-        err instanceof MeliValidationError
+        err instanceof MeliValidationError ||
+        // A revoked/expired token surfaces as a 401/403 MeliApiError, not a
+        // MeliAuthError. Treat those as permanent too — otherwise the loop
+        // polls a dead endpoint forever.
+        (err instanceof MeliApiError &&
+          (err.isUnauthorized() || err.isForbidden()))
       ) {
         throw err;
       }

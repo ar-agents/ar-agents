@@ -9,9 +9,24 @@
 // rows. For non-AR sellers, the host controls tax via line-item `tax_exempt`
 // flags or by injecting `Total` rows of `type: "tax"`.
 
-import type { Total } from "./schemas/totals";
+import type { Total, TotalType } from "./schemas/totals";
 import type { LineItem } from "./schemas/line-item";
 import type { FulfillmentOption } from "./schemas/fulfillment";
+
+/**
+ * ACP `Total` row types that REDUCE the order total. `Amount` is a
+ * non-negative integer, so these rows carry a positive magnitude that must be
+ * subtracted from the running total rather than added.
+ */
+const REDUCTION_TYPES = new Set<TotalType>([
+  "discount",
+  "items_discount",
+  "store_credit",
+]);
+
+function isReduction(type: TotalType): boolean {
+  return REDUCTION_TYPES.has(type);
+}
 
 /**
  * Build per-line-item totals from a resolved item + quantity. The basic case
@@ -122,15 +137,16 @@ export function buildOrderTotals(args: {
     rows.push(...args.extra);
   }
 
-  // Final total = sum of everything that's meant to add to the bill. The
-  // spec leaves "what counts" implementation-defined, so we sum every row
-  // that ISN'T a duplicate `total` or a subtotal.
+  // Final total = charges minus reductions. `Amount` is a non-negative int,
+  // so reduction rows (discounts, store credit) carry a positive `amount` and
+  // must be SUBTRACTED — adding them would inflate the bill. `subtotal`,
+  // `total`, and `amount_refunded` are excluded from the rollup entirely.
   const billable = rows
     .filter(
       (r) =>
         r.type !== "subtotal" && r.type !== "total" && r.type !== "amount_refunded",
     )
-    .reduce((acc, r) => acc + r.amount, 0);
+    .reduce((acc, r) => (isReduction(r.type) ? acc - r.amount : acc + r.amount), 0);
 
   rows.push({
     type: "total",

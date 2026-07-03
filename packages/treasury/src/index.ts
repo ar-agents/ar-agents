@@ -347,9 +347,13 @@ export async function fundTaxBuffer(args: {
   if (plan.convertUsd <= 0 || !args.offramp) {
     return { plan, state: args.state };
   }
+  // The default key must be derived from STABLE INPUTS only — the obligation ids
+  // + the `required` ARS buffer — never from plan.convertUsd, which is a function
+  // of the live fxRate and would drift across a retry, breaking dedup and causing
+  // a second real payout.
   const externalId =
     args.externalId ??
-    `fund-${args.obligations.map((o) => o.id).join("+")}-${plan.convertUsd.toFixed(2)}`;
+    `fund-${args.obligations.map((o) => o.id).join("+")}-${required.toFixed(2)}`;
   const receipt = await args.offramp.convert(plan.convertUsd, { externalId });
   return { plan, receipt, state: applyConversion(args.state, receipt) };
 }

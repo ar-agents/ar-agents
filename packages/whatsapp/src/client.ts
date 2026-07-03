@@ -86,18 +86,25 @@ export class WhatsAppClient {
   /**
    * Internal helper: fetch with timeout + retry on 5xx/network errors.
    * 4xx never retried.
+   *
+   * Retries only apply to idempotent requests. The Meta Cloud API has no
+   * client-supplied idempotency key on `POST /messages`, so retrying a send
+   * that timed out or 5xx'd risks delivering the message more than once.
+   * Callers issuing non-idempotent requests MUST pass `{ retry: false }`.
    */
   private async fetchWithRetry(
     url: string,
     init: RequestInit,
     pathForObs: string,
+    opts: { retry?: boolean } = {},
   ): Promise<Response> {
     const fetchFn = this.fetchImpl ?? globalThis.fetch;
+    const maxRetries = opts.retry === false ? 0 : this.maxRetries;
     const t0 = Date.now();
     let attempt = 0;
     let lastStatus: number | null = null;
 
-    while (attempt <= this.maxRetries) {
+    while (attempt <= maxRetries) {
       const controller = new AbortController();
       const timer = setTimeout(() => controller.abort(), this.requestTimeoutMs);
       try {
@@ -116,7 +123,7 @@ export class WhatsAppClient {
           return res;
         }
         // 5xx → retry if budget remains
-        if (attempt < this.maxRetries) {
+        if (attempt < maxRetries) {
           attempt++;
           await sleep(250 * Math.pow(2, attempt - 1));
           continue;
@@ -133,7 +140,7 @@ export class WhatsAppClient {
       } catch (err) {
         clearTimeout(timer);
         const isAbort = err instanceof Error && err.name === "AbortError";
-        if (attempt < this.maxRetries) {
+        if (attempt < maxRetries) {
           attempt++;
           await sleep(250 * Math.pow(2, attempt - 1));
           continue;
@@ -155,7 +162,7 @@ export class WhatsAppClient {
       }
     }
     // Unreachable
-    throw new Error(`WhatsApp request failed after ${this.maxRetries} retries`);
+    throw new Error(`WhatsApp request failed after ${maxRetries} retries`);
   }
 
   /**
@@ -437,7 +444,10 @@ export class WhatsAppClient {
 
   /**
    * Internal: POST to /{phoneNumberId}/messages. Throws typed errors on 4xx.
-   * Uses fetchWithRetry → applies timeout + retry-on-5xx automatically.
+   * Uses fetchWithRetry with retries DISABLED: `POST /messages` is not
+   * idempotent and Meta exposes no idempotency key, so a retry after a timeout
+   * or 5xx could deliver the same message twice. Better to surface the error
+   * and let the caller decide than to risk a duplicate send.
    */
   private async postMessages(body: Record<string, unknown>): Promise<{
     messaging_product: string;
@@ -456,6 +466,7 @@ export class WhatsAppClient {
         body: JSON.stringify(body),
       },
       `/${this.apiVersion}/${this.phoneNumberId}/messages`,
+      { retry: false },
     );
     const text = await res.text();
     if (!res.ok) {

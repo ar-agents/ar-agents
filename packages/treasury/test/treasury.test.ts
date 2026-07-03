@@ -163,6 +163,52 @@ describe("fundTaxBuffer (end-to-end)", () => {
     expect(out.plan.convertUsd).toBe(0);
     expect(out.state).toEqual(state);
   });
+
+  it("default externalId is stable across fxRate drift on retry (no double-spend)", async () => {
+    // A lost-response retry re-runs fundTaxBuffer with the SAME obligations + the
+    // SAME `required` ARS buffer but a DIFFERENT live fxRate. The default
+    // idempotency key must NOT change — otherwise the PSAV executes a second real
+    // payout. We capture the externalId the off-ramp is called with on each run.
+    function captureAdapter() {
+      const externalIds: string[] = [];
+      const adapter: OffRampAdapter = {
+        quote: async (amountUsd) => ({ amountUsd, arsOut: amountUsd * 1000, rate: 1000, spread: 0 }),
+        convert: async (amountUsd, opts): Promise<OffRampReceipt> => {
+          externalIds.push(opts.externalId);
+          return { amountUsd, arsReceived: amountUsd * 1000, rate: 1000, txId: `tx-${externalIds.length}` };
+        },
+      };
+      return { adapter, externalIds };
+    }
+
+    const state: TreasuryState = { usd: 1000, ars: 0, costBasisPerUsd: 1 };
+
+    const first = captureAdapter();
+    await fundTaxBuffer({
+      state,
+      obligations: obs,
+      nowMs: t0,
+      horizonMs: 7 * DAY,
+      fxRate: 1000,
+      offramp: first.adapter,
+    });
+
+    // Same obligations + horizon (→ same `required` buffer) but the fx moved on the retry.
+    const retry = captureAdapter();
+    await fundTaxBuffer({
+      state,
+      obligations: obs,
+      nowMs: t0,
+      horizonMs: 7 * DAY,
+      fxRate: 1200,
+      offramp: retry.adapter,
+    });
+
+    expect(first.externalIds).toHaveLength(1);
+    expect(retry.externalIds).toHaveLength(1);
+    // Identical key despite the fxRate drift → the PSAV dedupes → no second payout.
+    expect(retry.externalIds[0]).toBe(first.externalIds[0]);
+  });
 });
 
 describe("withOffRampIdempotency (double-send guard)", () => {

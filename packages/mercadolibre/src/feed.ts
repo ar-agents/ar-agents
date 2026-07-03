@@ -238,7 +238,17 @@ export async function* iterateFeed(
       idx += CHUNK;
       inflight.push(items.multigetItems(client, slice));
     }
-    const batch = await inflight.shift()!;
+    let batch: TItem[];
+    try {
+      batch = await inflight.shift()!;
+    } catch (err) {
+      // The front chunk rejected. The remaining in-flight promises are still
+      // pending and would surface as unhandled rejections once this generator
+      // unwinds — settle them all before rethrowing so the host never sees an
+      // orphaned `unhandledRejection` (which crashes the Node process).
+      await Promise.allSettled(inflight);
+      throw err;
+    }
     for (const item of batch) {
       if (item.status && !acceptable.has(item.status)) continue;
       const product = meliItemToFeedProduct(item);

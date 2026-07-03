@@ -154,6 +154,27 @@ export class HttpBcraAdapter implements BcraAdapter {
 
   private parseDebtResponse(cuit: string, raw: unknown): DebtResponse {
     const root = unwrapResults(raw);
+    // The real /Deudas/{cuit} response nests debts under
+    // `results.periodos[].entidades` (same shape as Historicas), NOT
+    // at the root. Read the most-recent periodo. Fall back to a
+    // root-level `entidades`/`periodo` only if periodos is absent.
+    const periodosRaw = pickArray(root, ["periodos", "Periodos"]);
+    if (periodosRaw && periodosRaw.length > 0) {
+      const latest = periodosRaw
+        .map((p) => {
+          const obj = p as Record<string, unknown>;
+          return {
+            periodo: pickString(obj, ["periodo", "Periodo"]) ?? "",
+            entidades: pickArray(obj, ["entidades", "Entidades"]) ?? [],
+          };
+        })
+        .reduce((a, b) => (b.periodo > a.periodo ? b : a));
+      return {
+        cuit,
+        periodo: latest.periodo || currentYearMonth(),
+        entidades: latest.entidades.map(parseDebtEntry),
+      };
+    }
     const periodo =
       pickString(root, ["periodo", "Periodo"]) ?? currentYearMonth();
     const entidadesRaw = pickArray(root, ["entidades", "Entidades"]) ?? [];
@@ -329,9 +350,13 @@ function parseDebtEntry(raw: unknown): import("./types").DebtEntry {
   const obj = (raw as Record<string, unknown>) ?? {};
   const sit = pickNumber(obj, ["situacion", "Situacion"]) ?? 1;
   const diasAtraso = pickNumber(obj, ["diasAtrasoPago", "DiasAtrasoPago"]);
+  // BCRA returns the reporting bank's NAME in `entidad` (this endpoint
+  // has no numeric code). Mirror it into `nombre` for callers that
+  // read either field.
+  const entidad = pickString(obj, ["entidad", "Entidad"]) ?? "";
   return {
-    entidad: pickNumber(obj, ["entidad", "Entidad"]) ?? 0,
-    nombre: pickString(obj, ["entidadNombre", "Nombre", "nombre"]) ?? "",
+    entidad,
+    nombre: pickString(obj, ["nombre", "Nombre"]) ?? entidad,
     periodo: pickString(obj, ["periodo", "Periodo"]) ?? "",
     situacion: clampSituacion(sit),
     montoEnMiles: pickNumber(obj, ["monto", "Monto", "montoEnMiles"]) ?? 0,

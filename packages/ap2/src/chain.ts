@@ -61,6 +61,8 @@ import {
   type OpenPaymentMandate as TOpenPaymentMandate,
 } from "./schemas/payment-mandate";
 import { Jwk, type Jwk as TJwk, type Cnf } from "./schemas/jwk";
+import { evaluatePaymentConstraint, type BudgetTracker } from "./constraints";
+import type { Constraint } from "./schemas/constraints";
 
 // ---------------------------------------------------------------------------
 // Constants + type aliases
@@ -171,6 +173,18 @@ export interface ChainVerifyOptions {
   clockTolerance?: number;
   /** Override "now" for tests. */
   currentDate?: Date;
+  /**
+   * Optional stateful tracker for `payment.budget` / `payment.agent_recurrence`
+   * constraints carried by Open Payment Mandates in the chain. When omitted,
+   * those constraints pass as a documented no-op (caller responsibility).
+   */
+  tracker?: BudgetTracker;
+  /**
+   * sd_hash of the linked Open Checkout Mandate — required to evaluate a
+   * `payment.reference` constraint. When omitted, `payment.reference` fails
+   * with `unresolved_constraint`.
+   */
+  linkedCheckoutMandateDigest?: string;
 }
 
 export interface ChainHopVerification {
@@ -405,6 +419,12 @@ export async function verifyDsdJwtChain(
 
   // Extract open mandates from non-terminal hops + closed mandate from terminal.
   const openMandates: AnyOpenMandate[] = [];
+  // Open PAYMENT mandates paired with their hop sd_hash — used both to
+  // evaluate constraints and to key any stateful budget tracker.
+  const openPaymentMandates: Array<{
+    mandate: TOpenPaymentMandate;
+    digest: string;
+  }> = [];
   let closedMandate: AnyClosedMandate | undefined;
   for (let i = 0; i < verifications.length; i++) {
     const v = verifications[i]!;
@@ -436,6 +456,7 @@ export async function verifyDsdJwtChain(
       const o2 = OpenPaymentMandate.safeParse(item);
       if (o2.success) {
         openMandates.push(o2.data);
+        openPaymentMandates.push({ mandate: o2.data, digest: v.sdHash });
         continue;
       }
       // Pure cnf-binding hop — no mandate to extract, just key delegation.
@@ -449,6 +470,52 @@ export async function verifyDsdJwtChain(
       "invalid_credential",
       "No closed mandate extracted from terminal hop",
     );
+  }
+
+  // Evaluate every Open Payment Mandate's constraints against the terminal
+  // Closed Payment Mandate. Without this, a delegated payment that violates
+  // the delegating mandate's budget / allowed-payee / execution-date / etc.
+  // guardrails would pass verification. This mirrors the single-hop
+  // `verifyOpenPaymentMandate` wiring (see src/verifier.ts).
+  if (openPaymentMandates.length > 0) {
+    const closedPayment = ClosedPaymentMandate.safeParse(closedMandate);
+    if (!closedPayment.success) {
+      // Open Payment Mandates delegate a payment, so the terminal MUST be a
+      // Closed Payment Mandate. A mismatched family means the chain is
+      // internally inconsistent — fail rather than skip the guardrails.
+      return failure(
+        verifications,
+        "invalid_mandate",
+        "Chain carries Open Payment Mandate constraints but the terminal closed mandate is not a Closed Payment Mandate.",
+      );
+    }
+    for (const { mandate, digest } of openPaymentMandates) {
+      const recurrence = mandate.constraints.find(
+        (c): c is Extract<Constraint, { type: "payment.agent_recurrence" }> =>
+          c.type === "payment.agent_recurrence",
+      );
+      for (const c of mandate.constraints) {
+        const result = await evaluatePaymentConstraint(c as Constraint, {
+          closedMandate: closedPayment.data,
+          openMandateDigest: digest,
+          ...(options.tracker !== undefined ? { tracker: options.tracker } : {}),
+          ...(options.linkedCheckoutMandateDigest !== undefined
+            ? { linkedCheckoutMandateDigest: options.linkedCheckoutMandateDigest }
+            : {}),
+          ...(recurrence !== undefined
+            ? {
+                budgetRecurrence: {
+                  frequency: recurrence.frequency,
+                  max_occurrences: recurrence.max_occurrences,
+                },
+              }
+            : {}),
+        });
+        if (!result.ok) {
+          return failure(verifications, result.code, result.reason);
+        }
+      }
+    }
   }
 
   return {

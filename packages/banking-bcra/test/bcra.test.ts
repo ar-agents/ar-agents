@@ -46,8 +46,8 @@ const lowRiskDebt: DebtResponse = {
   periodo: "202601",
   entidades: [
     {
-      entidad: 11,
-      nombre: "Banco Nación",
+      entidad: "BANCO DE LA NACION ARGENTINA",
+      nombre: "BANCO DE LA NACION ARGENTINA",
       periodo: "202601",
       situacion: 1,
       montoEnMiles: 150, // ARS 150.000
@@ -57,8 +57,8 @@ const lowRiskDebt: DebtResponse = {
       enRevision: false,
     },
     {
-      entidad: 14,
-      nombre: "Banco Provincia",
+      entidad: "BANCO DE LA PROVINCIA DE BUENOS AIRES",
+      nombre: "BANCO DE LA PROVINCIA DE BUENOS AIRES",
       periodo: "202601",
       situacion: 2,
       montoEnMiles: 90, // ARS 90.000
@@ -75,8 +75,8 @@ const watchDebt: DebtResponse = {
   periodo: "202601",
   entidades: [
     {
-      entidad: 11,
-      nombre: "x",
+      entidad: "BANCO X",
+      nombre: "BANCO X",
       periodo: "202601",
       situacion: 3,
       montoEnMiles: 500,
@@ -93,8 +93,8 @@ const highRiskDebt: DebtResponse = {
   periodo: "202601",
   entidades: [
     {
-      entidad: 11,
-      nombre: "x",
+      entidad: "BANCO X",
+      nombre: "BANCO X",
       periodo: "202601",
       situacion: 5,
       montoEnMiles: 2_000,
@@ -163,8 +163,8 @@ describe("entryAmountCentavos", () => {
   it("converts ARS thousands to centavos", () => {
     expect(
       entryAmountCentavos({
-        entidad: 1,
-        nombre: "x",
+        entidad: "BANCO X",
+        nombre: "BANCO X",
         periodo: "p",
         situacion: 1,
         montoEnMiles: 150,
@@ -222,8 +222,9 @@ describe("HttpBcraAdapter", () => {
           status: 200,
           body: {
             results: {
-              periodo: "202601",
-              entidades: [],
+              identificacion: 30500000018,
+              denominacion: "EMPRESA DEMO SA",
+              periodos: [{ periodo: "202601", entidades: [] }],
             },
           },
         };
@@ -235,25 +236,37 @@ describe("HttpBcraAdapter", () => {
     );
   });
 
-  it("parses the BCRA-shape response (results-wrapped)", async () => {
+  it("parses the real BCRA-shape response (results.periodos[].entidades)", async () => {
+    // Real /Deudas/{cuit} v1.0 body: debts live under
+    // results.periodos[].entidades, and each entidad's `entidad` field
+    // is the bank NAME string (no numeric code).
     const a = new HttpBcraAdapter({
       fetch: mockFetch(() => ({
         ok: true,
         status: 200,
         body: {
+          status: 200,
           results: {
-            periodo: "202601",
-            entidades: [
+            identificacion: 30500000018,
+            denominacion: "EMPRESA DEMO SA",
+            periodos: [
               {
-                entidad: 11,
-                entidadNombre: "Banco Nación",
                 periodo: "202601",
-                situacion: 2,
-                monto: 150,
-                procesoJud: false,
-                refinanciaciones: false,
-                situacionFraude: false,
-                enRevision: false,
+                entidades: [
+                  {
+                    entidad: "BANCO DE LA NACION ARGENTINA",
+                    situacion: 2,
+                    fechaSit1: "2026-01-31",
+                    monto: 150,
+                    diasAtrasoPago: 0,
+                    refinanciaciones: false,
+                    recategorizacionOblig: false,
+                    situacionJuridica: false,
+                    irrecDisposicionTecnica: false,
+                    enRevision: false,
+                    procesoJud: false,
+                  },
+                ],
               },
             ],
           },
@@ -263,9 +276,88 @@ describe("HttpBcraAdapter", () => {
     const r = await a.getDebt("30500000018");
     expect(r.periodo).toBe("202601");
     expect(r.entidades).toHaveLength(1);
-    expect(r.entidades[0]?.nombre).toBe("Banco Nación");
+    expect(r.entidades[0]?.entidad).toBe("BANCO DE LA NACION ARGENTINA");
+    expect(r.entidades[0]?.nombre).toBe("BANCO DE LA NACION ARGENTINA");
     expect(r.entidades[0]?.situacion).toBe(2);
     expect(r.entidades[0]?.montoEnMiles).toBe(150);
+  });
+
+  it("getDebt surfaces a situación-5 judicial debtor → NOT clean", async () => {
+    // Regression: the parser used to read root-level `entidades`, which
+    // the real API never emits, so every debtor came back clean and
+    // credit was approved. Feed a real periodos-nested body with an
+    // irrecuperable (situación 5) debtor in proceso judicial.
+    const a = new HttpBcraAdapter({
+      fetch: mockFetch(() => ({
+        ok: true,
+        status: 200,
+        body: {
+          status: 200,
+          results: {
+            identificacion: 30500000018,
+            denominacion: "MOROSO SA",
+            periodos: [
+              {
+                periodo: "202601",
+                entidades: [
+                  {
+                    entidad: "BANCO DE LA NACION ARGENTINA",
+                    situacion: 5,
+                    monto: 2_000,
+                    diasAtrasoPago: 400,
+                    refinanciaciones: false,
+                    enRevision: true,
+                    procesoJud: true,
+                  },
+                ],
+              },
+            ],
+          },
+        },
+      })),
+    });
+    const r = await a.getDebt("30500000018");
+    expect(r.entidades).toHaveLength(1);
+    expect(r.entidades[0]?.situacion).toBe(5);
+    expect(r.entidades[0]?.procesoJud).toBe(true);
+
+    const summary = summarizeDebt(r);
+    expect(summary.worstSituacion).toBe(5);
+    expect(summary.hasProcesoJudicial).toBe(true);
+    expect(riskBand(summary)).not.toBe("clean");
+    expect(riskBand(summary)).toBe("high");
+  });
+
+  it("picks the most recent periodo when several are returned", async () => {
+    const a = new HttpBcraAdapter({
+      fetch: mockFetch(() => ({
+        ok: true,
+        status: 200,
+        body: {
+          results: {
+            periodos: [
+              {
+                periodo: "202511",
+                entidades: [
+                  { entidad: "BANCO VIEJO", situacion: 1, monto: 10 },
+                ],
+              },
+              {
+                periodo: "202601",
+                entidades: [
+                  { entidad: "BANCO NUEVO", situacion: 3, monto: 20 },
+                ],
+              },
+            ],
+          },
+        },
+      })),
+    });
+    const r = await a.getDebt("30500000018");
+    expect(r.periodo).toBe("202601");
+    expect(r.entidades).toHaveLength(1);
+    expect(r.entidades[0]?.entidad).toBe("BANCO NUEVO");
+    expect(r.entidades[0]?.situacion).toBe(3);
   });
 
   it("maps 404 to BcraNotFoundError (not generic API error)", async () => {
@@ -299,8 +391,12 @@ describe("HttpBcraAdapter", () => {
         status: 200,
         body: {
           results: {
-            periodo: "202601",
-            entidades: [{ entidad: 1, entidadNombre: "x", periodo: "202601", situacion: 99 }],
+            periodos: [
+              {
+                periodo: "202601",
+                entidades: [{ entidad: "BANCO X", situacion: 99 }],
+              },
+            ],
           },
         },
       })),

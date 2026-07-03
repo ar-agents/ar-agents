@@ -13,6 +13,7 @@ import {
   AlicuotaIva,
   CondicionIvaReceptor,
 } from "../src/catalogs";
+import { WsfeValidationError } from "../src/errors";
 import {
   FE_DUMMY_OK,
   FE_PARAM_TIPOS_CBTE,
@@ -323,6 +324,112 @@ describe("solicitarCAE — SOAP-XML injection hardening (DeepSec MEDIUM)", () =>
     const body = await captureBody({ cuit: `20123456786</fev1:Cuit><evil/>` });
     expect(body).not.toContain("<evil/>");
     expect(body).toContain("&lt;/fev1:Cuit&gt;&lt;evil/&gt;");
+  });
+});
+
+describe("solicitarCAE — non-idempotent: never retries (duplicate-invoice guard)", () => {
+  // A request timeout in fetchWithRetry aborts the AbortController, so the
+  // fetch rejects with an AbortError — the exact shape AFIP timeouts take.
+  function timingOutFetch(): { fetchImpl: typeof fetch; calls: () => number } {
+    const fn = vi.fn(async () => {
+      const err = new Error("The operation was aborted.");
+      err.name = "AbortError";
+      throw err;
+    });
+    return { fetchImpl: fn as unknown as typeof fetch, calls: () => fn.mock.calls.length };
+  }
+
+  const caeInput = {
+    ptoVta: 1,
+    cbteTipo: CbteTipo.FACTURA_C,
+    concepto: Concepto.SERVICIOS,
+    docTipo: DocTipo.CUIT,
+    docNro: "20123456786",
+    cbteDesde: 43,
+    cbteHasta: 43,
+    cbteFch: "20260506",
+    impTotal: 100,
+    impNeto: 100,
+    impIVA: 0,
+    fchServDesde: "20260501",
+    fchServHasta: "20260531",
+    fchVtoPago: "20260615",
+  } as const;
+
+  it("does NOT retry FECAESolicitar on timeout even when maxRetries=1", async () => {
+    const { fetchImpl, calls } = timingOutFetch();
+    await expect(
+      solicitarCAE({
+        ...baseOpts,
+        maxRetries: 1, // read ops would retry once; FECAESolicitar must not
+        fetchImpl,
+        ...caeInput,
+      }),
+    ).rejects.toThrow();
+    // Exactly one underlying fetch — a retry after a post-authorization
+    // timeout would emit a duplicate comprobante.
+    expect(calls()).toBe(1);
+  });
+
+  it("control: an idempotent read op (FECompUltimoAutorizado) DOES retry with maxRetries=1", async () => {
+    const { fetchImpl, calls } = timingOutFetch();
+    await expect(
+      consultarUltimoAutorizado({
+        ...baseOpts,
+        maxRetries: 1,
+        fetchImpl,
+        ptoVta: 1,
+        cbteTipo: CbteTipo.FACTURA_C,
+      }),
+    ).rejects.toThrow();
+    // Initial attempt + 1 retry = 2 fetches — proves the mock triggers retries
+    // and the no-retry behavior above is specific to FECAESolicitar.
+    expect(calls()).toBe(2);
+  });
+});
+
+describe("solicitarCAE — client-boundary numeric validation (defense-in-depth)", () => {
+  const validCae = {
+    ptoVta: 1,
+    cbteTipo: CbteTipo.FACTURA_C,
+    concepto: Concepto.SERVICIOS,
+    docTipo: DocTipo.CUIT,
+    docNro: "20123456786",
+    cbteDesde: 43,
+    cbteHasta: 43,
+    cbteFch: "20260506",
+    impTotal: 100,
+    impNeto: 100,
+    impIVA: 0,
+    fchServDesde: "20260501",
+    fchServHasta: "20260531",
+    fchVtoPago: "20260615",
+  } as const;
+
+  it("throws WsfeValidationError for a non-numeric amount, never calling fetch", async () => {
+    const fetchImpl = vi.fn() as unknown as typeof fetch;
+    await expect(
+      solicitarCAE({
+        ...baseOpts,
+        fetchImpl,
+        ...validCae,
+        // A non-tool caller bypasses Zod: a crafted string amount must not
+        // reach the CAE XML.
+        impTotal: "100</fev1:ImpTotal><evil/>" as unknown as number,
+      }),
+    ).rejects.toThrow(WsfeValidationError);
+    expect((fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls.length).toBe(0);
+  });
+
+  it("throws WsfeValidationError for a NaN / non-finite amount", async () => {
+    const fetchImpl = vi.fn() as unknown as typeof fetch;
+    await expect(
+      solicitarCAE({ ...baseOpts, fetchImpl, ...validCae, impNeto: Number.NaN }),
+    ).rejects.toThrow(WsfeValidationError);
+    await expect(
+      solicitarCAE({ ...baseOpts, fetchImpl, ...validCae, impIVA: Infinity }),
+    ).rejects.toThrow(WsfeValidationError);
+    expect((fetchImpl as unknown as ReturnType<typeof vi.fn>).mock.calls.length).toBe(0);
   });
 });
 
