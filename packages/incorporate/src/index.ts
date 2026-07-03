@@ -42,6 +42,22 @@
  */
 
 const DEFAULT_BASE_URL = "https://ar-agents.ar";
+const DEFAULT_TIMEOUT_MS = 30_000;
+
+/**
+ * Compose a per-request timeout with the caller's optional signal. This stays
+ * dependency-free on purpose — `@ar-agents/incorporate` is a thin, zero-dep
+ * wrapper — but a default timeout means a hung `ar-agents.ar` can no longer
+ * block the agent forever (previously there was none).
+ */
+function timeoutSignal(timeoutMs: number, caller?: AbortSignal): AbortSignal {
+  const timeout = AbortSignal.timeout(timeoutMs);
+  if (!caller) return timeout;
+  const anyFn = (AbortSignal as unknown as {
+    any?: (s: AbortSignal[]) => AbortSignal;
+  }).any;
+  return typeof anyFn === "function" ? anyFn([caller, timeout]) : caller;
+}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Types — mirror the server contract at /api/auto-incorporate.
@@ -158,8 +174,10 @@ export interface IncorporateOptions {
   baseUrl?: string;
   /** Pass a custom `fetch` (e.g. for Node 18 polyfill or instrumented fetch). */
   fetchImpl?: typeof fetch;
-  /** Optional AbortSignal. */
+  /** Optional AbortSignal, composed with the per-request timeout. */
   signal?: AbortSignal;
+  /** Per-request timeout in ms. Default 30_000. Composed with `signal`. */
+  timeoutMs?: number;
   /** Optional extra request headers (e.g. tracing). */
   headers?: Record<string, string>;
 }
@@ -224,7 +242,7 @@ export async function incorporate(
       ...options.headers,
     },
     body: JSON.stringify(input),
-    signal: options.signal ?? null,
+    signal: timeoutSignal(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, options.signal),
   });
 
   // 422 → validation failure (a normal outcome). 200 → success.
@@ -268,7 +286,7 @@ export async function describe(
       "user-agent": "@ar-agents/incorporate (https://ar-agents.ar)",
       ...options.headers,
     },
-    signal: options.signal ?? null,
+    signal: timeoutSignal(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, options.signal),
   });
   if (!r.ok) {
     throw new IncorporateError(
@@ -305,7 +323,7 @@ export async function fetchAudit(
       "user-agent": "@ar-agents/incorporate (https://ar-agents.ar)",
       ...options.headers,
     },
-    signal: options.signal ?? null,
+    signal: timeoutSignal(options.timeoutMs ?? DEFAULT_TIMEOUT_MS, options.signal),
   });
   if (!r.ok) {
     throw new IncorporateError(
