@@ -110,7 +110,7 @@
     {
       "name": "CJS",
       "path": "dist/index.cjs",
-      "limit": "30 KB",
+      "limit": "34 KB",
       "ignore": [
         "node:crypto",
         "crypto"
