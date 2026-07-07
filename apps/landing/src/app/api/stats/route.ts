@@ -23,50 +23,17 @@
 import { NextResponse } from "next/server";
 import { promises as fs } from "node:fs";
 import path from "node:path";
+import { PUBLISHED_PACKAGE_NAMES } from "@/lib/stats";
 
 export const runtime = "nodejs";
 export const revalidate = 21600; // 6h
 
 const SITE = "https://ar-agents.ar";
 
-// All 33 published @ar-agents/* packages (31 ship tools.manifest.json; core +
-// incorporate are libraries without a tool surface). Keep in sync with
-// packages/, /api/discovery derives its own list dynamically at build time.
-const PACKAGES = [
-  "@ar-agents/aduana",
-  "@ar-agents/agentic-commerce-bridge",
-  "@ar-agents/anses",
-  "@ar-agents/ap2",
-  "@ar-agents/banking",
-  "@ar-agents/banking-bcra",
-  "@ar-agents/boletin-oficial",
-  "@ar-agents/cnv-emisor",
-  "@ar-agents/constancia",
-  "@ar-agents/core",
-  "@ar-agents/dnrpa",
-  "@ar-agents/facturacion",
-  "@ar-agents/firma-digital",
-  "@ar-agents/gde-tad",
-  "@ar-agents/identity",
-  "@ar-agents/identity-attest",
-  "@ar-agents/igj",
-  "@ar-agents/iibb",
-  "@ar-agents/incorporate",
-  "@ar-agents/inpi",
-  "@ar-agents/iva-percepciones",
-  "@ar-agents/iva-retenciones",
-  "@ar-agents/mcp",
-  "@ar-agents/mercadolibre",
-  "@ar-agents/mercadopago",
-  "@ar-agents/mi-argentina",
-  "@ar-agents/shipping",
-  "@ar-agents/sicore",
-  "@ar-agents/suss",
-  "@ar-agents/tienda-nube",
-  "@ar-agents/uala",
-  "@ar-agents/whatsapp",
-  "@ar-agents/wscdc",
-];
+// The published-package list lives in lib/stats.ts (single source of truth).
+// A hand-copied list here once drifted to 33 entries, silently dropping four
+// packages' downloads from the public numbers.
+const PACKAGES = PUBLISHED_PACKAGE_NAMES;
 
 const REGISTRY_URLS = [
   "https://ar-agents.ar",
