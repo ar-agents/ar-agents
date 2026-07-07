@@ -1,32 +1,37 @@
 {
   "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/boletin-oficial",
-  "version": "0.1.0",
+  "version": "0.2.4",
   "description": "Boletín Oficial de la República Argentina — search published normas, fetch by ID, query the day's edition, subscribe to keyword/CUIT/organismo updates.",
   "tools": [
     {
-      "name": "bo_search",
-      "description": "Search the Argentine Boletín Oficial (buscar en el Boletín Oficial). Returns a list of normas (laws, decrees, resoluciones, sociedades, contracting, judicial notices) matching free-text query + option"
-    },
-    {
       "name": "bo_get_norma",
       "description": "Fetch a single norma from the Boletín Oficial by id (consultar una norma). Returns the title, organismo, full text, fecha de publicación, and any CUITs mentioned. USE THIS WHEN: you have an id (from `"
-    },
-    {
-      "name": "bo_today",
-      "description": "Fetch today's Boletín Oficial publications (qué salió hoy en el Boletín Oficial), optionally filtered by sección. USE THIS WHEN: the user wants a daily summary of newly-published norms, e.g. `qué publ"
-    },
-    {
-      "name": "bo_subscribe",
-      "description": "Subscribe to Boletín Oficial alerts (suscribirse a alertas del Boletín Oficial). The matcher fires whenever a new norma matches the criteria, keyword, CUIT, organismo, sección, or tipo. USE THIS WHEN:"
     },
     {
       "name": "bo_list_subscriptions",
       "description": "List active Boletín Oficial subscriptions (listar suscripciones). USE THIS WHEN: the user wants to see what they've subscribed to. Pass `owner_id` to scope to a specific user/tenant."
     },
     {
+      "name": "bo_search",
+      "description": "Search the Argentine Boletín Oficial (buscar en el Boletín Oficial). Returns a list of normas (laws, decrees, resoluciones, sociedades, contracting, judicial notices) matching free-text query + option"
+    },
+    {
+      "name": "bo_subscribe",
+      "description": "Subscribe to Boletín Oficial alerts (suscribirse a alertas del Boletín Oficial). The matcher fires whenever a new norma matches the criteria, keyword, CUIT, organismo, sección, or tipo. USE THIS WHEN:"
+    },
+    {
+      "name": "bo_today",
+      "description": "Fetch today's Boletín Oficial publications (qué salió hoy en el Boletín Oficial), optionally filtered by sección. USE THIS WHEN: the user wants a daily summary of newly-published norms, e.g. `qué publ"
+    },
+    {
       "name": "bo_unsubscribe",
       "description": "Remove a Boletín Oficial subscription by id (cancelar una suscripción). USE THIS WHEN: the user wants to stop a previous bo_subscribe."
     }
-  ]
+  ],
+  "name": "@ar-agents/boletin-oficial",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 6
+  }
 }

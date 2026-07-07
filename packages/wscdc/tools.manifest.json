@@ -1,21 +1,26 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/wscdc",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "tools": [
-    {
-      "name": "wscdc_validate_comprobante",
-      "description": "Verify a received invoice's CAE against AFIP (constatar comprobante, verificar CAE de una factura recibida): confirms it was actually issued by AFIP. Use this BEFORE ingesting any received factura int",
-      "sideEffects": "network read",
-      "idempotent": true,
-      "requiresConfirmation": false
-    },
     {
       "name": "wscdc_health",
       "description": "Ping the AFIP WSCDC service (Dummy operation). Returns AppServer/DbServer/AuthServer statuses. Use to confirm WSCDC is reachable + your WSAA token still works before a batch validation flow.",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
+    },
+    {
+      "name": "wscdc_validate_comprobante",
+      "description": "Verify a received invoice's CAE against AFIP (constatar comprobante, verificar CAE de una factura recibida): confirms it was actually issued by AFIP. Use this BEFORE ingesting any received factura int",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/wscdc",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 2
+  }
 }

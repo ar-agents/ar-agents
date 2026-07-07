@@ -1,12 +1,17 @@
 {
   "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/constancia",
-  "version": "0.1.0",
+  "version": "0.2.5",
   "description": "ARCA Constancia de Inscripción — official fiscal document (régimen, monotributo categoría, impuestos, domicilio, actividades) plus the PDF artifact. Browser-backed: drives the public web form (no Clave Fiscal) via the companion afip-constancia skill on browserbase/skills.",
   "tools": [
     {
       "name": "constancia_inscripcion",
       "description": "Get the official AFIP/ARCA registration certificate for a CUIT (constancia de inscripción, obtené la Constancia de Inscripción de ARCA, ex-AFIP): el régimen (monotributo + categoría / responsable insc"
     }
-  ]
+  ],
+  "name": "@ar-agents/constancia",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 1
+  }
 }

@@ -1,18 +1,18 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/suss",
-  "version": "0.1.0",
+  "version": "0.2.3",
   "tools": [
     {
-      "name": "suss_calculate_employee_month",
-      "description": "Calculate monthly payroll social-security amounts for one employee (calcular aportes y contribuciones) per F.931 / SICOSS. Returns the structured breakdown (jubilación, INSSJP, obra social, asignacion",
+      "name": "suss_build_ddjj",
+      "description": "Assemble the monthly SICOSS return (armar la DDJJ SICOSS, F.931) from per-employee results with vector totals (Seguridad Social, Obra Social, ART) + per-employee detail. Pure aggregation, does NOT sub",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
-      "name": "suss_build_ddjj",
-      "description": "Assemble the monthly SICOSS return (armar la DDJJ SICOSS, F.931) from per-employee results with vector totals (Seguridad Social, Obra Social, ART) + per-employee detail. Pure aggregation, does NOT sub",
+      "name": "suss_calculate_employee_month",
+      "description": "Calculate monthly payroll social-security amounts for one employee (calcular aportes y contribuciones) per F.931 / SICOSS. Returns the structured breakdown (jubilación, INSSJP, obra social, asignacion",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
@@ -24,5 +24,10 @@
       "idempotent": true,
       "requiresConfirmation": true
     }
-  ]
+  ],
+  "name": "@ar-agents/suss",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 3
+  }
 }

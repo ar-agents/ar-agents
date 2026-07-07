@@ -1,8 +1,15 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/sicore",
-  "version": "0.1.0",
+  "version": "0.2.5",
   "tools": [
+    {
+      "name": "sicore_build_ddjj",
+      "description": "Assemble the monthly SICORE return (armar la DDJJ SICORE) from a list of retention results. Returns totals + per-category + per-supplier breakdowns ready for filing. Pure aggregation; does NOT submit.",
+      "sideEffects": "none",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
     {
       "name": "sicore_calculate_retention",
       "description": "Calculate the SICORE income-tax retention on a supplier payment (calcular retención de Ganancias SICORE). Implements the RG 830/00 rule: retention is on the MONTHLY ACCUMULATED amount (passed via accu",
@@ -18,18 +25,16 @@
       "requiresConfirmation": false
     },
     {
-      "name": "sicore_build_ddjj",
-      "description": "Assemble the monthly SICORE return (armar la DDJJ SICORE) from a list of retention results. Returns totals + per-category + per-supplier breakdowns ready for filing. Pure aggregation; does NOT submit.",
-      "sideEffects": "none",
-      "idempotent": true,
-      "requiresConfirmation": false
-    },
-    {
       "name": "sicore_submit_ddjj",
       "description": "Submit an assembled SICORE return to AFIP/ARCA (presentar la DDJJ SICORE). Throws SicoreUnconfiguredError unless the host wired a real submission adapter. Confirmation gate REQUIRED in the host UI bef",
       "sideEffects": "files tax return",
       "idempotent": true,
       "requiresConfirmation": true
     }
-  ]
+  ],
+  "name": "@ar-agents/sicore",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 4
+  }
 }

@@ -1,7 +1,7 @@
 {
   "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/firma-digital",
-  "version": "0.1.0",
+  "version": "0.3.3",
   "description": "AR digital signature primitives — PKCS#7/CMS verification with AC-Raíz/ONTI trust-anchor heuristic and certificate fingerprint pinning.",
   "tools": [
     {
@@ -9,16 +9,21 @@
       "description": "Inspect an Argentine Firma Digital X.509 certificate (inspeccionar certificado de firma digital, PEM-encoded) and return its subject, issuer, validity window, CUIT (when embedded), public-key info, an"
     },
     {
-      "name": "firma_verify_chain",
-      "description": "Verify an X.509 certificate chain (verificar cadena de certificados; PEM bundle, leaf → root), checks issuer-by-subject linking, RSA signatures, validity window. Returns valid/reason + per-cert trace."
-    },
-    {
       "name": "firma_is_onti_issued",
       "description": "Check if a cert was issued under Argentine Firma Digital (¿es un certificado de firma digital argentina? AC-Raíz / ONTI ecosystem); quick yes/no. Heuristic-based on issuer DN attributes. PURE FUNCTION"
+    },
+    {
+      "name": "firma_verify_chain",
+      "description": "Verify an X.509 certificate chain (verificar cadena de certificados; PEM bundle, leaf → root): checks issuer-by-subject linking, RSA/ECDSA signatures, CA basic-constraints, strong signature algorithms"
     },
     {
       "name": "firma_verify_cms_signature",
       "description": "Verify a digitally signed document (verificar firma digital de un documento): detached PKCS#7 / CMS signature against a payload (e.g., `firma.p7s` produced by an AR signing tool). Returns valid/reason"
     }
-  ]
+  ],
+  "name": "@ar-agents/firma-digital",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 4
+  }
 }
