@@ -1,6 +1,7 @@
 import { kv } from "@vercel/kv";
 import { appendAudit } from "@/lib/audit";
 import { jsonCors, preflight } from "@/lib/cors";
+import { constantTimeEqual } from "@/lib/incorporate-auth";
 
 /**
  * POST /api/auditor/webhook: Mercado Pago subscription lifecycle sink.
@@ -73,7 +74,9 @@ async function signatureValid(req: Request, dataId: string): Promise<boolean> {
     const hex = Array.from(new Uint8Array(mac))
       .map((b) => b.toString(16).padStart(2, "0"))
       .join("");
-    return hex === v1;
+    // Compared in constant time (the shared Edge-safe helper), matching every
+    // other secret comparison in the app.
+    return await constantTimeEqual(hex, v1);
   } catch {
     return false;
   }

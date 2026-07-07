@@ -639,6 +639,28 @@ export async function upsertRecordRaw(rec: RegistryRecord): Promise<RegistryReco
 
   // In-memory fallback.
   if (isNew && memIds.size >= MAX_IDS) return null;
+  // The async guard above yields between its read and this write, so two racing
+  // in-memory upserts could both pass it. Re-run the claim guard in the same
+  // synchronous block as the write (no await in between), so the second racer
+  // always sees the first racer's index write and loses.
+  if (guarded) {
+    if (origin) {
+      const boundId = memByUrl.get(origin);
+      if (boundId && boundId !== rec.id) throw new UrlTakenError();
+    }
+    const cuitDigits = rec.operatorCuit?.replace(/\D/g, "") ?? "";
+    if (cuitDigits) {
+      for (const other of memEntries.values()) {
+        if (
+          other.id !== rec.id &&
+          other.operatorCuit &&
+          other.operatorCuit.replace(/\D/g, "") === cuitDigits
+        ) {
+          throw new CuitTakenError();
+        }
+      }
+    }
+  }
   memEntries.set(rec.id, rec);
   memIds.add(rec.id);
   if (origin) memByUrl.set(origin, rec.id);
@@ -646,16 +668,49 @@ export async function upsertRecordRaw(rec: RegistryRecord): Promise<RegistryReco
 }
 
 /**
+ * Serialize the claim guard on the RESOURCES being claimed (origin + CUIT), not
+ * only on the entry id. Without this, two concurrent self-lists with the same
+ * publicUrl but different names take disjoint per-entity locks and both pass the
+ * uniqueness guard, defeating the origin-hijack protection. Lock keys are sorted
+ * so any two callers acquire overlapping locks in the same order (no deadlock);
+ * both namespaces are disjoint from the per-entity lock key, so nesting is safe.
+ * Skipped for seed records (never guarded) and no-op when KV is not wired (the
+ * in-memory path is protected by the synchronous re-check in upsertRecordRaw).
+ */
+async function withClaimLocks<T>(rec: RegistryRecord, fn: () => Promise<T>): Promise<T> {
+  const lockKeys: string[] = [];
+  if (rec.source !== "seed") {
+    const origin = urlOrigin(rec.publicUrl);
+    if (origin) lockKeys.push(`registry:claim:url:${b64url(origin)}`);
+    const cuitDigits = rec.operatorCuit?.replace(/\D/g, "") ?? "";
+    if (cuitDigits) lockKeys.push(`registry:claim:cuit:${cuitDigits}`);
+  }
+  lockKeys.sort();
+  let run = fn;
+  for (const key of lockKeys.reverse()) {
+    const inner = run;
+    run = () => withKvLock(key, inner);
+  }
+  return run();
+}
+
+/**
  * Public create/replace. Acquires the per-entity lock so a STANDALONE write (e.g.
  * a self-list POST) is serialized against concurrent good-standing writes — and so
- * the claim-guard's origin/cuit check + write is itself atomic. Callers that read
- * BEFORE writing (the lifecycle transitions) must instead take {@link withEntityLock}
- * around their read + {@link upsertRecordRaw} to keep the whole section atomic.
+ * the claim-guard's origin/cuit check + write is itself atomic. Also acquires the
+ * claim locks on the origin and the CUIT being claimed (see withClaimLocks), so two
+ * concurrent self-lists of the SAME origin or CUIT under DIFFERENT ids serialize
+ * and the second one loses the claim guard. Callers that read BEFORE writing (the
+ * lifecycle transitions) must instead take {@link withEntityLock} around their
+ * read + {@link upsertRecordRaw} to keep the whole section atomic (they only
+ * update existing ids, so the claim guard never applies to them).
  * UrlTakenError / CuitTakenError propagate; transient lock contention → null.
  */
 export async function upsertRecord(rec: RegistryRecord): Promise<RegistryRecord | null> {
   try {
-    return await withEntityLock(rec.id, () => upsertRecordRaw(rec));
+    return await withClaimLocks(rec, () =>
+      withEntityLock(rec.id, () => upsertRecordRaw(rec)),
+    );
   } catch (e) {
     if (e instanceof KvLockError) return null;
     throw e;

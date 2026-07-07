@@ -28,6 +28,7 @@ import { clientIp, rateLimit, kvRateLimit } from "@/lib/ratelimit";
 import { jsonCors, preflight } from "@/lib/cors";
 import { mintCapabilityToken, verifyCapabilityToken } from "@/lib/capability-token";
 import { constantTimeEqual } from "@/lib/incorporate-auth";
+import { transitionStatus } from "@/lib/registry-lifecycle";
 import {
   getRecord,
   listRecords,
@@ -487,27 +488,49 @@ export async function PATCH(req: Request): Promise<Response> {
     const verdict = await runCertifier(origin);
     if (verdict) {
       const passes = verdict.rating !== "N/A" && verdict.score >= MIN_PASS_SCORE;
+      // The certifier ran UNLOCKED for up to 12s, so `stored` is a stale snapshot:
+      // a concurrent admin suspend/revoke may have landed meanwhile. Re-read the
+      // latest record and merge ONLY the certification-result fields onto it, so
+      // this branch can never blind-write a pre-certifier snapshot over a sanction.
+      const latest = (await getRecord(id)) ?? stored;
       const sanctioned =
-        stored.goodStanding.state === "suspended" || stored.goodStanding.state === "revoked";
-      const updated = await setGoodStanding(id, {
-        // NEVER auto-clear a manual suspended/revoked sanction.
-        state: sanctioned ? stored.goodStanding.state : passes ? "active" : "unverified",
-        lastCheckedAt: new Date().toISOString(),
-        lastScore: verdict.score,
-        lastRating: verdict.rating,
-      });
+        latest.goodStanding.state === "suspended" || latest.goodStanding.state === "revoked";
+      let finalRecord = latest;
+      try {
+        const updated = await setGoodStanding(id, {
+          // NEVER auto-clear a manual suspended/revoked sanction.
+          state: sanctioned ? latest.goodStanding.state : passes ? "active" : "unverified",
+          lastCheckedAt: new Date().toISOString(),
+          lastScore: verdict.score,
+          lastRating: verdict.rating,
+        });
+        if (updated) finalRecord = updated;
+      } catch (e) {
+        // A revoke landed between the re-read and this write (terminal guard at
+        // the storage chokepoint). Keep the revoked record untouched and drop the
+        // cert result rather than resurrecting the entity.
+        if (e instanceof RevokedTerminalError) {
+          finalRecord = (await getRecord(id)) ?? finalRecord;
+        } else {
+          throw e;
+        }
+      }
       // A passing re-cert may now flip status to live (matches POST auto-flip);
       // a manual sanction or a fail keeps it draft. The owner can never go live
-      // by hand — only a passing certifier score does it.
-      let finalRecord = updated ?? stored;
-      const shouldGoLive = passes && !sanctioned;
-      if (finalRecord.status !== (shouldGoLive ? "live" : "draft")) {
-        const restatused = await upsertRecord({
-          ...finalRecord,
-          status: shouldGoLive ? "live" : "draft",
-          updatedAt: new Date().toISOString(),
+      // by hand; only a passing certifier score does it. The status change goes
+      // through the validated lifecycle module (allow-list + history + webhooks)
+      // instead of a blind whole-record upsert.
+      const nowSanctioned =
+        finalRecord.goodStanding.state === "suspended" ||
+        finalRecord.goodStanding.state === "revoked";
+      const shouldGoLive = passes && !nowSanctioned;
+      const targetStatus: RegistryStatus = shouldGoLive ? "live" : "draft";
+      if (finalRecord.status !== targetStatus) {
+        const transitioned = await transitionStatus(id, targetStatus, {
+          reason: `re-cert after publicUrl change: score ${verdict.score} (${verdict.rating})`,
+          source: "owner",
         });
-        if (restatused) finalRecord = restatused;
+        if (transitioned.ok) finalRecord = transitioned.record;
       }
       recertified = { score: verdict.score, rating: verdict.rating, passed: passes };
       await recordTrend(origin);
