@@ -1,5 +1,10 @@
 name: CI
 
+# Read-only jobs: explicit minimal GITHUB_TOKEN scope (also keeps the
+# OpenSSF Scorecard Token-Permissions check green).
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]
@@ -86,6 +91,11 @@ jobs:
         run: pnpm --filter sociedad-ia-starter run typecheck
       - name: Test starter
         run: pnpm --filter sociedad-ia-starter run test
+      # The hello/demo apps are the public getting-started surface; their
+      # typecheck scripts existed but nothing ran them, so they could rot
+      # undetected. Recursive run skips apps without a typecheck script.
+      - name: Typecheck demo apps
+        run: pnpm -r --filter "./apps/*" --filter "!ar-agents-landing" --filter "!sociedad-ia-starter" run typecheck
       # Lint is informational for now: the landing carries ~180 pre-existing
       # lint errors (mostly react/no-unescaped-entities across marketing pages)
       # from before it was ever in CI. Surfacing them without blocking; the

@@ -6,6 +6,10 @@
 # weakened by the dependency graph.
 name: arg-verify
 
+# Read-only job: explicit minimal GITHUB_TOKEN scope.
+permissions:
+  contents: read
+
 on:
   push:
     branches: [main]

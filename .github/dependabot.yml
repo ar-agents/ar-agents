@@ -35,3 +35,30 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "changesets/action"
         update-types: ["version-update:semver-major"]
+
+  # npm/pnpm workspace: without this entry the 37 published packages get no
+  # automated dependency or security PRs at all (the pnpm.overrides security
+  # pins in package.json were being maintained by hand). Grouped weekly PRs
+  # keep the volume low: one PR for all minor+patch dev bumps, one for prod.
+  - package-ecosystem: "npm"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+      day: "monday"
+    open-pull-requests-limit: 5
+    versioning-strategy: increase-if-necessary
+    commit-message:
+      prefix: "chore"
+      include: "scope"
+    labels:
+      - "dependencies"
+    groups:
+      minor-and-patch:
+        applies-to: version-updates
+        update-types:
+          - "minor"
+          - "patch"
+    ignore:
+      # Majors need manual review (peer ranges + published package contracts).
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
