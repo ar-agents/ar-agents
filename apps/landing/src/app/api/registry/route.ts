@@ -27,7 +27,7 @@ import { safeExternalUrl } from "@/lib/ssrf";
 import { clientIp, rateLimit, kvRateLimit } from "@/lib/ratelimit";
 import { jsonCors, preflight } from "@/lib/cors";
 import { mintCapabilityToken, verifyCapabilityToken } from "@/lib/capability-token";
-import { constantTimeEqual } from "@/lib/incorporate-auth";
+import { isRegistryAdmin } from "@/lib/admin-auth";
 import { transitionStatus } from "@/lib/registry-lifecycle";
 import {
   getRecord,
@@ -52,26 +52,6 @@ const OWNER_KIND = "registry-owner";
 const OWNER_PREFIX = "rgo";
 /** Min rating that auto-flips a self-listed entry to live/active. */
 const MIN_PASS_SCORE = 60; // "C"
-
-/**
- * The GLOBAL ar-agents operator override. Possession of this single env secret
- * (REGISTRY_ADMIN_TOKEN) authorizes regulator-grade suspend/revoke across the
- * whole registry — the "teeth" — without the per-entry owner token.
- *
- * FAIL-CLOSED: if the env is UNSET the override is UNAVAILABLE (every admin
- * attempt is rejected). We never treat "no admin secret configured" as "anyone
- * is admin". Compared in constant time (Edge-safe HMAC) so the secret never
- * leaks through timing.
- */
-async function isRegistryAdmin(req: Request): Promise<boolean> {
-  const configured = process.env.REGISTRY_ADMIN_TOKEN?.trim();
-  if (!configured) return false; // fail-closed: override disabled when unset
-  const presented =
-    req.headers.get("x-admin-token")?.trim() ||
-    (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!presented) return false;
-  return constantTimeEqual(presented, configured);
-}
 
 // ─────────────────────────────────────────────────────────────────────────────
 // Schemas

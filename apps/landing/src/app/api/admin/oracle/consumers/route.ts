@@ -8,7 +8,7 @@
  */
 
 import { jsonCors, preflight } from "@/lib/cors";
-import { constantTimeEqual } from "@/lib/incorporate-auth";
+import { isRegistryAdmin } from "@/lib/admin-auth";
 import { mintConsumerKey, listConsumers, revokeConsumer } from "@/lib/oracle-consumer";
 import { deleteWebhooksForConsumer } from "@/lib/oracle-webhooks";
 
@@ -16,25 +16,15 @@ export const runtime = "nodejs";
 
 const NO_STORE = { headers: { "Cache-Control": "no-store" } };
 
-async function isAdmin(req: Request): Promise<boolean> {
-  const configured = process.env.REGISTRY_ADMIN_TOKEN?.trim();
-  if (!configured) return false;
-  const presented =
-    req.headers.get("x-admin-token")?.trim() ||
-    (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!presented) return false;
-  return constantTimeEqual(presented, configured);
-}
-
 export async function GET(req: Request) {
-  if (!(await isAdmin(req))) {
+  if (!(await isRegistryAdmin(req))) {
     return jsonCors({ ok: false, error: "unauthorized" }, { status: 401, ...NO_STORE });
   }
   return jsonCors({ ok: true, consumers: await listConsumers() }, NO_STORE);
 }
 
 export async function POST(req: Request) {
-  if (!(await isAdmin(req))) {
+  if (!(await isRegistryAdmin(req))) {
     return jsonCors({ ok: false, error: "unauthorized" }, { status: 401, ...NO_STORE });
   }
   let body: Record<string, unknown>;
