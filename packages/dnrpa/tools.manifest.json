@@ -1,6 +1,6 @@
 {
   "package": "@ar-agents/dnrpa",
-  "version": "0.1.0",
+  "version": "0.2.3",
   "tools": [
     {
       "name": "dnrpa_lookup_dominio",
@@ -12,5 +12,10 @@
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/dnrpa",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 1
+  }
 }

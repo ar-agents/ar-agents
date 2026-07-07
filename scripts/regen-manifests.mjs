@@ -14,13 +14,19 @@
  * truth got a 3-version-stale view. This script closes that gap.
  */
 
-import { readFileSync, writeFileSync, existsSync } from "node:fs";
+import { readFileSync, writeFileSync, existsSync, readdirSync } from "node:fs";
 import { join, dirname, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
 const root = resolve(dirname(fileURLToPath(import.meta.url)), "..");
 
-const packages = ["identity", "identity-attest", "whatsapp", "mercadopago", "facturacion", "banking", "shipping", "gde-tad"];
+// Every package that ships a tools.manifest.json is in scope. A hardcoded
+// list here once covered only 8 of them, which let the other manifests (and
+// the check-manifests CI gate over them) drift silently.
+const packages = readdirSync(join(root, "packages"), { withFileTypes: true })
+  .filter((d) => d.isDirectory() && existsSync(join(root, "packages", d.name, "tools.manifest.json")))
+  .map((d) => d.name)
+  .sort();
 
 let regenerated = 0;
 let skipped = 0;
@@ -69,18 +75,25 @@ for (const pkg of packages) {
 
   // Build new tools array. Preserve any per-tool metadata that already existed.
   const oldTools = Array.isArray(oldManifest.tools) ? oldManifest.tools : [];
+
+  // A package whose src/tools.ts the regex parser cannot read at all would
+  // otherwise get its manifest clobbered down to zero tools. Skip it loudly.
+  if (toolNames.size === 0 && oldTools.length > 0) {
+    console.log(`  ${pkg}: parser found 0 tools but manifest has ${oldTools.length} - skipping (check src/tools.ts shape)`);
+    skipped++;
+    continue;
+  }
   const oldByName = new Map(oldTools.map((t) => [t.name, t]));
 
+  // Preserve every field a tool entry already carried (sideEffects,
+  // requiresConfirmation, input, output, idempotent, ...) and only refresh
+  // the description from source. An earlier version enumerated fields to
+  // keep and silently dropped the rest.
   const newTools = Array.from(toolNames).sort().map((name) => {
     const old = oldByName.get(name) ?? {};
-    return {
-      name,
-      ...(descriptions[name] ? { description: descriptions[name] } : old.description ? { description: old.description } : {}),
-      ...(old.input ? { input: old.input } : {}),
-      ...(old.output ? { output: old.output } : {}),
-      ...(old.idempotent !== undefined ? { idempotent: old.idempotent } : {}),
-      ...(old.sideEffect ? { sideEffect: old.sideEffect } : {}),
-    };
+    const entry = { ...old, name };
+    if (descriptions[name]) entry.description = descriptions[name];
+    return entry;
   });
 
   const newManifest = {

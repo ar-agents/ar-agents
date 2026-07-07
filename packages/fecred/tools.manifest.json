@@ -1,11 +1,25 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/fecred",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "tools": [
+    {
+      "name": "fecred_accept_invoice",
+      "description": "Accept a received electronic credit invoice (FCE) and its cuenta corriente balance. Irreversible legal act: the FCE becomes a negotiable credit title.",
+      "sideEffects": "network write",
+      "idempotent": false,
+      "requiresConfirmation": true
+    },
     {
       "name": "fecred_check_obligation",
       "description": "Check if an invoice to a given CUIT must be a Factura de Credito Electronica MiPyME (FCE). Returns obligado plus montoDesde, the live regime threshold from AFIP.",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
+    {
+      "name": "fecred_health",
+      "description": "Ping the AFIP WSFECred service (dummy operation). Returns appServer/dbServer/authServer statuses.",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
@@ -18,25 +32,16 @@
       "requiresConfirmation": false
     },
     {
-      "name": "fecred_accept_invoice",
-      "description": "Accept a received electronic credit invoice (FCE) and its cuenta corriente balance. Irreversible legal act: the FCE becomes a negotiable credit title.",
-      "sideEffects": "network write",
-      "idempotent": false,
-      "requiresConfirmation": true
-    },
-    {
       "name": "fecred_reject_invoice",
       "description": "Reject a received electronic credit invoice (FCE) with at least one justified motivo de rechazo. Irreversible legal act, only valid inside the legal acceptance window.",
       "sideEffects": "network write",
       "idempotent": false,
       "requiresConfirmation": true
-    },
-    {
-      "name": "fecred_health",
-      "description": "Ping the AFIP WSFECred service (dummy operation). Returns appServer/dbServer/authServer statuses.",
-      "sideEffects": "network read",
-      "idempotent": true,
-      "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/fecred",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 5
+  }
 }

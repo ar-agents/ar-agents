@@ -20,7 +20,7 @@
  * no UBO profile) an entity can hand to a counterparty.
  */
 
-import { constantTimeEqual } from "@/lib/incorporate-auth";
+import { isRegistryAdmin } from "@/lib/admin-auth";
 import { verifyCapabilityToken } from "@/lib/capability-token";
 import { getRecord } from "@/lib/registry-store";
 import { buildBundle } from "@/lib/portability-bundle";
@@ -39,16 +39,6 @@ function json(body: unknown, status = 200): Response {
   });
 }
 
-async function isAdmin(req: Request): Promise<boolean> {
-  const configured = process.env.REGISTRY_ADMIN_TOKEN?.trim();
-  if (!configured) return false;
-  const presented =
-    req.headers.get("x-admin-token")?.trim() ||
-    (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!presented) return false;
-  return constantTimeEqual(presented, configured);
-}
-
 export async function GET(req: Request): Promise<Response> {
   const url = new URL(req.url);
   const id = url.searchParams.get("id")?.trim();
@@ -58,7 +48,7 @@ export async function GET(req: Request): Promise<Response> {
   // HEADER ONLY. A PII-gating token must never travel in a query param (logs,
   // Referer, browser history). Seed/formed entries have no owner token, so their
   // export requires the admin token — never falls through to "anyone".
-  const admin = await isAdmin(req);
+  const admin = await isRegistryAdmin(req);
   const ownerToken = req.headers.get("x-registry-token")?.trim() || "";
   const owner = ownerToken ? await verifyCapabilityToken(OWNER_KIND, id, ownerToken) : false;
   if (!admin && !owner) {

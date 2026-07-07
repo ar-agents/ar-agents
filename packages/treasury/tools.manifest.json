@@ -2,12 +2,12 @@
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/treasury",
   "name": "@ar-agents/treasury",
-  "version": "0.2.0",
+  "version": "0.6.0",
   "factory": "treasuryTools",
   "tools": [
     {
       "name": "treasury_buffer_status",
-      "description": "Given the ARS balance and upcoming AFIP obligations, compute the peso buffer needed within a horizon (with a safety multiple) and any shortfall. Pure (clock injected).",
+      "description": "none",
       "input": {
         "arsBalance": "number",
         "obligations": "Array<{id,kind,amountArs,dueAtMs}>",
@@ -25,7 +25,7 @@
     },
     {
       "name": "treasury_monotributo",
-      "description": "Monthly monotributo cuota (ARS) and/or the category for an annual income. Values eff. 2026-02-01 (IPC-indexed). Monotributo is for a persona-humana operator; a SAS/SRL is in the general regime. Pure.",
+      "description": "none",
       "input": {
         "activity": "'servicios' | 'bienes'",
         "category": "'A'..'K'? (one of)",
@@ -41,7 +41,7 @@
     },
     {
       "name": "treasury_offramp_convert",
-      "description": "EXECUTE an off-ramp: sell USDC and pay out ARS to the society's CVU via the PSAV. IRREVERSIBLE. Requires human approval (RFC-001) and is kill-switch gated. Async settlement; confirm with treasury_offramp_status.",
+      "description": "irreversible",
       "input": {
         "amountUsd": "number positive",
         "externalId": "string? (idempotency key)"
@@ -58,7 +58,7 @@
     },
     {
       "name": "treasury_offramp_quote",
-      "description": "Live USDC->ARS quote from the configured registered-PSAV off-ramp (Manteca). Read-only. Returns {available:false} if no off-ramp is configured.",
+      "description": "network read",
       "input": {
         "amountUsd": "number positive"
       },
@@ -73,7 +73,7 @@
     },
     {
       "name": "treasury_offramp_status",
-      "description": "Poll the settlement status of a prior treasury_offramp_convert by txId. Confirm the ARS landed in the CVU before marking an obligation funded. Returns {available:false} without an off-ramp.",
+      "description": "network read",
       "input": {
         "txId": "string"
       },
@@ -87,7 +87,7 @@
     },
     {
       "name": "treasury_plan_conversion",
-      "description": "Plan a just-in-time USDC->ARS conversion: how much USDC to convert to top the ARS buffer, net of spread, capped by available USDC. Never over-converts. Plans only; does not execute. Pure.",
+      "description": "none",
       "input": {
         "usd": "number",
         "ars": "number",
@@ -106,7 +106,7 @@
     },
     {
       "name": "treasury_settlement_plan",
-      "description": "How a tax obligation actually gets paid, honestly. No method pays autonomously at pay-time (canAutoExecute is always false); debito_automatico is passive after one-time enrolment, vep/mp need a human. Pure.",
+      "description": "none",
       "input": {
         "amountArs": "number",
         "dueAtMs": "number",
@@ -125,7 +125,7 @@
     },
     {
       "name": "treasury_tax_estimate",
-      "description": "Estimate the Ganancias cedular owed (ARS) on disposing crypto: 5% (sold in pesos, no adjustment clause) or 15% (foreign currency), on the GAIN only. Crypto is IVA-exempt. Pure.",
+      "description": "none",
       "input": {
         "amountUsd": "number positive",
         "costBasisPerUsd": "number (default 1)",

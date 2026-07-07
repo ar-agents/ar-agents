@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import "./setup";
 import {
+  MercadoPagoError,
   buildAuthorizeUrl,
   exchangeCodeForToken,
   expirationTimeMs,
@@ -69,6 +70,21 @@ describe("exchangeCodeForToken", () => {
         redirectUri: "https://app.test/oauth/callback",
       }),
     ).rejects.toThrow(/MP OAuth 400/);
+  });
+
+  it("throws the typed MercadoPagoError (not a raw SyntaxError) on a malformed token body", async () => {
+    const fetchImpl = (async () =>
+      new Response("<html>bad gateway</html>", { status: 200 })) as unknown as typeof fetch;
+    const err = await exchangeCodeForToken({
+      clientId: "MP_APP_ID",
+      clientSecret: "MP_SECRET",
+      code: "TG-test-code",
+      redirectUri: "https://app.test/oauth/callback",
+      fetchImpl,
+    }).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(MercadoPagoError);
+    expect(String(err)).toMatch(/not valid JSON/);
+    expect(String(err)).toContain("bad gateway");
   });
 });
 

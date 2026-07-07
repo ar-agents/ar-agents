@@ -1,6 +1,6 @@
 {
   "package": "@ar-agents/anses",
-  "version": "0.1.0",
+  "version": "0.2.3",
   "tools": [
     {
       "name": "anses_get_cuil_status",
@@ -32,5 +32,10 @@
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/anses",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 3
+  }
 }

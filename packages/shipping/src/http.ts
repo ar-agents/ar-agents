@@ -1,9 +1,21 @@
 /**
- * Shared HTTP helper for shipping adapters — timeout, retry, observability.
+ * Shared HTTP helper for shipping adapters: timeout, retry, observability.
  *
- * Mirrors the `fetchWithRetry` pattern from `@ar-agents/identity` but
- * tailored to shipping carrier APIs (REST/JSON instead of SOAP).
+ * Built on @ar-agents/core's retry engine (`runWithRetry` + the
+ * idempotency-aware `defaultRetryClassifier`) instead of a hand-rolled
+ * AbortController/setTimeout loop, so shipping shares ONE retry policy with
+ * every other @ar-agents adapter: 5xx / 429 / network errors AND per-attempt
+ * timeouts are retried for idempotent requests only. Unlike core's
+ * `HttpClient`, this helper still returns the raw `Response` for every status
+ * (including 4xx/5xx after retries are exhausted) because the carrier
+ * adapters decode error bodies themselves and raise `ShippingCarrierError`.
  */
+
+import {
+  defaultRetryClassifier,
+  runWithRetry,
+  type RetryContext,
+} from "@ar-agents/core";
 
 export interface HttpRequestParams {
   url: string;
@@ -16,7 +28,7 @@ export interface HttpRequestParams {
   /**
    * Whether the request is safe to retry. Idempotent reads (GET tariff /
    * tracking lookups) default to `true`. Non-idempotent writes (Andreani
-   * `crear` / `cancelar` POSTs) MUST pass `false` — retrying them on a timeout
+   * `crear` / `cancelar` POSTs) MUST pass `false`: retrying them on a timeout
    * or 5xx would create duplicate shipments / double-cancellations even though
    * the original request may have succeeded server-side. Default `true`.
    */
@@ -42,61 +54,65 @@ export async function shippingFetch(params: HttpRequestParams): Promise<Response
   const idempotent = params.idempotent ?? true;
   const maxRetries = idempotent ? params.maxRetries ?? 1 : 0;
   const label = `shipping.${params.carrier}.${params.operation}`;
+  const method = (params.init.method ?? "GET").toUpperCase();
+  const ctx: RetryContext = { method, idempotent };
 
-  let lastErr: unknown = null;
-  for (let attempt = 0; attempt <= maxRetries; attempt++) {
-    const start = Date.now();
-    const controller = new AbortController();
-    const timer = setTimeout(() => controller.abort(), timeoutMs);
-    try {
-      const res = await fetchImpl(params.url, {
-        ...params.init,
-        signal: controller.signal,
-      });
-      clearTimeout(timer);
-
-      if (!res.ok && res.status >= 500 && attempt < maxRetries) {
+  try {
+    return await runWithRetry(
+      async (attempt) => {
+        const start = Date.now();
+        let res: Response;
+        try {
+          // Fresh per-attempt timeout signal, so a timed-out attempt can be
+          // retried (idempotent requests only, per the classifier).
+          res = await fetchImpl(params.url, {
+            ...params.init,
+            signal: AbortSignal.timeout(timeoutMs),
+          });
+        } catch (err) {
+          params.onCall?.({
+            label,
+            durationMs: Date.now() - start,
+            httpStatus: null,
+            retried: attempt - 1,
+            success: false,
+          });
+          throw err;
+        }
+        const decision = defaultRetryClassifier(null, res, ctx);
+        if (decision.shouldRetry) {
+          params.onCall?.({
+            label,
+            durationMs: Date.now() - start,
+            httpStatus: res.status,
+            retried: attempt - 1,
+            success: false,
+          });
+          // Synthetic error carrying the Response, the same contract core's
+          // fetchWithRetry uses: the classifier decides on retry; if attempts
+          // run out we unwrap it below and hand the Response back.
+          const synthetic = new Error(`HTTP ${res.status} ${res.statusText}`);
+          (synthetic as { response?: Response }).response = res;
+          throw synthetic;
+        }
         params.onCall?.({
           label,
           durationMs: Date.now() - start,
           httpStatus: res.status,
-          retried: attempt,
-          success: false,
+          retried: attempt - 1,
+          success: res.ok,
         });
-        await sleep(250 * (attempt + 1));
-        continue;
-      }
-
-      params.onCall?.({
-        label,
-        durationMs: Date.now() - start,
-        httpStatus: res.status,
-        retried: attempt,
-        success: res.ok,
-      });
-      return res;
-    } catch (err) {
-      clearTimeout(timer);
-      lastErr = err;
-      const isAbort =
-        err instanceof Error &&
-        (err.name === "AbortError" || err.message.includes("aborted"));
-      params.onCall?.({
-        label,
-        durationMs: Date.now() - start,
-        httpStatus: null,
-        retried: attempt,
-        success: false,
-      });
-      if (isAbort || attempt >= maxRetries) {
-        throw err;
-      }
-      await sleep(250 * (attempt + 1));
-    }
+        return res;
+      },
+      defaultRetryClassifier,
+      { maxAttempts: maxRetries + 1, baseDelayMs: 250 },
+      ctx,
+    );
+  } catch (err) {
+    // Retryable status but attempts exhausted: keep the historical contract of
+    // returning the last Response so adapters decode the carrier error body.
+    const carried = (err as { response?: Response }).response;
+    if (carried) return carried;
+    throw err;
   }
-  throw lastErr ?? new Error("shippingFetch exhausted retries");
-}
-
-function sleep(ms: number): Promise<void> {
-  return new Promise((r) => setTimeout(r, ms));
 }

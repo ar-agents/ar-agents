@@ -650,7 +650,7 @@ function cmdAttestation(args) {
     process.exit(1);
   }
   // Domain separation: a valid signature over a DIFFERENT artifact type (a
-  // good-standing answer, a certificate, a portability manifest — all signed with
+  // good-standing answer, a certificate, a portability manifest - all signed with
   // the same key) must NOT verify here as an attestation. Assert the discriminator.
   if (att.body.kind !== "vultur.compliance.attestation") {
     console.error(
@@ -845,7 +845,7 @@ function cmdCertificate(args) {
   }
   // A signature is valid over a status:"valid" body forever; a later revocation
   // re-signs a status:"revoked" body but CANNOT invalidate a previously-captured
-  // copy. Offline VALID therefore does NOT prove the cert is still live — say so.
+  // copy. Offline VALID therefore does NOT prove the cert is still live - say so.
   if (cert.status !== "revoked") {
     console.log(
       `  ${DIM}note: offline VALID proves origin + integrity, NOT that this cert is still LIVE - a later revocation cannot invalidate this captured copy. Confirm current status online: GET /api/certifier/cert/${cert.certId}.${RST}`,

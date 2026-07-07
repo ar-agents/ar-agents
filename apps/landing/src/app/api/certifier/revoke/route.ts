@@ -25,7 +25,7 @@
 import { jsonCors, preflight } from "@/lib/cors";
 import { clientIp, rateLimit, kvRateLimit } from "@/lib/ratelimit";
 import { verifyCapabilityToken } from "@/lib/capability-token";
-import { constantTimeEqual } from "@/lib/incorporate-auth";
+import { isRegistryAdmin } from "@/lib/admin-auth";
 import { getCertificate, revokeCertificate } from "@/lib/certificate";
 
 export const runtime = "nodejs";
@@ -37,16 +37,6 @@ const REGISTRY_OWNER_KIND = "registry-owner";
  * REGISTRY_ADMIN_TOKEN authorizes revoking ANY certificate. Constant-time
  * compared; FAIL-CLOSED when the env is unset (override disabled, never open).
  */
-async function isRegistryAdmin(req: Request): Promise<boolean> {
-  const configured = process.env.REGISTRY_ADMIN_TOKEN?.trim();
-  if (!configured) return false; // fail-closed: override disabled when unset
-  const presented =
-    req.headers.get("x-admin-token")?.trim() ||
-    (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!presented) return false;
-  return constantTimeEqual(presented, configured);
-}
-
 export async function POST(req: Request): Promise<Response> {
   const ip = clientIp(req);
   if (!rateLimit("certifier-revoke", ip, 10, 60_000)) {

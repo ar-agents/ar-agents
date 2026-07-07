@@ -1,8 +1,15 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/banking-bcra",
-  "version": "0.1.0",
+  "version": "0.4.0",
   "tools": [
+    {
+      "name": "bcra_get_bounced_checks",
+      "description": "Bounced-check history for a CUIT (cheques rechazados) (causa de rechazo + monto + fecha + whether subsequently paid). Independent of the Central de Deudores debt status, a clean debt record + bounced ",
+      "sideEffects": "network read",
+      "idempotent": true,
+      "requiresConfirmation": false
+    },
     {
       "name": "bcra_get_debt",
       "description": "Raw current debt status from the BCRA Central de Deudores (consultar deudas en el BCRA): one row per entidad reporting, with situación 1-6, monto, judicial/fraude/refinanciación flags. Returns BcraNot",
@@ -23,13 +30,11 @@
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
-    },
-    {
-      "name": "bcra_get_bounced_checks",
-      "description": "Bounced-check history for a CUIT (cheques rechazados) (causa de rechazo + monto + fecha + whether subsequently paid). Independent of the Central de Deudores debt status, a clean debt record + bounced ",
-      "sideEffects": "network read",
-      "idempotent": true,
-      "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/banking-bcra",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 4
+  }
 }

@@ -1,6 +1,6 @@
 {
   "package": "@ar-agents/cnv-emisor",
-  "version": "0.1.0",
+  "version": "0.2.3",
   "tools": [
     {
       "name": "cnv_get_issuer",
@@ -9,6 +9,17 @@
         "code": "issuer code, e.g. YPF"
       },
       "returns": "IssuerRecord | null",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    },
+    {
+      "name": "cnv_list_financial_statements",
+      "description": "List financial statements filed with CNV (estados financieros presentados en CNV): annual / quarterly / intermediate, in the AIF. Each entry carries the period end, submitted timestamp, kind, and AIF ",
+      "input": {
+        "issuerCode": "string",
+        "limit": "1-100"
+      },
+      "returns": "FinancialStatementRecord[]",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     },
@@ -24,17 +35,11 @@
       "returns": "HechoRelevante[]",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
-    },
-    {
-      "name": "cnv_list_financial_statements",
-      "description": "List financial statements filed with CNV (estados financieros presentados en CNV): annual / quarterly / intermediate, in the AIF. Each entry carries the period end, submitted timestamp, kind, and AIF ",
-      "input": {
-        "issuerCode": "string",
-        "limit": "1-100"
-      },
-      "returns": "FinancialStatementRecord[]",
-      "sideEffect": "none (read-only)",
-      "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/cnv-emisor",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 3
+  }
 }

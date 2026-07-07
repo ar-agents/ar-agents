@@ -1,18 +1,18 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/iva-percepciones",
-  "version": "0.1.0",
+  "version": "0.2.5",
   "tools": [
     {
-      "name": "iva_perception_calculate",
-      "description": "Compute the VAT perception for a sale invoice (calcular percepción de IVA, the extra charge added on top of IVA). Returns 0 with a `waiverReason` when the buyer is exento / monotributista / consumidor",
+      "name": "iva_perception_build_ddjj",
+      "description": "Assemble the monthly SIRE perception return (armar DDJJ SIRE de percepciones de IVA) with per-regime and per-buyer breakdowns. Pure aggregation.",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
-      "name": "iva_perception_build_ddjj",
-      "description": "Assemble the monthly SIRE perception return (armar DDJJ SIRE de percepciones de IVA) with per-regime and per-buyer breakdowns. Pure aggregation.",
+      "name": "iva_perception_calculate",
+      "description": "Compute the VAT perception for a sale invoice (calcular percepción de IVA, the extra charge added on top of IVA). Returns 0 with a `waiverReason` when the buyer is exento / monotributista / consumidor",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
@@ -24,5 +24,10 @@
       "idempotent": true,
       "requiresConfirmation": true
     }
-  ]
+  ],
+  "name": "@ar-agents/iva-percepciones",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 3
+  }
 }

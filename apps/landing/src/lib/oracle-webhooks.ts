@@ -10,7 +10,7 @@
  */
 
 import { kv } from "@vercel/kv";
-import { safeExternalUrl } from "./ssrf";
+import { safeExternalUrl, safeFetch } from "./ssrf";
 import { getConsumer } from "./oracle-consumer";
 
 export interface Webhook {
@@ -232,14 +232,18 @@ export async function fireWebhooks(event: OracleEvent): Promise<void> {
         const safe = safeExternalUrl(h.url);
         if (!safe) return;
         try {
-          await fetch(safe.href, {
-            method: "POST",
-            headers: { "content-type": "application/json" },
-            body: payload,
-            signal: AbortSignal.timeout(5000),
+          // safeFetch re-validates every redirect hop, so a subscriber cannot
+          // 3xx-redirect the delivery to a loopback / metadata / RFC1918 host.
+          await safeFetch(safe.href, {
+            timeoutMs: 5000,
+            init: {
+              method: "POST",
+              headers: { "content-type": "application/json" },
+              body: payload,
+            },
           });
         } catch {
-          // best-effort: a dead subscriber never affects the registry
+          // best-effort: a dead or refusing subscriber never affects the registry
         }
       }),
     );

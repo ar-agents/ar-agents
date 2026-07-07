@@ -1,20 +1,12 @@
 {
   "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/igj",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "description": "Inspección General de Justicia (IGJ) public registry primitives — search corporate entities, fetch domicilios, autoridades, balances, asambleas via the open data CKAN at datos.jus.gob.ar.",
   "tools": [
     {
-      "name": "igj_search_entities",
-      "description": "Search IGJ-registered Argentine entities (buscar sociedades en IGJ; sociedades, asociaciones, fundaciones) via the public CKAN open data at datos.jus.gob.ar. Returns matching entities + a `coverageNot"
-    },
-    {
-      "name": "igj_get_entity",
-      "description": "Fetch a single IGJ entity by its dataset id (consultar una entidad IGJ). Returns the entity record including razón social, CUIT (when present), tipo de entidad, fecha de inscripción, matrícula. Return"
-    },
-    {
-      "name": "igj_get_domicilios",
-      "description": "Fetch the registered domicilios (addresses) for an IGJ entity by its id. Multiple domicilios may exist (legal, fiscal, real). USE THIS WHEN: the user wants the registered address of a sociedad/asociac"
+      "name": "igj_get_asambleas",
+      "description": "Fetch the registered asambleas (meetings) of an IGJ entity. Includes tipo (ordinaria/extraordinaria) and fecha. USE THIS WHEN: you want to know when a sociedad held its last asamblea or track the cale"
     },
     {
       "name": "igj_get_autoridades",
@@ -25,8 +17,21 @@
       "description": "Fetch the balances (financial reports) filed at IGJ for an entity. Includes cierre de ejercicio, número de ejercicio, fecha de presentación. USE THIS WHEN: the user wants to know if a sociedad is up t"
     },
     {
-      "name": "igj_get_asambleas",
-      "description": "Fetch the registered asambleas (meetings) of an IGJ entity. Includes tipo (ordinaria/extraordinaria) and fecha. USE THIS WHEN: you want to know when a sociedad held its last asamblea or track the cale"
+      "name": "igj_get_domicilios",
+      "description": "Fetch the registered domicilios (addresses) for an IGJ entity by its id. Multiple domicilios may exist (legal, fiscal, real). USE THIS WHEN: the user wants the registered address of a sociedad/asociac"
+    },
+    {
+      "name": "igj_get_entity",
+      "description": "Fetch a single IGJ entity by its dataset id (consultar una entidad IGJ). Returns the entity record including razón social, CUIT (when present), tipo de entidad, fecha de inscripción, matrícula. Return"
+    },
+    {
+      "name": "igj_search_entities",
+      "description": "Search IGJ-registered Argentine entities (buscar sociedades en IGJ; sociedades, asociaciones, fundaciones) via the public CKAN open data at datos.jus.gob.ar. Returns matching entities + a `coverageNot"
     }
-  ]
+  ],
+  "name": "@ar-agents/igj",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 6
+  }
 }

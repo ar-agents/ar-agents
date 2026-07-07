@@ -1,5 +1,5 @@
 import { jsonCors, preflight } from "@/lib/cors";
-import { constantTimeEqual } from "@/lib/incorporate-auth";
+import { isRegistryAdmin } from "@/lib/admin-auth";
 import { getShadowStats } from "@/lib/shadow";
 
 /**
@@ -15,18 +15,8 @@ import { getShadowStats } from "@/lib/shadow";
  */
 export const runtime = "nodejs";
 
-async function isAdmin(req: Request): Promise<boolean> {
-  const configured = process.env.REGISTRY_ADMIN_TOKEN?.trim();
-  if (!configured) return false; // fail-closed: disabled when unset
-  const presented =
-    req.headers.get("x-admin-token")?.trim() ||
-    (req.headers.get("authorization") || "").replace(/^Bearer\s+/i, "").trim();
-  if (!presented) return false;
-  return constantTimeEqual(presented, configured);
-}
-
 export async function GET(req: Request) {
-  if (!(await isAdmin(req))) {
+  if (!(await isRegistryAdmin(req))) {
     return jsonCors({ ok: false, error: "unauthorized" }, { status: 401 });
   }
   const days = Number(new URL(req.url).searchParams.get("days"));

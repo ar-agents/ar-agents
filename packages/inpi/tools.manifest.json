@@ -1,7 +1,17 @@
 {
   "package": "@ar-agents/inpi",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "tools": [
+    {
+      "name": "inpi_get_trademark",
+      "description": "Look up an INPI trademark by registration number (consultar una marca por acta) (registration number, e.g. '3792456'). Returns the full record or null if not found.",
+      "input": {
+        "acta": "string"
+      },
+      "returns": "TrademarkRecord | null",
+      "sideEffect": "none (read-only)",
+      "requiresConfirmation": false
+    },
     {
       "name": "inpi_search_trademark",
       "description": "Search INPI trademarks by name (buscar marcas registradas en INPI), case-insensitive substring. Returns the matching registrations with their Nice class, status (presentada/publicada/oposicion/concedi",
@@ -14,16 +24,11 @@
       "returns": "SearchResult",
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
-    },
-    {
-      "name": "inpi_get_trademark",
-      "description": "Look up an INPI trademark by registration number (consultar una marca por acta) (registration number, e.g. '3792456'). Returns the full record or null if not found.",
-      "input": {
-        "acta": "string"
-      },
-      "returns": "TrademarkRecord | null",
-      "sideEffect": "none (read-only)",
-      "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/inpi",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 2
+  }
 }

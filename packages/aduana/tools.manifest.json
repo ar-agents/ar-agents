@@ -1,6 +1,6 @@
 {
   "package": "@ar-agents/aduana",
-  "version": "0.1.0",
+  "version": "0.3.0",
   "tools": [
     {
       "name": "aduana_lookup_despacho",
@@ -23,5 +23,10 @@
       "sideEffect": "none (read-only)",
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/aduana",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 2
+  }
 }

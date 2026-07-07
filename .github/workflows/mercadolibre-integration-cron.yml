@@ -7,6 +7,10 @@ name: mercadolibre integration (daily)
 # Tests hit only public, no-auth endpoints (categories, domain_discovery)
 # so no secrets are needed in CI.
 
+# Read-only job: explicit minimal GITHUB_TOKEN scope.
+permissions:
+  contents: read
+
 on:
   schedule:
     - cron: "0 12 * * *"

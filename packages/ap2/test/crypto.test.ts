@@ -12,6 +12,7 @@ import {
   importPublicJwk,
   AP2_ALGS,
   NON_DETERMINISTIC_ALGS,
+  SdJwtError,
 } from "../src";
 
 describe("base64url helpers", () => {
@@ -123,7 +124,37 @@ describe("decodeJwsUnverified", () => {
     expect(() => decodeJwsUnverified("not.a.jws.too.many.dots")).toThrow();
     expect(() => decodeJwsUnverified("only.two")).toThrow();
   });
+
+  it("throws the typed SdJwtError (not a raw SyntaxError) on a non-JSON header", () => {
+    const header = base64urlEncode("this is not json");
+    const payload = base64urlEncode(JSON.stringify({ ok: true }));
+    const err = tryCatch(() => decodeJwsUnverified(`${header}.${payload}.sig`));
+    expect(err).toBeInstanceOf(SdJwtError);
+    expect(String(err)).toMatch(/protected header/);
+  });
+
+  it("throws the typed SdJwtError (not a raw SyntaxError) on a non-JSON payload", () => {
+    const header = base64urlEncode(JSON.stringify({ alg: "ES256" }));
+    const payload = base64urlEncode("still not json");
+    const err = tryCatch(() => decodeJwsUnverified(`${header}.${payload}.sig`));
+    expect(err).toBeInstanceOf(SdJwtError);
+    expect(String(err)).toMatch(/payload/);
+  });
+
+  it("throws the typed SdJwtError on segments that are not valid base64url at all", () => {
+    const err = tryCatch(() => decodeJwsUnverified("!!!.???.sig"));
+    expect(err).toBeInstanceOf(SdJwtError);
+  });
 });
+
+function tryCatch(fn: () => unknown): unknown {
+  try {
+    fn();
+    return undefined;
+  } catch (err) {
+    return err;
+  }
+}
 
 describe("importPublicJwk", () => {
   it("imports a generated public JWK and verifies a signature with it", async () => {

@@ -1,18 +1,18 @@
 {
   "$schema": "https://agents.md/tools.manifest.schema.json",
   "package": "@ar-agents/iibb",
-  "version": "0.2.0",
+  "version": "0.4.4",
   "tools": [
     {
-      "name": "iibb_calculate_retention",
-      "description": "Calculate the IIBB gross-receipts retention (calcular retención de Ingresos Brutos) on a base imponible in a given jurisdiction. Pure math: amount = base × rate (fraction), unless base < minimumThresh",
+      "name": "iibb_calculate_perception",
+      "description": "Calculate the IIBB perception (calcular percepción de Ingresos Brutos) on a base imponible in a given jurisdiction. Symmetrical to retention in v0.1; some jurisdictions add a fixed component which wil",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
-      "name": "iibb_calculate_perception",
-      "description": "Calculate the IIBB perception (calcular percepción de Ingresos Brutos) on a base imponible in a given jurisdiction. Symmetrical to retention in v0.1; some jurisdictions add a fixed component which wil",
+      "name": "iibb_calculate_retention",
+      "description": "Calculate the IIBB gross-receipts retention (calcular retención de Ingresos Brutos) on a base imponible in a given jurisdiction. Pure math: amount = base × rate (fraction), unless base < minimumThresh",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
@@ -31,5 +31,10 @@
       "idempotent": true,
       "requiresConfirmation": false
     }
-  ]
+  ],
+  "name": "@ar-agents/iibb",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 4
+  }
 }

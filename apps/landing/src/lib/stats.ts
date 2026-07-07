@@ -17,5 +17,51 @@
  * agents.json's toolCount is generated from the manifests at build, so it is the
  * live cross-check for CANONICAL_TOOLS.
  */
-export const PUBLISHED_PACKAGES = 37;
+/**
+ * Every published @ar-agents/* package (packages/* dirs that are not
+ * "private": true; python-incorporate is Python-only + unpublished).
+ * /api/stats aggregates npm downloads over this list, so a missing name
+ * silently drops that package from the public numbers.
+ */
+export const PUBLISHED_PACKAGE_NAMES = [
+  "@ar-agents/aduana",
+  "@ar-agents/agentic-commerce-bridge",
+  "@ar-agents/anses",
+  "@ar-agents/ap2",
+  "@ar-agents/banking",
+  "@ar-agents/banking-bcra",
+  "@ar-agents/bind",
+  "@ar-agents/boletin-oficial",
+  "@ar-agents/cnv-emisor",
+  "@ar-agents/constancia",
+  "@ar-agents/core",
+  "@ar-agents/dnrpa",
+  "@ar-agents/facturacion",
+  "@ar-agents/fecred",
+  "@ar-agents/firma-digital",
+  "@ar-agents/gde-tad",
+  "@ar-agents/identity",
+  "@ar-agents/identity-attest",
+  "@ar-agents/igj",
+  "@ar-agents/iibb",
+  "@ar-agents/incorporate",
+  "@ar-agents/inpi",
+  "@ar-agents/iva-percepciones",
+  "@ar-agents/iva-retenciones",
+  "@ar-agents/mcp",
+  "@ar-agents/mercadolibre",
+  "@ar-agents/mercadopago",
+  "@ar-agents/mi-argentina",
+  "@ar-agents/shipping",
+  "@ar-agents/sicore",
+  "@ar-agents/suss",
+  "@ar-agents/tienda-nube",
+  "@ar-agents/treasury",
+  "@ar-agents/uala",
+  "@ar-agents/whatsapp",
+  "@ar-agents/wscdc",
+  "@ar-agents/x402",
+] as const;
+
+export const PUBLISHED_PACKAGES = PUBLISHED_PACKAGE_NAMES.length;
 export const CANONICAL_TOOLS = 243;
