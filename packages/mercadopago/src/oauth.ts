@@ -38,6 +38,7 @@
  * 3. Pick a `marketplace` identifier (used in fee routing).
  */
 
+import { MercadoPagoError } from "./errors";
 import { OAuthTokenSchema, type OAuthToken } from "./types";
 
 const DEFAULT_AUTHORIZE_URL = "https://auth.mercadopago.com.ar/authorization";
@@ -151,7 +152,19 @@ async function parseTokenResponse(res: Response): Promise<OAuthToken> {
       `MP OAuth ${res.status}: ${text.slice(0, 300)}`,
     );
   }
-  const json = JSON.parse(text);
+  // The body is provider-controlled input: a malformed (non-JSON) 2xx body
+  // must surface as the package's typed error, not a raw SyntaxError.
+  let json: unknown;
+  try {
+    json = JSON.parse(text);
+  } catch {
+    throw new MercadoPagoError(
+      `MP OAuth ${res.status}: token response is not valid JSON: ${text.slice(0, 300)}`,
+      res.status,
+      "/oauth/token",
+      text.slice(0, 300),
+    );
+  }
   return OAuthTokenSchema.parse(json);
 }
 

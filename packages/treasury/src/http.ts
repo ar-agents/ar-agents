@@ -2,7 +2,8 @@
  * Shared HTTP-migration glue for the treasury off-ramp adapters.
  *
  * The off-ramp providers (Manteca / Bitso / Ripio / Mural) all moved off their
- * hand-rolled `fetch` + `Promise.race` timeout onto the shared, schema-validating
+ * hand-rolled `fetch` transport (with a `Promise.race` timeout at best, and no
+ * timeout at all in Mural's case) onto the shared, schema-validating
  * `HttpClient` from @ar-agents/core. That client gives every provider — for free
  * — a real per-request timeout, 429/Retry-After backoff, idempotency-aware retry
  * (money POSTs are NEVER auto-retried), and typed `ArAgents*` errors. This file

@@ -189,4 +189,58 @@ describe("MuralOffRampAdapter errors + validation", () => {
     const { impl } = mockFetch([{ match: /fees/, status: 500, json: { message: "boom" } }]);
     await expect(new MuralOffRampAdapter(baseConfig(impl)).quote(100)).rejects.toBeInstanceOf(MuralApiError);
   });
+
+  it("times out via the shared client and maps to a MuralApiError transport error (status 0)", async () => {
+    // A fetch that never resolves on its own; it only rejects when the client's
+    // per-request timeout signal aborts it.
+    const impl = ((_url: string, init: RequestInit) =>
+      new Promise<Response>((_resolve, reject) => {
+        init.signal?.addEventListener("abort", () => reject((init.signal as AbortSignal).reason));
+      })) as unknown as typeof fetch;
+    const adapter = new MuralOffRampAdapter({ ...baseConfig(impl), timeoutMs: 25 });
+    const err = await adapter.quote(100).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(MuralApiError);
+    expect((err as MuralApiError).status).toBe(0);
+    expect(String(err)).toMatch(/transport error/);
+  });
+
+  it("fails loud (MuralApiError 502) when the fees body is not the expected JSON array", async () => {
+    const { impl } = mockFetch([{ match: /fees/, json: { not: "an array" } }]);
+    const err = await new MuralOffRampAdapter(baseConfig(impl)).quote(100).catch((e: unknown) => e);
+    expect(err).toBeInstanceOf(MuralApiError);
+    expect((err as MuralApiError).status).toBe(502);
+    expect(String(err)).toMatch(/expected a JSON array/);
+  });
+
+  it("maps a malformed (non-JSON) 2xx body to a MuralApiError instead of leaking a SyntaxError", async () => {
+    const impl = (async () =>
+      new Response("<html>gateway error</html>", { status: 200 })) as unknown as typeof fetch;
+    await expect(new MuralOffRampAdapter(baseConfig(impl)).quote(100)).rejects.toBeInstanceOf(
+      MuralApiError,
+    );
+  });
+
+  it("retries a transient 5xx on the idempotent GET status read", async () => {
+    let calls = 0;
+    const impl = (async () => {
+      calls++;
+      if (calls < 3) return new Response(JSON.stringify({ message: "boom" }), { status: 500 });
+      return new Response(JSON.stringify({ status: "AWAITING_EXECUTION" }), { status: 200 });
+    }) as unknown as typeof fetch;
+    const r = await new MuralOffRampAdapter(baseConfig(impl)).getStatus("pr_1");
+    expect(calls).toBe(3);
+    expect(r.status).toBe("PENDING");
+  });
+
+  it("never auto-retries the POST legs (money safety)", async () => {
+    let calls = 0;
+    const impl = (async () => {
+      calls++;
+      return new Response(JSON.stringify({ message: "boom" }), { status: 500 });
+    }) as unknown as typeof fetch;
+    await expect(new MuralOffRampAdapter(baseConfig(impl)).quote(100)).rejects.toBeInstanceOf(
+      MuralApiError,
+    );
+    expect(calls).toBe(1);
+  });
 });

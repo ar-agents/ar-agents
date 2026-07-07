@@ -41,6 +41,7 @@
  * convert() moves real money; gate behind requireConfirmation (RFC-001).
  */
 
+import { HttpClient, type ResponseSchema } from "@ar-agents/core";
 import type {
   Ars,
   OffRampAdapter,
@@ -50,6 +51,12 @@ import type {
   OffRampStatusReport,
   Usd,
 } from "./index";
+import {
+  arraySchema,
+  mapOffRampError,
+  objectSchema,
+  type OffRampErrorCtors,
+} from "./http";
 
 export const MURAL_PROD = "https://api.muralpay.com";
 export const MURAL_SANDBOX = "https://api-staging.muralpay.com";
@@ -92,6 +99,8 @@ export interface MuralConfig {
   fiatRailCode?: string;
   /** Injectable fetch (tests / non-global-fetch runtimes). */
   fetchImpl?: typeof fetch;
+  /** Per-request timeout in ms. Default 30_000. */
+  timeoutMs?: number;
   /** Injectable clock for the externalId fallback. Default Date.now. */
   now?: () => number;
 }
@@ -154,11 +163,18 @@ export function normalizeMuralStatus(
   return "UNKNOWN";
 }
 
+/** Provider error ctors passed to the shared core->taxonomy error mapper. */
+const MURAL_ERROR_CTORS: OffRampErrorCtors = {
+  api: MuralApiError,
+  auth: MuralAuthError,
+  rateLimit: MuralRateLimitError,
+};
+
 export class MuralOffRampAdapter implements OffRampAdapter {
   private readonly baseUrl: string;
   private readonly tokenSymbol: string;
   private readonly fiatRailCode: string;
-  private readonly fetchImpl: typeof fetch;
+  private readonly client: HttpClient;
   private readonly now: () => number;
 
   constructor(private readonly config: MuralConfig) {
@@ -170,49 +186,67 @@ export class MuralOffRampAdapter implements OffRampAdapter {
     this.baseUrl = (config.baseUrl ?? MURAL_PROD).replace(/\/+$/, "");
     this.tokenSymbol = config.tokenSymbol ?? "USDC";
     this.fiatRailCode = config.fiatRailCode ?? "ars";
-    const f = config.fetchImpl ?? globalThis.fetch;
-    if (!f) throw new Error("no fetch available; pass MuralConfig.fetchImpl");
-    this.fetchImpl = f;
+    this.client = new HttpClient({
+      baseUrl: this.baseUrl,
+      timeoutMs: config.timeoutMs ?? 30_000,
+      // Idempotent GET reads (payout status) retry a transient 5xx; every money
+      // POST (create payout, execute) is IRREVERSIBLE and is never marked
+      // idempotent, so the client never auto-retries it. The fees quote is also
+      // a POST and stays conservatively non-retried.
+      retry: { maxAttempts: 3 },
+      defaultHeaders: {
+        authorization: `Bearer ${config.apiKey}`,
+        ...(config.organizationId ? { "on-behalf-of": config.organizationId } : {}),
+      },
+      ...(config.fetchImpl !== undefined ? { fetch: config.fetchImpl } : {}),
+    });
     this.now = config.now ?? Date.now;
   }
 
+  /**
+   * Request via the shared client. The 2xx body is schema-validated (rejects an
+   * HTML error page / null / wrong JSON kind) so a malformed money/state body
+   * fails LOUD instead of being blind-cast into a fabricated result. Every core
+   * transport error (timeout, network, 4xx/5xx, validation) is mapped back into
+   * the Mural error taxonomy.
+   */
   private async request<T>(
     method: "GET" | "POST",
     path: string,
-    body?: unknown,
-    extraHeaders?: Record<string, string>,
+    opts: { body?: unknown; headers?: Record<string, string>; schema: ResponseSchema<T> },
   ): Promise<T> {
-    const headers: Record<string, string> = {
-      authorization: `Bearer ${this.config.apiKey}`,
-      "content-type": "application/json",
-      accept: "application/json",
-      ...(this.config.organizationId ? { "on-behalf-of": this.config.organizationId } : {}),
-      ...extraHeaders,
-    };
-    const init: RequestInit = { method, headers };
-    if (body !== undefined) init.body = JSON.stringify(body);
-    let res: Response;
     try {
-      res = await this.fetchImpl(`${this.baseUrl}${path}`, init);
-    } catch (cause) {
-      throw new MuralApiError(`mural ${method} ${path} transport error: ${String(cause)}`, 0);
+      return await this.client.request<T>({
+        method,
+        path,
+        schema: opts.schema,
+        ...(opts.body !== undefined ? { body: opts.body } : {}),
+        ...(opts.headers !== undefined ? { headers: opts.headers } : {}),
+      });
+    } catch (err) {
+      throw mapOffRampError(err, `mural ${method} ${path}`, MURAL_ERROR_CTORS);
     }
-    const text = await res.text();
-    let parsed: unknown = undefined;
-    if (text) {
-      try {
-        parsed = JSON.parse(text);
-      } catch {
-        parsed = text;
-      }
+  }
+
+  /**
+   * Fire-and-check request whose success body the caller ignores (the execute
+   * leg). Uses `requestRaw` so an empty or non-JSON 2xx body is tolerated, while
+   * the full timeout + typed-error pipeline still applies.
+   */
+  private async requestVoid(
+    method: "GET" | "POST",
+    path: string,
+    headers?: Record<string, string>,
+  ): Promise<void> {
+    try {
+      await this.client.requestRaw({
+        method,
+        path,
+        ...(headers !== undefined ? { headers } : {}),
+      });
+    } catch (err) {
+      throw mapOffRampError(err, `mural ${method} ${path}`, MURAL_ERROR_CTORS);
     }
-    if (!res.ok) {
-      const msg = `mural ${method} ${path} -> ${res.status}`;
-      if (res.status === 401 || res.status === 403) throw new MuralAuthError(msg, res.status, parsed);
-      if (res.status === 429) throw new MuralRateLimitError(msg, res.status, parsed);
-      throw new MuralApiError(msg, res.status, parsed);
-    }
-    return parsed as T;
   }
 
   /** Quote a USDC->ARS off-ramp via the token-to-fiat fees endpoint. */
@@ -225,8 +259,11 @@ export class MuralOffRampAdapter implements OffRampAdapter {
         },
       ],
     };
-    const res = await this.request<unknown>("POST", "/api/payouts/fees/token-to-fiat", body);
-    const first = Array.isArray(res) ? (res[0] as Record<string, unknown>) : undefined;
+    const res = await this.request<unknown[]>("POST", "/api/payouts/fees/token-to-fiat", {
+      body,
+      schema: arraySchema("mural fees"),
+    });
+    const first = res[0] as Record<string, unknown> | undefined;
     if (!first) throw new MuralApiError("mural fees: empty response", 200, res);
     if (first.type === "error") {
       throw new MuralApiError(`mural fees error: ${String(first.message ?? "unknown")}`, 200, first);
@@ -269,39 +306,43 @@ export class MuralOffRampAdapter implements OffRampAdapter {
           physicalAddress: this.config.recipient.physicalAddress,
         };
 
+    // IRREVERSIBLE money POST: never marked idempotent, so the shared client
+    // never auto-retries it (a duplicate payout request would double-pay).
     const created = await this.request<{ id?: string; status?: string }>(
       "POST",
       "/api/payouts/payout",
       {
-        sourceAccountId: this.config.sourceAccountId,
-        memo,
-        payouts: [
-          {
-            amount: { tokenAmount: amountUsd, tokenSymbol: this.tokenSymbol },
-            payoutDetails: {
-              type: "fiat",
-              bankName: this.config.bankName,
-              bankAccountOwner: this.config.bankAccountOwner,
-              fiatAndRailDetails: {
-                type: "ars",
-                symbol: "ARS",
-                bankAccountNumber: this.config.cvu,
-                documentNumber: this.config.documentNumber,
-                bankAccountNumberType: this.config.cvuType ?? "CVU",
+        body: {
+          sourceAccountId: this.config.sourceAccountId,
+          memo,
+          payouts: [
+            {
+              amount: { tokenAmount: amountUsd, tokenSymbol: this.tokenSymbol },
+              payoutDetails: {
+                type: "fiat",
+                bankName: this.config.bankName,
+                bankAccountOwner: this.config.bankAccountOwner,
+                fiatAndRailDetails: {
+                  type: "ars",
+                  symbol: "ARS",
+                  bankAccountNumber: this.config.cvu,
+                  documentNumber: this.config.documentNumber,
+                  bankAccountNumberType: this.config.cvuType ?? "CVU",
+                },
               },
+              recipientInfo,
             },
-            recipientInfo,
-          },
-        ],
+          ],
+        },
+        schema: objectSchema("mural payout"),
       },
     );
     const id = created.id;
     if (!id) throw new MuralApiError("mural payout: response had no id", 200, created);
 
-    await this.request<unknown>(
+    await this.requestVoid(
       "POST",
       `/api/payouts/payout/${encodeURIComponent(id)}/execute`,
-      undefined,
       { "transfer-api-key": this.config.transferApiKey },
     );
 
@@ -313,6 +354,7 @@ export class MuralOffRampAdapter implements OffRampAdapter {
     const body = await this.request<Record<string, unknown>>(
       "GET",
       `/api/payouts/payout/${encodeURIComponent(txId)}`,
+      { schema: objectSchema("mural payout status") },
     );
     const requestStatus = typeof body.status === "string" ? body.status : undefined;
     const payouts = Array.isArray(body.payouts) ? body.payouts : [];

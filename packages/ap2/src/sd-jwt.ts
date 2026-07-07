@@ -23,6 +23,7 @@
 // default; sha-384 / sha-512 are accepted on parse.
 
 import {
+  SdJwtError,
   base64urlDecode,
   base64urlDecodeToString,
   base64urlEncode,
@@ -480,12 +481,9 @@ export async function verifyKbJwt(
 // Errors
 // ---------------------------------------------------------------------------
 
-export class SdJwtError extends Error {
-  constructor(message: string) {
-    super(message);
-    this.name = "SdJwtError";
-  }
-}
+// SdJwtError now lives in ./crypto (so decodeJwsUnverified can throw it
+// without a circular import); re-exported here to keep the public surface.
+export { SdJwtError } from "./crypto";
 
 // Internal: silence unused-import warnings from the type-only helpers above.
 export type { Disclosure as DisclosureType };

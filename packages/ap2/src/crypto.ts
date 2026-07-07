@@ -25,6 +25,21 @@ import {
 import type { Jwk } from "./schemas/jwk";
 
 // ---------------------------------------------------------------------------
+// Typed error for SD-JWT / JWS handling failures.
+//
+// Defined here (the lowest-level module) so `decodeJwsUnverified` can raise it
+// without a circular import; `sd-jwt.ts` re-exports it, keeping the public
+// surface unchanged.
+// ---------------------------------------------------------------------------
+
+export class SdJwtError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "SdJwtError";
+  }
+}
+
+// ---------------------------------------------------------------------------
 // base64url
 // ---------------------------------------------------------------------------
 
@@ -206,10 +221,23 @@ export function decodeJwsUnverified(jws: string): DecodedJws {
     );
   }
   const [headerB64, payloadB64, signature] = parts as [string, string, string];
-  const protectedHeader = JSON.parse(
-    base64urlDecodeToString(headerB64),
-  ) as JWTHeaderParameters;
-  const payload = JSON.parse(base64urlDecodeToString(payloadB64)) as JWTPayload;
+  // The header and payload are attacker-controlled input: a malformed
+  // base64url segment or non-JSON content must surface as the package's typed
+  // error, not a raw SyntaxError.
+  let protectedHeader: JWTHeaderParameters;
+  try {
+    protectedHeader = JSON.parse(
+      base64urlDecodeToString(headerB64),
+    ) as JWTHeaderParameters;
+  } catch {
+    throw new SdJwtError("malformed JWS: protected header is not valid base64url-encoded JSON");
+  }
+  let payload: JWTPayload;
+  try {
+    payload = JSON.parse(base64urlDecodeToString(payloadB64)) as JWTPayload;
+  } catch {
+    throw new SdJwtError("malformed JWS: payload is not valid base64url-encoded JSON");
+  }
   return { protectedHeader, payload, signature };
 }
 
