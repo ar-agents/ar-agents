@@ -7,34 +7,44 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 ## M0: Studio exists (idea to operating society, simulated)
 
 ### M0-1 apps/studio skeleton
-- status: in-progress (this session)
+- status: done (2026-07-08, PR #159)
 - priority: P0
 - acceptance: Next.js app in apps/studio builds, typechecks, has its own test script wired into CI like the other apps; deployed to a Vercel project; renders a chat-first UI.
 
 ### M0-2 Builder agent with hybrid model routing
-- status: in-progress (this session)
+- status: done (2026-07-08, PR #159)
 - priority: P0
 - acceptance: /api/agent streams a tool-calling agent conversation. Model routing: free/cheap coach model by default, stronger build model for generation steps, both via AI Gateway with OpenRouter free-route fallback; routing is config, not code. Graceful "not configured" response when no key env is present.
 
 ### M0-3 Accounts, metering, caps
-- status: in-progress (this session)
+- status: done (2026-07-08, PR #159)
 - priority: P0
 - acceptance: anonymous account minted on first visit (bearer token, KV-backed), every agent request records input/output tokens and model cost per account, free-tier caps enforced server-side with a clear over-cap response. Unit tests for meter math and cap enforcement.
 
 ### M0-4 Society creation orchestration
-- status: in-progress (this session)
+- status: done (2026-07-08, PR #159)
 - priority: P0
 - acceptance: from a completed spec conversation the agent can execute the existing rails end to end in LAW_STATUS=pre mode: generate the society scaffold, create the draft registry entry, run the certifier, surface the result. Every step visible in the UI with statuses.
 
 ### M0-5 Operating dashboard v1
-- status: in-progress (this session)
+- status: done (2026-07-08, PR #159)
 - priority: P0
 - acceptance: for a created society: status, good standing, pending approvals (approve/reject), audit log tail, kill switch. Reads the existing landing APIs; no new backend state.
 
 ### M0-6 Billing math (not charging yet)
-- status: ready
+- status: done (2026-07-08, PR #159; usage rollup + 5x price in /api/account and the dashboard card, tests in meter.test.ts)
 - priority: P1
 - acceptance: per-account monthly usage rollup with cost and 5x price, exposed in the dashboard as "what you would be billed once operational". No payment execution. Tests for the rollup.
+
+### M0-7 Live conversation with a real model
+- status: blocked (needs AI Gateway credit top-up or an OPENROUTER_API_KEY in the studio Vercel project; the gateway account currently rejects all requests for insufficient funds)
+- priority: P0
+- acceptance: a full coach conversation streams against a real model in production, tool calls included, and the account usage counters move.
+
+### M0-8 Supervised real constitution run
+- status: blocked (owner supervision required; creates a durable audit entry and a forming registry stub on ar-agents.ar)
+- priority: P0
+- acceptance: one society constituted from studio end to end against the live incorporate-attested API, credentials received, dashboard operational against it; then the registry entry is cleaned up or kept deliberately.
 
 ## M1: A stranger can do it
 
