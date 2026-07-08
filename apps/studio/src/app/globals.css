@@ -1,0 +1,281 @@
+html {
+  height: 100%;
+}
+
+html,
+body {
+  max-width: 100vw;
+  overflow-x: hidden;
+}
+
+/* Plain light-on-dark-text aesthetic, light mode by default. Same token
+   names as apps/landing and apps/sociedad-ia-starter so components can be
+   copied across apps without a rewrite, but this app defaults to light. */
+:root {
+  color-scheme: light;
+
+  --bg: #ffffff;
+  --bg-tint: #fafafa;
+  --text: #171717;
+  --text-body: #4d4d4d;
+  --text-muted: #6b6b6b;
+
+  --accent: #009ee3;
+  --border-color: rgba(0, 0, 0, 0.1);
+
+  --primary-bg: #171717;
+  --primary-text: #ffffff;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root {
+    color-scheme: dark;
+
+    --bg: #0a0a0a;
+    --bg-tint: #161616;
+    --text: #ededed;
+    --text-body: #a1a1a1;
+    --text-muted: #8a8a8a;
+
+    --accent: #4fc3f7;
+    --border-color: rgba(255, 255, 255, 0.12);
+
+    --primary-bg: #ededed;
+    --primary-text: #0a0a0a;
+  }
+}
+
+body {
+  min-height: 100%;
+  display: flex;
+  flex-direction: column;
+  color: var(--text);
+  background: var(--bg);
+  font-family:
+    -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial,
+    sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+  padding: 0;
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
+
+button,
+input,
+textarea {
+  font: inherit;
+  color: inherit;
+}
+
+/* Shared, minimal utility classes. Layout stays inline-style (per component,
+   easy to scan); these cover things that need pseudo-selectors, keyframes,
+   or are reused enough across components to be worth naming. Plain CSS, no
+   framework. */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+  font-weight: 500;
+  padding: 9px 14px;
+  cursor: pointer;
+}
+
+.btn:disabled {
+  cursor: default;
+  opacity: 0.5;
+}
+
+.btn-primary {
+  background: var(--primary-bg);
+  color: var(--primary-text);
+  border-color: transparent;
+}
+
+.btn-danger {
+  background: #b91c1c;
+  color: #ffffff;
+  border-color: transparent;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #991b1b;
+}
+
+.btn-ghost {
+  background: transparent;
+}
+
+.card {
+  border: 1px solid var(--border-color);
+  border-radius: 10px;
+  background: var(--bg-tint);
+  padding: 16px 18px;
+}
+
+.field-label {
+  display: block;
+  font-size: 12px;
+  color: var(--text-muted);
+  margin-bottom: 4px;
+}
+
+.field-input {
+  width: 100%;
+  padding: 9px 10px;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 14px;
+}
+
+.field-error {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #b91c1c;
+}
+
+@media (prefers-color-scheme: dark) {
+  .field-error {
+    color: #f87171;
+  }
+}
+
+.badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border-radius: 999px;
+  padding: 3px 10px;
+  font-size: 12px;
+  font-weight: 500;
+  border: 1px solid var(--border-color);
+  background: var(--bg);
+  white-space: nowrap;
+}
+
+.badge-good {
+  color: #15803d;
+  border-color: rgba(21, 128, 61, 0.3);
+}
+
+.badge-bad {
+  color: #b91c1c;
+  border-color: rgba(185, 28, 28, 0.3);
+}
+
+.badge-neutral {
+  color: var(--text-muted);
+}
+
+@media (prefers-color-scheme: dark) {
+  .badge-good {
+    color: #4ade80;
+  }
+  .badge-bad {
+    color: #f87171;
+  }
+}
+
+.status-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: var(--accent);
+  flex-shrink: 0;
+}
+
+.status-dot-pending {
+  animation: pulse 1.2s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 0.35;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.dialog-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 50;
+}
+
+.dialog {
+  width: 100%;
+  max-width: 460px;
+  max-height: calc(100vh - 40px);
+  overflow-y: auto;
+  border-radius: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-color);
+  padding: 22px 24px;
+}
+
+.stage-rail-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+  color: var(--text-muted);
+}
+
+.stage-rail-item.is-current {
+  background: var(--bg-tint);
+  color: var(--text);
+  font-weight: 600;
+}
+
+.stage-rail-item.is-done {
+  color: var(--text-body);
+}
+
+.chip {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 6px;
+  padding: 2px 8px;
+  font-size: 12px;
+  background: var(--bg);
+  border: 1px solid var(--border-color);
+  color: var(--text-body);
+}
+
+.layout-columns {
+  display: flex;
+  gap: 24px;
+  align-items: flex-start;
+}
+
+@media (max-width: 860px) {
+  .layout-columns {
+    flex-direction: column;
+  }
+}
