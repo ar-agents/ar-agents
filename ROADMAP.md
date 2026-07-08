@@ -49,12 +49,12 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 ## M1: A stranger can do it
 
 ### M1-1 Coach corpus
-- status: ready
+- status: in-progress (supervised session 2026-07-08)
 - priority: P1
 - acceptance: distilled startup-judgment corpus (lean startup method, Paul Graham essay principles with links, gstack build practice) wired into the coach system prompt; corpus is markdown files in apps/studio, each with sources; no full copyrighted texts.
 
 ### M1-2 Web research tool for the agent
-- status: ready
+- status: in-progress (supervised session 2026-07-08)
 - priority: P1
 - acceptance: the builder agent can run web searches and fetch pages to validate a market before recommending a build; results cited in-conversation.
 
@@ -69,7 +69,7 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: npx ar-agents (or the existing CLI surface) walks the same journey from a terminal, calling the same APIs.
 
 ### M1-6 Society runtime deploys from studio
-- status: ready
+- status: in-progress (supervised session 2026-07-08)
 - priority: P1
 - acceptance: a constituted society's agent app (the sociedad-ia-starter scaffold with its generated env, SOCIETY_ID and gate token included) deploys to its own Vercel project from studio with one action, and the dashboard shows the deployment's health. This is the gap between "incorporated" and "operating".
 
@@ -78,12 +78,22 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - priority: P1
 - acceptance: someone who is not the repo owner goes idea to operating simulated society without help; friction log becomes new roadmap items.
 
+### M1-7 Journey evals
+- status: in-progress (supervised session 2026-07-08)
+- priority: P0
+- acceptance: an eval suite (runnable locally and in CI with keys) that drives the full journey with simulated founder personas: conversation to draft, draft quality graded against a rubric, constitution against a non-production target, governance actions exercised, and a scored report. Regressions in the coach, the draft extraction, or the orchestration fail the suite.
+
 ## M2: Operate for real
 
 ### M2-1 Billing activation via Mercado Pago
 - status: blocked (money movement; owner decision)
 - priority: P1
 - acceptance: operational societies get a monthly MP charge of 5x token cost; entitlement pause on non-payment; reuses the existing MP subscription rails.
+
+### M2-4 Society treasury and banking
+- status: research (supervised session 2026-07-08)
+- priority: P1
+- acceptance: a written, source-cited design for how a society holds and moves money (wallet provisioning, owner top-ups, spend policies through the approvals gate, AR rails and cross-border), reusing the existing treasury package where possible; then implementation items derived from it.
 
 ### M2-2 Society runtime hosting story
 - status: ready
