@@ -94,6 +94,17 @@ describe("estimateCostMicroUsd", () => {
     ).toBe(0);
   });
 
+  it("is 0 for ANY ':free' route, including ones not in the pricing table", () => {
+    // Regression: the nemotron-ultra coach override billed 2k free tokens at
+    // the conservative unknown price and ate a fifth of the monthly cap.
+    expect(
+      estimateCostMicroUsd("nvidia/nemotron-3-ultra-550b-a55b:free", {
+        inputTokens: 903,
+        outputTokens: 1144,
+      }),
+    ).toBe(0);
+  });
+
   it("computes input*price + output*price for a known model", () => {
     // anthropic/claude-haiku-4.5: 1 micro-USD/input token, 5 micro-USD/output token
     expect(estimateCostMicroUsd("anthropic/claude-haiku-4.5", { inputTokens: 1000, outputTokens: 200 })).toBe(

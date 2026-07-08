@@ -54,7 +54,16 @@ const UNKNOWN_MODEL_PRICING: TokenPricing = {
 };
 
 function pricingFor(modelId: string): TokenPricing {
-  return PRICING[modelId] ?? UNKNOWN_MODEL_PRICING;
+  const known = PRICING[modelId];
+  if (known) return known;
+  // OpenRouter's ":free" suffix is a routing contract, not a name: those
+  // routes bill nothing. Without this rule any free model missing from the
+  // table (e.g. a coach override) falls to the conservative unknown price
+  // and burns the user's free cap on a zero-cost conversation.
+  if (modelId.endsWith(":free")) {
+    return { inputMicroUsdPerToken: 0, outputMicroUsdPerToken: 0 };
+  }
+  return UNKNOWN_MODEL_PRICING;
 }
 
 /** Estimate the model cost (micro-USD) of one call's token usage. */

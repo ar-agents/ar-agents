@@ -37,12 +37,12 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: per-account monthly usage rollup with cost and 5x price, exposed in the dashboard as "what you would be billed once operational". No payment execution. Tests for the rollup.
 
 ### M0-7 Live conversation with a real model
-- status: blocked (needs AI Gateway credit top-up or an OPENROUTER_API_KEY in the studio Vercel project; the gateway account currently rejects all requests for insufficient funds)
+- status: done (2026-07-08; OPENROUTER_API_KEY live, coach on nemotron-3-ultra-550b:free, gateway topped up; full streamed coaching conversation verified in production with usage counters recording)
 - priority: P0
 - acceptance: a full coach conversation streams against a real model in production, tool calls included, and the account usage counters move.
 
 ### M0-8 Supervised real constitution run
-- status: blocked (owner supervision required; creates a durable audit entry and a forming registry stub on ar-agents.ar)
+- status: done (2026-07-08, supervised; AR Agents Operaciones Sociedad Automatizada, registry id ar-agents-operaciones-sociedad-automatiz, the first productive-sociedad-ia entry; kill switch round-tripped live; kept deliberately as the dogfood society)
 - priority: P0
 - acceptance: one society constituted from studio end to end against the live incorporate-attested API, credentials received, dashboard operational against it; then the registry entry is cleaned up or kept deliberately.
 
@@ -67,6 +67,11 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - status: ready
 - priority: P2
 - acceptance: npx ar-agents (or the existing CLI surface) walks the same journey from a terminal, calling the same APIs.
+
+### M1-6 Society runtime deploys from studio
+- status: ready
+- priority: P1
+- acceptance: a constituted society's agent app (the sociedad-ia-starter scaffold with its generated env, SOCIETY_ID and gate token included) deploys to its own Vercel project from studio with one action, and the dashboard shows the deployment's health. This is the gap between "incorporated" and "operating".
 
 ### M1-5 First real external user creates a society
 - status: blocked (needs a human to recruit the user)
