@@ -6,8 +6,9 @@
  * docs/CONTRACT.md.
  *
  * The model never constitutes anything: there is no "constitute" tool. The
- * only three tools are read-only / dry-run (preview_society, good_standing,
- * my_society); the actual, irreversible act lives behind the dedicated
+ * tools are read-only / dry-run (preview_society, good_standing, my_society,
+ * plus research_web when TAVILY_API_KEY is set, see src/lib/research.ts);
+ * the actual, irreversible act lives behind the dedicated
  * POST /api/society/constitute button in the UI.
  */
 
@@ -23,39 +24,21 @@ import { authenticate, getStoredSociety } from "@/lib/account";
 import { goodStanding as fetchGoodStanding, previewSociety as fetchPreviewSociety } from "@/lib/aragents";
 import { checkCap, recordUsage } from "@/lib/meter";
 import { estimateCostMicroUsd, resolveModelForAgent } from "@/lib/models";
+import { researchWeb, tavilyConfigured } from "@/lib/research";
 import { buildSocietySummary } from "@/lib/society";
+import { buildSystemPrompt, STAGES } from "@/coach/system-prompt";
 
 export const runtime = "nodejs";
 
-const STAGES = ["idea", "validacion", "spec", "constitucion", "operacion"] as const;
 const BodySchema = z.object({
   messages: z.array(z.record(z.string(), z.unknown())).min(1),
   stage: z.enum(STAGES).optional(),
 });
 
-const STAGE_LABELS: Record<(typeof STAGES)[number], string> = {
-  idea: "idea",
-  validacion: "validación",
-  spec: "especificación",
-  constitucion: "constitución",
-  operacion: "operación",
-};
-
-function systemPrompt(stage?: (typeof STAGES)[number]): string {
-  const lines = [
-    "Sos un coach de startups que ayuda a un humano a llevar una idea de negocio hasta una sociedad automatizada operando en Argentina, bajo el anteproyecto de reforma a la Ley General de Sociedades (art. 14 y 102), todavía no sancionado.",
-    "Las etapas son: idea -> validación -> spec -> constitución -> operación. Guiá la charla en ese orden, sin saltar pasos.",
-    stage ? `Etapa actual: ${STAGE_LABELS[stage]}.` : "",
-    "Sé honesto: esto es una simulación previa a la ley. Nada de lo que generás acá inscribe algo ante un organismo real (IGJ, AFIP, etc). Nunca digas que ya presentaste o inscribiste algo de verdad.",
-    "Tu objetivo es llegar a un borrador concreto (nombre, tipo societario, capital, objeto, capacidades) y usar preview_society para convertirlo en un borrador estructurado + checklist. Empujá la charla hacia eso.",
-    "Usá good_standing para consultar el estado de una sociedad existente (por id o URL) y my_society para ver si esta cuenta ya tiene una sociedad constituida.",
-    "IMPORTANTE: vos nunca constituís una sociedad. Es un acto irreversible que solo el humano puede confirmar, apretando el botón de constituir en la interfaz y aceptando la responsabilidad de administrador (art. 102). Cuando el borrador esté listo, decile al usuario que lo revise y apriete ese botón; vos no podés hacerlo.",
-  ].filter(Boolean);
-  return lines.join("\n\n");
-}
-
-function buildTools(accountId: string) {
-  return {
+/** Exported for tests: lets test/research-tool.test.ts assert research_web
+ *  is registered/omitted per TAVILY_API_KEY without going through streamText. */
+export function buildTools(accountId: string) {
+  const base = {
     preview_society: tool({
       description:
         "Convierte una descripción en lenguaje natural de la sociedad en un borrador estructurado (SocietyDraft) + checklist, vía el dry-run público de ar-agents.ar. No constituye nada.",
@@ -81,6 +64,21 @@ function buildTools(accountId: string) {
         const stored = await getStoredSociety(accountId);
         return stored ? buildSocietySummary(stored) : null;
       },
+    }),
+  };
+
+  // research_web is only registered when TAVILY_API_KEY is set (see
+  // src/lib/research.ts); the system prompt notes when it's unavailable so
+  // the model doesn't imply it can browse the live web.
+  if (!tavilyConfigured()) return base;
+
+  return {
+    ...base,
+    research_web: tool({
+      description:
+        "Busca en la web en tiempo real (vía Tavily) para validar mercado, competencia o datos antes de recomendar un build. Devuelve hasta 5 resultados con título, URL y fragmento. Citá las URLs que uses en tu respuesta al usuario.",
+      inputSchema: z.object({ query: z.string().min(2).max(300) }),
+      execute: async ({ query }) => researchWeb(query),
     }),
   };
 }
@@ -128,7 +126,7 @@ export async function POST(req: Request) {
   try {
     const result = streamText({
       model: resolved.model,
-      system: systemPrompt(parsed.data.stage),
+      system: buildSystemPrompt(parsed.data.stage, { webSearchAvailable: tavilyConfigured() }),
       messages: await convertToModelMessages(validated.data),
       tools,
       stopWhen: stepCountIs(6),
