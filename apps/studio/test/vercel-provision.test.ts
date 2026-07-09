@@ -95,6 +95,7 @@ describe("provisionSocietyApp", () => {
     expect(deployBody).toEqual({
       name: "soc-reg-1",
       project: "soc-reg-1",
+      target: "production",
       gitSource: { type: "github", org: "ar-agents", repo: "ar-agents", ref: "main" },
     });
   });
@@ -230,6 +231,7 @@ describe("redeploySocietyApp", () => {
     expect(body).toEqual({
       name: "soc-reg-1",
       project: "soc-reg-1",
+      target: "production",
       gitSource: { type: "github", org: "ar-agents", repo: "ar-agents", ref: "main" },
     });
   });
@@ -293,7 +295,7 @@ describe("getLatestDeployment", () => {
       createdAt: new Date(1_700_000_000_000).toISOString(),
     });
     const [url] = fetchMock.mock.calls[0]!;
-    expect(String(url)).toBe("https://api.vercel.com/v7/deployments?projectId=soc-reg-1&limit=1");
+    expect(String(url)).toBe("https://api.vercel.com/v7/deployments?projectId=soc-reg-1&limit=1&target=production");
   });
 
   it("surfaces 'no_deployments' when the project has never deployed", async () => {
