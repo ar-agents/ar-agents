@@ -294,6 +294,104 @@ export const MESSAGES = {
     en: "I accept the administrator responsibility under art. 102 (non-delegable supervision of the automated society).",
   },
   "constitution.submitting": { es: "Constituyendo...", en: "Incorporating..." },
+
+  // src/components/credentials-panel.tsx (ROADMAP.md M3-1)
+  "credentials.heading": { es: "Credenciales", en: "Credentials" },
+  "credentials.needsDeploy": {
+    es: "Desplegá el agente primero para poder configurar sus credenciales.",
+    en: "Deploy the agent first to configure its credentials.",
+  },
+  "credentials.error": {
+    es: "No se pudieron cargar las credenciales.",
+    en: "Could not load the credentials.",
+  },
+  "credentials.status.configured": { es: "configurada", en: "configured" },
+  "credentials.status.missing": { es: "falta", en: "missing" },
+  "credentials.status.verified": { es: "verificada", en: "verified" },
+  "credentials.status.unverified": { es: "sin verificar", en: "unverified" },
+  "credentials.status.hint": { es: "termina en {hint}", en: "ends in {hint}" },
+  "credentials.action.configure": { es: "Configurar", en: "Configure" },
+  "credentials.action.edit": { es: "Editar", en: "Edit" },
+  "credentials.action.save": { es: "Guardar", en: "Save" },
+  "credentials.action.saving": { es: "Guardando...", en: "Saving..." },
+
+  "credentials.modelKey.label": { es: "Modelo de lenguaje", en: "Language model" },
+  "credentials.modelKey.choicePlatform": {
+    es: "Usar el modelo de la plataforma",
+    en: "Use the platform's model",
+  },
+  "credentials.modelKey.choiceOwn": { es: "Usar mi propia clave", en: "Use my own key" },
+  "credentials.modelKey.apiKeyLabel": { es: "Clave de API de Anthropic", en: "Anthropic API key" },
+  "credentials.modelKey.apiKeyPlaceholder": { es: "sk-ant-...", en: "sk-ant-..." },
+  "credentials.modelKey.help": {
+    es: "Se usa para operar el agente de la sociedad. Conseguila en console.anthropic.com.",
+    en: "Used to run the society's agent. Get one at console.anthropic.com.",
+  },
+
+  "credentials.mercadopago.label": { es: "Mercado Pago", en: "Mercado Pago" },
+  "credentials.mercadopago.accessTokenLabel": {
+    es: "Access token de producción",
+    en: "Production access token",
+  },
+  "credentials.mercadopago.help": {
+    es: "developers.mercadopago.com, tu app, Credenciales de producción.",
+    en: "developers.mercadopago.com, your app, Production credentials.",
+  },
+
+  "credentials.whatsapp.label": { es: "WhatsApp Business", en: "WhatsApp Business" },
+  "credentials.whatsapp.accessTokenLabel": { es: "Token de acceso", en: "Access token" },
+  "credentials.whatsapp.phoneNumberIdLabel": {
+    es: "ID del número de teléfono",
+    en: "Phone number ID",
+  },
+  "credentials.whatsapp.help": {
+    es: "Meta Business Manager, WhatsApp Business, API. El ID es numérico, no el número en sí.",
+    en: "Meta Business Manager, WhatsApp Business, API. The ID is numeric, not the phone number itself.",
+  },
+
+  "credentials.afip.label": { es: "Certificado AFIP", en: "AFIP certificate" },
+  "credentials.afip.certLabel": { es: "Certificado (PEM)", en: "Certificate (PEM)" },
+  "credentials.afip.keyLabel": { es: "Clave privada (PEM)", en: "Private key (PEM)" },
+  "credentials.afip.cuitLabel": { es: "CUIT", en: "CUIT" },
+  "credentials.afip.envLabel": { es: "Entorno", en: "Environment" },
+  "credentials.afip.envHomo": { es: "Homologación (prueba)", en: "Homologation (test)" },
+  "credentials.afip.envProd": { es: "Producción", en: "Production" },
+  "credentials.afip.help": {
+    es: "Emitido por ARCA, Clave Fiscal, Asociar Servicio Web. Cubre facturación (wsfe) y padrón.",
+    en: "Issued by ARCA, Clave Fiscal, Asociar Servicio Web. Covers invoicing (wsfe) and the taxpayer registry.",
+  },
+
+  "credentials.treasury.label": { es: "Cuenta de retiro (Manteca)", en: "Off-ramp account (Manteca)" },
+  "credentials.treasury.apiKeyLabel": { es: "API key", en: "API key" },
+  "credentials.treasury.userIdLabel": { es: "ID de usuario", en: "User ID" },
+  "credentials.treasury.bankAccountIdLabel": { es: "Cuenta bancaria", en: "Bank account" },
+  "credentials.treasury.help": {
+    es: "Panel de Manteca, sección de API. Convierte USDC de la tesorería a pesos.",
+    en: "Manteca dashboard, API section. Converts the treasury's USDC to pesos.",
+  },
+
+  "credentials.result.savedVerified": { es: "Guardado y verificado.", en: "Saved and verified." },
+  "credentials.result.savedUnverified": {
+    es: "Guardado (sin verificar contra un servicio en vivo).",
+    en: "Saved (not verified against a live service).",
+  },
+  "credentials.redeploy.pending": {
+    es: "Redesplegando la sociedad para que tome el cambio...",
+    en: "Redeploying the society so the change takes effect...",
+  },
+  "credentials.redeploy.ok": { es: "Sociedad redesplegada.", en: "Society redeployed." },
+  "credentials.redeploy.error": {
+    es: "El dato se guardó, pero no se pudo redesplegar la sociedad. Probá de nuevo más tarde.",
+    en: "The data was saved, but the society could not be redeployed. Try again later.",
+  },
+  "credentials.redeploy.unavailable": {
+    es: "El dato se guardó. Este entorno no puede redesplegar automáticamente.",
+    en: "The data was saved. This environment cannot redeploy automatically.",
+  },
+  "credentials.error.saveFailed": {
+    es: "No se pudo guardar. Probá de nuevo en un rato.",
+    en: "Could not save. Try again in a bit.",
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type MessageId = keyof typeof MESSAGES;
