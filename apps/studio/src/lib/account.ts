@@ -71,6 +71,15 @@ export interface SocietyDeploy {
   projectName: string;
   url: string;
   deployedAt: string;
+  /** The project's stable PRODUCTION domain (e.g. `soc-xyz.vercel.app`,
+   *  possibly truncated by Vercel from a long project name -- it cannot be
+   *  derived, only fetched from the domains API). This is the ONLY URL the
+   *  cockpit's live-status fetch or a founder-facing link may use:
+   *  deployment-specific URLs (`url` above, or anything the deployments
+   *  list returns) sit behind Vercel Deployment Protection and answer 302
+   *  to an SSO wall (found live, 2026-07-09). Resolved lazily on the first
+   *  cockpit poll and cached here. */
+  aliasUrl?: string;
 }
 
 /** The account's constituted society (custodial storage). The plaintext
@@ -294,4 +303,15 @@ export async function setSocietyDenominacionSet(accountId: string): Promise<void
   const existing = await getStoredSociety(accountId);
   if (!existing) return;
   await setStoredSociety(accountId, { ...existing, denominacionSet: true });
+}
+
+/**
+ * Cache the society project's stable production domain on the stored
+ * deploy record (see {@link SocietyDeploy.aliasUrl}). No-op when the
+ * account has no society or no provisioned deploy.
+ */
+export async function setSocietyDeployAlias(accountId: string, aliasUrl: string): Promise<void> {
+  const existing = await getStoredSociety(accountId);
+  if (!existing?.deploy) return;
+  await setStoredSociety(accountId, { ...existing, deploy: { ...existing.deploy, aliasUrl } });
 }
