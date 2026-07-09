@@ -91,9 +91,39 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: operational societies get a monthly MP charge of 5x token cost; entitlement pause on non-payment; reuses the existing MP subscription rails.
 
 ### M2-4 Society treasury and banking
-- status: research (supervised session 2026-07-08)
+- status: done (2026-07-08; research delivered at docs/research/treasury-agent-banking.md, 31 cited sources; derived items M2-4a to M2-4f below)
 - priority: P1
 - acceptance: a written, source-cited design for how a society holds and moves money (wallet provisioning, owner top-ups, spend policies through the approvals gate, AR rails and cross-border), reusing the existing treasury package where possible; then implementation items derived from it.
+
+### M2-4a Wallet-provider integration spike (Coinbase Agentic Wallets vs Circle Agent Wallets)
+- status: ready
+- priority: P1
+- acceptance: a testnet (Base Sepolia) wallet provisioned through each provider, driven through the x402 signer interface; written comparison of setup friction, policy ergonomics, and approvals-gate fit; ends with a provider decision for v0.
+
+### M2-4b Wallet spend policy wired to the approvals gate
+- status: blocked (depends on M2-4a provider decision)
+- priority: P1
+- acceptance: agent USDC spend above a threshold requires provider policy AND the existing approvals gate; tests prove each layer blocks alone.
+
+### M2-4c Unified signed audit log for crypto and fiat legs
+- status: ready
+- priority: P1
+- acceptance: every wallet transfer and OffRampAdapter conversion appends to the same signed audit log with a common schema, reusing the treasury package receipt shapes.
+
+### M2-4d v0 owner top-up flow (manual USDC transfer)
+- status: ready
+- priority: P2
+- acceptance: documented, tested procedure to fund a society wallet by direct USDC-on-Base transfer, balance visible in TreasuryState, logged to the audit trail.
+
+### M2-4e Legal review of the regulatory reading
+- status: blocked (owner decision; requires a lawyer)
+- priority: P1
+- acceptance: a lawyer reviews the open questions and the document's reading of the BCRA and UIF material and confirms or amends the v0/v1 staging.
+
+### M2-4f MP ARS to USDC top-up route via an off-ramp partner
+- status: blocked (needs M2-4e; also needs a confirmed self-serve ARS-in path at a partner)
+- priority: P3
+- acceptance: ARS collected via Mercado Pago moves into a society USDC wallet with the same idempotency and audit guarantees as existing payouts.
 
 ### M2-2 Society runtime hosting story
 - status: ready
