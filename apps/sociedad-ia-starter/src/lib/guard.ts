@@ -88,6 +88,43 @@ export function requireApiKey(req: Request): AuthResult {
   return { ok: true };
 }
 
+// ─── status token auth (fail-closed) ─────────────────────────────────────────
+
+/**
+ * Require a valid status token for `GET /api/status` (ROADMAP.md M3-2).
+ * Studio is the only intended caller: it mints `STUDIO_STATUS_TOKEN` at
+ * deploy time, sets it on this project's env, and sends it back as
+ * `Authorization: Bearer <token>` on every cockpit refresh. FAIL-CLOSED:
+ * unset `STUDIO_STATUS_TOKEN` refuses (503) rather than serving diagnostic
+ * status to anyone. Separate from {@link requireApiKey} (a different secret,
+ * a read-only diagnostic surface instead of the token-spending agent loop).
+ */
+export function requireStatusToken(req: Request): AuthResult {
+  const expected = process.env.STUDIO_STATUS_TOKEN?.trim();
+  if (!expected) {
+    return {
+      ok: false,
+      status: 503,
+      error: "not_configured",
+      message:
+        "Set STUDIO_STATUS_TOKEN in the environment to enable /api/status. Studio provisions this automatically.",
+    };
+  }
+  const header = req.headers.get("authorization");
+  const bearer = header?.toLowerCase().startsWith("bearer ")
+    ? header.slice(7).trim()
+    : "";
+  if (!bearer || !timingSafeEqual(bearer, expected)) {
+    return {
+      ok: false,
+      status: 401,
+      error: "unauthorized",
+      message: "Missing or invalid status token. Send Authorization: Bearer <STUDIO_STATUS_TOKEN>.",
+    };
+  }
+  return { ok: true };
+}
+
 // ─── in-memory fixed-window rate limit ───────────────────────────────────────
 
 const buckets = new Map<string, { count: number; resetAt: number }>();

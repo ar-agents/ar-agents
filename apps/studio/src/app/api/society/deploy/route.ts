@@ -23,7 +23,7 @@
  * See docs/CONTRACT.md.
  */
 
-import { authenticate, getStoredSociety, setSocietyDeploy } from "@/lib/account";
+import { authenticate, getStoredSociety, setSocietyDeploy, setSocietyStatusToken } from "@/lib/account";
 import { kvRateLimit } from "@/lib/ratelimit";
 import { projectSlugFor, provisionSocietyApp } from "@/lib/vercel-provision";
 
@@ -74,6 +74,13 @@ export async function POST(req: Request) {
   }
 
   const agentApiKey = randomHex(32);
+  // Studio-issued machine credential (ROADMAP.md M3-2), distinct from
+  // agentApiKey: gates the deployed app's GET /api/status (the cockpit
+  // feed), never returned to the browser here, only persisted to studio's
+  // own KV below so later cockpit refreshes (GET /api/society/activity) can
+  // present it. Manual-mode deploys don't get one: studio never learns
+  // whether that project even exists, so there is nowhere to persist it.
+  const statusToken = randomHex(32);
   const societyId = society.registryId ?? society.sessionId;
 
   const result = await provisionSocietyApp({
@@ -83,6 +90,7 @@ export async function POST(req: Request) {
       { name: "SOCIETY_GATE_TOKEN", value: society.gateToken },
       { name: "AR_AGENTS_API_BASE", value: AR_AGENTS_API_BASE },
       { name: "AGENT_API_KEY", value: agentApiKey },
+      { name: "STUDIO_STATUS_TOKEN", value: statusToken },
     ],
   });
 
@@ -112,6 +120,7 @@ export async function POST(req: Request) {
     url: result.url,
     deployedAt: new Date().toISOString(),
   });
+  await setSocietyStatusToken(auth.accountId, statusToken);
 
   return Response.json({
     ok: true,

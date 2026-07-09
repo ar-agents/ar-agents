@@ -1,9 +1,11 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+  getLatestDeployment,
   projectSlugFor,
   provisionSocietyApp,
   redeploySocietyApp,
   setSocietyCredentialEnvVars,
+  triggerRedeploy,
 } from "../src/lib/vercel-provision";
 
 function jsonResponse(body: unknown, status = 200) {
@@ -238,5 +240,73 @@ describe("redeploySocietyApp", () => {
     expect(result).not.toBeNull();
     expect(result!.ok).toBe(false);
     expect((result as { error: string }).error).toMatch(/^deployment_create_failed:/);
+  });
+});
+
+describe("triggerRedeploy", () => {
+  it("returns null when VERCEL_PROVISION_TOKEN is not set", async () => {
+    delete process.env.VERCEL_PROVISION_TOKEN;
+    const result = await triggerRedeploy("soc-reg-1");
+    expect(result).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("fires the deployment WITHOUT polling: exactly one call, returns the initial readyState", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ id: "dpl_3", url: "soc-reg-1.vercel.app", readyState: "QUEUED" }),
+    );
+    const result = await triggerRedeploy("soc-reg-1");
+    expect(result).toEqual({ ok: true, url: "soc-reg-1.vercel.app", readyState: "QUEUED" });
+    // Only the create call: no GET polling round trip, unlike redeploySocietyApp.
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("surfaces a deployment-create failure as a distinct error", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "quota" } }, 403));
+    const result = await triggerRedeploy("soc-reg-1");
+    expect(result).not.toBeNull();
+    expect(result!.ok).toBe(false);
+    expect((result as { error: string }).error).toMatch(/^deployment_create_failed:/);
+  });
+});
+
+describe("getLatestDeployment", () => {
+  it("returns null when VERCEL_PROVISION_TOKEN is not set", async () => {
+    delete process.env.VERCEL_PROVISION_TOKEN;
+    const result = await getLatestDeployment("soc-reg-1");
+    expect(result).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("lists deployments filtered by projectId, limit 1, and reports the latest state", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({
+        deployments: [{ url: "soc-reg-1.vercel.app", readyState: "READY", created: 1_700_000_000_000 }],
+        pagination: { count: 1, next: null, prev: null },
+      }),
+    );
+    const result = await getLatestDeployment("soc-reg-1");
+    expect(result).toEqual({
+      ok: true,
+      state: "READY",
+      url: "soc-reg-1.vercel.app",
+      createdAt: new Date(1_700_000_000_000).toISOString(),
+    });
+    const [url] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("https://api.vercel.com/v7/deployments?projectId=soc-reg-1&limit=1");
+  });
+
+  it("surfaces 'no_deployments' when the project has never deployed", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ deployments: [], pagination: { count: 0, next: null, prev: null } }));
+    const result = await getLatestDeployment("soc-reg-1");
+    expect(result).toEqual({ ok: false, error: "no_deployments" });
+  });
+
+  it("surfaces a list failure as a distinct error", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "forbidden" } }, 403));
+    const result = await getLatestDeployment("soc-reg-1");
+    expect(result).not.toBeNull();
+    expect(result!.ok).toBe(false);
+    expect((result as { error: string }).error).toMatch(/^deployments_list_failed:/);
   });
 });
