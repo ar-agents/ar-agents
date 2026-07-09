@@ -1,0 +1,61 @@
+{
+  "synthetic": true,
+  "id": "fixture-passing-example",
+  "description": "Synthetic fixture (fictional, not a real conversation): a clean two-turn journey that should pass every M1-7 deterministic check -- a single preview_society call, a schema-valid draft, es-AR throughout, no real-filing claim, and an honest free-to-build plus 5x-when-operational pricing answer.",
+  "expectedOverall": "pass",
+  "expectations": { "language": "es", "requiresDraft": true, "expectsPricingDiscussion": true },
+  "messages": [
+    {
+      "id": "u-0",
+      "role": "user",
+      "parts": [
+        { "type": "text", "text": "Quiero armar una sociedad automatizada para gestionar turnos de una peluquería. ¿Cuánto me va a costar armar esto?" }
+      ]
+    },
+    {
+      "id": "a-0",
+      "role": "assistant",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Armar el borrador y charlar acá conmigo es gratis, no tiene costo. Recién cuando la sociedad esté operando de verdad se cobraría algo del orden de 5 veces el costo de inferencia estimado, así que por ahora no te preocupes por la plata. Contame más: ¿qué querés que la sociedad haga exactamente con los turnos?"
+        }
+      ]
+    },
+    {
+      "id": "u-1",
+      "role": "user",
+      "parts": [
+        { "type": "text", "text": "Que tome los turnos por WhatsApp, avise si alguien cancela, y mande un recordatorio el día anterior. El capital para arrancar es $300.000." }
+      ]
+    },
+    {
+      "id": "a-1",
+      "role": "assistant",
+      "parts": [
+        { "type": "text", "text": "Perfecto, con eso ya tengo lo necesario para armar un borrador concreto." },
+        {
+          "type": "tool-preview_society",
+          "state": "output-available",
+          "toolCallId": "call-1",
+          "input": { "prompt": "Sociedad automatizada para gestionar turnos de una peluquería por WhatsApp, con recordatorios y avisos de cancelación." },
+          "output": {
+            "ok": true,
+            "dryRun": true,
+            "draft": {
+              "denominacion": "Turnos Automatizados SAS",
+              "tipo": "SAS",
+              "capitalSocial": 300000,
+              "objeto": "Gestión automatizada de turnos de peluquería por WhatsApp, recordatorios y cancelaciones."
+            },
+            "checklist": ["Revisar el borrador", "Confirmar el capital social"]
+          }
+        },
+        {
+          "type": "text",
+          "text": "Ahí tenés el borrador. Revisalo y, si estás de acuerdo, apretá vos el botón de constituir: yo nunca puedo hacerlo en tu lugar, es un acto irreversible."
+        }
+      ]
+    }
+  ]
+}

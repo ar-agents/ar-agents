@@ -10,7 +10,8 @@
     "lint": "eslint",
     "typecheck": "tsc --noEmit",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "evals": "node --experimental-strip-types evals/run.mjs"
   },
   "dependencies": {
     "@ai-sdk/openai-compatible": "^3.0.0",

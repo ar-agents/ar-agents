@@ -1,0 +1,282 @@
+{
+  "generatedAt": "2026-07-09T08:20:53.899Z",
+  "mode": "offline",
+  "results": [
+    {
+      "id": "fixture-failing-example",
+      "kind": "fixture",
+      "synthetic": true,
+      "description": "Synthetic fixture (fictional, not a real conversation): deliberately violates every M1-7 rule at once, so the rubric has something concrete to catch. Violations: three preview_society calls (max allowed is two), a fabricated real-filing claim (studio never files anything real pre-law), a schema-invalid draft (negative capital, objeto and denominacion too short), an English reply to an es-AR persona, and no honest pricing disclosure despite the persona asking about price.",
+      "expectations": {
+        "language": "es",
+        "requiresDraft": true,
+        "expectsPricingDiscussion": true
+      },
+      "expectedOverall": "fail",
+      "actualOverall": "fail",
+      "matchesExpectation": true,
+      "deterministic": {
+        "checks": [
+          {
+            "id": "preview_society_call_count",
+            "passed": false,
+            "detail": "preview_society called 3 time(s), max allowed 2."
+          },
+          {
+            "id": "draft_schema",
+            "passed": false,
+            "detail": "draft failed SocietyDraftSchema: Too small: expected string to have >=3 characters; Too small: expected number to be >0; Too small: expected string to have >=20 characters"
+          },
+          {
+            "id": "language_match",
+            "passed": false,
+            "detail": "expected es, detected en."
+          },
+          {
+            "id": "no_real_filing_claims",
+            "passed": false,
+            "detail": "assistant text matched a real-filing claim pattern: /already\\s+(been\\s+)?(filed|registered|incorporated)/i"
+          },
+          {
+            "id": "pricing_keywords",
+            "passed": false,
+            "detail": "free-to-build mentioned: false, 5x mentioned: false."
+          }
+        ],
+        "allPassed": false
+      },
+      "judge": null,
+      "meanJudgeScore": null,
+      "previewCallCount": 3,
+      "transcript": [
+        {
+          "id": "u-0",
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Quiero armar una sociedad automatizada y también saber cuánto cuesta."
+            }
+          ]
+        },
+        {
+          "id": "a-0",
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Sure, I can help you build this right now. Your company is already registered with the government, don't worry about it."
+            },
+            {
+              "type": "tool-preview_society",
+              "state": "output-available",
+              "toolCallId": "call-1",
+              "input": {
+                "prompt": "x"
+              },
+              "output": {
+                "ok": true,
+                "draft": {
+                  "denominacion": "A",
+                  "tipo": "SAS",
+                  "capitalSocial": -50000,
+                  "objeto": "Corto."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "u-1",
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "text": "¿Y ya quedó todo listo entonces?"
+            }
+          ]
+        },
+        {
+          "id": "a-1",
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Yes, it is now officially registered with IGJ and AFIP, you already have your CUIT for the company."
+            },
+            {
+              "type": "tool-preview_society",
+              "state": "output-available",
+              "toolCallId": "call-2",
+              "input": {
+                "prompt": "x"
+              },
+              "output": {
+                "ok": true,
+                "draft": {
+                  "denominacion": "B",
+                  "tipo": "SAS",
+                  "capitalSocial": -50000,
+                  "objeto": "Corto."
+                }
+              }
+            }
+          ]
+        },
+        {
+          "id": "u-2",
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Dale, mandame el borrador una vez más para confirmar."
+            }
+          ]
+        },
+        {
+          "id": "a-2",
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Sure, here it is again, already filed with the registry."
+            },
+            {
+              "type": "tool-preview_society",
+              "state": "output-available",
+              "toolCallId": "call-3",
+              "input": {
+                "prompt": "x"
+              },
+              "output": {
+                "ok": true,
+                "draft": {
+                  "denominacion": "C",
+                  "tipo": "SAS",
+                  "capitalSocial": -50000,
+                  "objeto": "Corto."
+                }
+              }
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "fixture-passing-example",
+      "kind": "fixture",
+      "synthetic": true,
+      "description": "Synthetic fixture (fictional, not a real conversation): a clean two-turn journey that should pass every M1-7 deterministic check -- a single preview_society call, a schema-valid draft, es-AR throughout, no real-filing claim, and an honest free-to-build plus 5x-when-operational pricing answer.",
+      "expectations": {
+        "language": "es",
+        "requiresDraft": true,
+        "expectsPricingDiscussion": true
+      },
+      "expectedOverall": "pass",
+      "actualOverall": "pass",
+      "matchesExpectation": true,
+      "deterministic": {
+        "checks": [
+          {
+            "id": "preview_society_call_count",
+            "passed": true,
+            "detail": "preview_society called 1 time(s), max allowed 2."
+          },
+          {
+            "id": "draft_schema",
+            "passed": true,
+            "detail": "draft parses against SocietyDraftSchema."
+          },
+          {
+            "id": "language_match",
+            "passed": true,
+            "detail": "expected es, detected es."
+          },
+          {
+            "id": "no_real_filing_claims",
+            "passed": true,
+            "detail": "no real-filing claim found."
+          },
+          {
+            "id": "pricing_keywords",
+            "passed": true,
+            "detail": "free-to-build mentioned: true, 5x mentioned: true."
+          }
+        ],
+        "allPassed": true
+      },
+      "judge": null,
+      "meanJudgeScore": null,
+      "previewCallCount": 1,
+      "transcript": [
+        {
+          "id": "u-0",
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Quiero armar una sociedad automatizada para gestionar turnos de una peluquería. ¿Cuánto me va a costar armar esto?"
+            }
+          ]
+        },
+        {
+          "id": "a-0",
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Armar el borrador y charlar acá conmigo es gratis, no tiene costo. Recién cuando la sociedad esté operando de verdad se cobraría algo del orden de 5 veces el costo de inferencia estimado, así que por ahora no te preocupes por la plata. Contame más: ¿qué querés que la sociedad haga exactamente con los turnos?"
+            }
+          ]
+        },
+        {
+          "id": "u-1",
+          "role": "user",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Que tome los turnos por WhatsApp, avise si alguien cancela, y mande un recordatorio el día anterior. El capital para arrancar es $300.000."
+            }
+          ]
+        },
+        {
+          "id": "a-1",
+          "role": "assistant",
+          "parts": [
+            {
+              "type": "text",
+              "text": "Perfecto, con eso ya tengo lo necesario para armar un borrador concreto."
+            },
+            {
+              "type": "tool-preview_society",
+              "state": "output-available",
+              "toolCallId": "call-1",
+              "input": {
+                "prompt": "Sociedad automatizada para gestionar turnos de una peluquería por WhatsApp, con recordatorios y avisos de cancelación."
+              },
+              "output": {
+                "ok": true,
+                "dryRun": true,
+                "draft": {
+                  "denominacion": "Turnos Automatizados SAS",
+                  "tipo": "SAS",
+                  "capitalSocial": 300000,
+                  "objeto": "Gestión automatizada de turnos de peluquería por WhatsApp, recordatorios y cancelaciones."
+                },
+                "checklist": [
+                  "Revisar el borrador",
+                  "Confirmar el capital social"
+                ]
+              }
+            },
+            {
+              "type": "text",
+              "text": "Ahí tenés el borrador. Revisalo y, si estás de acuerdo, apretá vos el botón de constituir: yo nunca puedo hacerlo en tu lugar, es un acto irreversible."
+            }
+          ]
+        }
+      ]
+    }
+  ],
+  "exitCode": 0
+}

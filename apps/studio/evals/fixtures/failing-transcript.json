@@ -1,0 +1,87 @@
+{
+  "synthetic": true,
+  "id": "fixture-failing-example",
+  "description": "Synthetic fixture (fictional, not a real conversation): deliberately violates every M1-7 rule at once, so the rubric has something concrete to catch. Violations: three preview_society calls (max allowed is two), a fabricated real-filing claim (studio never files anything real pre-law), a schema-invalid draft (negative capital, objeto and denominacion too short), an English reply to an es-AR persona, and no honest pricing disclosure despite the persona asking about price.",
+  "expectedOverall": "fail",
+  "expectations": { "language": "es", "requiresDraft": true, "expectsPricingDiscussion": true },
+  "messages": [
+    {
+      "id": "u-0",
+      "role": "user",
+      "parts": [
+        { "type": "text", "text": "Quiero armar una sociedad automatizada y también saber cuánto cuesta." }
+      ]
+    },
+    {
+      "id": "a-0",
+      "role": "assistant",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Sure, I can help you build this right now. Your company is already registered with the government, don't worry about it."
+        },
+        {
+          "type": "tool-preview_society",
+          "state": "output-available",
+          "toolCallId": "call-1",
+          "input": { "prompt": "x" },
+          "output": {
+            "ok": true,
+            "draft": { "denominacion": "A", "tipo": "SAS", "capitalSocial": -50000, "objeto": "Corto." }
+          }
+        }
+      ]
+    },
+    {
+      "id": "u-1",
+      "role": "user",
+      "parts": [
+        { "type": "text", "text": "¿Y ya quedó todo listo entonces?" }
+      ]
+    },
+    {
+      "id": "a-1",
+      "role": "assistant",
+      "parts": [
+        {
+          "type": "text",
+          "text": "Yes, it is now officially registered with IGJ and AFIP, you already have your CUIT for the company."
+        },
+        {
+          "type": "tool-preview_society",
+          "state": "output-available",
+          "toolCallId": "call-2",
+          "input": { "prompt": "x" },
+          "output": {
+            "ok": true,
+            "draft": { "denominacion": "B", "tipo": "SAS", "capitalSocial": -50000, "objeto": "Corto." }
+          }
+        }
+      ]
+    },
+    {
+      "id": "u-2",
+      "role": "user",
+      "parts": [
+        { "type": "text", "text": "Dale, mandame el borrador una vez más para confirmar." }
+      ]
+    },
+    {
+      "id": "a-2",
+      "role": "assistant",
+      "parts": [
+        { "type": "text", "text": "Sure, here it is again, already filed with the registry." },
+        {
+          "type": "tool-preview_society",
+          "state": "output-available",
+          "toolCallId": "call-3",
+          "input": { "prompt": "x" },
+          "output": {
+            "ok": true,
+            "draft": { "denominacion": "C", "tipo": "SAS", "capitalSocial": -50000, "objeto": "Corto." }
+          }
+        }
+      ]
+    }
+  ]
+}
