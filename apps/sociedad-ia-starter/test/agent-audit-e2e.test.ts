@@ -129,3 +129,24 @@ describe("agent loop -> audit log -> /api/status (M3-4 / M3-5 proof)", () => {
     }
   });
 });
+
+describe("selectModel (platform-metered fallback)", () => {
+  const OLD = process.env.ANTHROPIC_API_KEY;
+  afterEach(() => {
+    if (OLD === undefined) delete process.env.ANTHROPIC_API_KEY;
+    else process.env.ANTHROPIC_API_KEY = OLD;
+  });
+
+  it("uses the owner's Anthropic key when configured", async () => {
+    process.env.ANTHROPIC_API_KEY = "sk-ant-test-not-real";
+    const { selectModel } = await import("../src/lib/agent");
+    const model = selectModel();
+    expect(typeof model).not.toBe("string");
+  });
+
+  it("falls back to the gateway model string without a key", async () => {
+    delete process.env.ANTHROPIC_API_KEY;
+    const { selectModel } = await import("../src/lib/agent");
+    expect(selectModel()).toBe("anthropic/claude-sonnet-4-5");
+  });
+});
