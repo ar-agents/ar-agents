@@ -3,8 +3,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { Chat } from "@/components/chat";
 import { JourneyRail } from "@/components/journey-rail";
+import { LanguageToggle } from "@/components/language-toggle";
 import { OperationDashboard, type SocietySummaryLike } from "@/components/operation-dashboard";
 import { ensureAccount, type StudioAccount } from "@/lib/ui/account-client";
+import { LocaleProvider, useLocale } from "@/lib/ui/locale-context";
 import type { StageId } from "@/lib/ui/stage";
 
 type AccountState =
@@ -18,6 +20,15 @@ type SocietyState =
   | { status: "error" };
 
 export default function Home() {
+  return (
+    <LocaleProvider>
+      <HomeContent />
+    </LocaleProvider>
+  );
+}
+
+function HomeContent() {
+  const { t } = useLocale();
   const [accountState, setAccountState] = useState<AccountState>({ status: "loading" });
   const [societyState, setSocietyState] = useState<SocietyState>({ status: "loading" });
   const [stage, setStage] = useState<StageId>("idea");
@@ -100,13 +111,13 @@ export default function Home() {
         margin: "0 auto",
       }}
     >
-      <div style={{ textAlign: "center" }}>
-        <h1 style={{ fontSize: 28, fontWeight: 600, margin: 0 }}>ar-agents studio</h1>
+      <div style={{ textAlign: "center", position: "relative" }}>
+        <div style={{ position: "absolute", top: 0, right: 0 }}>
+          <LanguageToggle />
+        </div>
+        <h1 style={{ fontSize: 28, fontWeight: 600, margin: 0 }}>{t("app.title")}</h1>
         <p style={{ marginTop: 10, color: "var(--text-body)", fontSize: 16 }}>
-          Creá una sociedad automatizada conversando.
-        </p>
-        <p style={{ marginTop: 2, color: "var(--text-muted)", fontSize: 13 }}>
-          Chat your way from idea to an operating automated society.
+          {t("app.tagline")}
         </p>
       </div>
 
@@ -114,15 +125,13 @@ export default function Home() {
         <div style={{ flex: 1, minWidth: 0 }}>
           {accountState.status === "loading" ? (
             <div className="card" style={{ fontSize: 14, color: "var(--text-muted)" }}>
-              Iniciando sesión...
+              {t("session.loading")}
             </div>
           ) : accountState.status === "error" ? (
             <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <p style={{ fontSize: 14, margin: 0 }}>
-                No pudimos iniciar tu sesión anónima. Puede ser un problema de red.
-              </p>
+              <p style={{ fontSize: 14, margin: 0 }}>{t("account.error")}</p>
               <button type="button" className="btn btn-primary" onClick={retryAccount}>
-                Reintentar
+                {t("action.retry")}
               </button>
             </div>
           ) : (
@@ -137,10 +146,10 @@ export default function Home() {
 
         <div style={{ width: 260, flexShrink: 0 }}>
           {accountState.status !== "ready" || societyState.status === "loading" ? (
-            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>Cargando...</p>
+            <p style={{ fontSize: 13, color: "var(--text-muted)" }}>{t("society.loading")}</p>
           ) : societyState.status === "error" ? (
             <div className="card" style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-              <p style={{ fontSize: 13, margin: 0 }}>No pudimos cargar el estado de tu sociedad.</p>
+              <p style={{ fontSize: 13, margin: 0 }}>{t("society.error")}</p>
               <button
                 type="button"
                 className="btn btn-ghost"
@@ -149,7 +158,7 @@ export default function Home() {
                   if (accountState.status === "ready") retrySociety(accountState.account.token);
                 }}
               >
-                Reintentar
+                {t("action.retry")}
               </button>
             </div>
           ) : societyState.data ? (
