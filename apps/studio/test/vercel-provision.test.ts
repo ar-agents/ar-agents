@@ -280,22 +280,26 @@ describe("getLatestDeployment", () => {
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("lists deployments filtered by projectId, limit 1, and reports the latest state", async () => {
+  it("lists production deployments and reports the newest state plus the newest READY url", async () => {
     fetchMock.mockResolvedValueOnce(
       jsonResponse({
-        deployments: [{ url: "soc-reg-1.vercel.app", readyState: "READY", created: 1_700_000_000_000 }],
-        pagination: { count: 1, next: null, prev: null },
+        deployments: [
+          { url: "soc-reg-1-canceled.vercel.app", readyState: "CANCELED", created: 1_700_000_100_000 },
+          { url: "soc-reg-1.vercel.app", readyState: "READY", created: 1_700_000_000_000 },
+        ],
+        pagination: { count: 2, next: null, prev: null },
       }),
     );
     const result = await getLatestDeployment("soc-reg-1");
     expect(result).toEqual({
       ok: true,
-      state: "READY",
-      url: "soc-reg-1.vercel.app",
-      createdAt: new Date(1_700_000_000_000).toISOString(),
+      state: "CANCELED",
+      url: "soc-reg-1-canceled.vercel.app",
+      createdAt: new Date(1_700_000_100_000).toISOString(),
+      readyUrl: "soc-reg-1.vercel.app",
     });
     const [url] = fetchMock.mock.calls[0]!;
-    expect(String(url)).toBe("https://api.vercel.com/v7/deployments?projectId=soc-reg-1&limit=1&target=production");
+    expect(String(url)).toBe("https://api.vercel.com/v7/deployments?projectId=soc-reg-1&limit=10&target=production");
   });
 
   it("surfaces 'no_deployments' when the project has never deployed", async () => {

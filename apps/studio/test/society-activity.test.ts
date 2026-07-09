@@ -157,7 +157,7 @@ describe("GET /api/society/activity: status-token backfill", () => {
   it("mints + persists a token, sets it on the project, triggers ONE coalesced redeploy, and skips the status fetch this call", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_NO_TOKEN);
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "2026-01-02T00:00:00.000Z" });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "2026-01-02T00:00:00.000Z", readyUrl: "soc-reg-1.vercel.app" });
     // FIXTURE_DEPLOYED_NO_TOKEN is missing statusToken, auditSecretSet, AND
     // denominacionSet, so ensureStatusToken, ensureAuditSecret, and
     // ensureDenominacion all run this call, each calling
@@ -221,7 +221,7 @@ describe("GET /api/society/activity: status-token backfill", () => {
   it("only backfills once: a society that already has a statusToken is reused, no new Vercel env write", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x" });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x", readyUrl: "soc-reg-1.vercel.app" });
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
 
     await GET(req(created!.token));
@@ -233,13 +233,13 @@ describe("GET /api/society/activity: status-token backfill", () => {
     expect((init as RequestInit).headers).toEqual({ authorization: `Bearer ${"a".repeat(64)}` });
   });
 
-  it("fetches /api/status from the LATEST production deployment's URL, not the stored provisioning-time one", async () => {
+  it("fetches /api/status from the newest READY production deployment, not the stored or newest-canceled one", async () => {
     // Found live 2026-07-09: the stored deploy.url is frozen at first
     // provisioning, so after any later deploy it points at an old immutable
     // deployment and every cockpit section degraded.
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1-newest123.vercel.app", createdAt: "x" });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "CANCELED", url: "soc-reg-1-canceled99.vercel.app", createdAt: "x", readyUrl: "soc-reg-1-newest123.vercel.app" });
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
 
     await GET(req(created!.token));
@@ -263,7 +263,7 @@ describe("GET /api/society/activity: denominacion backfill (ROADMAP.md M3-3)", (
   it("a society missing only denominacionSet backfills it alone, still coalescing to one redeploy", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, { ...FIXTURE_DEPLOYED_WITH_TOKEN, denominacionSet: undefined });
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x" });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x", readyUrl: "soc-reg-1.vercel.app" });
     setSocietyCredentialEnvVarsMock.mockResolvedValue({ ok: true, typeUsed: "encrypted" });
     triggerRedeployMock.mockResolvedValue({ ok: true, url: "soc-reg-1.vercel.app", readyState: "QUEUED" });
 
@@ -293,7 +293,7 @@ describe("GET /api/society/activity: full merged payload", () => {
   it("happy path: merges deploy health + the starter's /api/status into one UI-ready payload", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x" });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x", readyUrl: "soc-reg-1.vercel.app" });
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
 
     const res = await GET(req(created!.token));
@@ -311,7 +311,7 @@ describe("GET /api/society/activity: full merged payload", () => {
   it("the starter unreachable: deploy health still reports, everything else degrades independently", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x" });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x", readyUrl: "soc-reg-1.vercel.app" });
     fetchMock.mockRejectedValueOnce(new Error("network down"));
 
     const res = await GET(req(created!.token));
@@ -327,7 +327,7 @@ describe("GET /api/society/activity: full merged payload", () => {
   it("the starter's own sub-sections independently unavailable (e.g. no audit rail) pass through as such", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x" });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x", readyUrl: "soc-reg-1.vercel.app" });
     fetchMock.mockResolvedValueOnce(
       new Response(
         JSON.stringify({

@@ -246,14 +246,15 @@ export async function GET(req: Request) {
   // Skip the /api/status round trip right after a fresh backfill: the
   // deployment that will actually honor the new token hasn't landed yet.
   //
-  // Fetch from the LATEST production deployment's URL, not the stored
-  // `society.deploy.url`: that stored value is frozen at first provisioning,
-  // and every later deploy (credential save, backfill, git push) leaves it
-  // pointing at an old immutable deployment whose /api/status may not even
-  // exist yet (found live, 2026-07-09: the cockpit read a pre-M3-2 deploy
-  // and every section degraded). The stored URL remains the fallback when
-  // the deployments lookup itself is unavailable.
-  const statusUrl = (deployLookup && deployLookup.ok && deployLookup.url) || society.deploy?.url || null;
+  // Fetch from the newest READY production deployment's URL
+  // (`readyUrl`), not the stored `society.deploy.url` (frozen at first
+  // provisioning, points at an old immutable deployment) and not the
+  // newest deployment outright (a canceled or errored rollout at the top
+  // of the list serves nothing). Both variants blanked every cockpit
+  // section against the real dogfood society (found live, 2026-07-09).
+  // The stored URL remains the fallback when the deployments lookup is
+  // unavailable.
+  const statusUrl = (deployLookup && deployLookup.ok && deployLookup.readyUrl) || society.deploy?.url || null;
   const starterStatus =
     tokenResult && !tokenResult.justProvisioned && statusUrl
       ? await fetchStarterStatus(statusUrl, tokenResult.token)
