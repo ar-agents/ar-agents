@@ -106,11 +106,14 @@ describe("POST /api/society/deploy", () => {
       "AR_AGENTS_API_BASE",
       "AGENT_API_KEY",
       "STUDIO_STATUS_TOKEN",
+      "AUDIT_HMAC_SECRET",
     ]);
 
-    // Manual mode: nothing persisted, so no statusToken either (studio never
-    // learns the project exists, so there is nowhere to send cockpit reads).
+    // Manual mode: nothing persisted, so no statusToken or auditSecretSet
+    // either (studio never learns the project exists, so there is nowhere
+    // to send cockpit reads or re-provision from).
     expect(stored?.statusToken).toBeUndefined();
+    expect(stored?.auditSecretSet).toBeUndefined();
   });
 
   it("provisioned mode: persists the deploy against the stored society and returns its state", async () => {
@@ -149,6 +152,14 @@ describe("POST /api/society/deploy", () => {
     const statusTokenVar = input.envVars.find((v: { name: string }) => v.name === "STUDIO_STATUS_TOKEN");
     expect(statusTokenVar?.value).toBe(stored?.statusToken);
     expect(JSON.stringify(body)).not.toContain(stored?.statusToken);
+
+    // A fresh AUDIT_HMAC_SECRET (ROADMAP.md M3-4/M3-5) is likewise minted
+    // and set on the project, but studio only ever persists that it was set
+    // (not the value: nothing studio calls is authenticated with it).
+    expect(stored?.auditSecretSet).toBe(true);
+    const auditSecretVar = input.envVars.find((v: { name: string }) => v.name === "AUDIT_HMAC_SECRET");
+    expect(auditSecretVar?.value).toMatch(/^[0-9a-f]{64}$/);
+    expect(JSON.stringify(body)).not.toContain(auditSecretVar?.value);
   });
 
   it("surfaces a provisioning failure as a distinct 502 without persisting anything", async () => {

@@ -41,6 +41,8 @@ interface ActivityAuditEntry {
   tool: string;
   governance: string;
   errored: boolean;
+  /** Short, redacted, public-safe description (ROADMAP.md M3-4/M3-5). */
+  summary?: string;
 }
 interface ActivityAudit {
   available: boolean;
@@ -234,12 +236,17 @@ export function SocietyCockpit({ token }: { token: string }) {
             audit.entries && audit.entries.length > 0 ? (
               <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
                 {audit.entries.slice(0, 8).map((e) => (
-                  <div key={e.id} style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12 }}>
-                    <span style={{ color: "var(--text-body)" }}>
-                      <code style={{ fontFamily: "ui-monospace, monospace", fontSize: 11 }}>{e.tool}</code>
-                      {e.errored ? ` · ${t("cockpit.audit.errored")}` : ""}
-                    </span>
-                    <span style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>{formatEntryDate(e.ts)}</span>
+                  <div key={e.id} style={{ display: "flex", flexDirection: "column", gap: 1 }}>
+                    <div style={{ display: "flex", justifyContent: "space-between", gap: 8, fontSize: 12 }}>
+                      <span style={{ color: "var(--text-body)" }}>
+                        <code style={{ fontFamily: "ui-monospace, monospace", fontSize: 11 }}>{e.tool}</code>
+                        {e.errored ? ` · ${t("cockpit.audit.errored")}` : ""}
+                      </span>
+                      <span style={{ color: "var(--text-muted)", whiteSpace: "nowrap" }}>{formatEntryDate(e.ts)}</span>
+                    </div>
+                    {e.summary ? (
+                      <span style={{ fontSize: 11, color: "var(--text-muted)" }}>{e.summary}</span>
+                    ) : null}
                   </div>
                 ))}
               </div>

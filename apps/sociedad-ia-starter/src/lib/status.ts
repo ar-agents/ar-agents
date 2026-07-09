@@ -18,14 +18,18 @@
  *    view: this deploy never receives the administrator's admin token, so
  *    it cannot fetch the full view (that stays a studio-only capability via
  *    `POST /api/society/approvals`).
- *  - Recent actions: `GET /api/play/audit/{sessionId}`, the same signed
- *    audit log `POST /api/society/constitute` links founders to in its
- *    response (despite the `/play` path segment, this endpoint serves every
- *    session, not just demo ones; see apps/landing/src/lib/incorporate-run.ts).
- *    Already public with no auth, so no further redaction is needed beyond
- *    picking the descriptive fields (drop the raw `input`/`output` payloads
- *    to keep this response small and readable).
+ *  - Recent actions: THIS deploy's own local signed audit log (`./audit-log`,
+ *    ROADMAP.md M3-4 / M3-5), not ar-agents.ar's administrative one. That
+ *    remote log (`GET /api/play/audit/{sessionId}`) only ever receives
+ *    entries from the incorporate/suspend/approve routes studio calls on
+ *    the human's behalf -- it never saw what this society's agent actually
+ *    DID at runtime. The local log does: every `POST /api/agent` tool call
+ *    is wrapped centrally (`./audit-middleware`) and appended here, so this
+ *    section is now a read with no network dependency and no `available:
+ *    false` state of its own (an empty log is a valid, available state).
  */
+
+import { localAuditDroppedWrites, readLocalAudit } from "./audit-log";
 
 const TIMEOUT_MS = 6_000;
 
@@ -99,25 +103,38 @@ export interface AuditActionSummary {
   tool: string;
   governance: string;
   errored: boolean;
+  /** Short, redacted, public-safe description (see ./audit-log). Optional
+   *  only for forward/backward JSON-shape tolerance; every entry the local
+   *  log produces sets it. */
+  summary?: string;
 }
 
 export interface AuditStatus {
   available: boolean;
   entries: AuditActionSummary[] | null;
+  /** Writes lost to a storage failure since this isolate booted (see
+   *  `localAuditDroppedWrites`). Cheap, best-effort, resets on cold start;
+   *  surfaced so silent data loss is visible instead of hidden. */
+  droppedWrites: number;
 }
 
 const MAX_AUDIT_ENTRIES = 20;
 
 export async function fetchAuditStatus(): Promise<AuditStatus> {
-  const data = await getJson<{
-    entries?: Array<{ id: string; ts: string; tool: string; governance: string; errored?: boolean }>;
-  }>(`/api/play/audit/${encodeURIComponent(societyId())}`);
-  if (!data || !Array.isArray(data.entries)) return { available: false, entries: null };
-  // The upstream list is oldest-first; take the newest slice, then reverse so
-  // the cockpit renders most-recent-first without re-sorting client side.
-  const entries = data.entries
-    .slice(-MAX_AUDIT_ENTRIES)
-    .reverse()
-    .map((e) => ({ id: e.id, ts: e.ts, tool: e.tool, governance: e.governance, errored: Boolean(e.errored) }));
-  return { available: true, entries };
+  const [entries, droppedWrites] = await Promise.all([
+    readLocalAudit(MAX_AUDIT_ENTRIES),
+    Promise.resolve(localAuditDroppedWrites()),
+  ]);
+  return {
+    available: true,
+    entries: entries.map((e) => ({
+      id: e.id,
+      ts: e.ts,
+      tool: e.tool,
+      governance: e.governance,
+      errored: e.errored,
+      summary: e.summary,
+    })),
+    droppedWrites,
+  };
 }

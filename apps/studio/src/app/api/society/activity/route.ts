@@ -25,11 +25,18 @@
  * credential): generated locally, set on the society's Vercel project env,
  * and stored in studio's own KV. Never returned to the browser, never
  * logged.
+ *
+ * AUDIT_HMAC_SECRET provisioning (ROADMAP.md M3-4/M3-5) mirrors the above
+ * exactly (`ensureAuditSecret` below), minus the value: it signs entries in
+ * the starter's own local audit log, so studio never needs it back -- only
+ * a boolean (`auditSecretSet`) is kept, enough to avoid re-minting (and
+ * invalidating previously-signed entries) on every poll.
  */
 
 import {
   authenticate,
   getStoredSociety,
+  setSocietyAuditSecretSet,
   setSocietyStatusToken,
   type StoredSociety,
 } from "@/lib/account";
@@ -63,6 +70,8 @@ interface AuditEntryLike {
   tool: string;
   governance: string;
   errored: boolean;
+  /** Short, redacted, public-safe description (ROADMAP.md M3-4/M3-5). */
+  summary?: string;
 }
 
 interface StarterStatusResponse {
@@ -108,6 +117,38 @@ async function ensureStatusToken(
   return { token, justProvisioned: true };
 }
 
+/**
+ * Ensures the society has `AUDIT_HMAC_SECRET` set (ROADMAP.md M3-4/M3-5),
+ * backfilling one for a society deployed before this feature existed.
+ * Mirrors {@link ensureStatusToken} exactly, minus the token value: studio
+ * never needs it back (nothing studio calls is authenticated with it), so
+ * only the `auditSecretSet` boolean is persisted -- just enough to avoid
+ * re-minting (and thereby invalidating previously-signed entries) on every
+ * poll. Returns `null` under the same conditions as `ensureStatusToken`.
+ */
+async function ensureAuditSecret(
+  accountId: string,
+  society: StoredSociety,
+): Promise<{ justProvisioned: boolean } | null> {
+  if (society.auditSecretSet) return { justProvisioned: false };
+  const projectName = society.deploy?.projectName;
+  if (!projectName) return null;
+
+  const secret = randomHex(32);
+  const result = await setSocietyCredentialEnvVars(projectName, [
+    { name: "AUDIT_HMAC_SECRET", value: secret },
+  ]);
+  if (result === null || !result.ok) return null;
+
+  await setSocietyAuditSecretSet(accountId);
+  // Same fire-and-forget rationale as ensureStatusToken above. A society
+  // missing BOTH may trigger two redeploy requests in one poll; Vercel
+  // coalesces/queues concurrent deploys for a project, so this is a minor
+  // inefficiency, not a correctness issue.
+  void triggerRedeploy(projectName);
+  return { justProvisioned: true };
+}
+
 async function fetchStarterStatus(url: string, token: string): Promise<StarterStatusResponse | null> {
   try {
     const res = await fetch(`${url.startsWith("http") ? url : `https://${url}`}/api/status`, {
@@ -141,10 +182,16 @@ export async function GET(req: Request) {
 
   const projectName = society.deploy?.projectName ?? null;
 
-  const [deployLookup, tokenResult] = await Promise.all([
-    projectName ? getLatestDeployment(projectName) : Promise.resolve(null),
-    ensureStatusToken(auth.accountId, society),
-  ]);
+  // The Vercel deploy-health lookup is independent and stays concurrent, but
+  // ensureStatusToken and ensureAuditSecret both read-modify-write the SAME
+  // stored society record: run them sequentially (not via Promise.all), or
+  // whichever finishes last silently clobbers the other's field with a
+  // stale snapshot (both would read the same starting record, then each
+  // writes back {...that stale snapshot, ownField}).
+  const deployPromise = projectName ? getLatestDeployment(projectName) : Promise.resolve(null);
+  const tokenResult = await ensureStatusToken(auth.accountId, society);
+  const auditSecretResult = await ensureAuditSecret(auth.accountId, society);
+  const deployLookup = await deployPromise;
 
   const deploy =
     deployLookup && deployLookup.ok
@@ -184,6 +231,6 @@ export async function GET(req: Request) {
       available: starterStatus?.audit?.available === true,
       entries: starterStatus?.audit?.available ? (starterStatus.audit.entries ?? null) : null,
     },
-    provisioning: Boolean(tokenResult?.justProvisioned),
+    provisioning: Boolean(tokenResult?.justProvisioned) || Boolean(auditSecretResult?.justProvisioned),
   });
 }
