@@ -79,9 +79,14 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: someone who is not the repo owner goes idea to operating simulated society without help; friction log becomes new roadmap items.
 
 ### M1-7 Journey evals
-- status: in-progress (supervised session 2026-07-08)
+- status: done (2026-07-08, PR #165; offline + live modes, 6 personas, deterministic rubric + LLM judge on the fallback tier; first live run correctly failed the coach, see M1-8)
 - priority: P0
 - acceptance: an eval suite (runnable locally and in CI with keys) that drives the full journey with simulated founder personas: conversation to draft, draft quality graded against a rubric, constitution against a non-production target, governance actions exercised, and a scored report. Regressions in the coach, the draft extraction, or the orchestration fail the suite.
+
+### M1-8 Coach passes its own live evals
+- status: ready
+- priority: P1
+- acceptance: `pnpm --filter ar-agents-studio run evals -- --mode live` exits 0. First live run (2026-07-08) found: the coach often does not reach a preview_society draft within 4 turns for personas that require one; pricing answers do not always state the 5x multiple; the judge scores coaching quality low for advancing without validation questions. Fix in the system prompt and corpus, not by weakening the rubric; the gate stays at 3.5.
 
 ## M2: Operate for real
 
