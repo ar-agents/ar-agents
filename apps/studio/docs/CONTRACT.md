@@ -39,7 +39,7 @@ Server: requires the account to have no society yet (409 otherwise). Calls `${AR
 
 `GET /api/society` (auth)
 `{ ok: true, society: SocietySummary | null }`
-SocietySummary: `{ sessionId, denominacion, tipo, registryId, createdAt, goodStanding: { state, score, rating } | null, suspended: boolean | null, pendingApprovals: number | null }` (the three nullables are live look-ups, null on upstream failure).
+SocietySummary: `{ sessionId, denominacion, tipo, registryId, createdAt, goodStanding: { state, score, rating } | null, suspended: boolean | null, pendingApprovals: number | null, deploy: { projectName, url, deployedAt } | null }` (the three middle nullables are live look-ups, null on upstream failure; `deploy` is null until `POST /api/society/deploy` provisions successfully -- see below).
 
 `GET /api/society/approvals` (auth)
 Full pending list via upstream `GET /api/approvals/pending?society=...` with the stored admin token. `{ ok: true, approvals: [...] }`
@@ -50,13 +50,21 @@ Body `{ id, approved: boolean }` -> upstream `POST /api/approvals/resolve` with 
 `POST /api/society/suspend` (auth)
 Body `{ suspend: boolean, motivo?: string, acepta: true }` -> upstream `/api/suspender` or `/api/reanudar` with stored adminToken. The UI treats suspend as the red kill switch with a confirm step.
 
+`POST /api/society/deploy` (auth)
+Deploys the society's own agent app (the `apps/sociedad-ia-starter` scaffold) from studio (ROADMAP M1-6). Requires the account to already have a society (404 otherwise). Rate limit 3/day/account. Always mints a fresh `AGENT_API_KEY` (32 random bytes, hex) and returns it exactly once (never stored). Two response shapes, decided by whether `VERCEL_PROVISION_TOKEN` is configured:
+- No token (manual mode): `{ ok: true, mode: "manual", oneClickUrl, envFile, agentApiKey }`. `envFile` is a ready-to-paste `.env` string (`SOCIETY_ID`, `SOCIETY_GATE_TOKEN`, `AR_AGENTS_API_BASE`, `AGENT_API_KEY`). Nothing is persisted; studio never learns whether the human completed the click-through.
+- Token set (provisioned mode): actually creates a Vercel project for the society, sets its production env vars, triggers the first deployment, and polls it to a terminal state (max ~4min). `{ ok: true, mode: "provisioned", projectName, url, deploymentState, agentApiKey }`. On success, `{ projectName, url, deployedAt }` is persisted against the stored society, so `SocietySummary.deploy` reflects it on subsequent `GET /api/society` calls. A provisioning failure responds `502 { ok: false, error: "deploy_failed", detail }`.
+
+See `src/lib/vercel-provision.ts` for the Vercel REST API calls this makes.
+
 ## Shared libs (backend owns; frontend never imports)
 
 - `src/lib/account.ts`: mint/verify account tokens. Pattern copied from landing's capability-token (write-once `kv.set nx`, SHA-256 at rest, constant-time verify, in-memory fallback when KV unwired). Keys `studio:accounttoken:{accountId}`, profile `studio:account:{accountId}`.
 - `src/lib/meter.ts`: `recordUsage(accountId, { inputTokens, outputTokens, model, costMicroUsd })` via `kv.incrby` on `studio:usage:{accountId}:m:{YYYYMM}:{field}`; `getUsage(accountId)`; `checkCap(accountId)` read-then-compare under a kv lock (copy landing's kv-lock pattern). Cap env `STUDIO_FREE_CAP_MICRO_USD`, default 500000 (0.50 USD of model cost, i.e. 2.50 USD at 5x price). Best-effort recording; fail-closed cap.
 - `src/lib/models.ts`: pricing table (micro-USD per token, per model id) + `resolveModel(tier)` + `estimateCostMicroUsd(model, usage)`. Prices are config constants with a source comment; unknown model -> conservative highest price.
 - `src/lib/aragents.ts`: typed fetch helpers for every upstream call, base `process.env.STUDIO_ARAGENTS_BASE ?? "https://ar-agents.ar"`, 10s timeouts, no retries on POSTs.
+- `src/lib/vercel-provision.ts`: `provisionSocietyApp({ name, envVars })` -- creates a Vercel project for a society's agent app, sets its env vars, triggers + polls the first deployment. Returns `null` (no capability) when `VERCEL_PROVISION_TOKEN` is unset. 10s timeouts, no retries on POSTs, scoped to `VERCEL_TEAM_ID` when set.
 
 ## Env (all optional; degrade gracefully)
 
-`OPENROUTER_API_KEY`, `AI_GATEWAY_API_KEY`, `STUDIO_COACH_MODEL`, `STUDIO_BUILD_MODEL`, `STUDIO_FREE_CAP_MICRO_USD`, `STUDIO_ARAGENTS_BASE`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `TAVILY_API_KEY` (gates the `research_web` tool; free tier at tavily.com).
+`OPENROUTER_API_KEY`, `AI_GATEWAY_API_KEY`, `STUDIO_COACH_MODEL`, `STUDIO_BUILD_MODEL`, `STUDIO_FREE_CAP_MICRO_USD`, `STUDIO_ARAGENTS_BASE`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `TAVILY_API_KEY` (gates the `research_web` tool; free tier at tavily.com), `VERCEL_PROVISION_TOKEN`, `VERCEL_TEAM_ID` (gate provisioned society deploys).

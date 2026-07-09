@@ -65,6 +65,10 @@ export interface SocietySummary {
   goodStanding: { state: string; score: number | null; rating: string | null } | null;
   suspended: boolean | null;
   pendingApprovals: number | null;
+  /** Where the society's own agent app is deployed (M1-6), or null when it
+   *  has not been deployed from studio yet. See src/lib/account.ts's
+   *  SocietyDeploy. */
+  deploy: { projectName: string; url: string; deployedAt: string } | null;
 }
 
 /** A freshly-constituted society's summary, with no upstream look-ups yet
@@ -79,6 +83,7 @@ export function initialSocietySummary(s: StoredSociety): SocietySummary {
     goodStanding: null,
     suspended: false,
     pendingApprovals: 0,
+    deploy: s.deploy ?? null,
   };
 }
 
@@ -118,5 +123,6 @@ export async function buildSocietySummary(s: StoredSociety): Promise<SocietySumm
     goodStanding: goodStandingSummary,
     suspended,
     pendingApprovals,
+    deploy: s.deploy ?? null,
   };
 }

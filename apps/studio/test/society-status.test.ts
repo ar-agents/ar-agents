@@ -75,6 +75,7 @@ describe("buildSocietySummary: aggregation over 3 independent upstream look-ups"
       goodStanding: { state: "active", score: 92, rating: "A" },
       suspended: false,
       pendingApprovals: 2,
+      deploy: null,
     });
   });
 

@@ -11,6 +11,12 @@ export interface GoodStandingLike {
   rating?: string | null;
 }
 
+export interface SocietyDeployLike {
+  projectName?: string;
+  url?: string;
+  deployedAt?: string;
+}
+
 export interface SocietySummaryLike {
   sessionId?: string;
   denominacion?: string;
@@ -20,6 +26,19 @@ export interface SocietySummaryLike {
   goodStanding?: GoodStandingLike | null;
   suspended?: boolean | null;
   pendingApprovals?: number | null;
+  deploy?: SocietyDeployLike | null;
+}
+
+interface DeployResponse {
+  ok: boolean;
+  error?: string;
+  mode?: "manual" | "provisioned";
+  oneClickUrl?: string;
+  envFile?: string;
+  agentApiKey?: string;
+  projectName?: string;
+  url?: string;
+  deploymentState?: string;
 }
 
 interface ApprovalItem {
@@ -93,6 +112,12 @@ export function OperationDashboard({
   const [suspendSubmitting, setSuspendSubmitting] = useState(false);
   const [suspendError, setSuspendError] = useState<string | null>(null);
   const [resolvingId, setResolvingId] = useState<string | null>(null);
+  const [deploy, setDeploy] = useState<{
+    loading: boolean;
+    result: DeployResponse | null;
+    error: string | null;
+  }>({ loading: false, result: null, error: null });
+  const [copiedEnvFile, setCopiedEnvFile] = useState(false);
 
   // Split fetch/refresh (see the matching comment in src/app/page.tsx): the
   // mount effect below calls the bare `fetchX` (no synchronous setState
@@ -208,6 +233,53 @@ export function OperationDashboard({
     }
   }
 
+  async function submitDeploy() {
+    setDeploy({ loading: true, result: null, error: null });
+    try {
+      const res = await fetch("/api/society/deploy", { method: "POST", headers: authHeaders(token) });
+      const body = (await res.json().catch(() => null)) as DeployResponse | null;
+      if (!res.ok || !body?.ok) {
+        setDeploy({
+          loading: false,
+          result: null,
+          error:
+            body?.error === "rate_limited"
+              ? "Llegaste al límite de despliegues de hoy. Probá de nuevo mañana."
+              : "No se pudo desplegar el agente. Probá de nuevo en un rato.",
+        });
+        return;
+      }
+      setDeploy({ loading: false, result: body, error: null });
+      if (body.mode === "provisioned" && body.projectName && body.url) {
+        const projectName = body.projectName;
+        const url = body.url;
+        setSociety((s) => ({ ...s, deploy: { projectName, url, deployedAt: new Date().toISOString() } }));
+      }
+    } catch {
+      setDeploy({
+        loading: false,
+        result: null,
+        error: "No se pudo hablar con el servidor. Probá de nuevo en un rato.",
+      });
+    }
+  }
+
+  async function copyEnvFile() {
+    const text = deploy.result?.envFile ?? "";
+    if (!text) return;
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopiedEnvFile(true);
+      setTimeout(() => setCopiedEnvFile(false), 2000);
+    } catch {
+      // best-effort; the textarea itself is still selectable by hand
+    }
+  }
+
+  function toHttpUrl(u: string): string {
+    return u.startsWith("http") ? u : `https://${u}`;
+  }
+
   const isSuspended = society.suspended === true;
 
   return (
@@ -233,6 +305,93 @@ export function OperationDashboard({
             <span className="badge badge-neutral">{society.pendingApprovals} pendientes</span>
           ) : null}
         </div>
+      </div>
+
+      {/* Agent deploy (M1-6): the society's own runtime, deployed from studio */}
+      <div className="card">
+        <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 8px" }}>Agente de la sociedad</p>
+        {society.deploy?.url ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0 }}>
+              Desplegado en{" "}
+              <a href={toHttpUrl(society.deploy.url)} target="_blank" rel="noreferrer">
+                {society.deploy.url}
+              </a>
+            </p>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+              Proyecto {society.deploy.projectName ?? "-"} · desde {formatDate(society.deploy.deployedAt)}
+            </p>
+          </div>
+        ) : deploy.result?.mode === "provisioned" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0 }}>
+              Estado del despliegue: {deploy.result.deploymentState ?? "-"}
+            </p>
+            {deploy.result.url ? (
+              <p style={{ fontSize: 13, margin: 0 }}>
+                <a href={toHttpUrl(deploy.result.url)} target="_blank" rel="noreferrer">
+                  {deploy.result.url}
+                </a>
+              </p>
+            ) : null}
+          </div>
+        ) : deploy.result?.mode === "manual" ? (
+          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+              Studio no tiene un token de Vercel configurado, así que el despliegue es manual: hacé
+              click, pegá las variables de abajo en el proyecto nuevo y guardá la API key ya, no se
+              puede volver a ver.
+            </p>
+            <a
+              className="btn btn-primary"
+              href={deploy.result.oneClickUrl}
+              target="_blank"
+              rel="noreferrer"
+              style={{ textAlign: "center" }}
+            >
+              Desplegar en Vercel
+            </a>
+            <div>
+              <label className="field-label" htmlFor="deploy-env-file">
+                Variables de entorno
+              </label>
+              <textarea
+                id="deploy-env-file"
+                className="field-input"
+                readOnly
+                rows={4}
+                value={deploy.result.envFile ?? ""}
+                style={{ fontFamily: "monospace", fontSize: 12, resize: "vertical" }}
+              />
+              <button
+                type="button"
+                className="btn btn-ghost"
+                style={{ fontSize: 12, padding: "4px 8px", marginTop: 6 }}
+                onClick={() => void copyEnvFile()}
+              >
+                {copiedEnvFile ? "Copiado" : "Copiar variables"}
+              </button>
+            </div>
+            <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>
+              Guardá el valor de AGENT_API_KEY en un lugar seguro: no lo vamos a volver a mostrar.
+            </p>
+          </div>
+        ) : (
+          <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
+              Desplegá la app que va a operar la sociedad las 24 horas.
+            </p>
+            {deploy.error ? <p className="field-error">{deploy.error}</p> : null}
+            <button
+              type="button"
+              className="btn btn-primary"
+              disabled={deploy.loading}
+              onClick={() => void submitDeploy()}
+            >
+              {deploy.loading ? "Desplegando..." : "Desplegar agente"}
+            </button>
+          </div>
+        )}
       </div>
 
       {/* Approvals */}
