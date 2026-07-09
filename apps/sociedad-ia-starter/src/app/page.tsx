@@ -1,103 +1,86 @@
-import { clientStatus } from "@/lib/clients";
+/**
+ * Public homepage (ROADMAP.md M3-3). Minimal branded page, not a developer
+ * diagnostic: a fresh deploy shows the society's real identity
+ * (`SOCIEDAD_IA_DENOMINACION`, injected by studio's provisioning at
+ * `POST /api/society/deploy`, see apps/studio/src/app/api/society/deploy),
+ * a one-line description, and a link back to studio, the one cockpit
+ * founders operate every society from (ROADMAP.md M3 architectural
+ * decision). No client wiring status, no endpoint list, no env
+ * diagnostics: that detail moved to the authenticated `GET /api/status`
+ * in M3-2, read only by studio's cockpit.
+ */
 
 export default function Home() {
-  const status = clientStatus();
-  const denominacion = process.env.SOCIEDAD_IA_DENOMINACION ?? "ACME-AI SAS";
-  const wired = Object.values(status).filter((s) => s === "wired").length;
-  const total = Object.keys(status).length;
+  const denominacion = process.env.SOCIEDAD_IA_DENOMINACION?.trim() || "Sociedad automatizada";
+  const studioUrl = process.env.STUDIO_URL?.trim() || "https://studio-plum-three-47.vercel.app";
+
   return (
     <main
       style={{
-        maxWidth: 720,
-        margin: "0 auto",
-        padding: "60px 24px",
-        lineHeight: 1.55,
+        minHeight: "100dvh",
+        display: "flex",
+        flexDirection: "column",
+        alignItems: "center",
+        justifyContent: "center",
+        textAlign: "center",
+        padding: "24px",
+        background: "#000000",
+        color: "#f5f5f5",
       }}
     >
       <p
         style={{
           fontSize: 12,
           textTransform: "uppercase",
-          letterSpacing: "0.06em",
-          color: "var(--text-muted)",
+          letterSpacing: "0.08em",
+          color: "#888888",
           fontFamily: "ui-monospace, monospace",
-          margin: 0,
+          margin: "0 0 20px",
         }}
       >
-        sociedad-ia · starter · v0.1
+        sociedad-ia
       </p>
-      <h1 style={{ marginTop: 8, fontSize: 32, fontWeight: 600 }}>
+      <h1
+        style={{
+          margin: 0,
+          fontSize: "clamp(28px, 5vw, 44px)",
+          fontWeight: 600,
+          maxWidth: 640,
+        }}
+      >
         {denominacion}
       </h1>
-      <p style={{ color: "var(--text-muted)", fontSize: 16 }}>
-        Operated by an LLM agent on top of <code>@ar-agents/*</code>.
-        Configurada en este deploy: <strong>{wired}/{total}</strong>{" "}
-        clientes externos (ARCA padron, AFIP WSFE, Mercado Pago, WhatsApp).
+      <p
+        style={{
+          marginTop: 16,
+          fontSize: 17,
+          lineHeight: 1.5,
+          color: "#a1a1a1",
+          maxWidth: 480,
+        }}
+      >
+        El agente autónomo de {denominacion}. Operada desde ar-agents studio.
       </p>
-
-      <h2 style={{ fontSize: 20, marginTop: 32 }}>Estado de clientes</h2>
-      <ul style={{ paddingLeft: 20 }}>
-        {Object.entries(status).map(([name, state]) => (
-          <li key={name} style={{ marginBottom: 6 }}>
-            <code style={{ fontFamily: "ui-monospace, monospace" }}>{name}</code>
-            {" — "}
-            <span
-              style={{
-                color: state === "wired" ? "#22c55e" : "var(--text-muted)",
-                fontFamily: "ui-monospace, monospace",
-                fontSize: 13,
-              }}
-            >
-              {state}
-            </span>
-          </li>
-        ))}
-      </ul>
-
-      <h2 style={{ fontSize: 20, marginTop: 32 }}>Endpoints</h2>
-      <ul style={{ paddingLeft: 20 }}>
-        <li>
-          <code>POST /api/agent</code> — agent loop. Body:{" "}
-          <code>{`{ "prompt": "..." }`}</code>
-        </li>
-        <li>
-          <code>POST /api/webhooks/mercadopago</code> — MP webhook receiver.
-          Verifies HMAC signature.
-        </li>
-        <li>
-          <code>GET /api/cron/morning</code> — daily operating loop. Wire
-          to Vercel Cron.
-        </li>
-      </ul>
-
-      <h2 style={{ fontSize: 20, marginTop: 32 }}>Próximos pasos</h2>
-      <ol style={{ paddingLeft: 20 }}>
-        <li>
-          Copiá <code>.env.example</code> a <code>.env.local</code> y
-          completá los valores reales.
-        </li>
-        <li>
-          <code>pnpm install &amp;&amp; pnpm dev</code> — corre en{" "}
-          <code>localhost:3020</code>.
-        </li>
-        <li>
-          Deploy a Vercel:{" "}
-          <a href="https://vercel.com/new" target="_blank" rel="noreferrer">
-            vercel.com/new
-          </a>
-          .
-        </li>
-        <li>
-          Pegá los env vars de <code>.env.example</code> en Settings →
-          Environment Variables.
-        </li>
-      </ol>
-
-      <p style={{ marginTop: 32, fontSize: 14, color: "var(--text-muted)" }}>
-        Documentación completa:{" "}
-        <a href="https://ar-agents.ar/playbook">/playbook</a> · RFC:{" "}
-        <a href="https://ar-agents.ar/rfcs/001">/rfcs/001</a> · Threat
-        model: <a href="https://ar-agents.ar/security">/security</a>.
+      <a
+        href={studioUrl}
+        style={{
+          marginTop: 32,
+          padding: "12px 24px",
+          borderRadius: 8,
+          background: "#f5f5f5",
+          color: "#000000",
+          fontSize: 15,
+          fontWeight: 500,
+          textDecoration: "none",
+        }}
+      >
+        Ir a ar-agents studio
+      </a>
+      <p style={{ marginTop: 48, fontSize: 13, color: "#666666" }}>
+        powered by{" "}
+        <a href="https://ar-agents.ar" style={{ color: "#888888" }}>
+          ar-agents
+        </a>
       </p>
     </main>
   );

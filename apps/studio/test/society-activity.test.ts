@@ -53,11 +53,14 @@ const FIXTURE_DEPLOYED_NO_TOKEN: StoredSociety = {
 const FIXTURE_DEPLOYED_WITH_TOKEN: StoredSociety = {
   ...FIXTURE_DEPLOYED_NO_TOKEN,
   statusToken: "a".repeat(64),
-  // Also fully backfilled for AUDIT_HMAC_SECRET (ROADMAP.md M3-4/M3-5), so
-  // tests using this fixture exercise the merged-payload happy path without
-  // also triggering ensureAuditSecret's own backfill -- see the dedicated
-  // "audit-secret backfill" describe block below for that mechanic.
+  // Also fully backfilled for AUDIT_HMAC_SECRET (ROADMAP.md M3-4/M3-5) and
+  // SOCIEDAD_IA_DENOMINACION (ROADMAP.md M3-3), so tests using this fixture
+  // exercise the merged-payload happy path without also triggering
+  // ensureAuditSecret's/ensureDenominacion's own backfill -- see the
+  // dedicated "audit-secret backfill" and "denominacion backfill" describe
+  // blocks below for that mechanic.
   auditSecretSet: true,
+  denominacionSet: true,
 };
 
 function req(token: string) {
@@ -151,15 +154,16 @@ describe("GET /api/society/activity: no deploy yet", () => {
 });
 
 describe("GET /api/society/activity: status-token backfill", () => {
-  it("mints + persists a token, sets it on the project, triggers a redeploy, and skips the status fetch this call", async () => {
+  it("mints + persists a token, sets it on the project, triggers ONE coalesced redeploy, and skips the status fetch this call", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_NO_TOKEN);
     getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "2026-01-02T00:00:00.000Z" });
-    // FIXTURE_DEPLOYED_NO_TOKEN is missing BOTH statusToken and
-    // auditSecretSet, so both ensureStatusToken and ensureAuditSecret run
-    // this call, each calling setSocietyCredentialEnvVars/triggerRedeploy
-    // once (see ensureAuditSecret's doc comment: a minor, accepted
-    // inefficiency, not a correctness issue).
+    // FIXTURE_DEPLOYED_NO_TOKEN is missing statusToken, auditSecretSet, AND
+    // denominacionSet, so ensureStatusToken, ensureAuditSecret, and
+    // ensureDenominacion all run this call, each calling
+    // setSocietyCredentialEnvVars once -- but the route coalesces all three
+    // into a SINGLE triggerRedeploy call (ROADMAP.md M3-3's follow-up on the
+    // "two backfills = two redeploys" sloppiness noted in M3-5).
     setSocietyCredentialEnvVarsMock.mockResolvedValue({ ok: true, typeUsed: "sensitive" });
     triggerRedeployMock.mockResolvedValue({ ok: true, url: "soc-reg-1.vercel.app", readyState: "QUEUED" });
 
@@ -172,19 +176,26 @@ describe("GET /api/society/activity: status-token backfill", () => {
     // deploy health is independent of the backfill and still reports.
     expect(body.deploy).toEqual({ available: true, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: "READY" });
 
-    expect(setSocietyCredentialEnvVarsMock).toHaveBeenCalledTimes(2);
+    expect(setSocietyCredentialEnvVarsMock).toHaveBeenCalledTimes(3);
     const [statusProjectArg, statusEnvVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[0]!;
     expect(statusProjectArg).toBe("soc-reg-1");
     expect(statusEnvVarsArg).toEqual([{ name: "STUDIO_STATUS_TOKEN", value: expect.stringMatching(/^[0-9a-f]{64}$/) }]);
     const [auditProjectArg, auditEnvVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[1]!;
     expect(auditProjectArg).toBe("soc-reg-1");
     expect(auditEnvVarsArg).toEqual([{ name: "AUDIT_HMAC_SECRET", value: expect.stringMatching(/^[0-9a-f]{64}$/) }]);
+    const [denomProjectArg, denomEnvVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[2]!;
+    expect(denomProjectArg).toBe("soc-reg-1");
+    expect(denomEnvVarsArg).toEqual([{ name: "SOCIEDAD_IA_DENOMINACION", value: FIXTURE_DEPLOYED_NO_TOKEN.denominacion }]);
+
+    // Coalesced: exactly one redeploy, not three.
+    expect(triggerRedeployMock).toHaveBeenCalledTimes(1);
     expect(triggerRedeployMock).toHaveBeenCalledWith("soc-reg-1");
     expect(fetchMock).not.toHaveBeenCalled(); // no /api/status round trip yet
 
     const stored = await getStoredSociety(created!.accountId);
     expect(stored?.statusToken).toBe(statusEnvVarsArg[0].value);
     expect(stored?.auditSecretSet).toBe(true);
+    expect(stored?.denominacionSet).toBe(true);
     expect(JSON.stringify(body)).not.toContain(stored!.statusToken as string);
     expect(JSON.stringify(body)).not.toContain(auditEnvVarsArg[0].value);
   });
@@ -193,7 +204,7 @@ describe("GET /api/society/activity: status-token backfill", () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_NO_TOKEN);
     getLatestDeploymentMock.mockResolvedValueOnce(null);
-    setSocietyCredentialEnvVarsMock.mockResolvedValue(null); // no VERCEL_PROVISION_TOKEN, both backfills fail closed
+    setSocietyCredentialEnvVarsMock.mockResolvedValue(null); // no VERCEL_PROVISION_TOKEN, all three backfills fail closed
 
     const res = await GET(req(created!.token));
     const body = await res.json();
@@ -204,6 +215,7 @@ describe("GET /api/society/activity: status-token backfill", () => {
     const stored = await getStoredSociety(created!.accountId);
     expect(stored?.statusToken).toBeUndefined();
     expect(stored?.auditSecretSet).toBeUndefined();
+    expect(stored?.denominacionSet).toBeUndefined();
   });
 
   it("only backfills once: a society that already has a statusToken is reused, no new Vercel env write", async () => {
@@ -219,6 +231,36 @@ describe("GET /api/society/activity: status-token backfill", () => {
     const [url, init] = fetchMock.mock.calls[0]!;
     expect(String(url)).toBe("https://soc-reg-1.vercel.app/api/status");
     expect((init as RequestInit).headers).toEqual({ authorization: `Bearer ${"a".repeat(64)}` });
+  });
+});
+
+describe("GET /api/society/activity: denominacion backfill (ROADMAP.md M3-3)", () => {
+  it("a society missing only denominacionSet backfills it alone, still coalescing to one redeploy", async () => {
+    const created = await createAccount();
+    await setStoredSociety(created!.accountId, { ...FIXTURE_DEPLOYED_WITH_TOKEN, denominacionSet: undefined });
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "x" });
+    setSocietyCredentialEnvVarsMock.mockResolvedValue({ ok: true, typeUsed: "encrypted" });
+    triggerRedeployMock.mockResolvedValue({ ok: true, url: "soc-reg-1.vercel.app", readyState: "QUEUED" });
+
+    const res = await GET(req(created!.token));
+    const body = await res.json();
+    expect(body.provisioning).toBe(true);
+
+    expect(setSocietyCredentialEnvVarsMock).toHaveBeenCalledTimes(1);
+    const [projectArg, envVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[0]!;
+    expect(projectArg).toBe("soc-reg-1");
+    expect(envVarsArg).toEqual([{ name: "SOCIEDAD_IA_DENOMINACION", value: FIXTURE_DEPLOYED_WITH_TOKEN.denominacion }]);
+    expect(triggerRedeployMock).toHaveBeenCalledTimes(1);
+    expect(triggerRedeployMock).toHaveBeenCalledWith("soc-reg-1");
+
+    const stored = await getStoredSociety(created!.accountId);
+    expect(stored?.denominacionSet).toBe(true);
+    // statusToken was already set (FIXTURE_DEPLOYED_WITH_TOKEN), so the
+    // /api/status round trip still happens this call (unlike the token
+    // backfill path, which skips it) -- but no starter response was queued
+    // via fetchMock in this test, so it resolves to unavailable rather than
+    // throwing.
+    expect(body.society.available).toBe(false);
   });
 });
 

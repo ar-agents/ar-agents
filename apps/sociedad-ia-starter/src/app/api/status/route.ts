@@ -44,7 +44,7 @@ export async function GET(req: Request) {
 
   return NextResponse.json({
     ok: true,
-    denominacion: process.env.SOCIEDAD_IA_DENOMINACION ?? "ACME-AI SAS",
+    denominacion: process.env.SOCIEDAD_IA_DENOMINACION?.trim() || "Sociedad automatizada",
     version: pkg.version,
     uptimeSeconds: Math.floor(process.uptime()),
     clients: clientStatus(),

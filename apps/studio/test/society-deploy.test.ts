@@ -90,6 +90,11 @@ describe("POST /api/society/deploy", () => {
     expect(body.envFile).toContain(`SOCIETY_GATE_TOKEN=${FIXTURE.gateToken}`);
     expect(body.envFile).toContain("AR_AGENTS_API_BASE=https://ar-agents.ar");
     expect(body.envFile).toContain(`AGENT_API_KEY=${body.agentApiKey}`);
+    // ROADMAP.md M3-3: the manual one-click path also carries the real
+    // denominacion, so a human-completed deploy shows it too, not the
+    // starter's ACME-AI placeholder.
+    expect(body.envFile).toContain(`SOCIEDAD_IA_DENOMINACION=${FIXTURE.denominacion}`);
+    expect(body.oneClickUrl).toContain("SOCIEDAD_IA_DENOMINACION");
 
     // Manual mode persists nothing: studio never learns whether the human
     // completed the click-through.
@@ -107,13 +112,17 @@ describe("POST /api/society/deploy", () => {
       "AGENT_API_KEY",
       "STUDIO_STATUS_TOKEN",
       "AUDIT_HMAC_SECRET",
+      "SOCIEDAD_IA_DENOMINACION",
     ]);
+    const denominacionVar = input.envVars.find((v: { name: string }) => v.name === "SOCIEDAD_IA_DENOMINACION");
+    expect(denominacionVar?.value).toBe(FIXTURE.denominacion);
 
-    // Manual mode: nothing persisted, so no statusToken or auditSecretSet
-    // either (studio never learns the project exists, so there is nowhere
-    // to send cockpit reads or re-provision from).
+    // Manual mode: nothing persisted, so no statusToken, auditSecretSet, or
+    // denominacionSet either (studio never learns the project exists, so
+    // there is nowhere to send cockpit reads or re-provision from).
     expect(stored?.statusToken).toBeUndefined();
     expect(stored?.auditSecretSet).toBeUndefined();
+    expect(stored?.denominacionSet).toBeUndefined();
   });
 
   it("provisioned mode: persists the deploy against the stored society and returns its state", async () => {
@@ -160,6 +169,13 @@ describe("POST /api/society/deploy", () => {
     const auditSecretVar = input.envVars.find((v: { name: string }) => v.name === "AUDIT_HMAC_SECRET");
     expect(auditSecretVar?.value).toMatch(/^[0-9a-f]{64}$/);
     expect(JSON.stringify(body)).not.toContain(auditSecretVar?.value);
+
+    // SOCIEDAD_IA_DENOMINACION (ROADMAP.md M3-3) is set from the stored
+    // society's own denominacion (nothing minted); studio persists that it
+    // was set so a later activity poll doesn't re-push it every time.
+    expect(stored?.denominacionSet).toBe(true);
+    const denominacionVar = input.envVars.find((v: { name: string }) => v.name === "SOCIEDAD_IA_DENOMINACION");
+    expect(denominacionVar?.value).toBe(FIXTURE.denominacion);
   });
 
   it("surfaces a provisioning failure as a distinct 502 without persisting anything", async () => {
