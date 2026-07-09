@@ -19,7 +19,7 @@
  *   - registrar_decision · records a business decision, no client needed
  */
 
-import { Experimental_Agent as Agent, isStepCount, type ToolSet } from "ai";
+import { Experimental_Agent as Agent, isStepCount, type LanguageModel, type ToolSet } from "ai";
 import { anthropic } from "@ai-sdk/anthropic";
 import { identityTools } from "@ar-agents/identity";
 import { bankingTools } from "@ar-agents/banking";
@@ -141,9 +141,24 @@ export async function buildTools(): Promise<ToolSet> {
   );
 }
 
+/**
+ * Model selection (ROADMAP.md M3-1 follow-up, the "platform-metered
+ * fallback"): an owner-provided Anthropic key (set via studio's credentials
+ * wizard as `ANTHROPIC_API_KEY`) wins; without one the agent runs the same
+ * model through the Vercel AI Gateway (plain "provider/model" string),
+ * which authenticates via `AI_GATEWAY_API_KEY` or the deployment's own
+ * Vercel OIDC token. That is the platform-metered default: a fresh society
+ * can operate before its owner brings any key, and the platform meters the
+ * usage it fronts.
+ */
+export function selectModel(): LanguageModel {
+  if (process.env.ANTHROPIC_API_KEY?.trim()) return anthropic("claude-sonnet-4-5");
+  return "anthropic/claude-sonnet-4-5";
+}
+
 export async function buildAgent() {
   return new Agent({
-    model: anthropic("claude-sonnet-4-5"),
+    model: selectModel(),
     stopWhen: isStepCount(20),
     instructions: SYSTEM_PROMPT,
     // AI SDK 7 native timeouts. Every tool here hits a slow Argentine upstream
