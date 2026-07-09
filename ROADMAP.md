@@ -133,12 +133,12 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: a written, source-cited design for how a society holds and moves money (wallet provisioning, owner top-ups, spend policies through the approvals gate, AR rails and cross-border), reusing the existing treasury package where possible; then implementation items derived from it.
 
 ### M2-4a Wallet-provider integration spike (Coinbase Agentic Wallets vs Circle Agent Wallets)
-- status: ready
+- status: done (2026-07-09; both legs run live on Base Sepolia. Decision: Coinbase CDP for the wallet layer, its server-side policy engine blocked a violating transfer at signing (policyEnforced true); Circle's developer-controlled API path has no provider-side policy (policyEnforced false). Full writeup + the ERC-20 calldata-rule finding in docs/research/spikes/wallet-provider/COMPARISON.md)
 - priority: P1
 - acceptance: a testnet (Base Sepolia) wallet provisioned through each provider, driven through the x402 signer interface; written comparison of setup friction, policy ergonomics, and approvals-gate fit; ends with a provider decision for v0.
 
 ### M2-4b Wallet spend policy wired to the approvals gate
-- status: blocked (depends on M2-4a provider decision)
+- status: ready (M2-4a chose Coinbase CDP; use CALLDATA-level policy rules for ERC-20 USDC recipient allowlists, not evmAddress, see the spike COMPARISON.md finding)
 - priority: P1
 - acceptance: agent USDC spend above a threshold requires provider policy AND the existing approvals gate; tests prove each layer blocks alone.
 
