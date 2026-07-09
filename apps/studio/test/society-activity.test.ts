@@ -22,11 +22,13 @@ vi.mock("@vercel/kv", () => ({
 const getLatestDeploymentMock = vi.hoisted(() => vi.fn());
 const setSocietyCredentialEnvVarsMock = vi.hoisted(() => vi.fn());
 const triggerRedeployMock = vi.hoisted(() => vi.fn());
+const getProjectProductionDomainMock = vi.hoisted(() => vi.fn());
 vi.mock("../src/lib/vercel-provision", async (importOriginal) => {
   const actual = await importOriginal<typeof import("../src/lib/vercel-provision")>();
   return {
     ...actual,
     getLatestDeployment: getLatestDeploymentMock,
+    getProjectProductionDomain: getProjectProductionDomainMock,
     setSocietyCredentialEnvVars: setSocietyCredentialEnvVarsMock,
     triggerRedeploy: triggerRedeployMock,
   };
@@ -96,6 +98,8 @@ beforeEach(() => {
   getLatestDeploymentMock.mockReset();
   setSocietyCredentialEnvVarsMock.mockReset();
   triggerRedeployMock.mockReset();
+  getProjectProductionDomainMock.mockReset();
+  getProjectProductionDomainMock.mockResolvedValue(null);
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -233,24 +237,34 @@ describe("GET /api/society/activity: status-token backfill", () => {
     expect((init as RequestInit).headers).toEqual({ authorization: `Bearer ${"a".repeat(64)}` });
   });
 
-  it("fetches /api/status from the newest READY production deployment, not the stored or newest-canceled one", async () => {
-    // Found live 2026-07-09: the stored deploy.url is frozen at first
-    // provisioning, so after any later deploy it points at an old immutable
-    // deployment and every cockpit section degraded.
+  it("fetches /api/status from the production ALIAS (domains API), never a deployment URL, and caches it", async () => {
+    // Found live 2026-07-09: deployment-specific URLs (stored deploy.url
+    // included) sit behind Vercel Deployment Protection and 302 to an SSO
+    // wall; only the project's stable production alias answers publicly.
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
-    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "CANCELED", url: "soc-reg-1-canceled99.vercel.app", createdAt: "x", readyUrl: "soc-reg-1-newest123.vercel.app" });
-    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
+    getLatestDeploymentMock.mockResolvedValue({ ok: true, state: "CANCELED", url: "soc-reg-1-canceled99.vercel.app", createdAt: "x", readyUrl: "soc-reg-1-newest123.vercel.app" });
+    getProjectProductionDomainMock.mockResolvedValueOnce("soc-reg-1-alias.vercel.app");
+    fetchMock.mockResolvedValue(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
 
-    await GET(req(created!.token));
+    const res = await GET(req(created!.token));
     const [url] = fetchMock.mock.calls[0]!;
-    expect(String(url)).toBe("https://soc-reg-1-newest123.vercel.app/api/status");
+    expect(String(url)).toBe("https://soc-reg-1-alias.vercel.app/api/status");
+    // The founder-facing deploy.url is the alias too, not the SSO-walled deployment URL.
+    const body = await res.json();
+    expect(body.deploy.url).toBe("soc-reg-1-alias.vercel.app");
+    // Cached on the stored record: the next poll must not hit the domains API again.
+    const stored = await getStoredSociety(created!.accountId);
+    expect(stored?.deploy?.aliasUrl).toBe("soc-reg-1-alias.vercel.app");
+    await GET(req(created!.token));
+    expect(getProjectProductionDomainMock).toHaveBeenCalledTimes(1);
   });
 
-  it("falls back to the stored deploy.url when the deployments lookup is unavailable", async () => {
+  it("falls back to the stored deploy.url when the domains lookup is unavailable", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
     getLatestDeploymentMock.mockResolvedValueOnce({ ok: false, error: "deployments_list_failed: 500" });
+    getProjectProductionDomainMock.mockResolvedValueOnce(null);
     fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
 
     await GET(req(created!.token));

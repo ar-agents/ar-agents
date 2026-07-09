@@ -374,6 +374,33 @@ export type GetLatestDeploymentResult =
  * name (the slug `provisionSocietyApp` returned). Returns `null` when
  * `VERCEL_PROVISION_TOKEN` is not configured (no capability, not a failure).
  */
+/**
+ * The project's stable PRODUCTION domain (`{name}.vercel.app`, where the
+ * name may be a TRUNCATION of a long project name -- it cannot be derived
+ * locally, only fetched). Deployment-specific URLs are useless outside the
+ * Vercel dashboard: Deployment Protection answers 302 to an SSO wall for
+ * them, so both the cockpit's live-status fetch and any founder-facing
+ * link must use this domain (found live, 2026-07-09). Prefers the
+ * auto-assigned `.vercel.app` domain; falls back to the first verified
+ * custom domain. Returns `null` on no capability, lookup failure, or a
+ * project with no domains.
+ */
+export async function getProjectProductionDomain(projectName: string): Promise<string | null> {
+  const token = process.env.VERCEL_PROVISION_TOKEN?.trim();
+  if (!token) return null;
+
+  const res = await vercelFetch(
+    token,
+    `/v9/projects/${encodeURIComponent(projectName)}/domains?limit=10`,
+    { method: "GET" },
+  );
+  if (!res.ok) return null;
+  const domains = (res.data as { domains?: Array<{ name?: string; verified?: boolean }> } | null)?.domains ?? [];
+  const vercelApp = domains.find((d) => d.name?.endsWith(".vercel.app"));
+  const fallback = domains.find((d) => d.name && d.verified !== false);
+  return vercelApp?.name ?? fallback?.name ?? null;
+}
+
 export async function getLatestDeployment(projectName: string): Promise<GetLatestDeploymentResult | null> {
   const token = process.env.VERCEL_PROVISION_TOKEN?.trim();
   if (!token) return null;

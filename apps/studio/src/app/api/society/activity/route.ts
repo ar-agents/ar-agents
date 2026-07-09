@@ -51,12 +51,14 @@ import {
   getStoredSociety,
   setSocietyAuditSecretSet,
   setSocietyDenominacionSet,
+  setSocietyDeployAlias,
   setSocietyStatusToken,
   type StoredSociety,
 } from "@/lib/account";
 import { kvRateLimit } from "@/lib/ratelimit";
 import {
   getLatestDeployment,
+  getProjectProductionDomain,
   setSocietyCredentialEnvVars,
   triggerRedeploy,
 } from "@/lib/vercel-provision";
@@ -236,25 +238,33 @@ export async function GET(req: Request) {
     void triggerRedeploy(projectName);
   }
 
+  // The society's stable PRODUCTION alias is the only URL that answers
+  // outside the Vercel dashboard: deployment-specific URLs (the stored
+  // provisioning-time `deploy.url` AND everything the deployments list
+  // returns, `readyUrl` included) sit behind Vercel Deployment Protection
+  // and 302 to an SSO wall, which blanked every cockpit section against
+  // the real dogfood society (found live, 2026-07-09, third attempt).
+  // Resolved once via the domains API (the `.vercel.app` name may be a
+  // truncation of a long project name, so it cannot be derived locally)
+  // and cached on the stored deploy record. Runs AFTER the ensure*
+  // sequence above: setSocietyDeployAlias read-modify-writes the same
+  // stored record.
+  let aliasUrl = society.deploy?.aliasUrl ?? null;
+  if (!aliasUrl && projectName) {
+    aliasUrl = await getProjectProductionDomain(projectName);
+    if (aliasUrl) await setSocietyDeployAlias(auth.accountId, aliasUrl);
+  }
+
   const deployLookup = await deployPromise;
 
   const deploy =
     deployLookup && deployLookup.ok
-      ? { available: true, projectName, url: deployLookup.url, state: deployLookup.state }
-      : { available: false, projectName, url: society.deploy?.url ?? null, state: null };
+      ? { available: true, projectName, url: aliasUrl ?? deployLookup.url, state: deployLookup.state }
+      : { available: false, projectName, url: aliasUrl ?? society.deploy?.url ?? null, state: null };
 
   // Skip the /api/status round trip right after a fresh backfill: the
   // deployment that will actually honor the new token hasn't landed yet.
-  //
-  // Fetch from the newest READY production deployment's URL
-  // (`readyUrl`), not the stored `society.deploy.url` (frozen at first
-  // provisioning, points at an old immutable deployment) and not the
-  // newest deployment outright (a canceled or errored rollout at the top
-  // of the list serves nothing). Both variants blanked every cockpit
-  // section against the real dogfood society (found live, 2026-07-09).
-  // The stored URL remains the fallback when the deployments lookup is
-  // unavailable.
-  const statusUrl = (deployLookup && deployLookup.ok && deployLookup.readyUrl) || society.deploy?.url || null;
+  const statusUrl = aliasUrl || society.deploy?.url || null;
   const starterStatus =
     tokenResult && !tokenResult.justProvisioned && statusUrl
       ? await fetchStarterStatus(statusUrl, tokenResult.token)
