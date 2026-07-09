@@ -61,6 +61,18 @@ export interface AccountProfile {
   createdAt: string;
 }
 
+/** Where the society's own agent app (the sociedad-ia-starter scaffold) got
+ *  deployed once M1-6 provisioned it. Only present in "provisioned" mode
+ *  (a real `VERCEL_PROVISION_TOKEN` was configured); manual-mode deploys
+ *  leave this unset since studio never learns whether the human clicked
+ *  through. See src/lib/vercel-provision.ts and
+ *  src/app/api/society/deploy/route.ts. */
+export interface SocietyDeploy {
+  projectName: string;
+  url: string;
+  deployedAt: string;
+}
+
 /** The account's constituted society (custodial storage). The plaintext
  *  adminToken/gateToken are kept here (not just a hash) because studio must
  *  present them to ar-agents.ar on every approvals/suspend call made on the
@@ -74,6 +86,7 @@ export interface StoredSociety {
   adminToken: string;
   gateToken: string;
   createdAt: string;
+  deploy?: SocietyDeploy | null;
 }
 
 // The in-memory fallback must live on globalThis: in dev each route module
@@ -202,4 +215,17 @@ export async function setStoredSociety(accountId: string, society: StoredSociety
   } catch {
     // best-effort, see doc comment above
   }
+}
+
+/**
+ * Persist a successful provisioned deploy against the account's already
+ * -stored society (see `POST /api/society/deploy`, provisioned mode). A
+ * no-op when the account has no stored society (should not happen: the
+ * route checks this first), best-effort at the storage layer like
+ * {@link setStoredSociety}.
+ */
+export async function setSocietyDeploy(accountId: string, deploy: SocietyDeploy): Promise<void> {
+  const existing = await getStoredSociety(accountId);
+  if (!existing) return;
+  await setStoredSociety(accountId, { ...existing, deploy });
 }
