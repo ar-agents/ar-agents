@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { Chat } from "@/components/chat";
+import { CredentialsPanel } from "@/components/credentials-panel";
 import { JourneyRail } from "@/components/journey-rail";
 import { LanguageToggle } from "@/components/language-toggle";
 import { OperationDashboard, type SocietySummaryLike } from "@/components/operation-dashboard";
@@ -162,10 +163,13 @@ function HomeContent() {
               </button>
             </div>
           ) : societyState.data ? (
-            <OperationDashboard
-              token={accountState.account.token}
-              initialSociety={societyState.data}
-            />
+            <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <OperationDashboard
+                token={accountState.account.token}
+                initialSociety={societyState.data}
+              />
+              <CredentialsPanel token={accountState.account.token} />
+            </div>
           ) : (
             <JourneyRail stage={stage} />
           )}

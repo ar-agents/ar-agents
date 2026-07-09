@@ -1,5 +1,10 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { projectSlugFor, provisionSocietyApp } from "../src/lib/vercel-provision";
+import {
+  projectSlugFor,
+  provisionSocietyApp,
+  redeploySocietyApp,
+  setSocietyCredentialEnvVars,
+} from "../src/lib/vercel-provision";
 
 function jsonResponse(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status });
@@ -152,5 +157,86 @@ describe("provisionSocietyApp", () => {
     expect(result).not.toBeNull();
     expect(result!.ok).toBe(false);
     expect((result as { error: string }).error).toMatch(/^project_create_network_error:/);
+  });
+});
+
+describe("setSocietyCredentialEnvVars", () => {
+  it("returns null when VERCEL_PROVISION_TOKEN is not set (no capability, not a failure)", async () => {
+    delete process.env.VERCEL_PROVISION_TOKEN;
+    const result = await setSocietyCredentialEnvVars("soc-reg-1", [{ name: "X", value: "y" }]);
+    expect(result).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("tries type 'sensitive' first, with upsert=true, targeting the exact project name given", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ created: [], failed: [] }));
+    const result = await setSocietyCredentialEnvVars("soc-reg-1", [
+      { name: "MERCADOPAGO_ACCESS_TOKEN", value: "APP_USR-123" },
+    ]);
+    expect(result).toEqual({ ok: true, typeUsed: "sensitive" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("https://api.vercel.com/v10/projects/soc-reg-1/env?upsert=true");
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body).toEqual([
+      { key: "MERCADOPAGO_ACCESS_TOKEN", value: "APP_USR-123", type: "sensitive", target: ["production"] },
+    ]);
+  });
+
+  it("falls back to type 'encrypted' when 'sensitive' is rejected", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({ error: { code: "bad_request", message: "unsupported type" } }, 400))
+      .mockResolvedValueOnce(jsonResponse({ created: [], failed: [] }));
+
+    const result = await setSocietyCredentialEnvVars("soc-reg-1", [{ name: "X", value: "y" }]);
+    expect(result).toEqual({ ok: true, typeUsed: "encrypted" });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+    const secondBody = JSON.parse((fetchMock.mock.calls[1]![1] as RequestInit).body as string);
+    expect(secondBody).toEqual([{ key: "X", value: "y", type: "encrypted", target: ["production"] }]);
+  });
+
+  it("surfaces a distinct error when both 'sensitive' and 'encrypted' are rejected", async () => {
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse({ error: { code: "forbidden" } }, 403))
+      .mockResolvedValueOnce(jsonResponse({ error: { code: "forbidden" } }, 403));
+
+    const result = await setSocietyCredentialEnvVars("soc-reg-1", [{ name: "X", value: "y" }]);
+    expect(result).not.toBeNull();
+    expect(result!.ok).toBe(false);
+    expect((result as { error: string }).error).toMatch(/^env_vars_failed:/);
+  });
+});
+
+describe("redeploySocietyApp", () => {
+  it("returns null when VERCEL_PROVISION_TOKEN is not set", async () => {
+    delete process.env.VERCEL_PROVISION_TOKEN;
+    const result = await redeploySocietyApp("soc-reg-1");
+    expect(result).toBeNull();
+    expect(fetchMock).not.toHaveBeenCalled();
+  });
+
+  it("triggers a deployment against the exact project name and polls to a terminal state", async () => {
+    fetchMock.mockResolvedValueOnce(
+      jsonResponse({ id: "dpl_2", url: "soc-reg-1.vercel.app", readyState: "READY" }),
+    );
+    const result = await redeploySocietyApp("soc-reg-1");
+    expect(result).toEqual({ ok: true, url: "soc-reg-1.vercel.app", deploymentState: "READY" });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [url, init] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("https://api.vercel.com/v13/deployments");
+    const body = JSON.parse((init as RequestInit).body as string);
+    expect(body).toEqual({
+      name: "soc-reg-1",
+      project: "soc-reg-1",
+      gitSource: { type: "github", org: "ar-agents", repo: "ar-agents", ref: "main" },
+    });
+  });
+
+  it("surfaces a deployment-create failure as a distinct error", async () => {
+    fetchMock.mockResolvedValueOnce(jsonResponse({ error: { code: "quota" } }, 403));
+    const result = await redeploySocietyApp("soc-reg-1");
+    expect(result).not.toBeNull();
+    expect(result!.ok).toBe(false);
+    expect((result as { error: string }).error).toMatch(/^deployment_create_failed:/);
   });
 });

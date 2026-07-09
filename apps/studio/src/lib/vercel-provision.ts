@@ -241,3 +241,84 @@ export async function provisionSocietyApp(
 
   return { ok: true, projectName: slug, url: deployment.url, deploymentState };
 }
+
+// ── Credential env vars (ROADMAP.md M3-1) ────────────────────────────────
+//
+// setSocietyCredentialEnvVars/redeploySocietyApp target an ALREADY -
+// provisioned project by its exact project name (the slug provisionSocietyApp
+// returned and account.ts persisted as StoredSociety.deploy.projectName), not
+// a freshly-derived one -- callers must not re-derive via projectSlugFor here.
+
+async function postEnvVarsWithType(
+  token: string,
+  projectName: string,
+  envVars: ProvisionEnvVar[],
+  type: "sensitive" | "encrypted",
+): Promise<{ ok: true } | { ok: false; error: string }> {
+  // `upsert=true`: re-saving an already-set key updates it instead of 409ing,
+  // which matters here (unlike the first-ever env write in setEnvVars above)
+  // since the owner can come back and rotate a credential.
+  const res = await vercelFetch(
+    token,
+    `/v10/projects/${encodeURIComponent(projectName)}/env?upsert=true`,
+    {
+      method: "POST",
+      body: JSON.stringify(
+        envVars.map((v) => ({ key: v.name, value: v.value, type, target: ["production"] })),
+      ),
+    },
+  );
+  if (res.ok) return { ok: true };
+  return { ok: false, error: `env_vars_failed: ${errorDetail(res)}` };
+}
+
+export type SetSocietyCredentialEnvVarsResult =
+  | { ok: true; typeUsed: "sensitive" | "encrypted" }
+  | { ok: false; error: string };
+
+/**
+ * Sets one integration's env vars on an already-provisioned society project.
+ * Tries `type: "sensitive"` first (Vercel's write-only env type: the value
+ * cannot be read back via the API or dashboard after this call, only used at
+ * build/runtime); falls back to `type: "encrypted"` if the account/plan
+ * rejects "sensitive". Returns `null` when `VERCEL_PROVISION_TOKEN` is not
+ * configured (no capability, not a failure -- mirrors provisionSocietyApp).
+ */
+export async function setSocietyCredentialEnvVars(
+  projectName: string,
+  envVars: ProvisionEnvVar[],
+): Promise<SetSocietyCredentialEnvVarsResult | null> {
+  const token = process.env.VERCEL_PROVISION_TOKEN?.trim();
+  if (!token) return null;
+
+  const sensitive = await postEnvVarsWithType(token, projectName, envVars, "sensitive");
+  if (sensitive.ok) return { ok: true, typeUsed: "sensitive" };
+
+  const encrypted = await postEnvVarsWithType(token, projectName, envVars, "encrypted");
+  if (encrypted.ok) return { ok: true, typeUsed: "encrypted" };
+
+  return { ok: false, error: encrypted.error };
+}
+
+export type RedeploySocietyAppResult =
+  | { ok: true; url: string; deploymentState: string }
+  | { ok: false; error: string };
+
+/**
+ * Triggers a fresh deployment of an already-provisioned society project (so
+ * newly-set env vars take effect) and polls it to a terminal state, same
+ * budget and semantics as {@link provisionSocietyApp}'s tail. Returns `null`
+ * when `VERCEL_PROVISION_TOKEN` is not configured.
+ */
+export async function redeploySocietyApp(
+  projectName: string,
+): Promise<RedeploySocietyAppResult | null> {
+  const token = process.env.VERCEL_PROVISION_TOKEN?.trim();
+  if (!token) return null;
+
+  const deployment = await createDeployment(token, projectName);
+  if (!deployment.ok) return { ok: false, error: deployment.error };
+
+  const deploymentState = await pollDeployment(token, deployment.id, deployment.readyState);
+  return { ok: true, url: deployment.url, deploymentState };
+}
