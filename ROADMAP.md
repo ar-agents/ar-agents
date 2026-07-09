@@ -70,9 +70,9 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: npx ar-agents (or the existing CLI surface) walks the same journey from a terminal, calling the same APIs.
 
 ### M1-6 Society runtime deploys from studio
-- status: in-progress (supervised session 2026-07-08)
+- status: done (2026-07-09, supervised; the dogfood society's agent app deployed to its own Vercel project via studio provisioning. Landmine fixed: the starter uses workspace:* deps so the project buildCommand must build the workspace first. FINDING that reshaped the roadmap into M3: what deploys is a headless dev scaffold with an unconfigured diagnostic homepage, not a founder product, and provisioning did not even inject the real denominacion. See M3.)
 - priority: P1
-- acceptance: a constituted society's agent app (the sociedad-ia-starter scaffold with its generated env, SOCIETY_ID and gate token included) deploys to its own Vercel project from studio with one action, and the dashboard shows the deployment's health. This is the gap between "incorporated" and "operating".
+- acceptance: a constituted society's agent app deploys to its own Vercel project from studio with one action, and the dashboard shows the deployment's health. This is the gap between "incorporated" and "operating".
 
 ### M1-5 First real external user creates a society
 - status: blocked (needs a human to recruit the user)
@@ -171,6 +171,34 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - status: ready
 - priority: P1
 - acceptance: when the sociedad automatizada regime goes live, the first real filing happens the same day. Concretely: a dry-run checklist plus tests proving the pre to live switch changes exactly the intended behaviors (real filings instead of simulation) with no other diffs; every document, form field, and fee for constituting AR Agents Operaciones Sociedad Automatizada for real is pre-staged from the existing Formation Pack; the remaining human steps (signatures, payment, organismo submission) are enumerated with owners so the elapsed time from law-live to filed is hours. Being the first sociedad automatizada ever constituted, through its own product, is a one-time asset.
+
+## M3: A society feels real (founder-facing)
+
+Motivation: on 2026-07-09 the owner opened the first deployed society (soc-ar-agents-operaciones-sociedad.vercel.app) and was underwhelmed, correctly. Root cause: the deploy serves the sociedad-ia-starter dev scaffold (a diagnostic homepage listing client-wiring status and API endpoints), it was not personalized (shows the default "ACME-AI SAS", not the real denominacion), and no business credentials were injected so every capability reads missing-env and the agent has no model key. The engine shipped; the product did not.
+
+Architectural decision (owner delegated, 2026-07-09): studio is the ONE cockpit; the deployed society app stays a headless runtime plus a minimal branded page. Founders operate every society from studio, not from the raw deploy URL. This matches the north-star "simple UI orchestrating a super powerful backend". Do NOT build a separate per-society operating dashboard into the starter.
+
+Sequencing decision (owner delegated): credentials onboarding first (nothing feels real until a society can act), then studio-as-cockpit (show live activity), then the personalization polish. Order below reflects that.
+
+### M3-1 Credentials onboarding wizard
+- status: ready
+- priority: P0
+- acceptance: from studio, the owner of a society can configure the credentials it needs to operate: at minimum a model key (or use the platform-metered model), plus the business integrations it actually uses (Mercado Pago, AFIP cert, WhatsApp) entered one at a time with validation and stored so the deployed agent app reads them. After the wizard, the deployed society's client-status reads wired for the configured ones and the agent loop can run a real task. Secrets never pass through studio in plaintext logs; set on the society's own Vercel project env. This is the keystone: it turns a deployed skeleton into an operating business.
+
+### M3-2 Studio shows the living society
+- status: ready
+- priority: P0
+- acceptance: the studio dashboard surfaces what the running society is doing: recent agent actions from the signed audit log, current status, pending approvals, treasury/usage, and the deploy health, in a view a non-technical founder reads at a glance. Founders never need to visit the raw deploy URL. Replace any link that sends them there.
+
+### M3-3 Headless + branded deployed app
+- status: ready
+- priority: P1
+- acceptance: the sociedad-ia-starter homepage becomes a minimal branded page ("this is the autonomous agent for {denominacion}, operated from ar-agents studio", with a link to studio), not a developer diagnostic. The diagnostic status moves to an authenticated /status or /health that the studio cockpit reads. Provisioning injects SOCIEDAD_IA_DENOMINACION and any branding so a fresh deploy shows the society's real identity, never the ACME-AI placeholder.
+
+### M3-4 Make the dogfood society actually operate one task end to end
+- status: ready
+- priority: P1
+- acceptance: after M3-1, AR Agents Operaciones Sociedad Automatizada performs one real, visible business task through its agent (for example: given a prompt, it uses a configured capability and the action lands in the audit log, visible in the studio cockpit). This is the proof that the whole chain (constitute to operate) produces something a founder would call a working business.
 
 ## Maintenance (continuous, when nothing above is ready)
 
