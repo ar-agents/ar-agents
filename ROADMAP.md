@@ -90,19 +90,20 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: `pnpm --filter ar-agents-studio run evals -- --mode live` exits 0. First live run (2026-07-08) found: the coach often does not reach a preview_society draft within 4 turns for personas that require one; pricing answers do not always state the 5x multiple; the judge scores coaching quality low for advancing without validation questions. Fix in the system prompt and corpus, not by weakening the rubric; the gate stays at 3.5.
 
 ### M1-3a i18n scaffolding and language toggle
-- status: ready
+- status: done (2026-07-09, PR #169; pure dictionary module src/lib/ui/i18n.ts with es and en, default es, t()/format()/resolveInitialLocale(), plus a client LocaleProvider persisting to localStorage and a header ES/EN toggle; unit tests cover default locale, resolution, dictionary parity, and placeholder formatting)
 - priority: P1
 - acceptance: a minimal locale layer in apps/studio (a Locale type of "es" and "en", default "es", a t(key, locale) dictionary helper, selection persisted to localStorage) plus a language toggle in the layout header. es-AR stays the visible default and looks identical; no component copy is migrated yet. Unit tests cover the default locale, persistence read and write, and that every dictionary key resolves in both locales.
 
 ### M1-3b Localize the operation dashboard and constitution card
-- status: ready
+- status: done (2026-07-09, PR #169; every user-facing string in both components renders through t()/format() in es and en, es output unchanged)
 - priority: P1
 - acceptance: every hardcoded es string in src/components/operation-dashboard.tsx and src/components/constitution-card.tsx moves into the M1-3a dictionary with an English translation and renders through t(). The es output stays identical to today; en renders the translations. Tests assert both locales resolve for the migrated keys.
 
 ### M1-3c Localize the chat, journey rail, page, and layout metadata
-- status: ready
+- status: done (2026-07-09, PR #169; chat, journey-rail, and page localized in es and en, html lang synced to the selected locale by LocaleProvider; layout.tsx static metadata left as its existing bilingual copy and deferred to M1-3f, see note)
 - priority: P1
 - acceptance: the same migration for src/components/chat.tsx, src/components/journey-rail.tsx, src/app/page.tsx, and the src/app/layout.tsx metadata; the html lang attribute reflects the selected locale. es stays identical; en is complete for these surfaces. Tests assert both locales resolve for the migrated keys.
+- note: layout.tsx exports a static Next.js Metadata object rendered at build time; a client-side locale toggle cannot drive it. Making the tab title and description react to the selected locale needs generateMetadata plus a locale cookie, tracked as M1-3f. The current metadata is already bilingual, so nothing regresses.
 
 ### M1-3d Coach replies in the selected language
 - status: blocked (depends on M1-1 landing; edits src/coach/system-prompt.ts, which M1-1 is in-progress on)
@@ -113,6 +114,11 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - status: blocked (depends on M1-3a, M1-3b, M1-3c, M1-3d)
 - priority: P1
 - acceptance: a check (a test or the journey eval run in English) proves es-AR is the default and full English is available end to end across the UI and the coach, satisfying M1-3's original acceptance. On green, mark M1-3 done.
+
+### M1-3f Locale-reactive layout metadata
+- status: ready
+- priority: P2
+- acceptance: apps/studio/src/app/layout.tsx metadata (tab title and description) reflects the selected locale, using generateMetadata reading a locale cookie set by the language toggle. es-AR default; en when selected. Discovered during M1-3c (PR #169): a client-side toggle cannot drive a static Metadata export, so the metadata was left as its existing bilingual copy.
 
 ## M2: Operate for real
 
