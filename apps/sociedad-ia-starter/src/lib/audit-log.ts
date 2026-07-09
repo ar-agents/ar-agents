@@ -133,7 +133,11 @@ function isKvWired(): boolean {
   return Boolean(process.env.KV_REST_API_URL?.trim() && process.env.KV_REST_API_TOKEN?.trim());
 }
 
-const KV_KEY = "sociedad-ia-starter:audit-log";
+// Namespaced by SOCIETY_ID (studio injects it at provisioning): a KV
+// instance shared by more than one society deploy must never mix their
+// operating histories into one list. Falls back to a fixed suffix for a
+// bare local checkout with no society identity.
+const KV_KEY = `sociedad-ia-starter:audit-log:${process.env.SOCIETY_ID?.trim() || "default"}`;
 /** Bounds unbounded growth. This deploy serves one society; a few hundred
  *  recent entries is far more than the cockpit ever renders (last ~20). */
 const MAX_ENTRIES = 200;
