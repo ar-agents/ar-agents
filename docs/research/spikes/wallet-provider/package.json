@@ -1,0 +1,18 @@
+{
+  "name": "wallet-provider-spike",
+  "private": true,
+  "version": "0.0.0",
+  "type": "module",
+  "description": "ROADMAP M2-4a spike: runnable comparison scripts for Coinbase CDP Agentic Wallets vs Circle developer-controlled wallets. Deliberately NOT part of the pnpm workspace (pnpm-workspace.yaml only includes apps/* and packages/*) -- install with plain npm from inside this directory.",
+  "scripts": {
+    "coinbase": "node coinbase-spike.mjs",
+    "circle": "node circle-spike.mjs"
+  },
+  "dependencies": {
+    "@coinbase/cdp-sdk": "^1.51.2",
+    "@circle-fin/developer-controlled-wallets": "^10.8.0"
+  },
+  "engines": {
+    "node": ">=22"
+  }
+}
