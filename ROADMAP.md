@@ -116,7 +116,7 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: a check (a test or the journey eval run in English) proves es-AR is the default and full English is available end to end across the UI and the coach, satisfying M1-3's original acceptance. On green, mark M1-3 done.
 
 ### M1-3f Locale-reactive layout metadata
-- status: ready
+- status: done (2026-07-09, PR #183; layout.tsx now reads a locale cookie via next/headers and localizes both generateMetadata and the html lang attribute. The language toggle (locale-context.tsx) writes the cookie (name LOCALE_COOKIE_NAME, same value as the localStorage key) on mount-hydrate and on switch. New pure metadataForLocale(locale) helper in i18n.ts plus meta.title/meta.description dictionary entries; test/ui-layout-metadata.test.ts proves the cookie-value to metadata pipeline the layout uses. Reading cookies() makes / server-rendered on demand, which is expected and required for per-request locale.)
 - priority: P2
 - acceptance: apps/studio/src/app/layout.tsx metadata (tab title and description) reflects the selected locale, using generateMetadata reading a locale cookie set by the language toggle. es-AR default; en when selected. Discovered during M1-3c (PR #169): a client-side toggle cannot drive a static Metadata export, so the metadata was left as its existing bilingual copy.
 

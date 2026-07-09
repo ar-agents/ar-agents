@@ -18,6 +18,12 @@ export const DEFAULT_LOCALE: Locale = "es";
 
 export const LOCALE_STORAGE_KEY = "ar-studio-locale";
 
+// The cookie the language toggle writes so the server can localize the page
+// metadata (see layout.tsx). Same value as LOCALE_STORAGE_KEY on purpose;
+// kept as a distinct named constant because one is a localStorage key and
+// the other a cookie name.
+export const LOCALE_COOKIE_NAME = "ar-studio-locale";
+
 export const MESSAGES = {
   // Shared actions, reused across components instead of duplicating the
   // same word under multiple ids.
@@ -442,6 +448,13 @@ export const MESSAGES = {
     es: "Todavía no hay datos de uso ni tesorería de la sociedad operando. Esta sección se completa con el trabajo de tesorería en curso.",
     en: "There is no usage or treasury data from the operating society yet. This section fills in with the treasury work in progress.",
   },
+
+  // src/app/layout.tsx metadata
+  "meta.title": { es: "ar-agents studio", en: "ar-agents studio" },
+  "meta.description": {
+    es: "Creá una sociedad automatizada conversando, sobre ar-agents.",
+    en: "Chat your way from idea to an operating Argentine automated society, on top of ar-agents.",
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type MessageId = keyof typeof MESSAGES;
@@ -471,4 +484,14 @@ export function format(locale: Locale, id: MessageId, vars: Record<string, strin
 export function resolveInitialLocale(stored: string | null | undefined): Locale {
   if (stored === "es" || stored === "en") return stored;
   return DEFAULT_LOCALE;
+}
+
+/** The page metadata (browser tab title and description) for a locale,
+ *  used by generateMetadata in src/app/layout.tsx. Pure so it is unit
+ *  testable without next/headers or a DOM. */
+export function metadataForLocale(locale: Locale): { title: string; description: string } {
+  return {
+    title: t(locale, "meta.title"),
+    description: t(locale, "meta.description"),
+  };
 }

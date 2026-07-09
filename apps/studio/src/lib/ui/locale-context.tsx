@@ -8,6 +8,7 @@
 import { createContext, useContext, useEffect, useState, type ReactNode } from "react";
 import {
   DEFAULT_LOCALE,
+  LOCALE_COOKIE_NAME,
   LOCALE_STORAGE_KEY,
   format as formatMessage,
   resolveInitialLocale,
@@ -29,6 +30,17 @@ function applyDocumentLang(locale: Locale): void {
   document.documentElement.lang = locale === "es" ? "es-AR" : "en";
 }
 
+function writeLocaleCookie(locale: Locale): void {
+  // Mirror the locale into a cookie so the server can localize page
+  // metadata (generateMetadata in layout.tsx). Best-effort; a blocked
+  // document.cookie must not break the toggle.
+  try {
+    document.cookie = `${LOCALE_COOKIE_NAME}=${locale}; path=/; max-age=31536000; samesite=lax`;
+  } catch {
+    // ignore
+  }
+}
+
 export function LocaleProvider({ children }: { children: ReactNode }) {
   // Defaults to DEFAULT_LOCALE ("es") so the very first client render
   // matches the server-rendered <html lang="es-AR">; the real stored
@@ -46,6 +58,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
     // eslint-disable-next-line react-hooks/set-state-in-effect -- hydrate locale from storage on mount
     setLocaleState(resolved);
     applyDocumentLang(resolved);
+    writeLocaleCookie(resolved);
   }, []);
 
   function setLocale(next: Locale): void {
@@ -56,6 +69,7 @@ export function LocaleProvider({ children }: { children: ReactNode }) {
       // best-effort persistence; the in-memory state still switches
     }
     applyDocumentLang(next);
+    writeLocaleCookie(next);
   }
 
   const value: LocaleContextValue = {
