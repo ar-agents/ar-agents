@@ -354,18 +354,24 @@ export async function triggerRedeploy(projectName: string): Promise<TriggerRedep
 }
 
 export type GetLatestDeploymentResult =
-  | { ok: true; state: string; url: string; createdAt: string }
+  | { ok: true; state: string; url: string; createdAt: string; readyUrl: string | null }
   | { ok: false; error: string };
 
 /**
- * The most recent PRODUCTION deployment for an already-provisioned project,
- * for the studio cockpit's deploy-health pill and live-status fetch
- * (ROADMAP.md M3-2). `target=production` matters: the repo's git pushes also
- * produce preview deployments, and without the filter the pill would report
- * a preview's health while the production alias serves something else
- * (found live, 2026-07-09). `projectId` accepts either the project ID or its
- * name per the Vercel docs; this app always has the name (the slug
- * `provisionSocietyApp` returned). Returns `null` when
+ * The most recent PRODUCTION deployments for an already-provisioned project,
+ * for the studio cockpit (ROADMAP.md M3-2). Returns two things from one
+ * listing: the NEWEST deployment's state/url (the deploy-health pill: a
+ * building or failed rollout is exactly what the pill should show) and
+ * `readyUrl`, the newest READY deployment's url (the live-status fetch: a
+ * canceled or errored newest deployment serves nothing, so fetching
+ * /api/status from it blanked every cockpit section -- found live,
+ * 2026-07-09, when a git-push build got superseded and landed CANCELED at
+ * the top of the list). `target=production` matters too: the repo's git
+ * pushes also produce preview deployments, and without the filter the pill
+ * would report a preview's health while the production alias serves
+ * something else (also found live, same day). `projectId` accepts either
+ * the project ID or its name per the Vercel docs; this app always has the
+ * name (the slug `provisionSocietyApp` returned). Returns `null` when
  * `VERCEL_PROVISION_TOKEN` is not configured (no capability, not a failure).
  */
 export async function getLatestDeployment(projectName: string): Promise<GetLatestDeploymentResult | null> {
@@ -374,17 +380,20 @@ export async function getLatestDeployment(projectName: string): Promise<GetLates
 
   const res = await vercelFetch(
     token,
-    `/v7/deployments?projectId=${encodeURIComponent(projectName)}&limit=1&target=production`,
+    `/v7/deployments?projectId=${encodeURIComponent(projectName)}&limit=10&target=production`,
     { method: "GET" },
   );
   if (!res.ok) return { ok: false, error: `deployments_list_failed: ${errorDetail(res)}` };
   const data = res.data as { deployments?: Array<{ url?: string; readyState?: string; created?: number }> } | null;
-  const d = data?.deployments?.[0];
+  const list = data?.deployments ?? [];
+  const d = list[0];
   if (!d) return { ok: false, error: "no_deployments" };
+  const newestReady = list.find((x) => x.readyState === "READY" && x.url);
   return {
     ok: true,
     state: d.readyState ?? "UNKNOWN",
     url: d.url ?? "",
     createdAt: typeof d.created === "number" ? new Date(d.created).toISOString() : new Date().toISOString(),
+    readyUrl: newestReady?.url ?? null,
   };
 }
