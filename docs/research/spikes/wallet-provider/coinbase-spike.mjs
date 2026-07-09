@@ -110,7 +110,7 @@ async function main() {
     cdp.policies.createPolicy({
       policy: {
         scope: "account",
-        description: `${WALLET_NAME}: allowlist self + informational per-tx ETH cap`,
+        description: `spike ${WALLET_NAME.replace(/[^A-Za-z0-9]/g, "")} allowlist and per tx cap`,
         rules: [
           {
             action: "accept",
@@ -175,7 +175,11 @@ async function main() {
     hasUsdc = Array.isArray(list)
       ? list.some((b) => {
           const symbol = b?.token?.symbol ?? b?.symbol ?? "";
-          const amount = BigInt(b?.amount ?? b?.balance ?? 0);
+          // CDP returns amount as { amount: "<atomic>", decimals } on some
+          // shapes and a bare value on others; unwrap before BigInt.
+          const rawAmount = b?.amount?.amount ?? b?.amount ?? b?.balance ?? 0;
+          let amount = 0n;
+          try { amount = BigInt(rawAmount); } catch { amount = 0n; }
           return String(symbol).toUpperCase() === "USDC" && amount > 0n;
         })
       : false;

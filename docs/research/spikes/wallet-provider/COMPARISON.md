@@ -83,3 +83,16 @@ gate) directly: Coinbase's `cdp.policies.createPolicy` becomes layer one,
 
 ### Revised assessment pending the Coinbase live leg
 Circle: works end to end today but with NO provider-side policy: every guarantee is application-level. Coinbase: policy engine exists at the right tier without KYB, but onboarding has sharp edges (per-session 2FA, portal-only wallet secret, key scopes). If the Coinbase live leg confirms server-side policy blocking a violating transfer, Coinbase remains the recommendation; if key scoping or the wallet secret path proves unreliable, reconsider Circle plus our approvals gate as the only policy layer.
+
+
+## DECISION (2026-07-09, both legs run live)
+
+**Recommendation: Coinbase CDP for the society wallet layer.** Confirmed live, not from docs:
+
+- Coinbase: `policyEnforced: true`. A server-side account policy was created and attached, and a transfer that violated it was rejected before signing with "The request is forbidden due to violating at least one configured policy." This is the capability the treasury design needs at the wallet layer.
+- Circle (developer-controlled API path): `policyEnforced: false`. No provider-side policy/allowlist endpoint exists on that path; the violating transfer was stopped only by our own application-level check. Circle's separately marketed Agent Wallets product advertises policies but is gated behind an interactive CLI login, not the API-key auth this design uses.
+- Coinbase's Agentic Wallet tier is KYB-locked (business verification), but the plain API-key-wallet tier exposes the same project/account policy engine un-gated, which is what an unverified individual founder can use today.
+
+**Material implementation finding for M2-4b (ERC-20 recipient allowlists):** Coinbase's `evmAddress` policy criterion matches the transaction's `to` field. For a native ETH transfer that is the recipient, so recipient allowlisting works directly. For an ERC-20 USDC transfer the transaction `to` is the USDC CONTRACT address, and the real recipient sits in the `transfer(to,amount)` calldata. Consequence: a plain `evmAddress` allowlist cannot distinguish a good USDC recipient from a bad one (both transactions go to the token contract) and will block or allow them together. Recipient-level control over stablecoin transfers therefore requires a calldata-level policy rule (matching the decoded `transfer` recipient), not an address allowlist. Wire M2-4b with calldata rules for USDC, and keep the ar-agents approvals gate as the mandatory second layer regardless, since no provider rule covers the fiat off-ramp leg.
+
+**Onboarding friction observed (both real, both one-time):** Coinbase requires 2FA per key-creation session, the wallet secret is portal-only and shown once (its Generate dialog also resists browser automation), and wallet/policy operations need a key created with the Advanced-settings scope "Non-custodial: Manage". Circle requires a separately-registered entity secret (generate your own 32-byte hex; the SDK's generateEntitySecret only prints) and uses tokenId, not tokenAddress, on createTransaction.
