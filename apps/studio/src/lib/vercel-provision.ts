@@ -184,6 +184,11 @@ async function createDeployment(
     body: JSON.stringify({
       name: slug,
       project: slug,
+      // Without an explicit target Vercel creates a PREVIEW deployment: it
+      // never updates the production alias and cannot read production-target
+      // env vars, so a credential save or backfill "redeploy" silently
+      // changed nothing (found live, 2026-07-09).
+      target: "production",
       gitSource: { type: "github", org: GITHUB_ORG, repo: GITHUB_REPO_NAME, ref: GIT_REF },
     }),
   });
@@ -353,10 +358,14 @@ export type GetLatestDeploymentResult =
   | { ok: false; error: string };
 
 /**
- * The most recent deployment for an already-provisioned project, for the
- * studio cockpit's deploy-health pill (ROADMAP.md M3-2). `projectId` accepts
- * either the project ID or its name per the Vercel docs; this app always has
- * the name (the slug `provisionSocietyApp` returned). Returns `null` when
+ * The most recent PRODUCTION deployment for an already-provisioned project,
+ * for the studio cockpit's deploy-health pill and live-status fetch
+ * (ROADMAP.md M3-2). `target=production` matters: the repo's git pushes also
+ * produce preview deployments, and without the filter the pill would report
+ * a preview's health while the production alias serves something else
+ * (found live, 2026-07-09). `projectId` accepts either the project ID or its
+ * name per the Vercel docs; this app always has the name (the slug
+ * `provisionSocietyApp` returned). Returns `null` when
  * `VERCEL_PROVISION_TOKEN` is not configured (no capability, not a failure).
  */
 export async function getLatestDeployment(projectName: string): Promise<GetLatestDeploymentResult | null> {
@@ -365,7 +374,7 @@ export async function getLatestDeployment(projectName: string): Promise<GetLates
 
   const res = await vercelFetch(
     token,
-    `/v7/deployments?projectId=${encodeURIComponent(projectName)}&limit=1`,
+    `/v7/deployments?projectId=${encodeURIComponent(projectName)}&limit=1&target=production`,
     { method: "GET" },
   );
   if (!res.ok) return { ok: false, error: `deployments_list_failed: ${errorDetail(res)}` };

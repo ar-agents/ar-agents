@@ -232,6 +232,31 @@ describe("GET /api/society/activity: status-token backfill", () => {
     expect(String(url)).toBe("https://soc-reg-1.vercel.app/api/status");
     expect((init as RequestInit).headers).toEqual({ authorization: `Bearer ${"a".repeat(64)}` });
   });
+
+  it("fetches /api/status from the LATEST production deployment's URL, not the stored provisioning-time one", async () => {
+    // Found live 2026-07-09: the stored deploy.url is frozen at first
+    // provisioning, so after any later deploy it points at an old immutable
+    // deployment and every cockpit section degraded.
+    const created = await createAccount();
+    await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1-newest123.vercel.app", createdAt: "x" });
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
+
+    await GET(req(created!.token));
+    const [url] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("https://soc-reg-1-newest123.vercel.app/api/status");
+  });
+
+  it("falls back to the stored deploy.url when the deployments lookup is unavailable", async () => {
+    const created = await createAccount();
+    await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
+    getLatestDeploymentMock.mockResolvedValueOnce({ ok: false, error: "deployments_list_failed: 500" });
+    fetchMock.mockResolvedValueOnce(new Response(JSON.stringify(FULL_STARTER_STATUS), { status: 200 }));
+
+    await GET(req(created!.token));
+    const [url] = fetchMock.mock.calls[0]!;
+    expect(String(url)).toBe("https://soc-reg-1.vercel.app/api/status");
+  });
 });
 
 describe("GET /api/society/activity: denominacion backfill (ROADMAP.md M3-3)", () => {
