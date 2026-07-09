@@ -1,17 +1,14 @@
 "use client";
 
-// Home, rebuilt around one promise: create or register an autonomous company
-// in Argentina, run by AI, on ar-agents. Structure first; copy is a later pass.
-// The hero CTA + law banner are driven by LAW_STATUS so the whole site flips
-// from "pre" (honest waitlist) to "live" (real flow) the day the law passes.
-//
-// Design system stays the existing Geist + CSS-var theme (globals.css), and we
-// reuse the proven components (DemoTerminal, LiveChat, HeroDiagram).
+// Home, redesigned around the founder's formula: as simple as OpenCode, as
+// beautiful as Vercel (Geist + our light-blue accent), the copy of Cohere,
+// the professionalism of Stripe. One promise, minimal chrome, whitespace as
+// the design. Studio (studio.ar-agents.ar) is the product's front door now,
+// so the primary CTA always points there, independent of LAW_STATUS. The
+// LAW_STATUS pre/live switch still drives the honesty banner below the CTA.
 
-import { useCallback, useState } from "react";
-import { DemoTerminal } from "./demo-terminal";
+import { useState } from "react";
 import { HeroDiagram } from "./hero-diagram";
-import dynamic from "next/dynamic";
 import { useLang } from "./i18n";
 import { HomeJsonLd } from "./json-ld";
 import { LAW_STATUS } from "./law-status";
@@ -19,11 +16,8 @@ import { LAW_STATUS } from "./law-status";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
-// bundle-dynamic-imports (vercel react-best-practices): LiveChat is heavy and
-// click-gated, so lazy-load it to keep it out of the initial home bundle.
-const LiveChat = dynamic(() => import("./live-chat").then((m) => m.LiveChat), {
-  ssr: false,
-});
+const STUDIO_URL = "https://studio.ar-agents.ar";
+const SOCIETY_URL = "https://soc-ar-agents-operaciones-sociedad.vercel.app";
 
 type Step = { n: string; t_es: string; t_en: string; d_es: string; d_en: string };
 
@@ -62,28 +56,47 @@ const RAILS: ReadonlyArray<Rail> = [
   { t_es: "MCP", t_en: "MCP", d_es: "Un server para Claude, Cursor y más.", d_en: "One server for Claude, Cursor and more." },
 ];
 
+type Cmd = { label_es: string; label_en: string; cmd: string };
+
+// Every command here is verified working (see report), the container is the
+// OpenCode-style "copy-paste to start" block: real, not aspirational.
+const COMMANDS: ReadonlyArray<Cmd> = [
+  {
+    label_es: "Instalá el toolkit",
+    label_en: "Install the toolkit",
+    cmd: "npm i @ar-agents/mercadopago",
+  },
+  {
+    label_es: "Conectá el MCP remoto",
+    label_en: "Connect the remote MCP",
+    cmd: "claude mcp add --transport http ar-agents https://ar-agents.ar/api/mcp",
+  },
+  {
+    label_es: "Cloná el starter",
+    label_en: "Clone the starter",
+    cmd: "npx degit ar-agents/ar-agents/apps/sociedad-ia-starter mi-sociedad",
+  },
+  {
+    label_es: "Consultá el registro público",
+    label_en: "Query the public registry",
+    cmd: "curl https://ar-agents.ar/api/registry",
+  },
+];
+
 export default function Home() {
   const { lang } = useLang();
   const es = lang === "es";
-  const [liveOpen, setLiveOpen] = useState(false);
-  const toggleLive = useCallback(() => setLiveOpen((v) => !v), []);
-  const closeLive = useCallback(() => setLiveOpen(false), []);
 
   const law =
     LAW_STATUS === "live"
-      ? {
-          cta: es ? "Creá tu sociedad" : "Create your company",
-          banner: null as string | null,
-          note: es ? "Registro abierto." : "Registration open.",
-        }
+      ? { banner: null as string | null, note: es ? "Registro abierto." : "Registration open." }
       : {
-          cta: es ? "Empezar" : "Get started",
           banner: es
             ? "El anteproyecto de Ley de Sociedades está en el Senado. Todavía no es ley."
             : "The draft Companies Law is in the Senate. It is not law yet.",
           note: es
-            ? "Generás todo hoy. Registrás el día que sea ley."
-            : "Generate everything today. Register the day it becomes law.",
+            ? "Generás y operás todo hoy. Registrás el día que sea ley."
+            : "Build and operate everything today. Register the day it becomes law.",
         };
 
   return (
@@ -97,89 +110,79 @@ export default function Home() {
       }}
     >
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        {/* HERO: centered wide title, then content (left) + card (right) */}
-        <header style={{ marginBottom: 96, paddingTop: 16 }}>
+        {/* HERO: single column, headline does the work, whitespace over decoration */}
+        <header style={{ marginBottom: 72, paddingTop: 16, maxWidth: 720 }}>
           <p style={eyebrow}>
             {es ? "Sociedades automatizadas · Argentina" : "Automated companies · Argentina"}
           </p>
           <h1
             style={{
-              fontSize: "clamp(20px, calc((100vw - 48px) / 15.2), 78px)",
+              fontSize: "clamp(36px, 6.4vw, 72px)",
               margin: "16px 0 0",
-              maxWidth: 1200,
               fontWeight: 600,
               lineHeight: 1.05,
               letterSpacing: "-0.04em",
-              textAlign: "left",
-              textWrap: "wrap",
+              textWrap: "balance",
             }}
           >
-            {es ? "Creá una sociedad automatizada" : "Create an automated company"}
+            {es ? "Creá tu sociedad automatizada." : "Create your automated company."}
             <br />
-            {es ? " en Argentina." : " in Argentina."}
+            <span style={{ color: "var(--accent)" }}>{es ? "Gratis." : "Free."}</span>
           </h1>
 
-          <div className="hero-grid" style={{ marginTop: "clamp(28px, 3vw, 40px)", alignItems: "center" }}>
-            <div>
-              <p
-                style={{
-                  color: "var(--text-body)",
-                  fontSize: "clamp(17px, 2.2vw, 20px)",
-                  margin: 0,
-                  maxWidth: 540,
-                  lineHeight: 1.55,
-                }}
-              >
-                {es
-                  ? "Una empresa que opera sola, con agentes de IA. Cobra, factura y paga en pesos, y deja prueba firmada de cada decisión. El núcleo es abierto y gratis."
-                  : "A company that runs itself, with AI agents. It charges, invoices and pays in pesos, and leaves signed proof of every decision. The core is open and free."}
-              </p>
+          <p
+            style={{
+              color: "var(--text-body)",
+              fontSize: "clamp(17px, 2.2vw, 20px)",
+              margin: "24px 0 0",
+              maxWidth: 560,
+              lineHeight: 1.55,
+            }}
+          >
+            {es
+              ? "Una sociedad automatizada opera con agentes de IA, no con empleados. Cobra, factura y paga en pesos, y deja prueba firmada de cada decisión."
+              : "An automated company runs on AI agents, not employees. It charges, invoices and pays in pesos, and leaves signed proof of every decision."}
+          </p>
 
-              {law.banner ? (
-                <div style={lawBanner} role="status">
-                  <span aria-hidden="true" style={lawDot} />
-                  {law.banner}
-                </div>
-              ) : null}
-
-              <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap" }}>
-                <a href="/incorporar" style={ctaPrimary}>
-                  {law.cta}
-                </a>
-                <button type="button" onClick={toggleLive} aria-pressed={liveOpen} style={ctaGhost}>
-                  <span aria-hidden="true" style={pulseDot} />
-                  {es ? "Probalo en vivo" : "Try it live"}
-                </button>
-              </div>
-              <p style={{ margin: "14px 0 0", fontSize: 13 }}>
-                <a href="/sdk" style={inlineLink}>
-                  {es ? "¿Sos developer? Ver la documentación" : "Developer? Read the docs"} →
-                </a>
-              </p>
-              <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "10px 0 0" }}>
-                {law.note}
-              </p>
-
-              <div style={{ ...proofStrip, marginTop: 28 }}>
-                <span>Open source · MIT</span>
-                <span aria-hidden="true">·</span>
-                <span>37 {es ? "paquetes en npm" : "npm packages"}</span>
-                <span aria-hidden="true">·</span>
-                <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
-              </div>
+          {law.banner ? (
+            <div style={lawBanner} role="status">
+              <span aria-hidden="true" style={lawDot} />
+              {law.banner}
             </div>
+          ) : null}
 
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <SocietyCard es={es} />
-            </div>
+          <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+            <a href={STUDIO_URL} style={ctaPrimary}>
+              {es ? "Ir a studio" : "Go to studio"}
+            </a>
+            <a href="/sdk" style={{ ...inlineLink, fontSize: 14 }}>
+              {es ? "¿Sos developer? Ver la documentación" : "Developer? Read the docs"} →
+            </a>
+          </div>
+          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "12px 0 0" }}>{law.note}</p>
+
+          <div style={{ ...proofStrip, marginTop: 26 }}>
+            <span>Open source · MIT</span>
+            <span aria-hidden="true">·</span>
+            <span>37 {es ? "paquetes en npm" : "npm packages"}</span>
+            <span aria-hidden="true">·</span>
+            <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
           </div>
         </header>
+
+        {/* START NOW: OpenCode-style copy-paste command container */}
+        <Section
+          eyebrow={es ? "Instalación" : "Install"}
+          title={es ? "Empezá ahora" : "Start now"}
+        >
+          <CommandBlock es={es} />
+        </Section>
 
         {/* HOW IT WORKS */}
         <Section
           id="como-funciona"
           eyebrow={es ? "Cómo funciona" : "How it works"}
-          title={es ? "De un prompt a una empresa que rinde cuentas" : "From a prompt to a company that is accountable"}
+          title={es ? "De idea a empresa en un solo prompt" : "From idea to company in one prompt"}
         >
           <div style={grid(248)}>
             {STEPS.map((s) => (
@@ -197,29 +200,38 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* PROOF */}
+        {/* PROOF: the real journey, facts not hype */}
         <Section
           eyebrow={es ? "La prueba" : "The proof"}
-          title={es ? "Funciona hoy. Mirá." : "It works today. See for yourself."}
+          title={es ? "La primera sociedad operada por agentes ya existe" : "The first agent-operated company already exists"}
         >
-          <section style={{ marginBottom: 24, maxWidth: 900, marginLeft: "auto", marginRight: "auto" }}>
-            {liveOpen ? <LiveChat onClose={closeLive} /> : null}
-            <DemoTerminal />
-          </section>
-          <div style={grid(248)}>
+          <div style={proofPanel}>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
+              <div>
+                <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text)" }}>
+                  AR Agents Operaciones Sociedad Automatizada
+                </div>
+                <p style={{ ...cardBody, margin: "8px 0 0", maxWidth: 560 }}>
+                  {es
+                    ? "Constituida desde ar-agents studio, sin datos de prueba. Está listada en el registro público de sociedades automatizadas."
+                    : "Incorporated from ar-agents studio, no test data. Listed in the public registry of automated companies."}
+                </p>
+              </div>
+              <span style={societyBadge}>{es ? "en formación" : "forming"}</span>
+            </div>
+            <div style={{ marginTop: 18, display: "flex", gap: 16, flexWrap: "wrap" }}>
+              <a href={SOCIETY_URL} style={inlineLink}>{es ? "Ver la sociedad" : "See the company"} →</a>
+              <a href="/registro" style={inlineLink}>{es ? "Ver la entrada en el registro" : "See the registry entry"} →</a>
+            </div>
+          </div>
+
+          <div style={{ marginTop: 14 }}>
             <LinkCard
               href={es ? "/caso-ar-agents" : "/en/ar-agents-case"}
               eyebrow={es ? "Dogfood" : "Dogfood"}
               title={es ? "Nos constituimos a nosotros mismos" : "We incorporated ourselves"}
               body={es ? "ar-agents corre como Sociedad Automatizada y usa su propio Auditor. La prueba es pública." : "ar-agents runs as a Sociedad Automatizada and uses its own Auditor. The proof is public."}
               cta={es ? "Ver el caso" : "See the case"}
-            />
-            <LinkCard
-              href="/registro"
-              eyebrow={es ? "Registro de buen estado" : "Good-standing registry"}
-              title={es ? "Tu reputación, verificable por cualquiera" : "Your standing, verifiable by anyone"}
-              body={es ? "Un oráculo público: una contraparte consulta y verifica una sociedad antes de operar con ella. Sin pedirte la clave." : "A public oracle: a counterparty looks up and verifies a company before transacting with it. Without asking for your key."}
-              cta={es ? "Ver el registro" : "See the registry"}
             />
           </div>
         </Section>
@@ -249,34 +261,6 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* EL AUDITOR + good-standing, the recurring product (day-1 buyer) */}
-        <section style={{ marginBottom: 80, paddingTop: 32, borderTop: "1px solid var(--border-color)" }}>
-          <p style={eyebrowSty}>{es ? "El Auditor · producto recurrente" : "El Auditor · recurring product"}</p>
-          <h2 style={h2Sty}>{es ? "Confianza verificable para tu agente, hoy" : "Verifiable trust for your agent, today"}</h2>
-          <div className="hero-grid">
-            <div>
-              <p style={{ ...cardBody, fontSize: 16 }}>
-                {es
-                  ? "¿Tu agente ya mueve plata? El Auditor firma cada decisión (HMAC + Ed25519) en un log que cualquiera verifica sin pedirte la clave, anclado a Bitcoin. Es la prueba de que tu agente es responsable, auditado y está en buen estado. Con o sin ley."
-                  : "Already moving money with an agent? El Auditor signs every decision (HMAC + Ed25519) into a log anyone can verify without asking for your key, anchored to Bitcoin. It is the proof your agent is accountable, audited and in good standing. With or without a law."}
-              </p>
-              <p style={{ ...cardBody, margin: "12px 0 0" }}>
-                {es
-                  ? "Cualquier contraparte, un banco, un marketplace u otro agente, puede consultar tu buen estado antes de operar con vos. En Argentina, ese mismo log es tu defensa ante el art. 102."
-                  : "Any counterparty, a bank, a marketplace or another agent, can check your good standing before transacting with you. In Argentina, that same log is your art. 102 defense."}
-              </p>
-              <div style={{ marginTop: 20, display: "flex", gap: 16, flexWrap: "wrap", alignItems: "center" }}>
-                <a href="/precios" style={ctaPrimary}>{es ? "USD 199/mes · ver precios" : "USD 199/mo · see pricing"}</a>
-                <a href="/auditor" style={inlineLink}>{es ? "Cómo funciona" : "How it works"} →</a>
-                <a href="/registro" style={inlineLink}>{es ? "Ver el registro" : "See the registry"} →</a>
-              </div>
-            </div>
-            <div style={{ display: "flex", justifyContent: "center" }}>
-              <AuditLogVisual es={es} />
-            </div>
-          </div>
-        </section>
-
         {/* THE LAW */}
         <Section
           eyebrow={es ? "La ley" : "The law"}
@@ -293,26 +277,70 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* FOR DEVELOPERS & AGENTS */}
-        <Section
-          eyebrow={es ? "Para developers y agentes" : "For developers and agents"}
-          title={es ? "Construí sobre los rieles" : "Build on the rails"}
-        >
-          <p style={{ ...cardBody, maxWidth: 680 }}>
-            {es
-              ? "Instalá los paquetes, conectá el MCP, o dejá que un agente se registre solo. Todo tipado, en el Edge, con provenance."
-              : "Install the packages, connect the MCP, or let an agent register itself. Fully typed, Edge-ready, with provenance."}
-          </p>
-          <div style={{ marginTop: 16, display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <a href="/sdk" style={inlineLink}>{es ? "Empezar a construir" : "Start building"} →</a>
-            <a href="https://github.com/ar-agents/ar-agents" style={inlineLink}>GitHub →</a>
-          </div>
-        </Section>
+        {/* PRICING: one plain sentence, per docs/NORTH-STAR.md */}
+        <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-body)", margin: "0 0 80px", lineHeight: 1.6 }}>
+          {es
+            ? "Crear y operar tu sociedad es gratis. Cuando empieza a facturar, cobramos 5x el costo de los tokens que consumen sus agentes."
+            : "Creating and operating your company is free. Once it starts earning, we charge 5x the token cost its agents consume."}{" "}
+          <a href={es ? "/precios" : "/en/pricing"} style={inlineLink}>{es ? "Ver precios" : "See pricing"} →</a>
+        </p>
 
         <Footer es={es} />
       </div>
       <HomeJsonLd />
     </main>
+  );
+}
+
+/* ---------- command block ---------- */
+
+function CommandBlock({ es }: { es: boolean }) {
+  return (
+    <div style={commandContainer}>
+      {COMMANDS.map((c, i) => (
+        <div key={c.cmd} style={{ ...commandRow, borderTop: i === 0 ? "none" : "1px solid var(--border-color)" }}>
+          <div style={commandLabel}>{es ? c.label_es : c.label_en}</div>
+          <div style={commandLine}>
+            <code style={commandCode}>{c.cmd}</code>
+            <CopyButton text={c.cmd} es={es} />
+          </div>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+function CopyButton({ text, es }: { text: string; es: boolean }) {
+  const [copied, setCopied] = useState(false);
+  return (
+    <button
+      type="button"
+      onClick={async () => {
+        try {
+          await navigator.clipboard.writeText(text);
+          setCopied(true);
+          setTimeout(() => setCopied(false), 1500);
+        } catch {
+          /* clipboard unavailable; user can select manually */
+        }
+      }}
+      style={{
+        flexShrink: 0,
+        padding: "4px 10px",
+        fontSize: 11,
+        fontFamily: FONT_MONO,
+        background: copied ? "var(--success-bg)" : "var(--bg)",
+        color: copied ? "var(--success)" : "var(--text-body)",
+        border: "none",
+        borderRadius: 4,
+        cursor: "pointer",
+        boxShadow: "var(--shadow-ring-light)",
+        transition: "background 120ms ease-out, color 120ms ease-out",
+      }}
+      aria-label={es ? "Copiar comando" : "Copy command"}
+    >
+      {copied ? (es ? "copiado ✓" : "copied ✓") : es ? "copiar" : "copy"}
+    </button>
   );
 }
 
@@ -366,9 +394,9 @@ function Footer({ es }: { es: boolean }) {
     {
       h: es ? "Producto" : "Product",
       links: [
+        { l: es ? "Studio" : "Studio", href: STUDIO_URL },
         { l: es ? "Cómo funciona" : "How it works", href: "/#como-funciona" },
         { l: es ? "Precios" : "Pricing", href: es ? "/precios" : "/en/pricing" },
-        { l: "Demo", href: "/play" },
         { l: es ? "Registro" : "Registry", href: "/registro" },
       ],
     },
@@ -425,177 +453,6 @@ function Footer({ es }: { es: boolean }) {
     </footer>
   );
 }
-
-// Hero visual: a sample "generated society" card showing the outcome (the
-// finished, conformant company) + a signed audit-log line. Fictional data.
-function SocietyCard({ es }: { es: boolean }) {
-  const rows: ReadonlyArray<[string, string]> = es
-    ? [
-        ["estado", "operando"],
-        ["agentes", "3"],
-        ["creada", "12 jun 2026"],
-        ["última firma", "hace 2 min"],
-      ]
-    : [
-        ["status", "operating"],
-        ["agents", "3"],
-        ["created", "Jun 12, 2026"],
-        ["last signature", "2 min ago"],
-      ];
-  return (
-    <div style={societyCard}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 14,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 11,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            color: "var(--text-muted)",
-          }}
-        >
-          {es ? "Sociedad automatizada" : "Automated company"}
-        </span>
-        <span style={societyBadge}>✓ {es ? "conforme" : "compliant"}</span>
-      </div>
-      <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text)" }}>Sociedad Demo SA</div>
-      <div style={{ fontFamily: FONT_MONO, fontSize: 13, color: "var(--text-body)", marginTop: 4 }}>
-        CUIT 30-12345678-9
-      </div>
-      <div style={{ display: "grid", gap: 8, marginTop: 16 }}>
-        {rows.map(([k, v]) => (
-          <div key={k} style={{ display: "flex", justifyContent: "space-between", fontSize: 13 }}>
-            <span style={{ color: "var(--text-muted)" }}>{k}</span>
-            <span style={{ color: "var(--text-body)" }}>{v}</span>
-          </div>
-        ))}
-      </div>
-      <div style={societyLog}>
-        <span style={{ fontFamily: FONT_MONO, fontSize: 11, color: "var(--text-muted)" }}>
-          auditor.log
-        </span>
-        <span style={{ fontFamily: FONT_MONO, fontSize: 12, color: "var(--accent)" }}>
-          0x9f3a2c ✓ Ed25519
-        </span>
-      </div>
-      <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "12px 0 0", lineHeight: 1.5 }}>
-        {es
-          ? "Ejemplo ilustrativo. Generada y operada por agentes. Cada decisión, firmada."
-          : "Illustrative example. Generated and operated by agents. Every decision, signed."}
-      </p>
-    </div>
-  );
-}
-
-// El Auditor peak visual: a few signed audit-log entries (HMAC + Ed25519).
-function AuditLogVisual({ es }: { es: boolean }) {
-  const entries: ReadonlyArray<[string, string, string]> = es
-    ? [
-        ["10:02:14", "emitir_factura", "CAE ✓"],
-        ["10:02:15", "cobrar_mp", "$45.000 ✓"],
-        ["10:03:01", "pagar_proveedor", "USDC→ARS ✓"],
-        ["10:03:02", "firmar_log", "Ed25519 ✓"],
-      ]
-    : [
-        ["10:02:14", "issue_invoice", "CAE ✓"],
-        ["10:02:15", "charge_mp", "$45,000 ✓"],
-        ["10:03:01", "pay_supplier", "USDC→ARS ✓"],
-        ["10:03:02", "sign_log", "Ed25519 ✓"],
-      ];
-  return (
-    <div style={societyCard}>
-      <div
-        style={{
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 12,
-        }}
-      >
-        <span
-          style={{
-            fontFamily: FONT_MONO,
-            fontSize: 11,
-            textTransform: "uppercase",
-            letterSpacing: "0.08em",
-            color: "var(--text-muted)",
-          }}
-        >
-          auditor.log
-        </span>
-        <span style={societyBadge}>HMAC + Ed25519</span>
-      </div>
-      <div style={{ display: "grid", gap: 8 }}>
-        {entries.map(([t, a, h]) => (
-          <div
-            key={t + a}
-            style={{ display: "flex", justifyContent: "space-between", gap: 12, fontFamily: FONT_MONO, fontSize: 12 }}
-          >
-            <span style={{ color: "var(--text-muted)" }}>{t}</span>
-            <span style={{ color: "var(--text-body)", flex: 1 }}>{a}</span>
-            <span style={{ color: "var(--accent)" }}>{h}</span>
-          </div>
-        ))}
-      </div>
-      <p
-        style={{
-          fontSize: 12,
-          color: "var(--text-muted)",
-          margin: "14px 0 0",
-          paddingTop: 12,
-          borderTop: "1px solid var(--border-color)",
-          lineHeight: 1.5,
-        }}
-      >
-        {es ? "Verificable por cualquiera, sin pedirte la clave." : "Verifiable by anyone, without asking for your key."}
-      </p>
-    </div>
-  );
-}
-
-const proofStrip: React.CSSProperties = {
-  marginTop: 22,
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 8,
-  alignItems: "center",
-  fontSize: 12,
-  color: "var(--text-muted)",
-};
-
-const societyCard: React.CSSProperties = {
-  width: "100%",
-  maxWidth: 440,
-  background: "var(--bg-tint)",
-  borderRadius: 12,
-  padding: 24,
-  boxShadow: "var(--card-shadow)",
-};
-
-const societyBadge: React.CSSProperties = {
-  fontSize: 12,
-  fontWeight: 500,
-  color: "var(--success)",
-  background: "var(--success-bg)",
-  padding: "2px 10px",
-  borderRadius: 9999,
-};
-
-const societyLog: React.CSSProperties = {
-  marginTop: 16,
-  paddingTop: 14,
-  borderTop: "1px solid var(--border-color)",
-  display: "flex",
-  justifyContent: "space-between",
-  alignItems: "center",
-};
 
 /* ---------- styles ---------- */
 
@@ -667,32 +524,70 @@ const ctaPrimary: React.CSSProperties = {
   border: "none",
   cursor: "pointer",
   fontFamily: FONT_SANS,
-};
-
-const ctaGhost: React.CSSProperties = {
-  padding: "10px 16px",
-  background: "var(--bg)",
-  color: "var(--text)",
-  borderRadius: 6,
-  fontSize: 14,
-  fontWeight: 500,
-  textDecoration: "none",
-  boxShadow: "var(--shadow-ring-light)",
-  border: "none",
-  cursor: "pointer",
-  fontFamily: FONT_SANS,
   display: "inline-flex",
   alignItems: "center",
+};
+
+const proofStrip: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 8,
+  alignItems: "center",
+  fontSize: 12,
+  color: "var(--text-muted)",
+};
+
+const proofPanel: React.CSSProperties = {
+  background: "var(--bg-tint)",
+  borderRadius: 12,
+  padding: 24,
+  boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
+};
+
+const societyBadge: React.CSSProperties = {
+  fontSize: 12,
+  fontWeight: 500,
+  color: "var(--accent-text, var(--accent))",
+  background: "var(--accent-bg)",
+  padding: "2px 10px",
+  borderRadius: 9999,
+  whiteSpace: "nowrap",
+};
+
+const commandContainer: React.CSSProperties = {
+  background: "var(--bg-tint)",
+  borderRadius: 12,
+  boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
+  overflow: "hidden",
+};
+
+const commandRow: React.CSSProperties = {
+  padding: "16px 20px",
+  display: "flex",
+  flexDirection: "column",
   gap: 8,
 };
 
-const pulseDot: React.CSSProperties = {
-  display: "inline-block",
-  width: 8,
-  height: 8,
-  borderRadius: 9999,
-  background: "var(--accent)",
-  boxShadow: "0 0 0 4px rgba(0, 188, 255, 0.18)",
+const commandLabel: React.CSSProperties = {
+  fontSize: 12,
+  color: "var(--text-muted)",
+  fontFamily: FONT_SANS,
+};
+
+const commandLine: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 12,
+};
+
+const commandCode: React.CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 13,
+  color: "var(--text)",
+  overflowX: "auto",
+  whiteSpace: "pre",
+  flex: 1,
 };
 
 const lawBanner: React.CSSProperties = {
@@ -706,7 +601,7 @@ const lawBanner: React.CSSProperties = {
   borderRadius: 8,
   fontSize: 13,
   lineHeight: 1.45,
-  maxWidth: 680,
+  maxWidth: 560,
   boxShadow: "var(--shadow-border)",
 };
 

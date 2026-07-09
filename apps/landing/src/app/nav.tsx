@@ -5,7 +5,6 @@ import { usePathname } from "next/navigation";
 import { useEffect, useId, useRef, useState } from "react";
 import { useLang } from "./i18n";
 import { Toggles } from "./toggles";
-import { LAW_STATUS } from "./law-status";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
@@ -86,14 +85,10 @@ export function Nav() {
   }, [open]);
 
   const menuLabel = lang === "es" ? "Menú" : "Menu";
-  const ctaLabel =
-    LAW_STATUS === "live"
-      ? lang === "es"
-        ? "Crear sociedad"
-        : "Create company"
-      : lang === "es"
-        ? "Empezar"
-        : "Get started";
+  // Studio is the product's front door now (see docs/NORTH-STAR.md): the nav
+  // CTA points there regardless of LAW_STATUS, matching the home hero.
+  const ctaLabel = "Studio";
+  const ctaHref = "https://studio.ar-agents.ar";
 
   return (
     <nav
@@ -174,8 +169,8 @@ export function Nav() {
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Link
-            href="/incorporar"
+          <a
+            href={ctaHref}
             style={{
               display: "inline-flex",
               alignItems: "center",
@@ -192,7 +187,7 @@ export function Nav() {
             }}
           >
             {ctaLabel}
-          </Link>
+          </a>
           <Toggles />
 
           {/* Menu cluster: button + dropdown panel. Relatively positioned so
