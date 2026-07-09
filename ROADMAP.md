@@ -135,10 +135,10 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - priority: P2
 - acceptance: documented, tested path for where a created society's agent app runs (own Vercel project per society vs hosted multi-tenant), with env provisioning steps automated where possible.
 
-### M2-3 LAW_STATUS=live switch rehearsal
+### M2-3 Day-one filing pack (LAW_STATUS=live readiness)
 - status: ready
-- priority: P2
-- acceptance: a dry-run checklist plus tests proving the pre->live switch changes exactly the intended behaviors (real filings instead of simulation) with no other diffs.
+- priority: P1
+- acceptance: when the sociedad automatizada regime goes live, the first real filing happens the same day. Concretely: a dry-run checklist plus tests proving the pre to live switch changes exactly the intended behaviors (real filings instead of simulation) with no other diffs; every document, form field, and fee for constituting AR Agents Operaciones Sociedad Automatizada for real is pre-staged from the existing Formation Pack; the remaining human steps (signatures, payment, organismo submission) are enumerated with owners so the elapsed time from law-live to filed is hours. Being the first sociedad automatizada ever constituted, through its own product, is a one-time asset.
 
 ## Maintenance (continuous, when nothing above is ready)
 
