@@ -53,8 +53,8 @@ const TIERS: ReadonlyArray<Tier> = [
       en: "automated companies that prefer not to operate infra",
     },
     price: {
-      es: "El Auditor vivo, USD 199/mes · bundle completo en preview",
-      en: "The Auditor live, USD 199/mo · full bundle in preview",
+      es: "Ver /precios · bundle completo en preview",
+      en: "See /precios · full bundle in preview",
     },
     status: "preview",
     highlighted: true,

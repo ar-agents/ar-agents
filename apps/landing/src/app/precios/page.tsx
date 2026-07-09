@@ -4,7 +4,7 @@ import { PreciosContent } from "./content";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Modelo open-core de ar-agents: el código es gratis para siempre; pagás la capa de confianza operada. Paga el que necesita confiar (banco, aseguradora, Estado), no la sociedad verificada. El Auditor, vivo, USD 199/mes.",
+    "Crear, deployar y operar tu sociedad automatizada es gratis. Cuando empieza a facturar, cobramos 5x el costo de los tokens que consumen sus agentes. Sin suscripciones, sin asientos, sin cargos fijos.",
   alternates: {
     canonical: "https://ar-agents.ar/precios",
     languages: {
