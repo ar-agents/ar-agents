@@ -28,7 +28,8 @@ Agent tools (the model may call these; none of them constitute):
 - `preview_society({ prompt })` -> POST `${ARAGENTS_BASE}/api/incorporate-preview` (public). Returns the draft + checklist. This is how a spec becomes concrete.
 - `good_standing({ idOrUrl })` -> GET `${ARAGENTS_BASE}/api/registry/good-standing`.
 - `my_society()` -> the account's SocietySummary or null.
-The system prompt: es-AR startup coach for automated societies; stages idea -> validacion -> spec -> constitucion -> operacion; honest about pre-law simulation status; pushes toward a concrete `preview_society` draft; never claims to file anything real. Constitution itself is NEVER model-initiated: the model tells the user to press the button.
+- `research_web({ query })` -> Tavily search (`src/lib/research.ts`), only registered when `TAVILY_API_KEY` is set. 8s timeout, 5 results (title/url/snippet), never throws (degrades to a Spanish error string on any failure). When the key is absent the tool is not registered at all and the system prompt says live search is unavailable instead.
+The system prompt (`src/coach/system-prompt.ts`, `buildSystemPrompt(stage, { webSearchAvailable })`): es-AR startup coach for automated societies; stages idea -> validacion -> spec -> constitucion -> operacion; honest about pre-law simulation status; pushes toward a concrete `preview_society` draft; never claims to file anything real. Composes the base coaching instructions with a compact digest of the coach corpus (`src/coach/corpus.ts`, the compiled form of the markdown files under `src/coach/corpus/`: lean startup method, distilled Paul Graham essay principles with source links, what makes a business automatable by agents, and Argentina-specific coaching context that is explicitly not legal advice). Constitution itself is NEVER model-initiated: the model tells the user to press the button.
 
 ## Society lifecycle
 
@@ -58,4 +59,4 @@ Body `{ suspend: boolean, motivo?: string, acepta: true }` -> upstream `/api/sus
 
 ## Env (all optional; degrade gracefully)
 
-`OPENROUTER_API_KEY`, `AI_GATEWAY_API_KEY`, `STUDIO_COACH_MODEL`, `STUDIO_BUILD_MODEL`, `STUDIO_FREE_CAP_MICRO_USD`, `STUDIO_ARAGENTS_BASE`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`.
+`OPENROUTER_API_KEY`, `AI_GATEWAY_API_KEY`, `STUDIO_COACH_MODEL`, `STUDIO_BUILD_MODEL`, `STUDIO_FREE_CAP_MICRO_USD`, `STUDIO_ARAGENTS_BASE`, `KV_REST_API_URL`, `KV_REST_API_TOKEN`, `TAVILY_API_KEY` (gates the `research_web` tool; free tier at tavily.com).
