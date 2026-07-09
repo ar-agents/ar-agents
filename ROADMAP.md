@@ -207,6 +207,16 @@ Sequencing decision (owner delegated): credentials onboarding first (nothing fee
 - acceptance: apps/sociedad-ia-starter's agent loop (`src/lib/agent.ts` / `src/lib/governance.ts`) appends an entry to the same signed audit log incorporation/suspend/approve already use (`apps/landing/src/lib/audit.ts`'s `appendAudit`, keyed by `SOCIETY_ID`) for every tool call it executes, not just administrative acts. Tests prove a representative tool call produces a durable, HMAC-signed entry readable via `GET /api/play/audit/{sessionId}` and surfaced by the M3-2 cockpit's "Acciones recientes".
 - note: discovered during M3-2 (2026-07-09). The starter's own system prompt already claims "Cada tool call queda en el audit log con timestamp HMAC-firmado" (`src/lib/agent.ts`), and `packages/core/src/risk-manifest.ts` classifies a `registrar_decision` tool name as low-stakes specifically because "registrar_decision appends to the signed audit log" -- but no such tool exists anywhere in the repo (`grep -rn "registrar_decision"` only matches the classifier and its tests), and neither `agent.ts` nor `governance.ts` calls `appendAudit`. Today the signed audit log for a real society only ever gets entries from ar-agents.ar's own administrative routes (incorporate, suspend/resume, approve/deny); the deployed agent's actual tool calls (facturación, MP payments, WhatsApp sends, etc.) are invisible to it. M3-2's cockpit "Acciones recientes" section is honest about this: it reads whatever the audit log actually has, so today it only shows administrative acts, never the agent's own operating history. This is the gap to close.
 
+### M3-6 Durable per-society audit storage (with isolation)
+- status: ready
+- priority: P1
+- acceptance: a provisioned society's local audit log survives serverless instance recycling without sharing credentials that can read other tenants' data. Today the starter falls back to in-memory when `KV_REST_API_URL`/`KV_REST_API_TOKEN` are absent, so in production the agent's entries vanish between invocations and the cockpit's "Acciones recientes" reads empty (found live 2026-07-09 running the M3-4 proof). The KV key is already namespaced by `SOCIETY_ID`, but handing every society the SAME KV credentials would let any society read the whole store, studio's account records included: that is acceptable ONLY for the platform-owned dogfood society. The real fix provisions isolated storage per society (own KV via the Vercel Marketplace at deploy time, or an authenticated per-society audit-sink API) and wires it in provisioning.
+
+### M3-7 Deploy-health pill should not read CANCELED for a healthy alias
+- status: ready
+- priority: P2
+- acceptance: when the newest production deployment is a skipped/canceled build (a git push that did not touch the starter) but an older READY deployment is serving the alias, the cockpit pill reports the serving deployment's health (READY), with the canceled rollout at most a secondary detail. Today the pill shows CANCELED while the society is up (found live 2026-07-09).
+
 ## Maintenance (continuous, when nothing above is ready)
 
 - Dependency updates within semver (Dependabot PRs: verify and merge).
