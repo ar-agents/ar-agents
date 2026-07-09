@@ -98,6 +98,16 @@ export interface StoredSociety {
    *  (`GET /api/society/activity`, for a society deployed before M3-2
    *  existed). NEVER returned to the browser, never logged. */
   statusToken?: string;
+  /** Whether `AUDIT_HMAC_SECRET` has been provisioned on the society's
+   *  Vercel project (ROADMAP.md M3-4/M3-5: the starter's own local signed
+   *  audit log, see apps/sociedad-ia-starter/src/lib/audit-log.ts). Same
+   *  minted-once, never-re-sent shape as `statusToken`, but studio never
+   *  needs the SECRET'S VALUE back (unlike statusToken, nothing studio
+   *  calls is authenticated with it -- it only ever signs entries inside
+   *  the starter's own process), so only a boolean is kept here, just
+   *  enough to stop `ensureAuditSecret` from re-minting (and thereby
+   *  invalidating previously-signed entries) on every cockpit poll. */
+  auditSecretSet?: boolean;
 }
 
 // The in-memory fallback must live on globalThis: in dev each route module
@@ -251,4 +261,17 @@ export async function setSocietyStatusToken(accountId: string, statusToken: stri
   const existing = await getStoredSociety(accountId);
   if (!existing) return;
   await setStoredSociety(accountId, { ...existing, statusToken });
+}
+
+/**
+ * Mark `AUDIT_HMAC_SECRET` as provisioned against the account's already
+ * -stored society (see `POST /api/society/deploy`'s provisioned mode and
+ * `GET /api/society/activity`'s backfill path). Same no-op-when-missing,
+ * best-effort shape as {@link setSocietyStatusToken}; stores only the
+ * boolean, not the secret (see {@link StoredSociety.auditSecretSet}).
+ */
+export async function setSocietyAuditSecretSet(accountId: string): Promise<void> {
+  const existing = await getStoredSociety(accountId);
+  if (!existing) return;
+  await setStoredSociety(accountId, { ...existing, auditSecretSet: true });
 }

@@ -23,7 +23,13 @@
  * See docs/CONTRACT.md.
  */
 
-import { authenticate, getStoredSociety, setSocietyDeploy, setSocietyStatusToken } from "@/lib/account";
+import {
+  authenticate,
+  getStoredSociety,
+  setSocietyAuditSecretSet,
+  setSocietyDeploy,
+  setSocietyStatusToken,
+} from "@/lib/account";
 import { kvRateLimit } from "@/lib/ratelimit";
 import { projectSlugFor, provisionSocietyApp } from "@/lib/vercel-provision";
 
@@ -81,6 +87,12 @@ export async function POST(req: Request) {
   // present it. Manual-mode deploys don't get one: studio never learns
   // whether that project even exists, so there is nowhere to persist it.
   const statusToken = randomHex(32);
+  // Signs THIS society's local audit log (ROADMAP.md M3-4/M3-5, see
+  // apps/sociedad-ia-starter/src/lib/audit-log.ts). Minted the same way as
+  // statusToken, but never returned here or persisted verbatim -- studio
+  // never authenticates anything with it, only the starter's own process
+  // ever uses it. See setSocietyAuditSecretSet.
+  const auditHmacSecret = randomHex(32);
   const societyId = society.registryId ?? society.sessionId;
 
   const result = await provisionSocietyApp({
@@ -91,6 +103,7 @@ export async function POST(req: Request) {
       { name: "AR_AGENTS_API_BASE", value: AR_AGENTS_API_BASE },
       { name: "AGENT_API_KEY", value: agentApiKey },
       { name: "STUDIO_STATUS_TOKEN", value: statusToken },
+      { name: "AUDIT_HMAC_SECRET", value: auditHmacSecret },
     ],
   });
 
@@ -121,6 +134,7 @@ export async function POST(req: Request) {
     deployedAt: new Date().toISOString(),
   });
   await setSocietyStatusToken(auth.accountId, statusToken);
+  await setSocietyAuditSecretSet(auth.accountId);
 
   return Response.json({
     ok: true,

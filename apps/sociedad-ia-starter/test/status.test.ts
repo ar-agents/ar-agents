@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "../src/app/api/status/route";
+import { appendLocalAudit, __resetLocalAuditForTests } from "../src/lib/audit-log";
 
 const TOKEN = "test-status-token-123456";
 const SOCIETY = "sess-test-1";
@@ -31,17 +32,6 @@ function mockAllUpstreamsOk() {
         ],
       });
     }
-    if (u.includes("/api/play/audit/")) {
-      return jsonResponse({
-        sessionId: SOCIETY,
-        backend: "in-memory",
-        count: 2,
-        entries: [
-          { id: "e1", sessionId: SOCIETY, ts: "2026-01-01T00:00:00.000Z", tool: "validar_cuit", governance: "algorithm-only", input: { secret: "shh" }, hmac: "sha256:aa" },
-          { id: "e2", sessionId: SOCIETY, ts: "2026-01-01T00:01:00.000Z", tool: "emitir_factura", governance: "fiscal", errored: true, hmac: "sha256:bb" },
-        ],
-      });
-    }
     return jsonResponse({ error: "not_found" }, 404);
   });
 }
@@ -51,6 +41,9 @@ beforeEach(() => {
   process.env.SOCIETY_ID = SOCIETY;
   process.env.AR_AGENTS_API_BASE = "https://ar-agents.test";
   process.env.SOCIEDAD_IA_DENOMINACION = "Kiosco Automatizado SAS";
+  delete process.env.KV_REST_API_URL;
+  delete process.env.KV_REST_API_TOKEN;
+  __resetLocalAuditForTests();
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -60,6 +53,7 @@ afterEach(() => {
   delete process.env.SOCIETY_ID;
   delete process.env.AR_AGENTS_API_BASE;
   delete process.env.SOCIEDAD_IA_DENOMINACION;
+  __resetLocalAuditForTests();
   vi.unstubAllGlobals();
 });
 
@@ -135,48 +129,52 @@ describe("GET /api/status payload shape", () => {
     });
   });
 
-  it("audit: newest-first, drops raw input/output, keeps descriptive fields only", async () => {
+  it("audit: local signed log, newest-first, drops raw args/output, keeps descriptive fields + summary", async () => {
     mockAllUpstreamsOk();
+    await appendLocalAudit({ tool: "validar_cuit", governance: "algorithm-only", errored: false, summary: "validar_cuit: acción ejecutada." });
+    await appendLocalAudit({ tool: "emitir_factura", governance: "fiscal", errored: true, summary: "emitir_factura: falló (upstream_error)." });
+
     const res = await GET(req({ authorization: `Bearer ${TOKEN}` }));
     const body = await res.json();
     expect(body.audit.available).toBe(true);
-    expect(body.audit.entries).toEqual([
-      { id: "e2", ts: "2026-01-01T00:01:00.000Z", tool: "emitir_factura", governance: "fiscal", errored: true },
-      { id: "e1", ts: "2026-01-01T00:00:00.000Z", tool: "validar_cuit", governance: "algorithm-only", errored: false },
-    ]);
+    expect(body.audit.droppedWrites).toBe(0);
+    expect(body.audit.entries).toHaveLength(2);
+    expect(body.audit.entries[0]).toMatchObject({ tool: "emitir_factura", governance: "fiscal", errored: true });
+    expect(body.audit.entries[1]).toMatchObject({ tool: "validar_cuit", governance: "algorithm-only", errored: false });
     const text = JSON.stringify(body);
     expect(text).not.toContain("shh");
   });
 });
 
 describe("GET /api/status graceful degradation", () => {
-  it("no SOCIETY_ID configured (local dev): every section reports unavailable, still 200", async () => {
+  it("no SOCIETY_ID configured (local dev): remote sections unavailable, audit (local, no SOCIETY_ID needed) still reports", async () => {
     delete process.env.SOCIETY_ID;
     const res = await GET(req({ authorization: `Bearer ${TOKEN}` }));
     expect(res.status).toBe(200);
     const body = await res.json();
     expect(body.killSwitch).toEqual({ available: false, suspended: null });
     expect(body.approvals).toEqual({ available: false, pendingCount: null, items: null });
-    expect(body.audit).toEqual({ available: false, entries: null });
+    // Local audit log has no SOCIETY_ID / network dependency: available even
+    // in local dev, just empty (nothing appended in this test).
+    expect(body.audit).toEqual({ available: true, entries: [], droppedWrites: 0 });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
-  it("one upstream 500ing degrades only that section, others still populate", async () => {
+  it("one upstream 500ing degrades only that section, others (including local audit) still populate", async () => {
     fetchMock.mockImplementation(async (url: string | URL) => {
       const u = String(url);
       if (u.includes("/api/suspension-status")) return jsonResponse({ error: "boom" }, 500);
       if (u.includes("/api/approvals/pending")) return jsonResponse({ ok: true, pending: [] });
-      if (u.includes("/api/play/audit/")) return jsonResponse({ entries: [] });
       return jsonResponse({}, 404);
     });
     const res = await GET(req({ authorization: `Bearer ${TOKEN}` }));
     const body = await res.json();
     expect(body.killSwitch).toEqual({ available: false, suspended: null });
     expect(body.approvals).toEqual({ available: true, pendingCount: 0, items: [] });
-    expect(body.audit).toEqual({ available: true, entries: [] });
+    expect(body.audit).toEqual({ available: true, entries: [], droppedWrites: 0 });
   });
 
-  it("every upstream unreachable: whole response still 200 with everything unavailable", async () => {
+  it("every upstream unreachable: whole response still 200; local audit is unaffected (no network dependency)", async () => {
     fetchMock.mockRejectedValue(new Error("network down"));
     const res = await GET(req({ authorization: `Bearer ${TOKEN}` }));
     expect(res.status).toBe(200);
@@ -184,7 +182,7 @@ describe("GET /api/status graceful degradation", () => {
     expect(body.ok).toBe(true);
     expect(body.killSwitch.available).toBe(false);
     expect(body.approvals.available).toBe(false);
-    expect(body.audit.available).toBe(false);
+    expect(body.audit.available).toBe(true);
   });
 });
 

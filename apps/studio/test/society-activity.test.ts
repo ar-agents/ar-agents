@@ -53,6 +53,11 @@ const FIXTURE_DEPLOYED_NO_TOKEN: StoredSociety = {
 const FIXTURE_DEPLOYED_WITH_TOKEN: StoredSociety = {
   ...FIXTURE_DEPLOYED_NO_TOKEN,
   statusToken: "a".repeat(64),
+  // Also fully backfilled for AUDIT_HMAC_SECRET (ROADMAP.md M3-4/M3-5), so
+  // tests using this fixture exercise the merged-payload happy path without
+  // also triggering ensureAuditSecret's own backfill -- see the dedicated
+  // "audit-secret backfill" describe block below for that mechanic.
+  auditSecretSet: true,
 };
 
 function req(token: string) {
@@ -150,8 +155,13 @@ describe("GET /api/society/activity: status-token backfill", () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_NO_TOKEN);
     getLatestDeploymentMock.mockResolvedValueOnce({ ok: true, state: "READY", url: "soc-reg-1.vercel.app", createdAt: "2026-01-02T00:00:00.000Z" });
-    setSocietyCredentialEnvVarsMock.mockResolvedValueOnce({ ok: true, typeUsed: "sensitive" });
-    triggerRedeployMock.mockResolvedValueOnce({ ok: true, url: "soc-reg-1.vercel.app", readyState: "QUEUED" });
+    // FIXTURE_DEPLOYED_NO_TOKEN is missing BOTH statusToken and
+    // auditSecretSet, so both ensureStatusToken and ensureAuditSecret run
+    // this call, each calling setSocietyCredentialEnvVars/triggerRedeploy
+    // once (see ensureAuditSecret's doc comment: a minor, accepted
+    // inefficiency, not a correctness issue).
+    setSocietyCredentialEnvVarsMock.mockResolvedValue({ ok: true, typeUsed: "sensitive" });
+    triggerRedeployMock.mockResolvedValue({ ok: true, url: "soc-reg-1.vercel.app", readyState: "QUEUED" });
 
     const res = await GET(req(created!.token));
     expect(res.status).toBe(200);
@@ -162,23 +172,28 @@ describe("GET /api/society/activity: status-token backfill", () => {
     // deploy health is independent of the backfill and still reports.
     expect(body.deploy).toEqual({ available: true, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: "READY" });
 
-    expect(setSocietyCredentialEnvVarsMock).toHaveBeenCalledTimes(1);
-    const [projectArg, envVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[0]!;
-    expect(projectArg).toBe("soc-reg-1");
-    expect(envVarsArg).toEqual([{ name: "STUDIO_STATUS_TOKEN", value: expect.stringMatching(/^[0-9a-f]{64}$/) }]);
+    expect(setSocietyCredentialEnvVarsMock).toHaveBeenCalledTimes(2);
+    const [statusProjectArg, statusEnvVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[0]!;
+    expect(statusProjectArg).toBe("soc-reg-1");
+    expect(statusEnvVarsArg).toEqual([{ name: "STUDIO_STATUS_TOKEN", value: expect.stringMatching(/^[0-9a-f]{64}$/) }]);
+    const [auditProjectArg, auditEnvVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[1]!;
+    expect(auditProjectArg).toBe("soc-reg-1");
+    expect(auditEnvVarsArg).toEqual([{ name: "AUDIT_HMAC_SECRET", value: expect.stringMatching(/^[0-9a-f]{64}$/) }]);
     expect(triggerRedeployMock).toHaveBeenCalledWith("soc-reg-1");
     expect(fetchMock).not.toHaveBeenCalled(); // no /api/status round trip yet
 
     const stored = await getStoredSociety(created!.accountId);
-    expect(stored?.statusToken).toBe(envVarsArg[0].value);
+    expect(stored?.statusToken).toBe(statusEnvVarsArg[0].value);
+    expect(stored?.auditSecretSet).toBe(true);
     expect(JSON.stringify(body)).not.toContain(stored!.statusToken as string);
+    expect(JSON.stringify(body)).not.toContain(auditEnvVarsArg[0].value);
   });
 
   it("no Vercel-provisioning capability: backfill fails closed, nothing persisted, sections unavailable", async () => {
     const created = await createAccount();
     await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_NO_TOKEN);
     getLatestDeploymentMock.mockResolvedValueOnce(null);
-    setSocietyCredentialEnvVarsMock.mockResolvedValueOnce(null); // no VERCEL_PROVISION_TOKEN
+    setSocietyCredentialEnvVarsMock.mockResolvedValue(null); // no VERCEL_PROVISION_TOKEN, both backfills fail closed
 
     const res = await GET(req(created!.token));
     const body = await res.json();
@@ -188,6 +203,7 @@ describe("GET /api/society/activity: status-token backfill", () => {
 
     const stored = await getStoredSociety(created!.accountId);
     expect(stored?.statusToken).toBeUndefined();
+    expect(stored?.auditSecretSet).toBeUndefined();
   });
 
   it("only backfills once: a society that already has a statusToken is reused, no new Vercel env write", async () => {
