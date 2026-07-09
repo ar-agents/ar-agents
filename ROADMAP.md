@@ -59,9 +59,10 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: the builder agent can run web searches and fetch pages to validate a market before recommending a build; results cited in-conversation.
 
 ### M1-3 Spanish-first UX pass
-- status: ready
+- status: split (2026-07-09, PR #168; decomposed into M1-3a..M1-3e at the bottom of this milestone)
 - priority: P1
 - acceptance: es-AR is the default language end to end; English available. Copy follows the site's plain style.
+- note: apps/studio has no i18n layer today; es strings are hardcoded across five components (chat, journey-rail, constitution-card, operation-dashboard, page) and the layout metadata, and making the coach reply in English also edits src/coach/system-prompt.ts, which M1-1 (in-progress) owns. Too large for one run and it would collide with in-progress studio work, so it is decomposed rather than started. The sub-items sit at the milestone bottom per the "new items at the bottom" rule; a human may hoist them above M1-4/M1-8 to keep Spanish-first ahead in execution order.
 
 ### M1-4 Terminal path
 - status: ready
@@ -87,6 +88,31 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - status: ready
 - priority: P1
 - acceptance: `pnpm --filter ar-agents-studio run evals -- --mode live` exits 0. First live run (2026-07-08) found: the coach often does not reach a preview_society draft within 4 turns for personas that require one; pricing answers do not always state the 5x multiple; the judge scores coaching quality low for advancing without validation questions. Fix in the system prompt and corpus, not by weakening the rubric; the gate stays at 3.5.
+
+### M1-3a i18n scaffolding and language toggle
+- status: ready
+- priority: P1
+- acceptance: a minimal locale layer in apps/studio (a Locale type of "es" and "en", default "es", a t(key, locale) dictionary helper, selection persisted to localStorage) plus a language toggle in the layout header. es-AR stays the visible default and looks identical; no component copy is migrated yet. Unit tests cover the default locale, persistence read and write, and that every dictionary key resolves in both locales.
+
+### M1-3b Localize the operation dashboard and constitution card
+- status: ready
+- priority: P1
+- acceptance: every hardcoded es string in src/components/operation-dashboard.tsx and src/components/constitution-card.tsx moves into the M1-3a dictionary with an English translation and renders through t(). The es output stays identical to today; en renders the translations. Tests assert both locales resolve for the migrated keys.
+
+### M1-3c Localize the chat, journey rail, page, and layout metadata
+- status: ready
+- priority: P1
+- acceptance: the same migration for src/components/chat.tsx, src/components/journey-rail.tsx, src/app/page.tsx, and the src/app/layout.tsx metadata; the html lang attribute reflects the selected locale. es stays identical; en is complete for these surfaces. Tests assert both locales resolve for the migrated keys.
+
+### M1-3d Coach replies in the selected language
+- status: blocked (depends on M1-1 landing; edits src/coach/system-prompt.ts, which M1-1 is in-progress on)
+- priority: P1
+- acceptance: the client sends the selected locale on POST /api/agent; buildSystemPrompt adds a language instruction (Spanish by default, English when selected) so the coach responds in the chosen language, with the corpus and its source links intact. Unit test: buildSystemPrompt returns the right language instruction per locale; the agent route test threads the locale through.
+
+### M1-3e End-to-end language verification closes M1-3
+- status: blocked (depends on M1-3a, M1-3b, M1-3c, M1-3d)
+- priority: P1
+- acceptance: a check (a test or the journey eval run in English) proves es-AR is the default and full English is available end to end across the UI and the coach, satisfying M1-3's original acceptance. On green, mark M1-3 done.
 
 ## M2: Operate for real
 
@@ -146,3 +172,4 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - Untested API routes gain route-level tests (see apps/landing/test for patterns).
 - Doc drift: README and docs against actual code behavior.
 - Security posture: rate limits and auth on new routes match existing patterns.
+- CI coverage gap: apps/studio ships a test suite (14 files, 125 tests) that CI never runs; .github/workflows/ci.yml only typechecks it via the "Typecheck demo apps" step. Add a studio test step to the landing job, mirroring the landing and starter test steps, so studio regressions fail CI.
