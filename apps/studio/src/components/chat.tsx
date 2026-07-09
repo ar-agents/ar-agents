@@ -3,35 +3,33 @@
 import { useEffect, useMemo, useState } from "react";
 import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
-import { describeAgentError } from "@/lib/ui/agent-error";
+import { describeAgentError, type AgentErrorKind } from "@/lib/ui/agent-error";
 import { inferStage, type StageId } from "@/lib/ui/stage";
 import { collectToolParts, type MinimalUIMessage } from "@/lib/ui/tool-parts";
+import { useLocale } from "@/lib/ui/locale-context";
+import type { MessageId } from "@/lib/ui/i18n";
 import { ConstitutionCard, type PreviewSocietyOutput } from "@/components/constitution-card";
 import type { SocietySummaryLike } from "@/components/operation-dashboard";
 
 const AGENT_ENDPOINT = "/api/agent";
 
-const TOOL_LABELS: Record<string, { pending: string; done: string }> = {
-  preview_society: {
-    pending: "armando el borrador de la sociedad...",
-    done: "borrador listo",
-  },
-  good_standing: {
-    pending: "consultando el certificador...",
-    done: "estado del registro consultado",
-  },
-  my_society: {
-    pending: "revisando tu sociedad...",
-    done: "sociedad revisada",
-  },
+const TOOL_MESSAGE_ID: Record<string, { pending: MessageId; done: MessageId }> = {
+  preview_society: { pending: "tool.preview_society.pending", done: "tool.preview_society.done" },
+  good_standing: { pending: "tool.good_standing.pending", done: "tool.good_standing.done" },
+  my_society: { pending: "tool.my_society.pending", done: "tool.my_society.done" },
 };
 
-function toolLabel(name: string, phase: "pending" | "done" | "error"): string {
-  if (phase === "error") return `${name}: no se pudo completar`;
-  const known = TOOL_LABELS[name];
-  if (known) return known[phase];
-  return phase === "pending" ? `ejecutando ${name}...` : `${name} listo`;
-}
+// Maps describeAgentError's `kind` to the matching localized message id
+// (src/lib/ui/agent-error.ts is not editable; its `.message` field is the
+// es-only fallback used only if this lookup ever misses).
+const AGENT_ERROR_MESSAGE_ID: Record<AgentErrorKind, MessageId> = {
+  cap: "agentError.cap",
+  no_model_configured: "agentError.no_model_configured",
+  provider_no_credit: "agentError.provider_no_credit",
+  provider_saturated: "agentError.provider_saturated",
+  network: "agentError.network",
+  unknown: "agentError.unknown",
+};
 
 function StatusLine({ label, kind }: { label: string; kind: "pending" | "done" | "error" }) {
   return (
@@ -65,8 +63,16 @@ export function Chat({
   onStageChange?: (stage: StageId) => void;
   onSocietyCreated?: (society: SocietySummaryLike) => void;
 }) {
+  const { t, format } = useLocale();
   const [input, setInput] = useState("");
   const [constitutingOpen, setConstitutingOpen] = useState(false);
+
+  function toolLabel(name: string, phase: "pending" | "done" | "error"): string {
+    if (phase === "error") return format("tool.error", { name });
+    const known = TOOL_MESSAGE_ID[name];
+    if (known) return t(known[phase]);
+    return phase === "pending" ? format("tool.generic.pending", { name }) : format("tool.generic.done", { name });
+  }
 
   const transport = useMemo(
     () => new DefaultChatTransport({ api: AGENT_ENDPOINT, headers: { "x-studio-token": token } }),
@@ -97,6 +103,9 @@ export function Chat({
 
   const busy = status === "submitted" || status === "streaming";
   const agentError = describeAgentError(error);
+  const agentErrorMessage = agentError
+    ? t(AGENT_ERROR_MESSAGE_ID[agentError.kind]) || agentError.message
+    : null;
 
   function send(raw: string) {
     const text = raw.trim();
@@ -130,9 +139,7 @@ export function Chat({
         }}
       >
         {messages.length === 0 ? (
-          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>
-            Contame qué querés armar y empezamos.
-          </p>
+          <p style={{ color: "var(--text-muted)", fontSize: 14 }}>{t("chat.empty")}</p>
         ) : null}
 
         {messages.map((message) => (
@@ -145,7 +152,7 @@ export function Chat({
                 color: "var(--text-muted)",
               }}
             >
-              {message.role === "user" ? "vos" : "agente"}
+              {message.role === "user" ? t("role.user") : t("role.agent")}
             </span>
             <div style={{ marginTop: 2 }}>
               {message.parts.map((part, i) => {
@@ -193,7 +200,7 @@ export function Chat({
                       <StatusLine
                         key={i}
                         kind="done"
-                        label="borrador anterior (reemplazado por uno más nuevo)"
+                        label={t("chat.preview.replaced")}
                       />
                     );
                   }
@@ -206,7 +213,7 @@ export function Chat({
           </div>
         ))}
 
-        {status === "submitted" ? <StatusLine kind="pending" label="pensando..." /> : null}
+        {status === "submitted" ? <StatusLine kind="pending" label={t("chat.thinking")} /> : null}
 
         {agentError ? (
           <div
@@ -216,7 +223,7 @@ export function Chat({
               fontSize: 13,
             }}
           >
-            {agentError.message}
+            {agentErrorMessage}
           </div>
         ) : null}
       </div>
@@ -236,7 +243,7 @@ export function Chat({
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
-          placeholder="Ej: quiero automatizar la facturación de mi kiosco"
+          placeholder={t("chat.input.placeholder")}
           disabled={busy}
           style={{
             flex: 1,
@@ -263,7 +270,7 @@ export function Chat({
             opacity: busy || !input.trim() ? 0.5 : 1,
           }}
         >
-          Enviar
+          {t("action.send")}
         </button>
       </form>
     </div>

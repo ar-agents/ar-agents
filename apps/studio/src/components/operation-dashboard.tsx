@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useState } from "react";
 import { formatTokenCount, formatUsd } from "@/lib/ui/money";
+import { useLocale } from "@/lib/ui/locale-context";
 
 // Loose, defensive shapes for docs/CONTRACT.md's Society lifecycle + account
 // usage responses. Optional fields render a fallback instead of throwing.
@@ -76,6 +77,8 @@ function formatDate(iso: string | undefined): string {
   if (!iso) return "-";
   const d = new Date(iso);
   if (Number.isNaN(d.getTime())) return iso;
+  // Date formatting is not part of this item's scope: kept as es-AR
+  // regardless of the UI locale.
   return d.toLocaleString("es-AR", { dateStyle: "short", timeStyle: "short" });
 }
 
@@ -92,6 +95,7 @@ export function OperationDashboard({
   token: string;
   initialSociety: SocietySummaryLike;
 }) {
+  const { t, format } = useLocale();
   const [society, setSociety] = useState<SocietySummaryLike>(initialSociety);
   const [approvals, setApprovals] = useState<{
     loading: boolean;
@@ -133,14 +137,14 @@ export function OperationDashboard({
         | { ok: false; error?: string }
         | null;
       if (!res.ok || !body?.ok) {
-        setApprovals({ loading: false, items: [], error: "No se pudieron cargar las aprobaciones." });
+        setApprovals({ loading: false, items: [], error: t("dashboard.approvals.error") });
         return;
       }
       setApprovals({ loading: false, items: body.approvals ?? [], error: null });
     } catch {
-      setApprovals({ loading: false, items: [], error: "No se pudieron cargar las aprobaciones." });
+      setApprovals({ loading: false, items: [], error: t("dashboard.approvals.error") });
     }
-  }, [token]);
+  }, [token, t]);
 
   const refreshApprovals = useCallback(() => {
     setApprovals((s) => ({ ...s, loading: true, error: null }));
@@ -155,14 +159,14 @@ export function OperationDashboard({
         | { ok: false; error?: string }
         | null;
       if (!res.ok || !body?.ok) {
-        setUsage({ loading: false, data: null, error: "No se pudo cargar el uso de la cuenta." });
+        setUsage({ loading: false, data: null, error: t("dashboard.usage.error") });
         return;
       }
       setUsage({ loading: false, data: body, error: null });
     } catch {
-      setUsage({ loading: false, data: null, error: "No se pudo cargar el uso de la cuenta." });
+      setUsage({ loading: false, data: null, error: t("dashboard.usage.error") });
     }
-  }, [token]);
+  }, [token, t]);
 
   const loadSociety = useCallback(async () => {
     try {
@@ -217,7 +221,7 @@ export function OperationDashboard({
         }),
       });
       if (!res.ok) {
-        setSuspendError("No se pudo aplicar el cambio. Probá de nuevo en un rato.");
+        setSuspendError(t("dashboard.suspend.applyError"));
         setSuspendSubmitting(false);
         return;
       }
@@ -228,7 +232,7 @@ export function OperationDashboard({
       setSuspendSubmitting(false);
       void loadSociety();
     } catch {
-      setSuspendError("No se pudo hablar con el servidor. Probá de nuevo en un rato.");
+      setSuspendError(t("error.server_unreachable"));
       setSuspendSubmitting(false);
     }
   }
@@ -244,8 +248,8 @@ export function OperationDashboard({
           result: null,
           error:
             body?.error === "rate_limited"
-              ? "Llegaste al límite de despliegues de hoy. Probá de nuevo mañana."
-              : "No se pudo desplegar el agente. Probá de nuevo en un rato.",
+              ? t("dashboard.agent.deployRateLimited")
+              : t("dashboard.agent.deployError"),
         });
         return;
       }
@@ -259,7 +263,7 @@ export function OperationDashboard({
       setDeploy({
         loading: false,
         result: null,
-        error: "No se pudo hablar con el servidor. Probá de nuevo en un rato.",
+        error: t("error.server_unreachable"),
       });
     }
   }
@@ -287,45 +291,53 @@ export function OperationDashboard({
       {/* Summary */}
       <div className="card">
         <p style={{ fontSize: 11, textTransform: "uppercase", letterSpacing: "0.04em", color: "var(--text-muted)", margin: "0 0 6px" }}>
-          Tu sociedad
+          {t("dashboard.society.heading")}
         </p>
         <h3 style={{ fontSize: 16, margin: "0 0 4px" }}>{society.denominacion ?? "-"}</h3>
         <p style={{ fontSize: 13, color: "var(--text-body)", margin: "0 0 10px" }}>
-          {society.tipo ?? "-"} · registro {society.registryId ?? "-"}
+          {format("dashboard.society.subtitle", {
+            tipo: society.tipo ?? "-",
+            registryId: society.registryId ?? "-",
+          })}
         </p>
         <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
           <span className={ratingBadgeClass(society.goodStanding?.rating)}>
-            {society.goodStanding?.state ?? "sin datos"}
+            {society.goodStanding?.state ?? t("dashboard.goodStanding.noData")}
             {society.goodStanding?.rating ? ` · ${society.goodStanding.rating}` : ""}
           </span>
           <span className={isSuspended ? "badge badge-bad" : "badge badge-good"}>
-            {isSuspended ? "suspendida" : "activa"}
+            {isSuspended ? t("dashboard.status.suspended") : t("dashboard.status.active")}
           </span>
           {typeof society.pendingApprovals === "number" ? (
-            <span className="badge badge-neutral">{society.pendingApprovals} pendientes</span>
+            <span className="badge badge-neutral">
+              {format("dashboard.pendingApprovals.badge", { count: String(society.pendingApprovals) })}
+            </span>
           ) : null}
         </div>
       </div>
 
       {/* Agent deploy (M1-6): the society's own runtime, deployed from studio */}
       <div className="card">
-        <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 8px" }}>Agente de la sociedad</p>
+        <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 8px" }}>{t("dashboard.agent.heading")}</p>
         {society.deploy?.url ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0 }}>
-              Desplegado en{" "}
+              {t("dashboard.agent.deployedIn")}{" "}
               <a href={toHttpUrl(society.deploy.url)} target="_blank" rel="noreferrer">
                 {society.deploy.url}
               </a>
             </p>
             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-              Proyecto {society.deploy.projectName ?? "-"} · desde {formatDate(society.deploy.deployedAt)}
+              {format("dashboard.agent.projectInfo", {
+                project: society.deploy.projectName ?? "-",
+                date: formatDate(society.deploy.deployedAt),
+              })}
             </p>
           </div>
         ) : deploy.result?.mode === "provisioned" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
             <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0 }}>
-              Estado del despliegue: {deploy.result.deploymentState ?? "-"}
+              {format("dashboard.agent.deployState", { state: deploy.result.deploymentState ?? "-" })}
             </p>
             {deploy.result.url ? (
               <p style={{ fontSize: 13, margin: 0 }}>
@@ -338,9 +350,7 @@ export function OperationDashboard({
         ) : deploy.result?.mode === "manual" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-              Studio no tiene un token de Vercel configurado, así que el despliegue es manual: hacé
-              click, pegá las variables de abajo en el proyecto nuevo y guardá la API key ya, no se
-              puede volver a ver.
+              {t("dashboard.agent.manualExplain")}
             </p>
             <a
               className="btn btn-primary"
@@ -349,11 +359,11 @@ export function OperationDashboard({
               rel="noreferrer"
               style={{ textAlign: "center" }}
             >
-              Desplegar en Vercel
+              {t("dashboard.agent.deployToVercel")}
             </a>
             <div>
               <label className="field-label" htmlFor="deploy-env-file">
-                Variables de entorno
+                {t("dashboard.agent.envVarsLabel")}
               </label>
               <textarea
                 id="deploy-env-file"
@@ -369,17 +379,17 @@ export function OperationDashboard({
                 style={{ fontSize: 12, padding: "4px 8px", marginTop: 6 }}
                 onClick={() => void copyEnvFile()}
               >
-                {copiedEnvFile ? "Copiado" : "Copiar variables"}
+                {copiedEnvFile ? t("action.copied") : t("dashboard.agent.copyEnvVars")}
               </button>
             </div>
             <p style={{ fontSize: 11, color: "var(--text-muted)", margin: 0 }}>
-              Guardá el valor de AGENT_API_KEY en un lugar seguro: no lo vamos a volver a mostrar.
+              {t("dashboard.agent.saveKeyWarning")}
             </p>
           </div>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
-              Desplegá la app que va a operar la sociedad las 24 horas.
+              {t("dashboard.agent.notDeployedYet")}
             </p>
             {deploy.error ? <p className="field-error">{deploy.error}</p> : null}
             <button
@@ -388,7 +398,7 @@ export function OperationDashboard({
               disabled={deploy.loading}
               onClick={() => void submitDeploy()}
             >
-              {deploy.loading ? "Desplegando..." : "Desplegar agente"}
+              {deploy.loading ? t("dashboard.agent.deploying") : t("dashboard.agent.deployCta")}
             </button>
           </div>
         )}
@@ -397,24 +407,26 @@ export function OperationDashboard({
       {/* Approvals */}
       <div className="card">
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 8 }}>
-          <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>Aprobaciones pendientes</p>
+          <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{t("dashboard.approvals.heading")}</p>
           <button type="button" className="btn btn-ghost" style={{ fontSize: 12, padding: "4px 8px" }} onClick={refreshApprovals}>
-            Actualizar
+            {t("action.refresh")}
           </button>
         </div>
         {approvals.loading ? (
-          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>Cargando...</p>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>{t("society.loading")}</p>
         ) : approvals.error ? (
           <p className="field-error">{approvals.error}</p>
         ) : approvals.items.length === 0 ? (
           <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>
-            No hay aprobaciones pendientes.
+            {t("dashboard.approvals.empty")}
           </p>
         ) : (
           <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
             {approvals.items.map((a) => (
               <div key={a.id} style={{ borderTop: "1px solid var(--border-color)", paddingTop: 10 }}>
-                <p style={{ fontSize: 13, fontWeight: 500, margin: "0 0 2px" }}>{a.tool ?? "acción"}</p>
+                <p style={{ fontSize: 13, fontWeight: 500, margin: "0 0 2px" }}>
+                  {a.tool ?? t("dashboard.approvals.defaultTool")}
+                </p>
                 {a.argsPreview ? (
                   <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 6px", wordBreak: "break-word" }}>
                     {a.argsPreview}
@@ -431,7 +443,7 @@ export function OperationDashboard({
                     disabled={resolvingId === a.id}
                     onClick={() => void resolveApproval(a.id, true)}
                   >
-                    Aprobar
+                    {t("action.approve")}
                   </button>
                   <button
                     type="button"
@@ -440,7 +452,7 @@ export function OperationDashboard({
                     disabled={resolvingId === a.id}
                     onClick={() => void resolveApproval(a.id, false)}
                   >
-                    Denegar
+                    {t("action.deny")}
                   </button>
                 </div>
               </div>
@@ -452,42 +464,48 @@ export function OperationDashboard({
       {/* Kill switch */}
       <div className="card">
         <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 8px" }}>
-          Interruptor de emergencia
+          {t("dashboard.killswitch.heading")}
         </p>
         <p style={{ fontSize: 12, color: "var(--text-muted)", margin: "0 0 10px" }}>
-          Como administrador (art. 102) podés suspender la sociedad en cualquier momento: mientras
-          esté suspendida, el agente no puede ejecutar ninguna acción.
+          {t("dashboard.killswitch.explain")}
         </p>
         <button
           type="button"
           className={isSuspended ? "btn btn-primary" : "btn btn-danger"}
           onClick={() => setSuspendDialog({ open: true, toValue: !isSuspended })}
         >
-          {isSuspended ? "Reanudar" : "Suspender sociedad"}
+          {isSuspended ? t("action.resume") : t("dashboard.suspend.action")}
         </button>
       </div>
 
       {/* Usage / billing math */}
       <div className="card">
-        <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 8px" }}>Uso este mes</p>
+        <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 8px" }}>{t("dashboard.usage.heading")}</p>
         {usage.loading ? (
-          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>Cargando...</p>
+          <p style={{ fontSize: 13, color: "var(--text-muted)", margin: 0 }}>{t("society.loading")}</p>
         ) : usage.error ? (
           <p className="field-error">{usage.error}</p>
         ) : (
           <div style={{ fontSize: 13, color: "var(--text-body)", display: "flex", flexDirection: "column", gap: 4 }}>
             <span>
-              Tokens: {formatTokenCount(usage.data?.usage?.inputTokens ?? 0)} entrada ·{" "}
-              {formatTokenCount(usage.data?.usage?.outputTokens ?? 0)} salida
+              {format("dashboard.usage.tokens", {
+                inTok: formatTokenCount(usage.data?.usage?.inputTokens ?? 0),
+                outTok: formatTokenCount(usage.data?.usage?.outputTokens ?? 0),
+              })}
             </span>
-            <span>Costo real: {formatUsd(usage.data?.usage?.costMicroUsd ?? 0)}</span>
+            <span>
+              {format("dashboard.usage.realCost", { cost: formatUsd(usage.data?.usage?.costMicroUsd ?? 0) })}
+            </span>
             <span style={{ color: "var(--text-muted)" }}>
-              Precio si estuviera operativa (5x): {formatUsd(usage.data?.usage?.priceMicroUsd ?? 0)}
+              {format("dashboard.usage.priceIfOperative", {
+                price: formatUsd(usage.data?.usage?.priceMicroUsd ?? 0),
+              })}
             </span>
             {typeof usage.data?.cap?.remainingMicroUsd === "number" ? (
               <span style={{ color: "var(--text-muted)" }}>
-                Te queda {formatUsd(usage.data.cap.remainingMicroUsd)} del límite gratuito de este
-                mes.
+                {format("dashboard.usage.capRemaining", {
+                  remaining: formatUsd(usage.data.cap.remainingMicroUsd),
+                })}
               </span>
             ) : null}
           </div>
@@ -498,23 +516,23 @@ export function OperationDashboard({
         <div className="dialog-overlay" role="dialog" aria-modal="true">
           <div className="dialog">
             <h3 style={{ fontSize: 16, margin: "0 0 6px" }}>
-              {suspendDialog.toValue ? "Suspender sociedad" : "Reanudar sociedad"}
+              {suspendDialog.toValue ? t("dashboard.suspend.action") : t("dashboard.resume.title")}
             </h3>
             <p style={{ fontSize: 13, color: "var(--text-muted)", margin: "0 0 16px" }}>
               {suspendDialog.toValue
-                ? "Mientras esté suspendida, el agente de la sociedad no podrá ejecutar ninguna acción."
-                : "La sociedad vuelve a poder operar normalmente."}
+                ? t("dashboard.suspend.explainWill")
+                : t("dashboard.suspend.explainResume")}
             </p>
             <div style={{ marginBottom: 12 }}>
               <label className="field-label" htmlFor="motivo">
-                Motivo (opcional)
+                {t("dashboard.suspend.reasonLabel")}
               </label>
               <input
                 id="motivo"
                 className="field-input"
                 value={motivo}
                 onChange={(e) => setMotivo(e.target.value)}
-                placeholder="Ej: quiero revisar la actividad reciente"
+                placeholder={t("dashboard.suspend.reasonPlaceholder")}
               />
             </div>
             <label style={{ display: "flex", alignItems: "flex-start", gap: 8, fontSize: 13, marginBottom: 16 }}>
@@ -524,7 +542,7 @@ export function OperationDashboard({
                 onChange={(e) => setAceptaSuspend(e.target.checked)}
                 style={{ marginTop: 2 }}
               />
-              <span>Confirmo esta acción como administrador de la sociedad.</span>
+              <span>{t("dashboard.suspend.confirmCheckbox")}</span>
             </label>
             {suspendError ? <p className="field-error" style={{ marginBottom: 12 }}>{suspendError}</p> : null}
             <div style={{ display: "flex", gap: 8, justifyContent: "flex-end" }}>
@@ -537,7 +555,7 @@ export function OperationDashboard({
                   setSuspendError(null);
                 }}
               >
-                Cancelar
+                {t("action.cancel")}
               </button>
               <button
                 type="button"
@@ -545,7 +563,7 @@ export function OperationDashboard({
                 disabled={!aceptaSuspend || suspendSubmitting}
                 onClick={() => void submitSuspend()}
               >
-                {suspendSubmitting ? "Aplicando..." : "Confirmar"}
+                {suspendSubmitting ? t("dashboard.suspend.applying") : t("action.confirm")}
               </button>
             </div>
           </div>
