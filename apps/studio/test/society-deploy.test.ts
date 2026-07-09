@@ -100,7 +100,17 @@ describe("POST /api/society/deploy", () => {
     const [[input]] = provisionMock.mock.calls;
     expect(input.name).toBe(FIXTURE.registryId);
     const envVarNames = input.envVars.map((v: { name: string }) => v.name);
-    expect(envVarNames).toEqual(["SOCIETY_ID", "SOCIETY_GATE_TOKEN", "AR_AGENTS_API_BASE", "AGENT_API_KEY"]);
+    expect(envVarNames).toEqual([
+      "SOCIETY_ID",
+      "SOCIETY_GATE_TOKEN",
+      "AR_AGENTS_API_BASE",
+      "AGENT_API_KEY",
+      "STUDIO_STATUS_TOKEN",
+    ]);
+
+    // Manual mode: nothing persisted, so no statusToken either (studio never
+    // learns the project exists, so there is nowhere to send cockpit reads).
+    expect(stored?.statusToken).toBeUndefined();
   });
 
   it("provisioned mode: persists the deploy against the stored society and returns its state", async () => {
@@ -129,6 +139,16 @@ describe("POST /api/society/deploy", () => {
     expect(stored?.deploy?.projectName).toBe("soc-reg-1");
     expect(stored?.deploy?.url).toBe("soc-reg-1.vercel.app");
     expect(typeof stored?.deploy?.deployedAt).toBe("string");
+
+    // A fresh STUDIO_STATUS_TOKEN (ROADMAP.md M3-2) is minted, sent as one of
+    // the project's env vars, persisted server-side, but never returned to
+    // the browser.
+    expect(typeof stored?.statusToken).toBe("string");
+    expect(stored?.statusToken).toMatch(/^[0-9a-f]{64}$/);
+    const [[input]] = provisionMock.mock.calls;
+    const statusTokenVar = input.envVars.find((v: { name: string }) => v.name === "STUDIO_STATUS_TOKEN");
+    expect(statusTokenVar?.value).toBe(stored?.statusToken);
+    expect(JSON.stringify(body)).not.toContain(stored?.statusToken);
   });
 
   it("surfaces a provisioning failure as a distinct 502 without persisting anything", async () => {

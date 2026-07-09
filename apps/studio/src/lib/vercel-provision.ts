@@ -26,6 +26,9 @@
  *   https://vercel.com/docs/rest-api/reference/endpoints/deployments/create-a-new-deployment
  * - GET /v13/deployments/{idOrUrl}
  *   https://vercel.com/docs/rest-api/reference/endpoints/deployments/get-a-deployment-by-id-or-url
+ * - GET /v7/deployments (list, filtered by `projectId`, `limit=1`)
+ *   https://vercel.com/docs/rest-api/deployments/list-deployments
+ *   (used by getLatestDeployment, ROADMAP.md M3-2's deploy-health read)
  */
 
 const API_BASE = "https://api.vercel.com";
@@ -321,4 +324,58 @@ export async function redeploySocietyApp(
 
   const deploymentState = await pollDeployment(token, deployment.id, deployment.readyState);
   return { ok: true, url: deployment.url, deploymentState };
+}
+
+export type TriggerRedeployResult =
+  | { ok: true; url: string; readyState: string }
+  | { ok: false; error: string };
+
+/**
+ * Triggers a fresh deployment WITHOUT polling to a terminal state (unlike
+ * {@link redeploySocietyApp}, which blocks up to ~4min). Used by
+ * `GET /api/society/activity`'s status-token backfill path (ROADMAP.md
+ * M3-2): a founder-facing read endpoint must return quickly, so it fires the
+ * deployment and lets the next auto-refresh observe progress via
+ * {@link getLatestDeployment} instead of blocking this call on it. Returns
+ * `null` when `VERCEL_PROVISION_TOKEN` is not configured.
+ */
+export async function triggerRedeploy(projectName: string): Promise<TriggerRedeployResult | null> {
+  const token = process.env.VERCEL_PROVISION_TOKEN?.trim();
+  if (!token) return null;
+
+  const deployment = await createDeployment(token, projectName);
+  if (!deployment.ok) return { ok: false, error: deployment.error };
+  return { ok: true, url: deployment.url, readyState: deployment.readyState };
+}
+
+export type GetLatestDeploymentResult =
+  | { ok: true; state: string; url: string; createdAt: string }
+  | { ok: false; error: string };
+
+/**
+ * The most recent deployment for an already-provisioned project, for the
+ * studio cockpit's deploy-health pill (ROADMAP.md M3-2). `projectId` accepts
+ * either the project ID or its name per the Vercel docs; this app always has
+ * the name (the slug `provisionSocietyApp` returned). Returns `null` when
+ * `VERCEL_PROVISION_TOKEN` is not configured (no capability, not a failure).
+ */
+export async function getLatestDeployment(projectName: string): Promise<GetLatestDeploymentResult | null> {
+  const token = process.env.VERCEL_PROVISION_TOKEN?.trim();
+  if (!token) return null;
+
+  const res = await vercelFetch(
+    token,
+    `/v7/deployments?projectId=${encodeURIComponent(projectName)}&limit=1`,
+    { method: "GET" },
+  );
+  if (!res.ok) return { ok: false, error: `deployments_list_failed: ${errorDetail(res)}` };
+  const data = res.data as { deployments?: Array<{ url?: string; readyState?: string; created?: number }> } | null;
+  const d = data?.deployments?.[0];
+  if (!d) return { ok: false, error: "no_deployments" };
+  return {
+    ok: true,
+    state: d.readyState ?? "UNKNOWN",
+    url: d.url ?? "",
+    createdAt: typeof d.created === "number" ? new Date(d.created).toISOString() : new Date().toISOString(),
+  };
 }

@@ -57,13 +57,21 @@ Deploys the society's own agent app (the `apps/sociedad-ia-starter` scaffold) fr
 
 See `src/lib/vercel-provision.ts` for the Vercel REST API calls this makes.
 
+`GET /api/society/activity` (auth)
+The "sociedad en vivo" cockpit feed (ROADMAP.md M3-2). Requires an already-provisioned deploy to return live data (404 `sin_sociedad` only when the account has no society at all; a society with no deploy yet still returns `200` with every section `available: false`). Merges two independent look-ups:
+- Vercel deployment health (`getLatestDeployment`, needs `VERCEL_PROVISION_TOKEN`).
+- The deployed society app's own `GET /api/status` (see `apps/sociedad-ia-starter`), authenticated with a studio-issued `STUDIO_STATUS_TOKEN` machine credential (distinct from `AGENT_API_KEY`): client wiring, kill switch, pending approvals (public/redacted view), and the last ~20 entries of the signed audit log.
+Response: `{ ok: true, deploy: { available, projectName, url, state }, society: { available, denominacion, version, uptimeSeconds }, clients: { available, statuses }, killSwitch: { available, suspended }, approvals: { available, pendingCount, items }, audit: { available, entries }, provisioning: boolean }`. Every section is independently nullable/`available: false` on its own failure. `provisioning: true` means this call just backfilled a missing `STUDIO_STATUS_TOKEN` and triggered a redeploy; the `/api/status`-derived sections are skipped that one call since the deploy carrying the new token/code has not landed yet. Rate limit 120/hour/account (fails open).
+
+`STUDIO_STATUS_TOKEN` provisioning: minted (32 random bytes, hex) by `POST /api/society/deploy` in provisioned mode alongside `AGENT_API_KEY`, set as one of the project's env vars, and persisted to `StoredSociety.statusToken` (never returned in the deploy response). For a society deployed before this existed, `GET /api/society/activity` backfills it lazily on first read via `setSocietyCredentialEnvVars` + a fire-and-forget `triggerRedeploy`. Manual-mode deploys never get one (studio never learns the project exists).
+
 ## Shared libs (backend owns; frontend never imports)
 
 - `src/lib/account.ts`: mint/verify account tokens. Pattern copied from landing's capability-token (write-once `kv.set nx`, SHA-256 at rest, constant-time verify, in-memory fallback when KV unwired). Keys `studio:accounttoken:{accountId}`, profile `studio:account:{accountId}`.
 - `src/lib/meter.ts`: `recordUsage(accountId, { inputTokens, outputTokens, model, costMicroUsd })` via `kv.incrby` on `studio:usage:{accountId}:m:{YYYYMM}:{field}`; `getUsage(accountId)`; `checkCap(accountId)` read-then-compare under a kv lock (copy landing's kv-lock pattern). Cap env `STUDIO_FREE_CAP_MICRO_USD`, default 500000 (0.50 USD of model cost, i.e. 2.50 USD at 5x price). Best-effort recording; fail-closed cap.
 - `src/lib/models.ts`: pricing table (micro-USD per token, per model id) + `resolveModel(tier)` + `estimateCostMicroUsd(model, usage)`. Prices are config constants with a source comment; unknown model -> conservative highest price.
 - `src/lib/aragents.ts`: typed fetch helpers for every upstream call, base `process.env.STUDIO_ARAGENTS_BASE ?? "https://ar-agents.ar"`, 10s timeouts, no retries on POSTs.
-- `src/lib/vercel-provision.ts`: `provisionSocietyApp({ name, envVars })` -- creates a Vercel project for a society's agent app, sets its env vars, triggers + polls the first deployment. Returns `null` (no capability) when `VERCEL_PROVISION_TOKEN` is unset. 10s timeouts, no retries on POSTs, scoped to `VERCEL_TEAM_ID` when set.
+- `src/lib/vercel-provision.ts`: `provisionSocietyApp({ name, envVars })` -- creates a Vercel project for a society's agent app, sets its env vars, triggers + polls the first deployment. `getLatestDeployment(projectName)` -- the project's most recent deployment state (deploy-health read, no polling). `triggerRedeploy(projectName)` -- fires a fresh deployment WITHOUT polling to a terminal state (unlike `redeploySocietyApp`), for a read endpoint that must return quickly. All return `null` (no capability) when `VERCEL_PROVISION_TOKEN` is unset. 10s timeouts, no retries on POSTs, scoped to `VERCEL_TEAM_ID` when set.
 
 ## Env (all optional; degrade gracefully)
 

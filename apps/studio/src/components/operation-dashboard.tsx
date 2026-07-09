@@ -1,6 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useState } from "react";
+import { SocietyCockpit } from "@/components/society-cockpit";
 import { formatTokenCount, formatUsd } from "@/lib/ui/money";
 import { useLocale } from "@/lib/ui/locale-context";
 
@@ -316,23 +317,33 @@ export function OperationDashboard({
         </div>
       </div>
 
+      {/* "La sociedad en vivo" cockpit (M3-2): the primary founder-facing
+          view of a running society, once it has a provisioned deploy.
+          Replaces the raw deploy URL as the thing a founder reads. */}
+      {society.deploy?.projectName ? <SocietyCockpit token={token} /> : null}
+
       {/* Agent deploy (M1-6): the society's own runtime, deployed from studio */}
       <div className="card">
         <p style={{ fontSize: 13, fontWeight: 600, margin: "0 0 8px" }}>{t("dashboard.agent.heading")}</p>
         {society.deploy?.url ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
-            <p style={{ fontSize: 13, color: "var(--text-body)", margin: 0 }}>
-              {t("dashboard.agent.deployedIn")}{" "}
-              <a href={toHttpUrl(society.deploy.url)} target="_blank" rel="noreferrer">
-                {society.deploy.url}
-              </a>
-            </p>
             <p style={{ fontSize: 12, color: "var(--text-muted)", margin: 0 }}>
               {format("dashboard.agent.projectInfo", {
                 project: society.deploy.projectName ?? "-",
                 date: formatDate(society.deploy.deployedAt),
               })}
             </p>
+            {/* The cockpit above is the primary founder-facing view (M3-2);
+                this is a small escape hatch for anyone who wants the raw
+                deploy URL, not the main way to check on the society. */}
+            <a
+              href={toHttpUrl(society.deploy.url)}
+              target="_blank"
+              rel="noreferrer"
+              style={{ fontSize: 11, color: "var(--text-muted)" }}
+            >
+              {t("dashboard.agent.viewDeployTechnical")}
+            </a>
           </div>
         ) : deploy.result?.mode === "provisioned" ? (
           <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>

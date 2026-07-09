@@ -392,6 +392,56 @@ export const MESSAGES = {
     es: "No se pudo guardar. Probá de nuevo en un rato.",
     en: "Could not save. Try again in a bit.",
   },
+
+  // src/components/society-cockpit.tsx (ROADMAP.md M3-2): the "sociedad en
+  // vivo" cockpit, the founder-facing replacement for visiting the raw
+  // deploy URL.
+  "cockpit.heading": { es: "La sociedad en vivo", en: "The society, live" },
+  "cockpit.subtitle": {
+    es: "{version} · activa hace {uptime}",
+    en: "{version} · running for {uptime}",
+  },
+  "cockpit.provisioning": {
+    es: "Activando el panel en vivo por primera vez. Puede tardar unos minutos en aparecer.",
+    en: "Activating the live panel for the first time. It can take a few minutes to show up.",
+  },
+  "cockpit.unavailable": { es: "sin datos todavía", en: "no data yet" },
+  "dashboard.agent.viewDeployTechnical": { es: "ver deploy (técnico)", en: "view deploy (technical)" },
+
+  "cockpit.deploy.heading": { es: "Estado del deploy", en: "Deploy status" },
+  "cockpit.deploy.state.ready": { es: "en línea", en: "live" },
+  "cockpit.deploy.state.building": { es: "construyendo", en: "building" },
+  "cockpit.deploy.state.queued": { es: "en cola", en: "queued" },
+  "cockpit.deploy.state.initializing": { es: "iniciando", en: "initializing" },
+  "cockpit.deploy.state.error": { es: "con error", en: "errored" },
+  "cockpit.deploy.state.canceled": { es: "cancelado", en: "canceled" },
+  "cockpit.deploy.state.blocked": { es: "bloqueado", en: "blocked" },
+
+  "cockpit.clients.heading": { es: "Clientes externos conectados", en: "Connected external clients" },
+  "cockpit.clients.summary": { es: "{wired}/{total} configurados", en: "{wired}/{total} configured" },
+  "cockpit.clients.hint": {
+    es: "Completá los que faltan en Credenciales, abajo.",
+    en: "Fill in the missing ones in Credentials, below.",
+  },
+
+  "cockpit.killswitch.heading": { es: "Estado operativo (visto por el agente)", en: "Operating state (as seen by the agent)" },
+
+  "cockpit.approvals.heading": { es: "Aprobaciones pendientes", en: "Pending approvals" },
+  "cockpit.approvals.summary": { es: "{count} esperando aprobación", en: "{count} awaiting approval" },
+  "cockpit.approvals.empty": { es: "No hay nada esperando aprobación.", en: "Nothing is awaiting approval." },
+
+  "cockpit.audit.heading": { es: "Acciones recientes", en: "Recent actions" },
+  "cockpit.audit.empty": {
+    es: "Todavía no hay acciones registradas.",
+    en: "No actions have been recorded yet.",
+  },
+  "cockpit.audit.errored": { es: "con error", en: "errored" },
+
+  "cockpit.usage.heading": { es: "Uso y tesorería de la sociedad", en: "The society's usage and treasury" },
+  "cockpit.usage.unavailable": {
+    es: "Todavía no hay datos de uso ni tesorería de la sociedad operando. Esta sección se completa con el trabajo de tesorería en curso.",
+    en: "There is no usage or treasury data from the operating society yet. This section fills in with the treasury work in progress.",
+  },
 } satisfies Record<string, Record<Locale, string>>;
 
 export type MessageId = keyof typeof MESSAGES;

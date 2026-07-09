@@ -87,6 +87,17 @@ export interface StoredSociety {
   gateToken: string;
   createdAt: string;
   deploy?: SocietyDeploy | null;
+  /** Studio-issued machine credential (ROADMAP.md M3-2): the deployed agent
+   *  app's `GET /api/status` checks this via `Authorization: Bearer`, so
+   *  studio's "sociedad en vivo" cockpit can read the society's live status.
+   *  Generated locally (never derived from anything the human enters), set
+   *  as a Vercel project env var on the society's own project via
+   *  `setSocietyCredentialEnvVars`, and stored here so later cockpit
+   *  refreshes reuse it instead of rotating it every call. Present only once
+   *  provisioned (`POST /api/society/deploy`) or backfilled
+   *  (`GET /api/society/activity`, for a society deployed before M3-2
+   *  existed). NEVER returned to the browser, never logged. */
+  statusToken?: string;
 }
 
 // The in-memory fallback must live on globalThis: in dev each route module
@@ -228,4 +239,16 @@ export async function setSocietyDeploy(accountId: string, deploy: SocietyDeploy)
   const existing = await getStoredSociety(accountId);
   if (!existing) return;
   await setStoredSociety(accountId, { ...existing, deploy });
+}
+
+/**
+ * Persist a freshly-minted `STUDIO_STATUS_TOKEN` against the account's
+ * already-stored society (see `POST /api/society/deploy`'s provisioned mode
+ * and `GET /api/society/activity`'s backfill path). Same no-op-when-missing,
+ * best-effort shape as {@link setSocietyDeploy}.
+ */
+export async function setSocietyStatusToken(accountId: string, statusToken: string): Promise<void> {
+  const existing = await getStoredSociety(accountId);
+  if (!existing) return;
+  await setStoredSociety(accountId, { ...existing, statusToken });
 }
