@@ -127,7 +127,7 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: a written, source-cited design for how a society holds and moves money (wallet provisioning, owner top-ups, spend policies through the approvals gate, AR rails and cross-border), reusing the existing treasury package where possible; then implementation items derived from it.
 
 ### M2-4a Wallet-provider integration spike (Coinbase Agentic Wallets vs Circle Agent Wallets)
-- status: ready
+- status: in-progress (supervised session 2026-07-09)
 - priority: P1
 - acceptance: a testnet (Base Sepolia) wallet provisioned through each provider, driven through the x402 signer interface; written comparison of setup friction, policy ergonomics, and approvals-gate fit; ends with a provider decision for v0.
 
