@@ -31,12 +31,26 @@
  * the starter's own local audit log, so studio never needs it back -- only
  * a boolean (`auditSecretSet`) is kept, enough to avoid re-minting (and
  * invalidating previously-signed entries) on every poll.
+ *
+ * SOCIEDAD_IA_DENOMINACION provisioning (ROADMAP.md M3-3) mirrors the above
+ * too (`ensureDenominacion` below): the starter's branded homepage reads it
+ * instead of showing its ACME-AI placeholder. Unlike the other two, nothing
+ * is minted -- the value is the society's own `denominacion`, already known
+ * here -- so only the `denominacionSet` boolean is tracked.
+ *
+ * All three backfills write different env vars on the SAME project, so a
+ * fresh deployment is needed regardless of which ran; rather than each
+ * firing its own `triggerRedeploy` (a society missing all three used to
+ * queue three separate deployments in one poll), the ensure* helpers below
+ * only report whether they changed anything, and the route triggers at most
+ * one coalesced redeploy after all of them have run.
  */
 
 import {
   authenticate,
   getStoredSociety,
   setSocietyAuditSecretSet,
+  setSocietyDenominacionSet,
   setSocietyStatusToken,
   type StoredSociety,
 } from "@/lib/account";
@@ -91,7 +105,9 @@ interface StarterStatusResponse {
  * no provisioned project to backfill against, or the backfill itself failed
  * (no Vercel-provisioning capability, or a Vercel error) -- either way the
  * caller degrades every /api/status-derived section to unavailable rather
- * than throwing.
+ * than throwing. Does NOT trigger a redeploy itself -- see the module doc
+ * comment: the route coalesces at most one redeploy across all ensure*
+ * helpers after they have all run.
  */
 async function ensureStatusToken(
   accountId: string,
@@ -108,12 +124,6 @@ async function ensureStatusToken(
   if (result === null || !result.ok) return null;
 
   await setSocietyStatusToken(accountId, token);
-  // Fire-and-forget: a fresh deployment is needed for the new env var (and,
-  // once this ships, the /api/status route's code) to take effect. Do NOT
-  // await the ~4min poll inside a request a founder is waiting on -- the
-  // next auto-refresh (60s interval / on-focus) observes progress via
-  // getLatestDeployment instead.
-  void triggerRedeploy(projectName);
   return { token, justProvisioned: true };
 }
 
@@ -124,7 +134,8 @@ async function ensureStatusToken(
  * never needs it back (nothing studio calls is authenticated with it), so
  * only the `auditSecretSet` boolean is persisted -- just enough to avoid
  * re-minting (and thereby invalidating previously-signed entries) on every
- * poll. Returns `null` under the same conditions as `ensureStatusToken`.
+ * poll. Returns `null` under the same conditions as `ensureStatusToken`. Does
+ * NOT trigger a redeploy itself, same reason as `ensureStatusToken`.
  */
 async function ensureAuditSecret(
   accountId: string,
@@ -141,11 +152,32 @@ async function ensureAuditSecret(
   if (result === null || !result.ok) return null;
 
   await setSocietyAuditSecretSet(accountId);
-  // Same fire-and-forget rationale as ensureStatusToken above. A society
-  // missing BOTH may trigger two redeploy requests in one poll; Vercel
-  // coalesces/queues concurrent deploys for a project, so this is a minor
-  // inefficiency, not a correctness issue.
-  void triggerRedeploy(projectName);
+  return { justProvisioned: true };
+}
+
+/**
+ * Ensures the society has `SOCIEDAD_IA_DENOMINACION` set (ROADMAP.md M3-3),
+ * backfilling it for a society deployed before this feature existed.
+ * Mirrors {@link ensureAuditSecret}: nothing is minted (the value is the
+ * society's own `denominacion`, already known here), so only the
+ * `denominacionSet` boolean is persisted. Returns `null` under the same
+ * conditions as `ensureStatusToken`. Does NOT trigger a redeploy itself,
+ * same reason as `ensureStatusToken`.
+ */
+async function ensureDenominacion(
+  accountId: string,
+  society: StoredSociety,
+): Promise<{ justProvisioned: boolean } | null> {
+  if (society.denominacionSet) return { justProvisioned: false };
+  const projectName = society.deploy?.projectName;
+  if (!projectName) return null;
+
+  const result = await setSocietyCredentialEnvVars(projectName, [
+    { name: "SOCIEDAD_IA_DENOMINACION", value: society.denominacion },
+  ]);
+  if (result === null || !result.ok) return null;
+
+  await setSocietyDenominacionSet(accountId);
   return { justProvisioned: true };
 }
 
@@ -183,14 +215,27 @@ export async function GET(req: Request) {
   const projectName = society.deploy?.projectName ?? null;
 
   // The Vercel deploy-health lookup is independent and stays concurrent, but
-  // ensureStatusToken and ensureAuditSecret both read-modify-write the SAME
-  // stored society record: run them sequentially (not via Promise.all), or
-  // whichever finishes last silently clobbers the other's field with a
-  // stale snapshot (both would read the same starting record, then each
-  // writes back {...that stale snapshot, ownField}).
+  // ensureStatusToken, ensureAuditSecret, and ensureDenominacion all
+  // read-modify-write the SAME stored society record: run them sequentially
+  // (not via Promise.all), or whichever finishes last silently clobbers the
+  // others' fields with a stale snapshot (each would read the same starting
+  // record, then write back {...that stale snapshot, ownField}).
   const deployPromise = projectName ? getLatestDeployment(projectName) : Promise.resolve(null);
   const tokenResult = await ensureStatusToken(auth.accountId, society);
   const auditSecretResult = await ensureAuditSecret(auth.accountId, society);
+  const denominacionResult = await ensureDenominacion(auth.accountId, society);
+
+  // Coalesced redeploy: a society missing more than one of the three env
+  // vars above used to queue one `triggerRedeploy` per backfill in the same
+  // poll (harmless -- Vercel queues concurrent deploys for a project -- but
+  // sloppy, see ROADMAP.md M3-5's follow-up note). Fire at most one here,
+  // after all three have written their env vars, and don't await the ~4min
+  // poll inside a request a founder is waiting on: the next auto-refresh
+  // (60s interval / on-focus) observes progress via getLatestDeployment.
+  if (projectName && (tokenResult?.justProvisioned || auditSecretResult?.justProvisioned || denominacionResult?.justProvisioned)) {
+    void triggerRedeploy(projectName);
+  }
+
   const deployLookup = await deployPromise;
 
   const deploy =
@@ -231,6 +276,9 @@ export async function GET(req: Request) {
       available: starterStatus?.audit?.available === true,
       entries: starterStatus?.audit?.available ? (starterStatus.audit.entries ?? null) : null,
     },
-    provisioning: Boolean(tokenResult?.justProvisioned) || Boolean(auditSecretResult?.justProvisioned),
+    provisioning:
+      Boolean(tokenResult?.justProvisioned) ||
+      Boolean(auditSecretResult?.justProvisioned) ||
+      Boolean(denominacionResult?.justProvisioned),
   });
 }

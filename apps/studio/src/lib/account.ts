@@ -108,6 +108,14 @@ export interface StoredSociety {
    *  enough to stop `ensureAuditSecret` from re-minting (and thereby
    *  invalidating previously-signed entries) on every cockpit poll. */
   auditSecretSet?: boolean;
+  /** Whether `SOCIEDAD_IA_DENOMINACION` has been set on the society's
+   *  Vercel project (ROADMAP.md M3-3: the starter's branded homepage reads
+   *  it to show the society's real name instead of its ACME-AI
+   *  placeholder). Same minted-once-per-deploy, best-effort shape as
+   *  {@link auditSecretSet}; unlike `statusToken`/the audit secret this is
+   *  not a generated secret but the society's own `denominacion` (already
+   *  known here), so only the "did we push it" boolean needs tracking. */
+  denominacionSet?: boolean;
 }
 
 // The in-memory fallback must live on globalThis: in dev each route module
@@ -274,4 +282,16 @@ export async function setSocietyAuditSecretSet(accountId: string): Promise<void>
   const existing = await getStoredSociety(accountId);
   if (!existing) return;
   await setStoredSociety(accountId, { ...existing, auditSecretSet: true });
+}
+
+/**
+ * Mark `SOCIEDAD_IA_DENOMINACION` as set against the account's already
+ * -stored society (see `POST /api/society/deploy`'s provisioned mode and
+ * `GET /api/society/activity`'s backfill path). Same no-op-when-missing,
+ * best-effort shape as {@link setSocietyAuditSecretSet}.
+ */
+export async function setSocietyDenominacionSet(accountId: string): Promise<void> {
+  const existing = await getStoredSociety(accountId);
+  if (!existing) return;
+  await setStoredSociety(accountId, { ...existing, denominacionSet: true });
 }

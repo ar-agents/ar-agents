@@ -20,6 +20,12 @@
  *    its env vars, and triggers the first deployment; the result is
  *    persisted against the stored society so `GET /api/society` reflects it.
  *
+ * Also sets `SOCIEDAD_IA_DENOMINACION` from the stored society's
+ * `denominacion` (ROADMAP.md M3-3), so the starter's branded homepage
+ * shows the society's real name on first deploy instead of its ACME-AI
+ * placeholder. A society deployed before M3-3 shipped gets it lazily
+ * backfilled by `GET /api/society/activity`'s `ensureDenominacion`.
+ *
  * See docs/CONTRACT.md.
  */
 
@@ -27,6 +33,7 @@ import {
   authenticate,
   getStoredSociety,
   setSocietyAuditSecretSet,
+  setSocietyDenominacionSet,
   setSocietyDeploy,
   setSocietyStatusToken,
 } from "@/lib/account";
@@ -55,7 +62,7 @@ function buildOneClickUrl(slug: string): string {
   const params = new URLSearchParams({
     "repository-url": STARTER_REPO_PATH,
     "project-name": slug,
-    env: "SOCIETY_ID,SOCIETY_GATE_TOKEN,AR_AGENTS_API_BASE,AGENT_API_KEY",
+    env: "SOCIETY_ID,SOCIETY_GATE_TOKEN,AR_AGENTS_API_BASE,AGENT_API_KEY,SOCIEDAD_IA_DENOMINACION",
     envDescription:
       "Pegá acá los valores del archivo de abajo. AGENT_API_KEY se generó una sola vez: guardalo, no se puede volver a ver.",
   });
@@ -104,6 +111,10 @@ export async function POST(req: Request) {
       { name: "AGENT_API_KEY", value: agentApiKey },
       { name: "STUDIO_STATUS_TOKEN", value: statusToken },
       { name: "AUDIT_HMAC_SECRET", value: auditHmacSecret },
+      // ROADMAP.md M3-3: the branded homepage's identity. Without this a
+      // fresh deploy shows the starter's ACME-AI placeholder instead of the
+      // real denominacion.
+      { name: "SOCIEDAD_IA_DENOMINACION", value: society.denominacion },
     ],
   });
 
@@ -119,6 +130,7 @@ export async function POST(req: Request) {
         SOCIETY_GATE_TOKEN: society.gateToken,
         AR_AGENTS_API_BASE,
         AGENT_API_KEY: agentApiKey,
+        SOCIEDAD_IA_DENOMINACION: society.denominacion,
       }),
       agentApiKey,
     });
@@ -135,6 +147,7 @@ export async function POST(req: Request) {
   });
   await setSocietyStatusToken(auth.accountId, statusToken);
   await setSocietyAuditSecretSet(auth.accountId);
+  await setSocietyDenominacionSet(auth.accountId);
 
   return Response.json({
     ok: true,
