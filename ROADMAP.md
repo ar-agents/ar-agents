@@ -128,12 +128,13 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - note: the M1-4 acceptance's bare `npx ar-agents` needs an unscoped `ar-agents` npm name, a publish and naming decision deferred to M1-4e and the owner. The scoped `npx @ar-agents/cli` works without that decision. The package is not published by this item; publishing (and any changeset) is the release decision escalated to the owner via M1-4e. CI landmine found while shipping: `.github/workflows/ci.yml` runs `test:coverage`, `validate`, and `size` (not plain `test`) for `packages/*`, so a package that only defines `test` never runs in CI; this package defines `test:coverage` and `validate` to match siblings (it omits `size`, as `packages/aduana` does).
 
 ### M1-4b Terminal coach conversation
-- status: ready (M1-4a done 2026-07-11, PR #187; the CLI package, account bootstrap, and config now exist)
+- status: done (2026-07-11, PR #189; `ar-agents chat` added to @ar-agents/cli. New zero-dep pure parser src/stream.ts (UiMessageStreamParser + readAgentStream) decodes the AI SDK v7 UI-message SSE stream (text-delta, tool-input-available, tool-output-available, error, finish), buffering across arbitrary network-chunk boundaries. src/agent-client.ts (sendAgentTurn) POSTs /api/agent with the x-studio-token header and streams the reply, forwarding text deltas and tool outputs to callbacks. src/messages.ts builds the u-0/a-0 message history. runChatTurn (exported, offline-tested) appends the user turn, streams the reply to stdout incrementally, prints a concise preview_society draft line, and appends the assistant turn; the interactive readline loop around it is thin and exercised live in M1-4e. The token is never printed on any branch. 48 unit tests, including an exhaustive split-delivery buffering proof at every offset.)
 - priority: P2
 - acceptance: `ar-agents chat` streams the AI SDK v7 UI-message response from POST /api/agent, rendering assistant text incrementally and surfacing tool calls (notably preview_society drafts) in the terminal, keeping message history across turns and threading the account token. Offline-verifiable: a pure UI-message-stream parser unit-tested against recorded stream fixtures (assistant text deltas plus a preview_society tool result); the live model is exercised only in M1-4e.
+- note: a failed or empty turn is dropped from persisted history rather than stored, because an empty assistant text part is accepted by the studio's safeValidateUIMessages but later rejected by the model provider (empty text block), which would brick the rest of a session. Found in adversarial review. Scope call: history carries conversation TEXT across turns; tool-call and tool-output parts are surfaced live but not persisted (the studio UI keeps them via readUIMessageStream, which needs the AI SDK). Tracked as M1-4g.
 
 ### M1-4c Draft confirmation and constitution from the terminal
-- status: blocked (depends on M1-4b)
+- status: ready (M1-4b done 2026-07-11, PR #189; `ar-agents chat` and the agent client now exist)
 - priority: P2
 - acceptance: `ar-agents constitute` takes the draft surfaced by chat, collects administrador nombre and cuit plus an explicit acepta102 confirmation, POSTs /api/society/constitute against a non-production target, and prints the returned credentials once with a self-custody warning. It refuses without an explicit confirmation. Offline-verifiable: unit tests for the request builder, the confirmation gate, and the one-society 409 path with a fetch mock.
 
@@ -146,6 +147,11 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - status: blocked (depends on M1-4a, M1-4b, M1-4c, M1-4d)
 - priority: P2
 - acceptance: a scripted or live run drives login to chat to constitute to society and activity against a non-production target, proving the terminal walks the same journey as the UI and calls the same APIs, satisfying M1-4's original acceptance. On green, mark M1-4 done. Publishing `ar-agents` to npm so that bare `npx ar-agents` resolves is a release and naming decision escalated to the owner.
+
+### M1-4g Persist tool-call parts in the terminal chat history
+- status: ready
+- priority: P3
+- acceptance: `ar-agents chat` persists tool-call and tool-output parts (not just assistant text) into the message history it sends back on the next turn, so multi-turn, tool-driven flows keep full context (for example: preview a society, then ask to change the capital, with the model still holding the structured draft). Today (M1-4b) history carries only conversation text; tool parts are surfaced live but dropped from history because reconstructing full UIMessage parts faithfully is what the studio UI gets from the AI SDK's readUIMessageStream, which the zero-dep CLI does not import. Offline-verifiable: extend src/messages.ts's UiMessage.parts to carry tool parts and unit-test that a recorded tool turn round-trips into history in a shape POST /api/agent accepts (validate against the studio's safeValidateUIMessages contract). Discovered in the M1-4b adversarial review.
 
 ## M2: Operate for real
 

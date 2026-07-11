@@ -2,9 +2,9 @@
 
 > Cliente de linea de comandos para el studio de ar-agents.
 
-Dos comandos: iniciar sesion (con una cuenta anonima nueva o un token
-existente) y ver quien sos (uso, tope mensual y estado de tu sociedad, si
-constituiste una).
+Tres comandos: iniciar sesion (con una cuenta anonima nueva o un token
+existente), ver quien sos (uso, tope mensual y estado de tu sociedad, si
+constituiste una), y charlar con el coach de ar-agents.
 
 ## Instalacion
 
@@ -33,6 +33,9 @@ ar-agents login --url https://mi-studio.vercel.app
 
 # Muestra la cuenta activa
 ar-agents whoami
+
+# Charla con el coach de ar-agents (requiere sesion iniciada)
+ar-agents chat
 ```
 
 `STUDIO_URL` (variable de entorno) tambien sirve para fijar el studio por

@@ -1,10 +1,16 @@
-// `ar-agents` CLI: `login` and `whoami` against the ar-agents studio
-// (see apps/studio/src/app/api/account/route.ts). Fully offline-testable:
-// every side effect (env, fetch, stdout/stderr, homedir, platform) is
-// injected via `RunDeps`, nothing here reaches for a global.
+// `ar-agents` CLI: `login` and `whoami` against the ar-agents studio's
+// account API (see apps/studio/src/app/api/account/route.ts), and `chat`
+// against its agent API (see apps/studio/src/app/api/agent/route.ts). Fully
+// offline-testable: every side effect (env, fetch, stdout/stderr, homedir,
+// platform, stdin) is injected via `RunDeps`, nothing here reaches for a
+// global. `chat`'s interactive readline loop is the one exception that
+// needs a real TTY to run end to end; the turn logic it wraps
+// (`runChatTurn`) is exported and unit-tested without one.
 
 import { createAccount, getAccount, AccountClientError } from "./account-client.js";
+import { sendAgentTurn, AgentClientError } from "./agent-client.js";
 import { readConfig, resolveConfigDir, writeConfig } from "./config.js";
+import { appendAssistantTurn, appendUserTurn, type UiMessage } from "./messages.js";
 
 export const DEFAULT_STUDIO_URL = "https://studio-plum-three-47.vercel.app";
 
@@ -16,6 +22,10 @@ export interface RunDeps {
   homedir: string;
   platform: string;
   version: string;
+  /** Optional: only needed by `chat`'s interactive loop. When absent, `chat`
+   *  prints a short message instead of blocking on a TTY that isn't there
+   *  (keeps unit tests from hanging). */
+  stdin?: NodeJS.ReadableStream;
 }
 
 const USAGE = `\
@@ -24,6 +34,7 @@ ar-agents: cliente de linea de comandos para el studio de ar-agents.
 Uso:
   ar-agents login [--token <token>] [--url <url>]   Inicia sesion (o crea una cuenta anonima nueva)
   ar-agents whoami                                    Muestra la cuenta activa, uso y estado de la sociedad
+  ar-agents chat                                      Charla con el coach de ar-agents (requiere sesion iniciada)
   ar-agents help                                      Muestra esta ayuda
   ar-agents version                                    Muestra la version instalada
 
@@ -122,6 +133,144 @@ async function runWhoami(deps: RunDeps): Promise<number> {
   }
 }
 
+/** Renders a tool-output event as a short, defensive status line. Never
+ *  throws on an unexpected output shape (the model's tools are free-form
+ *  from the CLI's point of view). */
+function formatToolLine(name: string | null, output: unknown): string {
+  if (name === "preview_society") {
+    const draft =
+      output && typeof output === "object" && "draft" in output
+        ? (output as { draft?: unknown }).draft
+        : undefined;
+    const denominacion =
+      draft && typeof draft === "object" && "denominacion" in draft
+        ? (draft as { denominacion?: unknown }).denominacion
+        : undefined;
+    if (typeof denominacion === "string") {
+      return `\n[preview_society] borrador: ${denominacion}\n`;
+    }
+  }
+  return `\n[${name ?? "tool"}]\n`;
+}
+
+/** One request/response turn of `chat`: appends the user's text to the
+ *  history, streams the reply to `stdout` incrementally, and returns the
+ *  history with both the user and assistant turns appended. Offline-testable
+ *  (no readline, no real stdin) so this is the part unit tests exercise; the
+ *  interactive loop around it is thin and exercised live (M1-4e). */
+export async function runChatTurn(opts: {
+  baseUrl: string;
+  token: string;
+  history: UiMessage[];
+  userText: string;
+  fetchImpl: typeof fetch;
+  stdout: { write(s: string): void };
+}): Promise<{ history: UiMessage[]; error: string | null }> {
+  const withUser = appendUserTurn(opts.history, opts.userText);
+
+  let error: string | null = null;
+  let text = "";
+  try {
+    const result = await sendAgentTurn({
+      baseUrl: opts.baseUrl,
+      token: opts.token,
+      messages: withUser,
+      fetchImpl: opts.fetchImpl,
+      onText: (delta) => {
+        opts.stdout.write(delta);
+      },
+      onTool: (name, output) => {
+        opts.stdout.write(formatToolLine(name, output));
+      },
+    });
+    text = result.text;
+    error = result.error;
+  } catch (err) {
+    error = err instanceof AgentClientError ? err.message : "error_desconocido";
+  }
+
+  if (error) {
+    opts.stdout.write(`\n[error] ${error}\n`);
+    // A failed turn leaves nothing durable. Appending an empty assistant part
+    // here would poison the next request: the studio accepts an empty text
+    // part, but the model provider rejects an empty text block, which would
+    // brick the rest of the session. Drop the whole turn so the user retries
+    // from a clean, valid history.
+    return { history: opts.history, error };
+  }
+
+  opts.stdout.write("\n");
+
+  if (text.length === 0) {
+    // Stream succeeded but produced no assistant text (for example only a tool
+    // output). Same reasoning as the error case: never persist an empty text
+    // part. Drop the turn to keep history valid.
+    return { history: opts.history, error: null };
+  }
+
+  return { history: appendAssistantTurn(withUser, text), error: null };
+}
+
+async function runChat(deps: RunDeps): Promise<number> {
+  const configDir = resolveConfigDir(deps);
+  const config = readConfig(configDir);
+  if (!config) {
+    deps.stderr.write("No hay sesion. Corre: ar-agents login\n");
+    return 1;
+  }
+
+  if (!deps.stdin) {
+    deps.stdout.write("ar-agents chat necesita una terminal interactiva (stdin no disponible).\n");
+    return 0;
+  }
+
+  const readline = await import("node:readline");
+  const rl = readline.createInterface({ input: deps.stdin, output: deps.stdout as NodeJS.WriteStream });
+
+  let history: UiMessage[] = [];
+
+  // Exactly one persistent close listener (not one per turn): on stream end it
+  // resolves whatever question is currently in flight with null so the loop
+  // exits. Registering the listener inside askLine would leak one listener per
+  // turn and trip MaxListenersExceededWarning after ~10 turns.
+  let pendingResolve: ((value: string | null) => void) | null = null;
+  rl.on("close", () => {
+    if (pendingResolve) {
+      pendingResolve(null);
+      pendingResolve = null;
+    }
+  });
+
+  const askLine = (): Promise<string | null> =>
+    new Promise((resolvePromise) => {
+      pendingResolve = resolvePromise;
+      rl.question("> ", (line) => {
+        pendingResolve = null;
+        resolvePromise(line);
+      });
+    });
+
+  for (;;) {
+    const line = await askLine();
+    if (line === null) break;
+    const trimmed = line.trim();
+    if (trimmed.length === 0 || trimmed === "salir" || trimmed === "exit") break;
+
+    const turn = await runChatTurn({
+      baseUrl: config.studioUrl,
+      token: config.token,
+      history,
+      userText: trimmed,
+      fetchImpl: deps.fetchImpl,
+      stdout: deps.stdout,
+    });
+    history = turn.history;
+  }
+
+  rl.close();
+  return 0;
+}
+
 export async function run(argv: string[], deps: RunDeps): Promise<number> {
   const [command, ...rest] = argv;
 
@@ -141,6 +290,10 @@ export async function run(argv: string[], deps: RunDeps): Promise<number> {
 
   if (command === "whoami") {
     return runWhoami(deps);
+  }
+
+  if (command === "chat") {
+    return runChat(deps);
   }
 
   deps.stderr.write(`Comando desconocido: ${command}\n`);
