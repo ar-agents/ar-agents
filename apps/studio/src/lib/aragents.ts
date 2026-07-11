@@ -1,12 +1,17 @@
 /**
  * Typed fetch helpers for every ar-agents.ar upstream call studio makes.
  * Base URL is `STUDIO_ARAGENTS_BASE` (default https://ar-agents.ar). Every
- * call has a 10s timeout; POSTs are never retried (they may not be
- * idempotent -- e.g. incorporate-attested is a durable, one-shot act).
+ * call has a 10s timeout, except the LLM-backed incorporate-preview, which
+ * routinely takes ~15s upstream and gets a longer one (measured live
+ * 2026-07-09 during M1-8: 10s aborted every preview_society call, so the
+ * coach could never produce a draft). POSTs are never retried (they may not
+ * be idempotent -- e.g. incorporate-attested is a durable, one-shot act).
  */
 
 const DEFAULT_BASE = "https://ar-agents.ar";
 const TIMEOUT_MS = 10_000;
+/** incorporate-preview runs an LLM upstream; give it real headroom. */
+const PREVIEW_TIMEOUT_MS = 45_000;
 
 function base(): string {
   return process.env.STUDIO_ARAGENTS_BASE?.trim() || DEFAULT_BASE;
@@ -19,12 +24,13 @@ export type UpstreamResult<T> =
 async function request<T>(
   path: string,
   init: RequestInit,
+  timeoutMs: number = TIMEOUT_MS,
 ): Promise<UpstreamResult<T>> {
   let res: Response;
   try {
     res = await fetch(`${base()}${path}`, {
       ...init,
-      signal: AbortSignal.timeout(TIMEOUT_MS),
+      signal: AbortSignal.timeout(timeoutMs),
     });
   } catch (e) {
     return { ok: false, status: null, error: e instanceof Error ? e.message : String(e) };
@@ -44,12 +50,17 @@ function postJson<T>(
   path: string,
   body: unknown,
   headers?: Record<string, string>,
+  timeoutMs?: number,
 ): Promise<UpstreamResult<T>> {
-  return request<T>(path, {
-    method: "POST",
-    headers: { "content-type": "application/json", ...headers },
-    body: JSON.stringify(body),
-  });
+  return request<T>(
+    path,
+    {
+      method: "POST",
+      headers: { "content-type": "application/json", ...headers },
+      body: JSON.stringify(body),
+    },
+    timeoutMs,
+  );
 }
 
 // ── /api/incorporate-preview ─────────────────────────────────────────────
@@ -70,7 +81,7 @@ export interface PreviewSocietyResponse {
 }
 
 export function previewSociety(prompt: string): Promise<UpstreamResult<PreviewSocietyResponse>> {
-  return postJson<PreviewSocietyResponse>("/api/incorporate-preview", { prompt });
+  return postJson<PreviewSocietyResponse>("/api/incorporate-preview", { prompt }, undefined, PREVIEW_TIMEOUT_MS);
 }
 
 // ── /api/incorporate-attested ────────────────────────────────────────────

@@ -4,6 +4,7 @@ import {
   appendUserTurn,
   buildInitialMessages,
   buildPersonaTurnPrompt,
+  isSubstantiveReply,
   lastAssistantText,
   readFinalUIMessages,
   renderTranscript,
@@ -164,5 +165,43 @@ describe("SSE decoding: sseBodyToUIMessageChunkStream + readFinalUIMessages", ()
     const reader = chunkStream.getReader();
     const { done } = await reader.read();
     expect(done).toBe(true);
+  });
+});
+
+describe("isSubstantiveReply", () => {
+  it("false for no messages, user-only messages, or an assistant reply with only reasoning/step parts", () => {
+    expect(isSubstantiveReply([])).toBe(false);
+    expect(isSubstantiveReply([{ id: "u-1", role: "user", parts: [{ type: "text", text: "hola" }] }])).toBe(false);
+    expect(
+      isSubstantiveReply([
+        { id: "a-1", role: "assistant", parts: [{ type: "step-start" }, { type: "reasoning" }, { type: "text", text: "   " }] },
+      ]),
+    ).toBe(false);
+  });
+
+  it("true for an assistant reply with non-empty text", () => {
+    expect(
+      isSubstantiveReply([{ id: "a-1", role: "assistant", parts: [{ type: "text", text: "Hola, arranquemos." }] }]),
+    ).toBe(true);
+  });
+
+  it("true for an assistant reply whose tool call completed, even without text", () => {
+    expect(
+      isSubstantiveReply([
+        {
+          id: "a-1",
+          role: "assistant",
+          parts: [{ type: "tool-preview_society", state: "output-available", output: { ok: true } }],
+        },
+      ]),
+    ).toBe(true);
+  });
+
+  it("false for a tool call that never completed (input-available only)", () => {
+    expect(
+      isSubstantiveReply([
+        { id: "a-1", role: "assistant", parts: [{ type: "tool-preview_society", state: "input-available" }] },
+      ]),
+    ).toBe(false);
   });
 });
