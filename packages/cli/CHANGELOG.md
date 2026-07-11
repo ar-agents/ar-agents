@@ -1,5 +1,14 @@
 # @ar-agents/cli
 
+## Unreleased
+
+- `ar-agents chat`: an interactive session with the studio's coach, streaming
+  the `POST /api/agent` UI-message response (text incrementally, plus tool
+  activity such as `preview_society` drafts) and keeping message history
+  across turns. The stream parser and message-history builder are pure and
+  unit-tested against recorded fixtures; the readline loop itself stays thin
+  and is exercised against a live model separately.
+
 ## 0.1.0
 
 ### Minor Changes

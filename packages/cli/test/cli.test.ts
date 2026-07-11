@@ -2,7 +2,7 @@ import { mkdtempSync, rmSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { run, type RunDeps } from "../src/index";
+import { run, runChatTurn, type RunDeps } from "../src/index";
 
 function fakeResponse(status: number, body: unknown, ok = status >= 200 && status < 300) {
   return { ok, status, json: async () => body } as unknown as Response;
@@ -199,5 +199,170 @@ describe("run()", () => {
     };
     const code = await run(["bogus"], deps);
     expect(code).toBe(1);
+  });
+
+  describe("chat", () => {
+    it("with no stored config returns 1 and mentions login", async () => {
+      const err: string[] = [];
+      const deps: RunDeps = {
+        env: { AR_AGENTS_CONFIG_DIR: configDir },
+        fetchImpl: vi.fn() as unknown as typeof fetch,
+        stdout: { write: () => {} },
+        stderr: { write: (s: string) => { err.push(s); } },
+        homedir: "/nonexistent-home",
+        platform: "linux",
+        version: "test",
+      };
+      const code = await run(["chat"], deps);
+      expect(code).toBe(1);
+      expect(err.join("")).toContain("login");
+    });
+
+    it("with a stored config but no stdin provided returns 0, prints a needs-a-TTY message, and never prints the token", async () => {
+      const STORED_TOKEN = "stu_chat_secret_never_leak";
+      const { writeConfig } = await import("../src/config");
+      writeConfig(configDir, { studioUrl: "https://studio.example", token: STORED_TOKEN, accountId: "acc_chat" });
+
+      const out: string[] = [];
+      const deps: RunDeps = {
+        env: { AR_AGENTS_CONFIG_DIR: configDir },
+        fetchImpl: vi.fn() as unknown as typeof fetch,
+        stdout: { write: (s: string) => { out.push(s); } },
+        stderr: { write: () => {} },
+        homedir: "/nonexistent-home",
+        platform: "linux",
+        version: "test",
+        // no `stdin`: chat must not block waiting on a TTY that isn't there.
+      };
+      const code = await run(["chat"], deps);
+      expect(code).toBe(0);
+      const combined = out.join("");
+      expect(combined.length).toBeGreaterThan(0);
+      expect(combined).not.toContain(STORED_TOKEN);
+    });
+  });
+
+  describe("runChatTurn", () => {
+    function sseEvent(chunk: unknown): string {
+      return `data: ${JSON.stringify(chunk)}\n\n`;
+    }
+
+    function streamBody(text: string): ReadableStream<Uint8Array> {
+      const encoded = new TextEncoder().encode(text);
+      return new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(encoded);
+          controller.close();
+        },
+      });
+    }
+
+    it("streams text to stdout incrementally, surfaces the tool call, and appends an assistant turn without ever printing the token", async () => {
+      const STORED_TOKEN = "stu_runchatturn_secret_never_leak";
+      const fixture = [
+        sseEvent({ type: "text-delta", id: "t1", delta: "Hola" }),
+        sseEvent({ type: "text-delta", id: "t1", delta: " mundo" }),
+        sseEvent({
+          type: "tool-input-available",
+          toolCallId: "call-1",
+          toolName: "preview_society",
+          input: { prompt: "peluqueria" },
+        }),
+        sseEvent({
+          type: "tool-output-available",
+          toolCallId: "call-1",
+          output: { ok: true, draft: { denominacion: "Turnos SAS" } },
+        }),
+        sseEvent({ type: "finish" }),
+      ].join("");
+
+      const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200, body: streamBody(fixture) } as unknown as Response);
+      const chunks: string[] = [];
+
+      const result = await runChatTurn({
+        baseUrl: "https://studio.example",
+        token: STORED_TOKEN,
+        history: [],
+        userText: "quiero armar una peluqueria",
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: (s: string) => { chunks.push(s); } },
+      });
+
+      expect(chunks.length).toBeGreaterThan(1); // wrote incrementally, not one big blob
+      const combined = chunks.join("");
+      expect(combined).toContain("Hola");
+      expect(combined).toContain("mundo");
+      expect(combined).toContain("preview_society");
+      expect(combined).not.toContain(STORED_TOKEN);
+
+      expect(result.error).toBeNull();
+      expect(result.history).toHaveLength(2);
+      expect(result.history[0]).toEqual({
+        id: "u-0",
+        role: "user",
+        parts: [{ type: "text", text: "quiero armar una peluqueria" }],
+      });
+      expect(result.history[1]).toEqual({
+        id: "a-0",
+        role: "assistant",
+        parts: [{ type: "text", text: "Hola mundo" }],
+      });
+    });
+
+    it("drops the whole turn on an upstream error, leaving history unchanged and valid", async () => {
+      const priorHistory = [
+        { id: "u-0", role: "user" as const, parts: [{ type: "text" as const, text: "hola" }] },
+        { id: "a-0", role: "assistant" as const, parts: [{ type: "text" as const, text: "buenas" }] },
+      ];
+      // A 402 cap response: sendAgentTurn throws before any bytes stream.
+      const fetchImpl = vi.fn().mockResolvedValue(
+        { ok: false, status: 402, json: async () => ({ ok: false, error: "cap" }) } as unknown as Response,
+      );
+      const chunks: string[] = [];
+
+      const result = await runChatTurn({
+        baseUrl: "https://studio.example",
+        token: "stu_err_secret",
+        history: priorHistory,
+        userText: "otra pregunta",
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: (s: string) => { chunks.push(s); } },
+      });
+
+      expect(result.error).toContain("402");
+      // History is unchanged: no empty assistant part appended, no dangling
+      // user turn. The next request stays valid.
+      expect(result.history).toEqual(priorHistory);
+      expect(chunks.join("")).not.toContain("stu_err_secret");
+    });
+
+    it("does not persist an assistant turn when the stream yields no text", async () => {
+      // A stream that finishes with only a tool output and no text-delta.
+      const fixture = [
+        `data: ${JSON.stringify({ type: "tool-input-available", toolCallId: "c1", toolName: "preview_society", input: {} })}\n\n`,
+        `data: ${JSON.stringify({ type: "tool-output-available", toolCallId: "c1", output: { ok: true } })}\n\n`,
+        `data: ${JSON.stringify({ type: "finish" })}\n\n`,
+      ].join("");
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(fixture));
+          controller.close();
+        },
+      });
+      const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200, body } as unknown as Response);
+
+      const result = await runChatTurn({
+        baseUrl: "https://studio.example",
+        token: "stu_notext",
+        history: [],
+        userText: "algo",
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: () => {} },
+      });
+
+      expect(result.error).toBeNull();
+      // No empty-text assistant part persisted.
+      expect(result.history).toEqual([]);
+    });
   });
 });
