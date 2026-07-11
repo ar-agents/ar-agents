@@ -65,9 +65,10 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - note: apps/studio has no i18n layer today; es strings are hardcoded across five components (chat, journey-rail, constitution-card, operation-dashboard, page) and the layout metadata, and making the coach reply in English also edits src/coach/system-prompt.ts, which M1-1 (in-progress) owns. Too large for one run and it would collide with in-progress studio work, so it is decomposed rather than started. The sub-items sit at the milestone bottom per the "new items at the bottom" rule; a human may hoist them above M1-4/M1-8 to keep Spanish-first ahead in execution order.
 
 ### M1-4 Terminal path
-- status: ready
+- status: split (2026-07-11, PR #186; decomposed into M1-4a..M1-4e at the bottom of this milestone)
 - priority: P2
 - acceptance: npx ar-agents (or the existing CLI surface) walks the same journey from a terminal, calling the same APIs.
+- note: the journey's core (POST /api/agent) is a streaming, model-dependent coach loop. A terminal client that walks the whole journey (stream parsing, draft extraction, constitution, operating view) plus a true end-to-end verification needs a live model and a running studio, which is too large and not offline-verifiable in one run. Decomposed rather than started. The sub-items sit at the milestone bottom per the "new items at the bottom" rule; a human may hoist them if terminal parity should run ahead of M1-8.
 
 ### M1-6 Society runtime deploys from studio
 - status: done (2026-07-09, supervised; the dogfood society's agent app deployed to its own Vercel project via studio provisioning. Landmine fixed: the starter uses workspace:* deps so the project buildCommand must build the workspace first. FINDING that reshaped the roadmap into M3: what deploys is a headless dev scaffold with an unconfigured diagnostic homepage, not a founder product, and provisioning did not even inject the real denominacion. See M3.)
@@ -119,6 +120,32 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - status: done (2026-07-09, PR #183; layout.tsx now reads a locale cookie via next/headers and localizes both generateMetadata and the html lang attribute. The language toggle (locale-context.tsx) writes the cookie (name LOCALE_COOKIE_NAME, same value as the localStorage key) on mount-hydrate and on switch. New pure metadataForLocale(locale) helper in i18n.ts plus meta.title/meta.description dictionary entries; test/ui-layout-metadata.test.ts proves the cookie-value to metadata pipeline the layout uses. Reading cookies() makes / server-rendered on demand, which is expected and required for per-request locale.)
 - priority: P2
 - acceptance: apps/studio/src/app/layout.tsx metadata (tab title and description) reflects the selected locale, using generateMetadata reading a locale cookie set by the language toggle. es-AR default; en when selected. Discovered during M1-3c (PR #169): a client-side toggle cannot drive a static Metadata export, so the metadata was left as its existing bilingual copy.
+
+### M1-4a CLI package skeleton, account bootstrap and config
+- status: ready
+- priority: P2
+- acceptance: a new CLI package (proposal: @ar-agents/cli with a bin named ar-agents) provides `ar-agents login` and `ar-agents whoami`. login either creates a fresh anonymous account (POST /api/account) or accepts an existing token, persisting STUDIO_URL plus the token to a config file under the OS config dir; the token is never logged. whoami calls GET /api/account and prints profile, usage, and cap. Offline-verifiable: unit tests for the config read/write round-trip and an account client with a fetch mock; `--help`, build, and typecheck green. No live model needed.
+- note: the M1-4 acceptance's bare `npx ar-agents` needs an unscoped `ar-agents` npm name, a publish and naming decision deferred to M1-4e and the owner. The scoped `npx @ar-agents/cli` works without that decision.
+
+### M1-4b Terminal coach conversation
+- status: blocked (depends on M1-4a)
+- priority: P2
+- acceptance: `ar-agents chat` streams the AI SDK v7 UI-message response from POST /api/agent, rendering assistant text incrementally and surfacing tool calls (notably preview_society drafts) in the terminal, keeping message history across turns and threading the account token. Offline-verifiable: a pure UI-message-stream parser unit-tested against recorded stream fixtures (assistant text deltas plus a preview_society tool result); the live model is exercised only in M1-4e.
+
+### M1-4c Draft confirmation and constitution from the terminal
+- status: blocked (depends on M1-4b)
+- priority: P2
+- acceptance: `ar-agents constitute` takes the draft surfaced by chat, collects administrador nombre and cuit plus an explicit acepta102 confirmation, POSTs /api/society/constitute against a non-production target, and prints the returned credentials once with a self-custody warning. It refuses without an explicit confirmation. Offline-verifiable: unit tests for the request builder, the confirmation gate, and the one-society 409 path with a fetch mock.
+
+### M1-4d Operating view from the terminal
+- status: blocked (depends on M1-4a)
+- priority: P2
+- acceptance: `ar-agents society` and `ar-agents activity` render GET /api/society and GET /api/society/activity (deploy health, pending approvals, recent signed-audit actions) in the terminal, and `ar-agents suspend` and `ar-agents resume` drive POST /api/society/suspend behind a confirmation. Offline-verifiable with fetch mocks; mirrors the cockpit the dashboard already shows.
+
+### M1-4e End-to-end terminal journey verification closes M1-4
+- status: blocked (depends on M1-4a, M1-4b, M1-4c, M1-4d)
+- priority: P2
+- acceptance: a scripted or live run drives login to chat to constitute to society and activity against a non-production target, proving the terminal walks the same journey as the UI and calls the same APIs, satisfying M1-4's original acceptance. On green, mark M1-4 done. Publishing `ar-agents` to npm so that bare `npx ar-agents` resolves is a release and naming decision escalated to the owner.
 
 ## M2: Operate for real
 
