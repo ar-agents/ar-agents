@@ -92,7 +92,12 @@ const TIER_SPECS: Record<ModelTier, TierSpec> = {
   coach: {
     requiredEnv: "OPENROUTER_API_KEY",
     overrideEnv: "STUDIO_COACH_MODEL",
-    defaultModelId: "nvidia/nemotron-3-nano-30b-a3b:free",
+    // M1-8 (2026-07-12): ultra is the first coach model to pass the live
+    // eval gate (mean 3.83 vs the 3.5 gate, all deterministic checks green).
+    // super-120b hit 3.50 on the same run day but violated language
+    // mirroring and skipped a required draft. A STUDIO_COACH_MODEL env pin
+    // still wins over this default (prod must drop or update its pin).
+    defaultModelId: "nvidia/nemotron-3-ultra-550b-a55b:free",
     provider: "openrouter",
   },
   build: {
