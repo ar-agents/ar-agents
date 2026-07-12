@@ -31,7 +31,8 @@ describe("resolveModel: per-tier key gating", () => {
     process.env.OPENROUTER_API_KEY = "or-key";
     const r = resolveModel("coach");
     expect(r?.tier).toBe("coach");
-    expect(r?.modelId).toBe("nvidia/nemotron-3-nano-30b-a3b:free");
+    // The M1-8 gate-passing coach model (see src/lib/models.ts TIER_SPECS).
+    expect(r?.modelId).toBe("nvidia/nemotron-3-ultra-550b-a55b:free");
     expect(r?.pricing).toEqual({ inputMicroUsdPerToken: 0, outputMicroUsdPerToken: 0 });
   });
 
