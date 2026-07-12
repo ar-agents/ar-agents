@@ -1,9 +1,11 @@
 /**
- * The agent loop. One Experimental_Agent that composes 8 packages from
+ * The agent loop. One Experimental_Agent that composes 10 packages from
  * the @ar-agents/* toolkit, plus `registrar_decision` (see
  * `./decision-tool`, needs no client) and the central audit wrapper (see
  * `./audit-middleware`) that makes every tool call above land in the
- * signed audit log (ROADMAP.md M3-4 / M3-5).
+ * signed audit log (ROADMAP.md M3-4 / M3-5). Both money-moving legs
+ * (wallet-cdp's crypto transfer, treasury's fiat off-ramp) share one
+ * structured audit schema — ROADMAP.md M2-4c, see ./money-audit-summarizers.
  *
  * Wired tools (always available, fall back to unconfigured shims when
  * env vars are missing):
@@ -16,6 +18,8 @@
  *   - igj              · public corporate registry
  *   - boletin-oficial  · norma search + monitoring
  *   - gde-tad          · DEC inbox + IGJ pre-flight + Mis Trámites
+ *   - treasury         · fiscal calculators + USDC->ARS off-ramp (fiat leg)
+ *   - wallet-cdp       · society USDC wallet on Coinbase CDP (crypto leg)
  *   - registrar_decision · records a business decision, no client needed
  */
 
@@ -35,6 +39,7 @@ import {
 import { gdeTadTools } from "@ar-agents/gde-tad";
 import { treasuryTools, treasurySideEffectsFor } from "@ar-agents/treasury/tools";
 import { withOffRampIdempotency } from "@ar-agents/treasury";
+import { walletCdpTools, walletCdpSideEffectsFor } from "@ar-agents/wallet-cdp/tools";
 
 import {
   getMpClient,
@@ -42,11 +47,26 @@ import {
   getWsfeClient,
   getAfipPadronAdapter,
   getOffRamp,
+  getCdpWallet,
 } from "./clients";
 import { applyToAllTools, enforceRiskPolicy } from "@ar-agents/core";
 import { approve, isHalted } from "./governance";
 import { decisionTools } from "./decision-tool";
 import { withLocalAudit } from "./audit-middleware";
+import { MONEY_AUDIT_SUMMARIZERS } from "./money-audit-summarizers";
+
+/** Atomic USDC units (6 decimals) at/above which wallet-cdp's
+ *  `guardedTransferUsdc` consults the approvals gate. Default: 10 USDC.
+ *  Below it CDP's own server-side policy (attached out-of-band via
+ *  `applySpendPolicy`) is still the backstop. ROADMAP.md M2-4b/c. */
+const DEFAULT_WALLET_APPROVAL_THRESHOLD_ATOMIC = "10000000";
+
+/** Combines this app's two money-moving packages' own sideEffects hooks, so
+ *  `enforceRiskPolicy` classifies both correctly (see ROADMAP.md M2-4b's
+ *  wallet-cdp and M2-4's treasury). Neither package's tool names overlap. */
+function sideEffectsFor(toolName: string): string | undefined {
+  return treasurySideEffectsFor(toolName) ?? walletCdpSideEffectsFor(toolName);
+}
 
 const SYSTEM_PROMPT = `Sos el agente operador de una sociedad-IA argentina.
 Operás bajo el marco de RFC-001 (https://ar-agents.ar/rfcs/001):
@@ -97,6 +117,11 @@ export async function buildTools(): Promise<ToolSet> {
   // run; inject a durable KV store for cross-instance idempotency in production.
   const rawOfframp = getOffRamp();
   const offramp = rawOfframp ? withOffRampIdempotency(rawOfframp) : undefined;
+  // The society's CDP USDC wallet (ROADMAP.md M2-4c: wires wallet-cdp's
+  // guarded transfer into the agent loop, M2-4b's follow-up). undefined
+  // when SOCIETY_ID or CDP_API_KEY_ID/CDP_API_KEY_SECRET/CDP_WALLET_SECRET
+  // are unset — the tool then degrades to {available:false}. See ./clients.
+  const cdpAccount = await getCdpWallet();
 
   // enforceRiskPolicy is the central art. 102 gate: high-stakes tools defer to
   // an async human approval (queue at ar-agents.ar), a suspended society halts
@@ -116,6 +141,17 @@ export async function buildTools(): Promise<ToolSet> {
       // Treasury: pure fiscal calculators + the USDC->ARS off-ramp. The off-ramp
       // convert is IRREVERSIBLE and gated by enforceRiskPolicy below.
       ...treasuryTools({ offramp }),
+      // Wallet: USDC transfer, two-layer gated (approvals threshold here +
+      // CDP's own server-side policy). IRREVERSIBLE, gated by enforceRiskPolicy
+      // below same as the off-ramp. ROADMAP.md M2-4b/c.
+      ...walletCdpTools({
+        ...(cdpAccount ? { account: cdpAccount } : {}),
+        thresholdAtomic:
+          process.env.WALLET_CDP_APPROVAL_THRESHOLD_ATOMIC?.trim() ||
+          DEFAULT_WALLET_APPROVAL_THRESHOLD_ATOMIC,
+        approve,
+        ...(process.env.CDP_NETWORK?.trim() ? { network: process.env.CDP_NETWORK.trim() } : {}),
+      }),
       // The dogfood "one real, visible task" (ROADMAP.md M3-4): needs no
       // client, always available. See ./decision-tool.
       ...decisionTools(),
@@ -130,14 +166,17 @@ export async function buildTools(): Promise<ToolSet> {
         : {}),
       ...(wa ? whatsappTools(wa) : {}),
     },
-    { approve, isHalted, sideEffectsFor: treasurySideEffectsFor },
+    { approve, isHalted, sideEffectsFor },
   );
 
   // Outermost: audits every call, including one enforceRiskPolicy refused
   // (a denied/halted attempt is part of the operating history too). See
   // ./audit-middleware for why this is one wrapper, not per-tool code.
+  // ROADMAP.md M2-4c: money-moving tools get a structured, cross-leg summary
+  // via MONEY_AUDIT_SUMMARIZERS instead of the generic line — see
+  // ./money-audit-summarizers.
   return applyToAllTools(riskGated, (name) =>
-    withLocalAudit(name, { sideEffectsFor: treasurySideEffectsFor }),
+    withLocalAudit(name, { sideEffectsFor, moneySummarizers: MONEY_AUDIT_SUMMARIZERS }),
   );
 }
 

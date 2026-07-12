@@ -23,6 +23,7 @@ import {
   RIPIO_PROD,
   type OffRampAdapter,
 } from "@ar-agents/treasury";
+import { createCdpClient, createSocietyWallet, type CdpAccountLike } from "@ar-agents/wallet-cdp";
 import { resolveServiceToken } from "./connect";
 
 const have = (key: string): string | null => {
@@ -161,9 +162,57 @@ export function getOffRamp(): OffRampAdapter | undefined {
   return undefined;
 }
 
+let _cdpAccountPromise: Promise<CdpAccountLike | undefined> | null = null;
+
+/**
+ * The society's CDP USDC wallet (ROADMAP.md M2-4c: wire `wallet_transfer_usdc`
+ * into the starter, the natural completion of M2-4b's `@ar-agents/wallet-cdp`).
+ * Needs `SOCIETY_ID` (the account name is deterministic from it, so a retried
+ * provisioning call reuses the SAME account) plus `CDP_API_KEY_ID` /
+ * `CDP_API_KEY_SECRET` / `CDP_WALLET_SECRET`. Returns undefined — never
+ * throws — when any of those are missing, or when CDP itself is unreachable,
+ * so a society with no wallet configured degrades to the tool's own
+ * `{available:false}`, same posture as every other optional client here.
+ *
+ * Deliberately does NOT call `applySpendPolicy` here: attaching the CALLDATA
+ * spend policy is a one-time PROVISIONING step (recipient allowlist + cap are
+ * decided once, not re-derived from request-time env on every cold start),
+ * not a per-request concern of the agent loop. A society without a policy
+ * already attached out-of-band still gets `guardedTransferUsdc`'s approvals-
+ * gate layer, just not CDP's own server-side layer — see ROADMAP.md M2-4c's
+ * follow-ups for wiring that provisioning step.
+ *
+ * Memoized as a promise (not a value) because provisioning is a network call;
+ * caching the promise means concurrent callers in the same isolate share one
+ * in-flight request instead of provisioning twice.
+ */
+export async function getCdpWallet(): Promise<CdpAccountLike | undefined> {
+  if (_cdpAccountPromise) return _cdpAccountPromise;
+  const societyId = have("SOCIETY_ID");
+  const hasCdpEnv = have("CDP_API_KEY_ID") && have("CDP_API_KEY_SECRET") && have("CDP_WALLET_SECRET");
+  if (!societyId || !hasCdpEnv) {
+    _cdpAccountPromise = Promise.resolve(undefined);
+    return _cdpAccountPromise;
+  }
+  _cdpAccountPromise = (async () => {
+    try {
+      const cdp = await createCdpClient();
+      return await createSocietyWallet(cdp, societyId);
+    } catch {
+      return undefined; // fail closed to "no wallet configured", never throw into buildTools()
+    }
+  })();
+  return _cdpAccountPromise;
+}
+
+/** Test-only: reset the memoized CDP wallet promise between tests. */
+export function __resetCdpWalletForTests(): void {
+  _cdpAccountPromise = null;
+}
+
 /** Diagnostic: reports which clients are wired vs. missing config. */
 export function clientStatus(): Record<
-  "mercadopago" | "whatsapp" | "wsfe" | "afip-padron" | "treasury-offramp",
+  "mercadopago" | "whatsapp" | "wsfe" | "afip-padron" | "treasury-offramp" | "wallet-cdp",
   "wired" | "missing-env"
 > {
   return {
@@ -195,6 +244,10 @@ export function clientStatus(): Record<
         have("RIPIO_CUSTOMER_ID") &&
         have("RIPIO_FIAT_ACCOUNT_ID")) ||
       (have("MANTECA_API_KEY") && have("MANTECA_USER_ID") && have("MANTECA_BANK_ACCOUNT_ID"))
+        ? "wired"
+        : "missing-env",
+    "wallet-cdp":
+      have("SOCIETY_ID") && have("CDP_API_KEY_ID") && have("CDP_API_KEY_SECRET") && have("CDP_WALLET_SECRET")
         ? "wired"
         : "missing-env",
   };
