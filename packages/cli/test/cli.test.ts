@@ -1,4 +1,4 @@
-import { mkdtempSync, rmSync } from "node:fs";
+import { mkdtempSync, rmSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
@@ -239,6 +239,146 @@ describe("run()", () => {
       const combined = out.join("");
       expect(combined.length).toBeGreaterThan(0);
       expect(combined).not.toContain(STORED_TOKEN);
+    });
+  });
+
+  describe("constitute", () => {
+    const DRAFT = {
+      denominacion: "Sociedad Ejemplo",
+      tipo: "SAS",
+      capitalSocial: 100000,
+      objeto: "Desarrollo de software y servicios informaticos en general.",
+    };
+
+    function writeDraftFile(): string {
+      const path = join(configDir, "draft.json");
+      writeFileSync(path, JSON.stringify(DRAFT));
+      return path;
+    }
+
+    function depsWithSession(fetchImpl: ReturnType<typeof vi.fn>, out: string[], err: string[]): RunDeps {
+      return {
+        env: { AR_AGENTS_CONFIG_DIR: configDir },
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: (s: string) => { out.push(s); } },
+        stderr: { write: (s: string) => { err.push(s); } },
+        homedir: "/nonexistent-home",
+        platform: "linux",
+        version: "test",
+      };
+    }
+
+    it("with no stored config returns 1 and mentions login", async () => {
+      const err: string[] = [];
+      const fetchImpl = vi.fn();
+      const deps = depsWithSession(fetchImpl, [], err);
+      const draftPath = writeDraftFile();
+
+      const code = await run(
+        ["constitute", "--draft", draftPath, "--nombre", "Juan Perez", "--cuit", "20-12345678-6", "--acepta-102"],
+        deps,
+      );
+      expect(code).toBe(1);
+      expect(err.join("")).toContain("login");
+      expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it("without --acepta-102 refuses, prints a confirmation message, and never calls fetch", async () => {
+      const { writeConfig } = await import("../src/config");
+      writeConfig(configDir, { studioUrl: "https://studio.example", token: "stu_gate", accountId: "acc_gate" });
+
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn();
+      const deps = depsWithSession(fetchImpl, out, err);
+      const draftPath = writeDraftFile();
+
+      const code = await run(
+        ["constitute", "--draft", draftPath, "--nombre", "Juan Perez", "--cuit", "20-12345678-6"],
+        deps,
+      );
+      expect(code).toBe(1);
+      expect(err.join("")).toContain("art. 102");
+      expect(err.join("")).toContain("--acepta-102");
+      expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it("on a 409 ya_tiene_sociedad response returns 1 and prints the message", async () => {
+      const { writeConfig } = await import("../src/config");
+      writeConfig(configDir, { studioUrl: "https://studio.example", token: "stu_409", accountId: "acc_409" });
+
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(
+        fakeResponse(409, {
+          ok: false,
+          error: "ya_tiene_sociedad",
+          message: "Esta cuenta ya tiene una sociedad constituida.",
+        }),
+      );
+      const deps = depsWithSession(fetchImpl, out, err);
+      const draftPath = writeDraftFile();
+
+      const code = await run(
+        ["constitute", "--draft", draftPath, "--nombre", "Juan Perez", "--cuit", "20-12345678-6", "--acepta-102"],
+        deps,
+      );
+      expect(code).toBe(1);
+      expect(err.join("")).toContain("ya tiene una sociedad");
+      expect(fetchImpl).toHaveBeenCalledTimes(1);
+    });
+
+    it("on success prints the denominacion, both tokens, and a self-custody warning, and never leaks the session token", async () => {
+      const STORED_TOKEN = "stu_constitute_secret_never_leak";
+      const { writeConfig } = await import("../src/config");
+      writeConfig(configDir, { studioUrl: "https://studio.example", token: STORED_TOKEN, accountId: "acc_ok" });
+
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(
+        fakeResponse(200, {
+          ok: true,
+          society: { denominacion: "Sociedad Ejemplo", tipo: "SAS", registryId: "reg_1" },
+          credentials: { adminToken: "admin_tok_xyz", gateToken: "gate_tok_xyz" },
+        }),
+      );
+      const deps = depsWithSession(fetchImpl, out, err);
+      const draftPath = writeDraftFile();
+
+      // No --url flag: proves the command targets the stored config.studioUrl
+      // (the studio the session token was minted against), not the production
+      // default.
+      const code = await run(
+        [
+          "constitute",
+          "--draft",
+          draftPath,
+          "--nombre",
+          "Juan Perez",
+          "--cuit",
+          "20-12345678-6",
+          "--acepta-102",
+        ],
+        deps,
+      );
+      expect(code).toBe(0);
+      const combined = out.join("");
+      expect(combined).toContain("Sociedad Ejemplo");
+      expect(combined).toContain("admin_tok_xyz");
+      expect(combined).toContain("gate_tok_xyz");
+      expect(combined).toContain("No se muestran de nuevo");
+      expect(combined).not.toContain(STORED_TOKEN);
+
+      // The request targeted the stored studioUrl and carried the session
+      // token in the x-studio-token header, acepta102: true, and the parsed
+      // draft/administrador.
+      const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("https://studio.example/api/society/constitute");
+      expect((init.headers as Record<string, string>)["x-studio-token"]).toBe(STORED_TOKEN);
+      const body = JSON.parse(init.body as string);
+      expect(body.acepta102).toBe(true);
+      expect(body.administrador).toEqual({ nombre: "Juan Perez", cuit: "20-12345678-6" });
+      expect(body.draft).toEqual(DRAFT);
     });
   });
 
