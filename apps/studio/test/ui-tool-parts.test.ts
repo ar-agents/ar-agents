@@ -3,6 +3,7 @@ import {
   collectToolParts,
   isToolPending,
   latestToolOutput,
+  latestToolPart,
   toolPartName,
   type MinimalUIMessage,
 } from "../src/lib/ui/tool-parts";
@@ -84,6 +85,32 @@ describe("latestToolOutput", () => {
 
   it("returns undefined for a tool never called", () => {
     expect(latestToolOutput(messages, "my_society")).toBeUndefined();
+  });
+});
+
+describe("latestToolPart", () => {
+  it("returns the whole part (not just its output) for the most recent completed call", () => {
+    const part = latestToolPart(messages, "preview_society");
+    expect(part).not.toBeNull();
+    expect((part as { output?: unknown })?.output).toEqual({
+      draft: { denominacion: "Kiosco SAS v2" },
+    });
+    // Same object reference as the part in message m3 -- callers (e.g. the
+    // chat UI) rely on this to render exactly once, on the latest draft.
+    expect(part).toBe(messages[2].parts[0]);
+  });
+
+  it("returns null for a tool that never completed", () => {
+    expect(latestToolPart(messages, "good_standing")).toBeNull();
+  });
+
+  it("returns null for a tool never called", () => {
+    expect(latestToolPart(messages, "my_society")).toBeNull();
+  });
+
+  it("agrees with latestToolOutput's output for the same tool", () => {
+    const part = latestToolPart(messages, "preview_society") as { output?: unknown } | null;
+    expect(part?.output).toEqual(latestToolOutput(messages, "preview_society"));
   });
 });
 

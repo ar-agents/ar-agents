@@ -321,12 +321,32 @@ describe("generateReadme()", () => {
 });
 
 describe("generateChecklist()", () => {
-  it("returns 8 ordered steps", () => {
+  // Founder-facing checklist (ROADMAP.md M1-5 friction log, found live
+  // 2026-07-12): studio deploys with one click and configures credentials
+  // through a validated wizard, so this must never send a non-technical
+  // founder to run `npx degit`, import a repo to vercel.com/new, or paste
+  // values into Vercel's Environment Variables screen by hand.
+  it("opens with constituting, then the one-click deploy, then the credentials panel", () => {
     const steps = generateChecklist(Body.parse(baseInput));
-    expect(steps).toHaveLength(8);
-    // Step 1 references the slug (acme-ai-sas), not the denominación.
-    expect(steps[0]).toContain("acme-ai-sas");
-    expect(steps[0]).toContain("npx degit");
+    expect(steps[0]).toContain("Constituí");
+    expect(steps[1]).toMatch(/un click/);
+    expect(steps[2]).toMatch(/panel.*[Cc]redenciales/);
+  });
+  it("never tells a founder to do manual devops the product already automates", () => {
+    const steps = generateChecklist(Body.parse(baseInput));
+    const joined = steps.join(" ");
+    expect(joined).not.toMatch(/npx degit/);
+    expect(joined).not.toMatch(/vercel\.com\/new/);
+    expect(joined).not.toMatch(/Environment Variables/);
+    expect(joined).not.toMatch(/\.env\b/);
+  });
+  it("keeps the genuinely-manual external steps (AFIP/MP/WhatsApp), framed as inputs to the credentials wizard", () => {
+    const steps = generateChecklist(Body.parse(baseInput));
+    const joined = steps.join(" ");
+    expect(joined).toContain("developers.mercadopago.com");
+    expect(joined).toContain("ARCA");
+    expect(joined).toContain("Meta Business Manager");
+    expect(joined).toMatch(/panel de Credenciales/);
   });
   it("differentiates SOCIEDAD-IA legal step", () => {
     const steps = generateChecklist(

@@ -48,16 +48,28 @@ export function collectToolParts(messages: MinimalUIMessage[]): ToolPartMatch[] 
   return out;
 }
 
+/** The most recent successful (`output-available`) part for a named tool, or
+ *  null if it was never called or never completed. Returns the whole part
+ *  (not just its output) so a caller can compare it by reference -- e.g. the
+ *  chat UI uses this to render the ConstitutionCard exactly once, on the
+ *  latest preview_society part, instead of once per historical draft. */
+export function latestToolPart(
+  messages: MinimalUIMessage[],
+  toolName: string,
+): MinimalToolPart | null {
+  const matches = collectToolParts(messages).filter(
+    (m) => m.name === toolName && m.part.state === "output-available",
+  );
+  return matches.length > 0 ? matches[matches.length - 1].part : null;
+}
+
 /** The most recent successful (`output-available`) result for a named tool,
  *  or undefined if it was never called or never completed. */
 export function latestToolOutput(
   messages: MinimalUIMessage[],
   toolName: string,
 ): unknown | undefined {
-  const matches = collectToolParts(messages).filter(
-    (m) => m.name === toolName && m.part.state === "output-available",
-  );
-  return matches.length > 0 ? matches[matches.length - 1].part.output : undefined;
+  return latestToolPart(messages, toolName)?.output;
 }
 
 /** Whether the named tool is currently mid-call anywhere in the conversation
