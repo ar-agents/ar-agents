@@ -24,9 +24,20 @@
 /** Which side of the crypto<->fiat bridge produced this event. */
 export type MoneyAuditLeg = "crypto" | "fiat";
 
-/** The two money-moving operations this schema currently covers. Extend as
- *  new operations (e.g. a future ARS-in top-up) get audited the same way. */
-export type MoneyAuditKind = "transfer" | "offramp_convert";
+/** The money-moving/observing operations this schema currently covers.
+ *  Extend as new operations (e.g. a future ARS-in top-up, ROADMAP.md M2-4f)
+ *  get audited the same way.
+ *
+ *  `"deposit"` (ROADMAP.md M2-4d): an OBSERVED balance increase on the
+ *  society's own wallet -- e.g. an owner's manual USDC top-up -- not an
+ *  action the agent itself took. Unlike `"transfer"`/`"offramp_convert"`,
+ *  there is no counterparty/recipient to record (the wallet received funds,
+ *  it did not send them), and `outcome` is always `"executed"`: the deposit
+ *  already happened on-chain by the time it is detected. See
+ *  `@ar-agents/wallet-cdp`'s `checkBalanceAndDetectTopUp` for the v0
+ *  detection semantics (an aggregated delta between two balance checks, not
+ *  per-transaction attribution). */
+export type MoneyAuditKind = "transfer" | "offramp_convert" | "deposit";
 
 /**
  * Cross-leg outcome taxonomy. Deliberately wider than either single leg's
@@ -102,8 +113,17 @@ function formatAtomic(amountAtomic: string, decimals: number): string {
 function formatCryptoLeg(e: MoneyAuditEvent): string {
   const amountStr =
     e.amountAtomic !== undefined ? formatAtomic(e.amountAtomic, e.decimals ?? 6) : String(e.amount ?? "?");
-  const to = e.counterparty ? truncateMiddle(e.counterparty, 6, 4) : "destinatario desconocido";
-  let s = `${e.asset} ${amountStr} -> ${to}`;
+  // A deposit is INCOMING (the wallet received funds, it did not send them
+  // to a counterparty) -- "amount -> destinatario desconocido" would be
+  // backwards and misleading, so this kind gets its own, direction-honest
+  // phrasing instead of the transfer/offramp "-> recipient" line below.
+  let s: string;
+  if (e.kind === "deposit") {
+    s = `${e.asset} ${amountStr} recibido en la wallet`;
+  } else {
+    const to = e.counterparty ? truncateMiddle(e.counterparty, 6, 4) : "destinatario desconocido";
+    s = `${e.asset} ${amountStr} -> ${to}`;
+  }
   if (e.provider) s += ` (${e.provider})`;
   s += ` ${OUTCOME_ES[e.outcome]}`;
   if (e.ref) s += `, tx ${truncateMiddle(e.ref, 8, 6)}`;

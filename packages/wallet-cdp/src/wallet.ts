@@ -26,6 +26,16 @@ export interface CdpTransferResult {
 export interface CdpAccountLike {
   address: string;
   transfer(args: { to: string; amount: string; token: string; network: string }): Promise<CdpTransferResult>;
+  /**
+   * Optional: the real SDK's account also exposes `listTokenBalances`
+   * (confirmed live by the M2-4a spike, docs/research/spikes/wallet-provider/
+   * coinbase-spike.mjs). Declared optional here so a caller that only needs
+   * `transfer` (the common case for most of this package) is never forced to
+   * mock a method it never calls; ./balance.ts's `getUsdcBalanceAtomic`
+   * narrows to the concrete `CdpAccountWithBalance` shape at the one call
+   * site that actually needs it.
+   */
+  listTokenBalances?(args: { network: string }): Promise<unknown>;
 }
 
 export interface CdpPolicyHandle {

@@ -6,6 +6,10 @@
   "factory": "walletCdpTools",
   "tools": [
     {
+      "name": "wallet_check_balance",
+      "description": "Read the society's current USDC balance on Base and report whether it went UP since the last check (a 'deposit detected' signal -- e.g. the owner sent a manual top-up). Read-only, no side effects, alw"
+    },
+    {
       "name": "wallet_transfer_usdc",
       "description": "EXECUTE a USDC transfer from the society's CDP wallet (Base). IRREVERSIBLE -- moves real money. Two independent layers can block this: (1) above the configured threshold, an ar-agents human-approval d",
       "input": {
@@ -25,6 +29,6 @@
   ],
   "meta": {
     "generated_by": "scripts/regen-manifests.mjs",
-    "tool_count": 1
+    "tool_count": 2
   }
 }

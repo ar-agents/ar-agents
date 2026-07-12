@@ -10,14 +10,15 @@
  *
  * Every field beyond client wiring (`clientStatus()`, the exact source
  * page.tsx's diagnostic homepage already uses) degrades independently: see
- * `lib/status.ts` for why each of kill-switch / approvals / audit can be
- * `available: false` on its own without failing this response.
+ * `lib/status.ts` for why each of kill-switch / approvals / audit / treasury
+ * (ROADMAP.md M2-4d: wallet address + USDC balance) can be `available: false`
+ * on its own without failing this response.
  */
 
 import { NextResponse } from "next/server";
 import { clientIp, guardResponse, rateLimit, requireStatusToken } from "@/lib/guard";
 import { clientStatus } from "@/lib/clients";
-import { fetchApprovalsStatus, fetchAuditStatus, fetchKillSwitchStatus } from "@/lib/status";
+import { fetchApprovalsStatus, fetchAuditStatus, fetchKillSwitchStatus, fetchTreasuryStatus } from "@/lib/status";
 import pkg from "../../../../package.json";
 
 export const runtime = "nodejs";
@@ -36,10 +37,11 @@ export async function GET(req: Request) {
     );
   }
 
-  const [killSwitch, approvals, audit] = await Promise.all([
+  const [killSwitch, approvals, audit, treasury] = await Promise.all([
     fetchKillSwitchStatus(),
     fetchApprovalsStatus(),
     fetchAuditStatus(),
+    fetchTreasuryStatus(),
   ]);
 
   return NextResponse.json({
@@ -51,5 +53,6 @@ export async function GET(req: Request) {
     killSwitch,
     approvals,
     audit,
+    treasury,
   });
 }

@@ -64,3 +64,21 @@ export {
 } from "./guard";
 
 export { WalletCdpPolicyDeniedError, WalletCdpUpstreamError, classifyCdpError } from "./errors";
+
+// Balance read + v0 top-up detection (ROADMAP.md M2-4d). See ./balance.ts's
+// module header for the honest "aggregated delta, no per-tx attribution"
+// limitation.
+export {
+  type CdpAccountWithBalance,
+  type GetUsdcBalanceOptions,
+  type BalanceDirection,
+  type BalanceDelta,
+  type LastBalanceStore,
+  type CheckBalanceOptions,
+  type CheckBalanceResult,
+  parseUsdcBalanceAtomic,
+  getUsdcBalanceAtomic,
+  detectBalanceChange,
+  InMemoryLastBalanceStore,
+  checkBalanceAndDetectTopUp,
+} from "./balance";
