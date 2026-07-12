@@ -1,7 +1,41 @@
 {
   "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
   "package": "@ar-agents/ap2",
-  "version": "0.2.0",
+  "version": "0.3.0",
   "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
-  "tools": []
+  "tools": [
+    {
+      "name": "build_checkout_receipt",
+      "description": "Sign and return a CheckoutReceipt JWT after a successful checkout. USE THIS WHEN: you've verified a closed checkout mandate and the merchant is ready to confirm. Pass `sdHash` (from `verify_closed_che"
+    },
+    {
+      "name": "build_payment_receipt",
+      "description": "Sign and return a PaymentReceipt JWT after a successful payment. USE THIS WHEN: an MPP / network has authorized the payment. Pass `sdHash` (from `verify_closed_payment_mandate`), `paymentId` (your pro"
+    },
+    {
+      "name": "compute_checkout_hash",
+      "description": "Compute the canonical `checkout_hash` of an inner `checkout_jwt` per AP2 §A.1: `base64url(sha-256(checkout_jwt))`. USE THIS WHEN: you're issuing a closed checkout mandate and need to fill in `checkout"
+    },
+    {
+      "name": "inspect_mandate",
+      "description": "Decode an SD-JWT VC compact serialization WITHOUT verifying any signature. USE THIS WHEN: debugging a malformed mandate, displaying the mandate tree to a developer, or pre-flight inspecting before dec"
+    },
+    {
+      "name": "verify_closed_checkout_mandate",
+      "description": "Verify a Closed Checkout Mandate (`vct: 'mandate.checkout.1'`) presented as a single-hop SD-JWT VC compact serialization. USE THIS WHEN: a merchant or facilitator has just received an AP2 closed check"
+    },
+    {
+      "name": "verify_closed_payment_mandate",
+      "description": "Verify a Closed Payment Mandate (`vct: 'mandate.payment.1'`) and assert that its `transaction_id` equals the `expectedTransactionId` you pass — typically the linked Closed Checkout Mandate's `checkout"
+    },
+    {
+      "name": "verify_dsd_jwt_chain",
+      "description": "Verify a multi-hop dSD-JWT chain (root + intermediate hops + terminal hop, `~~`-separated). USE THIS WHEN: the mandate is from a Trusted Agent Provider model where root is signed by the provider, inte"
+    }
+  ],
+  "name": "@ar-agents/ap2",
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 7
+  }
 }

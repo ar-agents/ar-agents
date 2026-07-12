@@ -1,8 +1,9 @@
 #!/usr/bin/env node
 /**
  * Regenerate `tools.manifest.json` for every package by parsing the package's
- * `src/tools.ts` for tool names and pulling descriptions from the
- * `DEFAULT_DESCRIPTIONS` constant when present.
+ * `src/tools.ts` (or `src/ai-sdk.ts` for packages that expose their tools as
+ * an AI SDK wrapper, e.g. mercadolibre and ap2) for tool names and pulling
+ * descriptions from the `DEFAULT_DESCRIPTIONS` constant when present.
  *
  * Usage: `node scripts/regen-manifests.mjs`
  *
@@ -34,7 +35,10 @@ let skipped = 0;
 for (const pkg of packages) {
   const pkgDir = join(root, "packages", pkg);
   const pkgJsonPath = join(pkgDir, "package.json");
-  const toolsPath = join(pkgDir, "src", "tools.ts");
+  // Packages without src/tools.ts may define their tool set in src/ai-sdk.ts
+  // (mercadolibre, ap2). Same `name: tool({...})` + DEFAULT_DESCRIPTIONS shape.
+  const toolsPath = [join(pkgDir, "src", "tools.ts"), join(pkgDir, "src", "ai-sdk.ts")]
+    .find((p) => existsSync(p));
   const manifestPath = join(pkgDir, "tools.manifest.json");
 
   if (!existsSync(manifestPath)) {
@@ -42,8 +46,8 @@ for (const pkg of packages) {
     skipped++;
     continue;
   }
-  if (!existsSync(toolsPath)) {
-    console.log(`  ${pkg}: NO src/tools.ts — skipping`);
+  if (!toolsPath) {
+    console.log(`  ${pkg}: NO src/tools.ts or src/ai-sdk.ts — skipping`);
     skipped++;
     continue;
   }
