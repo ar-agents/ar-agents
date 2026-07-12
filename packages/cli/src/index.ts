@@ -7,8 +7,10 @@
 // needs a real TTY to run end to end; the turn logic it wraps
 // (`runChatTurn`) is exported and unit-tested without one.
 
+import { readFileSync } from "node:fs";
 import { createAccount, getAccount, AccountClientError } from "./account-client.js";
 import { sendAgentTurn, AgentClientError } from "./agent-client.js";
+import { constituteSociety, ConstituteClientError } from "./constitute-client.js";
 import { readConfig, resolveConfigDir, writeConfig } from "./config.js";
 import { appendAssistantTurn, appendUserTurn, type UiMessage } from "./messages.js";
 
@@ -35,6 +37,8 @@ Uso:
   ar-agents login [--token <token>] [--url <url>]   Inicia sesion (o crea una cuenta anonima nueva)
   ar-agents whoami                                    Muestra la cuenta activa, uso y estado de la sociedad
   ar-agents chat                                      Charla con el coach de ar-agents (requiere sesion iniciada)
+  ar-agents constitute --draft <archivo> --nombre <nombre> --cuit <cuit> --acepta-102 [--url <url>]
+                                                       Constituye la sociedad a partir del borrador (requiere sesion iniciada)
   ar-agents help                                      Muestra esta ayuda
   ar-agents version                                    Muestra la version instalada
 
@@ -271,6 +275,84 @@ async function runChat(deps: RunDeps): Promise<number> {
   return 0;
 }
 
+/** `ar-agents constitute`: takes the draft surfaced by `chat`'s
+ *  `preview_society` tool, collects administrador nombre and cuit plus an
+ *  explicit `--acepta-102` confirmation, and POSTs it to
+ *  /api/society/constitute. This is irreversible, so the confirmation gate
+ *  runs before anything else in this function, including reading the draft
+ *  file: no confirmation, no fetch. */
+async function runConstitute(argv: string[], deps: RunDeps): Promise<number> {
+  const configDir = resolveConfigDir(deps);
+  const config = readConfig(configDir);
+  if (!config) {
+    deps.stderr.write("No hay sesion. Corre: ar-agents login\n");
+    return 1;
+  }
+
+  const acepta102 = argv.includes("--acepta-102");
+  if (!acepta102) {
+    deps.stderr.write(
+      "Constituir una sociedad es irreversible. Tenes que aceptar la responsabilidad como " +
+        "administrador (art. 102) de forma explicita.\n" +
+        "Volve a correr el comando agregando --acepta-102 cuando estes de acuerdo.\n",
+    );
+    return 1;
+  }
+
+  const flags = parseFlags(argv);
+  if (!flags.draft || !flags.nombre || !flags.cuit) {
+    deps.stderr.write(
+      "Uso: ar-agents constitute --draft <archivo> --nombre <nombre> --cuit <cuit> --acepta-102 [--url <url>]\n",
+    );
+    return 1;
+  }
+
+  let draft: unknown;
+  try {
+    const raw = readFileSync(flags.draft, "utf-8");
+    draft = JSON.parse(raw);
+  } catch (err) {
+    const message = err instanceof Error ? err.message : "error_desconocido";
+    deps.stderr.write(`No se pudo leer el borrador: ${message}\n`);
+    return 1;
+  }
+
+  // Target the studio this session was minted against (like whoami and chat),
+  // not the production default: the token is scoped to that host. `--url`
+  // stays available as an explicit override.
+  const baseUrl = flags.url ?? config.studioUrl;
+
+  try {
+    const result = await constituteSociety({
+      baseUrl,
+      token: config.token,
+      draft,
+      administrador: { nombre: flags.nombre, cuit: flags.cuit },
+      fetchImpl: deps.fetchImpl,
+    });
+
+    const denominacion = result.society.denominacion ?? "(sin nombre)";
+    deps.stdout.write(
+      [
+        `Sociedad constituida: ${denominacion}`,
+        `adminToken: ${result.credentials.adminToken}`,
+        `gateToken: ${result.credentials.gateToken}`,
+        "",
+        "Guarda estas credenciales ahora. No se muestran de nuevo y no se pueden recuperar.",
+      ].join("\n") + "\n",
+    );
+    return 0;
+  } catch (err) {
+    if (err instanceof ConstituteClientError && err.code === "ya_tiene_sociedad") {
+      deps.stderr.write("Esta cuenta ya tiene una sociedad constituida.\n");
+      return 1;
+    }
+    const message = err instanceof ConstituteClientError ? err.message : "error_desconocido";
+    deps.stderr.write(`No se pudo constituir la sociedad: ${message}\n`);
+    return 1;
+  }
+}
+
 export async function run(argv: string[], deps: RunDeps): Promise<number> {
   const [command, ...rest] = argv;
 
@@ -294,6 +376,10 @@ export async function run(argv: string[], deps: RunDeps): Promise<number> {
 
   if (command === "chat") {
     return runChat(deps);
+  }
+
+  if (command === "constitute") {
+    return runConstitute(rest, deps);
   }
 
   deps.stderr.write(`Comando desconocido: ${command}\n`);
