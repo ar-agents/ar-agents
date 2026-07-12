@@ -12,6 +12,8 @@
  * Pure functions (clock + fx injected, never read) so they are unit-testable and
  * deterministic. Irreversible moves (convert, pay) must be gated by the agent's
  * requireConfirmation (RFC-001) and written to the signed audit log by the caller.
+ * The unified signed audit log both legs (wallet transfer + off-ramp conversion)
+ * append to lives in ./audit (see TreasuryAuditLog).
  */
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -430,3 +432,17 @@ export {
   settlementPlan,
   WSCREATEVEP_IS_GOV_ONLY,
 } from "./afip";
+
+// Unified signed audit log for BOTH legs (crypto wallet transfer + fiat
+// off-ramp conversion) of the bridge -- see ./audit for the full rationale.
+export {
+  type AuditLeg,
+  type WalletTransferReceiptLike,
+  type TreasuryAuditEntry,
+  GENESIS_PREV_HASH,
+  USDC_DECIMALS,
+  appendWalletTransfer,
+  appendOffRampConversion,
+  verifyAuditChain,
+  TreasuryAuditLog,
+} from "./audit";
