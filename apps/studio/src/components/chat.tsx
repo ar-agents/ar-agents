@@ -5,7 +5,7 @@ import { useChat } from "@ai-sdk/react";
 import { DefaultChatTransport } from "ai";
 import { describeAgentError, type AgentErrorKind } from "@/lib/ui/agent-error";
 import { inferStage, type StageId } from "@/lib/ui/stage";
-import { collectToolParts, type MinimalUIMessage } from "@/lib/ui/tool-parts";
+import { latestToolPart, type MinimalUIMessage } from "@/lib/ui/tool-parts";
 import { useLocale } from "@/lib/ui/locale-context";
 import type { MessageId } from "@/lib/ui/i18n";
 import { ConstitutionCard, type PreviewSocietyOutput } from "@/components/constitution-card";
@@ -83,10 +83,12 @@ export function Chat({
 
   const minimalMessages = messages as unknown as MinimalUIMessage[];
 
-  const previewMatches = collectToolParts(minimalMessages).filter(
-    (m) => m.name === "preview_society" && m.part.state === "output-available",
-  );
-  const latestPreviewPart = previewMatches.length > 0 ? previewMatches[previewMatches.length - 1].part : null;
+  // latestToolPart (src/lib/ui/tool-parts.ts, unit-tested) is the single
+  // source of truth for "does a completed preview_society draft exist right
+  // now": both the journey rail's "spec" stage (src/lib/ui/stage.ts) and the
+  // ConstitutionCard's render-once-on-the-latest-draft check below read off
+  // this exact same derivation, so they can never drift against each other.
+  const latestPreviewPart = latestToolPart(minimalMessages, "preview_society");
   const hasPreviewDraft = latestPreviewPart !== null;
 
   const stage: StageId = inferStage({

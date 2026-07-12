@@ -432,19 +432,38 @@ export function generateReadme(input: IncorporateInput): string {
   }\n\n## Quickstart\n\n\`\`\`bash\npnpm install\ncp .env.example .env.local\n$EDITOR .env.local\npnpm dev\n\`\`\`\n\n## Próximos pasos\n\n1. Cargar AFIP cert (5-10 días).\n2. Configurar Mercado Pago (1 día).\n3. Verificar Meta business para WhatsApp (10-15 días).\n4. Inscripción IGJ vía TAD (5-10 días).\n\n## Lectura\n\n- Cookbook: https://ar-agents.ar/examples\n- Architecture: https://ar-agents.ar/architecture\n- Threat model: https://ar-agents.ar/security\n- RFC-001: https://ar-agents.ar/rfcs/001\n`;
 }
 
+/**
+ * Founder-facing "what happens next" checklist. Shown on the draft card
+ * (studio's preview_society tool, /play) and as `deploy.manualSteps` on the
+ * real constitution response, so it doubles as the coach's only source for
+ * this content (the coach never recites its own devops steps, see
+ * apps/studio/src/coach/system-prompt.ts).
+ *
+ * Kept honest about what studio automates vs. what stays genuinely manual
+ * (found live 2026-07-12, ROADMAP.md M1-5 friction log): studio deploys the
+ * society's app with one click (M1-6) and configures Mercado Pago / AFIP /
+ * WhatsApp credentials through a validated wizard (M3-1), so this list must
+ * never again tell a non-technical founder to run `npx degit`, import a repo
+ * to vercel.com/new by hand, or paste values into Vercel's Environment
+ * Variables screen. The steps that ARE still genuinely manual (getting the
+ * AFIP cert from ARCA, creating the Mercado Pago app, Meta business
+ * verification) stay honest, but framed as inputs you hand to the studio
+ * wizard, not as files you edit yourself. The raw degit/DIY path still
+ * exists for developers at /incorporar (apps/landing/src/app/incorporar) and
+ * is intentionally untouched.
+ */
 export function generateChecklist(input: IncorporateInput): string[] {
-  const slug = slugFor(input.denominacion);
   return [
-    `Crear repo desde el template oficial: \`npx degit ar-agents/ar-agents/apps/sociedad-ia-starter ${slug}\` o copiar los archivos generados arriba en un repo nuevo.`,
-    "Importar el repo a Vercel via vercel.com/new (Framework=Next.js).",
-    "Pegar las variables de entorno listadas arriba en Vercel → Settings → Environment Variables.",
-    "Solicitar cert X.509 en ARCA → Clave Fiscal → 'Asociar Servicio Web' (servicios `wsfe` y `ws_sr_constancia_inscripcion`). Subir cert + key a `.env`.",
-    "Crear app en developers.mercadopago.com → Credenciales de Producción → pegar en `MERCADOPAGO_ACCESS_TOKEN`.",
-    "Para WhatsApp Business: completar verificación de Meta Business Manager. Sin ella el cap es 5 destinatarios.",
+    "Constituí la sociedad acá arriba (con la firma del representante, art. 102). Es el único paso que hacés vos: todo lo que sigue lo automatiza el estudio.",
+    "Desplegá el agente con un click desde el panel del estudio: crea el proyecto en Vercel y lo configura solo, sin tocar código ni la consola de Vercel.",
+    "Configurá las credenciales que uses (Mercado Pago, WhatsApp, AFIP) desde el panel 'Credenciales' del estudio: completás los datos ahí y el estudio los valida y los carga en Vercel por vos.",
+    "Para cobrar con Mercado Pago vas a necesitar una app en developers.mercadopago.com (Credenciales de producción). El token se pega en el panel de Credenciales del estudio, no en Vercel.",
+    "Para facturar vas a necesitar un certificado X.509 de ARCA (Clave Fiscal → Administrador de Relaciones → Asociar Servicio Web, servicios `wsfe` y `ws_sr_constancia_inscripcion`). Se sube desde el panel de Credenciales, no hace falta editar ningún archivo.",
+    "Para WhatsApp Business vas a necesitar verificar tu empresa en Meta Business Manager (sin eso el límite es 5 destinatarios). El token se carga después en el panel de Credenciales.",
     input.tipo === "SOCIEDAD-IA"
       ? "El régimen sociedad-IA aún no fue sancionado. Hasta entonces el código corre bajo SAS estándar con representante humano por RFC-001 § 3.1."
       : "Completar la inscripción IGJ vía TAD (5-10 días hábiles). Usar el tool `validate_igj_inscription` antes para evitar el ~30% de rechazos mecánicos.",
-    "Agendar el morning loop del agente (`/api/cron/morning`) en Vercel Cron, lee DEC inbox + Boletín Oficial cada mañana.",
+    "El loop matutino del agente (lee DEC inbox + Boletín Oficial cada mañana) ya viene agendado con el deploy: no hay que configurar nada.",
   ];
 }
 
