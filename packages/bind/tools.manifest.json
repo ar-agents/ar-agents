@@ -5,42 +5,42 @@
   "tools": [
     {
       "name": "bind_create_debin",
-      "description": "Create a DEBIN request to collect pesos from a buyer's account; the buyer approves it on their side.",
+      "description": "Create a DEBIN request to pull pesos FROM a buyer's account INTO the BIND account (the buyer must approve it in their bank within the expiration window). Use for collections: the money only moves if t",
       "sideEffects": "creates resource",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "bind_create_transfer",
-      "description": "Transfer pesos from a BIND bank account to a CBU, CVU, or alias. Irreversible once completed.",
+      "description": "Transfer pesos from a BIND bank account to any CBU, CVU, or alias (immediate transfer). IRREVERSIBLE once status is COMPLETED: there is no undo on interbank transfers. Before calling: (1) verify the d",
       "sideEffects": "irreversible",
       "idempotent": true,
       "requiresConfirmation": true
     },
     {
       "name": "bind_get_cbu_owner",
-      "description": "Check who owns a CBU, CVU, or alias before paying.",
+      "description": "Check who owns a CBU, CVU, or alias BEFORE paying. Returns the owner name + CUIT, account type, currency, and bank. ALWAYS call this before bind_create_transfer to a new destination, restate the owner",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "bind_get_echeqs",
-      "description": "List echeqs (electronic checks) for a BIND account filtered by status and perspective.",
+      "description": "List echeqs (electronic checks) for a BIND account, filtered by status (e.g. ACTIVE, ACCREDIT, CUSTODY, REJECTED) and perspective (ISSUER = checks the account issued, RECEIVER = checks it received). R",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "bind_get_movements",
-      "description": "Get the movements (transactions) of a BIND bank account with date filters and pagination.",
+      "description": "Get the movements (transactions) of a BIND bank account: credits, debits, transfers received, DEBIN settlements. Use for reconciliation, statements, or matching an incoming transfer to an invoice. Pag",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "bind_list_accounts",
-      "description": "List the BIND bank accounts visible to the configured credentials, with balances and CBUs.",
+      "description": "List the BIND bank accounts (Banco Industrial / Banco de Valores BaaS) visible to the configured credentials. Returns account ids (format XX-X-XXXX-X-X), CBU, type, status, owners, and current balance",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false

@@ -52,25 +52,79 @@ for (const pkg of packages) {
   const toolsSrc = readFileSync(toolsPath, "utf-8");
   const oldManifest = JSON.parse(readFileSync(manifestPath, "utf-8"));
 
-  // Extract unique tool names: lines like `    name_here: tool({`
+  // Extract tool names and their positions: lines like `    name_here: tool({`
   const toolNameRe = /^\s+([a-z_][a-z0-9_]*): tool\(/gm;
   const toolNames = new Set();
+  const toolStarts = [];
   let match;
   while ((match = toolNameRe.exec(toolsSrc)) !== null) {
+    if (!toolNames.has(match[1])) toolStarts.push({ name: match[1], index: match.index });
     toolNames.add(match[1]);
   }
 
-  // Pull descriptions from DEFAULT_DESCRIPTIONS if present.
-  // Matches `  tool_name: "...",` or with backticks for multi-line.
+  // Descriptions, in source-of-truth priority order:
+  //   1. the string literal inside the tool's own `tool({ description: ... })`
+  //   2. the DEFAULT_DESCRIPTIONS map, for packages that wire
+  //      `description: desc("name")` — scoped to that map's block only
+  // Matching `name: "..."` anywhere in the file is NOT safe: unrelated
+  // tool-name-keyed maps (TREASURY_TOOL_SIDE_EFFECTS) shipped "irreversible"
+  // as a manifest description.
+  const parseStringExpr = (src, at) => {
+    // Parse `"a" + 'b' + \`c\`` starting at `at`; returns null if no literal.
+    let i = at;
+    let out = "";
+    let found = false;
+    for (;;) {
+      while (i < src.length && /\s/.test(src[i])) i++;
+      const q = src[i];
+      if (q !== '"' && q !== "'" && q !== "`") break;
+      i++;
+      while (i < src.length && src[i] !== q) {
+        if (src[i] === "\\") {
+          const c = src[i + 1];
+          out += c === "n" ? "\n" : c === "t" ? "\t" : c;
+          i += 2;
+        } else {
+          out += src[i++];
+        }
+      }
+      i++;
+      found = true;
+      let j = i;
+      while (j < src.length && /\s/.test(src[j])) j++;
+      if (src[j] !== "+") break;
+      i = j + 1;
+    }
+    return found ? out : null;
+  };
+
+  const defaultsMatch = toolsSrc.match(/DEFAULT_DESCRIPTIONS[^={]*=\s*\{([\s\S]*?)\n\};/);
+  const defaultsBlock = defaultsMatch ? defaultsMatch[1] : "";
+
   const descriptions = {};
-  for (const name of toolNames) {
-    // Try: `name: "..."` or `name: \`...\``
-    const reStr = new RegExp(`^\\s+${name}:\\s*"((?:[^"\\\\]|\\\\.)*)"`, "m");
-    const reBacktick = new RegExp("^\\s+" + name + ":\\s*`([^`]*)`", "m");
-    const m1 = toolsSrc.match(reStr);
-    const m2 = toolsSrc.match(reBacktick);
-    if (m1) descriptions[name] = m1[1].slice(0, 200);
-    else if (m2) descriptions[name] = m2[1].slice(0, 200);
+  for (let t = 0; t < toolStarts.length; t++) {
+    const { name, index } = toolStarts[t];
+    const end = t + 1 < toolStarts.length ? toolStarts[t + 1].index : toolsSrc.length;
+    const block = toolsSrc.slice(index, end);
+    // Only look for the tool's own description, before its schema — nested
+    // schema fields can also carry a `description:` key.
+    const schemaIdx = block.search(/\binputSchema\s*:|\bparameters\s*:/);
+    const head = schemaIdx === -1 ? block : block.slice(0, schemaIdx);
+    const descIdx = head.search(/\bdescription\s*:/);
+    let value = null;
+    if (descIdx !== -1) {
+      value = parseStringExpr(head, descIdx + head.slice(descIdx).indexOf(":") + 1);
+    }
+    if (value === null && defaultsBlock) {
+      // Indirection like `description: desc("name")` — resolve against the
+      // DEFAULT_DESCRIPTIONS block only.
+      const keyRe = new RegExp(`^\\s+${name}\\s*:`, "m");
+      const keyMatch = defaultsBlock.match(keyRe);
+      if (keyMatch) {
+        value = parseStringExpr(defaultsBlock, keyMatch.index + keyMatch[0].length);
+      }
+    }
+    if (value !== null) descriptions[name] = value.slice(0, 200);
   }
 
   // Build new tools array. Preserve any per-tool metadata that already existed.
