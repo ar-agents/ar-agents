@@ -15,8 +15,10 @@ import { formatMoneyAuditSummary } from "@ar-agents/treasury";
 import {
   MONEY_AUDIT_SUMMARIZERS,
   OFFRAMP_CONVERT_TOOL_NAME,
+  WALLET_CHECK_BALANCE_TOOL_NAME,
   WALLET_TRANSFER_TOOL_NAME,
   treasuryOfframpConvertSummarizer,
+  walletCheckBalanceSummarizer,
   walletTransferUsdcSummarizer,
 } from "../src/lib/money-audit-summarizers";
 
@@ -138,5 +140,76 @@ describe("treasuryOfframpConvertSummarizer — fiat leg (treasury_offramp_conver
 
   it("returns null when args don't even have a numeric amountUsd", () => {
     expect(treasuryOfframpConvertSummarizer.onError?.({}, new Error("x"))).toBeNull();
+  });
+});
+
+describe("walletCheckBalanceSummarizer — crypto leg (wallet_check_balance, ROADMAP.md M2-4d)", () => {
+  it("registers under the exact tool name @ar-agents/wallet-cdp/tools ships", () => {
+    expect(MONEY_AUDIT_SUMMARIZERS[WALLET_CHECK_BALANCE_TOOL_NAME]).toBe(walletCheckBalanceSummarizer);
+  });
+
+  it("maps a detected deposit to a structured, formatted summary", () => {
+    const result = {
+      available: true,
+      asset: "USDC",
+      decimals: 6,
+      address: "0xAA",
+      network: "base-sepolia",
+      previousAtomic: "1000000",
+      currentAtomic: "4000000",
+      deltaAtomic: "3000000",
+      direction: "increase",
+      firstCheck: false,
+      depositDetected: true,
+    };
+    const event = walletCheckBalanceSummarizer.onSuccess?.({}, result);
+    expect(event).toMatchObject({
+      leg: "crypto",
+      kind: "deposit",
+      asset: "USDC",
+      amountAtomic: "3000000",
+      outcome: "executed",
+      provider: "base-sepolia",
+    });
+    expect(formatMoneyAuditSummary(event!)).toBe("USDC 3.000000 recibido en la wallet (base-sepolia) ejecutada");
+  });
+
+  it("respects CDP_NETWORK for the provider field", () => {
+    process.env.CDP_NETWORK = "base";
+    const result = { available: true, direction: "increase", deltaAtomic: "1000000", depositDetected: true };
+    const event = walletCheckBalanceSummarizer.onSuccess?.({}, result);
+    expect(event?.provider).toBe("base");
+  });
+
+  it("returns null for {available:false} (no wallet configured)", () => {
+    const result = { available: false, reason: "No CDP wallet configured for this society." };
+    expect(walletCheckBalanceSummarizer.onSuccess?.({}, result)).toBeNull();
+  });
+
+  it("returns null on the FIRST check ever, even though the balance is positive (baseline, not a deposit)", () => {
+    const result = {
+      available: true,
+      direction: "increase",
+      deltaAtomic: "5000000",
+      firstCheck: true,
+      depositDetected: false,
+    };
+    expect(walletCheckBalanceSummarizer.onSuccess?.({}, result)).toBeNull();
+  });
+
+  it("returns null on no-change or a decrease — a plain read isn't a money event", () => {
+    expect(
+      walletCheckBalanceSummarizer.onSuccess?.({}, { available: true, direction: "none", depositDetected: false }),
+    ).toBeNull();
+    expect(
+      walletCheckBalanceSummarizer.onSuccess?.(
+        {},
+        { available: true, direction: "decrease", depositDetected: false },
+      ),
+    ).toBeNull();
+  });
+
+  it("has no onError mapping — a balance-read failure is a generic failure, not a money outcome", () => {
+    expect(walletCheckBalanceSummarizer.onError).toBeUndefined();
   });
 });

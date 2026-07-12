@@ -6,6 +6,9 @@
  * signed audit log (ROADMAP.md M3-4 / M3-5). Both money-moving legs
  * (wallet-cdp's crypto transfer, treasury's fiat off-ramp) share one
  * structured audit schema — ROADMAP.md M2-4c, see ./money-audit-summarizers.
+ * `wallet_check_balance` (read-only) also gets a structured "deposit
+ * detected" entry through the same registry when a manual USDC top-up is
+ * observed (ROADMAP.md M2-4d).
  *
  * Wired tools (always available, fall back to unconfigured shims when
  * env vars are missing):
@@ -54,6 +57,7 @@ import { approve, isHalted } from "./governance";
 import { decisionTools } from "./decision-tool";
 import { withLocalAudit } from "./audit-middleware";
 import { MONEY_AUDIT_SUMMARIZERS } from "./money-audit-summarizers";
+import { KvLastBalanceStore } from "./wallet-balance-store";
 
 /** Atomic USDC units (6 decimals) at/above which wallet-cdp's
  *  `guardedTransferUsdc` consults the approvals gate. Default: 10 USDC.
@@ -151,6 +155,13 @@ export async function buildTools(): Promise<ToolSet> {
           DEFAULT_WALLET_APPROVAL_THRESHOLD_ATOMIC,
         approve,
         ...(process.env.CDP_NETWORK?.trim() ? { network: process.env.CDP_NETWORK.trim() } : {}),
+        // wallet_check_balance's v0 top-up detection (ROADMAP.md M2-4d) needs
+        // its "last balance" reading to survive across requests -- the
+        // package's own in-memory default would not, since buildTools() runs
+        // fresh per /api/agent invocation. Namespaced by SOCIETY_ID so more
+        // than one society sharing a KV instance never mixes histories.
+        balanceStore: new KvLastBalanceStore(),
+        balanceKey: process.env.SOCIETY_ID?.trim() || "default",
       }),
       // The dogfood "one real, visible task" (ROADMAP.md M3-4): needs no
       // client, always available. See ./decision-tool.

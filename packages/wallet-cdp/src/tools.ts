@@ -26,6 +26,7 @@ import { tool, type ToolSet } from "ai";
 import { z } from "zod";
 import { type ApproveFn, type GuardedTransferUsdcResult, guardedTransferUsdc } from "./guard";
 import type { CdpAccountLike, TransferReceipt } from "./wallet";
+import { checkBalanceAndDetectTopUp, InMemoryLastBalanceStore, type LastBalanceStore } from "./balance";
 
 export interface WalletCdpToolsOptions {
   /** The society's CDP account. Omit to expose the tool in a degraded, always-`available:false` state. */
@@ -35,12 +36,27 @@ export interface WalletCdpToolsOptions {
   /** The approvals-gate hook (e.g. governance.ts's `approve`). */
   approve: ApproveFn;
   network?: string;
+  /** Idempotency store for `wallet_transfer_usdc` (keyed by idempotencyKey). */
   store?: Map<string, TransferReceipt>;
+  /**
+   * Durable last-balance store for `wallet_check_balance`'s v0 top-up
+   * detection (ROADMAP.md M2-4d). Defaults to a fresh in-memory store, which
+   * is USELESS across serverless invocations (see ./balance.ts) -- a real
+   * host should inject a durable adapter (e.g. Vercel KV) here, the same way
+   * it already must for `store` above.
+   */
+  balanceStore?: LastBalanceStore;
+  /** Key this society's balance history is namespaced under (e.g. its
+   *  `SOCIETY_ID`). Default "default" -- fine for a single-society dev
+   *  checkout, but a host serving more than one society under one store
+   *  MUST pass a distinct key per society. */
+  balanceKey?: string;
 }
 
 /** sideEffects classification for the host's `enforceRiskPolicy` `sideEffectsFor` hook. */
 export const WALLET_CDP_TOOL_SIDE_EFFECTS: Record<string, string> = {
   wallet_transfer_usdc: "moves money",
+  wallet_check_balance: "network read",
 };
 
 /** Pass as enforceRiskPolicy's `sideEffectsFor` so this package's tool classifies right. */
@@ -82,6 +98,37 @@ export function walletCdpTools(options: WalletCdpToolsOptions): ToolSet {
           ...(options.store !== undefined ? { store: options.store } : {}),
         });
         return { available: true as const, ...result };
+      },
+    }),
+
+    wallet_check_balance: tool({
+      description:
+        "Read the society's current USDC balance on Base and report whether it went UP since the " +
+        "last check (a 'deposit detected' signal -- e.g. the owner sent a manual top-up). Read-only, " +
+        "no side effects, always safe to call. v0 LIMITATION: this is an AGGREGATE delta between two " +
+        "checks, not per-transaction attribution -- if several deposits land between checks they show " +
+        "as one combined increase, and there is no chain-scanning or historical replay. Returns " +
+        "{available:false} if no wallet is configured.",
+      inputSchema: z.object({}),
+      execute: async () => {
+        if (!options.account) {
+          return { available: false as const, reason: "No CDP wallet configured for this society." };
+        }
+        const result = await checkBalanceAndDetectTopUp({
+          account: options.account,
+          ...(options.network !== undefined ? { network: options.network } : {}),
+          store: options.balanceStore ?? new InMemoryLastBalanceStore(),
+          key: options.balanceKey ?? "default",
+        });
+        return {
+          available: true as const,
+          asset: "USDC" as const,
+          decimals: 6,
+          address: options.account.address,
+          network: options.network ?? "base-sepolia",
+          ...result,
+          depositDetected: result.direction === "increase" && !result.firstCheck,
+        };
       },
     }),
   };

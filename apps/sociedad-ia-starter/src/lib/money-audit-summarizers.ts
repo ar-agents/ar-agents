@@ -1,23 +1,27 @@
 /**
- * ROADMAP.md M2-4c: structured, cross-leg money-audit summaries for the two
- * tools that actually move money in this starter -- wallet-cdp's
- * `wallet_transfer_usdc` (crypto leg) and treasury's `treasury_offramp_convert`
- * (fiat leg). Maps each tool's own args/result/thrown-error shape into
- * `@ar-agents/treasury`'s common `MoneyAuditEvent`; `./audit-middleware`
- * renders the event with that package's `formatMoneyAuditSummary` instead of
- * falling back to the generic "accion ejecutada" / "no disponible" / "fallo
- * (code)" lines every other tool gets.
+ * ROADMAP.md M2-4c/M2-4d: structured, cross-leg money-audit summaries for
+ * the tools in this starter that move or observe money -- wallet-cdp's
+ * `wallet_transfer_usdc` (crypto leg, EXECUTES a transfer), treasury's
+ * `treasury_offramp_convert` (fiat leg, EXECUTES a conversion), and
+ * wallet-cdp's read-only `wallet_check_balance` (crypto leg, OBSERVES a
+ * balance increase -- the v0 owner top-up flow's detection side). Maps each
+ * tool's own args/result/thrown-error shape into `@ar-agents/treasury`'s
+ * common `MoneyAuditEvent`; `./audit-middleware` renders the event with that
+ * package's `formatMoneyAuditSummary` instead of falling back to the generic
+ * "accion ejecutada" / "no disponible" / "fallo (code)" lines every other
+ * tool gets.
  *
  * Registered per tool name in `MONEY_AUDIT_SUMMARIZERS` (wired in by
  * `./agent.ts`), not hardcoded into `./audit-middleware` itself -- that
- * module stays generic so a THIRD money-moving package (a future ARS-in
- * top-up, ROADMAP.md M2-4f) only needs a new entry here.
+ * module stays generic so a future money-relevant tool (e.g. ROADMAP.md
+ * M2-4f's ARS-in top-up route) only needs a new entry here.
  *
  * Every mapper returns null (never throws) when the call's own shape isn't a
  * money-outcome for THIS registry -- e.g. `{available:false}` (no wallet/
- * off-ramp configured, already a clear generic line) or a thrown error that
+ * off-ramp configured, already a clear generic line), a thrown error that
  * isn't one of the two typed money outcomes (a validation bug should read as
- * a generic failure, not a fabricated "denied"/"failed" money event).
+ * a generic failure, not a fabricated "denied"/"failed" money event), or a
+ * balance check that found no deposit (a plain read isn't a money event).
  */
 
 import { isArAgentsError } from "@ar-agents/core";
@@ -26,6 +30,7 @@ import type { MoneySummarizer, MoneySummarizerRegistry } from "./audit-middlewar
 
 export const WALLET_TRANSFER_TOOL_NAME = "wallet_transfer_usdc";
 export const OFFRAMP_CONVERT_TOOL_NAME = "treasury_offramp_convert";
+export const WALLET_CHECK_BALANCE_TOOL_NAME = "wallet_check_balance";
 
 /** The CDP network this deploy's wallet operates on -- read at call time (not
  *  cached at module load) so tests can flip it between assertions. Matches
@@ -113,6 +118,36 @@ export const walletTransferUsdcSummarizer: MoneySummarizer = {
   },
 };
 
+/**
+ * Crypto leg, OBSERVED not executed: `@ar-agents/wallet-cdp/tools`'s
+ * read-only `wallet_check_balance` (ROADMAP.md M2-4d). Only produces an
+ * event when the tool itself reports `depositDetected: true` -- a balance
+ * increase since the LAST check, excluding the very first check ever (that
+ * one is the wallet's initial funding baseline, not an observed top-up; see
+ * `@ar-agents/wallet-cdp/balance.ts`'s `firstCheck`). A no-change or
+ * decrease call returns null here and falls through to the generic "acción
+ * ejecutada" line -- a plain balance read isn't a money event worth its own
+ * structured entry, only a detected deposit is.
+ */
+export const walletCheckBalanceSummarizer: MoneySummarizer = {
+  onSuccess(_args, result) {
+    if (!isRecord(result) || result.available !== true) return null;
+    if (result.depositDetected !== true) return null;
+    const deltaAtomic = str(result.deltaAtomic);
+    if (!deltaAtomic) return null;
+    const event: MoneyAuditEvent = {
+      leg: "crypto",
+      kind: "deposit",
+      asset: "USDC",
+      amountAtomic: deltaAtomic,
+      decimals: 6,
+      outcome: "executed",
+      provider: cdpNetwork(),
+    };
+    return event;
+  },
+};
+
 /** Fiat leg: `@ar-agents/treasury/tools`'s `treasury_offramp_convert`. */
 export const treasuryOfframpConvertSummarizer: MoneySummarizer = {
   onSuccess(_args, result) {
@@ -154,6 +189,7 @@ export const treasuryOfframpConvertSummarizer: MoneySummarizer = {
 export const MONEY_AUDIT_SUMMARIZERS: MoneySummarizerRegistry = {
   [WALLET_TRANSFER_TOOL_NAME]: walletTransferUsdcSummarizer,
   [OFFRAMP_CONVERT_TOOL_NAME]: treasuryOfframpConvertSummarizer,
+  [WALLET_CHECK_BALANCE_TOOL_NAME]: walletCheckBalanceSummarizer,
 };
 
 export { formatMoneyAuditSummary };

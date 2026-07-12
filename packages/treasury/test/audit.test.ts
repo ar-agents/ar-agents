@@ -78,6 +78,41 @@ describe("formatMoneyAuditSummary — crypto leg", () => {
   });
 });
 
+describe("formatMoneyAuditSummary — crypto leg (deposit, ROADMAP.md M2-4d)", () => {
+  const base: MoneyAuditEvent = {
+    leg: "crypto",
+    kind: "deposit",
+    asset: "USDC",
+    amountAtomic: "5000000",
+    decimals: 6,
+    provider: "base-sepolia",
+    outcome: "executed",
+  };
+
+  it("renders a detected deposit without a counterparty (incoming, not a send)", () => {
+    const summary = formatMoneyAuditSummary(base);
+    expect(summary).toBe("USDC 5.000000 recibido en la wallet (base-sepolia) ejecutada");
+  });
+
+  it("never prints 'destinatario desconocido' for a deposit (that phrasing is transfer-only)", () => {
+    const summary = formatMoneyAuditSummary(base);
+    expect(summary).not.toContain("destinatario desconocido");
+    expect(summary).not.toContain("->");
+  });
+
+  it("includes the tx ref when known", () => {
+    const summary = formatMoneyAuditSummary({ ...base, ref: "0x9f95e747516c72be2e759279e92a6cbba82e0fa317832eef6c754237ac15fd7f" });
+    expect(summary).toBe(
+      "USDC 5.000000 recibido en la wallet (base-sepolia) ejecutada, tx 0x9f95e7...15fd7f",
+    );
+  });
+
+  it("caps the summary at 280 chars", () => {
+    const summary = formatMoneyAuditSummary({ ...base, provider: "p".repeat(500) });
+    expect(summary.length).toBeLessThanOrEqual(280);
+  });
+});
+
 describe("formatMoneyAuditSummary — fiat leg (offramp_convert)", () => {
   const base: MoneyAuditEvent = {
     leg: "fiat",
