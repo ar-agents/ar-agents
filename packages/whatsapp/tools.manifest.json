@@ -4,22 +4,28 @@
   "version": "0.6.1",
   "tools": [
     {
-      "name": "mark_whatsapp_read"
+      "name": "mark_whatsapp_read",
+      "description": "Mark an inbound WhatsApp message as read (marcar como leído, the blue double-check). Call this from your webhook handler immediately when you process a user message, the user sees the read receipt and"
     },
     {
-      "name": "send_whatsapp_buttons"
+      "name": "send_whatsapp_buttons",
+      "description": "Send a WhatsApp message with up to 3 reply buttons (botones de respuesta rápida). The user taps a button and you receive an interactive.button_reply event in the webhook. Useful for confirmations like"
     },
     {
-      "name": "send_whatsapp_list"
+      "name": "send_whatsapp_list",
+      "description": "Send a WhatsApp list-picker menu (menú de lista de WhatsApp), a button that opens a sectioned list of options. The user picks one and you receive an interactive.list_reply event.\n\nUse for menus with 4"
     },
     {
-      "name": "send_whatsapp_media"
+      "name": "send_whatsapp_media",
+      "description": "Send a WhatsApp media attachment (enviar imagen, audio, video o documento por WhatsApp). Provide either a public URL (link, faster, Meta downloads) or a pre-uploaded media ID.\n\nWhatsApp media size lim"
     },
     {
-      "name": "send_whatsapp_template"
+      "name": "send_whatsapp_template",
+      "description": "Send an APPROVED WhatsApp template message (enviar plantilla de WhatsApp). Required for any message OUTSIDE the 24-hour customer service window, i.e. proactive notifications, transactional updates, ma"
     },
     {
-      "name": "send_whatsapp_text"
+      "name": "send_whatsapp_text",
+      "description": "Send a free-form WhatsApp text message (enviar mensaje de WhatsApp, mandar un WhatsApp). Use for replies INSIDE the 24-hour customer service window (after the user has messaged you within the last 24h"
     }
   ],
   "adapters": [

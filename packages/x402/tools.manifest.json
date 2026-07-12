@@ -5,21 +5,21 @@
   "tools": [
     {
       "name": "x402_get_payment_requirements",
-      "description": "Probe x402 payment requirements for a URL without paying.",
+      "description": "Probe x402 payment requirements for a URL without paying. Sends the request and, if the server answers HTTP 402, returns the parsed list of acceptable payment methods (scheme, network, amount in atomi",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "x402_paid_fetch",
-      "description": "Pay for an HTTP 402 resource and fetch it via the x402 protocol.",
+      "description": "Pay for an HTTP 402 resource and fetch it (x402 protocol). Performs the full flow: request, parse 402 requirements, sign payment via the configured wallet signer, retry with the X-PAYMENT header, retu",
       "sideEffects": "moves money",
       "idempotent": false,
       "requiresConfirmation": true
     },
     {
       "name": "x402_verify_payment",
-      "description": "Verify an x402 payment authorization as a seller via the facilitator.",
+      "description": "Verify an x402 payment authorization as a SELLER, via the facilitator's POST /verify. Pass the decoded PaymentPayload (from the buyer's X-PAYMENT header) and the PaymentRequirements you advertised; re",
       "sideEffects": "none",
       "idempotent": true,
       "requiresConfirmation": false

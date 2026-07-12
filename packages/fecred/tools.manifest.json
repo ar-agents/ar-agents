@@ -5,35 +5,35 @@
   "tools": [
     {
       "name": "fecred_accept_invoice",
-      "description": "Accept a received electronic credit invoice (FCE) and its cuenta corriente balance. Irreversible legal act: the FCE becomes a negotiable credit title.",
+      "description": "Accept a received electronic credit invoice (Factura de Credito Electronica MiPyME) and its cuenta corriente balance. **IRREVERSIBLE LEGAL ACT: confirm with the user before calling. Restate the emisor",
       "sideEffects": "network write",
       "idempotent": false,
       "requiresConfirmation": true
     },
     {
       "name": "fecred_check_obligation",
-      "description": "Check if an invoice to a given CUIT must be a Factura de Credito Electronica MiPyME (FCE). Returns obligado plus montoDesde, the live regime threshold from AFIP.",
+      "description": "Check if an invoice to a given CUIT must be a Factura de Credito Electronica MiPyME (FCE). Use BEFORE issuing a factura to a large buyer: if obligado=true and the invoice total is at or above montoDes",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "fecred_health",
-      "description": "Ping the AFIP WSFECred service (dummy operation). Returns appServer/dbServer/authServer statuses.",
+      "description": "Ping the AFIP WSFECred service (dummy operation). Returns appServer/dbServer/authServer statuses. Use to confirm WSFECred is reachable + your WSAA token still works before a batch flow.",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "fecred_list_received",
-      "description": "List FCEs received (or emitted) by the represented CUIT, with state filters. estadoCmp='Recepcionado' lists FCEs awaiting acceptance or rejection.",
+      "description": "List Facturas de Credito Electronica (FCE) received or emitted by the represented CUIT. Default rol='Receptor' + estadoCmp='Recepcionado' lists FCEs awaiting your acceptance or rejection. IMPORTANT: a",
       "sideEffects": "network read",
       "idempotent": true,
       "requiresConfirmation": false
     },
     {
       "name": "fecred_reject_invoice",
-      "description": "Reject a received electronic credit invoice (FCE) with at least one justified motivo de rechazo. Irreversible legal act, only valid inside the legal acceptance window.",
+      "description": "Reject a received electronic credit invoice (Factura de Credito Electronica MiPyME), with at least one motivo de rechazo plus justification. **IRREVERSIBLE LEGAL ACT: confirm with the user before call",
       "sideEffects": "network write",
       "idempotent": false,
       "requiresConfirmation": true
