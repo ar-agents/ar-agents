@@ -642,7 +642,76 @@ describe("run()", () => {
       expect(result.history[1]).toEqual({
         id: "a-0",
         role: "assistant",
-        parts: [{ type: "text", text: "Hola mundo" }],
+        parts: [
+          {
+            type: "dynamic-tool",
+            toolName: "preview_society",
+            toolCallId: "call-1",
+            state: "output-available",
+            input: { prompt: "peluqueria" },
+            output: { ok: true, draft: { denominacion: "Turnos SAS" } },
+          },
+          { type: "text", text: "Hola mundo" },
+        ],
+      });
+    });
+
+    it("persists the tool part from turn one into the request body of turn two", async () => {
+      const fixtureTurnOne = [
+        sseEvent({ type: "text-delta", id: "t1", delta: "aca esta el borrador" }),
+        sseEvent({
+          type: "tool-input-available",
+          toolCallId: "call-1",
+          toolName: "preview_society",
+          input: { prompt: "una sociedad de software" },
+        }),
+        sseEvent({
+          type: "tool-output-available",
+          toolCallId: "call-1",
+          output: { ok: true, draft: { denominacion: "Sociedad Ejemplo", capitalSocial: 100000 } },
+        }),
+        sseEvent({ type: "finish" }),
+      ].join("");
+      const fixtureTurnTwo = [
+        sseEvent({ type: "text-delta", id: "t2", delta: "listo, capital actualizado" }),
+        sseEvent({ type: "finish" }),
+      ].join("");
+
+      const fetchImpl = vi
+        .fn()
+        .mockResolvedValueOnce({ ok: true, status: 200, body: streamBody(fixtureTurnOne) } as unknown as Response)
+        .mockResolvedValueOnce({ ok: true, status: 200, body: streamBody(fixtureTurnTwo) } as unknown as Response);
+
+      const turnOne = await runChatTurn({
+        baseUrl: "https://studio.example",
+        token: "stu_multiturn_secret",
+        history: [],
+        userText: "quiero una sociedad de software",
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: () => {} },
+      });
+      expect(turnOne.error).toBeNull();
+
+      const turnTwo = await runChatTurn({
+        baseUrl: "https://studio.example",
+        token: "stu_multiturn_secret",
+        history: turnOne.history,
+        userText: "cambia el capital a 500000",
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: () => {} },
+      });
+      expect(turnTwo.error).toBeNull();
+
+      expect(fetchImpl).toHaveBeenCalledTimes(2);
+      const [, secondInit] = fetchImpl.mock.calls[1] as [string, RequestInit];
+      const secondBody = JSON.parse(secondInit.body as string) as { messages: Array<{ parts: Array<{ type: string }> }> };
+
+      const toolParts = secondBody.messages.flatMap((m) => m.parts).filter((p) => p.type === "dynamic-tool");
+      expect(toolParts).toHaveLength(1);
+      expect(toolParts[0]).toMatchObject({
+        type: "dynamic-tool",
+        toolName: "preview_society",
+        toolCallId: "call-1",
       });
     });
 
@@ -673,8 +742,10 @@ describe("run()", () => {
       expect(chunks.join("")).not.toContain("stu_err_secret");
     });
 
-    it("does not persist an assistant turn when the stream yields no text", async () => {
-      // A stream that finishes with only a tool output and no text-delta.
+    it("persists a tool-only assistant turn when the stream yields no text but a resolved tool call", async () => {
+      // A stream that finishes with only a tool output and no text-delta:
+      // as of M1-4g this is no longer dropped, it becomes an assistant
+      // message whose only part is the tool call.
       const fixture = [
         `data: ${JSON.stringify({ type: "tool-input-available", toolCallId: "c1", toolName: "preview_society", input: {} })}\n\n`,
         `data: ${JSON.stringify({ type: "tool-output-available", toolCallId: "c1", output: { ok: true } })}\n\n`,
@@ -698,7 +769,45 @@ describe("run()", () => {
       });
 
       expect(result.error).toBeNull();
-      // No empty-text assistant part persisted.
+      expect(result.history).toHaveLength(2);
+      expect(result.history[1]).toEqual({
+        id: "a-0",
+        role: "assistant",
+        parts: [
+          {
+            type: "dynamic-tool",
+            toolName: "preview_society",
+            toolCallId: "c1",
+            state: "output-available",
+            input: {},
+            output: { ok: true },
+          },
+        ],
+      });
+    });
+
+    it("does not persist an assistant turn when the stream yields no text and no tool call", async () => {
+      // A stream that finishes with neither a text-delta nor a tool call:
+      // truly nothing to persist, so the turn is still dropped.
+      const fixture = [`data: ${JSON.stringify({ type: "finish" })}\n\n`].join("");
+      const body = new ReadableStream<Uint8Array>({
+        start(controller) {
+          controller.enqueue(new TextEncoder().encode(fixture));
+          controller.close();
+        },
+      });
+      const fetchImpl = vi.fn().mockResolvedValue({ ok: true, status: 200, body } as unknown as Response);
+
+      const result = await runChatTurn({
+        baseUrl: "https://studio.example",
+        token: "stu_empty",
+        history: [],
+        userText: "algo",
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: () => {} },
+      });
+
+      expect(result.error).toBeNull();
       expect(result.history).toEqual([]);
     });
   });

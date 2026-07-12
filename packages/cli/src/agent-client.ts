@@ -5,7 +5,7 @@
 // Fetch-agnostic and fully offline-testable, mirroring account-client.ts.
 
 import { readAgentStream } from "./stream.js";
-import type { UiMessage } from "./messages.js";
+import { toolPart, type ToolPart, type UiMessage } from "./messages.js";
 
 export class AgentClientError extends Error {
   readonly status?: number;
@@ -24,7 +24,10 @@ function trimTrailingSlash(url: string): string {
 
 /** POST {baseUrl}/api/agent with `x-studio-token`: sends the running message
  *  history, streams the reply. `onText`/`onTool` fire incrementally as the
- *  stream is read; the returned `{ text, error }` is the final accumulation. */
+ *  stream is read; the returned `{ text, error, toolParts }` is the final
+ *  accumulation, where `toolParts` is every completed tool call from this
+ *  turn in the persisted dynamic-tool shape (see ./messages.ts), ready to be
+ *  folded into the next turn's history. */
 export async function sendAgentTurn(opts: {
   baseUrl: string;
   token: string;
@@ -32,7 +35,7 @@ export async function sendAgentTurn(opts: {
   fetchImpl?: typeof fetch;
   onText?: (delta: string) => void;
   onTool?: (name: string | null, output: unknown) => void;
-}): Promise<{ text: string; error: string | null }> {
+}): Promise<{ text: string; error: string | null; toolParts: ToolPart[] }> {
   const fetchImpl = opts.fetchImpl ?? fetch;
   const res = await fetchImpl(`${trimTrailingSlash(opts.baseUrl)}/api/agent`, {
     method: "POST",
@@ -52,11 +55,28 @@ export async function sendAgentTurn(opts: {
     );
   }
 
-  return readAgentStream({
+  // Pending tool calls, keyed by toolCallId, filled in as `tool-input`
+  // events arrive and consumed once the matching `tool-output` lands. A
+  // call whose output never arrives (stream cut short) is simply never
+  // turned into a ToolPart: only fully resolved calls are worth persisting.
+  const pending = new Map<string, { toolName: string; input: unknown }>();
+  const toolParts: ToolPart[] = [];
+
+  const result = await readAgentStream({
     body: res.body,
     onEvent: (event) => {
       if (event.kind === "text") opts.onText?.(event.delta);
-      if (event.kind === "tool-output") opts.onTool?.(event.toolName, event.output);
+      if (event.kind === "tool-input") {
+        pending.set(event.toolCallId, { toolName: event.toolName, input: event.input });
+      }
+      if (event.kind === "tool-output") {
+        opts.onTool?.(event.toolName, event.output);
+        const meta = pending.get(event.toolCallId);
+        const toolName = event.toolName ?? meta?.toolName ?? "unknown";
+        toolParts.push(toolPart(toolName, event.toolCallId, meta?.input, event.output));
+      }
     },
   });
+
+  return { ...result, toolParts };
 }
