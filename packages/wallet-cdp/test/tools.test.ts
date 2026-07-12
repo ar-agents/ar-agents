@@ -1,0 +1,70 @@
+import { describe, expect, it, vi } from "vitest";
+import { classifyTool } from "@ar-agents/core";
+import { walletCdpSideEffectsFor, walletCdpTools } from "../src/tools";
+import type { CdpAccountLike } from "../src/wallet";
+
+interface ToolLike {
+  execute: (input: unknown, ctx: { toolCallId: string; messages: unknown[] }) => Promise<unknown>;
+}
+const ctx = { toolCallId: "test", messages: [] };
+const call = (tools: Record<string, unknown>, name: string, input: unknown) =>
+  (tools[name] as ToolLike).execute(input, ctx);
+
+function mockAccount(): CdpAccountLike & { transfer: ReturnType<typeof vi.fn> } {
+  return {
+    address: "0x000000000000000000000000000000000000AA",
+    transfer: vi.fn(),
+  } as CdpAccountLike & { transfer: ReturnType<typeof vi.fn> };
+}
+
+describe("wallet_transfer_usdc tool name classifies as money risk", () => {
+  it("matches @ar-agents/core's risk-manifest 'transfer' override", () => {
+    expect(classifyTool({ name: "wallet_transfer_usdc" })).toBe("money");
+  });
+
+  it("walletCdpSideEffectsFor reports 'moves money' for the tool", () => {
+    expect(walletCdpSideEffectsFor("wallet_transfer_usdc")).toBe("moves money");
+    expect(walletCdpSideEffectsFor("unknown_tool")).toBeUndefined();
+  });
+});
+
+describe("walletCdpTools", () => {
+  it("returns {available:false} when no wallet is configured", async () => {
+    const approve = vi.fn();
+    const tools = walletCdpTools({ thresholdAtomic: "10000000", approve });
+    const result = await call(tools, "wallet_transfer_usdc", {
+      to: "0xabc",
+      amountAtomic: "1",
+      idempotencyKey: "k",
+    });
+    expect(result).toMatchObject({ available: false });
+    expect(approve).not.toHaveBeenCalled();
+  });
+
+  it("defers below approval when the gate denies an above-threshold transfer", async () => {
+    const account = mockAccount();
+    const approve = vi.fn().mockResolvedValue(false);
+    const tools = walletCdpTools({ account, thresholdAtomic: "10000000", approve });
+    const result = await call(tools, "wallet_transfer_usdc", {
+      to: "0x1234567890123456789012345678901234567890",
+      amountAtomic: "50000000",
+      idempotencyKey: "k2",
+    });
+    expect(result).toMatchObject({ available: true, status: "deferred" });
+    expect(account.transfer).not.toHaveBeenCalled();
+  });
+
+  it("executes when below threshold (approve never consulted)", async () => {
+    const account = mockAccount();
+    account.transfer.mockResolvedValue({ transactionHash: "0xok" });
+    const approve = vi.fn();
+    const tools = walletCdpTools({ account, thresholdAtomic: "10000000", approve });
+    const result = await call(tools, "wallet_transfer_usdc", {
+      to: "0x1234567890123456789012345678901234567890",
+      amountAtomic: "1000000",
+      idempotencyKey: "k3",
+    });
+    expect(result).toMatchObject({ available: true, status: "executed" });
+    expect(approve).not.toHaveBeenCalled();
+  });
+});
