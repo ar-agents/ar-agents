@@ -1,0 +1,30 @@
+{
+  "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
+  "package": "@ar-agents/wallet-cdp",
+  "name": "@ar-agents/wallet-cdp",
+  "version": "0.1.0",
+  "factory": "walletCdpTools",
+  "tools": [
+    {
+      "name": "wallet_transfer_usdc",
+      "description": "EXECUTE a USDC transfer from the society's CDP wallet on Base. Two independent layers can block it: an ar-agents approvals-gate decision above a configurable threshold, and CDP's own server-side spend policy always.",
+      "input": {
+        "to": "string (0x... recipient address)",
+        "amountAtomic": "string (USDC atomic units, 6 decimals)",
+        "idempotencyKey": "string (reuse on retry)"
+      },
+      "output": {
+        "available": "boolean",
+        "status": "'executed' | 'deferred'",
+        "receipt": "object? ({to, amountAtomic, idempotencyKey, transactionHash?})"
+      },
+      "idempotent": false,
+      "sideEffect": "IRREVERSIBLE: moves real money (USDC on Base)",
+      "requiresConfirmation": true
+    }
+  ],
+  "meta": {
+    "generated_by": "scripts/regen-manifests.mjs",
+    "tool_count": 1
+  }
+}
