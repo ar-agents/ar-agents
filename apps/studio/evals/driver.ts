@@ -149,15 +149,49 @@ function agentRequest(token: string, messages: MinimalUIMessage[]): Request {
   });
 }
 
+/** Whether a streamed reply carries any substance: visible text, or a tool
+ *  call that completed. A reply with neither is what an upstream provider
+ *  failure mid-stream looks like (the route maps the error into the stream
+ *  after headers are already sent, so the HTTP status is still 200): the
+ *  "conversation" it produces (user asks, coach says nothing, user asks
+ *  again) cannot happen in the real UI, where the founder sees an error and
+ *  retries. Exported for test/evals-driver.test.ts. */
+export function isSubstantiveReply(replies: MinimalUIMessage[]): boolean {
+  return replies.some(
+    (m) =>
+      m.role === "assistant" &&
+      m.parts.some(
+        (p) =>
+          (p.type === "text" && typeof p.text === "string" && p.text.trim().length > 0) ||
+          ((p.type.startsWith("tool-") || p.type === "dynamic-tool") &&
+            (p as { state?: string }).state === "output-available"),
+      ),
+  );
+}
+
 /** One coach turn: POST the current transcript to the real route handler,
- *  read back the streamed reply, and merge it into the transcript by id. */
-async function stepAssistantTurn(token: string, messages: MinimalUIMessage[]): Promise<MinimalUIMessage[]> {
+ *  read back the streamed reply, and merge it into the transcript by id.
+ *  An empty reply (see isSubstantiveReply) is retried ONCE: the free coach
+ *  route saturates under load (ResourceExhausted / decode wall clock
+ *  timeouts, observed live 2026-07-09 during M1-8) and a single infra retry
+ *  keeps the eval measuring the coach instead of upstream uptime. Scoring
+ *  is untouched: if the retry also comes back empty, the empty turn stands
+ *  and the rubric/judge see it. */
+async function stepAssistantTurn(
+  token: string,
+  messages: MinimalUIMessage[],
+  retriesLeft = 1,
+): Promise<MinimalUIMessage[]> {
   const res = await POST(agentRequest(token, messages));
   if (!res.ok) {
     const body = await res.text().catch(() => "");
     throw new Error(`agent_route_failed:${res.status}:${body.slice(0, 300)}`);
   }
   const replies = await readFinalUIMessages(res);
+  if (!isSubstantiveReply(replies) && retriesLeft > 0) {
+    console.error("empty assistant reply (likely upstream saturation); retrying this turn once");
+    return stepAssistantTurn(token, messages, retriesLeft - 1);
+  }
   const merged = [...messages];
   for (const message of replies) {
     const idx = merged.findIndex((m) => m.id === message.id);

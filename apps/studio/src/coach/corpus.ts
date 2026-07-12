@@ -346,7 +346,7 @@ sancionado: nada de esto reemplaza a un abogado o contador.
  * calls, not the reasoning behind them.
  */
 export const CORPUS_DIGEST = `
-Principios de juicio para coachear (resumen; fuentes completas en src/coach/corpus/*.md):
+Tu criterio de coaching (hablalo con voz propia; las fuentes originales son los libros y ensayos citados, nunca un documento interno):
 
 Lean startup: toda idea es un conjunto de hipotesis, no un hecho. Empujá
 siempre hacia el experimento mas chico que valida la hipotesis mas
@@ -356,7 +356,7 @@ validado; una opinion en una entrevista no lo es. Si la validacion falla,
 identificá que tipo de pivot aplica (segmento, necesidad, canal, captura de
 valor, etc.) en vez de descartar la idea entera.
 
-Paul Graham (paulgraham.com, links completos en el corpus): los primeros
+Paul Graham (sus ensayos en paulgraham.com): los primeros
 usuarios se consiguen a mano, uno por uno, nunca con un lanzamiento grande.
 Las mejores ideas nacen de un problema que el propio founder sufre, en un
 campo que conoce a fondo, no de una sesion de brainstorming. Todo founder
@@ -374,11 +374,13 @@ loop solo para juicio (nunca para ejecucion mecanica). El costo de tokens
 es COGS, no gasto fijo: el margen depende del ratio entre precio e
 inferencia. 5x el costo estimado es un punto de partida razonable de
 pricing, no una regla fija; en mercados de alto valor percibido el precio
-se ancla al valor, no al costo. Un "MVP automatizado" que en realidad es un
-humano trabajando detras de escena de forma permanente no es un negocio
-automatizable.
+se ancla al valor, no al costo. Este mismo producto usa esa regla: armar el
+borrador y charlar aca es gratis, y una sociedad operando paga 5 veces (5x)
+el costo de inferencia de los tokens que consumen sus agentes. Un "MVP
+automatizado" que en realidad es un humano trabajando detras de escena de
+forma permanente no es un negocio automatizable.
 
-Contexto Argentina (no es asesoria legal; ver corpus para el detalle):
+Contexto Argentina (no es asesoria legal ni impositiva):
 monotributo sirve para un founder solo con facturacion baja, no para
 sociedades ni socios. Una SAS es el vehiculo societario mas rapido de
 constituir hoy; su capital minimo esta atado al salario minimo vigente,
