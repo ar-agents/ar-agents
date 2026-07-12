@@ -24,9 +24,13 @@
 /** Which side of the crypto<->fiat bridge produced this event. */
 export type MoneyAuditLeg = "crypto" | "fiat";
 
-/** The two money-moving operations this schema currently covers. Extend as
- *  new operations (e.g. a future ARS-in top-up) get audited the same way. */
-export type MoneyAuditKind = "transfer" | "offramp_convert";
+/** The money-moving operations this schema covers: an outbound wallet-cdp
+ *  transfer, an OffRampAdapter USDC->ARS conversion, and an inbound owner
+ *  top-up -- USDC an owner sends directly to the society's CDP wallet from
+ *  their own external wallet (ROADMAP.md M2-4d), observed on-chain rather
+ *  than initiated by this codebase. Extend as new operations get audited
+ *  the same way. */
+export type MoneyAuditKind = "transfer" | "offramp_convert" | "topup";
 
 /**
  * Cross-leg outcome taxonomy. Deliberately wider than either single leg's
@@ -102,6 +106,14 @@ function formatAtomic(amountAtomic: string, decimals: number): string {
 function formatCryptoLeg(e: MoneyAuditEvent): string {
   const amountStr =
     e.amountAtomic !== undefined ? formatAtomic(e.amountAtomic, e.decimals ?? 6) : String(e.amount ?? "?");
+  if (e.kind === "topup") {
+    const from = e.counterparty ? truncateMiddle(e.counterparty, 6, 4) : "origen desconocido";
+    let s = `${e.asset} ${amountStr} recibido de ${from}`;
+    if (e.provider) s += ` (${e.provider})`;
+    s += ` ${OUTCOME_ES[e.outcome]}`;
+    if (e.ref) s += `, tx ${truncateMiddle(e.ref, 8, 6)}`;
+    return s;
+  }
   const to = e.counterparty ? truncateMiddle(e.counterparty, 6, 4) : "destinatario desconocido";
   let s = `${e.asset} ${amountStr} -> ${to}`;
   if (e.provider) s += ` (${e.provider})`;
@@ -137,4 +149,33 @@ function formatFiatLeg(e: MoneyAuditEvent): string {
 export function formatMoneyAuditSummary(event: MoneyAuditEvent): string {
   const s = event.leg === "crypto" ? formatCryptoLeg(event) : formatFiatLeg(event);
   return s.length > MAX_SUMMARY_LEN ? `${s.slice(0, MAX_SUMMARY_LEN - 1)}…` : s;
+}
+
+/**
+ * Build the MoneyAuditEvent for an owner USDC top-up (ROADMAP.md M2-4d). A
+ * crypto-leg inbound transfer: counterparty is the SOURCE address the funds
+ * arrived from (public, on-chain, when known), ref the funding tx hash.
+ */
+export function topUpAuditEvent(args: {
+  amountAtomic?: string;
+  amount?: number;
+  decimals?: number;
+  asset?: string;
+  from?: string;
+  ref?: string;
+  provider?: string;
+  outcome?: MoneyAuditOutcome;
+}): MoneyAuditEvent {
+  return {
+    leg: "crypto",
+    kind: "topup",
+    asset: args.asset ?? "USDC",
+    outcome: args.outcome ?? "executed",
+    ...(args.amountAtomic !== undefined ? { amountAtomic: args.amountAtomic } : {}),
+    ...(args.amount !== undefined ? { amount: args.amount } : {}),
+    ...(args.decimals !== undefined ? { decimals: args.decimals } : {}),
+    ...(args.from !== undefined ? { counterparty: args.from } : {}),
+    ...(args.ref !== undefined ? { ref: args.ref } : {}),
+    ...(args.provider !== undefined ? { provider: args.provider } : {}),
+  };
 }

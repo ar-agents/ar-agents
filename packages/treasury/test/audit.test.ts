@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { formatMoneyAuditSummary, type MoneyAuditEvent } from "../src/audit";
+import { formatMoneyAuditSummary, topUpAuditEvent, type MoneyAuditEvent } from "../src/audit";
 
 describe("formatMoneyAuditSummary — crypto leg", () => {
   const base: MoneyAuditEvent = {
@@ -75,6 +75,54 @@ describe("formatMoneyAuditSummary — crypto leg", () => {
       provider: "p".repeat(500),
     });
     expect(summary.length).toBeLessThanOrEqual(280);
+  });
+});
+
+describe("topUpAuditEvent (ROADMAP.md M2-4d owner top-up)", () => {
+  it("produces a crypto-leg topup event with the expected fields", () => {
+    const event = topUpAuditEvent({
+      amount: 50,
+      from: "0x1234567890123456789012345678901234567890",
+      ref: "0x9f95e747516c72be2e759279e92a6cbba82e0fa317832eef6c754237ac15fd7f",
+      provider: "base-sepolia",
+    });
+    expect(event).toMatchObject({
+      leg: "crypto",
+      kind: "topup",
+      asset: "USDC",
+      outcome: "executed",
+      amount: 50,
+      counterparty: "0x1234567890123456789012345678901234567890",
+      provider: "base-sepolia",
+    });
+  });
+
+  it("defaults asset to USDC and outcome to executed", () => {
+    const event = topUpAuditEvent({});
+    expect(event.asset).toBe("USDC");
+    expect(event.outcome).toBe("executed");
+  });
+});
+
+describe("formatMoneyAuditSummary, crypto leg (topup)", () => {
+  it("renders 'recibido de' with the truncated sender, provider, outcome, and tx; no '->'", () => {
+    const event = topUpAuditEvent({
+      amount: 50,
+      from: "0x1234567890123456789012345678901234567890",
+      ref: "0x9f95e747516c72be2e759279e92a6cbba82e0fa317832eef6c754237ac15fd7f",
+      provider: "base-sepolia",
+    });
+    const summary = formatMoneyAuditSummary(event);
+    expect(summary).toBe(
+      "USDC 50 recibido de 0x1234...7890 (base-sepolia) ejecutada, tx 0x9f95e7...15fd7f",
+    );
+    expect(summary).not.toContain("->");
+  });
+
+  it("renders 'origen desconocido' when from is omitted", () => {
+    const event = topUpAuditEvent({ amount: 50 });
+    const summary = formatMoneyAuditSummary(event);
+    expect(summary).toContain("recibido de origen desconocido");
   });
 });
 

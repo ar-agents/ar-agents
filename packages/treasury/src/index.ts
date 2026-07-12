@@ -177,6 +177,45 @@ export function applyPayment(state: TreasuryState, amountArs: Ars): TreasuryStat
   return { ...state, ars: state.ars - amountArs };
 }
 
+/**
+ * Apply an owner top-up: USDC funded into the society wallet by a direct
+ * transfer (ROADMAP.md M2-4d). USDC up; cost basis re-averaged with the
+ * top-up's per-unit cost (USDC ~= 1, the default). Pure.
+ */
+export function applyTopUp(state: TreasuryState, amountUsd: Usd, costPerUsd = 1): TreasuryState {
+  if (amountUsd < 0) {
+    throw new Error(`applyTopUp: amountUsd must be >= 0, got ${amountUsd}`);
+  }
+  const newUsd = state.usd + amountUsd;
+  if (newUsd <= 0) return { ...state, usd: newUsd };
+  const costBasisPerUsd =
+    (state.usd * state.costBasisPerUsd + amountUsd * costPerUsd) / newUsd;
+  return { usd: newUsd, ars: state.ars, costBasisPerUsd };
+}
+
+export interface TopUpReconciliation {
+  toppedUpUsd: Usd;
+  state: TreasuryState;
+}
+
+/**
+ * Reconcile TreasuryState against a freshly-observed on-chain USDC balance
+ * (ROADMAP.md M2-4d "balance visible in TreasuryState"). A positive delta
+ * over the known balance is treated as an owner top-up and applied; a
+ * non-positive delta (a spend already applied by the transfer/off-ramp path)
+ * leaves state unchanged and reports toppedUpUsd 0, so reconciliation never
+ * silently rewrites a decrease it cannot attribute.
+ */
+export function reconcileTopUp(
+  state: TreasuryState,
+  observedUsd: Usd,
+  costPerUsd = 1,
+): TopUpReconciliation {
+  const delta = observedUsd - state.usd;
+  if (delta <= 0) return { toppedUpUsd: 0, state };
+  return { toppedUpUsd: delta, state: applyTopUp(state, delta, costPerUsd) };
+}
+
 // ─────────────────────────────────────────────────────────────────────────────
 // OffRampAdapter — integrate a registered PSAV (Manteca first, Ripio B2B alt).
 // We never custody the conversion ourselves; we orchestrate on top of a PSAV.
@@ -425,6 +464,7 @@ export {
   type MoneyAuditOutcome,
   type MoneyAuditEvent,
   formatMoneyAuditSummary,
+  topUpAuditEvent,
 } from "./audit";
 
 export {

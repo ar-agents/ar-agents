@@ -45,6 +45,8 @@ export {
   type CdpPoliciesClientLike,
   type CdpPolicyHandle,
   type CdpTransferResult,
+  type CdpTokenBalance,
+  type CdpListTokenBalancesResult,
   type TransferUsdcOptions,
   type TransferReceipt,
   type TransferFn,
@@ -55,6 +57,14 @@ export {
   transferUsdc,
   withTransferIdempotency,
 } from "./wallet";
+
+// On-chain USDC balance read (ROADMAP.md M2-4d): observes a society wallet's
+// current balance so the host can reconcile it into treasury's TreasuryState.
+export {
+  type UsdcBalance,
+  USDC_CONTRACT_BY_NETWORK,
+  getUsdcBalance,
+} from "./balance";
 
 export {
   type ApproveFn,

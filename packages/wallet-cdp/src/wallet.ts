@@ -23,9 +23,28 @@ export interface CdpTransferResult {
   [key: string]: unknown;
 }
 
+/** One token balance entry, as returned by `account.listTokenBalances`. */
+export interface CdpTokenBalance {
+  token: { contractAddress: string; network?: string; symbol?: string; name?: string };
+  amount: { amount: bigint; decimals: number };
+}
+
+/** Page of `account.listTokenBalances` results. */
+export interface CdpListTokenBalancesResult {
+  balances: CdpTokenBalance[];
+  nextPageToken?: string;
+}
+
 export interface CdpAccountLike {
   address: string;
   transfer(args: { to: string; amount: string; token: string; network: string }): Promise<CdpTransferResult>;
+  /**
+   * Read the account's ERC-20 token balances on a network. Maps to the SDK's
+   * `account.listTokenBalances` (network-scoped read). Optional: kept off the
+   * required surface so existing mocks/typing are unaffected; the real
+   * `EvmServerAccount` provides it.
+   */
+  listTokenBalances?(options: { network: string; pageSize?: number; pageToken?: string }): Promise<CdpListTokenBalancesResult>;
 }
 
 export interface CdpPolicyHandle {

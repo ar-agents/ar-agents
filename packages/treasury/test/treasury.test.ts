@@ -13,6 +13,8 @@ import {
   planConversion,
   applyConversion,
   applyPayment,
+  applyTopUp,
+  reconcileTopUp,
   fundTaxBuffer,
   InMemoryOffRampAdapter,
   withOffRampIdempotency,
@@ -101,6 +103,58 @@ describe("state transitions", () => {
     const s: TreasuryState = { usd: 0, ars: 50_000, costBasisPerUsd: 1 };
     expect(applyPayment(s, 30_000).ars).toBe(20_000);
     expect(() => applyPayment(s, 80_000)).toThrow(/insufficient ARS/);
+  });
+});
+
+describe("applyTopUp (ROADMAP.md M2-4d owner top-up)", () => {
+  it("adds USDC and keeps cost basis at 1 for a USDC top-up at cost 1", () => {
+    const s: TreasuryState = { usd: 100, ars: 0, costBasisPerUsd: 1 };
+    const next = applyTopUp(s, 50);
+    expect(next.usd).toBe(150);
+    expect(next.costBasisPerUsd).toBe(1);
+    expect(next.ars).toBe(s.ars);
+  });
+
+  it("weighted-averages cost basis when costPerUsd differs", () => {
+    // 100 usd @ basis 1, top up 100 @ costPerUsd 2 -> (100*1 + 100*2) / 200 = 1.5
+    const s: TreasuryState = { usd: 100, ars: 0, costBasisPerUsd: 1 };
+    const next = applyTopUp(s, 100, 2);
+    expect(next.usd).toBe(200);
+    expect(next.costBasisPerUsd).toBeCloseTo(1.5, 6);
+  });
+
+  it("amountUsd 0 is a no-op-ish add (state otherwise unchanged)", () => {
+    const s: TreasuryState = { usd: 100, ars: 5_000, costBasisPerUsd: 1.2 };
+    const next = applyTopUp(s, 0);
+    expect(next).toEqual(s);
+  });
+
+  it("throws on a negative amount", () => {
+    const s: TreasuryState = { usd: 100, ars: 0, costBasisPerUsd: 1 };
+    expect(() => applyTopUp(s, -10)).toThrow(/amountUsd must be >= 0/);
+  });
+});
+
+describe("reconcileTopUp (ROADMAP.md M2-4d balance reconciliation)", () => {
+  it("observed balance above known: toppedUpUsd is the delta, state.usd matches observed", () => {
+    const s: TreasuryState = { usd: 100, ars: 0, costBasisPerUsd: 1 };
+    const { toppedUpUsd, state } = reconcileTopUp(s, 150);
+    expect(toppedUpUsd).toBe(50);
+    expect(state.usd).toBe(150);
+  });
+
+  it("observed balance equal to known: toppedUpUsd 0, state unchanged", () => {
+    const s: TreasuryState = { usd: 100, ars: 0, costBasisPerUsd: 1 };
+    const { toppedUpUsd, state } = reconcileTopUp(s, 100);
+    expect(toppedUpUsd).toBe(0);
+    expect(state).toEqual(s);
+  });
+
+  it("observed balance below known: toppedUpUsd 0, state unchanged (never rewrites an unattributed decrease)", () => {
+    const s: TreasuryState = { usd: 100, ars: 0, costBasisPerUsd: 1 };
+    const { toppedUpUsd, state } = reconcileTopUp(s, 60);
+    expect(toppedUpUsd).toBe(0);
+    expect(state).toEqual(s);
   });
 });
 

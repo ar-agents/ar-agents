@@ -190,9 +190,24 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: every wallet transfer and OffRampAdapter conversion appends to the same signed audit log with a common schema, reusing the treasury package receipt shapes.
 
 ### M2-4d v0 owner top-up flow (manual USDC transfer)
-- status: ready
+- status: done (2026-07-13, PR #PENDING; the owner funds a society by sending USDC directly to its CDP wallet address on Base from their own external wallet, and the software reads the resulting on-chain balance, reconciles it into TreasuryState, and produces the signed-audit summary for the inbound funds. New `@ar-agents/wallet-cdp` balance read `getUsdcBalance(account, { network, usdcContract?, maxPages? })` (src/balance.ts): paginates the CDP account's `listTokenBalances` (capped, default 20 pages) and sums the entries matching the canonical Circle USDC contract for the network, matched case-insensitively; `USDC_CONTRACT_BY_NETWORK` maps base and base-sepolia; a zero balance is a valid result, not an error; a missing `listTokenBalances` throws `ArAgentsUnconfiguredError`, an unknown network with no override throws `ArAgentsValidationError`, and an SDK throw is wrapped via `classifyCdpError` as `WalletCdpUpstreamError`. The structural `CdpAccountLike` gained an optional `listTokenBalances` plus `CdpTokenBalance`/`CdpListTokenBalancesResult` mirroring the installed SDK shape (options `Omit<...,"address">`, balances `{ token: { contractAddress }, amount: { amount: bigint, decimals } }`). `@ar-agents/treasury` added two pure functions (index.ts): `applyTopUp(state, amountUsd, costPerUsd=1)` (USDC up, cost basis re-averaged, USDC~=1 keeps basis 1, negative amount throws) and `reconcileTopUp(state, observedUsd, costPerUsd=1)` returning `{ toppedUpUsd, state }` where a positive delta over the known balance is applied as a top-up and a non-positive delta leaves state unchanged with `toppedUpUsd 0`, so reconciliation never rewrites a decrease it cannot attribute. The audit schema (audit.ts) extended `MoneyAuditKind` with `"topup"`, added a `topUpAuditEvent(...)` builder (leg crypto, inbound), and an inbound branch in `formatCryptoLeg` rendering "USDC <amt> recibido de <from|origen desconocido> (<provider>) <outcome>, tx <hash>". Host-boundary composition helper `apps/sociedad-ia-starter/src/lib/owner-topup.ts` `reconcileOwnerTopUp({ account, knownState, network?, provider? })` ties the balance read to the reconcile and returns `{ state, observed, toppedUpUsd, auditSummary? }`, pure over the injected knownState and deliberately omitting the sender (`from`) since a balance observation does not reveal it; it does not itself append to the audit log or move money. Procedure documented at docs/guides/owner-topup.md. Tests: treasury +applyTopUp/reconcileTopUp/topUpAuditEvent (140 total), wallet-cdp +8 balance tests (48 total), starter +2 owner-topup tests (91 total). All offline, mocks only; no agent tool, zod schema, tools.ts, or agent-loop/route wiring touched, so no manifest change. Honest v0 gaps captured as M2-4g/M2-4h/M2-4i below.)
 - priority: P2
 - acceptance: documented, tested procedure to fund a society wallet by direct USDC-on-Base transfer, balance visible in TreasuryState, logged to the audit trail.
+
+### M2-4g Persist per-society TreasuryState
+- status: ready
+- priority: P2
+- acceptance: the starter persists a society's TreasuryState (usd, ars, cost basis) so `reconcileOwnerTopUp` reads a real last-known balance instead of a caller-injected `knownState`. Today (M2-4d) the helper is pure over an injected state because the starter has no treasury store; the M3-2 cockpit's treasury section still reads "sin datos todavia" for the same reason. Namespace by `SOCIETY_ID` like the local audit log.
+
+### M2-4h Wire the owner top-up into an ops-invokable path
+- status: ready
+- priority: P3
+- acceptance: an authenticated ops path (a studio action or a starter route) actually calls `reconcileOwnerTopUp` and appends the returned `auditSummary` via `appendLocalAudit`, so an observed top-up lands in the cockpit's "Acciones recientes". M2-4d shipped the pure helper and documented the wiring in docs/guides/owner-topup.md, but nothing invokes it yet. Depends on M2-4g for a real `knownState`.
+
+### M2-4i Capture the funding tx and sender for a top-up audit entry
+- status: ready
+- priority: P3
+- acceptance: the top-up audit entry records the funding transaction hash (`ref`) and, when derivable, the sender address (`from`), instead of "origen desconocido". A plain balance observation reveals neither; this needs either an owner-supplied tx hash at reconcile time or a Base transfer-log lookup for inbound USDC transfers to the society address. `topUpAuditEvent` already accepts `from`/`ref`; only the source of those values is missing.
 
 ### M2-4e Legal review of the regulatory reading
 - status: blocked (owner decision; requires a lawyer)
