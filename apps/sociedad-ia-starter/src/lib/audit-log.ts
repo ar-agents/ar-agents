@@ -16,6 +16,16 @@
  * else an in-memory array that resets on cold start (fine for local dev
  * and PR previews without secrets).
  *
+ * ROADMAP.md M3-6: handing every society the SAME KV credentials so it
+ * "just has storage" would let any society read the whole KV store,
+ * studio's own account records included -- acceptable ONLY for the
+ * platform-owned dogfood society, forbidden for a real tenant. So this
+ * module's KV path stays best-effort/optional, and `./audit-middleware`
+ * additionally dual-writes every entry to ar-agents.ar's per-society
+ * durable sink (`./audit-sink`, isolated per society by its own
+ * `SOCIETY_GATE_TOKEN`), which is the actual fix for "survives recycling
+ * without in-memory data loss" for a society with no KV of its own.
+ *
  * Signing: HMAC-SHA256 over canonical JSON, keyed by `AUDIT_HMAC_SECRET`.
  * Studio mints + sets this on the society's own Vercel project the same
  * way it mints `STUDIO_STATUS_TOKEN` (see apps/studio's deploy + activity
@@ -161,11 +171,15 @@ export interface AppendLocalAuditInput {
 
 /**
  * Append one entry. Best-effort: NEVER throws (a storage failure here must
- * never break the agent loop that is calling it). Returns the entry on
- * success, or null when the write was dropped (counted, see
- * {@link localAuditDroppedWrites}).
+ * never break the agent loop that is calling it). ALWAYS returns the
+ * constructed, signed entry -- even when local storage failed -- so a
+ * caller that needs the entry regardless of local storage outcome (the
+ * platform-sink dual-write in `./audit-middleware`, ROADMAP.md M3-6) can
+ * still forward the exact same `id`/`ts`/`hmac`. A local storage failure is
+ * recorded via the dropped-writes counter (see
+ * {@link localAuditDroppedWrites}), never signaled by returning null.
  */
-export async function appendLocalAudit(input: AppendLocalAuditInput): Promise<LocalAuditEntry | null> {
+export async function appendLocalAudit(input: AppendLocalAuditInput): Promise<LocalAuditEntry> {
   const id = `${new Date().toISOString()}-${crypto.randomUUID().slice(0, 8)}`;
   const base = {
     id,
@@ -191,11 +205,10 @@ export async function appendLocalAudit(input: AppendLocalAuditInput): Promise<Lo
       mem.entries.push(entry);
       if (mem.entries.length > MAX_ENTRIES) mem.entries.splice(0, mem.entries.length - MAX_ENTRIES);
     }
-    return entry;
   } catch {
     mem.dropped++;
-    return null;
   }
+  return entry;
 }
 
 /** Read the most recent `limit` entries, newest first. */

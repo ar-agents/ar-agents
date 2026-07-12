@@ -25,11 +25,17 @@
  *    the human's behalf -- it never saw what this society's agent actually
  *    DID at runtime. The local log does: every `POST /api/agent` tool call
  *    is wrapped centrally (`./audit-middleware`) and appended here, so this
- *    section is now a read with no network dependency and no `available:
- *    false` state of its own (an empty log is a valid, available state).
+ *    section is a read with no network dependency and no `available: false`
+ *    state of its own (an empty log is a valid, available state). ROADMAP.md
+ *    M3-6: when the local log reads empty (this isolate has no KV of its
+ *    own, or just recycled), fall back to ar-agents.ar's per-society durable
+ *    sink (`./audit-sink`) that every tool call already dual-writes to, so
+ *    the cockpit's "Acciones recientes" survives serverless recycling even
+ *    without KV_REST_API_URL/TOKEN configured on this project.
  */
 
 import { localAuditDroppedWrites, readLocalAudit } from "./audit-log";
+import { readSinkTail, sinkAuditDroppedWrites } from "./audit-sink";
 
 const TIMEOUT_MS = 6_000;
 
@@ -112,19 +118,39 @@ export interface AuditActionSummary {
 export interface AuditStatus {
   available: boolean;
   entries: AuditActionSummary[] | null;
-  /** Writes lost to a storage failure since this isolate booted (see
+  /** Writes lost to a LOCAL storage failure since this isolate booted (see
    *  `localAuditDroppedWrites`). Cheap, best-effort, resets on cold start;
    *  surfaced so silent data loss is visible instead of hidden. */
   droppedWrites: number;
+  /** Writes lost forwarding to ar-agents.ar's durable per-society sink
+   *  (ROADMAP.md M3-6, see `./audit-sink`), tracked separately from
+   *  `droppedWrites` so which leg is failing is visible, not conflated. */
+  sinkDroppedWrites: number;
 }
 
 const MAX_AUDIT_ENTRIES = 20;
 
+/** Structural subset both `LocalAuditEntry` and the sink's `SinkAuditEntry`
+ *  satisfy -- lets the fallback below pick either source without a cast. */
+interface MinimalAuditEntry {
+  id: string;
+  ts: string;
+  tool: string;
+  governance: string;
+  errored: boolean;
+  summary?: string;
+}
+
 export async function fetchAuditStatus(): Promise<AuditStatus> {
-  const [entries, droppedWrites] = await Promise.all([
+  const [localEntries, droppedWrites, sinkDroppedWrites] = await Promise.all([
     readLocalAudit(MAX_AUDIT_ENTRIES),
     Promise.resolve(localAuditDroppedWrites()),
+    Promise.resolve(sinkAuditDroppedWrites()),
   ]);
+  // Fast path: the local log already has entries -> no network dependency.
+  // Only fall back to the platform sink's tail when local reads empty.
+  const entries: MinimalAuditEntry[] =
+    localEntries.length > 0 ? localEntries : await readSinkTail(MAX_AUDIT_ENTRIES);
   return {
     available: true,
     entries: entries.map((e) => ({
@@ -136,5 +162,6 @@ export async function fetchAuditStatus(): Promise<AuditStatus> {
       summary: e.summary,
     })),
     droppedWrites,
+    sinkDroppedWrites,
   };
 }
