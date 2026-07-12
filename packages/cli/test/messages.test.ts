@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { appendAssistantTurn, appendUserTurn, assistantMessage, userMessage } from "../src/messages";
+import { appendAssistantTurn, appendUserTurn, assistantMessage, toolPart, userMessage } from "../src/messages";
 
 describe("userMessage / assistantMessage", () => {
   it("builds the u-<index> / a-<index> id scheme", () => {
@@ -27,5 +27,52 @@ describe("appendUserTurn / appendAssistantTurn", () => {
     // Each intermediate array is untouched by later appends.
     expect(afterFirstUser).toEqual([{ id: "u-0", role: "user", parts: [{ type: "text", text: "primera pregunta" }] }]);
     expect(afterAssistant).toHaveLength(2);
+  });
+});
+
+describe("toolPart", () => {
+  it("returns the dynamic-tool / output-available shape", () => {
+    expect(toolPart("preview_society", "call_1", { prompt: "peluqueria" }, { ok: true })).toEqual({
+      type: "dynamic-tool",
+      toolName: "preview_society",
+      toolCallId: "call_1",
+      state: "output-available",
+      input: { prompt: "peluqueria" },
+      output: { ok: true },
+    });
+  });
+});
+
+describe("assistantMessage with tool parts", () => {
+  it("places tool parts before the text part", () => {
+    const part = toolPart("preview_society", "call_1", { prompt: "peluqueria" }, { ok: true });
+    expect(assistantMessage("aca esta el borrador", 0, [part])).toEqual({
+      id: "a-0",
+      role: "assistant",
+      parts: [part, { type: "text", text: "aca esta el borrador" }],
+    });
+  });
+
+  it("with empty text and one tool part yields only the tool part (no text part)", () => {
+    const part = toolPart("preview_society", "call_1", { prompt: "peluqueria" }, { ok: true });
+    expect(assistantMessage("", 0, [part])).toEqual({
+      id: "a-0",
+      role: "assistant",
+      parts: [part],
+    });
+  });
+});
+
+describe("appendAssistantTurn with tool parts", () => {
+  it("threads tool parts through to the appended assistant message", () => {
+    const part = toolPart("preview_society", "call_1", { prompt: "peluqueria" }, { ok: true });
+    const afterUser = appendUserTurn([], "quiero una peluqueria");
+    const afterAssistant = appendAssistantTurn(afterUser, "aca esta el borrador", [part]);
+
+    expect(afterAssistant[1]).toEqual({
+      id: "a-0",
+      role: "assistant",
+      parts: [part, { type: "text", text: "aca esta el borrador" }],
+    });
   });
 });

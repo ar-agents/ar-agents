@@ -19,7 +19,7 @@ import {
   type SocietyAuditEntry,
 } from "./society-client.js";
 import { readConfig, resolveConfigDir, writeConfig } from "./config.js";
-import { appendAssistantTurn, appendUserTurn, type UiMessage } from "./messages.js";
+import { appendAssistantTurn, appendUserTurn, type ToolPart, type UiMessage } from "./messages.js";
 
 export const DEFAULT_STUDIO_URL = "https://studio-plum-three-47.vercel.app";
 
@@ -187,6 +187,7 @@ export async function runChatTurn(opts: {
 
   let error: string | null = null;
   let text = "";
+  let toolParts: ToolPart[] = [];
   try {
     const result = await sendAgentTurn({
       baseUrl: opts.baseUrl,
@@ -202,6 +203,7 @@ export async function runChatTurn(opts: {
     });
     text = result.text;
     error = result.error;
+    toolParts = result.toolParts;
   } catch (err) {
     error = err instanceof AgentClientError ? err.message : "error_desconocido";
   }
@@ -218,14 +220,18 @@ export async function runChatTurn(opts: {
 
   opts.stdout.write("\n");
 
-  if (text.length === 0) {
-    // Stream succeeded but produced no assistant text (for example only a tool
-    // output). Same reasoning as the error case: never persist an empty text
-    // part. Drop the turn to keep history valid.
+  if (text.length === 0 && toolParts.length === 0) {
+    // Stream succeeded but produced nothing at all (no text, no completed
+    // tool call). An assistant message needs at least one part, so there is
+    // nothing valid to persist. Drop the turn to keep history valid.
     return { history: opts.history, error: null };
   }
 
-  return { history: appendAssistantTurn(withUser, text), error: null };
+  // Tool parts are now persisted (M1-4g): a tool-only turn (empty text, one
+  // or more resolved tool calls, for example a `preview_society` draft) is
+  // no longer dropped. It is appended as an assistant message whose parts
+  // are just the tool parts, so the next turn still carries the draft.
+  return { history: appendAssistantTurn(withUser, text, toolParts), error: null };
 }
 
 async function runChat(deps: RunDeps): Promise<number> {

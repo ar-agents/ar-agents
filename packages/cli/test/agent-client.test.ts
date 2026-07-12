@@ -78,6 +78,29 @@ describe("sendAgentTurn", () => {
     expect(onTool).toHaveBeenCalledWith("preview_society", { ok: true, draft: { denominacion: "Turnos SAS" } });
   });
 
+  it("accumulates completed tool calls into toolParts while text keeps streaming", async () => {
+    const fetchImpl = vi.fn().mockResolvedValue(fakeOkResponse(streamBody(STREAM_FIXTURE)));
+
+    const result = await sendAgentTurn({
+      baseUrl: "https://studio.example",
+      token: "stu_secret_token",
+      messages: [userMessage("hola", 0)],
+      fetchImpl,
+    });
+
+    expect(result.text).toBe("Hola mundo");
+    expect(result.toolParts).toEqual([
+      {
+        type: "dynamic-tool",
+        toolName: "preview_society",
+        toolCallId: "call-1",
+        state: "output-available",
+        input: { prompt: "peluqueria" },
+        output: { ok: true, draft: { denominacion: "Turnos SAS" } },
+      },
+    ]);
+  });
+
   it("throws AgentClientError with status 402 on a cap response", async () => {
     const fetchImpl = vi.fn().mockResolvedValue(fakeErrorResponse(402, { ok: false, error: "cap" }));
 
