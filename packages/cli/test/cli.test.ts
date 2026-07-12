@@ -382,6 +382,203 @@ describe("run()", () => {
     });
   });
 
+  describe("society / activity / suspend / resume", () => {
+    function depsWithSession(fetchImpl: ReturnType<typeof vi.fn>, out: string[], err: string[]): RunDeps {
+      return {
+        env: { AR_AGENTS_CONFIG_DIR: configDir },
+        fetchImpl: fetchImpl as unknown as typeof fetch,
+        stdout: { write: (s: string) => { out.push(s); } },
+        stderr: { write: (s: string) => { err.push(s); } },
+        homedir: "/nonexistent-home",
+        platform: "linux",
+        version: "test",
+      };
+    }
+
+    async function login(): Promise<void> {
+      const loginFetch = vi.fn().mockResolvedValue(
+        fakeResponse(201, { ok: true, accountId: "acc_soc_1", token: "stu_society_secret_never_leak" }),
+      );
+      const loginDeps = depsWithSession(loginFetch, [], []);
+      await run(["login"], loginDeps);
+    }
+
+    for (const [command, args] of [
+      ["society", ["society"]],
+      ["activity", ["activity"]],
+      ["suspend", ["suspend", "--confirmar"]],
+      ["resume", ["resume", "--confirmar"]],
+    ] as const) {
+      it(`${command} with no stored config returns 1 and mentions login`, async () => {
+        const err: string[] = [];
+        const fetchImpl = vi.fn();
+        const deps = depsWithSession(fetchImpl, [], err);
+        const code = await run([...args], deps);
+        expect(code).toBe(1);
+        expect(err.join("")).toContain("login");
+        expect(fetchImpl).not.toHaveBeenCalled();
+      });
+    }
+
+    it("suspend without --confirmar returns 1, prints a confirmation message, and never calls fetch", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn();
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["suspend"], deps);
+      expect(code).toBe(1);
+      expect(err.join("")).toContain("--confirmar");
+      expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it("resume without --confirmar returns 1, prints a confirmation message, and never calls fetch", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn();
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["resume"], deps);
+      expect(code).toBe(1);
+      expect(err.join("")).toContain("--confirmar");
+      expect(fetchImpl).not.toHaveBeenCalled();
+    });
+
+    it("society renders the denominacion after login", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(
+        fakeResponse(200, {
+          ok: true,
+          society: {
+            sessionId: "sess_1",
+            denominacion: "Sociedad Ejemplo",
+            tipo: "SAS",
+            registryId: "reg_1",
+            createdAt: "2026-01-01T00:00:00.000Z",
+            goodStanding: { state: "buena", score: 92, rating: "A" },
+            suspended: false,
+            pendingApprovals: 0,
+            deploy: null,
+          },
+        }),
+      );
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["society"], deps);
+      expect(code).toBe(0);
+      expect(out.join("")).toContain("Sociedad Ejemplo");
+
+      const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("https://studio-plum-three-47.vercel.app/api/society");
+      expect((init.headers as Record<string, string>)["x-studio-token"]).toBe("stu_society_secret_never_leak");
+    });
+
+    it("society with no society constituted yet prints guidance and returns 0", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(fakeResponse(200, { ok: true, society: null }));
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["society"], deps);
+      expect(code).toBe(0);
+      expect(out.join("")).toContain("ar-agents constitute");
+    });
+
+    it("activity renders a recent-actions entry after login", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(
+        fakeResponse(200, {
+          ok: true,
+          deploy: { available: true, projectName: "sociedad-ejemplo", url: "https://sociedad-ejemplo.vercel.app", state: "READY" },
+          society: { available: true, denominacion: "Sociedad Ejemplo", version: "1.0.0", uptimeSeconds: 120 },
+          clients: { available: true, statuses: { whatsapp: "conectado" } },
+          killSwitch: { available: true, suspended: false },
+          approvals: { available: true, pendingCount: 0, items: [] },
+          audit: {
+            available: true,
+            entries: [
+              { id: "a_1", ts: "2026-02-01T00:00:00.000Z", tool: "enviar_email", governance: "auto", errored: false, summary: "Envio de bienvenida" },
+            ],
+          },
+          provisioning: false,
+        }),
+      );
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["activity"], deps);
+      expect(code).toBe(0);
+      const combined = out.join("");
+      expect(combined).toContain("enviar_email");
+      expect(combined).toContain("Envio de bienvenida");
+    });
+
+    it("activity with no society at all prints guidance and returns 1", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(fakeResponse(404, { ok: false, error: "sin_sociedad" }, false));
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["activity"], deps);
+      expect(code).toBe(1);
+      expect(err.join("")).toContain("ar-agents constitute");
+    });
+
+    it("suspend --confirmar success path returns 0, sends acepta: true, and never prints the session token", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(
+        fakeResponse(200, { ok: true, suspended: true, society: "sess_1" }),
+      );
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["suspend", "--confirmar"], deps);
+      expect(code).toBe(0);
+
+      const combined = out.join("") + err.join("");
+      expect(combined).not.toContain("stu_society_secret_never_leak");
+      expect(combined).toContain("suspendida");
+
+      const [url, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+      expect(url).toBe("https://studio-plum-three-47.vercel.app/api/society/suspend");
+      expect((init.headers as Record<string, string>)["x-studio-token"]).toBe("stu_society_secret_never_leak");
+      const body = JSON.parse(init.body as string);
+      expect(body).toMatchObject({ suspend: true, acepta: true });
+    });
+
+    it("resume --confirmar success path returns 0 and sends suspend: false with acepta: true", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(
+        fakeResponse(200, { ok: true, suspended: false, society: "sess_1" }),
+      );
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["resume", "--confirmar"], deps);
+      expect(code).toBe(0);
+      expect(out.join("")).toContain("reanudada");
+
+      const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(init.body as string);
+      expect(body).toMatchObject({ suspend: false, acepta: true });
+    });
+
+    it("suspend with --motivo forwards it in the request body", async () => {
+      await login();
+      const out: string[] = [];
+      const err: string[] = [];
+      const fetchImpl = vi.fn().mockResolvedValue(fakeResponse(200, { ok: true, suspended: true }));
+      const deps = depsWithSession(fetchImpl, out, err);
+      const code = await run(["suspend", "--motivo", "mantenimiento programado", "--confirmar"], deps);
+      expect(code).toBe(0);
+
+      const [, init] = fetchImpl.mock.calls[0] as [string, RequestInit];
+      const body = JSON.parse(init.body as string);
+      expect(body.motivo).toBe("mantenimiento programado");
+    });
+  });
+
   describe("runChatTurn", () => {
     function sseEvent(chunk: unknown): string {
       return `data: ${JSON.stringify(chunk)}\n\n`;

@@ -1,14 +1,18 @@
 {
   "name": "@ar-agents/cli",
   "version": "0.1.0",
-  "description": "Command-line client for the ar-agents studio: log in with an anonymous account or an existing token, and check who you are (usage, cap, and society status) offline-verifiable, no browser required.",
+  "description": "Command-line client for the ar-agents studio: log in with an anonymous account or an existing token, check who you are (usage, cap, and society status), and operate your automated society from the terminal (summary, live activity cockpit, suspend, resume), offline-verifiable, no browser required.",
   "keywords": [
     "cli",
     "ar-agents",
     "argentina",
     "studio",
     "login",
-    "whoami"
+    "whoami",
+    "society",
+    "activity",
+    "suspend",
+    "resume"
   ],
   "license": "MIT",
   "author": "Nazareno Clemente <naza@naza.ar>",
