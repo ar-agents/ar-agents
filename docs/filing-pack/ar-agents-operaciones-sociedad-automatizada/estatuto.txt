@@ -1,0 +1,21 @@
+=== ESTATUTO SOCIAL (BORRADOR) ===
+BORRADOR NO VALIDADO. Documento generado automaticamente como punto de partida. No constituye asesoramiento legal. Revisar y validar con un escribano o abogado matriculado antes de cualquier uso o presentacion.
+============================================================
+
+DENOMINACION: AR Agents Operaciones Sociedad Automatizada
+TIPO: Sociedad por Acciones Simplificada (SAS), encuadre provisorio hasta la sancion del regimen sociedad-IA
+JURISDICCION: Republica Argentina
+
+ARTICULO 1 (Denominacion y tipo). La sociedad gira bajo la denominacion "AR Agents Operaciones Sociedad Automatizada", bajo el tipo Sociedad por Acciones Simplificada (SAS), encuadre provisorio hasta la sancion del regimen sociedad-IA.
+
+ARTICULO 2 (Objeto). La sociedad tiene por objeto: Desarrollo, mantenimiento y operacion de infraestructura de agentes autonomos (ar-agents.ar y los paquetes @ar-agents/*), incluyendo el estudio de constitucion y operacion de sociedades automatizadas (ar-agents studio).
+
+ARTICULO 3 (Capital). El capital social se fija en ARS 1. [COMPLETAR: division en acciones/cuotas, integracion y aportes de los socios.]
+
+ARTICULO 4 (Administracion). La operatoria es ejecutada por un agente de software bajo la responsabilidad de un representante legal humano. Representante: Nazareno Clemente (CUIT A CONFIRMAR), caracter declarado (no verificado). Modelo: agente-ia-con-representante-art-102. Regimen sociedad-IA pendiente de sancion. Hasta entonces corre bajo SAS estandar con representante humano por RFC-001 seccion 3.1 (espiritu del art. 102 del anteproyecto).
+
+ARTICULO 5 (Gobierno y controles, RFC-001). El agente opera con: (a) kill-switch activo que suspende la operatoria via el estado de registro; (b) aprobacion humana obligatoria para: transferencias por encima del tope configurado; reembolsos y cancelaciones; altas o bajas de medios de pago; cambios de representante o de objeto social; (c) tope de gasto por operacion y diario; kill-switch que suspende la operatoria via estado de registro; registro de auditoria firmado de cada accion con efecto externo. Cada accion con efecto externo se registra en un log de auditoria firmado.
+
+ARTICULO 6 (Representacion). El representante legal humano responde frente a terceros por los actos del agente, conforme RFC-001 y el espiritu del art. 102 del anteproyecto.
+
+[COMPLETAR con un escribano: sede social, plazo, cierre de ejercicio, organo de fiscalizacion, clausulas de transferencia, y la nomina e integracion de socios.]

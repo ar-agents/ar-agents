@@ -1,0 +1,48 @@
+{
+  "schemaVersion": 1,
+  "kind": "ar-agents.formation.sidecar",
+  "denominacion": "AR Agents Operaciones Sociedad Automatizada",
+  "slug": "ar-agents-operaciones-sociedad-automatiz",
+  "tipo": "SOCIEDAD-IA",
+  "jurisdiction": "AR",
+  "objeto": "Desarrollo, mantenimiento y operacion de infraestructura de agentes autonomos (ar-agents.ar y los paquetes @ar-agents/*), incluyendo el estudio de constitucion y operacion de sociedades automatizadas (ar-agents studio).",
+  "capital": {
+    "monto": 1,
+    "moneda": "ARS"
+  },
+  "administracion": {
+    "modelo": "agente-ia-con-representante-art-102",
+    "representanteLegal": {
+      "nombre": "Nazareno Clemente",
+      "cuit": "A CONFIRMAR"
+    },
+    "nota": "Regimen sociedad-IA pendiente de sancion. Hasta entonces corre bajo SAS estandar con representante humano por RFC-001 seccion 3.1 (espiritu del art. 102 del anteproyecto)."
+  },
+  "governance": {
+    "rfc": "rfc-001",
+    "killSwitch": true,
+    "aprobacionHumanaRequerida": [
+      "transferencias por encima del tope configurado",
+      "reembolsos y cancelaciones",
+      "altas o bajas de medios de pago",
+      "cambios de representante o de objeto social"
+    ],
+    "guardrails": [
+      "tope de gasto por operacion y diario",
+      "kill-switch que suspende la operatoria via estado de registro",
+      "registro de auditoria firmado de cada accion con efecto externo"
+    ]
+  },
+  "piezas": [
+    "identity",
+    "gde-tad",
+    "mercadopago",
+    "banking",
+    "facturacion"
+  ],
+  "rfcConformance": [
+    "rfc-001-v1"
+  ],
+  "validated": false,
+  "disclaimer": "BORRADOR NO VALIDADO. Documento generado automaticamente como punto de partida. No constituye asesoramiento legal. Revisar y validar con un escribano o abogado matriculado antes de cualquier uso o presentacion."
+}

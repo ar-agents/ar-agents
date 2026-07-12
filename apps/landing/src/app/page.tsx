@@ -11,7 +11,7 @@ import { useState } from "react";
 import { HeroDiagram } from "./hero-diagram";
 import { useLang } from "./i18n";
 import { HomeJsonLd } from "./json-ld";
-import { LAW_STATUS } from "./law-status";
+import { homeLawCopy, LAW_STATUS } from "./law-status";
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -87,17 +87,7 @@ export default function Home() {
   const { lang } = useLang();
   const es = lang === "es";
 
-  const law =
-    LAW_STATUS === "live"
-      ? { banner: null as string | null, note: es ? "Registro abierto." : "Registration open." }
-      : {
-          banner: es
-            ? "El anteproyecto de Ley de Sociedades está en el Senado. Todavía no es ley."
-            : "The draft Companies Law is in the Senate. It is not law yet.",
-          note: es
-            ? "Generás y operás todo hoy. Registrás el día que sea ley."
-            : "Build and operate everything today. Register the day it becomes law.",
-        };
+  const law = homeLawCopy(LAW_STATUS, es);
 
   return (
     <main
