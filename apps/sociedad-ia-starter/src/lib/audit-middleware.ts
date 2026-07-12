@@ -22,6 +22,7 @@
 import type { AnyTool, ToolMiddleware } from "@ar-agents/core";
 import { classifyTool, isArAgentsError } from "@ar-agents/core";
 import { appendLocalAudit } from "./audit-log";
+import { writeToSink } from "./audit-sink";
 
 export interface WithLocalAuditOptions {
   /** Same hook passed to `enforceRiskPolicy`, so the governance
@@ -100,11 +101,21 @@ export function withLocalAudit(toolName: string, opts: WithLocalAuditOptions = {
           throw err;
         } finally {
           try {
-            await appendLocalAudit({ tool: toolName, governance, errored, summary });
+            // appendLocalAudit ALWAYS returns the constructed, signed entry
+            // (even when local storage failed), so the dual-write below
+            // forwards the exact same id/ts/hmac regardless of whether the
+            // local copy landed.
+            const entry = await appendLocalAudit({ tool: toolName, governance, errored, summary });
+            // ROADMAP.md M3-6: best-effort second copy in ar-agents.ar's
+            // per-society durable sink, isolated by this deploy's own
+            // SOCIETY_GATE_TOKEN (see ./audit-sink). Never throws; a
+            // failure here must never break (or shadow the error of) the
+            // tool call it's recording, same contract as the local write.
+            await writeToSink(entry);
           } catch {
-            // Belt-and-suspenders: appendLocalAudit already never throws.
-            // The audit trail must never break (or shadow the error of)
-            // the tool call it's recording.
+            // Belt-and-suspenders: appendLocalAudit and writeToSink already
+            // never throw. The audit trail must never break (or shadow the
+            // error of) the tool call it's recording.
           }
         }
       },

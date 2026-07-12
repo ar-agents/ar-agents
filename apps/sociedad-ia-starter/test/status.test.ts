@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { GET } from "../src/app/api/status/route";
 import { appendLocalAudit, __resetLocalAuditForTests } from "../src/lib/audit-log";
+import { __resetAuditSinkForTests } from "../src/lib/audit-sink";
 
 const TOKEN = "test-status-token-123456";
 const SOCIETY = "sess-test-1";
@@ -43,7 +44,14 @@ beforeEach(() => {
   process.env.SOCIEDAD_IA_DENOMINACION = "Kiosco Automatizado SAS";
   delete process.env.KV_REST_API_URL;
   delete process.env.KV_REST_API_TOKEN;
+  // SOCIETY_GATE_TOKEN deliberately unset in this file's shared setup: the
+  // sink dual-write/fallback is only configured when both SOCIETY_ID AND
+  // SOCIETY_GATE_TOKEN are present (see ./audit-sink's sinkConfigured), so
+  // these existing tests exercise the local-only path unchanged. The M3-6
+  // fallback describe block below sets it explicitly.
+  delete process.env.SOCIETY_GATE_TOKEN;
   __resetLocalAuditForTests();
+  __resetAuditSinkForTests();
   fetchMock = vi.fn();
   vi.stubGlobal("fetch", fetchMock);
 });
@@ -51,9 +59,11 @@ beforeEach(() => {
 afterEach(() => {
   delete process.env.STUDIO_STATUS_TOKEN;
   delete process.env.SOCIETY_ID;
+  delete process.env.SOCIETY_GATE_TOKEN;
   delete process.env.AR_AGENTS_API_BASE;
   delete process.env.SOCIEDAD_IA_DENOMINACION;
   __resetLocalAuditForTests();
+  __resetAuditSinkForTests();
   vi.unstubAllGlobals();
 });
 
@@ -155,8 +165,10 @@ describe("GET /api/status graceful degradation", () => {
     expect(body.killSwitch).toEqual({ available: false, suspended: null });
     expect(body.approvals).toEqual({ available: false, pendingCount: null, items: null });
     // Local audit log has no SOCIETY_ID / network dependency: available even
-    // in local dev, just empty (nothing appended in this test).
-    expect(body.audit).toEqual({ available: true, entries: [], droppedWrites: 0 });
+    // in local dev, just empty (nothing appended in this test). The sink
+    // fallback also has no SOCIETY_GATE_TOKEN in this suite's setup, so it
+    // never reaches the network either.
+    expect(body.audit).toEqual({ available: true, entries: [], droppedWrites: 0, sinkDroppedWrites: 0 });
     expect(fetchMock).not.toHaveBeenCalled();
   });
 
@@ -171,7 +183,7 @@ describe("GET /api/status graceful degradation", () => {
     const body = await res.json();
     expect(body.killSwitch).toEqual({ available: false, suspended: null });
     expect(body.approvals).toEqual({ available: true, pendingCount: 0, items: [] });
-    expect(body.audit).toEqual({ available: true, entries: [], droppedWrites: 0 });
+    expect(body.audit).toEqual({ available: true, entries: [], droppedWrites: 0, sinkDroppedWrites: 0 });
   });
 
   it("every upstream unreachable: whole response still 200; local audit is unaffected (no network dependency)", async () => {
@@ -183,6 +195,67 @@ describe("GET /api/status graceful degradation", () => {
     expect(body.killSwitch.available).toBe(false);
     expect(body.approvals.available).toBe(false);
     expect(body.audit.available).toBe(true);
+  });
+});
+
+describe("GET /api/status audit: sink fallback (ROADMAP.md M3-6)", () => {
+  beforeEach(() => {
+    process.env.SOCIETY_GATE_TOKEN = "sgt_test_token";
+  });
+
+  it("falls back to the sink tail when the local log is empty and the sink is configured", async () => {
+    fetchMock.mockImplementation(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("/api/suspension-status")) return jsonResponse({ ok: true, suspended: false });
+      if (u.includes("/api/approvals/pending")) return jsonResponse({ ok: true, pending: [] });
+      if (u.includes("/api/society-audit/tail")) {
+        return jsonResponse({
+          ok: true,
+          entries: [
+            { id: "sink-1", ts: "2026-01-01T00:00:00.000Z", tool: "registrar_decision", governance: "create", errored: false, summary: "desde el sink" },
+          ],
+        });
+      }
+      return jsonResponse({}, 404);
+    });
+
+    const res = await GET(req({ authorization: `Bearer ${TOKEN}` }));
+    const body = await res.json();
+    expect(body.audit.available).toBe(true);
+    expect(body.audit.entries).toHaveLength(1);
+    expect(body.audit.entries[0]).toMatchObject({ tool: "registrar_decision", summary: "desde el sink" });
+  });
+
+  it("does NOT call the sink when the local log already has entries (fast path)", async () => {
+    await appendLocalAudit({ tool: "validar_cuit", governance: "algorithm-only", errored: false, summary: "ok" });
+    fetchMock.mockImplementation(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("/api/suspension-status")) return jsonResponse({ ok: true, suspended: false });
+      if (u.includes("/api/approvals/pending")) return jsonResponse({ ok: true, pending: [] });
+      return jsonResponse({}, 404);
+    });
+
+    const res = await GET(req({ authorization: `Bearer ${TOKEN}` }));
+    const body = await res.json();
+    expect(body.audit.entries).toHaveLength(1);
+    expect(body.audit.entries[0].tool).toBe("validar_cuit");
+    const calledSinkTail = fetchMock.mock.calls.some((c: unknown[]) => String(c[0]).includes("/api/society-audit/tail"));
+    expect(calledSinkTail).toBe(false);
+  });
+
+  it("a sink failure keeps the audit section available with an empty list, never a throw", async () => {
+    fetchMock.mockImplementation(async (url: string | URL) => {
+      const u = String(url);
+      if (u.includes("/api/suspension-status")) return jsonResponse({ ok: true, suspended: false });
+      if (u.includes("/api/approvals/pending")) return jsonResponse({ ok: true, pending: [] });
+      if (u.includes("/api/society-audit/tail")) throw new Error("sink down");
+      return jsonResponse({}, 404);
+    });
+
+    const res = await GET(req({ authorization: `Bearer ${TOKEN}` }));
+    expect(res.status).toBe(200);
+    const body = await res.json();
+    expect(body.audit).toEqual({ available: true, entries: [], droppedWrites: 0, sinkDroppedWrites: 0 });
   });
 });
 
