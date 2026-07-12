@@ -22,9 +22,21 @@
 
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import type { Tool } from "ai";
+import { treasurySideEffectsFor } from "@ar-agents/treasury/tools";
+import { walletCdpSideEffectsFor } from "@ar-agents/wallet-cdp/tools";
 import { buildTools } from "../src/lib/agent";
-import { __resetLocalAuditForTests } from "../src/lib/audit-log";
+import { withLocalAudit } from "../src/lib/audit-middleware";
+import { __resetLocalAuditForTests, readLocalAudit } from "../src/lib/audit-log";
+import { MONEY_AUDIT_SUMMARIZERS } from "../src/lib/money-audit-summarizers";
+import { __resetCdpWalletForTests } from "../src/lib/clients";
 import { GET as getStatus } from "../src/app/api/status/route";
+
+/** Same combinator `./agent.ts`'s `buildTools()` passes to both
+ *  `enforceRiskPolicy` and `withLocalAudit`, so these tests classify
+ *  governance exactly the way the real agent loop does. */
+function sideEffectsFor(toolName: string): string | undefined {
+  return treasurySideEffectsFor(toolName) ?? walletCdpSideEffectsFor(toolName);
+}
 
 const STATUS_TOKEN = "e2e-status-token-0123456789abcdef";
 
@@ -41,6 +53,7 @@ beforeEach(() => {
   delete process.env.AUDIT_HMAC_SECRET;
   process.env.STUDIO_STATUS_TOKEN = STATUS_TOKEN;
   __resetLocalAuditForTests();
+  __resetCdpWalletForTests();
 });
 
 afterEach(() => {
@@ -148,5 +161,122 @@ describe("selectModel (platform-metered fallback)", () => {
     delete process.env.ANTHROPIC_API_KEY;
     const { selectModel } = await import("../src/lib/agent");
     expect(selectModel()).toBe("anthropic/claude-sonnet-4-5");
+  });
+});
+
+describe("ROADMAP.md M2-4c: wallet-cdp wired into buildTools()", () => {
+  afterEach(() => {
+    delete process.env.CDP_API_KEY_ID;
+    delete process.env.CDP_API_KEY_SECRET;
+    delete process.env.CDP_WALLET_SECRET;
+    __resetCdpWalletForTests();
+  });
+
+  it("wallet_transfer_usdc and treasury_offramp_convert are both wired", async () => {
+    const tools = await buildTools();
+    expect(tools).toHaveProperty("wallet_transfer_usdc");
+    expect(tools).toHaveProperty("treasury_offramp_convert");
+  });
+
+  it("without CDP_API_KEY_ID/SECRET/CDP_WALLET_SECRET the wallet degrades to {available:false}, still audited", async () => {
+    const tools = await buildTools();
+    const wallet = tools.wallet_transfer_usdc as Tool;
+    const execute = wallet.execute as (args: unknown, ctx: unknown) => Promise<unknown>;
+    const result = (await execute(
+      { to: "0x1234567890123456789012345678901234567890", amountAtomic: "1000000", idempotencyKey: "k1" },
+      { toolCallId: "call_wallet_1", messages: [] },
+    )) as { available: boolean };
+    expect(result.available).toBe(false); // no CDP env configured in this test env
+
+    const res = await getStatus(statusReq());
+    const body = await res.json();
+    const entry = body.audit.entries.find((e: { tool: string }) => e.tool === "wallet_transfer_usdc");
+    expect(entry).toBeDefined();
+    expect(entry.errored).toBe(false);
+    // The money summarizer returns null for {available:false} (no wallet
+    // configured is not a money OUTCOME) -- falls through to the same
+    // generic "no disponible" line every other unconfigured tool gets.
+    expect(entry.summary).toContain("no disponible");
+  });
+});
+
+describe("ROADMAP.md M2-4c: structured money-audit summaries land in the signed audit log (both legs)", () => {
+  /** Same tool-call shape the AI SDK's tool-step executor uses. */
+  async function callWrapped(
+    toolName: string,
+    execute: (args: Record<string, unknown>) => Promise<unknown>,
+    args: Record<string, unknown>,
+  ): Promise<unknown> {
+    const fake = { description: "fake", inputSchema: undefined, execute } as unknown as Parameters<
+      ReturnType<typeof withLocalAudit>
+    >[0];
+    const wrapped = withLocalAudit(toolName, { sideEffectsFor, moneySummarizers: MONEY_AUDIT_SUMMARIZERS })(fake);
+    const wrappedExecute = wrapped.execute as (a: unknown, ctx: unknown) => Promise<unknown>;
+    return wrappedExecute(args, { toolCallId: "t", messages: [] });
+  }
+
+  it("crypto leg: an executed wallet_transfer_usdc call produces the structured summary", async () => {
+    const args = { to: "0x1234567890123456789012345678901234567890", amountAtomic: "1000000", idempotencyKey: "k1" };
+    await callWrapped(
+      "wallet_transfer_usdc",
+      async () => ({
+        available: true,
+        status: "executed",
+        receipt: { ...args, transactionHash: "0x9f95e747516c72be2e759279e92a6cbba82e0fa317832eef6c754237ac15fd7f" },
+      }),
+      args,
+    );
+    const entries = await readLocalAudit(1);
+    expect(entries[0]!.tool).toBe("wallet_transfer_usdc");
+    expect(entries[0]!.governance).toBe("money");
+    expect(entries[0]!.summary).toBe(
+      "USDC 1.000000 -> 0x1234...7890 (base-sepolia) ejecutada, tx 0x9f95e7...15fd7f",
+    );
+  });
+
+  it("crypto leg: a policy-denied throw (WalletCdpPolicyDeniedError) produces the structured 'denegada' summary", async () => {
+    const { WalletCdpPolicyDeniedError } = await import("@ar-agents/wallet-cdp");
+    const args = { to: "0x1234567890123456789012345678901234567890", amountAtomic: "999000000", idempotencyKey: "k2" };
+    await expect(
+      callWrapped(
+        "wallet_transfer_usdc",
+        async () => {
+          throw new WalletCdpPolicyDeniedError("transferUsdc: policy denied -- forbidden");
+        },
+        args,
+      ),
+    ).rejects.toThrow();
+    const entries = await readLocalAudit(1);
+    expect(entries[0]!.errored).toBe(true);
+    expect(entries[0]!.summary).toBe("USDC 999.000000 -> 0x1234...7890 (base-sepolia) denegada por politica");
+  });
+
+  it("fiat leg: an executed treasury_offramp_convert call produces the structured summary", async () => {
+    const args = { amountUsd: 100, operationRef: "obligacion-2026-07" };
+    await callWrapped(
+      "treasury_offramp_convert",
+      async () => ({ available: true, amountUsd: 100, arsReceived: 148500, rate: 1500, txId: "mem-offramp-1-100.00" }),
+      args,
+    );
+    const entries = await readLocalAudit(1);
+    expect(entries[0]!.tool).toBe("treasury_offramp_convert");
+    expect(entries[0]!.governance).toBe("irreversible");
+    expect(entries[0]!.summary).toBe("USDC 100.00 -> ARS 148500.00 ejecutada, ref mem-offram...100.00");
+  });
+
+  it("fiat leg: a thrown off-ramp failure produces the structured 'fallida' summary", async () => {
+    const args = { amountUsd: 100, operationRef: "obligacion-2026-07" };
+    await expect(
+      callWrapped(
+        "treasury_offramp_convert",
+        async () => {
+          throw new Error("PSAV timeout");
+        },
+        args,
+      ),
+    ).rejects.toThrow();
+    const entries = await readLocalAudit(1);
+    expect(entries[0]!.errored).toBe(true);
+    expect(entries[0]!.summary).toBe("USDC 100.00 fallida, ref obligacion-2026-07");
   });
 });

@@ -114,6 +114,7 @@ describe("GET /api/status payload shape", () => {
       wsfe: "missing-env",
       "afip-padron": "missing-env",
       "treasury-offramp": "missing-env",
+      "wallet-cdp": "missing-env",
     });
   });
 

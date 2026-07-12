@@ -416,6 +416,17 @@ export {
   type OusdArsReceipt,
 } from "./open-usd-route";
 
+// Unified signed-audit-log schema (ROADMAP.md M2-4c): one event shape + one
+// formatter shared by the crypto leg (wallet-cdp transfers) and the fiat leg
+// (this package's own OffRampAdapter conversions).
+export {
+  type MoneyAuditLeg,
+  type MoneyAuditKind,
+  type MoneyAuditOutcome,
+  type MoneyAuditEvent,
+  formatMoneyAuditSummary,
+} from "./audit";
+
 export {
   MONOTRIBUTO_2026,
   MONOTRIBUTO_TABLE_EFFECTIVE,
