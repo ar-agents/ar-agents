@@ -10,13 +10,13 @@
     "render": "remotion render src/index.ts SociedadIaDemo out/demo.mp4 --codec h264 --pixel-format yuv420p"
   },
   "dependencies": {
-    "@remotion/bundler": "4.0.330",
-    "@remotion/cli": "4.0.330",
-    "@remotion/google-fonts": "4.0.330",
-    "@remotion/renderer": "4.0.330",
-    "react": "19.2.4",
-    "react-dom": "19.2.4",
-    "remotion": "4.0.330"
+    "@remotion/bundler": "4.0.488",
+    "@remotion/cli": "4.0.488",
+    "@remotion/google-fonts": "4.0.488",
+    "@remotion/renderer": "4.0.488",
+    "react": "19.2.7",
+    "react-dom": "19.2.7",
+    "remotion": "4.0.488"
   },
   "devDependencies": {
     "@types/react": "^19.2.0",
