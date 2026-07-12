@@ -2,9 +2,12 @@
 
 > Cliente de linea de comandos para el studio de ar-agents.
 
-Tres comandos: iniciar sesion (con una cuenta anonima nueva o un token
-existente), ver quien sos (uso, tope mensual y estado de tu sociedad, si
-constituiste una), y charlar con el coach de ar-agents.
+Iniciar sesion (con una cuenta anonima nueva o un token existente), ver
+quien sos (uso, tope mensual y estado de tu sociedad, si constituiste una),
+charlar con el coach de ar-agents, y operar tu sociedad ya constituida desde
+la terminal: ver su resumen, el tablero de actividad en vivo (deploy,
+clientes, kill switch, aprobaciones pendientes, acciones recientes), y
+suspenderla o reanudarla.
 
 ## Instalacion
 
@@ -36,6 +39,20 @@ ar-agents whoami
 
 # Charla con el coach de ar-agents (requiere sesion iniciada)
 ar-agents chat
+
+# Muestra el resumen de tu sociedad ya constituida
+ar-agents society
+
+# Muestra el tablero en vivo: deploy, clientes, kill switch,
+# aprobaciones pendientes y acciones recientes
+ar-agents activity
+
+# Suspende la sociedad (kill switch). Requiere --confirmar de forma explicita,
+# no llama a la red sin esa confirmacion. --motivo es opcional.
+ar-agents suspend --motivo "mantenimiento programado" --confirmar
+
+# Reanuda una sociedad suspendida. Tambien requiere --confirmar.
+ar-agents resume --confirmar
 ```
 
 `STUDIO_URL` (variable de entorno) tambien sirve para fijar el studio por

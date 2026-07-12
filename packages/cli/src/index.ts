@@ -11,6 +11,13 @@ import { readFileSync } from "node:fs";
 import { createAccount, getAccount, AccountClientError } from "./account-client.js";
 import { sendAgentTurn, AgentClientError } from "./agent-client.js";
 import { constituteSociety, ConstituteClientError } from "./constitute-client.js";
+import {
+  getSociety,
+  getSocietyActivity,
+  setSocietySuspended,
+  SocietyClientError,
+  type SocietyAuditEntry,
+} from "./society-client.js";
 import { readConfig, resolveConfigDir, writeConfig } from "./config.js";
 import { appendAssistantTurn, appendUserTurn, type UiMessage } from "./messages.js";
 
@@ -39,6 +46,12 @@ Uso:
   ar-agents chat                                      Charla con el coach de ar-agents (requiere sesion iniciada)
   ar-agents constitute --draft <archivo> --nombre <nombre> --cuit <cuit> --acepta-102 [--url <url>]
                                                        Constituye la sociedad a partir del borrador (requiere sesion iniciada)
+  ar-agents society [--url <url>]                     Muestra el resumen de tu sociedad (requiere sesion iniciada)
+  ar-agents activity [--url <url>]                    Muestra el tablero en vivo: deploy, clientes, kill switch,
+                                                       aprobaciones pendientes y acciones recientes (requiere sesion iniciada)
+  ar-agents suspend [--motivo <texto>] --confirmar [--url <url>]
+                                                       Suspende la sociedad (kill switch, requiere confirmacion explicita)
+  ar-agents resume --confirmar [--url <url>]          Reanuda la sociedad suspendida (requiere confirmacion explicita)
   ar-agents help                                      Muestra esta ayuda
   ar-agents version                                    Muestra la version instalada
 
@@ -353,6 +366,217 @@ async function runConstitute(argv: string[], deps: RunDeps): Promise<number> {
   }
 }
 
+const NO_SOCIETY_HINT = "No hay ninguna sociedad constituida todavia. Constituila con: ar-agents constitute\n";
+
+/** `ar-agents society`: GET /api/society, rendered as a readable es-AR
+ *  summary block. */
+async function runSociety(argv: string[], deps: RunDeps): Promise<number> {
+  const configDir = resolveConfigDir(deps);
+  const config = readConfig(configDir);
+  if (!config) {
+    deps.stderr.write("No hay sesion. Corre: ar-agents login\n");
+    return 1;
+  }
+
+  const flags = parseFlags(argv);
+  const baseUrl = flags.url ?? config.studioUrl;
+
+  try {
+    const { society } = await getSociety({ baseUrl, token: config.token, fetchImpl: deps.fetchImpl });
+
+    if (!society) {
+      deps.stdout.write(NO_SOCIETY_HINT);
+      return 0;
+    }
+
+    const estado = society.suspended === true
+      ? "suspendida"
+      : society.suspended === false
+        ? "activa"
+        : "estado desconocido";
+
+    const lines = [
+      `Sociedad: ${society.denominacion}`,
+      `Tipo: ${society.tipo}`,
+      `Registro: ${society.registryId ?? "sin registrar"}`,
+      `Creada: ${society.createdAt}`,
+      `Estado: ${estado}`,
+    ];
+
+    if (society.goodStanding) {
+      const score = society.goodStanding.score === null ? "sin dato" : String(society.goodStanding.score);
+      const rating = society.goodStanding.rating ?? "sin dato";
+      lines.push(`Buen estandar: ${society.goodStanding.state} (score ${score}, rating ${rating})`);
+    } else {
+      lines.push("Buen estandar: sin datos");
+    }
+
+    lines.push(
+      `Aprobaciones pendientes: ${society.pendingApprovals === null ? "sin datos" : society.pendingApprovals}`,
+    );
+
+    if (society.deploy) {
+      lines.push(`Deploy: ${society.deploy.projectName} (${society.deploy.url})`);
+    } else {
+      lines.push("Deploy: sin desplegar todavia");
+    }
+
+    deps.stdout.write(lines.join("\n") + "\n");
+    return 0;
+  } catch (err) {
+    const message = err instanceof SocietyClientError ? err.message : "error_desconocido";
+    deps.stderr.write(`No se pudo consultar la sociedad: ${message}\n`);
+    return 1;
+  }
+}
+
+/** Renders one recent-actions line for `activity`: `ts  tool  (governance)`,
+ *  with an `[error]` marker and an optional short summary. Kept defensive:
+ *  never throws on a missing field. */
+function formatAuditLine(entry: SocietyAuditEntry): string {
+  const errored = entry.errored ? " [error]" : "";
+  const summary = entry.summary ? ` ${entry.summary}` : "";
+  return `  ${entry.ts}  ${entry.tool}  (${entry.governance})${errored}${summary}`;
+}
+
+/** `ar-agents activity`: GET /api/society/activity, rendered as the "sociedad
+ *  en vivo" cockpit: deploy health, client wiring, kill switch, pending
+ *  approvals, and recent audited actions. Each section prints "sin datos
+ *  todavia" independently when its `available` flag is false, mirroring the
+ *  route's own independent-failure design. */
+async function runActivity(argv: string[], deps: RunDeps): Promise<number> {
+  const configDir = resolveConfigDir(deps);
+  const config = readConfig(configDir);
+  if (!config) {
+    deps.stderr.write("No hay sesion. Corre: ar-agents login\n");
+    return 1;
+  }
+
+  const flags = parseFlags(argv);
+  const baseUrl = flags.url ?? config.studioUrl;
+
+  try {
+    const activity = await getSocietyActivity({ baseUrl, token: config.token, fetchImpl: deps.fetchImpl });
+
+    const lines: string[] = [];
+
+    if (activity.deploy.available) {
+      lines.push(`Deploy: ${activity.deploy.state ?? "sin estado"} (${activity.deploy.url ?? "sin url"})`);
+    } else {
+      lines.push("Deploy: sin datos todavia");
+    }
+
+    lines.push("Clientes:");
+    if (activity.clients.available && activity.clients.statuses) {
+      for (const [cliente, estado] of Object.entries(activity.clients.statuses)) {
+        lines.push(`  ${cliente}: ${estado}`);
+      }
+    } else {
+      lines.push("  sin datos todavia");
+    }
+
+    if (activity.killSwitch.available) {
+      const estado = activity.killSwitch.suspended === true
+        ? "suspendida"
+        : activity.killSwitch.suspended === false
+          ? "activa"
+          : "sin datos";
+      lines.push(`Kill switch: ${estado}`);
+    } else {
+      lines.push("Kill switch: sin datos todavia");
+    }
+
+    if (activity.approvals.available) {
+      const count = activity.approvals.pendingCount ?? 0;
+      lines.push(`Aprobaciones pendientes: ${count}`);
+      if (activity.approvals.items && activity.approvals.items.length > 0) {
+        for (const item of activity.approvals.items) {
+          lines.push(`  ${item.tool} (${item.status})`);
+        }
+      }
+    } else {
+      lines.push("Aprobaciones pendientes: sin datos todavia");
+    }
+
+    lines.push("Acciones recientes:");
+    if (activity.audit.available && activity.audit.entries && activity.audit.entries.length > 0) {
+      for (const entry of activity.audit.entries) {
+        lines.push(formatAuditLine(entry));
+      }
+    } else {
+      lines.push("  sin datos todavia");
+    }
+
+    deps.stdout.write(lines.join("\n") + "\n");
+    return 0;
+  } catch (err) {
+    if (err instanceof SocietyClientError && err.code === "sin_sociedad") {
+      deps.stderr.write(NO_SOCIETY_HINT);
+      return 1;
+    }
+    const message = err instanceof SocietyClientError ? err.message : "error_desconocido";
+    deps.stderr.write(`No se pudo consultar la actividad de la sociedad: ${message}\n`);
+    return 1;
+  }
+}
+
+/** Shared handler for `ar-agents suspend` and `ar-agents resume`: the kill
+ *  switch. This is a consequential, reversible-but-disruptive action (it
+ *  cuts the society's own agent app off), so the confirmation gate runs
+ *  before anything else, including reading any flags beyond `--confirmar`
+ *  itself: no confirmation, no fetch (mirrors runConstitute's
+ *  `--acepta-102` gate exactly). */
+async function runSuspend(argv: string[], deps: RunDeps, suspend: boolean): Promise<number> {
+  const configDir = resolveConfigDir(deps);
+  const config = readConfig(configDir);
+  if (!config) {
+    deps.stderr.write("No hay sesion. Corre: ar-agents login\n");
+    return 1;
+  }
+
+  const confirmado = argv.includes("--confirmar");
+  if (!confirmado) {
+    const accion = suspend ? "Suspender" : "Reanudar";
+    const gerundio = suspend ? "suspendiendo" : "reanudando";
+    deps.stderr.write(
+      `${accion} la sociedad afecta su operacion en vivo. Tenes que confirmarlo de forma explicita.\n` +
+        `Volve a correr el comando agregando --confirmar cuando estes ${gerundio} con intencion.\n`,
+    );
+    return 1;
+  }
+
+  const flags = parseFlags(argv);
+  const baseUrl = flags.url ?? config.studioUrl;
+
+  try {
+    const result = await setSocietySuspended({
+      baseUrl,
+      token: config.token,
+      suspend,
+      ...(flags.motivo !== undefined ? { motivo: flags.motivo } : {}),
+      fetchImpl: deps.fetchImpl,
+    });
+
+    const estado = result.suspended === true
+      ? "suspendida"
+      : result.suspended === false
+        ? "activa"
+        : "estado desconocido";
+    const mensaje = suspend ? "Sociedad suspendida." : "Sociedad reanudada.";
+    deps.stdout.write(`${mensaje} Estado: ${estado}\n`);
+    return 0;
+  } catch (err) {
+    if (err instanceof SocietyClientError && err.code === "sin_sociedad") {
+      deps.stderr.write(NO_SOCIETY_HINT);
+      return 1;
+    }
+    const message = err instanceof SocietyClientError ? err.message : "error_desconocido";
+    const accion = suspend ? "suspender" : "reanudar";
+    deps.stderr.write(`No se pudo ${accion} la sociedad: ${message}\n`);
+    return 1;
+  }
+}
+
 export async function run(argv: string[], deps: RunDeps): Promise<number> {
   const [command, ...rest] = argv;
 
@@ -380,6 +604,22 @@ export async function run(argv: string[], deps: RunDeps): Promise<number> {
 
   if (command === "constitute") {
     return runConstitute(rest, deps);
+  }
+
+  if (command === "society") {
+    return runSociety(rest, deps);
+  }
+
+  if (command === "activity") {
+    return runActivity(rest, deps);
+  }
+
+  if (command === "suspend") {
+    return runSuspend(rest, deps, true);
+  }
+
+  if (command === "resume") {
+    return runSuspend(rest, deps, false);
   }
 
   deps.stderr.write(`Comando desconocido: ${command}\n`);
