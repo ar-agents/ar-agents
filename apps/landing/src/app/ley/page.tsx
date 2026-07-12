@@ -6,7 +6,7 @@
 // the main-path entry. Copy is a first pass; legal facts are verified.
 
 import { useLang } from "../i18n";
-import { LAW_STATUS } from "../law-status";
+import { LAW_STATUS, leyEstado } from "../law-status";
 
 const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
@@ -77,7 +77,6 @@ const DETAIL: ReadonlyArray<{ href: string; es: string; en: string; d_es: string
 export default function Ley() {
   const { lang } = useLang();
   const es = lang === "es";
-  const live = LAW_STATUS === "live";
 
   return (
     <main
@@ -105,13 +104,7 @@ export default function Ley() {
           <span aria-hidden="true" style={statusDot} />
           <div>
             <strong style={{ color: "var(--text)", fontWeight: 600 }}>
-              {live
-                ? es
-                  ? "Estado: vigente."
-                  : "Status: in force."
-                : es
-                  ? "Estado: en el Senado. Todavía no es ley."
-                  : "Status: in the Senate. Not law yet."}
+              {leyEstado(LAW_STATUS, es)}
             </strong>
             <p style={{ margin: "4px 0 0", color: "var(--text-body)", fontSize: 14, lineHeight: 1.5 }}>
               {es

@@ -1,0 +1,18 @@
+=== GUIA DE INSCRIPCION IGJ (BORRADOR) ===
+BORRADOR NO VALIDADO. Documento generado automaticamente como punto de partida. No constituye asesoramiento legal. Revisar y validar con un escribano o abogado matriculado antes de cualquier uso o presentacion.
+============================================================
+
+CAMPOS PRECARGADOS (verificar antes de presentar):
+- Denominacion: AR Agents Operaciones Sociedad Automatizada
+- Tipo societario: Sociedad por Acciones Simplificada (SAS), encuadre provisorio hasta la sancion del regimen sociedad-IA
+- Objeto: Desarrollo, mantenimiento y operacion de infraestructura de agentes autonomos (ar-agents.ar y los paquetes @ar-agents/*), incluyendo el estudio de constitucion y operacion de sociedades automatizadas (ar-agents studio).
+- Capital social: ARS 1
+- Representante legal: Nazareno Clemente
+
+PASOS:
+1. Reservar la denominacion en IGJ (verificar homonimia).
+2. Otorgar el estatuto ante escribano (usar el borrador de estatuto de este pack como base).
+3. Integrar el capital y obtener el comprobante.
+4. Presentar la inscripcion via TAD (Tramites a Distancia) con la documentacion.
+5. Antes de presentar, correr el tool validate_igj_inscription para evitar el ~30% de rechazos mecanicos.
+[COMPLETAR: sede social y datos de los socios faltan en este borrador.]

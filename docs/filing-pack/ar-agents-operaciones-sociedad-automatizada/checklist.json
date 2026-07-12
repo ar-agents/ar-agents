@@ -1,0 +1,10 @@
+[
+  "Constituí la sociedad acá arriba (con la firma del representante, art. 102). Es el único paso que hacés vos: todo lo que sigue lo automatiza el estudio.",
+  "Desplegá el agente con un click desde el panel del estudio: crea el proyecto en Vercel y lo configura solo, sin tocar código ni la consola de Vercel.",
+  "Configurá las credenciales que uses (Mercado Pago, WhatsApp, AFIP) desde el panel 'Credenciales' del estudio: completás los datos ahí y el estudio los valida y los carga en Vercel por vos.",
+  "Para cobrar con Mercado Pago vas a necesitar una app en developers.mercadopago.com (Credenciales de producción). El token se pega en el panel de Credenciales del estudio, no en Vercel.",
+  "Para facturar vas a necesitar un certificado X.509 de ARCA (Clave Fiscal → Administrador de Relaciones → Asociar Servicio Web, servicios `wsfe` y `ws_sr_constancia_inscripcion`). Se sube desde el panel de Credenciales, no hace falta editar ningún archivo.",
+  "Para WhatsApp Business vas a necesitar verificar tu empresa en Meta Business Manager (sin eso el límite es 5 destinatarios). El token se carga después en el panel de Credenciales.",
+  "El régimen sociedad-IA aún no fue sancionado. Hasta entonces el código corre bajo SAS estándar con representante humano por RFC-001 § 3.1.",
+  "El loop matutino del agente (lee DEC inbox + Boletín Oficial cada mañana) ya viene agendado con el deploy: no hay que configurar nada."
+]

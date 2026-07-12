@@ -1,0 +1,15 @@
+=== GUIA DE ALTA AFIP/ARCA (BORRADOR) ===
+BORRADOR NO VALIDADO. Documento generado automaticamente como punto de partida. No constituye asesoramiento legal. Revisar y validar con un escribano o abogado matriculado antes de cualquier uso o presentacion.
+============================================================
+
+CAMPOS PRECARGADOS (verificar antes de tramitar):
+- Denominacion: AR Agents Operaciones Sociedad Automatizada
+- Representante (Clave Fiscal): Nazareno Clemente CUIT A CONFIRMAR (declarado, no verificado)
+- Actividad sugerida: servicios informaticos / desarrollo de software
+
+PASOS:
+1. Obtener el CUIT de la sociedad una vez inscripta en IGJ.
+2. En ARCA, Clave Fiscal, asociar el servicio web 'Asociar Servicio Web' y habilitar 'wsfe' (facturacion electronica) y 'ws_sr_constancia_inscripcion' (constancia).
+3. Generar el certificado X.509 y descargar cert + key para cargarlos en el .env del agente.
+4. Definir el encuadre impositivo (monotributo o responsable inscripto) con un contador.
+[COMPLETAR con un contador: encuadre impositivo y actividad principal definitiva.]
