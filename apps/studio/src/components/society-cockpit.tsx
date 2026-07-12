@@ -9,6 +9,11 @@ interface ActivityDeploy {
   projectName: string | null;
   url: string | null;
   state: string | null;
+  /** ROADMAP.md M3-7: true when the newest production deployment was a
+   *  skipped/canceled build but an older READY deployment is actually
+   *  serving the alias -- `state` above already reports that served
+   *  deployment's health (READY), this is just a secondary hint. */
+  lastRolloutCanceled: boolean;
 }
 interface ActivitySociety {
   available: boolean;
@@ -172,6 +177,11 @@ export function SocietyCockpit({ token }: { token: string }) {
         <p style={{ fontSize: 13, fontWeight: 600, margin: 0 }}>{t("cockpit.heading")}</p>
         {deploy ? <span className={deployBadgeClass(deploy.state)}>{t(DEPLOY_STATE_LABEL[deploy.state ?? ""] ?? "cockpit.unavailable")}</span> : null}
       </div>
+      {deploy?.lastRolloutCanceled ? (
+        <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 4px" }}>
+          {t("cockpit.deploy.lastRolloutCanceled")}
+        </p>
+      ) : null}
       {society?.available && society.version ? (
         <p style={{ fontSize: 11, color: "var(--text-muted)", margin: "0 0 12px" }}>
           {format("cockpit.subtitle", {

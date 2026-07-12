@@ -257,10 +257,26 @@ export async function GET(req: Request) {
 
   const deployLookup = await deployPromise;
 
+  // ROADMAP.md M3-7: a CANCELED newest deployment is a SKIPPED build (a
+  // monorepo git push that never touched apps/sociedad-ia-starter), not a
+  // failure -- and when an older deployment is READY and actually serving
+  // the alias (readyUrl), showing CANCELED here reads as "the society is
+  // down" while it is, in fact, up (found live, 2026-07-09). Demote the
+  // pill to the serving deployment's health (READY) in that one case only,
+  // surfacing the skipped rollout as a secondary `lastRolloutCanceled` flag
+  // instead. A genuinely FAILED/ERRORed newest rollout is NOT demoted --
+  // founders must still see a real build failure even if an older
+  // deployment happens to still be serving.
+  const lastRolloutCanceled = Boolean(
+    deployLookup?.ok && deployLookup.state === "CANCELED" && deployLookup.readyUrl,
+  );
+  const effectiveState =
+    deployLookup?.ok && lastRolloutCanceled ? "READY" : (deployLookup?.ok ? deployLookup.state : null);
+
   const deploy =
     deployLookup && deployLookup.ok
-      ? { available: true, projectName, url: aliasUrl ?? deployLookup.url, state: deployLookup.state }
-      : { available: false, projectName, url: aliasUrl ?? society.deploy?.url ?? null, state: null };
+      ? { available: true, projectName, url: aliasUrl ?? deployLookup.url, state: effectiveState, lastRolloutCanceled }
+      : { available: false, projectName, url: aliasUrl ?? society.deploy?.url ?? null, state: null, lastRolloutCanceled: false };
 
   // Skip the /api/status round trip right after a fresh backfill: the
   // deployment that will actually honor the new token hasn't landed yet.

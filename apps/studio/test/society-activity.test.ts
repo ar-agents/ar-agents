@@ -143,7 +143,7 @@ describe("GET /api/society/activity: no deploy yet", () => {
     const res = await GET(req(created!.token));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.deploy).toEqual({ available: false, projectName: null, url: null, state: null });
+    expect(body.deploy).toEqual({ available: false, projectName: null, url: null, state: null, lastRolloutCanceled: false });
     expect(body.society.available).toBe(false);
     expect(body.clients.available).toBe(false);
     expect(body.killSwitch).toEqual({ available: false, suspended: null });
@@ -178,7 +178,7 @@ describe("GET /api/society/activity: status-token backfill", () => {
     expect(body.society.available).toBe(false);
     expect(body.clients.available).toBe(false);
     // deploy health is independent of the backfill and still reports.
-    expect(body.deploy).toEqual({ available: true, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: "READY" });
+    expect(body.deploy).toEqual({ available: true, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: "READY", lastRolloutCanceled: false });
 
     expect(setSocietyCredentialEnvVarsMock).toHaveBeenCalledTimes(3);
     const [statusProjectArg, statusEnvVarsArg] = setSocietyCredentialEnvVarsMock.mock.calls[0]!;
@@ -213,7 +213,7 @@ describe("GET /api/society/activity: status-token backfill", () => {
     const res = await GET(req(created!.token));
     const body = await res.json();
     expect(body.provisioning).toBe(false);
-    expect(body.deploy).toEqual({ available: false, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: null });
+    expect(body.deploy).toEqual({ available: false, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: null, lastRolloutCanceled: false });
     expect(triggerRedeployMock).not.toHaveBeenCalled();
 
     const stored = await getStoredSociety(created!.accountId);
@@ -273,6 +273,108 @@ describe("GET /api/society/activity: status-token backfill", () => {
   });
 });
 
+describe("GET /api/society/activity: deploy-health pill demotion (ROADMAP.md M3-7)", () => {
+  it("newest deployment CANCELED but an older deployment is READY (readyUrl set): pill reports READY, flags lastRolloutCanceled", async () => {
+    // A monorepo git push that never touched apps/sociedad-ia-starter yields
+    // a skipped/canceled newest build while the alias keeps serving the last
+    // real (READY) deployment -- found live 2026-07-09. The pill must not
+    // read CANCELED while the society is actually up.
+    const created = await createAccount();
+    await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
+    getLatestDeploymentMock.mockResolvedValueOnce({
+      ok: true,
+      state: "CANCELED",
+      url: "soc-reg-1-canceled.vercel.app",
+      createdAt: "x",
+      readyUrl: "soc-reg-1.vercel.app",
+    });
+    // deploy.url already prefers the stable production alias over any
+    // deployment-specific URL (ROADMAP.md M3-2, unrelated to this demotion);
+    // resolve it here so the assertion below reflects what a founder actually
+    // sees, not the SSO-walled deployment URL.
+    getProjectProductionDomainMock.mockResolvedValueOnce("soc-reg-1.vercel.app");
+
+    const res = await GET(req(created!.token));
+    const body = await res.json();
+    expect(body.deploy).toEqual({
+      available: true,
+      projectName: "soc-reg-1",
+      url: "soc-reg-1.vercel.app",
+      state: "READY",
+      lastRolloutCanceled: true,
+    });
+  });
+
+  it("newest deployment ERROR: NOT demoted, even with an older readyUrl -- a real build failure must still show", async () => {
+    const created = await createAccount();
+    await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
+    getLatestDeploymentMock.mockResolvedValueOnce({
+      ok: true,
+      state: "ERROR",
+      url: "soc-reg-1-error.vercel.app",
+      createdAt: "x",
+      readyUrl: "soc-reg-1.vercel.app",
+    });
+    getProjectProductionDomainMock.mockResolvedValueOnce("soc-reg-1.vercel.app");
+
+    const res = await GET(req(created!.token));
+    const body = await res.json();
+    expect(body.deploy).toEqual({
+      available: true,
+      projectName: "soc-reg-1",
+      url: "soc-reg-1.vercel.app",
+      state: "ERROR",
+      lastRolloutCanceled: false,
+    });
+  });
+
+  it("newest deployment already READY: unchanged, lastRolloutCanceled false", async () => {
+    const created = await createAccount();
+    await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
+    getLatestDeploymentMock.mockResolvedValueOnce({
+      ok: true,
+      state: "READY",
+      url: "soc-reg-1.vercel.app",
+      createdAt: "x",
+      readyUrl: "soc-reg-1.vercel.app",
+    });
+
+    const res = await GET(req(created!.token));
+    const body = await res.json();
+    expect(body.deploy).toEqual({
+      available: true,
+      projectName: "soc-reg-1",
+      url: "soc-reg-1.vercel.app",
+      state: "READY",
+      lastRolloutCanceled: false,
+    });
+  });
+
+  it("newest deployment CANCELED with NO older READY deployment (readyUrl null): not demoted, stays CANCELED", async () => {
+    // Nothing is actually serving in this case -- there is no healthy
+    // deployment to demote to, so the pill must keep reporting CANCELED.
+    const created = await createAccount();
+    await setStoredSociety(created!.accountId, FIXTURE_DEPLOYED_WITH_TOKEN);
+    getLatestDeploymentMock.mockResolvedValueOnce({
+      ok: true,
+      state: "CANCELED",
+      url: "soc-reg-1-canceled.vercel.app",
+      createdAt: "x",
+      readyUrl: null,
+    });
+
+    const res = await GET(req(created!.token));
+    const body = await res.json();
+    expect(body.deploy).toEqual({
+      available: true,
+      projectName: "soc-reg-1",
+      url: "soc-reg-1-canceled.vercel.app",
+      state: "CANCELED",
+      lastRolloutCanceled: false,
+    });
+  });
+});
+
 describe("GET /api/society/activity: denominacion backfill (ROADMAP.md M3-3)", () => {
   it("a society missing only denominacionSet backfills it alone, still coalescing to one redeploy", async () => {
     const created = await createAccount();
@@ -313,7 +415,7 @@ describe("GET /api/society/activity: full merged payload", () => {
     const res = await GET(req(created!.token));
     expect(res.status).toBe(200);
     const body = await res.json();
-    expect(body.deploy).toEqual({ available: true, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: "READY" });
+    expect(body.deploy).toEqual({ available: true, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: "READY", lastRolloutCanceled: false });
     expect(body.society).toEqual({ available: true, denominacion: "Kiosco Automatizado SAS", version: "0.1.17", uptimeSeconds: 4200 });
     expect(body.clients).toEqual({ available: true, statuses: FULL_STARTER_STATUS.clients });
     expect(body.killSwitch).toEqual({ available: true, suspended: false });
@@ -369,7 +471,7 @@ describe("GET /api/society/activity: full merged payload", () => {
 
     const res = await GET(req(created!.token));
     const body = await res.json();
-    expect(body.deploy).toEqual({ available: false, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: null });
+    expect(body.deploy).toEqual({ available: false, projectName: "soc-reg-1", url: "soc-reg-1.vercel.app", state: null, lastRolloutCanceled: false });
     expect(body.society.available).toBe(true);
     expect(body.killSwitch).toEqual({ available: true, suspended: false });
   });

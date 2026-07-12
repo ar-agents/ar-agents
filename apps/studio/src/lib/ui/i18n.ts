@@ -422,6 +422,9 @@ export const MESSAGES = {
   "cockpit.deploy.state.error": { es: "con error", en: "errored" },
   "cockpit.deploy.state.canceled": { es: "cancelado", en: "canceled" },
   "cockpit.deploy.state.blocked": { es: "bloqueado", en: "blocked" },
+  // ROADMAP.md M3-7: secondary hint, subtle by design -- the pill above
+  // already reports the serving deployment's real health (READY).
+  "cockpit.deploy.lastRolloutCanceled": { es: "último build omitido", en: "last build skipped" },
 
   "cockpit.clients.heading": { es: "Clientes externos conectados", en: "Connected external clients" },
   "cockpit.clients.summary": { es: "{wired}/{total} configurados", en: "{wired}/{total} configured" },
