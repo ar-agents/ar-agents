@@ -43,8 +43,8 @@ type InventoryItem = {
 const INVENTORY: ReadonlyArray<InventoryItem> = [
   {
     n: "01",
-    t_es: "Contá tu idea",
-    t_en: "Tell your idea",
+    t_es: "Describí tu idea",
+    t_en: "Describe your idea",
     d_es: "El coach valida el negocio antes de construir nada. Preguntas cortas, sin vueltas.",
     d_en: "The coach validates the business before building anything. Short questions, no runaround.",
     tag: "studio",
@@ -58,16 +58,16 @@ const INVENTORY: ReadonlyArray<InventoryItem> = [
   },
   {
     n: "03",
-    t_es: "Constituí vos",
-    t_en: "You incorporate",
+    t_es: "Registrá la sociedad",
+    t_en: "Register the company",
     d_es: "La constitución es tuya: un botón, tu firma como administrador. El agente no puede apretarlo.",
     d_en: "The incorporation is yours: one button, your signature as administrator. The agent can't press it.",
     tag: "art. 102",
   },
   {
     n: "04",
-    t_es: "Deploy con un click",
-    t_en: "Deploy in one click",
+    t_es: "Desplegá tu agente",
+    t_en: "Deploy your agent",
     d_es: "El estudio crea el proyecto, configura todo y deja el agente corriendo. Sin tocar una consola.",
     d_en: "The studio creates the project, configures everything, and leaves the agent running. No console required.",
     tag: "Vercel",
@@ -81,8 +81,8 @@ const INVENTORY: ReadonlyArray<InventoryItem> = [
   },
   {
     n: "06",
-    t_es: "Operá desde el cockpit",
-    t_en: "Run it from the cockpit",
+    t_es: "Gestionala desde el sitio web",
+    t_en: "Manage it from the website",
     d_es: "Deploy, aprobaciones, kill switch y cada acción del agente, en una pantalla.",
     d_en: "Deploy, approvals, kill switch, and every agent action, on one screen.",
   },
@@ -106,7 +106,7 @@ const STACK_ROWS: ReadonlyArray<StackRow> = [
   { term_es: "Identidad", term_en: "Identity", desc_es: "CUIT, padrón ARCA, validación.", desc_en: "CUIT, ARCA padron, validation." },
   { term_es: "Facturación", term_en: "Invoicing", desc_es: "Factura electrónica AFIP con CAE.", desc_en: "AFIP electronic invoicing with CAE." },
   { term_es: "Banca", term_en: "Banking", desc_es: "CBU, CVU y BCRA.", desc_en: "CBU, CVU, and BCRA." },
-  { term_es: "Wallet", term_en: "Wallet", desc_es: "USDC con política de gasto en dos capas.", desc_en: "USDC with a two-layer spend policy." },
+  { term_es: "Billetera", term_en: "Wallet", desc_es: "USDC con política de gasto en dos capas.", desc_en: "USDC with a two-layer spend policy." },
   { term_es: "Off-ramp", term_en: "Off-ramp", desc_es: "De stablecoin a pesos en tu cuenta.", desc_en: "From stablecoin to pesos in your account." },
   { term_es: "MCP", term_en: "MCP", desc_es: "Un server para Claude, Cursor y más.", desc_en: "One server for Claude, Cursor, and more." },
 ];
@@ -146,7 +146,7 @@ const FEATURE_CARDS: ReadonlyArray<FeatureCard> = [
   {
     t_es: "Política de gasto",
     t_en: "Spend policy",
-    d_es: "La wallet rechaza sola lo que excede el límite. Dos capas independientes.",
+    d_es: "La billetera rechaza sola lo que excede el límite. Dos capas independientes.",
     d_en: "The wallet rejects on its own whatever exceeds the limit. Two independent layers.",
   },
   {
@@ -582,7 +582,7 @@ function grid(min: number): React.CSSProperties {
 // give this the line budget "Creá tu sociedad automatizada." needs to stay
 // on one line at desktop widths.
 const h1Sty: React.CSSProperties = {
-  fontSize: "clamp(34px, 5.4vw, 64px)",
+  fontSize: "clamp(44px, 6vw, 64px)",
   fontWeight: 450,
   lineHeight: 1.0,
   letterSpacing: "-0.06em",
@@ -734,7 +734,7 @@ const wireRectB: React.CSSProperties = {
 // Section headings: 56px / weight 450 / -0.06em, the giant-statement pattern
 // used uniformly across sections 1-3.
 const sectionHeading: React.CSSProperties = {
-  fontSize: "clamp(28px, 5vw, 56px)",
+  fontSize: "clamp(32px, 5vw, 56px)",
   fontWeight: 450,
   letterSpacing: "-0.06em",
   lineHeight: 1.05,
@@ -868,7 +868,7 @@ const inlineLink: React.CSSProperties = {
 
 // Finale: 96px statement, weight 450, -0.06em, nothing else beside the button.
 const finaleHeading: React.CSSProperties = {
-  fontSize: "clamp(40px, 9vw, 96px)",
+  fontSize: "clamp(48px, 9vw, 96px)",
   fontWeight: 450,
   letterSpacing: "-0.06em",
   lineHeight: 1.0,
