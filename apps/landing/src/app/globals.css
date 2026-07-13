@@ -246,6 +246,23 @@ h1, h2, h3 {
   }
 }
 
+/* Home hero (eve overhaul, 2026-07-13): H1 column flexes free, the file-tree
+   card is a fixed intrinsic width on desktop so it never eats into the
+   H1's line budget, both stack to one column below 960px. */
+.home-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 40px;
+  align-items: start;
+}
+@media (min-width: 960px) {
+  .home-hero {
+    grid-template-columns: minmax(0, 1fr) 320px;
+    gap: 56px;
+    align-items: start;
+  }
+}
+
 /* Visually-hidden utility for skip-links and SR-only labels. */
 .sr-only {
   position: absolute;
