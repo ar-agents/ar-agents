@@ -88,7 +88,7 @@ export default function Ley() {
         padding: "48px 24px 120px",
       }}
     >
-      <div style={{ maxWidth: 820, margin: "0 auto" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
         <p style={eyebrow}>{es ? "La ley" : "The law"}</p>
         <h1 style={h1Sty}>
           {es ? "El marco para las sociedades automatizadas" : "The framework for automated companies"}
