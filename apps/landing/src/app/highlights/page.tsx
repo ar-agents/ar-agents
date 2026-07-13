@@ -47,7 +47,7 @@ export default function HighlightsPage() {
       />
       <main
         style={{
-          maxWidth: 840,
+          maxWidth: 800,
           margin: "0 auto",
           padding: "48px 24px 96px",
           color: "var(--text-body)",
@@ -72,10 +72,10 @@ export default function HighlightsPage() {
             style={{
               fontSize: 40,
               lineHeight: 1.08,
-              fontWeight: 500,
+              fontWeight: 450,
               color: "var(--text-strong)",
               marginBottom: 16,
-              letterSpacing: "-0.02em",
+              letterSpacing: "-0.06em",
             }}
           >
             Infrastructure to create and run

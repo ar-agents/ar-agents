@@ -52,7 +52,7 @@ const PATHS = [
     steps: [
       {
         title: "Open /play",
-        body: "12 tools, streaming via Vercel AI Gateway, agent corre Claude Sonnet 4.6.",
+        body: "13 tools, streaming via Vercel AI Gateway, agent corre Claude Sonnet 4.6.",
         link: "/play",
       },
       {

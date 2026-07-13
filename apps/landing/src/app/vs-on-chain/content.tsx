@@ -360,7 +360,7 @@ export function VsOnChainContent({ lang }: { lang: Lang }) {
               <>
                 <strong>ar-agents / Nazareno Clemente:</strong>{" "}
                 infraestructura civil-comercial-OSS para que una
-                sociedad-IA argentina opere bajo derecho positivo. 36
+                sociedad-IA argentina opere bajo derecho positivo. 39
                 paquetes npm + 6 RFCs + audit log forense. Sin token. Sin
                 yield farming. Sin DeFi.
               </>

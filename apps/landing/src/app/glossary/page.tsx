@@ -285,10 +285,10 @@ export default function GlossaryPage() {
             style={{
               fontSize: 32,
               lineHeight: 1.15,
-              fontWeight: 500,
+              fontWeight: 450,
               color: "var(--text-strong)",
               marginBottom: 12,
-              letterSpacing: "-0.01em",
+              letterSpacing: "-0.06em",
             }}
           >
             Glossary.

@@ -65,7 +65,7 @@ export default async function Image() {
             maxWidth: 1000,
           }}
         >
-          12 tools mockeados pero realistas (CUIT validate, padrón ARCA, BCRA Central de Deudores, factura electrónica, MP, WhatsApp, Boletín Oficial). Cada tool call queda HMAC-firmado en un audit log persistido a Vercel KV.
+          13 tools mockeados pero realistas (CUIT validate, padrón ARCA, BCRA Central de Deudores, factura electrónica, MP, WhatsApp, Boletín Oficial). Cada tool call queda HMAC-firmado en un audit log persistido a Vercel KV.
         </div>
         <div style={{ flex: 1 }} />
         <div

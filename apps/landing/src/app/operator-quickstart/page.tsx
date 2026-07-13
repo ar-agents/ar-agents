@@ -24,7 +24,7 @@ export default function QuickstartPage() {
   return (
     <main
       style={{
-        maxWidth: 860,
+        maxWidth: 800,
         margin: "0 auto",
         padding: "48px 24px 96px",
         color: "var(--text-body)",
@@ -49,10 +49,10 @@ export default function QuickstartPage() {
           style={{
             fontSize: 32,
             lineHeight: 1.1,
-            fontWeight: 500,
+            fontWeight: 450,
             color: "var(--text-strong)",
             marginBottom: 14,
-            letterSpacing: "-0.01em",
+            letterSpacing: "-0.06em",
           }}
         >
           From deployed to listed in 15 minutes.

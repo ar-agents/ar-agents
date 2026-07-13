@@ -71,15 +71,15 @@ export function ConstanciaLanding() {
   }, []);
 
   return (
-    <div style={{ maxWidth: 760, margin: "0 auto", padding: "56px 24px 110px" }}>
+    <div style={{ maxWidth: 800, margin: "0 auto", padding: "56px 24px 110px" }}>
       {/* HERO */}
       <p style={eyebrow}>Constancia Oracle · ar-agents</p>
       <h1
         style={{
           fontSize: "clamp(32px, 6.4vw, 60px)",
-          fontWeight: 600,
+          fontWeight: 450,
           lineHeight: 1.03,
-          letterSpacing: "-0.04em",
+          letterSpacing: "-0.06em",
           margin: "14px 0 0",
         }}
       >

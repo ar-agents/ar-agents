@@ -169,11 +169,12 @@ Meta WhatsApp Business Cloud API.
 - Webhook + HMAC-SHA256 verify.
 - `scopedTo` mode binds outbound tools to a single sender.
 
-### @ar-agents/banking (5 tools)
+### @ar-agents/banking (11 tools)
 
 - `validate_cbu`: pure-algorithm CBU/CVU validation, returns bank/PSP inline.
 - `lookup_bank_by_code`, `list_banks`, `list_psps`.
 - `lookup_credit_situation`: BCRA Central de Deudores (worstSituation 0-6 + per-entity breakdown).
+- `get_bcra_variable`, `list_bcra_variables`, `get_usd_oficial`, `get_cer`, `get_uva`, `get_reservas_bcra`: BCRA Principales Variables.
 
 ### @ar-agents/shipping (6 tools)
 

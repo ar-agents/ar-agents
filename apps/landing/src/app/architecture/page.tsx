@@ -56,12 +56,12 @@ const PACKAGE_GRAPH = `flowchart LR
     subgraph identity_g[identity]
         ID["@ar-agents/identity<br/>2 tools"]:::identity
         ATT["@ar-agents/identity-attest<br/>5 tools"]:::identity
-        MA["@ar-agents/mi-argentina<br/>4 tools"]:::identity
+        MA["@ar-agents/mi-argentina<br/>5 tools"]:::identity
         FD["@ar-agents/firma-digital<br/>4 tools"]:::identity
     end
     subgraph payments_g[payments]
         MP["@ar-agents/mercadopago<br/>89 tools"]:::payments
-        ML["@ar-agents/mercadolibre<br/>15 tools"]:::payments
+        ML["@ar-agents/mercadolibre<br/>14 tools"]:::payments
         BK["@ar-agents/banking<br/>11 tools"]:::payments
     end
     subgraph fiscal_g[fiscal]

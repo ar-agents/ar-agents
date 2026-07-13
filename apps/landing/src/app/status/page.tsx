@@ -214,8 +214,8 @@ export default function StatusPage() {
           <h1
             style={{
               fontSize: 36,
-              fontWeight: 600,
-              letterSpacing: "-1.8px",
+              fontWeight: 450,
+              letterSpacing: "-0.06em",
               lineHeight: 1.05,
               margin: "6px 0 8px",
             }}
