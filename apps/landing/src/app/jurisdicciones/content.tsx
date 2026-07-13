@@ -157,8 +157,8 @@ const ROWS: ReadonlyArray<BilingualRow> = [
   {
     capa: { es: "Open-source", en: "Open-source" },
     ar: {
-      es: "Todo: 37 packages MIT, 6 RFCs CC-BY-4.0, audit lib reference.",
-      en: "Everything: 37 MIT packages, 6 CC-BY-4.0 RFCs, reference audit lib.",
+      es: "Todo: 39 packages MIT, 6 RFCs CC-BY-4.0, audit lib reference.",
+      en: "Everything: 39 MIT packages, 6 CC-BY-4.0 RFCs, reference audit lib.",
     },
     wyoming: {
       es: "Statute is public domain. No reference implementation oficial, terceros como Otonomos.",

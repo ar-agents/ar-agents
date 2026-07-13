@@ -128,8 +128,8 @@
   "packages": {
     "scope": "@ar-agents",
     "registry": "https://www.npmjs.com",
-    "count": 35,
-    "toolCount": 243,
+    "count": 39,
+    "toolCount": 245,
     "countSource": "https://ar-agents.ar/api/discovery",
     "countNote": "Authoritative package and tool counts are computed live at /api/discovery (packageCount + totalTools). The numbers here are a snapshot and may lag a release.",
     "fullInventory": "https://ar-agents.ar/api/discovery",
@@ -140,12 +140,15 @@
       "@ar-agents/ap2",
       "@ar-agents/banking",
       "@ar-agents/banking-bcra",
+      "@ar-agents/bind",
       "@ar-agents/boletin-oficial",
+      "@ar-agents/cli",
       "@ar-agents/cnv-emisor",
       "@ar-agents/constancia",
       "@ar-agents/core",
       "@ar-agents/dnrpa",
       "@ar-agents/facturacion",
+      "@ar-agents/fecred",
       "@ar-agents/firma-digital",
       "@ar-agents/gde-tad",
       "@ar-agents/identity",
@@ -164,9 +167,12 @@
       "@ar-agents/sicore",
       "@ar-agents/suss",
       "@ar-agents/tienda-nube",
+      "@ar-agents/treasury",
       "@ar-agents/uala",
+      "@ar-agents/wallet-cdp",
       "@ar-agents/whatsapp",
-      "@ar-agents/wscdc"
+      "@ar-agents/wscdc",
+      "@ar-agents/x402"
     ]
   },
   "commercial": {

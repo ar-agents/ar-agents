@@ -269,6 +269,8 @@ Sequencing decision (owner delegated): credentials onboarding first (nothing fee
 
 ## Maintenance (continuous, when nothing above is ready)
 
+- Release-time reality check: after every `changeset publish`, verify the landing's present-tense counts and entry-point commands against the repo (packages on npm, manifest tool totals, CLI availability). The 2026-07-13 sweep found 37-vs-39 packages, 243-vs-245 tools, an unpublished CLI presented nowhere, and recipe counts wrong in five places; none of it should survive a release again. Also pending from that sweep: re-sign the two implementacion PDFs (founder's key), reconcile the hosted-endpoint count (3 vs 5 vs 9), and confirm whether /api/mcp exposes all tools or a zero-credential subset (eve-content.tsx claims 245).
+
 - Dependency updates within semver (Dependabot PRs: verify and merge).
 - Untested API routes gain route-level tests (see apps/landing/test for patterns).
 - Doc drift: README and docs against actual code behavior.

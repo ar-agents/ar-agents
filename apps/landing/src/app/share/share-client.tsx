@@ -69,7 +69,7 @@ Publiqué 6 RFCs que cubren las cuatro decisiones clave que toda legislación de
 → Reciprocidad cross-jurisdiccional (RFC-003): envelope JSON portable para que una sociedad automatizada argentina pueda probar transacciones con una Wyoming DAO LLC o una Estonia OÜ.
 → Log operativo (RFC-004): el formato exacto del registro auditable que cada sociedad debe llevar. Con 7 vectores de conformidad deterministas.
 
-Más: un certificador público que scorea cualquier URL 0-100 en 10 segundos (ar-agents.ar/certifier), 37 npm packages que cubren MercadoPago, AFIP/ARCA, WhatsApp, banking, factura electrónica, etc., 26 cookbook recipes, 96 tests unitarios, una plantilla Vercel deployable, un wizard de auto-incorporación, un dashboard de auditoría con SSE en vivo.
+Más: un certificador público que scorea cualquier URL 0-100 en 10 segundos (ar-agents.ar/certifier), 39 npm packages que cubren MercadoPago, AFIP/ARCA, WhatsApp, banking, factura electrónica, etc., un cliente CLI (@ar-agents/cli), 30 cookbook recipes, una plantilla Vercel deployable, un wizard de auto-incorporación, un dashboard de auditoría con SSE en vivo.
 
 Todo MIT + CC-BY-4.0. Sin honorarios para consultas con asesores legislativos.
 

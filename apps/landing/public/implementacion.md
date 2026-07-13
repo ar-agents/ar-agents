@@ -126,7 +126,7 @@ La arquitectura descrita en la sección 2 está implementada y publicada como so
 ### Qué existe y es verificable
 
 - **Código fuente abierto** en `github.com/ar-agents/ar-agents`, licencia MIT.
-- **37 paquetes publicados en npm** bajo el scope `@ar-agents/*`:
+- **39 paquetes publicados en npm** bajo el scope `@ar-agents/*`:
   - `@ar-agents/identity`, validación de CUIT y consultas al padrón de ARCA
   - `@ar-agents/facturacion`, emisión de facturas con CAE vía WSFE
   - `@ar-agents/mercadopago`, suscripciones recurrentes y cobranzas
@@ -134,7 +134,7 @@ La arquitectura descrita en la sección 2 está implementada y publicada como so
   - `@ar-agents/incorporate`, flujo de constitución societaria
   - `@ar-agents/whatsapp`, `@ar-agents/banking`, `@ar-agents/shipping`, entre otros.
 - **Especificaciones formales**: 6 RFCs publicados en `ar-agents.ar/rfcs`, incluido el registro auditable encadenado (RFC-004) y su anclaje externo (RFC-006).
-- **243 herramientas** expuestas a través de los paquetes, operables vía Vercel AI SDK y MCP.
+- **245 herramientas** expuestas a través de los paquetes, operables vía Vercel AI SDK y MCP.
 - **Reference verifier**: `npx @ar-agents/verify-sociedad <CUIT>` permite a cualquier tercero ejecutar una verificación local del estado fiscal y criptográfico de una Sociedad Automatizada registrada.
 - **Despliegues de referencia operativos**: aplicaciones funcionando end-to-end emitiendo CAEs reales contra ARCA en ambiente productivo, no sandbox.
 

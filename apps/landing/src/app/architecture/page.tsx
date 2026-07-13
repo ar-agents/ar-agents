@@ -110,8 +110,7 @@ const PACKAGE_GRAPH = `flowchart LR
 
 export const metadata: Metadata = {
   title: "Architecture",
-  description:
-    "Canonical reference for the @ar-agents/* stack: 37 packages, 243 tools, the Edge-Runtime composition contract, and how an agent loop traverses them.",
+  description: `Canonical reference for the @ar-agents/* stack: ${PUBLISHED_PACKAGES} packages, ${CANONICAL_TOOLS} tools, the Edge-Runtime composition contract, and how an agent loop traverses them.`,
   alternates: { canonical: "https://ar-agents.ar/architecture" },
 };
 

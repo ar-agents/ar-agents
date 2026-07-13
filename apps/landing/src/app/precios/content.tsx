@@ -85,12 +85,12 @@ const T = {
   },
   freeItems: {
     es: [
-      "Los 37 paquetes @ar-agents/* en npm, MIT.",
+      "Los 39 paquetes @ar-agents/* en npm, MIT.",
       "El starter, self-hosteable: corré tu propia sociedad sin pagarnos nada.",
       "El registro público y sus APIs (/api/registry, /api/registry/good-standing).",
     ],
     en: [
-      "The 37 @ar-agents/* packages on npm, MIT.",
+      "The 39 @ar-agents/* packages on npm, MIT.",
       "The starter, self-hostable: run your own company without paying us anything.",
       "The public registry and its APIs (/api/registry, /api/registry/good-standing).",
     ],

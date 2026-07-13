@@ -92,7 +92,7 @@ const SECTIONS: Section[] = [
         url: "/playbook",
         label: "/playbook (en)",
         description:
-          "Flagship narrative document. 37 packages, 243 tools, the Edge-Runtime contract, RFC-001 governance, day-in-the-life of ACME-AI SAS.",
+          "Flagship narrative document. 39 packages, 245 tools, the Edge-Runtime contract, RFC-001 governance, day-in-the-life of ACME-AI SAS.",
       },
       {
         url: "/es/playbook",
@@ -166,13 +166,13 @@ const SECTIONS: Section[] = [
         url: "https://github.com/ar-agents/ar-agents",
         label: "github.com/ar-agents/ar-agents",
         external: true,
-        description: "Monorepo. 37 packages, 19 recipes, 3 demo apps, 1 starter, 1 landing.",
+        description: "Monorepo. 39 packages, 30 recipes, 3 demo apps, 1 starter, 1 landing.",
       },
       {
         url: "https://www.npmjs.com/org/ar-agents",
         label: "npmjs.com/org/ar-agents",
         external: true,
-        description: "All 33 published packages with SLSA v1 provenance attestations.",
+        description: "All 39 published packages with SLSA v1 provenance attestations.",
       },
     ],
   },
@@ -187,7 +187,7 @@ const SECTIONS: Section[] = [
         label: "GET /api/discovery",
         tone: "infra",
         description:
-          "Machine-readable inventory: 37 packages, 243 tools, 5 hosted endpoints. ?format=openapi → OpenAPI 3.1 stub.",
+          "Machine-readable inventory: 39 packages, 245 tools, 5 hosted endpoints. ?format=openapi → OpenAPI 3.1 stub.",
       },
       {
         url: "/api/auto-incorporate",
