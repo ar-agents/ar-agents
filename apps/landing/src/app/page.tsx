@@ -21,8 +21,11 @@ const STUDIO_URL = "https://studio.ar-agents.ar";
 const SOCIETY_URL = "https://soc-ar-agents-operaciones-sociedad.vercel.app";
 
 // The one command that fits beside the CTA button in a compact 40px pill
-// (eve pattern: one command, not a stack). Verified working.
-const HERO_COMMAND = { cmd: "npm i @ar-agents/mercadopago", hl: "@ar-agents/mercadopago" };
+// (eve pattern: one command, not a stack). This is the product's terminal
+// on-ramp (the coach, in a terminal), not one rail among 39 packages.
+// Verified working: `npx -y @ar-agents/cli` prints usage (login/whoami/
+// chat/constitute/society).
+const HERO_COMMAND = { cmd: "npx @ar-agents/cli chat", hl: "@ar-agents/cli" };
 
 // ---------------------------------------------------------------------------
 // Section 1 (pattern A): numbered inventory. `tag` is an optional small
@@ -276,8 +279,8 @@ export default function Home() {
           <h2 style={sectionHeading}>{es ? "Sobre los rieles abiertos" : "On the open rails"}</h2>
           <p style={quietExplainer}>
             {es
-              ? "37 paquetes MIT en npm. Todo el stack argentino que una sociedad necesita, sin pegar soluciones sueltas."
-              : "37 MIT packages on npm. The whole Argentine stack a company needs, without gluing together loose solutions."}
+              ? "39 paquetes MIT en npm. Todo el stack argentino que una sociedad necesita, sin pegar soluciones sueltas."
+              : "39 MIT packages on npm. The whole Argentine stack a company needs, without gluing together loose solutions."}
           </p>
           <dl style={{ margin: "12px 0 0", display: "grid", gap: 1 }}>
             {STACK_ROWS.map((r) => (
@@ -573,7 +576,7 @@ function Footer({ es }: { es: boolean }) {
       <div style={proofStrip}>
         <span>Open source · MIT</span>
         <span aria-hidden="true">·</span>
-        <span>37 {es ? "paquetes en npm" : "npm packages"}</span>
+        <span>39 {es ? "paquetes en npm" : "npm packages"}</span>
         <span aria-hidden="true">·</span>
         <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
       </div>

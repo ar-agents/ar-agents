@@ -5,7 +5,7 @@
 //
 // Scope (deliberate): ONLY tools that are pure algorithms or hit public,
 // unauthenticated, read-only upstreams (BCRA open REST). Nothing here
-// mutates state, moves money, or needs a credential. The full 243-tool
+// mutates state, moves money, or needs a credential. The full 245-tool
 // toolkit stays a local install (`@ar-agents/*` via npm) because the
 // credentialed tools must run next to the caller's secrets, never ours.
 //

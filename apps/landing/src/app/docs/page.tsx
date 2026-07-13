@@ -69,6 +69,10 @@ export default function Docs() {
         {/* ENTRY CTAS */}
         <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))", gap: 12, marginTop: 28 }}>
           <div style={card}>
+            <div style={cardLabel}>{es ? "Hablá con el coach" : "Talk to the coach"}</div>
+            <pre style={codeBlock}>npx @ar-agents/cli chat</pre>
+          </div>
+          <div style={card}>
             <div style={cardLabel}>{es ? "Instalá" : "Install"}</div>
             <pre style={codeBlock}>pnpm add @ar-agents/incorporate</pre>
           </div>
@@ -82,7 +86,7 @@ export default function Docs() {
               github.com/ar-agents <span style={{ color: "var(--accent)" }}>→</span>
             </div>
             <div style={{ fontSize: 12, color: "var(--text-muted)", marginTop: 6 }}>
-              {es ? "37 paquetes · MIT · provenance" : "37 packages · MIT · provenance"}
+              {es ? "39 paquetes · MIT · provenance" : "39 packages · MIT · provenance"}
             </div>
           </a>
         </div>

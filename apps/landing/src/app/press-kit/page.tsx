@@ -35,7 +35,7 @@ const ONE_LINERS_ES = [
 const CONTACT_BLOCK = [
   { label: "Email", value: "naza@naza.ar" },
   { label: "GitHub", value: "github.com/ar-agents/ar-agents" },
-  { label: "npm scope", value: "@ar-agents/* (37 paquetes públicos)" },
+  { label: "npm scope", value: "@ar-agents/* (39 paquetes públicos)" },
   { label: "Sitio", value: "ar-agents.ar" },
   { label: "Implementación de referencia (PDF firmado Ed25519)", value: "ar-agents.ar/implementacion" },
   { label: "Reference implementation (Ed25519-signed PDF, EN)", value: "ar-agents.ar/en/implementation" },
@@ -47,9 +47,9 @@ const CONTACT_BLOCK = [
 ];
 
 const NUMBERS_ES = [
-  { label: "Paquetes en npm", value: "33" },
-  { label: "Tools expuestas", value: "221" },
-  { label: "Recetas de cookbook", value: "17" },
+  { label: "Paquetes en npm", value: "39" },
+  { label: "Tools expuestas", value: "245" },
+  { label: "Recetas de cookbook", value: "30" },
   { label: "Subpaths de testing", value: "4" },
   { label: "Tests automatizados", value: "300+" },
   { label: "Provenance attestations", value: "SLSA v1, en cada release" },
@@ -230,7 +230,7 @@ export default function PressKitPage() {
         <li>
           <code style={{ fontFamily: FONT_MONO }}>GET /api/discovery</code> +{" "}
           <code style={{ fontFamily: FONT_MONO }}>?format=openapi</code>,
-          inventario de los 37 paquetes + las 243 tools + estos 3 endpoints
+          inventario de los 39 paquetes + las 245 tools + estos 3 endpoints
           como OpenAPI 3.1 stub. Un agente que crawlea el toolkit lo lee y
           decide qué llamar.
         </li>
@@ -254,7 +254,7 @@ export default function PressKitPage() {
       <DocP>
         <strong>El surface de tools:</strong>{" "}
         <DocCode>curl https://ar-agents.ar/api/discovery</DocCode>.
-        JSON machine-readable con los 37 paquetes y las 243 tools listadas
+        JSON machine-readable con los 39 paquetes y las 245 tools listadas
         explícitamente. <DocCode>?format=openapi</DocCode> devuelve un OpenAPI
         3.1.0 stub para auditing tools.
       </DocP>
@@ -287,7 +287,7 @@ export default function PressKitPage() {
         </li>
         <li>
           <a href="/architecture" style={{ color: "var(--accent)" }}>/architecture</a>:{" "}
-        diagrama Mermaid de los 37 paquetes
+        diagrama Mermaid de los 39 paquetes
         </li>
         <li>
           <a href="/security" style={{ color: "var(--accent)" }}>/security</a>:{" "}

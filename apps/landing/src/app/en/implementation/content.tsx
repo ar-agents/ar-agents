@@ -141,7 +141,7 @@ export function ImplementationEnContent() {
         </li>
         <li>
           <strong>Current state of the implementation</strong>: what
-          exists verifiably (MIT code, 37 packages on npm, reference
+          exists verifiably (MIT code, 39 packages on npm, reference
           verifier, production deployments with real CAE issuance) and
           what does not yet exist.
         </li>

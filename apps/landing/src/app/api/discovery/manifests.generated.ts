@@ -342,7 +342,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/constancia",
-    "version": "0.2.5",
+    "version": "0.2.6",
     "description": "ARCA Constancia de Inscripción — official fiscal document (régimen, monotributo categoría, impuestos, domicilio, actividades) plus the PDF artifact. Browser-backed: drives the public web form (no Clave Fiscal) via the companion afip-constancia skill on browserbase/skills.",
     "tools": [
       {
@@ -1229,7 +1229,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/mercadopago",
-    "version": "0.18.6",
+    "version": "0.18.7",
     "factory": "mercadoPagoTools",
     "tools": [
       {
@@ -1924,7 +1924,7 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/shipping",
-    "version": "0.4.1",
+    "version": "0.4.2",
     "description": "Argentine shipping carriers (Andreani, OCA, Correo Argentino) as drop-in tools for Vercel AI SDK 6+ agents.",
     "tools": [
       {
@@ -2158,7 +2158,7 @@ export const MANIFESTS = [
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
     "package": "@ar-agents/treasury",
     "name": "@ar-agents/treasury",
-    "version": "0.6.0",
+    "version": "0.7.0",
     "factory": "treasuryTools",
     "tools": [
       {
@@ -2378,6 +2378,40 @@ export const MANIFESTS = [
     "meta": {
       "generated_by": "scripts/regen-manifests.mjs",
       "tool_count": 8
+    }
+  },
+  {
+    "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
+    "package": "@ar-agents/wallet-cdp",
+    "name": "@ar-agents/wallet-cdp",
+    "version": "0.2.0",
+    "factory": "walletCdpTools",
+    "tools": [
+      {
+        "name": "wallet_check_balance",
+        "description": "Read the society's current USDC balance on Base and report whether it went UP since the last check (a 'deposit detected' signal -- e.g. the owner sent a manual top-up). Read-only, no side effects, alw"
+      },
+      {
+        "name": "wallet_transfer_usdc",
+        "description": "EXECUTE a USDC transfer from the society's CDP wallet (Base). IRREVERSIBLE -- moves real money. Two independent layers can block this: (1) above the configured threshold, an ar-agents human-approval d",
+        "input": {
+          "to": "string (0x... recipient address)",
+          "amountAtomic": "string (USDC atomic units, 6 decimals)",
+          "idempotencyKey": "string (reuse on retry)"
+        },
+        "output": {
+          "available": "boolean",
+          "status": "'executed' | 'deferred'",
+          "receipt": "object? ({to, amountAtomic, idempotencyKey, transactionHash?})"
+        },
+        "idempotent": false,
+        "sideEffect": "IRREVERSIBLE: moves real money (USDC on Base)",
+        "requiresConfirmation": true
+      }
+    ],
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 2
     }
   },
   {

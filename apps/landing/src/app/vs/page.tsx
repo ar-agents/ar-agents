@@ -102,7 +102,7 @@ const ROWS: Row[] = [
   },
   {
     dimension: "Cookbook de patrones de producción",
-    ours: { value: "17 recetas", tone: "pos" },
+    ours: { value: "30 recetas", tone: "pos" },
     afipsdk: { value: "Docs API", tone: "neu" },
     handrolled: { value: "-", tone: "neu" },
     consultoria: { value: "Cerrado", tone: "neg" },
