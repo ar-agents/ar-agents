@@ -212,7 +212,7 @@ export default function Home() {
           column on desktop (.home-hero, globals.css) and stacks below the
           CTA row on mobile. Order follows the measured eve anatomy: H1 ->
           toggle line -> CTA row -> analogy paragraph. */}
-      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px 0" }}>
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "24px 24px 0", minHeight: "calc(100svh - 64px)", display: "flex", flexDirection: "column", justifyContent: "center" }}>
         {/* H1 spans the full hero width (own row) so "Creá tu sociedad
             automatizada." gets the ~1050px line budget it needs to stay on
             one line at 64px. The file-tree card sits to the right of the
@@ -251,7 +251,7 @@ export default function Home() {
         {/* SECTION 1 (pattern A): giant statement + numbered inventory */}
         <section id="conversacion" style={sectionOuter}>
           <h2 style={sectionHeading}>
-            {es ? "Una sociedad es una conversación" : "A company is a conversation"}
+            {es ? "Describir es crear" : "To describe is to create"}
           </h2>
           <p style={quietExplainer}>
             {es
