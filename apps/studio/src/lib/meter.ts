@@ -14,7 +14,18 @@
 import { kv } from "@vercel/kv";
 import { withKvLock } from "./kv-lock";
 
-const DEFAULT_CAP_MICRO_USD = 500_000; // 0.50 USD of model cost => 2.50 USD at the 5x price
+const DEFAULT_CAP_MICRO_USD = 500_000; // 0.50 USD of model cost, see priceMultiplier() for the billed estimate
+const DEFAULT_PRICE_MULTIPLIER = 5; // pricing factor; configured per deployment via STUDIO_PRICE_MULTIPLIER, not disclosed on any public surface
+
+/** Server-only. Reads the deployment's pricing factor; falls back to the
+ *  plain default above when unset or invalid. This is deliberately not
+ *  exported or exposed to the client: the public site states the pricing
+ *  MODEL (free to build, usage-based once operational), never the factor. */
+function priceMultiplier(): number {
+  const raw = process.env.STUDIO_PRICE_MULTIPLIER?.trim();
+  const n = raw ? Number(raw) : NaN;
+  return Number.isFinite(n) && n > 0 ? n : DEFAULT_PRICE_MULTIPLIER;
+}
 
 function isKvWired(): boolean {
   return Boolean(
@@ -92,7 +103,8 @@ export interface Usage {
   inputTokens: number;
   outputTokens: number;
   costMicroUsd: number;
-  /** The would-be bill: costMicroUsd * 5. Nothing is actually charged in v1. */
+  /** The would-be bill: costMicroUsd * the deployment's price multiplier
+   *  (see priceMultiplier()). Nothing is actually charged in v1. */
   priceMicroUsd: number;
 }
 
@@ -117,7 +129,7 @@ export async function getUsage(accountId: string): Promise<Usage> {
   const month = currentMonth();
   try {
     const totals = await readTotals(accountId, month);
-    return { month, ...totals, priceMicroUsd: totals.costMicroUsd * 5 };
+    return { month, ...totals, priceMicroUsd: totals.costMicroUsd * priceMultiplier() };
   } catch {
     return { month, inputTokens: 0, outputTokens: 0, costMicroUsd: 0, priceMicroUsd: 0 };
   }

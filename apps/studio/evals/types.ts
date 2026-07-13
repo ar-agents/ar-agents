@@ -33,8 +33,9 @@ export interface RubricExpectations {
    *  personas legitimately do not converge to a draft within the turn cap
    *  (e.g. a still-vague idea), and that is fine. */
   requiresDraft: boolean;
-  /** Whether pricing must be discussed honestly (free to build, ~5x the
-   *  estimated cost once operating) somewhere in the assistant's replies. */
+  /** Whether pricing must be discussed honestly (free to build, usage-based
+   *  once operating, no mechanics/multiplier disclosed) somewhere in the
+   *  assistant's replies. */
   expectsPricingDiscussion: boolean;
 }
 

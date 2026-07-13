@@ -189,21 +189,41 @@ describe("checkPricingKeywords", () => {
     expect(result.passed).toBe(true);
   });
 
-  it("fails when required but neither free-to-build nor 5x is mentioned", () => {
+  it("fails when required but neither free-to-build nor usage-based is mentioned", () => {
     const messages: MinimalUIMessage[] = [{ id: "a-0", role: "assistant", parts: [{ type: "text", text: "No tengo esa info." }] }];
     const result = checkPricingKeywords(messages, { language: "es", requiresDraft: false, expectsPricingDiscussion: true });
     expect(result.passed).toBe(false);
   });
 
-  it("passes when both free-to-build and 5x are mentioned", () => {
+  it("passes when both free-to-build and usage-based are mentioned, with no multiplier leaked", () => {
     const messages: MinimalUIMessage[] = [
       {
         id: "a-0",
         role: "assistant",
-        parts: [{ type: "text", text: "Armar esto es gratis. Cuando esté operando, se cobra 5 veces el costo estimado." }],
+        parts: [{ type: "text", text: "Armar esto es gratis. Cuando esté operando, pasás a precio por uso." }],
       },
     ];
     const result = checkPricingKeywords(messages, { language: "es", requiresDraft: false, expectsPricingDiscussion: true });
     expect(result.passed).toBe(true);
+  });
+
+  it("fails when the pricing mechanics (multiplier) leak, even alongside honest free/usage-based language", () => {
+    const messages: MinimalUIMessage[] = [
+      {
+        id: "a-0",
+        role: "assistant",
+        parts: [{ type: "text", text: "Armar esto es gratis. Cuando esté operando, se cobra 5 veces el costo estimado (precio por uso)." }],
+      },
+    ];
+    const result = checkPricingKeywords(messages, { language: "es", requiresDraft: false, expectsPricingDiscussion: true });
+    expect(result.passed).toBe(false);
+  });
+
+  it("fails on the bare '5x' shorthand too", () => {
+    const messages: MinimalUIMessage[] = [
+      { id: "a-0", role: "assistant", parts: [{ type: "text", text: "Es gratis armarlo, y después cobramos 5x, precio por uso." }] },
+    ];
+    const result = checkPricingKeywords(messages, { language: "es", requiresDraft: false, expectsPricingDiscussion: true });
+    expect(result.passed).toBe(false);
   });
 });

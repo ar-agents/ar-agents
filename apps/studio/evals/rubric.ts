@@ -106,6 +106,12 @@ export function checkNoRealFilingClaims(messages: MinimalUIMessage[]): Determini
   };
 }
 
+// Pricing posture (2026-07-13, founder's call): the coach may state the
+// pricing MODEL (free to build, usage-based once operational) but must
+// NEVER state the MECHANICS (the multiplier, cost-plus math, a worked
+// cost-vs-price example). This check therefore requires the honest,
+// mechanics-free script and FAILS if the multiplier leaks, inverting the
+// old "must mention 5x" requirement now that the business rule changed.
 export function checkPricingKeywords(
   messages: MinimalUIMessage[],
   expectations: RubricExpectations,
@@ -118,12 +124,13 @@ export function checkPricingKeywords(
     };
   }
   const text = assistantText(messages).toLowerCase();
-  const mentionsFree = /(gratis|sin costo|no cuesta|free to build)/.test(text);
-  const mentionsFiveX = /(5x|5 veces|cinco veces|five times)/.test(text);
+  const mentionsFree = /(gratis|sin costo|no cuesta|free to build|free until)/.test(text);
+  const mentionsUsageBased = /(por uso|usage-based|precio por uso|paga(?:s|mos)? por (?:el|lo que) usa)/.test(text);
+  const leaksMultiplier = /(5x|5\s*veces el costo|five times the cost|cinco veces el costo)/.test(text);
   return {
     id: "pricing_keywords",
-    passed: mentionsFree && mentionsFiveX,
-    detail: `free-to-build mentioned: ${mentionsFree}, 5x mentioned: ${mentionsFiveX}.`,
+    passed: mentionsFree && mentionsUsageBased && !leaksMultiplier,
+    detail: `free mentioned: ${mentionsFree}, usage-based mentioned: ${mentionsUsageBased}, multiplier leaked: ${leaksMultiplier}.`,
   };
 }
 

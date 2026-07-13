@@ -4,7 +4,7 @@ import { PreciosContent } from "./content";
 export const metadata: Metadata = {
   title: "Precios",
   description:
-    "Crear, deployar y operar tu sociedad automatizada es gratis. Cuando empieza a facturar, cobramos 5x el costo de los tokens que consumen sus agentes. Sin suscripciones, sin asientos, sin cargos fijos.",
+    "Crear, deployar y operar tu sociedad automatizada es gratis. Cuando empieza a facturar, pasás a precio por uso. Sin suscripciones, sin asientos, sin cargos fijos.",
   alternates: {
     canonical: "https://ar-agents.ar/precios",
     languages: {
