@@ -145,53 +145,12 @@ export function Nav() {
           ar-agents
         </Link>
 
-        <div className="nav-links-desktop" style={{ alignItems: "center", gap: 24 }}>
-          {NAV.map((item) => {
-            const active = isActive(item.matchPrefixes, pathname);
-            const href = item.href[lang];
-            return (
-              <Link
-                key={href}
-                href={href}
-                aria-current={active ? "page" : undefined}
-                style={{
-                  fontSize: 14,
-                  textDecoration: "none",
-                  color: active ? "var(--text)" : "var(--text-body)",
-                  fontWeight: active ? 600 : 500,
-                  whiteSpace: "nowrap",
-                }}
-              >
-                {item.label[lang]}
-              </Link>
-            );
-          })}
-        </div>
-
-        <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <a
-            href={ctaHref}
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              height: 30,
-              padding: "0 14px",
-              background: "var(--primary-bg)",
-              color: "var(--primary-text)",
-              borderRadius: 9999,
-              textDecoration: "none",
-              fontFamily: FONT_SANS,
-              fontSize: 13,
-              fontWeight: 500,
-              whiteSpace: "nowrap",
-            }}
-          >
-            {ctaLabel}
-          </a>
-          <Toggles />
-
+        <div style={{ display: "flex", alignItems: "center" }}>
           {/* Menu cluster: button + dropdown panel. Relatively positioned so
-              the panel anchors to it; wrapRef covers both for click-outside. */}
+              the panel anchors to it; wrapRef covers both for click-outside.
+              The bar itself carries ONLY the brand and this button (founder
+              call, 2026-07-13): links, the Studio CTA and both toggles live
+              inside the panel, on every viewport. */}
           <div ref={wrapRef} className="nav-menu-mobile" style={{ position: "relative" }}>
             <button
               type="button"
@@ -203,9 +162,10 @@ export function Nav() {
               style={{
                 display: "inline-flex",
                 alignItems: "center",
-                gap: 7,
-                height: 30,
-                padding: "0 12px",
+                height: 34,
+                width: 38,
+                justifyContent: "center",
+                padding: 0,
                 background: open ? "var(--bg-tint)" : "transparent",
                 color: "var(--text)",
                 border: "none",
@@ -241,7 +201,6 @@ export function Nav() {
                   </>
                 )}
               </svg>
-              {menuLabel}
             </button>
 
             {open && (
@@ -289,6 +248,30 @@ export function Nav() {
                     </Link>
                   );
                 })}
+                <div role="separator" style={{ height: 1, background: "var(--border-color, rgba(0,0,0,0.1))", margin: "5px 6px" }} />
+                <a
+                  href={ctaHref}
+                  onClick={() => setOpen(false)}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    height: 34,
+                    margin: "2px 6px",
+                    background: "var(--primary-bg)",
+                    color: "var(--primary-text)",
+                    borderRadius: 9999,
+                    textDecoration: "none",
+                    fontSize: 13,
+                    fontWeight: 500,
+                  }}
+                >
+                  {ctaLabel}
+                </a>
+                <div role="separator" style={{ height: 1, background: "var(--border-color, rgba(0,0,0,0.1))", margin: "5px 6px" }} />
+                <div style={{ display: "flex", justifyContent: "center", padding: "6px 6px 4px" }}>
+                  <Toggles />
+                </div>
               </div>
             )}
           </div>

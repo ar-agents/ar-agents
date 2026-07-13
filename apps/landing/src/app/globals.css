@@ -188,9 +188,6 @@ button:focus-visible {
   gap: 32px;
   align-items: center;
 }
-.nav-links-desktop {
-  display: none;
-}
 .nav-menu-mobile {
   display: inline-flex;
 }
@@ -201,12 +198,6 @@ button:focus-visible {
   }
 }
 @media (min-width: 820px) {
-  .nav-links-desktop {
-    display: flex;
-  }
-  .nav-menu-mobile {
-    display: none;
-  }
 }
 
 /* Headings balance their wrapping on supporting browsers, avoids
