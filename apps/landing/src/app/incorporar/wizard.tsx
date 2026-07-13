@@ -528,7 +528,7 @@ The agent is at \`lib/agent.ts\`. Wire it into your route handlers / cron jobs a
 
 ## Tipo de sociedad
 
-**${state.tipo}**, ${state.tipo === "SAS" ? "estándar, disponible hoy" : "pendiente sanción del régimen sociedad-IA (estimado H1 2027). Mientras tanto el código corre bajo SAS estándar."}
+**${state.tipo}**, ${state.tipo === "SAS" ? "estándar, disponible hoy" : lawIsLive ? "régimen sociedad-IA vigente." : "pendiente sanción del régimen sociedad-IA (estimado H1 2027). Mientras tanto el código corre bajo SAS estándar."}
 
 ## RFC-001 governance
 
@@ -763,7 +763,9 @@ export function IncorporarWizard() {
               style={baseInputStyle}
             >
               <option value="SAS">SAS · disponible hoy</option>
-              <option value="SOCIEDAD-IA">SOCIEDAD-IA · pendiente ley H1 2027</option>
+              <option value="SOCIEDAD-IA">
+                {lawIsLive ? "SOCIEDAD-IA · vigente" : "SOCIEDAD-IA · pendiente ley H1 2027"}
+              </option>
             </select>
           </div>
           <div style={{ display: "grid", gap: 4 }}>
