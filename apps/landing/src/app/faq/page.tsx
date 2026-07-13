@@ -5,7 +5,7 @@ import { JsonLd } from "../json-ld";
 export const metadata: Metadata = {
   title: "/faq · regulator + dev questions answered",
   description:
-    "21 questions a Sturzenegger asesor, journalist, builder, or external agent would ask about ar-agents, answered crisply, with verifiable links. JSON-LD FAQPage for rich results.",
+    "19 questions a Sturzenegger asesor, journalist, builder, or external agent would ask about ar-agents, answered crisply, with verifiable links. JSON-LD FAQPage for rich results.",
   alternates: { canonical: "https://ar-agents.ar/faq" },
 };
 
@@ -60,7 +60,7 @@ const FAQS: Q[] = [
   {
     audience: "developer",
     q: "¿Cómo arranco un proyecto desde cero?",
-    a: 'Tres paths según preferencia:<br/>1. <strong>Wizard humano</strong>: <a href="/incorporar">/incorporar</a> → completás un form, descargás 4 archivos, deploy.<br/>2. <strong>SDK programático</strong>: <code>pnpm add @ar-agents/incorporate</code> → <code>await incorporate({...})</code>. <a href="/sdk">/sdk</a> tiene quickstart.<br/>3. <strong>Template starter</strong>: clonar <code>apps/sociedad-ia-starter</code> directamente. <a href="https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter">Ver código</a>.',
+    a: 'Cuatro paths según preferencia:<br/>1. <strong>Studio (recomendado)</strong>: <a href="https://studio.ar-agents.ar">studio.ar-agents.ar</a> → el coach valida tu idea, arma el borrador y constituye con un click.<br/>2. <strong>Wizard humano</strong>: <a href="/incorporar">/incorporar</a> → completás un form, descargás 4 archivos, deploy manual.<br/>3. <strong>SDK programático</strong>: <code>pnpm add @ar-agents/incorporate</code> → <code>await incorporate({...})</code>. <a href="/sdk">/sdk</a> tiene quickstart.<br/>4. <strong>Template starter</strong>: clonar <code>apps/sociedad-ia-starter</code> directamente. <a href="https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter">Ver código</a>.',
   },
   {
     audience: "developer",

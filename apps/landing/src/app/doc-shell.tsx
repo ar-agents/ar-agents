@@ -28,7 +28,7 @@ export function DocShell({ eyebrow, title, subtitle, children }: DocShellProps) 
         padding: "56px 24px 120px",
       }}
     >
-      <div style={{ maxWidth: 760, margin: "0 auto" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
         <p
           style={{
             fontSize: 12,
@@ -46,9 +46,9 @@ export function DocShell({ eyebrow, title, subtitle, children }: DocShellProps) 
           style={{
             fontSize: "clamp(32px, 6vw, 44px)",
             margin: "16px 0 16px",
-            fontWeight: 600,
-            lineHeight: 1.15,
-            letterSpacing: "-0.04em",
+            fontWeight: 450,
+            lineHeight: 1.1,
+            letterSpacing: "-0.06em",
           }}
         >
           {title}

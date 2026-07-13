@@ -14,7 +14,7 @@ const SHORTCUTS = [
   { href: "/play", label: "/play", desc: "Live automated-company agent demo" },
   { href: "/reference", label: "/reference", desc: "Every URL on the site" },
   { href: "/sdk", label: "/sdk", desc: "@ar-agents/incorporate docs" },
-  { href: "/faq", label: "/faq", desc: "21 questions answered" },
+  { href: "/faq", label: "/faq", desc: "19 questions answered" },
   { href: "/sociedades-ia", label: "/sociedades-ia", desc: "Regime alignment" },
   { href: "/rfcs/001", label: "/rfcs/001", desc: "Three-layer liability framework" },
 ];
