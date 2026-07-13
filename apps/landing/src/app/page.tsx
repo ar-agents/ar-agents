@@ -254,7 +254,7 @@ export default function Home() {
         {/* SECTION 1 (pattern A): giant statement + numbered inventory */}
         <section id="conversacion" style={sectionOuter}>
           <h2 style={sectionHeading}>
-            {es ? "Describir es crear" : "To describe is to create"}
+            {es ? "Describí tu empresa y creala en un click." : "Describe your company and create it in one click."}
           </h2>
           <p style={quietExplainer}>
             {es
