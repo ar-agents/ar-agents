@@ -100,10 +100,11 @@ export default function Home() {
       }}
     >
       <div style={{ maxWidth: 1200, margin: "0 auto" }}>
-        {/* HERO: single column, centered, headline does the work, whitespace over decoration.
-            The first h1 line must stay ONE line on desktop (founder call): size capped so
-            "Creá tu sociedad automatizada." fits the container without wrapping. */}
-        <header style={{ marginBottom: 72, paddingTop: 24, textAlign: "center" }}>
+        {/* HERO: single column, LEFT-aligned (founder call 2026-07-13), headline does the
+            work, whitespace over decoration. The first h1 line must stay ONE line on
+            desktop (earlier founder call): size capped so "Creá tu sociedad
+            automatizada." fits the container without wrapping. */}
+        <header style={{ marginBottom: 72, paddingTop: 24 }}>
           <p style={eyebrow}>
             {es ? "Sociedades automatizadas · Argentina" : "Automated companies · Argentina"}
           </p>
@@ -125,7 +126,7 @@ export default function Home() {
             style={{
               color: "var(--text-body)",
               fontSize: "clamp(17px, 2.2vw, 20px)",
-              margin: "24px auto 0",
+              margin: "24px 0 0",
               maxWidth: 560,
               lineHeight: 1.55,
             }}
@@ -136,7 +137,7 @@ export default function Home() {
           </p>
 
           {law.banner ? (
-            <div style={{ display: "flex", justifyContent: "center" }}>
+            <div style={{ display: "flex" }}>
               <div style={lawBanner} role="status">
                 <span aria-hidden="true" style={lawDot} />
                 {law.banner}
@@ -144,7 +145,7 @@ export default function Home() {
             </div>
           ) : null}
 
-          <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center", justifyContent: "center" }}>
+          <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <a href={STUDIO_URL} style={ctaPrimary}>
               {es ? "Ir a studio" : "Go to studio"}
             </a>
@@ -154,7 +155,7 @@ export default function Home() {
           </div>
           <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "12px 0 0" }}>{law.note}</p>
 
-          <div style={{ ...proofStrip, marginTop: 26, justifyContent: "center" }}>
+          <div style={{ ...proofStrip, marginTop: 26 }}>
             <span>Open source · MIT</span>
             <span aria-hidden="true">·</span>
             <span>37 {es ? "paquetes en npm" : "npm packages"}</span>
