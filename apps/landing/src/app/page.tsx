@@ -120,6 +120,8 @@ type FeatureCard = {
   t_en: string;
   d_es: string;
   d_en: string;
+  /** The one card that links out (to the case study). */
+  proof?: boolean;
 };
 
 const FEATURE_CARDS: ReadonlyArray<FeatureCard> = [
@@ -158,6 +160,7 @@ const FEATURE_CARDS: ReadonlyArray<FeatureCard> = [
     t_en: "First company alive",
     d_es: "AR Agents Operaciones ya opera con su historia auditada.",
     d_en: "AR Agents Operaciones already operates with its audited history.",
+    proof: true,
   },
 ];
 
@@ -291,12 +294,22 @@ export default function Home() {
               : "Governance, audit, and human control come standard. You decide, the agent executes."}
           </p>
           <div style={{ ...grid(228), marginTop: 12 }}>
-            {FEATURE_CARDS.map((c) => (
-              <div key={c.t_en} style={card}>
-                <h3 style={cardTitle}>{es ? c.t_es : c.t_en}</h3>
-                <p style={cardBody}>{es ? c.d_es : c.d_en}</p>
-              </div>
-            ))}
+            {FEATURE_CARDS.map((c) =>
+              c.proof ? (
+                // The proof card is the one card that links out: the whole
+                // card goes to the case study (no inline link texts, founder
+                // call), where the audited history and registry entry live.
+                <a key={c.t_en} href="/caso-ar-agents" style={{ ...card, textDecoration: "none", display: "block" }}>
+                  <h3 style={cardTitle}>{es ? c.t_es : c.t_en}</h3>
+                  <p style={cardBody}>{es ? c.d_es : c.d_en}</p>
+                </a>
+              ) : (
+                <div key={c.t_en} style={card}>
+                  <h3 style={cardTitle}>{es ? c.t_es : c.t_en}</h3>
+                  <p style={cardBody}>{es ? c.d_es : c.d_en}</p>
+                </div>
+              ),
+            )}
           </div>
         </section>
 

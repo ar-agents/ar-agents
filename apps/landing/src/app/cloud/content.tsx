@@ -43,7 +43,7 @@ const TIERS: ReadonlyArray<Tier> = [
     cta: { label: { es: "Empezar en npm", en: "Start on npm" }, href: "/sdk" },
   },
   {
-    name: "Studio",
+    name: "Cloud",
     tagline: {
       es: "Managed hosting + audit pipeline.",
       en: "Managed hosting + audit pipeline.",
@@ -70,7 +70,7 @@ const TIERS: ReadonlyArray<Tier> = [
     ],
     cta: {
       label: { es: "Solicitar invitación", en: "Request invitation" },
-      href: "mailto:naza@naza.ar?subject=ar-agents%20Studio%20preview",
+      href: "mailto:naza@naza.ar?subject=ar-agents%20Cloud%20preview",
     },
   },
   {
@@ -408,7 +408,7 @@ export function CloudContent({ lang }: { lang: Lang }) {
               ["Resend", "react-email primitives", { es: "Sending pipeline, dashboard, SLA", en: "Sending pipeline, dashboard, SLA" }],
               ["Linear", "CLI primitives, integrations", { es: "Issue tracking SaaS, enterprise SSO", en: "Issue tracking SaaS, enterprise SSO" }],
               ["Cal.com", { es: "Toda la stack open-source", en: "Whole stack open-source" }, { es: "Hosting, white-label, enterprise", en: "Hosting, white-label, enterprise" }],
-              ["ar-agents", { es: "39 npm packages, 6 RFCs, reference impl", en: "39 npm packages, 6 RFCs, reference impl" }, { es: "Studio · Government · Bespoke (esta página)", en: "Studio · Government · Bespoke (this page)" }],
+              ["ar-agents", { es: "39 npm packages, 6 RFCs, reference impl", en: "39 npm packages, 6 RFCs, reference impl" }, { es: "Cloud · Government · Bespoke (esta página)", en: "Cloud · Government · Bespoke (this page)" }],
             ].map((row, i) => {
               const [name, oss, paid] = row;
               const isAr = name === "ar-agents";
