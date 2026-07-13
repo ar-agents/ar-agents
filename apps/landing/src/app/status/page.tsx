@@ -197,7 +197,7 @@ export default function StatusPage() {
           "var(--font-geist-sans), Arial, Apple Color Emoji, Segoe UI Emoji, Segoe UI Symbol",
       }}
     >
-      <div style={{ maxWidth: 920, margin: "0 auto" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
         <header style={{ marginBottom: 24 }}>
           <p
             style={{

@@ -99,7 +99,7 @@ export default function Home() {
         padding: "48px 24px 120px",
       }}
     >
-      <div style={{ maxWidth: 1200, margin: "0 auto" }}>
+      <div style={{ maxWidth: 800, margin: "0 auto" }}>
         {/* HERO: single column, LEFT-aligned (founder call 2026-07-13), headline does the
             work, whitespace over decoration. The first h1 line must stay ONE line on
             desktop (earlier founder call): size capped so "Creá tu sociedad
@@ -110,7 +110,7 @@ export default function Home() {
           </p>
           <h1
             style={{
-              fontSize: "clamp(32px, 4.9vw, 60px)",
+              fontSize: "clamp(30px, 5vw, 45px)",
               margin: "16px 0 0",
               fontWeight: 600,
               lineHeight: 1.08,

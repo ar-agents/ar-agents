@@ -276,7 +276,7 @@ export default function TimelinePage() {
   return (
     <main
       style={{
-        maxWidth: 920,
+        maxWidth: 800,
         margin: "0 auto",
         padding: "48px 24px 96px",
         color: "var(--text-body)",
