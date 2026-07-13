@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.11.4
+
+### Patch Changes
+
+- Updated dependencies [[`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa), [`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa)]:
+  - @ar-agents/mercadopago@0.18.7
+  - @ar-agents/shipping@0.4.2
+
 ## 0.11.3
 
 ### Patch Changes
@@ -34,7 +42,6 @@
 ### Patch Changes
 
 - [#140](https://github.com/ar-agents/ar-agents/pull/140) [`1024d51`](https://github.com/ar-agents/ar-agents/commit/1024d5167f7ac8aca07da94354c748df7b2868ea) Thanks [@naza00000](https://github.com/naza00000)! - Security hardening.
-
   - **identity-attest**: the Auth0 id_token verification now pins the signature algorithm (`RS256`), closing the algorithm-confusion vector (consistent with the ap2 verifier).
   - **identity / firma-digital**: `node-forge` (on the signature-verification path) is constrained to `~1.4.0` (patch-only) so a consumer cannot silently resolve a regressed minor.
   - **mcp**: `@modelcontextprotocol/sdk` is constrained to `~1.29.0` (patch-only) on the transport path.
@@ -56,7 +63,6 @@
 - [#118](https://github.com/ar-agents/ar-agents/pull/118) [`9bc92a0`](https://github.com/ar-agents/ar-agents/commit/9bc92a063c15eb54aed8284180420feaf393893a) Thanks [@naza00000](https://github.com/naza00000)! - **Behavior change (default-ON):** the art. 102 governance gate is now ENFORCED BY DEFAULT in the published MCP server. A vanilla `npx @ar-agents/mcp` now REFUSES any money / fiscal / legal / irreversible / unclassifiable tool unless a human-approval hook is wired — `READ`-level tools (e.g. `validate_cuit`, `lookup_cuit_afip`, `search_payments`) always pass. The refusal is a clear MCP `isError` telling the operator to wire an `approve` hook or opt out. This is a MINOR (not a silent patch) because a server that previously executed money/fiscal/legal tools autonomously will now block them.
 
   **Blast radius — read this before upgrading.** The gate is FAIL-CLOSED: the `unknown` risk class is denied by default (correct — a tool we can't classify must never move money or constitute a company silently). But classification is by NAME (plus description / sideEffects): **ANY tool whose name is not a recognized read verb is treated as `unknown` and is GATED by default-ON.** With every registry wired, that is roughly **65 of ~145 exposed tools** — and it currently includes some genuine **READ** tools whose names don't match the read-verb heuristic, e.g.:
-
   - IGJ registry reads — `igj_get_entity`, `igj_search_entities`, `igj_get_autoridades`, `igj_get_domicilios`, `igj_get_asambleas`
   - Boletín Oficial reads — `bo_search`, `bo_today`, `bo_get_norma`, `bo_list_subscriptions`
   - Signature-verification reads — `firma_inspect_cert`, `firma_verify_chain`, `firma_verify_cms_signature`, `firma_is_onti_issued`
@@ -77,7 +83,6 @@
   Additive API: `createServer` gains an optional `governance` arg (existing `createServer()` callers are unaffected and stay default-ON). New additive exports: `resolveGovernance`, `decideGovernance`, `describeGovernance`, and the `GovernanceOptions` / `ResolvedGovernance` / `GovernanceDecision` / `ApproveHook` / `HaltHook` / `CreateServerOptions` types. Adds `@ar-agents/core` as a direct dependency (previously transitive).
 
 - [#128](https://github.com/ar-agents/ar-agents/pull/128) [`b1c5443`](https://github.com/ar-agents/ar-agents/commit/b1c54434ee89dc1d40c45096d34732c4f8d6dc01) Thanks [@naza00000](https://github.com/naza00000)! - **Guardrails: spending caps + amount-aware approval + a registry kill-switch.** These extend the art. 102 gate (they do not replace it).
-
   - **Spending caps (opt-in, amount-aware, FAIL-SAFE).** Pass `createServer({ governance: { caps: { perOpMax, dailyMax, currency, extractAmount } } })`. A MONEY tool whose amount is WITHIN the per-op + daily limits AUTO-APPROVES (so an autonomous entity can make small payments without a human on each one); anything else falls back to the human `approve` hook. Safety is built in: amount-based auto-approval REQUIRES an operator-supplied, tool-aware `caps.extractAmount` that returns the TRUE charge for each of your money tools (e.g. MercadoPago `create_payment` → `args.amount_ars`; a payment preference → `sum(items[].unit_price * quantity)`). We deliberately do NOT guess the amount from generic arg keys — a caller could add a small decoy `amount` key (stripped by the tool's schema before execution) to auto-approve a large real charge. Any doubt (no `extractAmount`, an empty caps object with no limit set, an unreadable/negative/NaN amount, or a throwing extractor) → the human approve hook. **Default behaviour is unchanged:** with no `caps`, every money tool still needs the approve hook (fail-closed); non-money tools are never affected. The running daily total uses an in-memory per-process tally by default; supply your own via `governance.tally`.
 
   - **`goodStandingHalt` kill-switch wired to the registry.** `createServer({ governance: { isHalted: goodStandingHalt({ entityId }) } })` makes the ar-agents registry able to REMOTELY halt this entity: once it is `suspended`/`revoked` in the registry good-standing oracle, every tool refuses. Best-effort (a transient oracle error does not halt by default; set `haltOnUnreachable: true` for a stricter posture).
@@ -427,7 +432,6 @@
 ### Patch Changes
 
 - Picks up `@ar-agents/mercadopago@0.9.0` — production hardening pass:
-
   - **Circuit breaker** with state machine + rolling window (CLOSED/OPEN/HALF_OPEN)
   - **Deadline propagation** via parent AbortSignal
   - **W3C Trace Context** (OpenTelemetry-compatible without peer dep)
@@ -450,7 +454,6 @@
 ### Patch Changes
 
 - Picks up `@ar-agents/mercadopago@0.7.0`. The MCP server now exposes **+25 new MP tools** (81 MP tools total) without any config changes. Highlights:
-
   - Customer + Card CRUD completion (4 tools)
   - Subscription/Plan/Refund/Preference extensions (5 tools)
   - Merchant Orders category (3 tools)
@@ -468,7 +471,6 @@
 - MCP v0.4: ships `@ar-agents/shipping` as 7th tool registry.
 
   The MCP server now exposes 7 packages:
-
   - `@ar-agents/identity` (validate_cuit, lookup_cuit_afip)
   - `@ar-agents/identity-attest` (4 attestation tools)
   - `@ar-agents/mercadopago` (56 MP API tools, includes v0.6 account/balance/settlements/3DS/test-cards)
@@ -478,7 +480,6 @@
   - **NEW: `@ar-agents/shipping` (6 tools — Andreani/OCA/Correo)**
 
   Carriers auto-detect from env vars:
-
   - Andreani: `ANDREANI_USERNAME` + `ANDREANI_PASSWORD` + `ANDREANI_CLIENT_NUMBER` (+ `ANDREANI_ENV`)
   - OCA: `OCA_CUIT` + `OCA_OPERATIVA`
   - Correo Argentino: auto-wired (no creds needed). Set `AR_AGENTS_CORREO_DISABLED=1` to opt out.
@@ -493,19 +494,16 @@
 - MP v0.6: account/balance + settlements + 3DS analyzer + test cards. **+6 tools (56 total)**.
 
   **Account / Balance / Settlements (4 tools)**:
-
   - `get_account_balance` — current MP wallet `{ available, unavailable, total, currency_id }`. Per-seller in marketplace setups.
   - `list_account_movements({ from?, to?, limit?, offset? })` — wallet movement log (incoming payments, refunds, holdings, transfers).
   - `list_settlements({ from?, to?, status? })` — `release_money` transfers from MP wallet → registered CBU.
   - `get_settlement(id)` — single settlement detail with bank_account info.
 
   **3DS analyzer (1 tool + 1 helper)**:
-
   - `analyze_payment_3ds(payment_id)` — fetches the Payment, derives `{ status: 'not_required'|'frictionless'|'challenge_required'|'rejected'|'unknown', mode, challengeUrl, description }`. When `challengeUrl !== null`, MUST redirect the buyer to complete authentication.
   - `analyze3DS(payment)` exported as a pure helper for callers who already have a Payment object.
 
   **Test cards (1 tool + helpers)**:
-
   - `get_test_cards` — returns the official AR (MLA) sandbox cards: VISA/Mastercard/Amex credit + debit. Each has the "magic" holder names that route to specific status_detail (APRO, OTHE, CONT, FUND, CALL, SECU, EXPI, FORM).
   - `TEST_CARDS_AR`, `TEST_PAYERS_AR`, `buildTestCardScenario(card, scenario, amount)` exported for direct use in test files.
 
@@ -521,13 +519,11 @@
 - MP v0.5: production hardening + marketplace flows. **+9 tools (50 total)**.
 
   **Webhook handler combo (1 tool)**:
-
   - `handle_webhook` — verifies HMAC-SHA256 signature, parses the event, and (optionally) auto-fetches the underlying resource (Payment, Subscription) in ONE call. Replaces the manual chain of verify_webhook_signature + parse_webhook_event + get_payment.
   - `mercadoPagoTools({ webhookSecret })` to enable.
   - Returns `{ verified, event, resource, resource_error }`. Reject with HTTP 401 when `verified: false`.
 
   **OAuth Marketplace flow (3 tools + 5 helper functions)**:
-
   - `oauth_authorize_url` — pure function, builds the URL the seller visits to authorize your marketplace app.
   - `oauth_exchange_code` — server-side exchange of the OAuth code for an `OAuthToken` (`access_token` + `refresh_token` + `user_id` + `expires_in`).
   - `oauth_refresh_token` — refresh a per-seller token before it expires (~6h).
@@ -535,12 +531,10 @@
   - `mercadoPagoTools({ oauth: { clientId, clientSecret } })` to enable.
 
   **Order Management API (5 tools)**:
-
   - `create_order`, `get_order`, `update_order`, `capture_order`, `cancel_order` — MP's modern Order API. Distinct from Preference: explicit lifecycle, manual-capture support (auth-only flows for ride-share, hotels, marketplaces), multi-payment-per-order semantics.
   - `capture_mode: "manual"` enables the auth-only flow → `capture_order(id, amount?)` later.
 
   **Marketplace split payments**:
-
   - `marketplace`, `marketplace_fee` (in ARS), `collector_id` (seller MP user_id) supported on BOTH `create_order` AND `create_payment_preference`.
   - Funds route to the seller; `marketplace_fee` is split off to the marketplace's MP account.
 
@@ -558,7 +552,6 @@
 - MCP v0.3: ships `@ar-agents/facturacion` as 6th tool registry.
 
   The MCP server now exposes 6 packages:
-
   - `@ar-agents/identity` (validate_cuit, lookup_cuit_afip)
   - `@ar-agents/identity-attest` (4 attestation tools)
   - `@ar-agents/mercadopago` (41 MP API tools)
@@ -579,7 +572,6 @@
 - MCP v0.2: ships `@ar-agents/banking` as a 5th tool registry.
 
   The MCP server now exposes:
-
   - `@ar-agents/identity` (validate_cuit, lookup_cuit_afip)
   - `@ar-agents/identity-attest` (issue_attestation, verify_attestation)
   - `@ar-agents/mercadopago` (41 MP API tools)
@@ -599,7 +591,6 @@
 - Identity v0.5: production robustez parity with the rest of the toolkit.
 
   **WSAA + WSCDC now share a hardened HTTP layer** (`fetchWithRetry`):
-
   - Per-request timeouts via `AbortSignal` (default 30s, override with `requestTimeoutMs`).
   - Exponential backoff on 5xx + transient network errors (default 1 retry, override with `maxRetries`).
   - SOAP-aware: HTTP 500 with a real `<Fault>` body is treated as a parseable response (not retried).

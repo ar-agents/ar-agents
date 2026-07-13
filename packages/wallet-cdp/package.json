@@ -1,7 +1,7 @@
 {
   "name": "@ar-agents/wallet-cdp",
-  "version": "0.1.0",
-  "description": "Society USDC wallet on Coinbase CDP (Base): per-society account provisioning, a CALLDATA-level ERC-20 spend policy (recipient allowlist + per-tx cap, not the token-contract address), and guardedTransferUsdc \u2014 the two-layer gate that requires BOTH a human approval above a threshold AND CDP's own server-side policy before a transfer executes. ROADMAP.md M2-4b.",
+  "version": "0.2.0",
+  "description": "Society USDC wallet on Coinbase CDP (Base): per-society account provisioning, a CALLDATA-level ERC-20 spend policy (recipient allowlist + per-tx cap, not the token-contract address), and guardedTransferUsdc — the two-layer gate that requires BOTH a human approval above a threshold AND CDP's own server-side policy before a transfer executes. ROADMAP.md M2-4b.",
   "keywords": [
     "ar-agents",
     "argentina",

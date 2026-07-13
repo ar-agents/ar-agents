@@ -1,11 +1,20 @@
 # @ar-agents/ap2
 
+## 0.3.1
+
+### Patch Changes
+
+- [#155](https://github.com/ar-agents/ar-agents/pull/155) [`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa) Thanks [@naza00000](https://github.com/naza00000)! - `decodeJwsUnverified()` now throws the package's typed `SdJwtError` when the
+  JWS header or payload segment is not valid base64url-encoded JSON, instead of
+  leaking a raw `SyntaxError` from `JSON.parse` on attacker-controlled input.
+  `SdJwtError` moved to the crypto module (re-exported from its previous
+  location), so the public surface is unchanged.
+
 ## 0.3.0
 
 ### Minor Changes
 
 - [#140](https://github.com/ar-agents/ar-agents/pull/140) [`1024d51`](https://github.com/ar-agents/ar-agents/commit/1024d5167f7ac8aca07da94354c748df7b2868ea) Thanks [@naza00000](https://github.com/naza00000)! - Correctness fixes across the live-integration adapters, each with a real-shape regression test.
-
   - **banking-bcra**: `getDebt` now parses the real BCRA `/Deudas` response, which nests entries under `results.periodos[].entidades` (the previous parser read a root-level `entidades` the endpoint never returns, so results came back empty). `DebtEntry.entidad` is now the bank **name** string to match the API (type change).
   - **treasury**: `fundTaxBuffer`'s default idempotency key now derives from stable inputs (obligation ids + required buffer) rather than the fx-dependent conversion output, so a retried call is correctly deduplicated by the off-ramp.
   - **facturacion**: the non-idempotent `FECAESolicitar` (CAE authorization) is no longer retried on timeout/5xx; numeric fields are validated at the client boundary before the request is built.

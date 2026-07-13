@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.18.7
+
+### Patch Changes
+
+- [#155](https://github.com/ar-agents/ar-agents/pull/155) [`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa) Thanks [@naza00000](https://github.com/naza00000)! - OAuth token responses with a malformed (non-JSON) body now throw the typed
+  `MercadoPagoError` with a 300-char body snippet for context, instead of
+  leaking a raw `SyntaxError` from `JSON.parse`. Applies to
+  `exchangeCodeForToken()` and `refreshAccessToken()`.
+
 ## 0.18.6
 
 ### Patch Changes
@@ -78,7 +87,6 @@
 ### Patch Changes
 
 - [`9b8e83c`](https://github.com/ar-agents/ar-agents/commit/9b8e83ce6f291a24e00101830a49afceb0102920) - Add 2 cookbook recipes that demonstrate the cross-package thesis:
-
   - **16-acp-checkout-with-factura.ts** — the headline ACP-with-factura pattern. A ChatGPT Instant Checkout / Claude / Gemini agent POSTs an ACP `checkout_session`, the bridge mints a Mercado Pago preference, the buyer pays, and the bridge auto-emits an AFIP/ARCA Factura A/B/C/E via the `facturacionHook` — selecting the comprobante type based on the buyer's IVA condition. No other OSS implementation in LATAM ships this end-to-end.
   - **17-usa-llc-companion.ts** — pattern for a USA-LLC agent (ClawBank, doola Agentic, MIDAO) operating in Argentina via an AR-resident facade. The USA agent declares `@ar-agents/mcp` in its MCP host config; all 89+6+2+10+5+6+5 tools become available without the USA agent ever holding AR credentials. Walks through the operator-of-record split + sample agent prompt that drives charge → factura → WhatsApp confirmation.
 
@@ -89,7 +97,6 @@
 ### Patch Changes
 
 - [`687aa10`](https://github.com/ar-agents/ar-agents/commit/687aa1017a665ed9b3414b9f92db634a9329ac4e) - Add 3 production-grade cookbook recipes:
-
   - **13-anti-fraud-middleware.ts** — pre-charge heuristics chain: CUIT validity (algorithm-only), payer email history (searchPayments + status_detail flags for `cc_rejected_call_for_authorize` / `_high_risk` / `_blacklist`), 1-hour velocity tracker, AR issuer-promo stacking detector. Combined risk score (`approve` / `review` / `reject`), with high-value charges (>$100k) getting a 1.5x multiplier.
   - **14-marketplace-onboarding.ts** — end-to-end flow: CUIT validation → AFIP padron lookup (resolves legal name + IVA condition + monotributo category) → OAuth redirect with PKCE round-tripped via state → callback handler exchanging code for tokens → $1 ARS test charge → marketplace fee setup with `computeMarketplaceFee`.
   - **15-prorated-pause-resume.ts** — pause a subscription with prorated refund for the unused period (`createRefund` against the most recent charge), resume with an adjusted next-billing date so the customer doesn't double-pay. Uses `pausePreapproval` + `resumePreapproval` + a local `pauseStore` (Vercel KV in prod) to remember the credit.
@@ -108,7 +115,6 @@
   ```
 
   Reports:
-
   - Node version (must be ≥ 20)
   - `MP_ACCESS_TOKEN` presence + format + sandbox/prod prefix detection
   - Live token validation against `GET /users/me` (free, no charge)
@@ -137,7 +143,6 @@
 - Add `@ar-agents/mercadopago/testing` subpath: factories + a mock client for tests.
 
   What ships:
-
   - **Factories**: `mockPayment`, `mockPreapproval`, `mockSubscriptionPayment`, `mockPreference`, `mockRefund`, `mockCustomer`. Each takes a partial overrides object so test setup is one line.
   - **`MockMercadoPagoClient`**: in-memory client with the most-common create/get/cancel/refund paths. Read-only methods that don't fit a clean store model throw `MockNotImplementedError` to nudge users toward MSW or a real sandbox token rather than silently growing the mock.
   - **`mockSignedWebhook`**: produces a `{ headers, searchParams, body }` triple whose `x-signature` header is a real HMAC-SHA256 against the secret you pass. Drops directly into `verifyWebhookSignature` — test the full webhook stack without hand-rolling the signature manifest.
@@ -544,34 +549,28 @@ Architectural features for at-scale deployment.
 - MP v0.7: +25 new tools (81 total).
 
   **Cierre de gaps obvios (8 tools)**:
-
   - `get_customer`, `update_customer`, `create_customer_card`, `get_customer_card`
   - `get_subscription_plan`, `update_subscription`, `search_subscriptions`
   - `get_refund`, `update_payment_preference`
 
   **Merchant Orders (3 tools — categoría completa nueva)**:
-
   - `get_merchant_order`, `search_merchant_orders`, `update_merchant_order`
   - MerchantOrder agrupa Payments asociados a una Preference — clave para reconciliar webhooks con `topic='merchant_order'`.
 
   **Stores + POS CRUD completion (6 tools)**:
-
   - `get_store`, `update_store`, `delete_store`
   - `get_pos`, `update_pos`, `delete_pos`
 
   **Bank Accounts (2 tools)**:
-
   - `list_bank_accounts`, `register_bank_account`
 
   **Point Devices físicos (5 tools — categoría nueva)**:
-
   - `list_point_devices` (terminales físicas: Smart, Tap to Pay)
   - `update_point_device_mode` (PDV vs STANDALONE)
   - `create_point_payment_intent` (push payment al device — amount en CENTAVOS)
   - `get_point_payment_intent`, `cancel_point_payment_intent`
 
   **Pure helpers (2 tools, high-leverage)**:
-
   - `compute_marketplace_fee` — given amount + (% o flat ARS, con min/max), returns exact `marketplace_fee`
   - `explain_payment_status` — dado un Payment, traduce los 30+ status_detail codes a `{ summary, recommendedAction, final, paid, retryable }` en español
 
@@ -592,19 +591,16 @@ Architectural features for at-scale deployment.
 - MP v0.6: account/balance + settlements + 3DS analyzer + test cards. **+6 tools (56 total)**.
 
   **Account / Balance / Settlements (4 tools)**:
-
   - `get_account_balance` — current MP wallet `{ available, unavailable, total, currency_id }`. Per-seller in marketplace setups.
   - `list_account_movements({ from?, to?, limit?, offset? })` — wallet movement log (incoming payments, refunds, holdings, transfers).
   - `list_settlements({ from?, to?, status? })` — `release_money` transfers from MP wallet → registered CBU.
   - `get_settlement(id)` — single settlement detail with bank_account info.
 
   **3DS analyzer (1 tool + 1 helper)**:
-
   - `analyze_payment_3ds(payment_id)` — fetches the Payment, derives `{ status: 'not_required'|'frictionless'|'challenge_required'|'rejected'|'unknown', mode, challengeUrl, description }`. When `challengeUrl !== null`, MUST redirect the buyer to complete authentication.
   - `analyze3DS(payment)` exported as a pure helper for callers who already have a Payment object.
 
   **Test cards (1 tool + helpers)**:
-
   - `get_test_cards` — returns the official AR (MLA) sandbox cards: VISA/Mastercard/Amex credit + debit. Each has the "magic" holder names that route to specific status_detail (APRO, OTHE, CONT, FUND, CALL, SECU, EXPI, FORM).
   - `TEST_CARDS_AR`, `TEST_PAYERS_AR`, `buildTestCardScenario(card, scenario, amount)` exported for direct use in test files.
 
@@ -617,13 +613,11 @@ Architectural features for at-scale deployment.
 - MP v0.5: production hardening + marketplace flows. **+9 tools (50 total)**.
 
   **Webhook handler combo (1 tool)**:
-
   - `handle_webhook` — verifies HMAC-SHA256 signature, parses the event, and (optionally) auto-fetches the underlying resource (Payment, Subscription) in ONE call. Replaces the manual chain of verify_webhook_signature + parse_webhook_event + get_payment.
   - `mercadoPagoTools({ webhookSecret })` to enable.
   - Returns `{ verified, event, resource, resource_error }`. Reject with HTTP 401 when `verified: false`.
 
   **OAuth Marketplace flow (3 tools + 5 helper functions)**:
-
   - `oauth_authorize_url` — pure function, builds the URL the seller visits to authorize your marketplace app.
   - `oauth_exchange_code` — server-side exchange of the OAuth code for an `OAuthToken` (`access_token` + `refresh_token` + `user_id` + `expires_in`).
   - `oauth_refresh_token` — refresh a per-seller token before it expires (~6h).
@@ -631,12 +625,10 @@ Architectural features for at-scale deployment.
   - `mercadoPagoTools({ oauth: { clientId, clientSecret } })` to enable.
 
   **Order Management API (5 tools)**:
-
   - `create_order`, `get_order`, `update_order`, `capture_order`, `cancel_order` — MP's modern Order API. Distinct from Preference: explicit lifecycle, manual-capture support (auth-only flows for ride-share, hotels, marketplaces), multi-payment-per-order semantics.
   - `capture_mode: "manual"` enables the auth-only flow → `capture_order(id, amount?)` later.
 
   **Marketplace split payments**:
-
   - `marketplace`, `marketplace_fee` (in ARS), `collector_id` (seller MP user_id) supported on BOTH `create_order` AND `create_payment_preference`.
   - Funds route to the seller; `marketplace_fee` is split off to the marketplace's MP account.
 
@@ -655,7 +647,6 @@ Architectural features for at-scale deployment.
   # New: Subscription Plans (5 tools)
 
   For SaaS-style billing where you have fixed tiers (Básico/Pro/Enterprise), use plans instead of per-customer preapprovals.
-
   - `create_subscription_plan` — define reusable plan (price + frequency + optional free trial)
   - `list_subscription_plans` — list all plans
   - `update_subscription_plan` — change reason / amount / status / back_url (existing subs keep old amount)
@@ -665,42 +656,36 @@ Architectural features for at-scale deployment.
   # New: Stores + POS management (4 tools)
 
   Self-serve setup for in-store QR payments. Eliminates the previous one-time MP dashboard step.
-
   - `create_store` — create a store under the seller
   - `list_stores` — list configured stores
   - `create_pos` — create a POS under a store (the `external_id` is what `create_qr_payment` uses)
   - `list_pos` — list POSes (optionally filtered by store_id)
 
   # New: Disputes / Chargebacks (2 tools, read-only)
-
   - `list_payment_disputes` — list disputes raised against a payment (surfaces `dashboard_url`)
   - `get_dispute` — full dispute details (reason, amount, resolution status)
 
   Resolution remains dashboard-only; the lib surfaces the right URL.
 
   # New: Lookup helpers (2 tools)
-
   - `list_identification_types` — AR returns DNI/CI/LE/LC/Otro/Pasaporte/CUIT/CUIL with min/max length
   - `list_issuers` — banks issuing a card type. Pass `bin` (first 6-8 digits) for precise issuer detection — needed for issuer-specific cuotas promos like Naranja Galicia 6 cuotas sin interés
 
   # New: Webhooks management (4 tools)
 
   Programmatically configure webhook subscriptions instead of clicking around the MP dashboard.
-
   - `list_webhooks` — see what's configured
   - `create_webhook` — subscribe a URL to a topic (`payment`, `subscription_authorized_payment`, `merchant_order`, `point_integration_wh`, etc.)
   - `update_webhook` — change URL or topic
   - `delete_webhook` — unsubscribe
 
   # Quality
-
   - 81/81 tests pass (was 61 in v0.3) — added 20 tests for v0.4 endpoints
   - 21.72 KB ESM brotli'd (under 32 KB budget)
   - publint + arethetypeswrong all 🟢
   - Type-safe end-to-end; new types: SubscriptionPlan, Store, Pos, Dispute, IdentificationType, Issuer, WebhookConfig, SubscriptionPayment
 
   # Cumulative tool inventory (41 total)
-
   - Subscriptions: 5 (create, get, cancel, pause, resume)
   - Subscription Plans: 5 (create, list, update, subscribe, list_payments)
   - Payments: 5 (create, get, search, cancel, capture)
@@ -724,7 +709,6 @@ Architectural features for at-scale deployment.
   # `@ar-agents/mercadopago@0.3.0`
 
   **Robustness (Section 6 of v0.3 spec)**
-
   - Per-request timeout via `AbortSignal` (default 30s, configurable via `requestTimeoutMs`).
   - Auto-retry on 5xx + 429 with exponential backoff (default 1 retry, configurable via `maxRetries`). Honors `Retry-After` header on rate-limit. **Never retries on 4xx** (deterministic user/config errors).
   - New typed errors: `MercadoPagoTimeoutError`, `MercadoPagoOverloadedError` (HTML 503 detection — when MP returns HTML instead of JSON).
@@ -732,7 +716,6 @@ Architectural features for at-scale deployment.
   - **Deterministic idempotency keys** — `create_payment` and `refund_payment` now use `sha256(meaningful_fields)` instead of `Date.now()`. Retries dedupe correctly on MP's side.
 
   **New tools (3)**
-
   - **`charge_saved_card`** — server-side retokenize + charge for returning customers. Requires CVV (AR MP doesn't support CVV-less via public API). Idempotent on (card_id, amount, external_reference).
   - **`create_qr_payment`** — dynamic in-store QR via MP Point. Returns raw `qr_data` (EMVCo) + ready-to-display base64 PNG `qr_data_url`. Compatible with all AR wallets (Modo, BNA+, Cuenta DNI, Naranja X) via Transferencias 3.0 interop.
   - **`cancel_qr_payment`** — clear a pending QR order on a POS so the next `create_qr_payment` doesn't 409.
@@ -742,26 +725,22 @@ Architectural features for at-scale deployment.
   # `@ar-agents/identity-attest@0.2.0`
 
   **3 new adapters bringing total to 5**
-
   - **`Auth0Adapter`** (trust 0.7, or 0.85 with MFA) — OAuth2 Authorization Code flow with PKCE. Server-side `id_token` verification via `jose` JWKS. Optional MFA step-up via `acr_values` — when MFA is completed, `effective_trust_level` bumps to 0.85.
   - **`MagicLinkSdkAdapter`** (trust 0.7) — Magic.link DIDToken validation via `@magic-sdk/admin` (optional peer dep). Lazy-loaded so users without Magic don't pay cold-start cost. Returns DID + email/phone/wallet claims.
   - **`MercadoPagoIdentityAdapter`** (trust 0.5) — partial KYC via $1 micro-charge. MP doesn't expose a public KYC API, so we use payment-payer attestation: a successful payment proves MP validated the buyer's CUIT/DNI against their internal database. Auto-refunds the $1 by default. Returns `identification_type` + `identification_number` + email + name claims.
 
   **New client methods**
-
   - `submitOauthCode(requestId, code)` — for OAuth callbacks (Auth0)
   - `submitMagicDidToken(requestId, didToken)` — for Magic.link
   - `submitMercadoPagoPaymentId(requestId, paymentId)` — for MP webhook callbacks
 
   **Quality**
-
   - 28/28 tests pass (was 15 in v0.1)
   - 12.93 KB ESM brotli'd (jose is treeshakeable; was 4.44 KB without OAuth adapter)
   - publint + arethetypeswrong all 🟢
   - `jose` is a dep (used by Auth0Adapter); `@magic-sdk/admin` is optional peer dep
 
   **Trust levels reference (current)**
-
   - 0.3 — `WhatsAppOtpAdapter` (phone-owned)
   - 0.5 — `EmailMagicLinkAdapter` (email-owned), `MercadoPagoIdentityAdapter` (partial KYC)
   - 0.7 — `Auth0Adapter` (federated identity), `MagicLinkSdkAdapter` (Magic-managed)
@@ -795,7 +774,6 @@ Architectural features for at-scale deployment.
   Verified end-to-end against MP sandbox: account info, payment methods (21 AR methods returned), installments (81 visa offers with proper `recommended_message`), preference creation (returns real init_point + sandbox_init_point URLs).
 
   # Documentation
-
   - AGENTS.md updated with decision tree, status_detail recovery actions (top 12 values), AR-specific gotchas (statement_descriptor 13-char limit, sandbox cardholder name selects outcome, test cards reference, account_money instant settlement vs T+14 card hold, etc.).
   - tools.manifest.json updated to v0.2 with all 21 tools documented (purity, sideEffects, latency, input/output schemas, whenToUse, whenNotToUse).
 
@@ -804,7 +782,6 @@ Architectural features for at-scale deployment.
   8.07 KB ESM brotli'd (under 22 KB budget). Doubled tool count, still half the size limit.
 
   # What's NOT in v0.2 (deferred to v0.3+)
-
   - `charge_saved_card` (retokenize + charge in one call) — coming v0.3
   - `create_qr_payment` (in-store dynamic QR) — coming v0.3
   - Marketplace splits (OAuth, application_fee) — v0.4

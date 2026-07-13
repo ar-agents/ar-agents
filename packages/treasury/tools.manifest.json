@@ -2,7 +2,7 @@
   "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",
   "package": "@ar-agents/treasury",
   "name": "@ar-agents/treasury",
-  "version": "0.6.0",
+  "version": "0.7.0",
   "factory": "treasuryTools",
   "tools": [
     {

@@ -1,5 +1,18 @@
 # @ar-agents/shipping
 
+## 0.4.2
+
+### Patch Changes
+
+- [#155](https://github.com/ar-agents/ar-agents/pull/155) [`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa) Thanks [@naza00000](https://github.com/naza00000)! - Rebuild `shippingFetch` on `@ar-agents/core`'s retry engine (`runWithRetry` +
+  the idempotency-aware classifier), replacing the hand-rolled
+  AbortController/setTimeout loop. This fixes a real bug: a per-attempt timeout
+  now gets retried for idempotent requests (GET tariff/tracking lookups), as the
+  docstring always promised, instead of aborting the whole call on the first
+  timeout. Non-idempotent writes (crear/cancelar) are still never retried, and
+  the helper still returns the raw `Response` for every status, so the adapter
+  error contract is unchanged.
+
 ## 0.4.1
 
 ### Patch Changes
@@ -12,7 +25,6 @@
 ### Minor Changes
 
 - [#140](https://github.com/ar-agents/ar-agents/pull/140) [`1024d51`](https://github.com/ar-agents/ar-agents/commit/1024d5167f7ac8aca07da94354c748df7b2868ea) Thanks [@naza00000](https://github.com/naza00000)! - Correctness fixes across the live-integration adapters, each with a real-shape regression test.
-
   - **banking-bcra**: `getDebt` now parses the real BCRA `/Deudas` response, which nests entries under `results.periodos[].entidades` (the previous parser read a root-level `entidades` the endpoint never returns, so results came back empty). `DebtEntry.entidad` is now the bank **name** string to match the API (type change).
   - **treasury**: `fundTaxBuffer`'s default idempotency key now derives from stable inputs (obligation ids + required buffer) rather than the fx-dependent conversion output, so a retried call is correctly deduplicated by the off-ramp.
   - **facturacion**: the non-idempotent `FECAESolicitar` (CAE authorization) is no longer retried on timeout/5xx; numeric fields are validated at the client boundary before the request is built.
@@ -111,7 +123,6 @@ true`, `fetcher_unreachable: true`, `shipping_carrier_error: true`);
   Andreani) as drop-in tools for the Vercel AI SDK 6.
 
   Tools shipped:
-
   - `cotizar_envio` — rate calculation per carrier given origin/destination CP
     and package dimensions
   - `crear_envio` — create a shipment (returns `tracking_number` +
@@ -122,7 +133,6 @@ true`, `fetcher_unreachable: true`, `shipping_carrier_error: true`);
   - `validar_codigo_postal` — pure-algorithm CP format validation
 
   Architecture:
-
   - `ShippingCarrier` interface — pluggable per-carrier adapters
   - `OcaAdapter`, `CorreoAdapter`, `AndreaniAdapter` — production implementations
   - Default `BcraPublicApiAdapter`-style fallback when carrier creds aren't

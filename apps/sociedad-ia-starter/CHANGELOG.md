@@ -1,5 +1,14 @@
 # sociedad-ia-starter
 
+## 0.1.18
+
+### Patch Changes
+
+- Updated dependencies [[`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa), [`f6fc9ca`](https://github.com/ar-agents/ar-agents/commit/f6fc9ca5bcd13e19cf082b95c73f9ea86453a5cb), [`0cb93b6`](https://github.com/ar-agents/ar-agents/commit/0cb93b69cb324ea792b2396685ee556eca007b76), [`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa), [`f41e618`](https://github.com/ar-agents/ar-agents/commit/f41e6187a23728232a9a60a18f09bd767cb1384a), [`f6fc9ca`](https://github.com/ar-agents/ar-agents/commit/f6fc9ca5bcd13e19cf082b95c73f9ea86453a5cb)]:
+  - @ar-agents/mercadopago@0.18.7
+  - @ar-agents/treasury@0.7.0
+  - @ar-agents/wallet-cdp@0.2.0
+
 ## 0.1.17
 
 ### Patch Changes

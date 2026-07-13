@@ -1,6 +1,6 @@
 {
   "name": "bridge-hello",
-  "version": "0.1.14",
+  "version": "0.1.15",
   "private": true,
   "description": "Reference app demonstrating @ar-agents/agentic-commerce-bridge end-to-end on Vercel. ACP-compliant facilitator + mock MercadoPago + mock catalog. Spin up an ACP-discoverable storefront in 30 seconds.",
   "scripts": {

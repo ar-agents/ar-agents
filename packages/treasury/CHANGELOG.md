@@ -1,5 +1,38 @@
 # @ar-agents/treasury
 
+## 0.7.0
+
+### Minor Changes
+
+- [#204](https://github.com/ar-agents/ar-agents/pull/204) [`f6fc9ca`](https://github.com/ar-agents/ar-agents/commit/f6fc9ca5bcd13e19cf082b95c73f9ea86453a5cb) Thanks [@naza00000](https://github.com/naza00000)! - ROADMAP.md M2-4d: `MoneyAuditKind` gains `"deposit"` -- an OBSERVED balance
+  increase on a society's own wallet (e.g. an owner's manual USDC top-up),
+  distinct from `"transfer"`/`"offramp_convert"` (actions the agent itself
+  took). `formatMoneyAuditSummary` renders it with direction-honest phrasing
+  ("USDC 5.000000 recibido en la wallet ... ejecutada") instead of the
+  transfer/offramp "-> recipient" line, since a deposit has no counterparty to
+  report.
+
+- [#202](https://github.com/ar-agents/ar-agents/pull/202) [`0cb93b6`](https://github.com/ar-agents/ar-agents/commit/0cb93b69cb324ea792b2396685ee556eca007b76) Thanks [@naza00000](https://github.com/naza00000)! - New `MoneyAuditEvent`/`formatMoneyAuditSummary` in a pure `./audit` module
+  (ROADMAP.md M2-4c): a common, cross-leg money-audit schema shared by the
+  crypto leg (`@ar-agents/wallet-cdp` transfers) and this package's own fiat
+  leg (`OffRampAdapter` conversions), so both land in the same signed audit log
+  with the same shape instead of two ad hoc summaries. `leg: "crypto" | "fiat"`,
+  `kind: "transfer" | "offramp_convert"`, `outcome: "executed" | "deferred" |
+"denied" | "failed"`; `formatMoneyAuditSummary` renders it into the short,
+  public-safe, es-AR one-line string the local audit rail expects (redacted-safe
+  by construction: only typed fields, no raw args/output, capped at 280 chars).
+
+### Patch Changes
+
+- [#155](https://github.com/ar-agents/ar-agents/pull/155) [`f0bbf80`](https://github.com/ar-agents/ar-agents/commit/f0bbf804c96461f642a72e774c9207ed88e19daa) Thanks [@naza00000](https://github.com/naza00000)! - Migrate `MuralOffRampAdapter` onto the shared `HttpClient` from
+  `@ar-agents/core`, matching the Bitso/Manteca/Ripio adapters: per-request
+  timeout (new `MuralConfig.timeoutMs`, default 30s), idempotent-only retry
+  (GET status reads retry transient 5xx; the money POSTs are never
+  auto-retried), and schema-validated response bodies so a malformed fees,
+  payout, or status body fails loud as a typed `MuralApiError` instead of being
+  blind-cast into a fabricated result. Public API and the Mural error taxonomy
+  (`MuralApiError` / `MuralAuthError` / `MuralRateLimitError`) are unchanged.
+
 ## 0.6.0
 
 ### Minor Changes
@@ -27,7 +60,6 @@
 ### Minor Changes
 
 - [#140](https://github.com/ar-agents/ar-agents/pull/140) [`1024d51`](https://github.com/ar-agents/ar-agents/commit/1024d5167f7ac8aca07da94354c748df7b2868ea) Thanks [@naza00000](https://github.com/naza00000)! - Correctness fixes across the live-integration adapters, each with a real-shape regression test.
-
   - **banking-bcra**: `getDebt` now parses the real BCRA `/Deudas` response, which nests entries under `results.periodos[].entidades` (the previous parser read a root-level `entidades` the endpoint never returns, so results came back empty). `DebtEntry.entidad` is now the bank **name** string to match the API (type change).
   - **treasury**: `fundTaxBuffer`'s default idempotency key now derives from stable inputs (obligation ids + required buffer) rather than the fx-dependent conversion output, so a retried call is correctly deduplicated by the off-ramp.
   - **facturacion**: the non-idempotent `FECAESolicitar` (CAE authorization) is no longer retried on timeout/5xx; numeric fields are validated at the client boundary before the request is built.
@@ -50,7 +82,6 @@
 - [#130](https://github.com/ar-agents/ar-agents/pull/130) [`2670917`](https://github.com/ar-agents/ar-agents/commit/2670917a931df2093d0931c05023902cbcc63c3b) Thanks [@naza00000](https://github.com/naza00000)! - **OUSD → ARS route** (`createOusdArsRoute`). The on-thesis way ar-agents handles Open USD off-ramping: it does NOT become the ramp (that is a regulated PSAV/VASP — CNV registration, AML, banking). It ORCHESTRATES on top of a licensed `OffRampAdapter` (Bitso/Ripio/Manteca/Mural) and adds the parts that are ours — the AFIP-correct `accounting_payload` (mark-to-market ARS valuation at execution time, reported separately from the provider's realized ARS so the off-ramp spread is a visible cost) and the registry/guardrail posture. `convert` is irreversible: gate it behind art.102 + spending guardrails.
 
   **MOCK-until-live.** OUSD is not issued yet and no AR PSAV has listed it, so by default both legs are mocked (`InMemoryOffRampAdapter` + `mockFxOracle`). `route.live` is `false` until `OPEN_USD.status === "live"`. Pass a real `provider` + `fx` once OUSD is live, a provider lists it, and the AR legal/FX (cepo) treatment is cleared.
-
   - `@ar-agents/treasury` now depends on `@ar-agents/core` for the accounting bridge.
   - `@ar-agents/core`: `OPEN_USD.status` is now typed `OpenUsdStatus` (`"pre-launch" | "live"`) so downstream code can gate on `=== "live"`.
 

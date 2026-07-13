@@ -1,5 +1,12 @@
 # ar-agents-landing
 
+## 0.1.13
+
+### Patch Changes
+
+- Updated dependencies [[`57ea84d`](https://github.com/ar-agents/ar-agents/commit/57ea84d8b58863de9797832e19fe25aed64fc15d)]:
+  - @ar-agents/constancia@0.2.6
+
 ## 0.1.12
 
 ### Patch Changes

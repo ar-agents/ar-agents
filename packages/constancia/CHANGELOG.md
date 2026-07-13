@@ -1,5 +1,21 @@
 # @ar-agents/constancia
 
+## 0.2.6
+
+### Patch Changes
+
+- [#154](https://github.com/ar-agents/ar-agents/pull/154) [`57ea84d`](https://github.com/ar-agents/ar-agents/commit/57ea84d8b58863de9797832e19fe25aed64fc15d) Thanks [@naza00000](https://github.com/naza00000)! - Add `"padron-soap"` to `ConstanciaResult.source`. A constancia result may now
+  originate from AFIP's SOAP `ws_sr_constancia_inscripcion` webservice (via
+  `@ar-agents/identity`), which returns the constancia DATA but no PDF — distinct
+  from the `"browse-skill"` browser path that can carry the PDF artifact.
+  Additive, backwards-compatible: existing producers/consumers are unaffected.
+
+  Also funnels the package to the free hosted oracle: README gains a "Hosted
+  oracle + badge" section (free lookup API + embeddable "Verificado por ar-agents"
+  badge), the npm `homepage` now points at https://ar-agents.ar/constancia,
+  keywords expand for CUIT-verification search intent, and the stale author email
+  is corrected to naza@naza.ar.
+
 ## 0.2.5
 
 ### Patch Changes
