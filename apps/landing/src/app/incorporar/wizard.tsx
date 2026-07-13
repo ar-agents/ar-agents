@@ -10,6 +10,7 @@
  */
 
 import { useEffect, useMemo, useState } from "react";
+import { lawIsLive } from "@/app/law-status";
 
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
@@ -233,8 +234,8 @@ function validateLive(s: FormState): { valid: boolean; findings: Finding[] } {
     });
   }
 
-  // SOCIEDAD-IA flag warning
-  if (s.tipo === "SOCIEDAD-IA") {
+  // SOCIEDAD-IA flag warning, only while the regime is not yet in force
+  if (s.tipo === "SOCIEDAD-IA" && !lawIsLive) {
     findings.push({
       code: "sociedad_ia_pending_law",
       severity: "warning",

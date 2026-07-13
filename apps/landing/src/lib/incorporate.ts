@@ -6,6 +6,7 @@
  */
 
 import { z } from "zod";
+import { lawIsLive } from "@/app/law-status";
 
 export const PIEZA_IDS = [
   "identity",
@@ -125,13 +126,15 @@ export function validate(input: IncorporateInput): {
     });
   }
   if (input.tipo === "SOCIEDAD-IA") {
-    findings.push({
-      code: "sociedad_ia_pending_law",
-      severity: "warning",
-      field: "tipo",
-      message:
-        "El régimen sociedad-IA aún no está sancionado (anuncio Sturzenegger 28-abr-2026; estimado H1 2027).",
-    });
+    if (!lawIsLive) {
+      findings.push({
+        code: "sociedad_ia_pending_law",
+        severity: "warning",
+        field: "tipo",
+        message:
+          "El régimen sociedad-IA aún no está sancionado (anuncio Sturzenegger 28-abr-2026; estimado H1 2027).",
+      });
+    }
     // art. 14 (anteproyecto): the denomination of a sociedad automatizada must
     // include "automatizada". Enforced SERVER-SIDE here — not just in the eve tool's
     // client-side Zod .refine — so every surface that constitutes an automated
@@ -460,7 +463,7 @@ export function generateChecklist(input: IncorporateInput): string[] {
     "Para cobrar con Mercado Pago vas a necesitar una app en developers.mercadopago.com (Credenciales de producción). El token se pega en el panel de Credenciales del estudio, no en Vercel.",
     "Para facturar vas a necesitar un certificado X.509 de ARCA (Clave Fiscal → Administrador de Relaciones → Asociar Servicio Web, servicios `wsfe` y `ws_sr_constancia_inscripcion`). Se sube desde el panel de Credenciales, no hace falta editar ningún archivo.",
     "Para WhatsApp Business vas a necesitar verificar tu empresa en Meta Business Manager (sin eso el límite es 5 destinatarios). El token se carga después en el panel de Credenciales.",
-    input.tipo === "SOCIEDAD-IA"
+    input.tipo === "SOCIEDAD-IA" && !lawIsLive
       ? "El régimen sociedad-IA aún no fue sancionado. Hasta entonces el código corre bajo SAS estándar con representante humano por RFC-001 § 3.1."
       : "Completar la inscripción IGJ vía TAD (5-10 días hábiles). Usar el tool `validate_igj_inscription` antes para evitar el ~30% de rechazos mecánicos.",
     "El loop matutino del agente (lee DEC inbox + Boletín Oficial cada mañana) ya viene agendado con el deploy: no hay que configurar nada.",

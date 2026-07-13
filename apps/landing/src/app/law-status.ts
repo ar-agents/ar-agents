@@ -27,13 +27,17 @@ export type LawStatus = "pre" | "live";
 //     coach every constitution is a simulation even after law-day. KNOWN GAP,
 //     tracked in ROADMAP.md M2-3 follow-ups; not fixed in this change per
 //     instructions (surface, don't silently patch).
+//   - apps/landing/src/lib/incorporate.ts: validate()'s sociedad_ia_pending_law
+//     finding and generateChecklist's SOCIEDAD-IA branch are gated on !lawIsLive
+//     (server-side; unit-tested in incorporate.test.ts, drift-guarded by
+//     law-status-switch.test.ts's KNOWN_CONSUMERS).
+//   - apps/landing/src/app/incorporar/wizard.tsx: the client-side duplicate of
+//     that finding, gated identically on !lawIsLive (mirrors the server finding
+//     the incorporate.ts test covers; the wizard's validate is a private client
+//     function, so it has no separate unit test).
 //
 // Still NOT wired at all (no LAW_STATUS/lawIsLive reference to even flag as a
-// gap by the drift guard -- these are separate hardcoded branches on
-// `tipo === "SOCIEDAD-IA"` instead, see the same DAY-ONE.md "code gaps"
-// section): apps/landing/src/lib/incorporate.ts's `sociedad_ia_pending_law`
-// finding + generateChecklist's tipo-branch, and its client-side duplicate in
-// incorporar/wizard.tsx. Also byte-identical pre vs live today: registro/ and
+// gap by the drift guard): byte-identical pre vs live today: registro/ and
 // precios/. And apps/landing/src/app/api/jurisdictions/route.ts's hardcoded
 // comparison table (editorial content, not a runtime branch).
 export const LAW_STATUS: LawStatus =
