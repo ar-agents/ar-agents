@@ -82,7 +82,7 @@ export function VerifyClient() {
   };
 
   return (
-    <div style={{ maxWidth: 840, margin: "0 auto" }}>
+    <div style={{ maxWidth: 800, margin: "0 auto" }}>
       <header style={{ marginBottom: 24 }}>
         <p
           style={{
@@ -99,8 +99,8 @@ export function VerifyClient() {
         <h1
           style={{
             fontSize: 36,
-            fontWeight: 600,
-            letterSpacing: "-1.8px",
+            fontWeight: 450,
+            letterSpacing: "-0.06em",
             lineHeight: 1.05,
             margin: "6px 0 8px",
           }}

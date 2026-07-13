@@ -649,7 +649,7 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
         Escribí un pedido como si fueras el dueño humano de ACME-AI SAS.
       </p>
       <p style={{ margin: "8px 0 24px", color: "var(--text-body)" }}>
-        El agente va a usar las 12 tools del stack <code style={{ fontFamily: FONT_MONO }}>@ar-agents/*</code> para resolverlo, y cada tool call va a aparecer en el audit log →
+        El agente va a usar las 13 tools del stack <code style={{ fontFamily: FONT_MONO }}>@ar-agents/*</code> para resolverlo, y cada tool call va a aparecer en el audit log →
       </p>
       <button
         type="button"

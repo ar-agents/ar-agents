@@ -328,9 +328,9 @@ export function CodegenClient() {
         <h1
           style={{
             fontSize: 40,
-            fontWeight: 600,
+            fontWeight: 450,
             color: "#171717",
-            letterSpacing: "-1.6px",
+            letterSpacing: "-0.06em",
             lineHeight: 1.0,
             margin: "8px 0 12px",
           }}

@@ -155,7 +155,7 @@ function buildDiscoveryDoc(): DiscoveryDoc {
       url: `${SITE_URL}/api/play`,
       method: "POST",
       description:
-        "Live sociedad-IA agent demo (12 tools, mocked-but-realistic). Edge Runtime + Vercel AI Gateway streaming. Audit-logged to KV under x-play-session header.",
+        "Live sociedad-IA agent demo (13 tools, mocked-but-realistic). Edge Runtime + Vercel AI Gateway streaming. Audit-logged to KV under x-play-session header.",
     },
     {
       name: "play_audit",
@@ -412,7 +412,7 @@ function buildOpenApiDoc() {
   paths["/api/play"] = {
     post: {
       operationId: "play_agent",
-      summary: "Live sociedad-IA agent (12 tools, mocked) over Vercel AI Gateway streaming.",
+      summary: "Live sociedad-IA agent (13 tools, mocked) over Vercel AI Gateway streaming.",
       "x-runtime": "edge",
     },
   };

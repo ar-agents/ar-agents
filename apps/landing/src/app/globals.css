@@ -22,7 +22,7 @@ body {
   --fs-display: clamp(40px, 6vw, 64px);
 
   --tracking-tight: -0.022em;
-  --tracking-display: -0.035em;
+  --tracking-display: -0.06em;
 
   /* Semantic colors, shared across dark/light. */
   --success: #10b981;

@@ -460,7 +460,7 @@ export function EveContent() {
         <h1
           style={{
             fontSize: "clamp(32px, 6vw, 44px)",
-            fontWeight: 600,
+            fontWeight: 450,
             lineHeight: 1.06,
             letterSpacing: "var(--tracking-display)",
             margin: "20px 0 0",

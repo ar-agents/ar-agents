@@ -218,7 +218,7 @@ export default function PressKitPage() {
         </li>
         <li>
           <code style={{ fontFamily: FONT_MONO }}>POST /api/play</code>, agent
-          loop en vivo con 12 tools mockeados pero realistas. Streaming via
+          loop en vivo con 13 tools mockeados pero realistas. Streaming via
           Vercel AI Gateway. Cada tool call queda HMAC-firmado en el audit
           log keyed por <code style={{ fontFamily: FONT_MONO }}>x-play-session</code>.
         </li>
