@@ -2,7 +2,7 @@
  * Unit tests for /api/auto-incorporate's pure logic.
  */
 
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   Body,
   canonicalCuit,
@@ -408,5 +408,44 @@ describe("authorizeIncorporate()", () => {
     process.env[ENV] = "s3cret";
     const r = await authorizeIncorporate(post({ authorization: "Bearer s3cret" }));
     expect(r.ok).toBe(true);
+  });
+});
+
+describe("LAW_STATUS=live gates the SOCIEDAD-IA pending-law warning (M2-5)", () => {
+  afterEach(() => {
+    vi.unstubAllEnvs();
+    vi.resetModules();
+  });
+
+  async function freshIncorporateLive() {
+    vi.resetModules();
+    vi.stubEnv("NEXT_PUBLIC_LAW_STATUS", "live");
+    return import("../src/lib/incorporate");
+  }
+
+  it("validate() drops sociedad_ia_pending_law for SOCIEDAD-IA once the law is live", async () => {
+    const { validate, Body: BodyLive } = await freshIncorporateLive();
+    const r = validate(
+      BodyLive.parse({ ...baseInput, tipo: "SOCIEDAD-IA", denominacion: "ACME Automatizada", capitalSocial: 1 }),
+    );
+    expect(r.findings.some((f) => f.code === "sociedad_ia_pending_law")).toBe(false);
+  });
+
+  it("still enforces the art. 14 'automatizada' requirement when live (finding unaffected by LAW_STATUS)", async () => {
+    const { validate, Body: BodyLive } = await freshIncorporateLive();
+    const r = validate(
+      BodyLive.parse({ ...baseInput, tipo: "SOCIEDAD-IA", denominacion: "ACME AI", capitalSocial: 1 }),
+    );
+    expect(r.findings.some((f) => f.code === "denominacion_missing_automatizada")).toBe(true);
+    expect(r.findings.some((f) => f.code === "sociedad_ia_pending_law")).toBe(false);
+  });
+
+  it("generateChecklist() flips the SOCIEDAD-IA legal step to the real IGJ inscription instruction when live", async () => {
+    const { generateChecklist, Body: BodyLive } = await freshIncorporateLive();
+    const steps = generateChecklist(
+      BodyLive.parse({ ...baseInput, tipo: "SOCIEDAD-IA", denominacion: "ACME Automatizada", capitalSocial: 1 }),
+    );
+    expect(steps.some((s) => s.includes("aún no fue sancionado"))).toBe(false);
+    expect(steps.some((s) => s.includes("Completar la inscripción IGJ"))).toBe(true);
   });
 });

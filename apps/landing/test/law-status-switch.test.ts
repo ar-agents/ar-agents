@@ -137,6 +137,16 @@ const KNOWN_CONSUMERS: ReadonlyArray<string> = [
   // env-driven. Tracked in ROADMAP.md M2-3 follow-ups, not fixed here.
   "apps/studio/src/coach/corpus.ts",
   "apps/studio/src/coach/corpus/argentina.md",
+  // Server-side: validate()'s sociedad_ia_pending_law finding + generateChecklist's
+  // SOCIEDAD-IA branch, gated on !lawIsLive. Tested in incorporate.test.ts.
+  "apps/landing/src/lib/incorporate.ts",
+  // Client-side duplicate of that finding in the /incorporar wizard, gated
+  // identically. The wizard's validate is a private client function (no separate
+  // unit test); behavior mirrors the incorporate.ts server test.
+  "apps/landing/src/app/incorporar/wizard.tsx",
+  // Proves the incorporate.ts gating: stubs NEXT_PUBLIC_LAW_STATUS=live and
+  // asserts the pending-law warning disappears while art. 14 stays enforced.
+  "apps/landing/test/incorporate.test.ts",
 ];
 
 /** Directories to scan for the identifiers, relative to the monorepo root. */
