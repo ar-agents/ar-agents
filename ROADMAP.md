@@ -205,7 +205,7 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: ARS collected via Mercado Pago moves into a society USDC wallet with the same idempotency and audit guarantees as existing payouts.
 
 ### M2-2 Society runtime hosting story
-- status: ready
+- status: done (2026-07-13, PR #206; new docs/HOSTING.md consolidates the already-implemented path: each society deploys as its own Vercel project (own-project-per-society, chosen over hosted multi-tenant so each society's secrets and signed audit log stay isolated in its own project and studio stays the single cockpit), the two deploy modes in POST /api/society/deploy (provisioned when VERCEL_PROVISION_TOKEN is set: studio creates the project and injects env via the Vercel REST layer in vercel-provision.ts; manual otherwise: one-click clone URL plus a pasteable env file), which env vars each mode injects, what is automated (project creation, initial + credential env injection via setSocietyCredentialEnvVars, redeploys, deploy-health reads) vs still manual (the manual-mode paste, and the honest gap that manual-mode deploys get no cockpit, matching M3-2), and the source repo/ref every society builds from. New apps/studio/test/hosting-doc.test.ts (19 tests) is a drift guard modeled on law-status-switch.test.ts: it asserts every provisioning function name, env var name, and constant the doc references still exists in the source it describes, so the doc cannot silently go stale. No runtime code changed. Studio suite 327/327 green.)
 - priority: P2
 - acceptance: documented, tested path for where a created society's agent app runs (own Vercel project per society vs hosted multi-tenant), with env provisioning steps automated where possible.
 
