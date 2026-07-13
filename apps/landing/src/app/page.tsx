@@ -18,7 +18,6 @@ const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
 const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 
 const STUDIO_URL = "https://studio.ar-agents.ar";
-const SOCIETY_URL = "https://soc-ar-agents-operaciones-sociedad.vercel.app";
 
 // The one command that fits beside the CTA button in a compact 40px pill
 // (eve pattern: one command, not a stack). This is the product's terminal
@@ -121,8 +120,6 @@ type FeatureCard = {
   t_en: string;
   d_es: string;
   d_en: string;
-  audit?: boolean;
-  proof?: boolean;
 };
 
 const FEATURE_CARDS: ReadonlyArray<FeatureCard> = [
@@ -137,7 +134,6 @@ const FEATURE_CARDS: ReadonlyArray<FeatureCard> = [
     t_en: "Signed audit log",
     d_es: "Cada tool call queda firmado con HMAC. Cualquiera lo verifica.",
     d_en: "Every tool call is signed with HMAC. Anyone can verify it.",
-    audit: true,
   },
   {
     t_es: "Kill switch",
@@ -162,20 +158,7 @@ const FEATURE_CARDS: ReadonlyArray<FeatureCard> = [
     t_en: "First company alive",
     d_es: "AR Agents Operaciones ya opera con su historia auditada.",
     d_en: "AR Agents Operaciones already operates with its audited history.",
-    proof: true,
   },
-];
-
-// Public-safe fake-but-realistic entries for the audit-log card's mini list.
-// Tool names mirror the repo's real snake_case tool naming convention
-// (registrar_decision, incorporar_sociedad); these three rows are
-// illustrative, not a live feed.
-type AuditEntry = { tool: string; status_es: string; status_en: string; kind: "success" | "info" | "accent" };
-
-const AUDIT_ENTRIES: ReadonlyArray<AuditEntry> = [
-  { tool: "registrar_decision", status_es: "firmada", status_en: "signed", kind: "success" },
-  { tool: "wallet_check_balance", status_es: "leída", status_en: "read", kind: "info" },
-  { tool: "solicitar_cae", status_es: "aprobada", status_en: "approved", kind: "accent" },
 ];
 
 // ---------------------------------------------------------------------------
@@ -312,13 +295,6 @@ export default function Home() {
               <div key={c.t_en} style={card}>
                 <h3 style={cardTitle}>{es ? c.t_es : c.t_en}</h3>
                 <p style={cardBody}>{es ? c.d_es : c.d_en}</p>
-                {c.audit ? <AuditMiniList es={es} /> : null}
-                {c.proof ? (
-                  <div style={{ marginTop: 14, display: "flex", gap: 14, flexWrap: "wrap" }}>
-                    <a href={SOCIETY_URL} style={inlineLink}>{es ? "Ver la sociedad" : "See the company"} →</a>
-                    <a href="/registro" style={inlineLink}>{es ? "Ver el registro" : "See the registry"} →</a>
-                  </div>
-                ) : null}
               </div>
             ))}
           </div>
@@ -500,22 +476,6 @@ function InventoryRow({
   );
 }
 
-/* ---------- section 3: audit-log mini visual ---------- */
-
-function AuditMiniList({ es }: { es: boolean }) {
-  return (
-    <div style={{ marginTop: 14, display: "grid", gap: 6 }}>
-      {AUDIT_ENTRIES.map((e) => (
-        <div key={e.tool} style={auditRow}>
-          <code style={auditTool}>{e.tool}</code>
-          <span style={{ ...auditPill, ...auditPillKind[e.kind] }}>
-            {es ? e.status_es : e.status_en}
-          </span>
-        </div>
-      ))}
-    </div>
-  );
-}
 
 /* ---------- footer ---------- */
 
@@ -889,35 +849,9 @@ const inlineLink: React.CSSProperties = {
 };
 
 // Audit-log mini visual, inside the "Audit log firmado" card.
-const auditRow: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "space-between",
-  gap: 10,
-  padding: "6px 10px",
-  background: "var(--bg-tint)",
-  borderRadius: 6,
-};
 
-const auditTool: React.CSSProperties = {
-  fontFamily: FONT_MONO,
-  fontSize: 12,
-  color: "var(--text)",
-};
 
-const auditPill: React.CSSProperties = {
-  fontSize: 11,
-  fontWeight: 500,
-  padding: "2px 8px",
-  borderRadius: 9999,
-  whiteSpace: "nowrap",
-};
 
-const auditPillKind: Record<AuditEntry["kind"], React.CSSProperties> = {
-  success: { color: "var(--success)", background: "var(--success-bg)" },
-  info: { color: "var(--text-muted)", background: "var(--bg)" },
-  accent: { color: "var(--accent-text, var(--accent))", background: "var(--accent-bg)" },
-};
 
 // Finale: 96px statement, weight 450, -0.06em, nothing else beside the button.
 const finaleHeading: React.CSSProperties = {
