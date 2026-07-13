@@ -235,8 +235,8 @@ export const MESSAGES = {
   },
   "dashboard.usage.realCost": { es: "Costo real: {cost}", en: "Real cost: {cost}" },
   "dashboard.usage.priceIfOperative": {
-    es: "Precio si estuviera operativa (5x): {price}",
-    en: "Price if it were operating (5x): {price}",
+    es: "Precio estimado por uso: {price}",
+    en: "Estimated price by usage: {price}",
   },
   "dashboard.usage.capRemaining": {
     es: "Te queda {remaining} del límite gratuito de este mes.",

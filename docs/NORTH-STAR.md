@@ -14,7 +14,7 @@ Customers for the societies come later. First the machine has to work end to end
 ## Pricing
 
 - Creating a society is **free**, all the way to a working, incorporated, operating system.
-- Once a society is operational and doing business, we charge a **multiple of its token cost** (currently 5x the AI Gateway cost of the tokens its agents consume). Our revenue scales with our only real cost of goods. Nothing else is metered.
+- Once a society is operational and doing business, we charge a **usage-based price** tied to the AI Gateway cost of the tokens its agents consume. The factor lives in deployment config, not in public docs. Our revenue scales with our only real cost of goods. Nothing else is metered.
 - The free tier runs on free and low-cost models with per-account caps. Operational societies run on the models their work requires.
 
 ## Surfaces

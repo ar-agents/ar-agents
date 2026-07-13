@@ -37,11 +37,13 @@ beforeEach(() => {
   process.env.KV_REST_API_URL = "https://stub.upstash.io";
   process.env.KV_REST_API_TOKEN = "stub";
   delete process.env.STUDIO_FREE_CAP_MICRO_USD;
+  delete process.env.STUDIO_PRICE_MULTIPLIER;
 });
 afterEach(() => {
   delete process.env.KV_REST_API_URL;
   delete process.env.KV_REST_API_TOKEN;
   delete process.env.STUDIO_FREE_CAP_MICRO_USD;
+  delete process.env.STUDIO_PRICE_MULTIPLIER;
 });
 
 describe("recordUsage / getUsage", () => {
@@ -55,10 +57,26 @@ describe("recordUsage / getUsage", () => {
     expect(u.month).toMatch(/^\d{6}$/);
   });
 
-  it("priceMicroUsd is exactly 5x costMicroUsd (the would-be bill; nothing is charged)", async () => {
+  it("priceMicroUsd is costMicroUsd times the default price multiplier (the would-be bill; nothing is charged)", async () => {
     await recordUsage("acc-price", { inputTokens: 1, outputTokens: 1, model: "m", costMicroUsd: 1_234 });
     const u = await getUsage("acc-price");
     expect(u.priceMicroUsd).toBe(1_234 * 5);
+  });
+
+  it("respects STUDIO_PRICE_MULTIPLIER override", async () => {
+    process.env.STUDIO_PRICE_MULTIPLIER = "3";
+    await recordUsage("acc-price-override", { inputTokens: 1, outputTokens: 1, model: "m", costMicroUsd: 1_000 });
+    const u = await getUsage("acc-price-override");
+    expect(u.priceMicroUsd).toBe(3_000);
+    delete process.env.STUDIO_PRICE_MULTIPLIER;
+  });
+
+  it("falls back to the default multiplier on an invalid STUDIO_PRICE_MULTIPLIER", async () => {
+    process.env.STUDIO_PRICE_MULTIPLIER = "not-a-number";
+    await recordUsage("acc-price-invalid", { inputTokens: 1, outputTokens: 1, model: "m", costMicroUsd: 100 });
+    const u = await getUsage("acc-price-invalid");
+    expect(u.priceMicroUsd).toBe(500);
+    delete process.env.STUDIO_PRICE_MULTIPLIER;
   });
 
   it("isolates usage per account", async () => {

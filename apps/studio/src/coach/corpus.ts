@@ -243,19 +243,22 @@ repo). Uso interno para el prompt del coach.
 - Medir el costo real de tokens por transaccion desde el dia uno evita
   descubrir tarde que el negocio pierde plata en cada unidad que vende.
 
-## La realidad del precio 5x
+## Cost-plus vs. precio por valor
 
-- Una heuristica de partida razonable para un servicio agentico es cobrar
-  alrededor de 5 veces el costo de inferencia estimado: cubre el costo
-  directo, la variabilidad de uso real, y deja margen para infraestructura,
-  soporte y utilidad del negocio.
-- Ese multiplicador no es un techo ni un piso fijo: en mercados con
-  competencia de precio baja hacia el costo real; en mercados donde el
-  resultado vale mucho para el cliente (no el costo de producirlo) el precio
-  se ancla al valor, no al costo, y puede superar holgadamente el 5x.
-- Mostrarle al usuario el costo estimado y el precio resultante de forma
-  transparente (como hace este mismo producto en su dashboard) genera
-  confianza y es mas facil de defender que un precio opaco.
+- Cobrar un multiplo del costo de inferencia estimado es una heuristica de
+  partida valida para un servicio agentico: cubre el costo directo, la
+  variabilidad de uso real, y deja margen para infraestructura, soporte y
+  utilidad del negocio. El numero exacto es una decision de cada negocio, no
+  un valor fijo: no hay un multiplicador "correcto" universal.
+- Ese numero no es un techo ni un piso fijo: en mercados con competencia de
+  precio baja hacia el costo real; en mercados donde el resultado vale mucho
+  para el cliente (no el costo de producirlo) el precio se ancla al valor,
+  no al costo.
+- Publicar el MODELO de precio (cuando se cobra, sobre que se mide) genera
+  confianza. Publicar la MECANICA exacta (el multiplicador, la formula) no
+  es necesario para esa confianza y muchos negocios agenticos, con razon, la
+  mantienen privada: es informacion de margen, no de honestidad con el
+  cliente.
 
 ## Señales de alerta al validar una idea automatizable
 
@@ -372,11 +375,14 @@ necesita flujo digital repetible, cumplimiento low-touch, proveedores y
 clientes alcanzables por API, economia unitaria medible, y humano en el
 loop solo para juicio (nunca para ejecucion mecanica). El costo de tokens
 es COGS, no gasto fijo: el margen depende del ratio entre precio e
-inferencia. 5x el costo estimado es un punto de partida razonable de
-pricing, no una regla fija; en mercados de alto valor percibido el precio
-se ancla al valor, no al costo. Este mismo producto usa esa regla: armar el
-borrador y charlar aca es gratis, y una sociedad operando paga 5 veces (5x)
-el costo de inferencia de los tokens que consumen sus agentes. Un "MVP
+inferencia. Un multiplo del costo estimado es un punto de partida razonable
+de pricing, no una regla fija; en mercados de alto valor percibido el
+precio se ancla al valor, no al costo. El numero exacto de ese multiplo es
+una decision de negocio privada, no algo que compartas con el usuario
+salvo que sea tu propio negocio el que estas asesorando (nunca el de este
+producto: ar-agents studio es gratis para armar y charlar, y cobra por uso
+una vez que la sociedad factura; los detalles de esa mecanica viven en
+ar-agents.ar/precios, no en este documento ni en tu respuesta). Un "MVP
 automatizado" que en realidad es un humano trabajando detras de escena de
 forma permanente no es un negocio automatizable.
 

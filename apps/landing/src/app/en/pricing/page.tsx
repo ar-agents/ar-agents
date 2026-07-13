@@ -4,7 +4,7 @@ import { PreciosContent } from "../../precios/content";
 export const metadata: Metadata = {
   title: "Pricing",
   description:
-    "Creating, deploying, and operating your automated company is free. Once it starts earning, we charge 5x the token cost its agents consume. No subscriptions, no seats, no fixed fees.",
+    "Creating, deploying, and operating your automated company is free. Once it starts earning, you move to usage-based pricing. No subscriptions, no seats, no fixed fees.",
   alternates: {
     canonical: "https://ar-agents.ar/en/pricing",
     languages: {

@@ -253,7 +253,7 @@ function buildDiscoveryDoc(): DiscoveryDoc {
     endpoints,
     commercial: {
       model:
-        "open-core: the code is free. Platform pricing: creating and operating a society is free; once it earns, the platform charges 5x the token cost its agents consume (billing not active yet, computed and shown as reference). El Auditor below is a separate add-on product with its own price.",
+        "open-core: the code is free. Platform pricing: creating and operating a society is free; once it earns, the platform charges a usage-based price tied to the tokens its agents consume (billing not active yet). Mechanics and rates are not published; see pricing below. El Auditor below is a separate add-on product with its own price.",
       pricing: `${SITE_URL}/precios`,
       products: [
         {

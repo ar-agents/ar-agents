@@ -1,34 +1,32 @@
-import { DocBlock, DocH2, DocP, DocShell } from "../doc-shell";
-
 /**
  * Shared bilingual content for /precios (ES default) and /en/pricing (EN).
  * Server component. Receives `lang` and renders the matching column of T.
  *
- * Commercial model (v3, 2026-07-09): platform-metered, sourced from
- * docs/NORTH-STAR.md § Pricing. Creating, deploying, and operating a
- * Sociedad Automatizada is free with no time limit. Once it is operational
- * and earning, we charge 5x the AI Gateway cost of the tokens its agents
- * consume. That is our only real cost, so it is the only thing we meter.
- * No subscriptions, no seats, no fixed fees.
+ * Commercial model (v4, 2026-07-13): the MODEL stays public (free to build,
+ * usage-based once operational, see docs/NORTH-STAR.md § Pricing); the
+ * MECHANICS (the exact pricing factor, the cost-based math behind it, any
+ * worked cost-vs-price example) are private. No formula, no worked example,
+ * no rate on this page or in any machine surface. Rendered in the eve/vercel
+ * card language (weight 450 headings, var(--card) surfaces, 40px buttons) to
+ * match the rest of the site's 2026-07-13 redesign, not the old prose
+ * doc-shell.
  *
- * Honest note (ROADMAP.md): M0-6 (billing math: usage rollup + 5x price
- * shown in the dashboard) is done. M2-1 (actually charging via Mercado
- * Pago) is status: blocked (money movement, owner decision). So today
- * every operational society, even ones already earning, runs free; the
- * 5x number is shown as a reference, not yet billed.
- *
- * El Auditor (the signed, hosted audit log, art. 102 defense) is a
- * separate product with its own pricing, out of scope for this page.
- * It is designed to be purchased autonomously by an agent via
+ * El Auditor (the signed, hosted audit log, art. 102 defense) is a separate
+ * product with its own fixed pricing, out of scope for this page. It is
+ * designed to be purchased autonomously by an agent via
  * /api/auditor/subscribe (see /api/discovery), not sold to a human here.
  */
 
-type Lang = "es" | "en";
+const FONT_SANS = "var(--font-geist-sans), Arial, sans-serif";
+const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
+const STUDIO_URL = "https://studio.ar-agents.ar";
 
 const linkSty: React.CSSProperties = {
   color: "var(--accent)",
   textDecoration: "underline",
 };
+
+type Lang = "es" | "en";
 
 const T = {
   eyebrow: { es: "precios", en: "pricing" },
@@ -37,47 +35,11 @@ const T = {
     en: "Free until your company earns.",
   },
   subtitle: {
-    es: "Crear, deployar y operar tu sociedad automatizada no cuesta nada. Medimos los tokens que consumen sus agentes y no cobramos nada hasta que la sociedad empieza a facturar. A partir de ahí cobramos 5x el costo de esos tokens. Sin suscripciones, sin asientos, sin cargos fijos.",
-    en: "Creating, deploying, and operating your automated company costs nothing. We meter the tokens its agents consume and charge nothing until the company starts earning. From there we charge 5x the cost of those tokens. No subscriptions, no seats, no fixed fees.",
+    es: "Crear, deployar y operar tu sociedad automatizada no cuesta nada, sin límite de tiempo. El día que empieza a facturar, pasás a precio por uso. Sin suscripciones, sin asientos, sin cargos fijos.",
+    en: "Creating, deploying, and operating your automated company costs nothing, with no time limit. The day it starts earning, you move to usage-based pricing. No subscriptions, no seats, no fixed fees.",
   },
-  h2model: { es: "Cómo funciona", en: "How it works" },
-  modelP: {
-    es: (
-      <>
-        Generás tu sociedad desde un prompt, la deployás y la operás gratis,
-        sin límite de tiempo. Mientras no factura, corre en modelos gratis o
-        de bajo costo con un tope por cuenta. El día que le cobra a un
-        cliente real por primera vez, pasa a modo operacional: usa los
-        modelos que su trabajo necesite, y cobramos 5x el costo de gateway
-        de esos tokens. Es nuestro único costo real, así que es la única
-        métrica que usamos.
-      </>
-    ),
-    en: (
-      <>
-        You generate your company from a prompt, deploy it, and operate it
-        for free, with no time limit. While it is not earning, it runs on
-        free or low-cost models with a per-account cap. The day it charges a
-        real customer for the first time, it moves to operational mode: it
-        uses whatever models its work needs, and we charge 5x the gateway
-        cost of those tokens. That is our only real cost, so it is the only
-        thing we meter.
-      </>
-    ),
-  },
-  h2example: { es: "El ejemplo", en: "The example" },
-  exampleP1: {
-    es: "Tu sociedad ya está operando y factura. Ese mes sus agentes consumen USD 40 en tokens: leen facturas, responden WhatsApp, corren el loop de aprobaciones.",
-    en: "Your company is already operating and earning. That month its agents consume USD 40 in tokens: reading invoices, answering WhatsApp, running the approval loop.",
-  },
-  exampleBlock: {
-    es: "tokens del mes    USD 40\nmultiplicador        x 5\n---------------------------\ntu cargo          USD 200",
-    en: "tokens this month   USD 40\nmultiplier            x 5\n----------------------------\nyour charge         USD 200",
-  },
-  exampleP2: {
-    es: "Ese cargo es la única línea de tu factura. Antes de facturar, esos mismos USD 40 en tokens no te cuestan nada: corren en el tier gratuito.",
-    en: "That charge is the only line on your bill. Before it earns, that same USD 40 in tokens costs nothing: it runs on the free tier.",
-  },
+  ctaPrimary: { es: "Crear mi empresa", en: "Create my company" },
+  h2tiers: { es: "Dos planes", en: "Two plans" },
   h2free: { es: "Siempre gratis", en: "Always free" },
   freeP: {
     es: "Esto no cambia nunca, factures o no:",
@@ -97,88 +59,117 @@ const T = {
   },
   h2honest: { es: "Estado real", en: "Honest status" },
   honestP: {
-    es: (
-      <>
-        El cobro todavía no está activo. Ya calculamos el 5x y lo mostramos
-        en tu dashboard como referencia, cuánto pagarías si estuviera
-        prendido, pero todavía no ejecutamos ningún cargo. Mientras tanto,
-        toda sociedad opera gratis, incluso las que ya facturan. Vamos a
-        avisar acá el día que se prenda.
-      </>
-    ),
-    en: (
-      <>
-        Billing is not active yet. We already compute the 5x and show it in
-        your dashboard as a reference, how much you would pay if it were on,
-        but we do not execute any charge yet. Until then every company
-        operates free, even the ones already earning. We will post here the
-        day it turns on.
-      </>
-    ),
+    es: "El cobro todavía no está activo. Mientras tanto medimos el uso de tu sociedad y te mostramos una estimación en tu dashboard, para que sepas qué esperar, pero no ejecutamos ningún cargo. Toda sociedad opera gratis, incluso las que ya facturan. Vamos a avisar acá el día que se prenda.",
+    en: "Billing is not active yet. In the meantime we meter your company's usage and show you an estimate in your dashboard, so you know what to expect, but we do not execute any charge. Every company operates free, even the ones already earning. We will post here the day it turns on.",
   },
   h2faq: { es: "Preguntas", en: "FAQ" },
 } as const;
+
+type Tier = {
+  name: { es: string; en: string };
+  price: { es: string; en: string };
+  tag?: { es: string; en: string };
+  items: { es: string[]; en: string[] };
+  cta?: { label: { es: string; en: string }; href: string };
+};
+
+const TIERS: ReadonlyArray<Tier> = [
+  {
+    name: { es: "Gratis", en: "Free" },
+    price: { es: "$0", en: "$0" },
+    tag: { es: "crear y operar", en: "build and run" },
+    items: {
+      es: [
+        "Generar tu sociedad desde un prompt",
+        "Validar y ajustar el borrador con el coach",
+        "Constituir en simulación, pre-ley: no inscribe nada real",
+        "Operar sin límite de tiempo mientras no factura",
+      ],
+      en: [
+        "Generate your company from a prompt",
+        "Validate and adjust the draft with the coach",
+        "Incorporate in simulation, pre-law: nothing real is filed",
+        "Operate with no time limit while it is not earning",
+      ],
+    },
+    cta: { label: { es: "Crear mi empresa", en: "Create my company" }, href: STUDIO_URL },
+  },
+  {
+    name: { es: "Producción", en: "Production" },
+    price: { es: "Por uso", en: "Usage-based" },
+    tag: { es: "cuando factura", en: "once it earns" },
+    items: {
+      es: [
+        "Se activa el día que tu sociedad le cobra a un cliente real",
+        "Precio por uso, facturado sobre lo que tus agentes realmente consumen",
+        "Sin suscripciones, sin asientos, sin cargos fijos",
+        "Facturación todavía no activa: hoy corre gratis, ver Estado real",
+      ],
+      en: [
+        "Activates the day your company charges a real customer",
+        "Usage-based price, billed on what your agents actually consume",
+        "No subscriptions, no seats, no fixed fees",
+        "Billing not active yet: runs free today, see Honest status",
+      ],
+    },
+  },
+];
+
+const CUSTOM_TIER = {
+  name: { es: "A medida", en: "Custom" },
+  body: {
+    es: "¿Volumen alto, varias sociedades, o algo que no encaja en lo de arriba? Escribinos.",
+    en: "High volume, multiple companies, or something that does not fit above? Reach out.",
+  },
+  cta: { label: { es: "naza@naza.ar", en: "naza@naza.ar" }, href: "mailto:naza@naza.ar" },
+};
 
 type FaqItem = { q: { es: string; en: string }; a: { es: React.ReactNode; en: React.ReactNode } };
 
 const FAQ: ReadonlyArray<FaqItem> = [
   {
-    q: {
-      es: "¿Cuándo empieza a cobrarse?",
-      en: "When does billing start?",
-    },
+    q: { es: "¿Cuándo empieza a cobrarse?", en: "When does billing start?" },
     a: {
       es: "El día que tu sociedad le cobra por primera vez a un cliente real. Antes de eso, generar, deployar y operar es gratis, sin límite de tiempo.",
       en: "The day your company first charges a real customer. Before that, generating, deploying, and operating is free, with no time limit.",
     },
   },
   {
-    q: {
-      es: "¿Qué cuenta como facturar?",
-      en: "What counts as earning?",
-    },
+    q: { es: "¿Qué cuenta como facturar?", en: "What counts as earning?" },
     a: {
       es: "Un cobro real a un tercero: una venta, un servicio, una suscripción. Transacciones de prueba o simuladas no cuentan.",
       en: "A real charge to a third party: a sale, a service, a subscription. Test or simulated transactions do not count.",
     },
   },
   {
-    q: {
-      es: "¿Puedo usar mi propia clave de modelo?",
-      en: "Can I use my own model key?",
-    },
+    q: { es: "¿Puedo usar mi propia clave de modelo?", en: "Can I use my own model key?" },
     a: {
-      es: "Sí. Si conectás tu propia clave (Anthropic, OpenAI, etc.) desde el panel de credenciales de studio, esos tokens no pasan por nuestro AI Gateway, así que no entran en el cálculo del 5x. Pagás directo a tu proveedor.",
-      en: "Yes. If you connect your own key (Anthropic, OpenAI, etc.) from studio's credentials panel, those tokens never pass through our AI Gateway, so they do not enter the 5x calculation. You pay your provider directly.",
+      es: "Sí. Podés traer tu propia clave de modelo (Anthropic, OpenAI, etc.) desde el panel de credenciales de studio. El precio por uso solo aplica a lo que corre sobre la plataforma; lo que corre con tu propia clave lo pagás directo a tu proveedor.",
+      en: "Yes. You can bring your own model key (Anthropic, OpenAI, etc.) from studio's credentials panel. Usage-based pricing only applies to what runs on the platform; what runs on your own key, you pay your provider directly.",
     },
   },
   {
-    q: {
-      es: "¿El Auditor tiene otro precio?",
-      en: "Does The Auditor have separate pricing?",
+    q: { es: "¿Cómo se calcula el precio por uso?", en: "How is usage-based pricing calculated?" },
+    a: {
+      es: "No publicamos la fórmula. Lo que sí es público: es gratis hasta que facturás, y una vez que facturás se mide el uso real de tus agentes, no un plan fijo ni una suscripción.",
+      en: "We do not publish the formula. What is public: it is free until you earn, and once you earn we meter your agents' actual usage, not a fixed plan or a subscription.",
     },
+  },
+  {
+    q: { es: "¿El Auditor tiene otro precio?", en: "Does The Auditor have separate pricing?" },
     a: {
       es: (
         <>
-          Sí. El Auditor es un producto aparte: un audit log firmado y
-          hosteado que tu propia sociedad puede contratar sola, por API,
-          para cumplir el art. 102. Tiene su propio pricing, fuera de este
-          modelo. Más en{" "}
-          <a href="/auditor" style={linkSty}>
-            /auditor
-          </a>
-          .
+          Sí. El Auditor es un producto aparte: un audit log firmado y hosteado que tu propia
+          sociedad puede contratar sola, por API, para cumplir el art. 102. Tiene su propio
+          pricing, fuera de este modelo. Más en <a href="/auditor" style={linkSty}>/auditor</a>.
         </>
       ),
       en: (
         <>
-          Yes. The Auditor is a separate product: a signed, hosted audit log
-          your own company can contract by itself, via API, to satisfy art.
-          102. It has its own pricing, outside this model. More at{" "}
-          <a href="/auditor" style={linkSty}>
-            /auditor
-          </a>
-          .
+          Yes. The Auditor is a separate product: a signed, hosted audit log your own company can
+          contract by itself, via API, to satisfy art. 102. It has its own pricing, outside this
+          model. More at <a href="/auditor" style={linkSty}>/auditor</a>.
         </>
       ),
     },
@@ -189,47 +180,278 @@ export function PreciosContent({ lang }: { lang: Lang }) {
   const t = (k: keyof typeof T) => T[k][lang];
 
   return (
-    <DocShell
-      eyebrow={t("eyebrow") as string}
-      title={t("title") as string}
-      subtitle={t("subtitle") as string}
-    >
-      <DocH2>{t("h2model")}</DocH2>
-      <DocP>{t("modelP")}</DocP>
-
-      <DocH2>{t("h2example")}</DocH2>
-      <DocP>{t("exampleP1")}</DocP>
-      <DocBlock>{T.exampleBlock[lang]}</DocBlock>
-      <DocP>{t("exampleP2")}</DocP>
-
-      <DocH2>{t("h2free")}</DocH2>
-      <DocP>{t("freeP")}</DocP>
-      <ul style={{ margin: "0 0 16px", paddingLeft: 20, color: "var(--text-body)" }}>
-        {T.freeItems[lang].map((item) => (
-          <li key={item} style={{ margin: "0 0 6px" }}>
-            {item}
-          </li>
-        ))}
-      </ul>
-
-      <DocH2>{t("h2honest")}</DocH2>
-      <DocP>{t("honestP")}</DocP>
-
-      <DocH2>{t("h2faq")}</DocH2>
-      {FAQ.map((item) => (
-        <div key={item.q.es} style={{ margin: "0 0 20px" }}>
-          <p
-            style={{
-              margin: "0 0 6px",
-              fontWeight: 600,
-              color: "var(--text)",
-            }}
-          >
-            {item.q[lang]}
-          </p>
-          <DocP>{item.a[lang]}</DocP>
+    <main style={pageWrap}>
+      <div style={{ maxWidth: 900, margin: "0 auto" }}>
+        <p style={eyebrowSty}>{t("eyebrow") as string}</p>
+        <h1 style={h1Sty}>{t("title") as string}</h1>
+        <p style={subtitleSty}>{t("subtitle") as string}</p>
+        <div style={{ marginTop: 24 }}>
+          <a href={STUDIO_URL} style={ctaPrimary}>
+            {t("ctaPrimary") as string}
+          </a>
         </div>
-      ))}
-    </DocShell>
+
+        <section style={sectionOuter}>
+          <div style={tiersGrid}>
+            {TIERS.map((tier) => (
+              <div key={tier.name.es} style={card}>
+                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                  <h2 style={cardHeading}>{tier.name[lang]}</h2>
+                  {tier.tag ? <span style={tagSty}>{tier.tag[lang]}</span> : null}
+                </div>
+                <p style={priceSty}>{tier.price[lang]}</p>
+                <ul style={cardList}>
+                  {tier.items[lang].map((item) => (
+                    <li key={item} style={cardListItem}>
+                      <span aria-hidden="true" style={{ color: "var(--text-muted)" }}>
+                        {"– "}
+                      </span>
+                      {item}
+                    </li>
+                  ))}
+                </ul>
+                {tier.cta ? (
+                  <a href={tier.cta.href} style={{ ...ctaPrimary, marginTop: 20 }}>
+                    {tier.cta.label[lang]}
+                  </a>
+                ) : null}
+              </div>
+            ))}
+            <div style={card}>
+              <h2 style={cardHeading}>{CUSTOM_TIER.name[lang]}</h2>
+              <p style={{ ...cardBody, margin: "12px 0 20px" }}>{CUSTOM_TIER.body[lang]}</p>
+              <a href={CUSTOM_TIER.cta.href} style={linkSty}>
+                {CUSTOM_TIER.cta.label[lang]} →
+              </a>
+            </div>
+          </div>
+        </section>
+
+        <section style={sectionOuter}>
+          <h2 style={sectionHeading}>{t("h2free")}</h2>
+          <p style={quietExplainer}>{t("freeP")}</p>
+          <ul style={{ margin: "16px 0 0", paddingLeft: 20, color: "var(--text-body)" }}>
+            {T.freeItems[lang].map((item) => (
+              <li key={item} style={{ margin: "0 0 6px", fontSize: 15, lineHeight: 1.6 }}>
+                {item}
+              </li>
+            ))}
+          </ul>
+        </section>
+
+        <section style={sectionOuter}>
+          <h2 style={sectionHeading}>{t("h2honest")}</h2>
+          <p style={quietExplainer}>{t("honestP")}</p>
+        </section>
+
+        <section style={sectionOuter}>
+          <h2 style={sectionHeading}>{t("h2faq")}</h2>
+          {FAQ.map((item) => (
+            <div key={item.q.es} style={faqRow}>
+              <p style={faqQ}>{item.q[lang]}</p>
+              <p style={faqA}>{item.a[lang]}</p>
+            </div>
+          ))}
+        </section>
+
+        <FooterNav lang={lang} />
+      </div>
+    </main>
   );
 }
+
+/* ---------- footer (mirrors doc-shell.tsx's nav for cross-page consistency) ---------- */
+
+function FooterNav({ lang }: { lang: Lang }) {
+  const es = lang === "es";
+  return (
+    <>
+      <hr style={{ border: "none", borderTop: "1px solid var(--border-color)", margin: "56px 0 24px" }} />
+      <footer style={{ color: "var(--text-muted)", fontSize: 13, display: "grid", gap: 12 }}>
+        <div style={{ display: "flex", flexWrap: "wrap", gap: 14, fontFamily: FONT_MONO, fontSize: 12 }}>
+          <a href="/" style={shellLinkSty}>/</a>
+          <a href="/sociedades-ia" style={shellLinkSty}>thesis</a>
+          <a href="/rfcs/001" style={shellLinkSty}>spec</a>
+          <a href="/registro" style={shellLinkSty}>registry</a>
+          <a href="/auditor" style={shellLinkSty}>auditor</a>
+          <a href={es ? "/precios" : "/en/pricing"} style={shellLinkSty}>precios</a>
+          <a href="/legislacion" style={shellLinkSty}>legislación</a>
+          <a href="/sdk" style={shellLinkSty}>sdk</a>
+          <a href="/faq" style={shellLinkSty}>faq</a>
+          <a href="/privacy" style={shellLinkSty}>privacy</a>
+        </div>
+        <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border-color)" }}>
+          <span>
+            MIT (code) + CC-BY-4.0 (specs) ·{" "}
+            <a href="https://github.com/naza00000" style={shellLinkSty}>Nazareno Clemente</a>
+          </span>
+          <span>
+            <a href="https://github.com/ar-agents/ar-agents" style={shellLinkSty}>github.com/ar-agents</a>
+          </span>
+        </div>
+      </footer>
+    </>
+  );
+}
+
+/* ---------- styles (eve/vercel card language: weight 450 headings,
+   var(--card) surfaces, 40px pill buttons; matches page.tsx's 2026-07-13
+   redesign) ---------- */
+
+const pageWrap: React.CSSProperties = {
+  minHeight: "100vh",
+  background: "var(--bg)",
+  fontFamily: FONT_SANS,
+  color: "var(--text)",
+  padding: "56px 24px 120px",
+};
+
+const eyebrowSty: React.CSSProperties = {
+  fontSize: 12,
+  textTransform: "uppercase",
+  letterSpacing: "0.14em",
+  color: "var(--accent)",
+  margin: 0,
+  fontFamily: FONT_MONO,
+  fontWeight: 600,
+};
+
+const h1Sty: React.CSSProperties = {
+  fontSize: "clamp(34px, 5.4vw, 64px)",
+  fontWeight: 450,
+  lineHeight: 1.0,
+  letterSpacing: "-0.06em",
+  margin: "16px 0 0",
+};
+
+const subtitleSty: React.CSSProperties = {
+  color: "var(--text-body)",
+  fontSize: "clamp(16px, 2.2vw, 19px)",
+  margin: "20px 0 0",
+  lineHeight: 1.55,
+  maxWidth: 640,
+};
+
+const ctaPrimary: React.CSSProperties = {
+  height: 40,
+  padding: "0 20px",
+  background: "var(--primary-bg)",
+  color: "var(--primary-text)",
+  borderRadius: 9999,
+  fontSize: 14,
+  fontWeight: 500,
+  textDecoration: "none",
+  border: "none",
+  cursor: "pointer",
+  fontFamily: FONT_SANS,
+  display: "inline-flex",
+  alignItems: "center",
+  justifyContent: "center",
+  whiteSpace: "nowrap",
+};
+
+const sectionOuter: React.CSSProperties = {
+  marginTop: 64,
+  paddingTop: 48,
+  borderTop: "1px solid var(--border-color)",
+};
+
+const sectionHeading: React.CSSProperties = {
+  fontSize: "clamp(24px, 3.6vw, 34px)",
+  fontWeight: 450,
+  letterSpacing: "-0.04em",
+  lineHeight: 1.1,
+  margin: 0,
+};
+
+const quietExplainer: React.CSSProperties = {
+  fontSize: 16,
+  color: "var(--text-body)",
+  lineHeight: 1.6,
+  margin: "14px 0 0",
+  maxWidth: 640,
+};
+
+const tiersGrid: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "repeat(auto-fit, minmax(240px, 1fr))",
+  gap: 16,
+};
+
+const card: React.CSSProperties = {
+  background: "var(--card)",
+  border: "1px solid var(--border-color)",
+  borderRadius: 12,
+  padding: 24,
+  display: "flex",
+  flexDirection: "column",
+};
+
+const cardHeading: React.CSSProperties = {
+  fontSize: 22,
+  fontWeight: 450,
+  letterSpacing: "-0.02em",
+  color: "var(--text)",
+  margin: 0,
+};
+
+const tagSty: React.CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  color: "var(--accent-text, var(--accent))",
+  background: "var(--accent-bg)",
+  padding: "2px 8px",
+  borderRadius: 9999,
+  whiteSpace: "nowrap",
+};
+
+const priceSty: React.CSSProperties = {
+  fontSize: 15,
+  fontWeight: 500,
+  color: "var(--text-muted)",
+  margin: "10px 0 0",
+};
+
+const cardBody: React.CSSProperties = {
+  fontSize: 14,
+  color: "var(--text-body)",
+  lineHeight: 1.5,
+};
+
+const cardList: React.CSSProperties = {
+  margin: "16px 0 0",
+  padding: 0,
+  listStyle: "none",
+  display: "grid",
+  gap: 8,
+  flex: 1,
+};
+
+const cardListItem: React.CSSProperties = {
+  fontSize: 14,
+  color: "var(--text-body)",
+  lineHeight: 1.5,
+};
+
+const faqRow: React.CSSProperties = {
+  marginTop: 24,
+};
+
+const faqQ: React.CSSProperties = {
+  margin: "0 0 6px",
+  fontWeight: 600,
+  color: "var(--text)",
+  fontSize: 15,
+};
+
+const faqA: React.CSSProperties = {
+  margin: 0,
+  color: "var(--text-body)",
+  fontSize: 15,
+  lineHeight: 1.6,
+};
+
+const shellLinkSty: React.CSSProperties = {
+  color: "var(--text-muted)",
+  textDecoration: "none",
+};

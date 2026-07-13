@@ -39,19 +39,22 @@ repo). Uso interno para el prompt del coach.
 - Medir el costo real de tokens por transaccion desde el dia uno evita
   descubrir tarde que el negocio pierde plata en cada unidad que vende.
 
-## La realidad del precio 5x
+## Cost-plus vs. precio por valor
 
-- Una heuristica de partida razonable para un servicio agentico es cobrar
-  alrededor de 5 veces el costo de inferencia estimado: cubre el costo
-  directo, la variabilidad de uso real, y deja margen para infraestructura,
-  soporte y utilidad del negocio.
-- Ese multiplicador no es un techo ni un piso fijo: en mercados con
-  competencia de precio baja hacia el costo real; en mercados donde el
-  resultado vale mucho para el cliente (no el costo de producirlo) el precio
-  se ancla al valor, no al costo, y puede superar holgadamente el 5x.
-- Mostrarle al usuario el costo estimado y el precio resultante de forma
-  transparente (como hace este mismo producto en su dashboard) genera
-  confianza y es mas facil de defender que un precio opaco.
+- Cobrar un multiplo del costo de inferencia estimado es una heuristica de
+  partida valida para un servicio agentico: cubre el costo directo, la
+  variabilidad de uso real, y deja margen para infraestructura, soporte y
+  utilidad del negocio. El numero exacto es una decision de cada negocio, no
+  un valor fijo: no hay un multiplicador "correcto" universal.
+- Ese numero no es un techo ni un piso fijo: en mercados con competencia de
+  precio baja hacia el costo real; en mercados donde el resultado vale mucho
+  para el cliente (no el costo de producirlo) el precio se ancla al valor,
+  no al costo.
+- Publicar el MODELO de precio (cuando se cobra, sobre que se mide) genera
+  confianza. Publicar la MECANICA exacta (el multiplicador, la formula) no
+  es necesario para esa confianza y muchos negocios agenticos, con razon, la
+  mantienen privada: es informacion de margen, no de honestidad con el
+  cliente.
 
 ## Señales de alerta al validar una idea automatizable
 

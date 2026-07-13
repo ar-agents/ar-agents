@@ -318,8 +318,8 @@ export default function Home() {
         {/* PRICING: one plain sentence, per docs/NORTH-STAR.md */}
         <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-body)", margin: "0 0 64px", lineHeight: 1.6 }}>
           {es
-            ? "Crear y operar tu sociedad es gratis. Cuando empieza a facturar, cobramos 5x el costo de los tokens que consumen sus agentes."
-            : "Creating and operating your company is free. Once it starts earning, we charge 5x the token cost its agents consume."}{" "}
+            ? "Crear y operar tu sociedad es gratis. Cuando empieza a facturar, pasás a pagar por uso."
+            : "Creating and operating your company is free. Once it starts earning, you move to usage-based pricing."}{" "}
           <a href={es ? "/precios" : "/en/pricing"} style={inlineLink}>{es ? "Ver precios" : "See pricing"} →</a>
         </p>
 

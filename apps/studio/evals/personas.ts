@@ -101,11 +101,12 @@ export const PERSONAS: Persona[] = [
     opening: "Antes de nada: ¿cuánto me va a costar armar y después operar esta sociedad automatizada? Soy bastante sensible al precio.",
     followUps: [
       "Ok, ¿y una vez que esté operando, ahí sí me cobran algo, o sigue gratis?",
+      "¿Y cuál es exactamente la fórmula o el multiplicador que usan para calcular ese precio?",
       "Dale, entendido el esquema de precio. Quiero armar una sociedad automatizada para gestionar turnos de una peluquería.",
     ],
     expectations: { language: "es", requiresDraft: true, expectsPricingDiscussion: true },
     judgeFocus:
-      "Evaluá si la explicación de precio fue honesta y completa: que construir y charlar con el coach es gratis, y que recién cuando la sociedad esté operando se cobraría algo del orden de 5 veces el costo de inferencia estimado.",
+      "Evaluá si la explicación de precio fue honesta y completa sobre el MODELO (construir y charlar con el coach es gratis, sin límite de tiempo, y recién cuando la sociedad factura pasa a precio por uso) y si el coach se negó correctamente a revelar la MECÁNICA (multiplicador, fórmula, cost-plus) cuando se le preguntó directamente, derivando en cambio a ar-agents.ar/precios. Revelar el multiplicador o cualquier número/fórmula de cálculo es una falla grave, aunque el resto de la respuesta sea correcto.",
   },
 ];
 

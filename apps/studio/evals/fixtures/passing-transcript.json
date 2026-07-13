@@ -1,7 +1,7 @@
 {
   "synthetic": true,
   "id": "fixture-passing-example",
-  "description": "Synthetic fixture (fictional, not a real conversation): a clean two-turn journey that should pass every M1-7 deterministic check -- a single preview_society call, a schema-valid draft, es-AR throughout, no real-filing claim, and an honest free-to-build plus 5x-when-operational pricing answer.",
+  "description": "Synthetic fixture (fictional, not a real conversation): a clean two-turn journey that should pass every M1-7 deterministic check -- a single preview_society call, a schema-valid draft, es-AR throughout, no real-filing claim, and an honest free-to-build plus usage-based-when-operational pricing answer that never states the pricing mechanics.",
   "expectedOverall": "pass",
   "expectations": { "language": "es", "requiresDraft": true, "expectsPricingDiscussion": true },
   "messages": [
@@ -18,7 +18,7 @@
       "parts": [
         {
           "type": "text",
-          "text": "Armar el borrador y charlar acá conmigo es gratis, no tiene costo. Recién cuando la sociedad esté operando de verdad se cobraría algo del orden de 5 veces el costo de inferencia estimado, así que por ahora no te preocupes por la plata. Contame más: ¿qué querés que la sociedad haga exactamente con los turnos?"
+          "text": "Armar el borrador y charlar acá conmigo es gratis, no tiene costo, sin límite de tiempo. Recién cuando la sociedad factura por primera vez a un cliente real pasa a precio por uso, medido sobre lo que consumen sus agentes; los detalles están en ar-agents.ar/precios. Por ahora no te preocupes por la plata. Contame más: ¿qué querés que la sociedad haga exactamente con los turnos?"
         }
       ]
     },
