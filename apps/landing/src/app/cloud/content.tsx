@@ -448,7 +448,7 @@ export function CloudContent({ lang }: { lang: Lang }) {
           lang={lang}
           es={
             <>
-              Hoy (2026-05-13) el proyecto está{" "}
+              El proyecto está{" "}
               <strong>pre-revenue</strong>: la librería está publicada, el
               ecosistema regulatorio se está armando, y la plataforma
               comercial está en diseño. El revenue llega en secuencia:
@@ -456,7 +456,7 @@ export function CloudContent({ lang }: { lang: Lang }) {
           }
           en={
             <>
-              Today (2026-05-13) the project is{" "}
+              The project is{" "}
               <strong>pre-revenue</strong>: the library is published, the
               regulatory ecosystem is forming, and the commercial platform
               is in design. Revenue arrives in sequence:
@@ -470,14 +470,16 @@ export function CloudContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>Studio</strong> sale en preview Q3 2026, una
-                vez que haya 5+ sociedades automatizadas buscando managed hosting.
+                El managed hosting sale en preview a medida que crece la
+                demanda de sociedades automatizadas que prefieren no operar
+                su propia infra.
               </>
             }
             en={
               <>
-                <strong>Studio</strong> ships in preview Q3 2026, once
-                there are 5+ automated companies seeking managed hosting.
+                Managed hosting ships in preview as demand grows from
+                automated companies that prefer not to operate their own
+                infra.
               </>
             }
           />
@@ -560,16 +562,16 @@ export function CloudContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>No hay clientes pagando todavía.</strong>{" "}
-                Studio + Government están en diseño. Bespoke recibió 0
-                cotizaciones formales al día de hoy.
+                <strong>La plataforma comercial es pre-revenue.</strong>{" "}
+                Managed hosting y Government están en diseño. Bespoke está
+                en etapa de early-adopters.
               </>
             }
             en={
               <>
-                <strong>No paying customers yet.</strong> Studio +
-                Government are in design. Bespoke received 0 formal
-                quotes to date.
+                <strong>The commercial platform is pre-revenue.</strong>{" "}
+                Managed hosting and Government are in design. Bespoke is
+                in the early-adopter stage.
               </>
             }
           />
@@ -603,8 +605,8 @@ export function CloudContent({ lang }: { lang: Lang }) {
                   Government tier depende de variables que no controlo.
                 </strong>{" "}
                 La ley puede no sancionarse, el ministerio puede tercerizar
-                a Globant, el régimen puede mutar. El modelo comercial
-                respeta esa incertidumbre.
+                la infraestructura a otro proveedor, el régimen puede
+                mutar. El modelo comercial respeta esa incertidumbre.
               </>
             }
             en={
@@ -612,9 +614,9 @@ export function CloudContent({ lang }: { lang: Lang }) {
                 <strong>
                   Government tier depends on variables I don't control.
                 </strong>{" "}
-                The law may not pass, the ministry may outsource to Globant,
-                the regime may mutate. The commercial model respects that
-                uncertainty.
+                The law may not pass, the ministry may outsource the
+                infrastructure to another provider, the regime may mutate.
+                The commercial model respects that uncertainty.
               </>
             }
           />

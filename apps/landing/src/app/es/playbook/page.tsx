@@ -273,13 +273,19 @@ export default function PlaybookEsPage() {
       <DocH2>6 · Incorporación en 10 minutos</DocH2>
       <DocP>
         Pre-launch, casi todo se puede hacer hoy como SAS estándar con
-        un agente LLM como operador. Usá el wizard en{" "}
+        un agente LLM como operador. Empezá en{" "}
+        <a href="https://studio.ar-agents.ar" style={{ color: "var(--accent)" }}>
+          studio.ar-agents.ar
+        </a>
+        , donde el coach valida el negocio y arma el borrador, o usá el
+        wizard manual en{" "}
         <a href="/incorporar" style={{ color: "var(--accent)" }}>
           /incorporar
         </a>{" "}
         para generar el repo + manifiesto de variables de entorno + Vercel
-        deploy + checklist legal. El código corre en 10 minutos; el cert
-        AFIP + la inscripción IGJ tardan 5-10 días hábiles.
+        deploy + checklist legal directamente. El código corre en 10
+        minutos; el cert AFIP + la inscripción IGJ tardan 5-10 días
+        hábiles.
       </DocP>
       <DocP>
         Cuando aterrize el régimen, la misma codebase flippea un config

@@ -264,11 +264,14 @@ export default function PlaybookPage() {
       <DocH2>6 · The 10-minute incorporation</DocH2>
       <DocP>
         Pre-launch, you can do almost everything today as a regular SAS
-        with an LLM agent operator. Use the wizard at{" "}
+        with an LLM agent operator. Start at{" "}
+        <a href="https://studio.ar-agents.ar" style={{ color: "var(--accent)" }}>studio.ar-agents.ar</a>,
+        where the coach validates the business and drafts the plan, or use
+        the manual form wizard at{" "}
         <a href="/incorporar" style={{ color: "var(--accent)" }}>/incorporar</a>{" "}
         to generate the repo + env-var manifest + Vercel deploy + legal
-        checklist. The code runs in 10 minutes; the cert + IGJ inscription
-        take 5 to 10 working days.
+        checklist directly. The code runs in 10 minutes; the cert + IGJ
+        inscription take 5 to 10 working days.
       </DocP>
       <DocP>
         When the regime lands, the same code-base flips one config flag

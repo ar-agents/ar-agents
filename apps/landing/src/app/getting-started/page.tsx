@@ -4,7 +4,7 @@ import { DocBlock, DocCode, DocH2, DocP, DocShell } from "../doc-shell";
 export const metadata: Metadata = {
   title: "/getting-started · 5 minutes from zero to operating",
   description:
-    "Three onboarding paths for ar-agents: try-without-installing (30s), human wizard for full incorporation (~10 min), TypeScript SDK for programmatic agents. Pick one.",
+    "Four onboarding paths for ar-agents: Studio (the coach, recommended), try-without-installing (30s), human wizard for full incorporation (~10 min), TypeScript SDK for programmatic agents. Pick one.",
   alternates: { canonical: "https://ar-agents.ar/getting-started" },
 };
 
@@ -12,7 +12,34 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const SHADOW_CARD =
   "rgba(0,0,0,0.08) 0px 0px 0px 1px, rgba(0,0,0,0.04) 0px 2px 2px";
 
+const STUDIO_URL = "https://studio.ar-agents.ar";
+
 const PATHS = [
+  {
+    id: "studio",
+    label: "Empezá con el coach (Studio)",
+    time: "2-5 minutos",
+    audience: "cualquier founder",
+    color: "#0891b2",
+    bg: "#ecfeff",
+    description:
+      "El camino recomendado: contale tu idea al coach, valida el negocio y te deja constituyendo con un click. Es la puerta de entrada del producto hoy.",
+    steps: [
+      {
+        title: "Abrir Studio",
+        body: "El coach te hace preguntas cortas, sin vueltas, y valida el negocio antes de construir nada.",
+        link: STUDIO_URL,
+      },
+      {
+        title: "Ajustar el borrador",
+        body: "Denominación, objeto, capital y capacidades. Lo cambiás conversando, no llenando un form.",
+      },
+      {
+        title: "Constituir y deployar",
+        body: "Un botón, tu firma como administrador. El estudio crea el proyecto, lo deploya y deja el agente corriendo.",
+      },
+    ],
+  },
   {
     id: "try",
     label: "Try without installing",
@@ -107,19 +134,19 @@ export default function GettingStartedPage() {
   return (
     <DocShell
       eyebrow="getting-started · pick one"
-      title="Tres caminos para empezar"
-      subtitle="Cada path está optimizado para una audiencia diferente. Si dudás, empezá por /play (30 segundos, sin setup, sin compromiso). Si ya querés ir a producción, /incorporar es el wizard humano. Si sos un agente, andá directo al SDK."
+      title="Cuatro caminos para empezar"
+      subtitle="Si dudás, empezá por Studio: el coach valida tu idea y te deja constituyendo con un click. Para ver una sociedad operando sin comprometerte, abrí /play. Si sos un agente externo, andá directo al SDK."
     >
       <DocBlock>
         <DocP>
-          Las 3 paths comparten backend: el mismo{" "}
+          Los 4 paths comparten backend: el mismo{" "}
           <DocCode>/api/auto-incorporate</DocCode>, el mismo audit log con
           HMAC, el mismo template{" "}
           <DocCode>apps/sociedad-ia-starter</DocCode>. Lo que cambia es el
-          surface por el cual entrás. Podés combinarlas, empezar con{" "}
-          <DocCode>/play</DocCode>, ir a <DocCode>/incorporar</DocCode>{" "}
-          cuando sepas qué configurar, terminar usando el SDK para
-          orchestration recurrente.
+          surface por el cual entrás. Studio es la puerta de entrada
+          recomendada; <DocCode>/play</DocCode> y <DocCode>/incorporar</DocCode>{" "}
+          siguen disponibles para probar sin instalar o para armar el kit a
+          mano, y el SDK sirve para orchestration programática.
         </DocP>
       </DocBlock>
 
@@ -315,7 +342,7 @@ export default function GettingStartedPage() {
         <a href="/faq" style={{ color: "var(--accent)" }}>
           /faq
         </a>{" "}
-        cubre 21 preguntas across 5 audiencias. Si no aparece la tuya,
+        cubre 19 preguntas across 5 audiencias. Si no aparece la tuya,
         abrí un{" "}
         <a
           href="https://github.com/ar-agents/ar-agents/issues/new?labels=question&template=question.md"

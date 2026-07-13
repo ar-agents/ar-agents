@@ -478,7 +478,7 @@ const PIEZAS: ReadonlyArray<Pieza> = [
   { n: 9, pasoEs: "Facturación electrónica", pasoEn: "Electronic invoicing", requiereEs: "AFIP WSFE", requiereEn: "AFIP WSFE", cobertura: "@ar-agents/facturacion", status: "ready" },
   { n: 10, pasoEs: "Cobro suscripciones", pasoEn: "Subscription billing", requiereEs: "MP Subscriptions", requiereEn: "MP Subscriptions", cobertura: "@ar-agents/mercadopago", status: "ready" },
   { n: 11, pasoEs: "Atención al cliente", pasoEn: "Customer service", requiereEs: "WhatsApp Business", requiereEn: "WhatsApp Business", cobertura: "@ar-agents/whatsapp", status: "ready" },
-  { n: 12, pasoEs: "Verificación KYC contraparte", pasoEn: "Counterparty KYC", requiereEs: "RENAPER + bypass", requiereEn: "RENAPER + bypass", cobertura: "@ar-agents/identity-attest", status: "ready" },
+  { n: 12, pasoEs: "Verificación KYC contraparte", pasoEn: "Counterparty KYC", requiereEs: "Verificación alternativa (WhatsApp/email/Auth0)", requiereEn: "Alternative verification (WhatsApp/email/Auth0)", cobertura: "@ar-agents/identity-attest", status: "ready" },
   { n: 13, pasoEs: "Riesgo crediticio terceros", pasoEn: "Third-party credit risk", requiereEs: "BCRA Central de Deudores", requiereEn: "BCRA Central de Deudores", cobertura: "@ar-agents/banking", status: "ready" },
   { n: 14, pasoEs: "Logística", pasoEn: "Logistics", requiereEs: "Andreani / OCA / Correo", requiereEn: "Andreani / OCA / Correo", cobertura: "@ar-agents/shipping", status: "ready" },
   { n: 15, pasoEs: "Notificaciones legales", pasoEn: "Legal notifications", requiereEs: "Boletín Oficial monitoring", requiereEn: "Official Gazette monitoring", cobertura: "@ar-agents/boletin-oficial", status: "ready" },

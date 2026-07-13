@@ -36,6 +36,14 @@ const SECTIONS: Section[] = [
       "Live UIs anyone can hit zero-setup to see the toolkit operating.",
     entries: [
       {
+        url: "https://studio.ar-agents.ar",
+        label: "studio.ar-agents.ar",
+        tone: "primary",
+        external: true,
+        description:
+          "The product's front door. A coach validates the business, drafts the plan, and incorporates with one click, no console required.",
+      },
+      {
         url: "/play",
         label: "/play",
         tone: "primary",
@@ -59,9 +67,8 @@ const SECTIONS: Section[] = [
       {
         url: "/incorporar",
         label: "/incorporar",
-        tone: "primary",
         description:
-          "Human wizard. Generates package.json + agent.ts + .env.example + README.md + Vercel one-click deploy URL + audit-log reference. Live IGJ pre-flight validation.",
+          "Human form wizard, the manual alternative to Studio. Generates package.json + agent.ts + .env.example + README.md + Vercel one-click deploy URL + audit-log reference. Live IGJ pre-flight validation.",
       },
       {
         url: "/status",

@@ -158,8 +158,8 @@ const eyebrow: React.CSSProperties = {
 
 const h1Sty: React.CSSProperties = {
   fontSize: "clamp(32px, 5.5vw, 46px)",
-  fontWeight: 600,
-  letterSpacing: "-0.035em",
+  fontWeight: 450,
+  letterSpacing: "-0.06em",
   lineHeight: 1.1,
   margin: "12px 0 18px",
 };

@@ -42,7 +42,8 @@ const CONTACT_BLOCK = [
   { label: "Carta abierta al Ministro", value: "ar-agents.ar/al-ministro" },
   { label: "RFC-001", value: "ar-agents.ar/rfcs/001" },
   { label: "Threat model", value: "ar-agents.ar/security" },
-  { label: "Wizard de incorporación", value: "ar-agents.ar/incorporar" },
+  { label: "Studio (crear una sociedad, coach conversacional)", value: "studio.ar-agents.ar" },
+  { label: "Wizard de incorporación (form manual)", value: "ar-agents.ar/incorporar" },
   { label: "Propuesta AAIF working group", value: "github.com/ar-agents/ar-agents/blob/main/AAIF-WORKING-GROUP-PROPOSAL.md" },
 ];
 
@@ -53,7 +54,7 @@ const NUMBERS_ES = [
   { label: "Subpaths de testing", value: "4" },
   { label: "Tests automatizados", value: "300+" },
   { label: "Provenance attestations", value: "SLSA v1, en cada release" },
-  { label: "Tiempo desde primer commit a 37 paquetes", value: "~6 meses" },
+  { label: "Tiempo desde primer commit a 39 paquetes", value: "~6 meses" },
   { label: "Costo upfront para usar", value: "USD 0" },
 ];
 
