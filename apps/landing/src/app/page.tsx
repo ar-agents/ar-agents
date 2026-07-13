@@ -2,10 +2,12 @@
 
 // Home, redesigned around the founder's formula: as simple as OpenCode, as
 // beautiful as Vercel (Geist + our light-blue accent), the copy of Cohere,
-// the professionalism of Stripe. One promise, minimal chrome, whitespace as
-// the design. Studio (studio.ar-agents.ar) is the product's front door now,
-// so the primary CTA always points there, independent of LAW_STATUS. The
-// LAW_STATUS pre/live switch still drives the honesty banner below the CTA.
+// the professionalism of Stripe, plus eve's "giant statement" and command-pill
+// patterns. One promise, minimal chrome, whitespace as the design. Studio
+// (studio.ar-agents.ar) is the product's front door now, so the primary CTA
+// always points there, independent of LAW_STATUS. The LAW_STATUS pre/live
+// switch still drives the honesty status line, now inside the "La ley"
+// section (declutter pass, 2026-07-13) instead of under the hero CTA.
 
 import { useState } from "react";
 import { HeroDiagram } from "./hero-diagram";
@@ -56,32 +58,38 @@ const RAILS: ReadonlyArray<Rail> = [
   { t_es: "MCP", t_en: "MCP", d_es: "Un server para Claude, Cursor y más.", d_en: "One server for Claude, Cursor and more." },
 ];
 
-type Cmd = { label_es: string; label_en: string; cmd: string };
+// Every command here is verified working (see report). `hl` is the substring
+// rendered in accent color inside the pill (xAI/eve pill anatomy: one tinted
+// segment, everything else neutral mono).
+type Cmd = { cmd: string; hl: string };
 
-// Every command here is verified working (see report), the container is the
-// OpenCode-style "copy-paste to start" block: real, not aspirational.
 const COMMANDS: ReadonlyArray<Cmd> = [
   {
-    label_es: "Instalá el toolkit",
-    label_en: "Install the toolkit",
     cmd: "npm i @ar-agents/mercadopago",
+    hl: "@ar-agents/mercadopago",
   },
   {
-    label_es: "Conectá el MCP remoto",
-    label_en: "Connect the remote MCP",
     cmd: "claude mcp add --transport http ar-agents https://ar-agents.ar/api/mcp",
+    hl: "https://ar-agents.ar/api/mcp",
   },
   {
-    label_es: "Cloná el starter",
-    label_en: "Clone the starter",
     cmd: "npx degit ar-agents/ar-agents/apps/sociedad-ia-starter mi-sociedad",
+    hl: "ar-agents/ar-agents/apps/sociedad-ia-starter",
   },
   {
-    label_es: "Consultá el registro público",
-    label_en: "Query the public registry",
     cmd: "curl https://ar-agents.ar/api/registry",
+    hl: "https://ar-agents.ar/api/registry",
   },
 ];
+
+// Hero inline pill (eve pattern): the one command short enough to sit beside
+// the CTA button on one line inside the 800px column. The MCP one-liner and
+// the degit command are too long; the npm install is the dev on-ramp that fits.
+const HERO_COMMAND = COMMANDS[0];
+
+// The hero already shows COMMANDS[0]; the install stack skips it so the same
+// pill never renders twice on one screen.
+const STACK_COMMANDS = COMMANDS.slice(1);
 
 export default function Home() {
   const { lang } = useLang();
@@ -103,7 +111,11 @@ export default function Home() {
         {/* HERO: single column, LEFT-aligned (founder call 2026-07-13), headline does the
             work, whitespace over decoration. The first h1 line must stay ONE line on
             desktop (earlier founder call): size capped so "Creá tu sociedad
-            automatizada." fits the container without wrapping. */}
+            automatizada." fits the container without wrapping. Declutter pass
+            (2026-07-13): after the subtitle, ONLY the CTA row stays -- law banner,
+            docs link, law note and proof strip moved to the "La ley" section and
+            footer respectively (see below). Order stays eyebrow -> H1 -> subtitle ->
+            CTA row per the founder's explicit call, NOT eve's headline-first order. */}
         <header style={{ marginBottom: 72, paddingTop: 24 }}>
           <p style={eyebrow}>
             {es ? "Sociedades automatizadas · Argentina" : "Automated companies · Argentina"}
@@ -136,35 +148,19 @@ export default function Home() {
               : "An automated company runs on AI agents, not employees. It charges, invoices and pays in pesos, and leaves signed proof of every decision."}
           </p>
 
-          {law.banner ? (
-            <div style={{ display: "flex" }}>
-              <div style={lawBanner} role="status">
-                <span aria-hidden="true" style={lawDot} />
-                {law.banner}
-              </div>
-            </div>
-          ) : null}
-
-          <div style={{ marginTop: 24, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
+          {/* CTA row, eve pattern: primary button + ONE inline command pill (the
+              dev on-ramp), one flex row, wraps on narrow screens. */}
+          <div style={{ marginTop: 28, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
             <a href={STUDIO_URL} style={ctaPrimary}>
-              {es ? "Ir a studio" : "Go to studio"}
+              {es ? "Crear mi empresa" : "Create my company"}
             </a>
-            <a href="/sdk" style={{ ...inlineLink, fontSize: 14 }}>
-              {es ? "¿Sos developer? Ver la documentación" : "Developer? Read the docs"} →
-            </a>
-          </div>
-          <p style={{ color: "var(--text-muted)", fontSize: 13, margin: "12px 0 0" }}>{law.note}</p>
-
-          <div style={{ ...proofStrip, marginTop: 26 }}>
-            <span>Open source · MIT</span>
-            <span aria-hidden="true">·</span>
-            <span>37 {es ? "paquetes en npm" : "npm packages"}</span>
-            <span aria-hidden="true">·</span>
-            <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
+            <div style={{ flex: "1 1 300px", maxWidth: 380 }}>
+              <CommandPill cmd={HERO_COMMAND.cmd} hl={HERO_COMMAND.hl} es={es} size="sm" />
+            </div>
           </div>
         </header>
 
-        {/* START NOW: OpenCode-style copy-paste command container */}
+        {/* START NOW: xAI/eve-style command pill stack, all 4 verified commands */}
         <Section
           eyebrow={es ? "Instalación" : "Install"}
           title={es ? "Empezá ahora" : "Start now"}
@@ -181,8 +177,8 @@ export default function Home() {
           <div style={grid(248)}>
             {STEPS.map((s) => (
               <div key={s.n} style={card}>
-                <div style={{ fontFamily: FONT_MONO, fontSize: 12, color: "var(--accent)", marginBottom: 10, fontWeight: 600 }}>
-                  {s.n}
+                <div style={{ ...cardEyebrow, marginBottom: 10 }}>
+                  {es ? "Paso" : "Step"} {s.n}
                 </div>
                 <h3 style={cardTitle}>{es ? s.t_es : s.t_en}</h3>
                 <p style={cardBody}>{es ? s.d_es : s.d_en}</p>
@@ -194,14 +190,27 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* PROOF: the real journey, facts not hype */}
-        <Section
-          eyebrow={es ? "La prueba" : "The proof"}
-          title={es ? "La primera sociedad operada por agentes ya existe" : "The first agent-operated company already exists"}
-        >
+        {/* PROOF: eve's "giant statement + quiet explainer" pattern applied once
+            here, the founder's explicit call ("born for this"). The claim is
+            large, tight-tracked, alone; the explainer is small and plain; the
+            factual specifics stay in the card below, unchanged in substance. */}
+        <section style={sectionOuter}>
+          <p style={eyebrowSty}>{es ? "La prueba" : "The proof"}</p>
+          <h2 style={giantStatement}>
+            {es
+              ? "La primera sociedad operada por agentes ya existe."
+              : "The first agent-operated company already exists."}
+          </h2>
+          <p style={quietExplainer}>
+            {es
+              ? "Cada decisión queda firmada y verificable, no es una promesa."
+              : "Every decision is signed and verifiable, not a promise."}
+          </p>
+
           <div style={proofPanel}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
               <div>
+                <div style={{ ...cardEyebrow, marginBottom: 8 }}>{es ? "Sociedad activa" : "Active company"}</div>
                 <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text)" }}>
                   AR Agents Operaciones Sociedad Automatizada
                 </div>
@@ -228,7 +237,7 @@ export default function Home() {
               cta={es ? "Ver el caso" : "See the case"}
             />
           </div>
-        </Section>
+        </section>
 
         {/* THE RAILS */}
         <Section
@@ -255,11 +264,19 @@ export default function Home() {
           </div>
         </Section>
 
-        {/* THE LAW */}
+        {/* THE LAW: the honesty banner + note relocated here from the hero
+            (declutter pass, 2026-07-13), still driven by homeLawCopy()/LAW_STATUS
+            -- the drift-guard test only checks the pure functions + that page.tsx
+            branches on them, not placement. */}
         <Section
           eyebrow={es ? "La ley" : "The law"}
           title={es ? "Por qué ahora" : "Why now"}
         >
+          <div style={lawStatusLine} role="status">
+            {law.banner ? <span aria-hidden="true" style={lawDot} /> : null}
+            <span style={{ color: "var(--text)" }}>{law.banner ?? law.note}</span>
+            {law.banner ? <span style={{ color: "var(--text-muted)" }}> · {law.note}</span> : null}
+          </div>
           <p style={{ ...cardBody, maxWidth: 680 }}>
             {es
               ? "El anteproyecto de Ley General de Sociedades habilita las sociedades operadas por IA. Está en el Senado. ar-agents es la infraestructura técnica para cuando sea ley, escrita en RFCs abiertos."
@@ -286,25 +303,55 @@ export default function Home() {
   );
 }
 
-/* ---------- command block ---------- */
+/* ---------- command pills (xAI / eve pill anatomy) ---------- */
+// $ muted prefix, mono command, ONE accent-tinted segment, icon-only copy
+// button at the right edge, rounded-full, subtle 1px border, slightly raised
+// surface. Used both for the install-section stack and the single hero pill.
 
 function CommandBlock({ es }: { es: boolean }) {
   return (
-    <div style={commandContainer}>
-      {COMMANDS.map((c, i) => (
-        <div key={c.cmd} style={{ ...commandRow, borderTop: i === 0 ? "none" : "1px solid var(--border-color)" }}>
-          <div style={commandLabel}>{es ? c.label_es : c.label_en}</div>
-          <div style={commandLine}>
-            <code style={commandCode}>{c.cmd}</code>
-            <CopyButton text={c.cmd} es={es} />
-          </div>
-        </div>
-      ))}
+    <div>
+      <div style={commandStack}>
+        {STACK_COMMANDS.map((c) => (
+          <CommandPill key={c.cmd} cmd={c.cmd} hl={c.hl} es={es} />
+        ))}
+      </div>
+      <p style={commandCaption}>
+        {es ? "Copialo y pegalo en tu terminal" : "Copy and paste into your terminal"}
+      </p>
     </div>
   );
 }
 
-function CopyButton({ text, es }: { text: string; es: boolean }) {
+function CommandPill({
+  cmd,
+  hl,
+  es,
+  size = "md",
+}: {
+  cmd: string;
+  hl: string;
+  es: boolean;
+  size?: "sm" | "md";
+}) {
+  const idx = cmd.indexOf(hl);
+  const pre = idx >= 0 ? cmd.slice(0, idx) : cmd;
+  const mid = idx >= 0 ? hl : "";
+  const post = idx >= 0 ? cmd.slice(idx + hl.length) : "";
+  return (
+    <div style={{ ...commandPill, padding: size === "sm" ? "10px 16px" : "16px 22px" }}>
+      <span aria-hidden="true" style={commandPrompt}>$</span>
+      <code style={{ ...commandCode, fontSize: size === "sm" ? 14 : 15 }}>
+        {pre}
+        <span style={{ color: "var(--accent)" }}>{mid}</span>
+        {post}
+      </code>
+      <CopyIconButton text={cmd} es={es} />
+    </div>
+  );
+}
+
+function CopyIconButton({ text, es }: { text: string; es: boolean }) {
   const [copied, setCopied] = useState(false);
   return (
     <button
@@ -320,20 +367,30 @@ function CopyButton({ text, es }: { text: string; es: boolean }) {
       }}
       style={{
         flexShrink: 0,
-        padding: "4px 10px",
-        fontSize: 11,
-        fontFamily: FONT_MONO,
-        background: copied ? "var(--success-bg)" : "var(--bg)",
-        color: copied ? "var(--success)" : "var(--text-body)",
+        width: 30,
+        height: 30,
+        display: "inline-flex",
+        alignItems: "center",
+        justifyContent: "center",
+        background: "transparent",
+        color: copied ? "var(--accent)" : "var(--text-muted)",
         border: "none",
-        borderRadius: 4,
+        borderRadius: 8,
         cursor: "pointer",
-        boxShadow: "var(--shadow-ring-light)",
-        transition: "background 120ms ease-out, color 120ms ease-out",
+        transition: "color 120ms ease-out",
       }}
       aria-label={es ? "Copiar comando" : "Copy command"}
     >
-      {copied ? (es ? "copiado ✓" : "copied ✓") : es ? "copiar" : "copy"}
+      {copied ? (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <path d="M20 6 9 17l-5-5" />
+        </svg>
+      ) : (
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="13" height="13" rx="2" />
+          <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
+        </svg>
+      )}
     </button>
   );
 }
@@ -352,7 +409,7 @@ function Section({
   children: React.ReactNode;
 }) {
   return (
-    <section id={id} style={{ marginBottom: 80, paddingTop: 32, borderTop: "1px solid var(--border-color)" }}>
+    <section id={id} style={sectionOuter}>
       <p style={eyebrowSty}>{eyebrow}</p>
       <h2 style={h2Sty}>{title}</h2>
       {children}
@@ -437,6 +494,15 @@ function Footer({ es }: { es: boolean }) {
           </div>
         ))}
       </div>
+      {/* Relocated from the hero's old proof strip (declutter pass, 2026-07-13):
+          same facts, quieter home. */}
+      <div style={proofStrip}>
+        <span>Open source · MIT</span>
+        <span aria-hidden="true">·</span>
+        <span>37 {es ? "paquetes en npm" : "npm packages"}</span>
+        <span aria-hidden="true">·</span>
+        <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
+      </div>
       <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>
         <span>MIT (code) + CC-BY-4.0 (specs) · <a href="https://github.com/naza00000" style={{ color: "var(--text-body)", textDecoration: "underline" }}>Nazareno Clemente</a></span>
         <span style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
@@ -460,14 +526,23 @@ const eyebrow: React.CSSProperties = {
   fontWeight: 500,
 };
 
+// Mono uppercase micro-label: the one eyebrow style used for both section
+// headers and card eyebrows (STEPS "Paso NN", proof panel "Sociedad activa"),
+// so the "card language" reads as one system (founder call, Vercel-grade
+// containers pass, 2026-07-13).
 const eyebrowSty: React.CSSProperties = {
   fontSize: 11,
   fontFamily: FONT_MONO,
   textTransform: "uppercase",
-  letterSpacing: "0.1em",
+  letterSpacing: "0.08em",
   color: "var(--text-muted)",
   margin: "0 0 12px",
   fontWeight: 600,
+};
+
+const cardEyebrow: React.CSSProperties = {
+  ...eyebrowSty,
+  margin: 0,
 };
 
 const h2Sty: React.CSSProperties = {
@@ -479,11 +554,20 @@ const h2Sty: React.CSSProperties = {
   maxWidth: 760,
 };
 
+// The shared section wrapper rhythm, also used by the bespoke PROOF section
+// below so its spacing matches every Section()-wrapped block.
+const sectionOuter: React.CSSProperties = {
+  marginBottom: 80,
+  paddingTop: 32,
+  borderTop: "1px solid var(--border-color)",
+};
+
+// Vercel-grade container: 1px border, one step above the page bg, no shadow.
 const card: React.CSSProperties = {
-  background: "var(--bg-tint)",
+  background: "var(--card)",
+  border: "1px solid var(--border-color)",
   borderRadius: 12,
-  padding: 24,
-  boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
+  padding: 26,
 };
 
 const cardTitle: React.CSSProperties = {
@@ -522,6 +606,8 @@ const ctaPrimary: React.CSSProperties = {
   alignItems: "center",
 };
 
+// Relocated proof-strip facts, now a quiet footer line (was the hero's
+// bottom-most element before the declutter pass).
 const proofStrip: React.CSSProperties = {
   display: "flex",
   flexWrap: "wrap",
@@ -531,11 +617,12 @@ const proofStrip: React.CSSProperties = {
   color: "var(--text-muted)",
 };
 
+// Same Vercel-grade container language as `card`.
 const proofPanel: React.CSSProperties = {
-  background: "var(--bg-tint)",
+  background: "var(--card)",
+  border: "1px solid var(--border-color)",
   borderRadius: 12,
-  padding: 24,
-  boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
+  padding: 26,
 };
 
 const societyBadge: React.CSSProperties = {
@@ -548,55 +635,77 @@ const societyBadge: React.CSSProperties = {
   whiteSpace: "nowrap",
 };
 
-const commandContainer: React.CSSProperties = {
-  background: "var(--bg-tint)",
-  borderRadius: 12,
-  boxShadow: "var(--card-shadow, var(--shadow-ring-light))",
-  overflow: "hidden",
+// eve's "giant statement + quiet explainer": one big, tight-tracked claim,
+// used once (the PROOF section, per the founder's explicit call).
+const giantStatement: React.CSSProperties = {
+  fontSize: "clamp(32px, 6vw, 48px)",
+  fontWeight: 600,
+  letterSpacing: "var(--tracking-display)",
+  lineHeight: 1.08,
+  margin: "0 0 18px",
+  maxWidth: 680,
 };
 
-const commandRow: React.CSSProperties = {
-  padding: "16px 20px",
+const quietExplainer: React.CSSProperties = {
+  fontSize: 16,
+  color: "var(--text-body)",
+  lineHeight: 1.6,
+  margin: "0 0 28px",
+  maxWidth: 520,
+};
+
+/* Command pills: xAI-style / eve-style. Fully rounded, subtle 1px border,
+   a surface one step above the page bg, generous padding, no shadow. */
+
+const commandStack: React.CSSProperties = {
   display: "flex",
   flexDirection: "column",
-  gap: 8,
+  gap: 12,
 };
 
-const commandLabel: React.CSSProperties = {
-  fontSize: 12,
-  color: "var(--text-muted)",
-  fontFamily: FONT_SANS,
-};
-
-const commandLine: React.CSSProperties = {
+const commandPill: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
-  justifyContent: "space-between",
-  gap: 12,
+  gap: 14,
+  background: "var(--card)",
+  border: "1px solid var(--border-color)",
+  borderRadius: 9999,
+};
+
+const commandPrompt: React.CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 15,
+  color: "var(--text-muted)",
+  flexShrink: 0,
+  userSelect: "none",
 };
 
 const commandCode: React.CSSProperties = {
   fontFamily: FONT_MONO,
-  fontSize: 13,
+  fontSize: 15,
   color: "var(--text)",
   overflowX: "auto",
   whiteSpace: "pre",
   flex: 1,
+  lineHeight: 1.4,
 };
 
-const lawBanner: React.CSSProperties = {
-  marginTop: 22,
-  display: "inline-flex",
-  alignItems: "center",
-  gap: 10,
-  padding: "9px 14px",
-  background: "var(--warning-bg, var(--bg-tint))",
-  color: "var(--text-body)",
-  borderRadius: 8,
+const commandCaption: React.CSSProperties = {
   fontSize: 13,
-  lineHeight: 1.45,
-  maxWidth: 560,
-  boxShadow: "var(--shadow-border)",
+  color: "var(--text-muted)",
+  margin: "14px 0 0",
+};
+
+// The relocated honesty banner + note (was under the hero CTA), now a slim
+// status line inside the "La ley" section.
+const lawStatusLine: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  flexWrap: "wrap",
+  gap: 8,
+  fontSize: 13,
+  lineHeight: 1.5,
+  marginBottom: 20,
 };
 
 const lawDot: React.CSSProperties = {

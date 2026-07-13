@@ -41,6 +41,10 @@ html[data-theme="dark"] {
 
   --bg: #0a0a0a;
   --bg-tint: #161616;
+  /* Vercel-grade container surface: one step above --bg. Cards/pills use
+     this + a 1px var(--border-color) border instead of the old shadow-ring
+     hack (design-polish pass, 2026-07-13). */
+  --card: #161616;
   --text: #ededed;
   --text-body: #a1a1a1;
   --text-muted: #8a8a8a;
@@ -72,6 +76,7 @@ html[data-theme="light"] {
 
   --bg: #ffffff;
   --bg-tint: #fafafa;
+  --card: #fafafa;
   --text: #171717;
   --text-body: #4d4d4d;
   --text-muted: #666666;
