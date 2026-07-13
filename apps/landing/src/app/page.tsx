@@ -1,16 +1,15 @@
 "use client";
 
-// Home, redesigned around the founder's formula: as simple as OpenCode, as
-// beautiful as Vercel (Geist + our light-blue accent), the copy of Cohere,
-// the professionalism of Stripe, plus eve's "giant statement" and command-pill
-// patterns. One promise, minimal chrome, whitespace as the design. Studio
-// (studio.ar-agents.ar) is the product's front door now, so the primary CTA
+// Home, rebuilt on the vercel.com/eve anatomy (founder's explicit call,
+// 2026-07-13: "completely overhauling including copy changes"). Giant-but-light
+// headlines (weight 450, tight tracking), a 40px command pill, numbered
+// inventories, stack-table rows and a 96px finale. Copy voice: short
+// declaratives, zero hype, es-AR voseo, no em dashes. Studio
+// (studio.ar-agents.ar) is the product's front door, so the primary CTA
 // always points there, independent of LAW_STATUS. The LAW_STATUS pre/live
-// switch still drives the honesty status line, now inside the "La ley"
-// section (declutter pass, 2026-07-13) instead of under the hero CTA.
+// switch drives a single slim status line under the finale button.
 
 import { useState } from "react";
-import { HeroDiagram } from "./hero-diagram";
 import { useLang } from "./i18n";
 import { HomeJsonLd } from "./json-ld";
 import { homeLawCopy, LAW_STATUS } from "./law-status";
@@ -21,75 +20,176 @@ const FONT_MONO = "var(--font-geist-mono), ui-monospace, monospace";
 const STUDIO_URL = "https://studio.ar-agents.ar";
 const SOCIETY_URL = "https://soc-ar-agents-operaciones-sociedad.vercel.app";
 
-type Step = { n: string; t_es: string; t_en: string; d_es: string; d_en: string };
+// The one command that fits beside the CTA button in a compact 40px pill
+// (eve pattern: one command, not a stack). Verified working.
+const HERO_COMMAND = { cmd: "npm i @ar-agents/mercadopago", hl: "@ar-agents/mercadopago" };
 
-const STEPS: ReadonlyArray<Step> = [
+// ---------------------------------------------------------------------------
+// Section 1 (pattern A): numbered inventory. `tag` is an optional small
+// "leverages" chip; left untranslated since it names a proper noun (studio,
+// art. 102, Vercel, Mercado Pago) that reads the same in both languages.
+// ---------------------------------------------------------------------------
+type InventoryItem = {
+  n: string;
+  t_es: string;
+  t_en: string;
+  d_es: string;
+  d_en: string;
+  tag?: string;
+};
+
+const INVENTORY: ReadonlyArray<InventoryItem> = [
   {
     n: "01",
-    t_es: "Creá",
-    t_en: "Create",
-    d_es: "Generá la sociedad desde un prompt: repo, configuración, checklist legal y deploy.",
-    d_en: "Generate the company from a prompt: repo, config, legal checklist and deploy.",
+    t_es: "Contá tu idea",
+    t_en: "Tell your idea",
+    d_es: "El coach valida el negocio antes de construir nada. Preguntas cortas, sin vueltas.",
+    d_en: "The coach validates the business before building anything. Short questions, no runaround.",
+    tag: "studio",
   },
   {
     n: "02",
-    t_es: "Operá",
-    t_en: "Operate",
-    d_es: "Corre sobre los rieles abiertos: pagos, identidad, facturación, banca y pesos en tu cuenta.",
-    d_en: "It runs on the open rails: payments, identity, invoicing, banking, and pesos in your account.",
+    t_es: "Mirá el borrador",
+    t_en: "See the draft",
+    d_es: "Denominación, objeto, capital y capacidades. Lo ajustás conversando.",
+    d_en: "Name, purpose, capital, and capabilities. You adjust it by talking.",
   },
   {
     n: "03",
-    t_es: "Probá",
-    t_en: "Prove",
-    d_es: "El Auditor firma cada decisión (HMAC + Ed25519). Cualquiera la verifica. Es tu defensa ante el art. 102.",
-    d_en: "El Auditor signs every decision (HMAC + Ed25519). Anyone can verify it. It is your art. 102 defense.",
+    t_es: "Constituí vos",
+    t_en: "You incorporate",
+    d_es: "La constitución es tuya: un botón, tu firma como administrador. El agente no puede apretarlo.",
+    d_en: "The incorporation is yours: one button, your signature as administrator. The agent can't press it.",
+    tag: "art. 102",
+  },
+  {
+    n: "04",
+    t_es: "Deploy con un click",
+    t_en: "Deploy in one click",
+    d_es: "El estudio crea el proyecto, configura todo y deja el agente corriendo. Sin tocar una consola.",
+    d_en: "The studio creates the project, configures everything, and leaves the agent running. No console required.",
+    tag: "Vercel",
+  },
+  {
+    n: "05",
+    t_es: "Conectá credenciales",
+    t_en: "Connect credentials",
+    d_es: "Mercado Pago, AFIP, WhatsApp. Las cargás en el panel, se validan solas.",
+    d_en: "Mercado Pago, AFIP, WhatsApp. You add them in the panel, they validate themselves.",
+  },
+  {
+    n: "06",
+    t_es: "Operá desde el cockpit",
+    t_en: "Run it from the cockpit",
+    d_es: "Deploy, aprobaciones, kill switch y cada acción del agente, en una pantalla.",
+    d_en: "Deploy, approvals, kill switch, and every agent action, on one screen.",
+  },
+  {
+    n: "07",
+    t_es: "Cobrá y facturá",
+    t_en: "Charge and invoice",
+    d_es: "Pagos, factura electrónica y pesos en tu cuenta. Sobre rieles abiertos.",
+    d_en: "Payments, electronic invoicing, and pesos in your account. On open rails.",
+    tag: "Mercado Pago, AFIP",
   },
 ];
 
-type Rail = { t_es: string; t_en: string; d_es: string; d_en: string };
+// ---------------------------------------------------------------------------
+// Section 2 (pattern B): stack-table rows, term + one-line description.
+// ---------------------------------------------------------------------------
+type StackRow = { term_es: string; term_en: string; desc_es: string; desc_en: string };
 
-const RAILS: ReadonlyArray<Rail> = [
-  { t_es: "Pagos", t_en: "Payments", d_es: "Mercado Pago: cobros, suscripciones, cuotas.", d_en: "Mercado Pago: charges, subscriptions, installments." },
-  { t_es: "Identidad", t_en: "Identity", d_es: "CUIT, padrón ARCA, validación.", d_en: "CUIT, ARCA padron, validation." },
-  { t_es: "Facturación", t_en: "Invoicing", d_es: "Factura electrónica AFIP/ARCA.", d_en: "AFIP/ARCA electronic invoicing." },
-  { t_es: "Banca", t_en: "Banking", d_es: "CBU/CVU y BCRA.", d_en: "CBU/CVU and BCRA." },
-  { t_es: "Off-ramp", t_en: "Off-ramp", d_es: "De stablecoin a pesos en tu cuenta.", d_en: "From stablecoin to pesos in your account." },
-  { t_es: "MCP", t_en: "MCP", d_es: "Un server para Claude, Cursor y más.", d_en: "One server for Claude, Cursor and more." },
+const STACK_ROWS: ReadonlyArray<StackRow> = [
+  { term_es: "Pagos", term_en: "Payments", desc_es: "Mercado Pago: cobros, suscripciones, cuotas.", desc_en: "Mercado Pago: charges, subscriptions, installments." },
+  { term_es: "Identidad", term_en: "Identity", desc_es: "CUIT, padrón ARCA, validación.", desc_en: "CUIT, ARCA padron, validation." },
+  { term_es: "Facturación", term_en: "Invoicing", desc_es: "Factura electrónica AFIP con CAE.", desc_en: "AFIP electronic invoicing with CAE." },
+  { term_es: "Banca", term_en: "Banking", desc_es: "CBU, CVU y BCRA.", desc_en: "CBU, CVU, and BCRA." },
+  { term_es: "Wallet", term_en: "Wallet", desc_es: "USDC con política de gasto en dos capas.", desc_en: "USDC with a two-layer spend policy." },
+  { term_es: "Off-ramp", term_en: "Off-ramp", desc_es: "De stablecoin a pesos en tu cuenta.", desc_en: "From stablecoin to pesos in your account." },
+  { term_es: "MCP", term_en: "MCP", desc_es: "Un server para Claude, Cursor y más.", desc_en: "One server for Claude, Cursor, and more." },
 ];
 
-// Every command here is verified working (see report). `hl` is the substring
-// rendered in accent color inside the pill (xAI/eve pill anatomy: one tinted
-// segment, everything else neutral mono).
-type Cmd = { cmd: string; hl: string };
+// ---------------------------------------------------------------------------
+// Section 3 (pattern C): 6-card feature grid. The last card absorbs the old
+// proof section (links to the live society + the public registry entry).
+// ---------------------------------------------------------------------------
+type FeatureCard = {
+  t_es: string;
+  t_en: string;
+  d_es: string;
+  d_en: string;
+  audit?: boolean;
+  proof?: boolean;
+};
 
-const COMMANDS: ReadonlyArray<Cmd> = [
+const FEATURE_CARDS: ReadonlyArray<FeatureCard> = [
   {
-    cmd: "npm i @ar-agents/mercadopago",
-    hl: "@ar-agents/mercadopago",
+    t_es: "Aprobaciones humanas",
+    t_en: "Human approvals",
+    d_es: "Las acciones irreversibles esperan tu OK. La sesión se pausa y retoma sola.",
+    d_en: "Irreversible actions wait for your OK. The session pauses and resumes on its own.",
   },
   {
-    cmd: "claude mcp add --transport http ar-agents https://ar-agents.ar/api/mcp",
-    hl: "https://ar-agents.ar/api/mcp",
+    t_es: "Audit log firmado",
+    t_en: "Signed audit log",
+    d_es: "Cada tool call queda firmado con HMAC. Cualquiera lo verifica.",
+    d_en: "Every tool call is signed with HMAC. Anyone can verify it.",
+    audit: true,
   },
   {
-    cmd: "npx degit ar-agents/ar-agents/apps/sociedad-ia-starter mi-sociedad",
-    hl: "ar-agents/ar-agents/apps/sociedad-ia-starter",
+    t_es: "Kill switch",
+    t_en: "Kill switch",
+    d_es: "Suspendé la sociedad con un click. Todo se detiene, nada se pierde.",
+    d_en: "Suspend the company with one click. Everything stops, nothing is lost.",
   },
   {
-    cmd: "curl https://ar-agents.ar/api/registry",
-    hl: "https://ar-agents.ar/api/registry",
+    t_es: "Política de gasto",
+    t_en: "Spend policy",
+    d_es: "La wallet rechaza sola lo que excede el límite. Dos capas independientes.",
+    d_en: "The wallet rejects on its own whatever exceeds the limit. Two independent layers.",
+  },
+  {
+    t_es: "Evals",
+    t_en: "Evals",
+    d_es: "El coach pasa sus propias evaluaciones en cada deploy.",
+    d_en: "The coach passes its own evaluations on every deploy.",
+  },
+  {
+    t_es: "Primera sociedad viva",
+    t_en: "First company alive",
+    d_es: "AR Agents Operaciones ya opera con su historia auditada.",
+    d_en: "AR Agents Operaciones already operates with its audited history.",
+    proof: true,
   },
 ];
 
-// Hero inline pill (eve pattern): the one command short enough to sit beside
-// the CTA button on one line inside the 800px column. The MCP one-liner and
-// the degit command are too long; the npm install is the dev on-ramp that fits.
-const HERO_COMMAND = COMMANDS[0];
+// Public-safe fake-but-realistic entries for the audit-log card's mini list.
+// Tool names mirror the repo's real snake_case tool naming convention
+// (registrar_decision, incorporar_sociedad); these three rows are
+// illustrative, not a live feed.
+type AuditEntry = { tool: string; status_es: string; status_en: string; kind: "success" | "info" | "accent" };
 
-// The hero already shows COMMANDS[0]; the install stack skips it so the same
-// pill never renders twice on one screen.
-const STACK_COMMANDS = COMMANDS.slice(1);
+const AUDIT_ENTRIES: ReadonlyArray<AuditEntry> = [
+  { tool: "registrar_decision", status_es: "firmada", status_en: "signed", kind: "success" },
+  { tool: "wallet_check_balance", status_es: "leída", status_en: "read", kind: "info" },
+  { tool: "solicitar_cae", status_es: "aprobada", status_en: "approved", kind: "accent" },
+];
+
+// ---------------------------------------------------------------------------
+// Hero file-tree visual: illustrative directory for a generic sociedad
+// (estatuto = the real legal term used in the AR Agents Operaciones filing
+// pack; agente.ts / herramientas/ mirror the real eve agent-directory shape
+// used by apps/incorporate-agent, translated to the domain's own words).
+// ---------------------------------------------------------------------------
+type TreeRow = { depth: number; kind: "folder" | "file"; label: string };
+
+const FILE_TREE: ReadonlyArray<TreeRow> = [
+  { depth: 0, kind: "folder", label: "sociedad/" },
+  { depth: 1, kind: "file", label: "estatuto.md" },
+  { depth: 1, kind: "file", label: "agente.ts" },
+  { depth: 1, kind: "folder", label: "herramientas/" },
+  { depth: 2, kind: "file", label: "facturar.ts" },
+];
 
 export default function Home() {
   const { lang } = useLang();
@@ -104,192 +204,140 @@ export default function Home() {
         background: "var(--bg)",
         fontFamily: FONT_SANS,
         color: "var(--text)",
-        padding: "48px 24px 120px",
+        padding: "0 0 120px",
       }}
     >
-      <div style={{ maxWidth: 800, margin: "0 auto" }}>
-        {/* HERO: single column, LEFT-aligned (founder call 2026-07-13), headline does the
-            work, whitespace over decoration. The first h1 line must stay ONE line on
-            desktop (earlier founder call): size capped so "Creá tu sociedad
-            automatizada." fits the container without wrapping. Declutter pass
-            (2026-07-13): after the subtitle, ONLY the CTA row stays -- law banner,
-            docs link, law note and proof strip moved to the "La ley" section and
-            footer respectively (see below). Order stays eyebrow -> H1 -> subtitle ->
-            CTA row per the founder's explicit call, NOT eve's headline-first order. */}
-        <header style={{ marginBottom: 72, paddingTop: 24 }}>
-          <p style={eyebrow}>
-            {es ? "Sociedades automatizadas · Argentina" : "Automated companies · Argentina"}
-          </p>
-          <h1
-            style={{
-              fontSize: "clamp(30px, 5vw, 45px)",
-              margin: "16px 0 0",
-              fontWeight: 600,
-              lineHeight: 1.08,
-              letterSpacing: "-0.04em",
-            }}
-          >
-            {es ? "Creá tu sociedad automatizada." : "Create your automated company."}
-            <br />
-            <span style={{ color: "var(--accent)" }}>{es ? "Gratis." : "Free."}</span>
-          </h1>
+      {/* HERO: wide (1100px) container so the H1 gets the full line budget
+          64px/-0.06em tracking needs; the file-tree card is a fixed 320px
+          column on desktop (.home-hero, globals.css) and stacks below the
+          CTA row on mobile. Order follows the measured eve anatomy: H1 ->
+          toggle line -> CTA row -> analogy paragraph. */}
+      <div style={{ maxWidth: 1100, margin: "0 auto", padding: "56px 24px 0" }}>
+        {/* H1 spans the full hero width (own row) so "Creá tu sociedad
+            automatizada." gets the ~1050px line budget it needs to stay on
+            one line at 64px. The file-tree card sits to the right of the
+            CTA/analogy block below it (.home-hero), not beside the H1. */}
+        <h1 style={h1Sty}>
+          {es ? "Creá tu sociedad automatizada." : "Create your automated company."}
+          <br />
+          <span style={{ color: "var(--accent)" }}>{es ? "Gratis." : "Free."}</span>
+        </h1>
 
-          <p
-            style={{
-              color: "var(--text-body)",
-              fontSize: "clamp(17px, 2.2vw, 20px)",
-              margin: "24px 0 0",
-              maxWidth: 560,
-              lineHeight: 1.55,
-            }}
-          >
-            {es
-              ? "Una sociedad automatizada opera con agentes de IA, no con empleados. Cobra, factura y paga en pesos, y deja prueba firmada de cada decisión."
-              : "An automated company runs on AI agents, not employees. It charges, invoices and pays in pesos, and leaves signed proof of every decision."}
-          </p>
+        <div className="home-hero" style={{ marginTop: 20 }}>
+          <div>
+            <ToggleLine es={es} />
 
-          {/* CTA row, eve pattern: primary button + ONE inline command pill (the
-              dev on-ramp), one flex row, wraps on narrow screens. */}
-          <div style={{ marginTop: 28, display: "flex", gap: 12, flexWrap: "wrap", alignItems: "center" }}>
-            <a href={STUDIO_URL} style={ctaPrimary}>
-              {es ? "Crear mi empresa" : "Create my company"}
-            </a>
-            <div style={{ flex: "1 1 300px", maxWidth: 380 }}>
-              <CommandPill cmd={HERO_COMMAND.cmd} hl={HERO_COMMAND.hl} es={es} size="sm" />
-            </div>
-          </div>
-        </header>
-
-        {/* START NOW: xAI/eve-style command pill stack, all 4 verified commands */}
-        <Section
-          eyebrow={es ? "Instalación" : "Install"}
-          title={es ? "Empezá ahora" : "Start now"}
-        >
-          <CommandBlock es={es} />
-        </Section>
-
-        {/* HOW IT WORKS */}
-        <Section
-          id="como-funciona"
-          eyebrow={es ? "Cómo funciona" : "How it works"}
-          title={es ? "De idea a empresa en un solo prompt" : "From idea to company in one prompt"}
-        >
-          <div style={grid(248)}>
-            {STEPS.map((s) => (
-              <div key={s.n} style={card}>
-                <div style={{ ...cardEyebrow, marginBottom: 10 }}>
-                  {es ? "Paso" : "Step"} {s.n}
-                </div>
-                <h3 style={cardTitle}>{es ? s.t_es : s.t_en}</h3>
-                <p style={cardBody}>{es ? s.d_es : s.d_en}</p>
+            <div style={ctaRow}>
+              <a href={STUDIO_URL} style={ctaPrimary}>
+                {es ? "Crear mi empresa" : "Create my company"}
+              </a>
+              <div style={{ minWidth: 0 }}>
+                <CommandPill cmd={HERO_COMMAND.cmd} hl={HERO_COMMAND.hl} es={es} />
               </div>
-            ))}
-          </div>
-          <div style={{ marginTop: 40, display: "flex", justifyContent: "center" }}>
-            <HeroDiagram lang={lang} />
-          </div>
-        </Section>
+            </div>
 
-        {/* PROOF: eve's "giant statement + quiet explainer" pattern applied once
-            here, the founder's explicit call ("born for this"). The claim is
-            large, tight-tracked, alone; the explainer is small and plain; the
-            factual specifics stay in the card below, unchanged in substance. */}
-        <section style={sectionOuter}>
-          <p style={eyebrowSty}>{es ? "La prueba" : "The proof"}</p>
-          <h2 style={giantStatement}>
-            {es
-              ? "La primera sociedad operada por agentes ya existe."
-              : "The first agent-operated company already exists."}
+            <p style={analogyP}>
+              {es
+                ? "Como una empresa tradicional, pero operada por agentes. Cobra, factura y paga en pesos. Cada decisión queda firmada y es verificable."
+                : "Like a traditional company, but run by agents. It charges, invoices, and pays in pesos. Every decision is signed and verifiable."}
+            </p>
+          </div>
+
+          <FileTreeCard />
+        </div>
+      </div>
+
+      <div style={{ maxWidth: 800, margin: "0 auto", padding: "0 24px" }}>
+        {/* SECTION 1 (pattern A): giant statement + numbered inventory */}
+        <section id="conversacion" style={sectionOuter}>
+          <h2 style={sectionHeading}>
+            {es ? "Una sociedad es una conversación" : "A company is a conversation"}
           </h2>
           <p style={quietExplainer}>
             {es
-              ? "Cada decisión queda firmada y verificable, no es una promesa."
-              : "Every decision is signed and verifiable, not a promise."}
+              ? "Contale tu idea al agente. El estudio valida el negocio, arma el borrador y deja la sociedad operando. Vos apretás el único botón que importa."
+              : "Tell the agent your idea. The studio validates the business, drafts the plan, and leaves the company running. You press the only button that matters."}
           </p>
-
-          <div style={proofPanel}>
-            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 16, flexWrap: "wrap" }}>
-              <div>
-                <div style={{ ...cardEyebrow, marginBottom: 8 }}>{es ? "Sociedad activa" : "Active company"}</div>
-                <div style={{ fontSize: 18, fontWeight: 600, color: "var(--text)" }}>
-                  AR Agents Operaciones Sociedad Automatizada
-                </div>
-                <p style={{ ...cardBody, margin: "8px 0 0", maxWidth: 560 }}>
-                  {es
-                    ? "Constituida desde ar-agents studio, sin datos de prueba. Está listada en el registro público de sociedades automatizadas."
-                    : "Incorporated from ar-agents studio, no test data. Listed in the public registry of automated companies."}
-                </p>
-              </div>
-              <span style={societyBadge}>{es ? "en formación" : "forming"}</span>
-            </div>
-            <div style={{ marginTop: 18, display: "flex", gap: 16, flexWrap: "wrap" }}>
-              <a href={SOCIETY_URL} style={inlineLink}>{es ? "Ver la sociedad" : "See the company"} →</a>
-              <a href="/registro" style={inlineLink}>{es ? "Ver la entrada en el registro" : "See the registry entry"} →</a>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 14 }}>
-            <LinkCard
-              href={es ? "/caso-ar-agents" : "/en/ar-agents-case"}
-              eyebrow={es ? "Dogfood" : "Dogfood"}
-              title={es ? "Nos constituimos a nosotros mismos" : "We incorporated ourselves"}
-              body={es ? "ar-agents corre como Sociedad Automatizada y usa su propio Auditor. La prueba es pública." : "ar-agents runs as a Sociedad Automatizada and uses its own Auditor. The proof is public."}
-              cta={es ? "Ver el caso" : "See the case"}
-            />
+          <div style={{ marginTop: 12 }}>
+            {INVENTORY.map((item) => (
+              <InventoryRow
+                key={item.n}
+                n={item.n}
+                title={es ? item.t_es : item.t_en}
+                body={es ? item.d_es : item.d_en}
+                tag={item.tag}
+              />
+            ))}
           </div>
         </section>
 
-        {/* THE RAILS */}
-        <Section
-          eyebrow={es ? "Los rieles abiertos · gratis" : "The open rails · free"}
-          title={es ? "Todo el stack argentino, como paquetes" : "The whole Argentine stack, as packages"}
-        >
-          <p style={{ ...cardBody, maxWidth: 680, marginBottom: 24 }}>
+        {/* SECTION 2 (pattern B): stack table of the open rails */}
+        <section id="rieles" style={sectionOuter}>
+          <h2 style={sectionHeading}>{es ? "Sobre los rieles abiertos" : "On the open rails"}</h2>
+          <p style={quietExplainer}>
             {es
-              ? "Cada pieza que una empresa argentina necesita, tipada para el Vercel AI SDK. Abierto, MIT, sin límites."
-              : "Every piece an Argentine company needs, typed for the Vercel AI SDK. Open, MIT, no limits."}
+              ? "37 paquetes MIT en npm. Todo el stack argentino que una sociedad necesita, sin pegar soluciones sueltas."
+              : "37 MIT packages on npm. The whole Argentine stack a company needs, without gluing together loose solutions."}
           </p>
-          <div style={grid(200)}>
-            {RAILS.map((r) => (
-              <div key={r.t_en} style={card}>
-                <h3 style={{ ...cardTitle, fontFamily: FONT_MONO, fontSize: 15 }}>{es ? r.t_es : r.t_en}</h3>
-                <p style={cardBody}>{es ? r.d_es : r.d_en}</p>
+          <dl style={{ margin: "12px 0 0", display: "grid", gap: 1 }}>
+            {STACK_ROWS.map((r) => (
+              <div key={r.term_en} className="eve-use-row" style={stackRow}>
+                <dt style={stackTerm}>{es ? r.term_es : r.term_en}</dt>
+                <dd style={stackDesc}>{es ? r.desc_es : r.desc_en}</dd>
               </div>
             ))}
-          </div>
+          </dl>
           <div style={{ marginTop: 20 }}>
             <a href="/sdk" style={inlineLink}>
               {es ? "Ver toda la documentación" : "Browse the docs"} →
             </a>
           </div>
-        </Section>
+        </section>
 
-        {/* THE LAW: the honesty banner + note relocated here from the hero
-            (declutter pass, 2026-07-13), still driven by homeLawCopy()/LAW_STATUS
-            -- the drift-guard test only checks the pure functions + that page.tsx
-            branches on them, not placement. */}
-        <Section
-          eyebrow={es ? "La ley" : "The law"}
-          title={es ? "Por qué ahora" : "Why now"}
-        >
+        {/* SECTION 3 (pattern C): 6-card feature grid, governance/audit/control */}
+        <section id="gobernanza" style={sectionOuter}>
+          <h2 style={sectionHeading}>
+            {es ? "Todo lo que una sociedad seria necesita" : "Everything a serious company needs"}
+          </h2>
+          <p style={quietExplainer}>
+            {es
+              ? "Gobernanza, auditoría y control humano vienen de fábrica. Vos decidís, el agente ejecuta."
+              : "Governance, audit, and human control come standard. You decide, the agent executes."}
+          </p>
+          <div style={{ ...grid(228), marginTop: 12 }}>
+            {FEATURE_CARDS.map((c) => (
+              <div key={c.t_en} style={card}>
+                <h3 style={cardTitle}>{es ? c.t_es : c.t_en}</h3>
+                <p style={cardBody}>{es ? c.d_es : c.d_en}</p>
+                {c.audit ? <AuditMiniList es={es} /> : null}
+                {c.proof ? (
+                  <div style={{ marginTop: 14, display: "flex", gap: 14, flexWrap: "wrap" }}>
+                    <a href={SOCIETY_URL} style={inlineLink}>{es ? "Ver la sociedad" : "See the company"} →</a>
+                    <a href="/registro" style={inlineLink}>{es ? "Ver el registro" : "See the registry"} →</a>
+                  </div>
+                ) : null}
+              </div>
+            ))}
+          </div>
+        </section>
+
+        {/* FINALE: one giant statement, one button, one status line. Nothing else. */}
+        <section id="finale" style={{ ...sectionOuter, textAlign: "center", marginBottom: 48 }}>
+          <h2 style={finaleHeading}>{es ? "Creá la tuya." : "Create yours."}</h2>
+          <div style={{ marginTop: 32, display: "flex", justifyContent: "center" }}>
+            <a href={STUDIO_URL} style={ctaPrimary}>
+              {es ? "Crear mi empresa" : "Create my company"}
+            </a>
+          </div>
           <div style={lawStatusLine} role="status">
             {law.banner ? <span aria-hidden="true" style={lawDot} /> : null}
-            <span style={{ color: "var(--text)" }}>{law.banner ?? law.note}</span>
+            <span style={{ color: "var(--text-muted)" }}>{law.banner ?? law.note}</span>
             {law.banner ? <span style={{ color: "var(--text-muted)" }}> · {law.note}</span> : null}
           </div>
-          <p style={{ ...cardBody, maxWidth: 680 }}>
-            {es
-              ? "El anteproyecto de Ley General de Sociedades habilita las sociedades operadas por IA. Está en el Senado. ar-agents es la infraestructura técnica para cuando sea ley, escrita en RFCs abiertos."
-              : "The draft General Companies Law enables AI-operated companies. It is in the Senate. ar-agents is the technical infrastructure for when it passes, written as open RFCs."}
-          </p>
-          <div style={{ marginTop: 16, display: "flex", gap: 14, flexWrap: "wrap" }}>
-            <a href={es ? "/legislacion" : "/en/legislation"} style={inlineLink}>{es ? "Síntesis legislativa" : "Legislative synthesis"} →</a>
-            <a href="/rfcs/001" style={inlineLink}>{es ? "Leer los RFCs" : "Read the RFCs"} →</a>
-          </div>
-        </Section>
+        </section>
 
         {/* PRICING: one plain sentence, per docs/NORTH-STAR.md */}
-        <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-body)", margin: "0 0 80px", lineHeight: 1.6 }}>
+        <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-body)", margin: "0 0 64px", lineHeight: 1.6 }}>
           {es
             ? "Crear y operar tu sociedad es gratis. Cuando empieza a facturar, cobramos 5x el costo de los tokens que consumen sus agentes."
             : "Creating and operating your company is free. Once it starts earning, we charge 5x the token cost its agents consume."}{" "}
@@ -303,45 +351,72 @@ export default function Home() {
   );
 }
 
-/* ---------- command pills (xAI / eve pill anatomy) ---------- */
-// $ muted prefix, mono command, ONE accent-tinted segment, icon-only copy
-// button at the right edge, rounded-full, subtle 1px border, slightly raised
-// surface. Used both for the install-section stack and the single hero pill.
+/* ---------- hero pieces ---------- */
 
-function CommandBlock({ es }: { es: boolean }) {
+function ToggleLine({ es }: { es: boolean }) {
   return (
-    <div>
-      <div style={commandStack}>
-        {STACK_COMMANDS.map((c) => (
-          <CommandPill key={c.cmd} cmd={c.cmd} hl={c.hl} es={es} />
-        ))}
-      </div>
-      <p style={commandCaption}>
-        {es ? "Copialo y pegalo en tu terminal" : "Copy and paste into your terminal"}
-      </p>
+    <div style={toggleLine}>
+      <span style={{ color: "var(--text)" }}>{es ? "Para founders" : "For founders"}</span>
+      <span aria-hidden="true" style={toggleDivider} />
+      <a href="/llms.txt" style={{ color: "var(--text-muted)" }}>
+        {es ? "Para agentes" : "For agents"}
+      </a>
     </div>
   );
 }
 
-function CommandPill({
-  cmd,
-  hl,
-  es,
-  size = "md",
-}: {
-  cmd: string;
-  hl: string;
-  es: boolean;
-  size?: "sm" | "md";
-}) {
+function IconFolder() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V7Z" />
+    </svg>
+  );
+}
+
+function IconFile() {
+  return (
+    <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8Z" />
+      <path d="M14 2v6h6" />
+    </svg>
+  );
+}
+
+function FileTreeCard() {
+  return (
+    <div style={{ position: "relative" }}>
+      <div aria-hidden="true" style={wireRectA} />
+      <div aria-hidden="true" style={wireRectB} />
+      <div style={fileTreeCard}>
+        {FILE_TREE.map((row, i) => (
+          <div key={i} style={{ ...fileTreeRow, paddingLeft: 14 + row.depth * 16 }}>
+            <span style={{ color: row.kind === "folder" ? "var(--text)" : "var(--text-muted)", display: "flex", flexShrink: 0 }}>
+              {row.kind === "folder" ? <IconFolder /> : <IconFile />}
+            </span>
+            <span style={{ color: row.kind === "folder" ? "var(--text)" : "var(--text-body)" }}>{row.label}</span>
+          </div>
+        ))}
+      </div>
+      <div style={{ marginTop: 12 }}>
+        <span style={tinyPill}>
+          <span style={{ color: "var(--text-muted)" }}>$</span>&nbsp;ar-agents login
+        </span>
+      </div>
+    </div>
+  );
+}
+
+/* ---------- command pill (eve pill anatomy: 40px total height) ---------- */
+
+function CommandPill({ cmd, hl, es }: { cmd: string; hl: string; es: boolean }) {
   const idx = cmd.indexOf(hl);
   const pre = idx >= 0 ? cmd.slice(0, idx) : cmd;
   const mid = idx >= 0 ? hl : "";
   const post = idx >= 0 ? cmd.slice(idx + hl.length) : "";
   return (
-    <div style={{ ...commandPill, padding: size === "sm" ? "10px 16px" : "16px 22px" }}>
+    <div style={commandPill}>
       <span aria-hidden="true" style={commandPrompt}>$</span>
-      <code style={{ ...commandCode, fontSize: size === "sm" ? 14 : 15 }}>
+      <code style={commandCode}>
         {pre}
         <span style={{ color: "var(--accent)" }}>{mid}</span>
         {post}
@@ -367,8 +442,8 @@ function CopyIconButton({ text, es }: { text: string; es: boolean }) {
       }}
       style={{
         flexShrink: 0,
-        width: 30,
-        height: 30,
+        width: 26,
+        height: 26,
         display: "inline-flex",
         alignItems: "center",
         justifyContent: "center",
@@ -382,11 +457,11 @@ function CopyIconButton({ text, es }: { text: string; es: boolean }) {
       aria-label={es ? "Copiar comando" : "Copy command"}
     >
       {copied ? (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <path d="M20 6 9 17l-5-5" />
         </svg>
       ) : (
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
           <rect x="9" y="9" width="13" height="13" rx="2" />
           <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1" />
         </svg>
@@ -395,50 +470,51 @@ function CopyIconButton({ text, es }: { text: string; es: boolean }) {
   );
 }
 
-/* ---------- helpers ---------- */
+/* ---------- section 1: numbered inventory row ---------- */
 
-function Section({
-  id,
-  eyebrow,
-  title,
-  children,
-}: {
-  id?: string;
-  eyebrow: string;
-  title: string;
-  children: React.ReactNode;
-}) {
-  return (
-    <section id={id} style={sectionOuter}>
-      <p style={eyebrowSty}>{eyebrow}</p>
-      <h2 style={h2Sty}>{title}</h2>
-      {children}
-    </section>
-  );
-}
-
-function LinkCard({
-  href,
-  eyebrow,
+function InventoryRow({
+  n,
   title,
   body,
-  cta,
+  tag,
 }: {
-  href: string;
-  eyebrow: string;
+  n: string;
   title: string;
   body: string;
-  cta: string;
+  tag?: string;
 }) {
   return (
-    <a href={href} style={{ ...card, display: "block", textDecoration: "none", color: "inherit" }}>
-      <div style={{ ...eyebrowSty, marginBottom: 8 }}>{eyebrow}</div>
-      <h3 style={cardTitle}>{title}</h3>
-      <p style={cardBody}>{body}</p>
-      <span style={{ ...inlineLink, marginTop: 12, display: "inline-block" }}>{cta} →</span>
-    </a>
+    <div style={inventoryRow}>
+      <span style={inventoryN}>[{n}]</span>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ display: "flex", alignItems: "baseline", gap: 10, flexWrap: "wrap" }}>
+          <h3 style={inventoryTitle}>{title}</h3>
+          {tag ? <span style={leverageTag}>{tag}</span> : null}
+        </div>
+        <p style={inventoryBody}>{body}</p>
+      </div>
+    </div>
   );
 }
+
+/* ---------- section 3: audit-log mini visual ---------- */
+
+function AuditMiniList({ es }: { es: boolean }) {
+  return (
+    <div style={{ marginTop: 14, display: "grid", gap: 6 }}>
+      {AUDIT_ENTRIES.map((e) => (
+        <div key={e.tool} style={auditRow}>
+          <code style={auditTool}>{e.tool}</code>
+          <span style={{ ...auditPill, ...auditPillKind[e.kind] }}>
+            {es ? e.status_es : e.status_en}
+          </span>
+        </div>
+      ))}
+    </div>
+  );
+}
+
+/* ---------- footer ---------- */
 
 function Footer({ es }: { es: boolean }) {
   const cols: { h: string; links: { l: string; href: string }[] }[] = [
@@ -446,7 +522,7 @@ function Footer({ es }: { es: boolean }) {
       h: es ? "Producto" : "Product",
       links: [
         { l: es ? "Studio" : "Studio", href: STUDIO_URL },
-        { l: es ? "Cómo funciona" : "How it works", href: "/#como-funciona" },
+        { l: es ? "Cómo funciona" : "How it works", href: "/sociedades-ia" },
         { l: es ? "Precios" : "Pricing", href: es ? "/precios" : "/en/pricing" },
         { l: es ? "Registro" : "Registry", href: "/registro" },
       ],
@@ -494,8 +570,6 @@ function Footer({ es }: { es: boolean }) {
           </div>
         ))}
       </div>
-      {/* Relocated from the hero's old proof strip (declutter pass, 2026-07-13):
-          same facts, quieter home. */}
       <div style={proofStrip}>
         <span>Open source · MIT</span>
         <span aria-hidden="true">·</span>
@@ -514,88 +588,72 @@ function Footer({ es }: { es: boolean }) {
   );
 }
 
+/* ---------- helpers ---------- */
+
+function grid(min: number): React.CSSProperties {
+  return {
+    display: "grid",
+    gridTemplateColumns: `repeat(auto-fit, minmax(${min}px, 1fr))`,
+    gap: 14,
+  };
+}
+
 /* ---------- styles ---------- */
 
-const eyebrow: React.CSSProperties = {
-  fontSize: 12,
-  textTransform: "uppercase",
-  letterSpacing: "0.12em",
-  color: "var(--text-muted)",
+// H1: eve's signature "large but light". 64px/1.0/450/-0.06em on desktop,
+// scaled down via clamp so it never overflows on mobile. The wide (1100px)
+// hero container + fixed-width file-tree column (globals.css .home-hero)
+// give this the line budget "Creá tu sociedad automatizada." needs to stay
+// on one line at desktop widths.
+const h1Sty: React.CSSProperties = {
+  fontSize: "clamp(34px, 5.4vw, 64px)",
+  fontWeight: 450,
+  lineHeight: 1.0,
+  letterSpacing: "-0.06em",
   margin: 0,
-  fontFamily: FONT_MONO,
-  fontWeight: 500,
+  fontFamily: FONT_SANS,
 };
 
-// Mono uppercase micro-label: the one eyebrow style used for both section
-// headers and card eyebrows (STEPS "Paso NN", proof panel "Sociedad activa"),
-// so the "card language" reads as one system (founder call, Vercel-grade
-// containers pass, 2026-07-13).
-const eyebrowSty: React.CSSProperties = {
-  fontSize: 11,
-  fontFamily: FONT_MONO,
-  textTransform: "uppercase",
-  letterSpacing: "0.08em",
-  color: "var(--text-muted)",
-  margin: "0 0 12px",
-  fontWeight: 600,
-};
-
-const cardEyebrow: React.CSSProperties = {
-  ...eyebrowSty,
-  margin: 0,
-};
-
-const h2Sty: React.CSSProperties = {
-  fontSize: "clamp(24px, 5vw, 34px)",
-  fontWeight: 600,
-  letterSpacing: "-0.03em",
-  lineHeight: 1.15,
-  margin: "0 0 28px",
-  maxWidth: 760,
-};
-
-// The shared section wrapper rhythm, also used by the bespoke PROOF section
-// below so its spacing matches every Section()-wrapped block.
-const sectionOuter: React.CSSProperties = {
-  marginBottom: 80,
-  paddingTop: 32,
-  borderTop: "1px solid var(--border-color)",
-};
-
-// Vercel-grade container: 1px border, one step above the page bg, no shadow.
-const card: React.CSSProperties = {
-  background: "var(--card)",
-  border: "1px solid var(--border-color)",
-  borderRadius: 12,
-  padding: 26,
-};
-
-const cardTitle: React.CSSProperties = {
-  fontSize: 17,
-  fontWeight: 600,
-  color: "var(--text)",
-  margin: "0 0 6px",
-};
-
-const cardBody: React.CSSProperties = {
+const toggleLine: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 10,
   fontSize: 14,
+  marginTop: 20,
+  fontFamily: FONT_SANS,
+};
+
+const toggleDivider: React.CSSProperties = {
+  width: 1,
+  height: 12,
+  background: "var(--border-color)",
+  display: "inline-block",
+};
+
+const ctaRow: React.CSSProperties = {
+  marginTop: 24,
+  display: "flex",
+  gap: 12,
+  flexWrap: "wrap",
+  alignItems: "center",
+};
+
+const analogyP: React.CSSProperties = {
   color: "var(--text-body)",
-  lineHeight: 1.55,
-  margin: 0,
+  fontSize: 18,
+  margin: "24px 0 0",
+  maxWidth: 560,
+  lineHeight: 1.5,
 };
 
-const inlineLink: React.CSSProperties = {
-  fontSize: 14,
-  color: "var(--accent)",
-  fontWeight: 500,
-  textDecoration: "underline",
-};
-
+// Primary button, eve pattern: 40px height, full pill radius, white bg /
+// near-black text (dark theme).
 const ctaPrimary: React.CSSProperties = {
-  padding: "10px 18px",
+  height: 40,
+  padding: "0 20px",
   background: "var(--primary-bg)",
   color: "var(--primary-text)",
-  borderRadius: 6,
+  borderRadius: 9999,
   fontSize: 14,
   fontWeight: 500,
   textDecoration: "none",
@@ -604,72 +662,22 @@ const ctaPrimary: React.CSSProperties = {
   fontFamily: FONT_SANS,
   display: "inline-flex",
   alignItems: "center",
-};
-
-// Relocated proof-strip facts, now a quiet footer line (was the hero's
-// bottom-most element before the declutter pass).
-const proofStrip: React.CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 8,
-  alignItems: "center",
-  fontSize: 12,
-  color: "var(--text-muted)",
-};
-
-// Same Vercel-grade container language as `card`.
-const proofPanel: React.CSSProperties = {
-  background: "var(--card)",
-  border: "1px solid var(--border-color)",
-  borderRadius: 12,
-  padding: 26,
-};
-
-const societyBadge: React.CSSProperties = {
-  fontSize: 12,
-  fontWeight: 500,
-  color: "var(--accent-text, var(--accent))",
-  background: "var(--accent-bg)",
-  padding: "2px 10px",
-  borderRadius: 9999,
+  justifyContent: "center",
   whiteSpace: "nowrap",
 };
 
-// eve's "giant statement + quiet explainer": one big, tight-tracked claim,
-// used once (the PROOF section, per the founder's explicit call).
-const giantStatement: React.CSSProperties = {
-  fontSize: "clamp(32px, 6vw, 48px)",
-  fontWeight: 600,
-  letterSpacing: "var(--tracking-display)",
-  lineHeight: 1.08,
-  margin: "0 0 18px",
-  maxWidth: 680,
-};
-
-const quietExplainer: React.CSSProperties = {
-  fontSize: 16,
-  color: "var(--text-body)",
-  lineHeight: 1.6,
-  margin: "0 0 28px",
-  maxWidth: 520,
-};
-
-/* Command pills: xAI-style / eve-style. Fully rounded, subtle 1px border,
-   a surface one step above the page bg, generous padding, no shadow. */
-
-const commandStack: React.CSSProperties = {
-  display: "flex",
-  flexDirection: "column",
-  gap: 12,
-};
-
+// Command pill, eve pattern: 40px TOTAL height, padding 6/8/6/12, full
+// radius, mono ~14-15px, one accent-tinted segment, icon-only copy button.
 const commandPill: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
-  gap: 14,
+  height: 40,
+  padding: "6px 8px 6px 12px",
+  gap: 10,
   background: "var(--card)",
   border: "1px solid var(--border-color)",
   borderRadius: 9999,
+  maxWidth: "100%",
 };
 
 const commandPrompt: React.CSSProperties = {
@@ -682,30 +690,250 @@ const commandPrompt: React.CSSProperties = {
 
 const commandCode: React.CSSProperties = {
   fontFamily: FONT_MONO,
-  fontSize: 15,
+  fontSize: 14,
   color: "var(--text)",
   overflowX: "auto",
   whiteSpace: "pre",
   flex: 1,
-  lineHeight: 1.4,
+  lineHeight: 1.2,
 };
 
-const commandCaption: React.CSSProperties = {
+// Hero visual: file-tree card + tiny CLI pill + faint wireframe rects.
+const fileTreeCard: React.CSSProperties = {
+  background: "var(--card)",
+  border: "1px solid var(--border-color)",
+  borderRadius: 12,
+  padding: "14px 6px",
+  position: "relative",
+};
+
+const fileTreeRow: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  gap: 8,
+  padding: "5px 8px",
+  fontFamily: FONT_MONO,
   fontSize: 13,
-  color: "var(--text-muted)",
-  margin: "14px 0 0",
 };
 
-// The relocated honesty banner + note (was under the hero CTA), now a slim
-// status line inside the "La ley" section.
+const tinyPill: React.CSSProperties = {
+  display: "inline-flex",
+  alignItems: "center",
+  height: 28,
+  padding: "0 12px",
+  borderRadius: 9999,
+  background: "var(--card)",
+  border: "1px solid var(--border-color)",
+  fontFamily: FONT_MONO,
+  fontSize: 12,
+  color: "var(--text-body)",
+};
+
+const wireRectA: React.CSSProperties = {
+  position: "absolute",
+  top: -18,
+  right: -14,
+  width: 56,
+  height: 56,
+  border: "1px solid var(--border-color)",
+  borderRadius: 10,
+  opacity: 0.5,
+  pointerEvents: "none",
+  zIndex: 0,
+};
+
+const wireRectB: React.CSSProperties = {
+  position: "absolute",
+  bottom: -46,
+  left: -16,
+  width: 40,
+  height: 40,
+  border: "1px solid var(--border-color)",
+  borderRadius: 8,
+  opacity: 0.35,
+  pointerEvents: "none",
+  zIndex: 0,
+};
+
+// Section headings: 56px / weight 450 / -0.06em, the giant-statement pattern
+// used uniformly across sections 1-3.
+const sectionHeading: React.CSSProperties = {
+  fontSize: "clamp(28px, 5vw, 56px)",
+  fontWeight: 450,
+  letterSpacing: "-0.06em",
+  lineHeight: 1.05,
+  margin: 0,
+  maxWidth: 720,
+};
+
+const quietExplainer: React.CSSProperties = {
+  fontSize: 16,
+  color: "var(--text-body)",
+  lineHeight: 1.6,
+  margin: "18px 0 0",
+  maxWidth: 560,
+};
+
+const sectionOuter: React.CSSProperties = {
+  marginBottom: 80,
+  paddingTop: 56,
+  borderTop: "1px solid var(--border-color)",
+};
+
+const eyebrowSty: React.CSSProperties = {
+  fontSize: 11,
+  fontFamily: FONT_MONO,
+  textTransform: "uppercase",
+  letterSpacing: "0.08em",
+  color: "var(--text-muted)",
+  margin: "0 0 12px",
+  fontWeight: 600,
+};
+
+// Numbered inventory row (section 1).
+const inventoryRow: React.CSSProperties = {
+  display: "flex",
+  gap: 20,
+  padding: "20px 0",
+  boxShadow: "inset 0 -1px 0 var(--border-color)",
+};
+
+const inventoryN: React.CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 14,
+  color: "var(--text-muted)",
+  flexShrink: 0,
+  paddingTop: 2,
+  minWidth: 34,
+};
+
+const inventoryTitle: React.CSSProperties = {
+  fontSize: 17,
+  fontWeight: 600,
+  color: "var(--text)",
+  margin: 0,
+};
+
+const inventoryBody: React.CSSProperties = {
+  fontSize: 14,
+  color: "var(--text-body)",
+  lineHeight: 1.55,
+  margin: "6px 0 0",
+  maxWidth: 560,
+};
+
+const leverageTag: React.CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 11,
+  color: "var(--accent-text, var(--accent))",
+  background: "var(--accent-bg)",
+  padding: "2px 8px",
+  borderRadius: 9999,
+  whiteSpace: "nowrap",
+};
+
+// Stack-table row (section 2), shares .eve-use-row's mobile stack behavior.
+const stackRow: React.CSSProperties = {
+  display: "grid",
+  gridTemplateColumns: "minmax(110px, 160px) 1fr",
+  gap: 24,
+  padding: "14px 0",
+  boxShadow: "inset 0 -1px 0 var(--border-color)",
+  alignItems: "baseline",
+};
+
+const stackTerm: React.CSSProperties = {
+  fontSize: 15,
+  color: "var(--text)",
+  fontWeight: 500,
+  margin: 0,
+};
+
+const stackDesc: React.CSSProperties = {
+  fontSize: 14,
+  color: "var(--text-body)",
+  lineHeight: 1.5,
+  margin: 0,
+};
+
+// Vercel-grade container surface, one step above --bg, no shadow.
+const card: React.CSSProperties = {
+  background: "var(--card)",
+  border: "1px solid var(--border-color)",
+  borderRadius: 12,
+  padding: 22,
+};
+
+const cardTitle: React.CSSProperties = {
+  fontSize: 16,
+  fontWeight: 600,
+  color: "var(--text)",
+  margin: "0 0 6px",
+};
+
+const cardBody: React.CSSProperties = {
+  fontSize: 14,
+  color: "var(--text-body)",
+  lineHeight: 1.5,
+  margin: 0,
+};
+
+const inlineLink: React.CSSProperties = {
+  fontSize: 14,
+  color: "var(--accent)",
+  fontWeight: 500,
+  textDecoration: "underline",
+};
+
+// Audit-log mini visual, inside the "Audit log firmado" card.
+const auditRow: React.CSSProperties = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "space-between",
+  gap: 10,
+  padding: "6px 10px",
+  background: "var(--bg-tint)",
+  borderRadius: 6,
+};
+
+const auditTool: React.CSSProperties = {
+  fontFamily: FONT_MONO,
+  fontSize: 12,
+  color: "var(--text)",
+};
+
+const auditPill: React.CSSProperties = {
+  fontSize: 11,
+  fontWeight: 500,
+  padding: "2px 8px",
+  borderRadius: 9999,
+  whiteSpace: "nowrap",
+};
+
+const auditPillKind: Record<AuditEntry["kind"], React.CSSProperties> = {
+  success: { color: "var(--success)", background: "var(--success-bg)" },
+  info: { color: "var(--text-muted)", background: "var(--bg)" },
+  accent: { color: "var(--accent-text, var(--accent))", background: "var(--accent-bg)" },
+};
+
+// Finale: 96px statement, weight 450, -0.06em, nothing else beside the button.
+const finaleHeading: React.CSSProperties = {
+  fontSize: "clamp(40px, 9vw, 96px)",
+  fontWeight: 450,
+  letterSpacing: "-0.06em",
+  lineHeight: 1.0,
+  margin: 0,
+};
+
 const lawStatusLine: React.CSSProperties = {
   display: "flex",
   alignItems: "center",
+  justifyContent: "center",
   flexWrap: "wrap",
   gap: 8,
   fontSize: 13,
   lineHeight: 1.5,
-  marginBottom: 20,
+  marginTop: 24,
 };
 
 const lawDot: React.CSSProperties = {
@@ -717,10 +945,11 @@ const lawDot: React.CSSProperties = {
   flexShrink: 0,
 };
 
-function grid(min: number): React.CSSProperties {
-  return {
-    display: "grid",
-    gridTemplateColumns: `repeat(auto-fit, minmax(${min}px, 1fr))`,
-    gap: 14,
-  };
-}
+const proofStrip: React.CSSProperties = {
+  display: "flex",
+  flexWrap: "wrap",
+  gap: 8,
+  alignItems: "center",
+  fontSize: 12,
+  color: "var(--text-muted)",
+};
