@@ -227,7 +227,7 @@ export default function Home() {
 
             <p style={analogyP}>
               {es
-                ? "Como una empresa tradicional, pero operada por agentes. Cobra, factura y paga en pesos. Cada decisión queda firmada y es verificable."
+                ? "Como una empresa tradicional, pero operada por agentes. Cobra, factura y paga de manera automática. Cada decisión queda firmada y es verificable."
                 : "Like a traditional company, but run by agents. It charges, invoices, and pays in pesos. Every decision is signed and verifiable."}
             </p>
           </div>
