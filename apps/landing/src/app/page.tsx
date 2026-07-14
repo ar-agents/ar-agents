@@ -278,7 +278,7 @@ export default function Home() {
           </dl>
           <div style={{ marginTop: 20 }}>
             <a href="/sdk" style={inlineLink}>
-              {es ? "Ver toda la documentación" : "Browse the docs"} →
+              {es ? "Explorá la documentación" : "Browse the docs"} →
             </a>
           </div>
         </section>

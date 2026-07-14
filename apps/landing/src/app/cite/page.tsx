@@ -73,7 +73,7 @@ export default function CitePage() {
   return (
     <DocShell
       eyebrow="cite · generador de citas inmutables"
-      title="Citar un RFC con commit hash inmutable."
+      title="Citá un RFC con commit hash inmutable."
       subtitle="Las URLs canónicas /rfcs/{n} pueden mutar; el contenido de un commit no. Esta página genera la cita en BibTeX, APA y Chicago para cualquier RFC ar-agents, anclada al commit que vos elijas. Para legisladores que necesitan que la cita sobreviva a un changelog."
     >
       <DocP>

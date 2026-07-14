@@ -555,11 +555,11 @@ Lectura completa: https://ar-agents.ar/rfcs/001
 
 function generateChecklist(state: FormState): string[] {
   const out = [
-    "1. (5 min) Crear el repo: descargá los archivos generados abajo, agregalos a un nuevo repo Git (`mkdir`, `cp`, `git init`, `git commit`).",
-    "2. (5 min) Importar el repo a Vercel via vercel.com/new. Framework=Next.js, Root=./.",
-    "3. (10 min) Pegar los env vars de `.env.example` en Vercel → Settings → Environment Variables.",
-    "4. (1-3 días) Si vas a emitir factura electrónica: solicitar cert X.509 en ARCA → Clave Fiscal → 'Administrador de Relaciones' → 'Asociar Servicio Web' (servicios `wsfe` y `ws_sr_constancia_inscripcion`). Subir cert + key al .env.",
-    "5. (1 día) Si querés usar Mercado Pago real: crear app en developers.mercadopago.com → Credenciales de Producción → pegar en `MERCADOPAGO_ACCESS_TOKEN`.",
+    "1. (5 min) Creá el repo: descargá los archivos generados abajo, agregalos a un nuevo repo Git (`mkdir`, `cp`, `git init`, `git commit`).",
+    "2. (5 min) Importá el repo a Vercel via vercel.com/new. Framework=Next.js, Root=./.",
+    "3. (10 min) Pegá los env vars de `.env.example` en Vercel → Settings → Environment Variables.",
+    "4. (1-3 días) Si vas a emitir factura electrónica: solicitá el cert X.509 en ARCA → Clave Fiscal → 'Administrador de Relaciones' → 'Asociar Servicio Web' (servicios `wsfe` y `ws_sr_constancia_inscripcion`). Subí cert + key al .env.",
+    "5. (1 día) Si querés usar Mercado Pago real: creá la app en developers.mercadopago.com → Credenciales de Producción → pegá en `MERCADOPAGO_ACCESS_TOKEN`.",
     "6. (10-15 días) Si vas a usar WhatsApp: Meta Business Manager → Verificación de Empresa. Sin esto el cap es 5 destinatarios.",
   ];
   if (state.tipo === "SOCIEDAD-IA") {
@@ -572,7 +572,7 @@ function generateChecklist(state: FormState): string[] {
     );
   }
   out.push(
-    "8. (continuo) Agendar el morning loop del agente: lee DEC inbox + Boletín Oficial, planifica acciones, te manda WhatsApp con la cola crítica.",
+    "8. (continuo) Agendá el morning loop del agente: lee DEC inbox + Boletín Oficial, planifica acciones, te manda WhatsApp con la cola crítica.",
   );
   return out;
 }
@@ -995,7 +995,7 @@ export function IncorporarWizard() {
                 lineHeight: 1.5,
               }}
             >
-              Crear un repo nuevo, copiar los 4 archivos descargados, conectarlo a Vercel, y pegar las variables de entorno.
+              Creá un repo nuevo, copiá los 4 archivos, conectalo a Vercel y pegá las variables de entorno.
             </div>
           </section>
 

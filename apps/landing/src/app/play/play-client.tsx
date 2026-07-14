@@ -666,7 +666,7 @@ function EmptyState({ onPick }: { onPick: (prompt: string) => void }) {
           cursor: "pointer",
         }}
       >
-        Probar el primer escenario →
+        Probá el primer escenario →
       </button>
     </div>
   );

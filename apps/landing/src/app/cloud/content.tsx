@@ -40,7 +40,7 @@ const TIERS: ReadonlyArray<Tier> = [
       { es: "Issues + discussions en GitHub público", en: "Issues + discussions on public GitHub" },
       { es: "Sin telemetría · sin caps · sin lock-in", en: "No telemetry · no caps · no lock-in" },
     ],
-    cta: { label: { es: "Empezar en npm", en: "Start on npm" }, href: "/sdk" },
+    cta: { label: { es: "Empezá en npm", en: "Start on npm" }, href: "/sdk" },
   },
   {
     name: "Cloud",
@@ -53,7 +53,7 @@ const TIERS: ReadonlyArray<Tier> = [
       en: "automated companies that prefer not to operate infra",
     },
     price: {
-      es: "Ver /precios · bundle completo en preview",
+      es: "Mirá /precios · bundle completo en preview",
       en: "See /precios · full bundle in preview",
     },
     status: "preview",
@@ -69,7 +69,7 @@ const TIERS: ReadonlyArray<Tier> = [
       { es: "Backups cifrados, 5 años de retención (RFC-004 § 7)", en: "Encrypted backups, 5-year retention (RFC-004 § 7)" },
     ],
     cta: {
-      label: { es: "Solicitar invitación", en: "Request invitation" },
+      label: { es: "Solicitá una invitación", en: "Request an invitation" },
       href: "mailto:naza@naza.ar?subject=ar-agents%20Cloud%20preview",
     },
   },
@@ -126,7 +126,7 @@ const TIERS: ReadonlyArray<Tier> = [
       { es: "Auditoría inicial RFC-002+004 + plan de remediación", en: "Initial RFC-002+004 audit + remediation plan" },
     ],
     cta: {
-      label: { es: "Cotizar implementación", en: "Quote an implementation" },
+      label: { es: "Cotizá tu implementación", en: "Quote an implementation" },
       href: "mailto:naza@naza.ar?subject=ar-agents%20Bespoke%20engagement",
     },
   },

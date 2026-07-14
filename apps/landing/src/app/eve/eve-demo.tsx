@@ -77,7 +77,7 @@ const L = {
     f_admin: "Administrador",
     f_audit: "Entrada de auditoría",
     v_audit: "#41 · firmado ed25519",
-    see_log: "Ver el audit log",
+    see_log: "Mirá el audit log",
     replay: "replay",
     run_again: "correr de nuevo",
   },

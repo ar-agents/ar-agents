@@ -33,7 +33,7 @@ export function EconomiaContent({ lang }: { lang: Lang }) {
       <DocP>
         <Link href={es ? "/precios" : "/en/pricing"}>{es ? "Precios" : "Pricing"}</Link>
         {" · "}
-        <Link href="/incorporar">{es ? "Constituir una sociedad" : "Form a company"}</Link>
+        <Link href="/incorporar">{es ? "Constituí una sociedad" : "Form a company"}</Link>
         {" · "}
         <Link href={es ? "/legislacion" : "/en/legislation"}>
           {es ? "Síntesis legislativa" : "Legislative synthesis"}
