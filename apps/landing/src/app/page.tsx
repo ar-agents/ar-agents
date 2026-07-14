@@ -265,8 +265,8 @@ export default function Home() {
           <h2 style={sectionHeading}>{es ? "Rieles de código abierto" : "Open-source rails"}</h2>
           <p style={quietExplainer}>
             {es
-              ? "39 paquetes MIT en npm. Todo el stack argentino que una sociedad necesita, sin pegar soluciones sueltas."
-              : "39 MIT packages on npm. The whole Argentine stack a company needs, without gluing together loose solutions."}
+              ? "Todo el stack argentino que una sociedad necesita en 39 paquetes MIT en npm."
+              : "The whole Argentine stack a company needs, in 39 MIT packages on npm."}
           </p>
           <dl style={{ margin: "12px 0 0", display: "grid", gap: 1 }}>
             {STACK_ROWS.map((r) => (
