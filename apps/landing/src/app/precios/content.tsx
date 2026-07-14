@@ -80,16 +80,14 @@ const TIERS: ReadonlyArray<Tier> = [
     tag: { es: "crear y operar", en: "build and run" },
     items: {
       es: [
-        "Generar tu sociedad desde un prompt",
-        "Validar y ajustar el borrador con el coach",
-        "Constituir en simulación, pre-ley: no inscribe nada real",
-        "Operar sin límite de tiempo mientras no factura",
+        "Creá tu sociedad con un solo comando",
+        "Validá y ajustá el borrador",
+        "Operá sin límites",
       ],
       en: [
-        "Generate your company from a prompt",
-        "Validate and adjust the draft with the coach",
-        "Incorporate in simulation, pre-law: nothing real is filed",
-        "Operate with no time limit while it is not earning",
+        "Create your company with a single command",
+        "Validate and adjust the draft",
+        "Operate without limits",
       ],
     },
     cta: { label: { es: "Crear mi empresa", en: "Create my company" }, href: STUDIO_URL },
