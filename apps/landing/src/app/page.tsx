@@ -244,8 +244,8 @@ export default function Home() {
           </h2>
           <p style={quietExplainer}>
             {es
-              ? "Describile tu idea al agente. El estudio valida el negocio, arma el borrador y deja la sociedad operando. Vos apretás el único botón que importa."
-              : "Describe your idea to the agent. The studio validates the business, drafts the plan, and leaves the company running. You press the only button that matters."}
+              ? "Describile tu idea al agente. El estudio valida el negocio, arma el borrador y deja la sociedad operando."
+              : "Describe your idea to the agent. The studio validates the business, drafts the plan, and leaves the company running."}
           </p>
           <div style={{ marginTop: 12 }}>
             {INVENTORY.map((item) => (
