@@ -216,7 +216,7 @@ export function CasoArAgentsContent({ lang }: { lang: Lang }) {
             textDecoration: "none",
           }}
         >
-          {lang === "es" ? "Verificar el audit log en vivo →" : "Verify the live audit log →"}
+          {lang === "es" ? "Verificá el audit log en vivo →" : "Verify the live audit log →"}
         </a>
       </p>
 

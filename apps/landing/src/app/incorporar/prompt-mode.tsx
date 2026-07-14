@@ -359,10 +359,10 @@ export function IncorporarPrompt() {
               )}
               <div style={{ display: "flex", flexWrap: "wrap", gap: 10, fontSize: 13 }}>
                 <a href={constituted.audit.verifyUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
-                  Verificar la firma
+                  Verificá la firma
                 </a>
                 <a href={constituted.audit.dashboardUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
-                  Ver el registro
+                  Mirá el registro
                 </a>
                 <a href={constituted.deploy.oneClickUrl} target="_blank" rel="noreferrer" style={{ color: "var(--accent)" }}>
                   Deploy en Vercel

@@ -60,7 +60,7 @@ const FAQS: Q[] = [
   {
     audience: "developer",
     q: "¿Cómo arranco un proyecto desde cero?",
-    a: 'Cuatro paths según preferencia:<br/>1. <strong>Studio (recomendado)</strong>: <a href="https://studio.ar-agents.ar">studio.ar-agents.ar</a> → el coach valida tu idea, arma el borrador y constituye con un click.<br/>2. <strong>Wizard humano</strong>: <a href="/incorporar">/incorporar</a> → completás un form, descargás 4 archivos, deploy manual.<br/>3. <strong>SDK programático</strong>: <code>pnpm add @ar-agents/incorporate</code> → <code>await incorporate({...})</code>. <a href="/sdk">/sdk</a> tiene quickstart.<br/>4. <strong>Template starter</strong>: clonar <code>apps/sociedad-ia-starter</code> directamente. <a href="https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter">Ver código</a>.',
+    a: 'Cuatro paths según preferencia:<br/>1. <strong>Studio (recomendado)</strong>: <a href="https://studio.ar-agents.ar">studio.ar-agents.ar</a> → el coach valida tu idea, arma el borrador y constituye con un click.<br/>2. <strong>Wizard humano</strong>: <a href="/incorporar">/incorporar</a> → completás un form, descargás 4 archivos, deploy manual.<br/>3. <strong>SDK programático</strong>: <code>pnpm add @ar-agents/incorporate</code> → <code>await incorporate({...})</code>. <a href="/sdk">/sdk</a> tiene quickstart.<br/>4. <strong>Template starter</strong>: cloná <code>apps/sociedad-ia-starter</code> directo. <a href="https://github.com/ar-agents/ar-agents/tree/main/apps/sociedad-ia-starter">Mirá el código</a>.',
   },
   {
     audience: "developer",
@@ -107,7 +107,7 @@ const FAQS: Q[] = [
   {
     audience: "agent",
     q: "¿Qué hago si una tool devuelve available:false?",
-    a: 'Surfacear el error verbatim al usuario y NO inventar el dato faltante. Ejemplo: si <code>lookup_cuit_afip</code> devuelve <code>{ available: false, error: "..." }</code>, el agente debe decir literalmente "el padrón ARCA no está disponible para este CUIT" en lugar de alucinar una razón social.',
+    a: 'Surfaceá el error verbatim al usuario y no inventes el dato faltante. Ejemplo: si <code>lookup_cuit_afip</code> devuelve <code>{ available: false, error: "..." }</code>, el agente debe decir literalmente "el padrón ARCA no está disponible para este CUIT" en lugar de alucinar una razón social.',
   },
 
   // ─── Investor / partner ──────────────────────────────────────────────

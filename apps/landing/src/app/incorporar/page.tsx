@@ -5,7 +5,7 @@ import { IncorporarPrompt } from "./prompt-mode";
 import { IncorporarJsonLd } from "../json-ld";
 
 export const metadata: Metadata = {
-  title: "Crear una sociedad automatizada · 10 minutos",
+  title: "Creá tu sociedad automatizada · 10 minutos",
   description:
     "Wizard que genera el repositorio + config + Vercel deploy para una sociedad automatizada argentina. 16 piezas pre-cableadas. RFC-001 governance. MIT.",
   alternates: { canonical: "https://ar-agents.ar/incorporar" },
@@ -15,7 +15,7 @@ export default function IncorporarPage() {
   return (
     <DocShell
       eyebrow="incorporar · alpha"
-      title="Crear una sociedad automatizada."
+      title="Creá tu sociedad automatizada."
       subtitle="Wizard pre-lanzamiento. Te genera el repo, los env vars, el Vercel deploy y la lista de pasos legales para constituir una sociedad automatizada en Argentina cuando se sancione la ley. El anteproyecto de Ley General de Sociedades está en el Senado y todavía no es ley. Hoy podés operar como SAS estándar con todo el stack agentic ya cableado."
     >
       <DocBlock>

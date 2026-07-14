@@ -26,16 +26,16 @@ const PATHS = [
       "El camino recomendado: contale tu idea al coach, valida el negocio y te deja constituyendo con un click. Es la puerta de entrada del producto hoy.",
     steps: [
       {
-        title: "Abrir Studio",
+        title: "Abrí Studio",
         body: "El coach te hace preguntas cortas, sin vueltas, y valida el negocio antes de construir nada.",
         link: STUDIO_URL,
       },
       {
-        title: "Ajustar el borrador",
+        title: "Ajustá el borrador",
         body: "Denominación, objeto, capital y capacidades. Lo cambiás conversando, no llenando un form.",
       },
       {
-        title: "Constituir y deployar",
+        title: "Constituí y desplegá",
         body: "Un botón, tu firma como administrador. El estudio crea el proyecto, lo deploya y deja el agente corriendo.",
       },
     ],
@@ -68,7 +68,7 @@ const PATHS = [
   },
   {
     id: "incorporate",
-    label: "Constituir una sociedad automatizada",
+    label: "Constituí una sociedad automatizada",
     time: "~10 minutos + 5-10 días hábiles (ARCA + IGJ)",
     audience: "founder · operador · accountant",
     color: "#22c55e",
@@ -77,25 +77,25 @@ const PATHS = [
       "Para constituir una empresa argentina operada por IA, hoy. SAS estándar mientras el anteproyecto no esté sancionado, el código pre-cableado migra el día 1.",
     steps: [
       {
-        title: "Abrir el wizard",
+        title: "Abrí el wizard",
         body: "Completás denominación + tipo + capital + objeto + email contacto. El pre-flight de IGJ corre en vivo (mismas reglas que validate_igj_inscription).",
         link: "/incorporar",
       },
       {
-        title: "Descargar los 4 archivos",
+        title: "Descargá los 4 archivos",
         body: "package.json, lib/agent.ts, .env.example, README.md.",
       },
       {
-        title: "Click 'Deploy en Vercel'",
+        title: "Hacé click en 'Deploy en Vercel'",
         body: "Clona apps/sociedad-ia-starter directo. Vercel auto-injecta los env-var slots.",
       },
       {
-        title: "Cargar credenciales reales",
+        title: "Cargá tus credenciales",
         body: "AFIP cert (5-10 días desde ARCA → Clave Fiscal), MP token (1 día developers.mercadopago.com), Meta WhatsApp (10-15 días business verification).",
       },
       {
         title: "Inscripción IGJ vía TAD",
-        body: "Solicitar inscripción de la SAS. Tu agente queda online apenas el cert + IGJ + MP estén wired.",
+        body: "Solicitá la inscripción de la SAS. Tu agente queda online apenas el cert + IGJ + MP estén wired.",
       },
     ],
   },

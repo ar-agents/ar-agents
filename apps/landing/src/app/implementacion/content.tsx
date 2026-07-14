@@ -117,7 +117,7 @@ export function ImplementacionContent() {
               fontWeight: 500,
             }}
           >
-            Abrir en una nueva pestaña
+            Abrí en una pestaña nueva
           </a>
         </div>
       </div>

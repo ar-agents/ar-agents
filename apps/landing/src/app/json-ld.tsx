@@ -201,13 +201,13 @@ export function IncorporarJsonLd() {
           {
             "@type": "HowToStep",
             position: 1,
-            name: "Completar el wizard con denominación + tipo + capital + objeto",
+            name: "Completá el wizard con denominación + tipo + capital + objeto",
             text: "El pre-flight de IGJ corre en vivo según las reglas del tool validate_igj_inscription.",
           },
           {
             "@type": "HowToStep",
             position: 2,
-            name: "Descargar los 4 archivos generados",
+            name: "Descargá los 4 archivos generados",
             text: "package.json, lib/agent.ts, .env.example, README.md.",
           },
           {
@@ -219,7 +219,7 @@ export function IncorporarJsonLd() {
           {
             "@type": "HowToStep",
             position: 4,
-            name: "Cargar credenciales reales (ARCA cert, MP token, WhatsApp)",
+            name: "Cargá las credenciales reales (ARCA cert, MP token, WhatsApp)",
             text: "Cada cliente externo degrada graciosamente cuando su env-var está ausente.",
           },
           {

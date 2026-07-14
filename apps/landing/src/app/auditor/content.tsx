@@ -29,7 +29,7 @@ const T = {
     en: "/auditor · english · 1-page · printable · 2026-05-11",
   },
   h1: {
-    es: "Auditar una sociedad automatizada argentina, en una hoja.",
+    es: "Auditá una sociedad automatizada argentina, en una hoja.",
     en: "Audit an Argentine automated company, on a single page.",
   },
   lede: {

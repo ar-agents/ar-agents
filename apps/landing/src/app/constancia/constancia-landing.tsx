@@ -348,13 +348,13 @@ function ResultCard({ result }: { result: LookupResult }) {
           href={result.proofUrl.replace("https://ar-agents.ar", "")}
           style={ctaPrimary}
         >
-          Ver página de prueba
+          Mirá la página de prueba
         </Link>
         <Link
           href={result.proofUrl.replace("https://ar-agents.ar", "")}
           style={ctaGhost}
         >
-          Copiar el badge →
+          Copiá el badge →
         </Link>
       </div>
 

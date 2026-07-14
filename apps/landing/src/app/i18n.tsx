@@ -264,7 +264,7 @@ export const ES: Translations = {
   hero_h1_l2: "Hecha en Argentina.",
   hero_sub:
     "Una Sociedad Automatizada opera con agentes de IA, no con empleados. ar-agents es el código abierto para constituirla y operarla.",
-  cta_deploy: "Deployar en Vercel",
+  cta_deploy: "Deployá en Vercel",
   cta_github: "GitHub",
   cta_npm: "npm",
   cta_cookbook: "Recetario",
