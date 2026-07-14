@@ -262,7 +262,7 @@ export default function Home() {
 
         {/* SECTION 2 (pattern B): stack table of the open rails */}
         <section id="rieles" style={sectionOuter}>
-          <h2 style={sectionHeading}>{es ? "Sobre los rieles abiertos" : "On the open rails"}</h2>
+          <h2 style={sectionHeading}>{es ? "Rieles de código abierto" : "Open-source rails"}</h2>
           <p style={quietExplainer}>
             {es
               ? "39 paquetes MIT en npm. Todo el stack argentino que una sociedad necesita, sin pegar soluciones sueltas."
