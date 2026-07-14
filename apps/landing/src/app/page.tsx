@@ -45,8 +45,8 @@ const INVENTORY: ReadonlyArray<InventoryItem> = [
     n: "01",
     t_es: "Describí tu idea",
     t_en: "Describe your idea",
-    d_es: "El coach valida el negocio antes de construir nada. Preguntas cortas, sin vueltas.",
-    d_en: "The coach validates the business before building anything. Short questions, no runaround.",
+    d_es: "El coach valida el negocio antes de crearlo.",
+    d_en: "The coach validates the business before creating it.",
     tag: "studio",
   },
   {
@@ -60,16 +60,16 @@ const INVENTORY: ReadonlyArray<InventoryItem> = [
     n: "03",
     t_es: "Registrá la sociedad",
     t_en: "Register the company",
-    d_es: "La constitución es tuya: un botón, tu firma como administrador. El agente no puede apretarlo.",
-    d_en: "The incorporation is yours: one button, your signature as administrator. The agent can't press it.",
+    d_es: "Firmás como administrador de la sociedad y se constituye de manera automática.",
+    d_en: "You sign as the company's administrator and it incorporates automatically.",
     tag: "art. 102",
   },
   {
     n: "04",
     t_es: "Desplegá tu agente",
     t_en: "Deploy your agent",
-    d_es: "El estudio crea el proyecto, configura todo y deja el agente corriendo. Sin tocar una consola.",
-    d_en: "The studio creates the project, configures everything, and leaves the agent running. No console required.",
+    d_es: "El estudio crea el proyecto, configura todo y deja el agente corriendo.",
+    d_en: "The studio creates the project, configures everything, and leaves the agent running.",
     tag: "Vercel",
   },
   {
@@ -90,8 +90,8 @@ const INVENTORY: ReadonlyArray<InventoryItem> = [
     n: "07",
     t_es: "Cobrá y facturá",
     t_en: "Charge and invoice",
-    d_es: "Pagos, factura electrónica y pesos en tu cuenta. Sobre rieles abiertos.",
-    d_en: "Payments, electronic invoicing, and pesos in your account. On open rails.",
+    d_es: "Pagos, factura electrónica y pesos en tu cuenta.",
+    d_en: "Payments, electronic invoicing, and pesos in your account.",
     tag: "Mercado Pago, AFIP",
   },
 ];
@@ -227,7 +227,7 @@ export default function Home() {
 
             <p style={analogyP}>
               {es
-                ? "Como una empresa tradicional, pero operada por agentes. Cobra, factura y paga en pesos. Cada decisión queda firmada y es verificable."
+                ? "Como una empresa tradicional, pero operada por agentes. Cobra, factura y paga de manera automática. Cada decisión queda firmada y es verificable."
                 : "Like a traditional company, but run by agents. It charges, invoices, and pays in pesos. Every decision is signed and verifiable."}
             </p>
           </div>
@@ -244,8 +244,8 @@ export default function Home() {
           </h2>
           <p style={quietExplainer}>
             {es
-              ? "Describile tu idea al agente. El estudio valida el negocio, arma el borrador y deja la sociedad operando. Vos apretás el único botón que importa."
-              : "Describe your idea to the agent. The studio validates the business, drafts the plan, and leaves the company running. You press the only button that matters."}
+              ? "Describile tu idea al agente. El estudio valida el negocio, arma el borrador y deja la sociedad operando."
+              : "Describe your idea to the agent. The studio validates the business, drafts the plan, and leaves the company running."}
           </p>
           <div style={{ marginTop: 12 }}>
             {INVENTORY.map((item) => (
@@ -262,11 +262,11 @@ export default function Home() {
 
         {/* SECTION 2 (pattern B): stack table of the open rails */}
         <section id="rieles" style={sectionOuter}>
-          <h2 style={sectionHeading}>{es ? "Sobre los rieles abiertos" : "On the open rails"}</h2>
+          <h2 style={sectionHeading}>{es ? "Rieles de código abierto" : "Open-source rails"}</h2>
           <p style={quietExplainer}>
             {es
-              ? "39 paquetes MIT en npm. Todo el stack argentino que una sociedad necesita, sin pegar soluciones sueltas."
-              : "39 MIT packages on npm. The whole Argentine stack a company needs, without gluing together loose solutions."}
+              ? "Todo el stack argentino que una sociedad necesita en 39 paquetes MIT en npm."
+              : "The whole Argentine stack a company needs, in 39 MIT packages on npm."}
           </p>
           <dl style={{ margin: "12px 0 0", display: "grid", gap: 1 }}>
             {STACK_ROWS.map((r) => (
@@ -313,30 +313,7 @@ export default function Home() {
           </div>
         </section>
 
-        {/* FINALE: one giant statement, one button, one status line. Nothing else. */}
-        <section id="finale" style={{ ...sectionOuter, textAlign: "center", marginBottom: 48 }}>
-          <h2 style={finaleHeading}>{es ? "Creá la tuya." : "Create yours."}</h2>
-          <div style={{ marginTop: 32, display: "flex", justifyContent: "center" }}>
-            <a href={STUDIO_URL} style={ctaPrimary}>
-              {es ? "Crear mi empresa" : "Create my company"}
-            </a>
-          </div>
-          <div style={lawStatusLine} role="status">
-            {law.banner ? <span aria-hidden="true" style={lawDot} /> : null}
-            <span style={{ color: "var(--text-muted)" }}>{law.banner ?? law.note}</span>
-            {law.banner ? <span style={{ color: "var(--text-muted)" }}> · {law.note}</span> : null}
-          </div>
-        </section>
-
-        {/* PRICING: one plain sentence, per docs/NORTH-STAR.md */}
-        <p style={{ textAlign: "center", fontSize: 14, color: "var(--text-body)", margin: "0 0 64px", lineHeight: 1.6 }}>
-          {es
-            ? "Crear y operar tu sociedad es gratis. Cuando empieza a facturar, pasás a pagar por uso."
-            : "Creating and operating your company is free. Once it starts earning, you move to usage-based pricing."}{" "}
-          <a href={es ? "/precios" : "/en/pricing"} style={inlineLink}>{es ? "Ver precios" : "See pricing"} →</a>
-        </p>
-
-        <Footer es={es} />
+        <Footer es={es} law={law} />
       </div>
       <HomeJsonLd />
     </main>
@@ -492,74 +469,32 @@ function InventoryRow({
 
 /* ---------- footer ---------- */
 
-function Footer({ es }: { es: boolean }) {
-  const cols: { h: string; links: { l: string; href: string }[] }[] = [
-    {
-      h: es ? "Producto" : "Product",
-      links: [
-        { l: es ? "Studio" : "Studio", href: STUDIO_URL },
-        { l: es ? "Cómo funciona" : "How it works", href: "/sociedades-ia" },
-        { l: es ? "Precios" : "Pricing", href: es ? "/precios" : "/en/pricing" },
-        { l: es ? "Registro" : "Registry", href: "/registro" },
-      ],
-    },
-    {
-      h: "Docs",
-      links: [
-        { l: "SDK", href: "/sdk" },
-        { l: es ? "Ejemplos" : "Examples", href: "/examples" },
-        { l: es ? "Referencia" : "Reference", href: "/reference" },
-        { l: es ? "Estado" : "Status", href: "/status" },
-      ],
-    },
-    {
-      h: es ? "La ley" : "The law",
-      links: [
-        { l: es ? "Por qué ahora" : "Why now", href: "/ley" },
-        { l: es ? "Síntesis" : "Synthesis", href: es ? "/legislacion" : "/en/legislation" },
-        { l: "RFCs", href: "/rfcs/001" },
-      ],
-    },
-    {
-      h: es ? "Recursos" : "Resources",
-      links: [
-        { l: es ? "El caso ar-agents" : "The ar-agents case", href: es ? "/caso-ar-agents" : "/en/ar-agents-case" },
-        { l: es ? "Referencia" : "Reference", href: "/reference" },
-        { l: "Changelog", href: "/changelog" },
-        { l: es ? "Privacidad" : "Privacy", href: "/privacy" },
-      ],
-    },
-  ];
+function Footer({ es, law }: { es: boolean; law: { banner: string | null; note: string } }) {
+  const link: React.CSSProperties = { color: "var(--text-body)", textDecoration: "none" };
   return (
-    <footer style={{ paddingTop: 40, marginTop: 24, color: "var(--text-muted)", fontSize: 13, display: "grid", gap: 24, boxShadow: "inset 0 1px 0 var(--border-color)" }}>
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(160px, 1fr))", gap: 24 }}>
-        {cols.map((c) => (
-          <div key={c.h}>
-            <p style={{ ...eyebrowSty, marginBottom: 8 }}>{c.h}</p>
-            <ul style={{ listStyle: "none", padding: 0, margin: 0, display: "grid", gap: 6 }}>
-              {c.links.map((lk) => (
-                <li key={lk.href + lk.l}>
-                  <a href={lk.href} style={{ color: "var(--text-body)", textDecoration: "underline" }}>{lk.l}</a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
-      </div>
-      <div style={proofStrip}>
-        <span>Open source · MIT</span>
-        <span aria-hidden="true">·</span>
-        <span>39 {es ? "paquetes en npm" : "npm packages"}</span>
-        <span aria-hidden="true">·</span>
-        <span>{es ? "corre como su propia sociedad" : "runs as its own company"}</span>
-      </div>
-      <div style={{ display: "flex", justifyContent: "space-between", flexWrap: "wrap", gap: 8, paddingTop: 16, borderTop: "1px solid var(--border-color)" }}>
-        <span>MIT (code) + CC-BY-4.0 (specs) · <a href="https://github.com/naza00000" style={{ color: "var(--text-body)", textDecoration: "underline" }}>Nazareno Clemente</a></span>
-        <span style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
-          <a href="https://github.com/ar-agents/ar-agents" style={{ color: "var(--text-body)", textDecoration: "underline" }}>GitHub</a>
-          <a href="https://www.npmjs.com/org/ar-agents" style={{ color: "var(--text-body)", textDecoration: "underline" }}>npm</a>
-        </span>
-      </div>
+    <footer
+      style={{
+        marginTop: 24,
+        paddingTop: 14,
+        borderTop: "1px solid var(--border-color)",
+        color: "var(--text-muted)",
+        fontSize: 12,
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        gap: 12,
+        flexWrap: "wrap",
+        lineHeight: 1.4,
+      }}
+    >
+      <span role="status">{law.banner ?? law.note}</span>
+      <span style={{ display: "flex", gap: 14, flexWrap: "wrap" }}>
+        <a href="https://github.com/ar-agents/ar-agents" style={link}>GitHub</a>
+        <a href="https://www.npmjs.com/org/ar-agents" style={link}>npm</a>
+        <a href={es ? "/precios" : "/en/pricing"} style={link}>{es ? "Precios" : "Pricing"}</a>
+        <a href="/privacy" style={link}>{es ? "Privacidad" : "Privacy"}</a>
+        <span>MIT</span>
+      </span>
     </footer>
   );
 }
@@ -866,40 +801,6 @@ const inlineLink: React.CSSProperties = {
 
 
 
-// Finale: 96px statement, weight 450, -0.06em, nothing else beside the button.
-const finaleHeading: React.CSSProperties = {
-  fontSize: "clamp(48px, 9vw, 96px)",
-  fontWeight: 450,
-  letterSpacing: "-0.06em",
-  lineHeight: 1.0,
-  margin: 0,
-};
 
-const lawStatusLine: React.CSSProperties = {
-  display: "flex",
-  alignItems: "center",
-  justifyContent: "center",
-  flexWrap: "wrap",
-  gap: 8,
-  fontSize: 13,
-  lineHeight: 1.5,
-  marginTop: 24,
-};
 
-const lawDot: React.CSSProperties = {
-  display: "inline-block",
-  width: 8,
-  height: 8,
-  borderRadius: 9999,
-  background: "var(--warning, var(--accent))",
-  flexShrink: 0,
-};
 
-const proofStrip: React.CSSProperties = {
-  display: "flex",
-  flexWrap: "wrap",
-  gap: 8,
-  alignItems: "center",
-  fontSize: 12,
-  color: "var(--text-muted)",
-};
