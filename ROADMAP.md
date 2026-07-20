@@ -49,12 +49,12 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 ## M1: A stranger can do it
 
 ### M1-1 Coach corpus
-- status: in-progress (supervised session 2026-07-08)
+- status: done (2026-07-20; corpus files apps/studio/src/coach/corpus/{lean-startup,paul-graham,automated-business,argentina}.md, each with a sources header, compiled into CORPUS_DIGEST by src/coach/corpus.ts and wired into buildSystemPrompt in src/coach/system-prompt.ts; the M1-8 live evals exercised it in production)
 - priority: P1
 - acceptance: distilled startup-judgment corpus (lean startup method, Paul Graham essay principles with links, gstack build practice) wired into the coach system prompt; corpus is markdown files in apps/studio, each with sources; no full copyrighted texts.
 
 ### M1-2 Web research tool for the agent
-- status: in-progress (supervised session 2026-07-08)
+- status: done (2026-07-20; research_web tool registered in apps/studio/src/app/api/agent/route.ts, backed by src/lib/research.ts (Tavily), gated on TAVILY_API_KEY, results cited by URL in the coach's reply, per-request call cap)
 - priority: P1
 - acceptance: the builder agent can run web searches and fetch pages to validate a market before recommending a build; results cited in-conversation.
 
