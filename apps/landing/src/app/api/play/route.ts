@@ -34,8 +34,11 @@ import { z } from "zod";
 import { appendAudit, type AuditGovernance, isSessionIdValid, backend } from "@/lib/audit";
 import { clientIp } from "@/lib/ratelimit";
 
-export const runtime = "edge";
-export const maxDuration = 30;
+// nodejs (Fluid), not edge: the OpenRouter free-tier path needs retries and
+// its latency varies; the edge runtime's 25s initial-response cap 504'd live
+// draft generation (2026-07-20). Fluid keeps the same regions and pricing.
+export const runtime = "nodejs";
+export const maxDuration = 90;
 
 const TOOL_GOVERNANCE: Record<string, AuditGovernance> = {
   validate_cuit: "algorithm-only",

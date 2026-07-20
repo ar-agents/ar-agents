@@ -26,8 +26,11 @@ import { z } from "zod";
 import { clientIp, rateLimit } from "@/lib/ratelimit";
 import { checkBotId } from "botid/server";
 
-export const runtime = "edge";
-export const maxDuration = 30;
+// nodejs (Fluid), not edge: the OpenRouter free-tier path needs retries and
+// its latency varies; the edge runtime's 25s initial-response cap 504'd live
+// draft generation (2026-07-20). Fluid keeps the same regions and pricing.
+export const runtime = "nodejs";
+export const maxDuration = 90;
 
 const SYSTEM_BASE = `You are a Mercado Pago payments agent built on top of @ar-agents/mercadopago.
 You operate the Mercado Pago API on behalf of a developer evaluating the toolkit.

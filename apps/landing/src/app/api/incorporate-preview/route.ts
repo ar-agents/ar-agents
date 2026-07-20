@@ -17,7 +17,11 @@ import { previewIncorporation } from "@/lib/incorporate-run";
 import { draftToInput, extractSocietyDraft } from "@/lib/prompt-to-society";
 import { clientIp, kvRateLimit, rateLimit } from "@/lib/ratelimit";
 
-export const runtime = "edge";
+// nodejs (Fluid), not edge: the OpenRouter free-tier path needs retries and
+// its latency varies; the edge runtime's 25s initial-response cap 504'd live
+// draft generation (2026-07-20). Fluid keeps the same regions and pricing.
+export const runtime = "nodejs";
+export const maxDuration = 90;
 
 export async function POST(req: Request) {
   const ip = clientIp(req);
