@@ -13,6 +13,7 @@
     "test:watch": "vitest"
   },
   "dependencies": {
+    "@ai-sdk/openai-compatible": "^3.0.0",
     "@ai-sdk/react": "^4.0.0",
     "@ar-agents/banking": "workspace:*",
     "@ar-agents/constancia": "workspace:*",
@@ -26,14 +27,14 @@
     "@ar-agents/x402": "workspace:*",
     "@modelcontextprotocol/sdk": "^1.26.0",
     "@vercel/kv": "^3.0.0",
-    "mcp-handler": "^1.1.0",
     "ai": "^7.0.0",
+    "botid": "^1.5.6",
+    "mcp-handler": "^1.1.0",
     "mermaid": "^11.14.0",
     "next": "16.2.10",
     "react": "19.2.7",
     "react-dom": "19.2.7",
-    "zod": "^4.4.3",
-    "botid": "^1.5.6"
+    "zod": "^4.4.3"
   },
   "devDependencies": {
     "@types/node": "^20",
