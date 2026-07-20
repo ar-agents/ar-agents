@@ -1,6 +1,6 @@
 import { describe, it, expect, vi } from "vitest";
 import { mockFetch, makeMeliClient } from "../src/testing";
-import { MeliClient, getItem } from "../src";
+import { MeliClient, TokenBucketRateLimiter, getItem } from "../src";
 
 describe("telemetry hooks", () => {
   it("fires onRequest + onResponse with correlated requestId", async () => {
@@ -81,19 +81,59 @@ describe("telemetry hooks", () => {
     expect(telemetryOnRetry).toHaveBeenCalled();
   });
 
-  it("fires onRateLimitWait only when wait > 0", async () => {
-    const onRateLimitWait = vi.fn();
-    const fm = mockFetch()
-      .on("GET", "/x", () => ({ status: 200, body: {} }))
-      .build();
-    const client = new MeliClient({
-      auth: { kind: "bearer", accessToken: "t" },
-      fetch: fm.fetch,
-      telemetry: { onRateLimitWait },
-    });
-    await client.fetch({ method: "GET", path: "/x" });
-    // Real bucket starts full; wait should be 0 → hook NOT called.
-    expect(onRateLimitWait).not.toHaveBeenCalled();
+  it("does not fire onRateLimitWait when there is no wait", async () => {
+    // The client measures Date.now() around `await rateLimiter.acquire()`.
+    // Even with a full bucket (instant acquire), the real clock can tick 1ms
+    // across that await under CI jitter, firing the hook spuriously. Freeze
+    // the clock (same de-flake as mercadopago's rate-limiter test, PR #78)
+    // so a no-wait acquire measures exactly 0ms.
+    vi.useFakeTimers();
+    try {
+      const onRateLimitWait = vi.fn();
+      const fm = mockFetch()
+        .on("GET", "/x", () => ({ status: 200, body: {} }))
+        .build();
+      const client = new MeliClient({
+        auth: { kind: "bearer", accessToken: "t" },
+        fetch: fm.fetch,
+        telemetry: { onRateLimitWait },
+      });
+      await client.fetch({ method: "GET", path: "/x" });
+      // Bucket starts full; wait is 0 → hook NOT called.
+      expect(onRateLimitWait).not.toHaveBeenCalled();
+    } finally {
+      vi.useRealTimers();
+    }
+  });
+
+  it("fires onRateLimitWait when the limiter makes the request wait", async () => {
+    vi.useFakeTimers();
+    try {
+      const onRateLimitWait = vi.fn();
+      const fm = mockFetch()
+        .on("GET", "/x", () => ({ status: 200, body: {} }))
+        .build();
+      const client = new MeliClient({
+        auth: { kind: "bearer", accessToken: "t" },
+        fetch: fm.fetch,
+        rateLimiter: new TokenBucketRateLimiter({
+          refillPerSecond: 1,
+          burst: 1,
+          idleEvictMs: 0,
+        }),
+        telemetry: { onRateLimitWait },
+      });
+      // First request consumes the only token; the second must wait ~1s.
+      await client.fetch({ method: "GET", path: "/x" });
+      expect(onRateLimitWait).not.toHaveBeenCalled();
+      const second = client.fetch({ method: "GET", path: "/x" });
+      await vi.advanceTimersByTimeAsync(1000);
+      await second;
+      expect(onRateLimitWait).toHaveBeenCalledOnce();
+      expect(onRateLimitWait.mock.calls[0]![0].waitMs).toBeGreaterThan(0);
+    } finally {
+      vi.useRealTimers();
+    }
   });
 
   it("works correctly when no telemetry is configured (zero overhead)", async () => {
