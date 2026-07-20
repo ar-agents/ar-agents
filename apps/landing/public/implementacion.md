@@ -134,7 +134,7 @@ La arquitectura descrita en la sección 2 está implementada y publicada como so
   - `@ar-agents/incorporate`, flujo de constitución societaria
   - `@ar-agents/whatsapp`, `@ar-agents/banking`, `@ar-agents/shipping`, entre otros.
 - **Especificaciones formales**: 6 RFCs publicados en `ar-agents.ar/rfcs`, incluido el registro auditable encadenado (RFC-004) y su anclaje externo (RFC-006).
-- **245 herramientas** expuestas a través de los paquetes, operables vía Vercel AI SDK y MCP.
+- **252 herramientas** expuestas a través de los paquetes, operables vía Vercel AI SDK y MCP.
 - **Reference verifier**: `npx @ar-agents/verify-sociedad <CUIT>` permite a cualquier tercero ejecutar una verificación local del estado fiscal y criptográfico de una Sociedad Automatizada registrada.
 - **Despliegues de referencia operativos**: aplicaciones funcionando end-to-end emitiendo CAEs reales contra ARCA en ambiente productivo, no sandbox.
 

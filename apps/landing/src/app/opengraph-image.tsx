@@ -116,7 +116,7 @@ export default function OpengraphImage() {
           >
             <span>39 packages</span>
             <span>·</span>
-            <span>245 tools</span>
+            <span>252 tools</span>
             <span>·</span>
             <span>6 RFCs</span>
             <span>·</span>

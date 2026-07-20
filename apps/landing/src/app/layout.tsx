@@ -269,7 +269,7 @@ const schemaOrgJsonLd = {
           name: "What is ar-agents?",
           acceptedAnswer: {
             "@type": "Answer",
-            text: "ar-agents is open-source infrastructure for Argentina's coming 'sociedades de IA' (AI-corporation) regime: 39 npm packages and 245 typed Vercel AI SDK 6 tools that let an AI agent incorporate and operate as an Argentine company end-to-end, identity (CUIT/ARCA), digital signing, money (Mercado Pago, with 89 tools, plus a wallet and treasury layer), e-invoicing (AFIP/ARCA), banking (CBU/CVU + BCRA), WhatsApp Business, shipping (Andreani/OCA/Correo), gazette monitoring (Boletín Oficial), corporate registry (IGJ), a terminal client (@ar-agents/cli), plus 6 RFCs and an HMAC + Ed25519 audit log. MIT (code) + CC-BY-4.0 (specs).",
+            text: "ar-agents is open-source infrastructure for Argentina's coming 'sociedades de IA' (AI-corporation) regime: 39 npm packages and 252 typed Vercel AI SDK 6 tools that let an AI agent incorporate and operate as an Argentine company end-to-end, identity (CUIT/ARCA), digital signing, money (Mercado Pago, with 89 tools, plus a wallet and treasury layer), e-invoicing (AFIP/ARCA), banking (CBU/CVU + BCRA), WhatsApp Business, shipping (Andreani/OCA/Correo), gazette monitoring (Boletín Oficial), corporate registry (IGJ), a terminal client (@ar-agents/cli), plus 6 RFCs and an HMAC + Ed25519 audit log. MIT (code) + CC-BY-4.0 (specs).",
           },
         },
         {

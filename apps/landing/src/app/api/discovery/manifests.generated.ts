@@ -86,9 +86,43 @@ export const MANIFESTS = [
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/ap2",
-    "version": "0.2.0",
+    "version": "0.3.1",
     "description": "Google AP2 (Agent Payments Protocol) primitives — Mandate verification + signing (ES256 / JWS), canonical claims, multi-hop mandate chains, budget tracker. Infrastructure package — no LLM tool surface.",
-    "tools": []
+    "tools": [
+      {
+        "name": "build_checkout_receipt",
+        "description": "Sign and return a CheckoutReceipt JWT after a successful checkout. USE THIS WHEN: you've verified a closed checkout mandate and the merchant is ready to confirm. Pass `sdHash` (from `verify_closed_che"
+      },
+      {
+        "name": "build_payment_receipt",
+        "description": "Sign and return a PaymentReceipt JWT after a successful payment. USE THIS WHEN: an MPP / network has authorized the payment. Pass `sdHash` (from `verify_closed_payment_mandate`), `paymentId` (your pro"
+      },
+      {
+        "name": "compute_checkout_hash",
+        "description": "Compute the canonical `checkout_hash` of an inner `checkout_jwt` per AP2 §A.1: `base64url(sha-256(checkout_jwt))`. USE THIS WHEN: you're issuing a closed checkout mandate and need to fill in `checkout"
+      },
+      {
+        "name": "inspect_mandate",
+        "description": "Decode an SD-JWT VC compact serialization WITHOUT verifying any signature. USE THIS WHEN: debugging a malformed mandate, displaying the mandate tree to a developer, or pre-flight inspecting before dec"
+      },
+      {
+        "name": "verify_closed_checkout_mandate",
+        "description": "Verify a Closed Checkout Mandate (`vct: 'mandate.checkout.1'`) presented as a single-hop SD-JWT VC compact serialization. USE THIS WHEN: a merchant or facilitator has just received an AP2 closed check"
+      },
+      {
+        "name": "verify_closed_payment_mandate",
+        "description": "Verify a Closed Payment Mandate (`vct: 'mandate.payment.1'`) and assert that its `transaction_id` equals the `expectedTransactionId` you pass — typically the linked Closed Checkout Mandate's `checkout"
+      },
+      {
+        "name": "verify_dsd_jwt_chain",
+        "description": "Verify a multi-hop dSD-JWT chain (root + intermediate hops + terminal hop, `~~`-separated). USE THIS WHEN: the mandate is from a Trusted Agent Provider model where root is signed by the provider, inte"
+      }
+    ],
+    "name": "@ar-agents/ap2",
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 7
+    }
   },
   {
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
@@ -886,13 +920,13 @@ export const MANIFESTS = [
     "$schema": "https://ar-agents.ar/schemas/tools.manifest.v1.json",
     "package": "@ar-agents/mcp",
     "version": "0.9.0",
-    "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (12 subpackages, 133 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package — exposes the underlying tool surface via stdio transport.",
+    "description": "MCP (Model Context Protocol) server bundling the @ar-agents/* toolkit (13 subpackages, 168 tools) for any MCP host (Claude Desktop, Cursor, Continue, Cline). Infrastructure package that exposes the underlying tool surface via stdio transport.",
     "tools": []
   },
   {
     "$schema": "https://ar-agents.ar/schema/tools-manifest.json",
     "package": "@ar-agents/mercadolibre",
-    "version": "0.1.0",
+    "version": "0.6.1",
     "description": "Mercado Libre Agent Toolkit for the Vercel AI SDK 6.",
     "site_ids": [
       "MLA",
@@ -905,91 +939,23 @@ export const MANIFESTS = [
     ],
     "tools": [
       {
-        "name": "list_my_items",
-        "summary": "List the configured seller's listings (active, paused, or closed).",
+        "name": "answer_question",
+        "summary": "Post an answer to a question.",
         "input": {
-          "status": {
-            "type": "enum",
-            "values": [
-              "active",
-              "paused",
-              "closed",
-              "all"
-            ],
-            "optional": true
-          },
-          "search": {
+          "questionId": "number",
+          "text": {
             "type": "string",
-            "optional": true,
-            "description": "Free-text filter applied to title."
-          },
-          "limit": {
-            "type": "number",
-            "optional": true,
-            "default": 50,
-            "max": 100
+            "max_length": 2000
           }
         },
         "output": {
-          "items": {
-            "type": "array",
-            "of": "ItemSummary"
-          },
-          "total": {
-            "type": "number"
-          }
+          "id": "number",
+          "text": "string",
+          "status": "string"
         },
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "get_item",
-        "summary": "Fetch a single listing by id.",
-        "input": {
-          "itemId": {
-            "type": "string",
-            "description": "Site-prefixed item id, e.g. MLA1402155766."
-          }
-        },
-        "output": "Item",
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "create_item",
-        "summary": "Create a new listing.",
-        "input": "ItemCreateRequest",
-        "output": {
-          "id": "string",
-          "status": "string",
-          "permalink": "string"
-        },
-        "side_effects": "creates a real listing on MELI",
+        "side_effects": "writes a public answer visible on the listing",
         "rate_limit_class": "write",
-        "preconditions": [
-          "category_id must exist for the configured site",
-          "listing_type_id must be valid for the seller's reputation level"
-        ]
-      },
-      {
-        "name": "update_item_price_or_stock",
-        "summary": "Update price and/or available_quantity on an existing listing.",
-        "input": {
-          "itemId": "string",
-          "price": {
-            "type": "number",
-            "optional": true
-          },
-          "available_quantity": {
-            "type": "number",
-            "optional": true
-          }
-        },
-        "output": "ItemSummary",
-        "side_effects": "modifies the listing",
-        "rate_limit_class": "write",
-        "idempotent": true,
-        "notes": "available_quantity = 0 auto-pauses the listing."
+        "description": "Answer a Mercado Libre pre-sale question (responder una pregunta). USE THIS WHEN: the question is real (not spam) and the agent has drafted a response in the seller's voice. Max 2000 chars. Returns `{"
       },
       {
         "name": "categorize_listing_and_plan_attributes",
@@ -1012,46 +978,8 @@ export const MANIFESTS = [
           "technicalSpecs": "TechnicalSpecResponse"
         },
         "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "list_unanswered_questions",
-        "summary": "List questions on the seller's listings that haven't been answered.",
-        "input": {
-          "itemId": {
-            "type": "string",
-            "optional": true
-          },
-          "limit": {
-            "type": "number",
-            "optional": true,
-            "default": 50
-          }
-        },
-        "output": {
-          "questions": "array<Question>",
-          "total": "number"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "answer_question",
-        "summary": "Post an answer to a question.",
-        "input": {
-          "questionId": "number",
-          "text": {
-            "type": "string",
-            "max_length": 2000
-          }
-        },
-        "output": {
-          "id": "number",
-          "text": "string",
-          "status": "string"
-        },
-        "side_effects": "writes a public answer visible on the listing",
-        "rate_limit_class": "write"
+        "rate_limit_class": "read",
+        "description": "Predict the Mercado Libre category for a listing (predecir categoría) AND fetch its required attributes. USE THIS BEFORE `create_item`: it returns the canonical category_id, the domain_id, and the lis"
       },
       {
         "name": "classify_question_spam",
@@ -1089,7 +1017,179 @@ export const MANIFESTS = [
           "features": "QuestionSpamFeatures"
         },
         "side_effects": "none — pure local function, no MELI call",
-        "rate_limit_class": "none"
+        "rate_limit_class": "none",
+        "description": "Classify a pre-sale question as spam / borderline / ham (detectar spam en preguntas) using a transparent heuristic. USE THIS BEFORE answering at scale to avoid wasting response time on spam waves. Ret"
+      },
+      {
+        "name": "create_item",
+        "summary": "Create a new listing.",
+        "input": "ItemCreateRequest",
+        "output": {
+          "id": "string",
+          "status": "string",
+          "permalink": "string"
+        },
+        "side_effects": "creates a real listing on MELI",
+        "rate_limit_class": "write",
+        "preconditions": [
+          "category_id must exist for the configured site",
+          "listing_type_id must be valid for the seller's reputation level"
+        ],
+        "description": "Publish a new Mercado Libre listing (publicar un producto en Mercado Libre). USE THIS WHEN the seller has decided to publish. Requires title + category_id + price + currency_id + available_quantity + "
+      },
+      {
+        "name": "defend_claim",
+        "summary": "Defend a claim — uploads N evidences in parallel + optional message.",
+        "input": {
+          "claimId": "number",
+          "evidences": "array<{ evidence_type, text?, file_id? }>",
+          "message": {
+            "type": "string",
+            "optional": true
+          }
+        },
+        "output": {
+          "claim": "Claim",
+          "uploadedEvidences": "array<{ type: EvidenceType }>",
+          "messagePosted": "{ message: string } | null"
+        },
+        "side_effects": "uploads evidences + posts a message visible to the buyer + MELI mediator",
+        "rate_limit_class": "write",
+        "description": "Defend a Mercado Libre claim (defender un reclamo) via the 2-day-SLA flow: upload all evidences in one call (one-shot per spec) and optionally post a closing message. USE THIS WHEN: a claim needs resp"
+      },
+      {
+        "name": "get_item",
+        "summary": "Fetch a single listing by id.",
+        "input": {
+          "itemId": {
+            "type": "string",
+            "description": "Site-prefixed item id, e.g. MLA1402155766."
+          }
+        },
+        "output": "Item",
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "description": "Fetch a Mercado Libre listing by id (consultar una publicación; e.g. `MLA1234567890`). USE THIS WHEN: you need the listing's title, price, status, attributes, or pictures. Public endpoint, no seller s"
+      },
+      {
+        "name": "get_order",
+        "summary": "Fetch a single order with full detail (items, payments, buyer billing).",
+        "input": {
+          "orderId": "number"
+        },
+        "output": "Order",
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "description": "Fetch a Mercado Libre order by id (consultar una venta), including buyer, payments, shipping, items. USE THIS WHEN: investigating a specific order. Returns `{ ok: true, order }`."
+      },
+      {
+        "name": "get_seller_reputation",
+        "summary": "Read the seller's reputation (thermometer + metrics + pre-evaluated alerts).",
+        "input": {
+          "sellerId": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": {
+          "level_id": {
+            "type": "enum",
+            "values": [
+              "5_green",
+              "4_light_green",
+              "3_yellow",
+              "2_orange",
+              "1_red"
+            ]
+          },
+          "metrics": "SellerReputationMetrics",
+          "alerts": "array<ReputationAlert>"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "description": "Fetch the seller's Mercado Libre reputation (reputación del vendedor), thermometer color, claim/handling/cancel rates, transactions, status. USE THIS WHEN: dashboarding or before a big-volume action l"
+      },
+      {
+        "name": "list_my_items",
+        "summary": "List the configured seller's listings (active, paused, or closed).",
+        "input": {
+          "status": {
+            "type": "enum",
+            "values": [
+              "active",
+              "paused",
+              "closed",
+              "all"
+            ],
+            "optional": true
+          },
+          "search": {
+            "type": "string",
+            "optional": true,
+            "description": "Free-text filter applied to title."
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50,
+            "max": 100
+          }
+        },
+        "output": {
+          "items": {
+            "type": "array",
+            "of": "ItemSummary"
+          },
+          "total": {
+            "type": "number"
+          }
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "description": "List the seller's own Mercado Libre listings (mis publicaciones de Mercado Libre). USE THIS WHEN: the agent needs to inventory the seller's catalog or filter by status. Pagination via `scroll_id` is a"
+      },
+      {
+        "name": "list_open_claims",
+        "summary": "List open claims/disputes/mediations for the seller, sorted by due_date ASC.",
+        "input": {
+          "stage": {
+            "type": "enum",
+            "values": [
+              "claim",
+              "dispute",
+              "mediation"
+            ],
+            "optional": true
+          },
+          "limit": {
+            "type": "number",
+            "optional": true,
+            "default": 50
+          }
+        },
+        "output": {
+          "claims": "array<Claim>",
+          "total": "number"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "description": "List open Mercado Libre claims (listar reclamos abiertos) at the requested mediation stage. USE THIS WHEN: the agent is running a defense pass. Returns `{ ok: true, claims, total }`. Pair with `defend"
+      },
+      {
+        "name": "list_promotion_candidates",
+        "summary": "List items eligible for current MELI promotions (discount % suggested by MELI).",
+        "input": {
+          "sellerId": {
+            "type": "number",
+            "optional": true
+          }
+        },
+        "output": {
+          "candidates": "array<PromotionCandidate>"
+        },
+        "side_effects": "none",
+        "rate_limit_class": "read",
+        "description": "List available Mercado Libre promotions (promociones disponibles) the seller has been invited to but hasn't opted into yet. USE THIS WHEN: the seller wants to find money-printing opportunities. Return"
       },
       {
         "name": "list_recent_orders",
@@ -1126,29 +1226,15 @@ export const MANIFESTS = [
         },
         "side_effects": "none",
         "rate_limit_class": "read",
-        "defaults": "if no status, returns paid + confirmed; if no dateFrom, returns last 24h"
+        "defaults": "if no status, returns paid + confirmed; if no dateFrom, returns last 24h",
+        "description": "List the seller's recent Mercado Libre orders (ventas recientes, listar órdenes). USE THIS WHEN: doing a fulfillment audit, billing reconciliation, or building a daily summary. Returns `{ ok: true, or"
       },
       {
-        "name": "get_order",
-        "summary": "Fetch a single order with full detail (items, payments, buyer billing).",
+        "name": "list_unanswered_questions",
+        "summary": "List questions on the seller's listings that haven't been answered.",
         "input": {
-          "orderId": "number"
-        },
-        "output": "Order",
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "list_open_claims",
-        "summary": "List open claims/disputes/mediations for the seller, sorted by due_date ASC.",
-        "input": {
-          "stage": {
-            "type": "enum",
-            "values": [
-              "claim",
-              "dispute",
-              "mediation"
-            ],
+          "itemId": {
+            "type": "string",
             "optional": true
           },
           "limit": {
@@ -1158,73 +1244,40 @@ export const MANIFESTS = [
           }
         },
         "output": {
-          "claims": "array<Claim>",
+          "questions": "array<Question>",
           "total": "number"
         },
         "side_effects": "none",
-        "rate_limit_class": "read"
+        "rate_limit_class": "read",
+        "description": "List unanswered Mercado Libre questions (preguntas sin responder) on this seller's items. USE THIS WHEN: the agent is doing a triage pass. Returns `{ ok: true, questions, total }`. Combine with `class"
       },
       {
-        "name": "defend_claim",
-        "summary": "Defend a claim — uploads N evidences in parallel + optional message.",
+        "name": "update_item_price_or_stock",
+        "summary": "Update price and/or available_quantity on an existing listing.",
         "input": {
-          "claimId": "number",
-          "evidences": "array<{ evidence_type, text?, file_id? }>",
-          "message": {
-            "type": "string",
-            "optional": true
-          }
-        },
-        "output": {
-          "claim": "Claim",
-          "uploadedEvidences": "array<{ type: EvidenceType }>",
-          "messagePosted": "{ message: string } | null"
-        },
-        "side_effects": "uploads evidences + posts a message visible to the buyer + MELI mediator",
-        "rate_limit_class": "write"
-      },
-      {
-        "name": "get_seller_reputation",
-        "summary": "Read the seller's reputation (thermometer + metrics + pre-evaluated alerts).",
-        "input": {
-          "sellerId": {
+          "itemId": "string",
+          "price": {
             "type": "number",
             "optional": true
-          }
-        },
-        "output": {
-          "level_id": {
-            "type": "enum",
-            "values": [
-              "5_green",
-              "4_light_green",
-              "3_yellow",
-              "2_orange",
-              "1_red"
-            ]
           },
-          "metrics": "SellerReputationMetrics",
-          "alerts": "array<ReputationAlert>"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
-      },
-      {
-        "name": "list_promotion_candidates",
-        "summary": "List items eligible for current MELI promotions (discount % suggested by MELI).",
-        "input": {
-          "sellerId": {
+          "available_quantity": {
             "type": "number",
             "optional": true
           }
         },
-        "output": {
-          "candidates": "array<PromotionCandidate>"
-        },
-        "side_effects": "none",
-        "rate_limit_class": "read"
+        "output": "ItemSummary",
+        "side_effects": "modifies the listing",
+        "rate_limit_class": "write",
+        "idempotent": true,
+        "notes": "available_quantity = 0 auto-pauses the listing.",
+        "description": "Update price or stock on a Mercado Libre listing (cambiar precio, actualizar stock). USE THIS WHEN: a stock change or repricing decision has been made. Pass `id` plus any of `price` / `available_quant"
       }
-    ]
+    ],
+    "name": "@ar-agents/mercadolibre",
+    "meta": {
+      "generated_by": "scripts/regen-manifests.mjs",
+      "tool_count": 14
+    }
   },
   {
     "$schema": "https://github.com/ar-agents/ar-agents/blob/main/tools-manifest.schema.json",

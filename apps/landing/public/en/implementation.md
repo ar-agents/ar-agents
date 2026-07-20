@@ -134,7 +134,7 @@ The architecture described in section 2 is implemented and published as free sof
   - `@ar-agents/incorporate`, incorporation flow
   - `@ar-agents/whatsapp`, `@ar-agents/banking`, `@ar-agents/shipping`, among others.
 - **Formal specifications**: 6 RFCs published at `ar-agents.ar/rfcs`, including the chained auditable ledger (RFC-004) and its external anchoring (RFC-006).
-- **245 tools** exposed through the packages, operable via the Vercel AI SDK and MCP.
+- **252 tools** exposed through the packages, operable via the Vercel AI SDK and MCP.
 - **Reference verifier**: `npx @ar-agents/verify-sociedad <CUIT>` allows any third party to run a local verification of the fiscal and cryptographic state of a registered Automated Corporation.
 - **Operating reference deployments**: applications running end to end, issuing real CAEs against ARCA in production environment, not sandbox.
 

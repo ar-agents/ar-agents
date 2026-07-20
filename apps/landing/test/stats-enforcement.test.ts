@@ -11,9 +11,9 @@ import {
  * DRIFT GUARD for the package/tool counts shown across the site.
  *
  * lib/stats.ts is supposed to be the single source of truth (PLAN.md), but most
- * pages hand-write "39 packages" / "245 tools" as literal copy instead of
+ * pages hand-write "39 packages" / "252 tools" as literal copy instead of
  * importing the constants. That copy has drifted three times already
- * (33 -> 37 -> 39 packages; 221 -> 235 -> 243 -> 245 tools) because nothing
+ * (33 -> 37 -> 39 packages; 221 -> 235 -> 243 -> 245 -> 252 tools) because nothing
  * caught it. This test has two independent jobs:
  *
  *   1. Derive the TRUE counts the same way reality does (packages/*\/package.json
