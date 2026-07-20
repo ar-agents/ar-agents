@@ -164,7 +164,7 @@ export const MESSAGES = {
     es: "Studio no tiene un token de Vercel configurado, así que el despliegue es manual: hacé click, pegá las variables de abajo en el proyecto nuevo y guardá la API key ya, no se puede volver a ver.",
     en: "Studio does not have a Vercel token configured, so the deploy is manual. Click through, paste the variables below into the new project, and save the API key now, it cannot be shown again.",
   },
-  "dashboard.agent.deployToVercel": { es: "Desplegar en Vercel", en: "Deploy to Vercel" },
+  "dashboard.agent.deployToVercel": { es: "Desplegá en Vercel", en: "Deploy to Vercel" },
   "dashboard.agent.envVarsLabel": { es: "Variables de entorno", en: "Environment variables" },
   "dashboard.agent.copyEnvVars": { es: "Copiar variables", en: "Copy variables" },
   "dashboard.agent.saveKeyWarning": {
@@ -184,7 +184,7 @@ export const MESSAGES = {
     en: "Could not deploy the agent. Try again in a bit.",
   },
   "dashboard.agent.deploying": { es: "Desplegando...", en: "Deploying..." },
-  "dashboard.agent.deployCta": { es: "Desplegar agente", en: "Deploy agent" },
+  "dashboard.agent.deployCta": { es: "Desplegá el agente", en: "Deploy agent" },
   "dashboard.approvals.heading": { es: "Aprobaciones pendientes", en: "Pending approvals" },
   "dashboard.approvals.error": {
     es: "No se pudieron cargar las aprobaciones.",
