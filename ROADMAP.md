@@ -116,12 +116,12 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - note: layout.tsx exports a static Next.js Metadata object rendered at build time; a client-side locale toggle cannot drive it. Making the tab title and description react to the selected locale needs generateMetadata plus a locale cookie, tracked as M1-3f. The current metadata is already bilingual, so nothing regresses.
 
 ### M1-3d Coach replies in the selected language
-- status: blocked (depends on M1-1 landing; edits src/coach/system-prompt.ts, which M1-1 is in-progress on)
+- status: done (2026-07-20; chat.tsx sends the language toggle's locale in POST /api/agent's body; the route falls back to "es" server-side via the existing resolveInitialLocale helper for any missing/invalid value; buildSystemPrompt prepends an explicit bilingual language instruction, es default with voseo called out, en keeping legal terms/proper nouns as-is, ahead of the existing mirroring rule; corpus digest, source links, and the pricing-mechanics refusal untouched. New tests in coach-corpus.test.ts and agent-route.test.ts (the latter via a mocked streamText) prove the locale reaches the system prompt for default/es/en/invalid/non-string values)
 - priority: P1
 - acceptance: the client sends the selected locale on POST /api/agent; buildSystemPrompt adds a language instruction (Spanish by default, English when selected) so the coach responds in the chosen language, with the corpus and its source links intact. Unit test: buildSystemPrompt returns the right language instruction per locale; the agent route test threads the locale through.
 
 ### M1-3e End-to-end language verification closes M1-3
-- status: blocked (depends on M1-3a, M1-3b, M1-3c, M1-3d)
+- status: blocked (2026-07-20: M1-3a, M1-3b, M1-3c, M1-3d are all done now; only the live end-to-end check remains, e.g. a journey eval run in English against a real model)
 - priority: P1
 - acceptance: a check (a test or the journey eval run in English) proves es-AR is the default and full English is available end to end across the UI and the coach, satisfying M1-3's original acceptance. On green, mark M1-3 done.
 
