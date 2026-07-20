@@ -240,6 +240,38 @@ describe("run()", () => {
       expect(combined.length).toBeGreaterThan(0);
       expect(combined).not.toContain(STORED_TOKEN);
     });
+
+    it("with piped stdin runs a turn and exits 0 on EOF instead of throwing readline-was-closed", async () => {
+      const { writeConfig } = await import("../src/config");
+      writeConfig(configDir, { studioUrl: "https://studio.example", token: "stu_piped", accountId: "acc_piped" });
+
+      // One user line, then EOF while the (mocked) turn is in flight: the
+      // M1-4e live run showed rl.question() after EOF throws
+      // ERR_USE_AFTER_CLOSE without the closed-guard in askLine.
+      const { Readable } = await import("node:stream");
+      const stdin = Readable.from(["hola\n"]);
+
+      const sseBody = [
+        'data: {"type":"text-delta","delta":"Hola."}\n\n',
+        "data: [DONE]\n\n",
+      ].join("");
+      const fetchImpl = vi.fn(async () =>
+        new Response(sseBody, { status: 200, headers: { "content-type": "text/event-stream" } }),
+      ) as unknown as typeof fetch;
+
+      const deps: RunDeps = {
+        env: { AR_AGENTS_CONFIG_DIR: configDir },
+        fetchImpl,
+        stdout: { write: () => {} },
+        stderr: { write: () => {} },
+        homedir: "/nonexistent-home",
+        platform: "linux",
+        version: "test",
+        stdin,
+      };
+      const code = await run(["chat"], deps);
+      expect(code).toBe(0);
+    });
   });
 
   describe("constitute", () => {

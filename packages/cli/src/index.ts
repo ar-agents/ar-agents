@@ -257,7 +257,9 @@ async function runChat(deps: RunDeps): Promise<number> {
   // exits. Registering the listener inside askLine would leak one listener per
   // turn and trip MaxListenersExceededWarning after ~10 turns.
   let pendingResolve: ((value: string | null) => void) | null = null;
+  let closed = false;
   rl.on("close", () => {
+    closed = true;
     if (pendingResolve) {
       pendingResolve(null);
       pendingResolve = null;
@@ -266,11 +268,24 @@ async function runChat(deps: RunDeps): Promise<number> {
 
   const askLine = (): Promise<string | null> =>
     new Promise((resolvePromise) => {
+      // With piped stdin (a scripted journey), EOF can close the interface
+      // while a chat turn is streaming; the next rl.question() then throws
+      // ERR_USE_AFTER_CLOSE ("readline was closed"). Resolve null instead so
+      // the loop ends the same way as an interactive Ctrl-D.
+      if (closed) {
+        resolvePromise(null);
+        return;
+      }
       pendingResolve = resolvePromise;
-      rl.question("> ", (line) => {
+      try {
+        rl.question("> ", (line) => {
+          pendingResolve = null;
+          resolvePromise(line);
+        });
+      } catch {
         pendingResolve = null;
-        resolvePromise(line);
-      });
+        resolvePromise(null);
+      }
     });
 
   for (;;) {
