@@ -382,7 +382,7 @@ export default async function DataRoomPage() {
         />
         <Metric
           label="Hosted API endpoints"
-          value="9"
+          value="15"
           sub="see /api/discovery"
           href="/api/discovery"
         />

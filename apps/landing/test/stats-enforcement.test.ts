@@ -323,21 +323,6 @@ const HISTORICAL_ALLOWLIST: ReadonlyArray<{
     reason: "PACKAGES_BLOCK: @ar-agents/mercadolibre's own tool count",
   },
   {
-    file: "src/app/i18n.tsx",
-    text: "11 tools",
-    reason: "@ar-agents/banking's own tool count (ES + EN copy)",
-  },
-  {
-    file: "src/app/i18n.tsx",
-    text: "13 packages",
-    reason: "@ar-agents/mcp bundles 13 tool-bearing subpackages (its package.json dependencies, excluding @ar-agents/core)",
-  },
-  {
-    file: "src/app/i18n.tsx",
-    text: "8 tools",
-    reason: "count of tools that modify state irreversibly and require HITL confirmation",
-  },
-  {
     file: "src/app/al-ministro/content.tsx",
     text: "6 paquetes",
     reason: "demo-video description naming the 6 specific packages exercised by that run, not the site total",
@@ -366,6 +351,12 @@ const HISTORICAL_ALLOWLIST: ReadonlyArray<{
     file: "src/app/examples/page.tsx",
     text: "5 packages",
     reason: 'cookbook recipe title ("Cross-package billing, 5 packages, one agent loop"), a specific recipe, not the site total',
+  },
+  {
+    file: "src/app/eve/eve-content.tsx",
+    text: "11 tools",
+    reason:
+      "hosted /api/mcp endpoint's own tool count (zero-credential subset), verified against the server.registerTool() calls in src/app/api/[transport]/route.ts (11 registered tools), not the site total",
   },
 
   // --- The /play demo's own tool count, verified against the `tools` object
