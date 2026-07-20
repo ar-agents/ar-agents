@@ -147,6 +147,10 @@ const KNOWN_CONSUMERS: ReadonlyArray<string> = [
   // Proves the incorporate.ts gating: stubs NEXT_PUBLIC_LAW_STATUS=live and
   // asserts the pending-law warning disappears while art. 14 stays enforced.
   "apps/landing/test/incorporate.test.ts",
+  // Comment-only: the `disclosure` field is static prose mentioning
+  // "LAW_STATUS 'pre'" for readers of the self-serve agent directory. Does
+  // NOT branch on the switch. See law-status.ts's COVERAGE comment.
+  "apps/landing/src/app/api/agents/route.ts",
 ];
 
 /** Directories to scan for the identifiers, relative to the monorepo root. */
