@@ -97,7 +97,16 @@ const SYSTEM = [
   "Convertí la descripción en lenguaje natural del usuario en los parámetros de constitución.",
   "Completá TODOS los campos. Para los opcionales que el usuario no mencione, usá null.",
   "No inventes datos personales (CUIT, nombres) que el usuario no haya dado: si no los dio, representante y emailContacto van en null.",
+  // Smaller free-tier models (the OpenRouter path) otherwise emit the string
+  // "null" or the tipo societario as the name; measured 2026-07-20.
+  'denominacion es SIEMPRE un nombre de fantasía real basado en el negocio (por ejemplo "Plantillas Legales Automatizada"). NUNCA es "null", nunca es el tipo societario, nunca queda vacía.',
 ].join("\n");
+
+/** Model-emitted junk names that smaller free-tier models produce for the
+ *  denominación instead of a real nombre de fantasía. Rejecting them turns
+ *  the draft into invalid_draft, which the caller's retry can recover. */
+const JUNK_DENOMINACION =
+  /^(null|undefined|n\/a|sin nombre|nombre de fantas[ií]a)$|^(sociedad( an[oó]nima| de responsabilidad limitada| por acciones simplificada)?|s\.?a\.?s?\.?|s\.?r\.?l\.?)( \(s\.?[ar]\.?[sl]?\.?\))?$/i;
 
 export type ExtractResult =
   | { ok: true; draft: SocietyDraft }
@@ -150,6 +159,9 @@ export async function extractSocietyDraft(
   const candidate = ExtractionSchema.safeParse(raw);
   if (!candidate.success) {
     return { ok: false, error: "invalid_draft", detail: candidate.error.format() };
+  }
+  if (JUNK_DENOMINACION.test(candidate.data.denominacion.trim())) {
+    return { ok: false, error: "invalid_draft", detail: "junk_denominacion" };
   }
 
   // Stage 2: the strict storage contract. Unknown keys are stripped, min/max +
