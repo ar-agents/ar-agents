@@ -21,6 +21,11 @@ run(process.argv.slice(2), {
   fetchImpl: fetch,
   stdout: process.stdout,
   stderr: process.stderr,
+  // Without this, `deps.stdin` is undefined and `ar-agents chat` refuses to
+  // start even in a real terminal (caught by the M1-4e live run). Piped
+  // stdin is deliberately allowed: readline reads lines from a pipe and the
+  // close event ends the loop, which is what scripted journeys rely on.
+  stdin: process.stdin,
   homedir: os.homedir(),
   platform: process.platform,
   version: pkg.version,
