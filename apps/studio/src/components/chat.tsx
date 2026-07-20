@@ -63,7 +63,7 @@ export function Chat({
   onStageChange?: (stage: StageId) => void;
   onSocietyCreated?: (society: SocietySummaryLike) => void;
 }) {
-  const { t, format } = useLocale();
+  const { locale, t, format } = useLocale();
   const [input, setInput] = useState("");
   const [constitutingOpen, setConstitutingOpen] = useState(false);
 
@@ -114,7 +114,10 @@ export function Chat({
     if (!text || busy) return;
     setInput("");
     clearError();
-    void sendMessage({ text }, { body: { stage } });
+    // Threads the selected language toggle locale (M1-3a) into the coach's
+    // system prompt (M1-3d), so the coach replies in the chosen language
+    // instead of only mirroring whatever language the user just typed.
+    void sendMessage({ text }, { body: { stage, locale } });
   }
 
   return (
