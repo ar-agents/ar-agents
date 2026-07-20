@@ -323,21 +323,6 @@ const HISTORICAL_ALLOWLIST: ReadonlyArray<{
     reason: "PACKAGES_BLOCK: @ar-agents/mercadolibre's own tool count",
   },
   {
-    file: "src/app/i18n.tsx",
-    text: "11 tools",
-    reason: "@ar-agents/banking's own tool count (ES + EN copy)",
-  },
-  {
-    file: "src/app/i18n.tsx",
-    text: "13 packages",
-    reason: "@ar-agents/mcp bundles 13 tool-bearing subpackages (its package.json dependencies, excluding @ar-agents/core)",
-  },
-  {
-    file: "src/app/i18n.tsx",
-    text: "8 tools",
-    reason: "count of tools that modify state irreversibly and require HITL confirmation",
-  },
-  {
     file: "src/app/al-ministro/content.tsx",
     text: "6 paquetes",
     reason: "demo-video description naming the 6 specific packages exercised by that run, not the site total",
