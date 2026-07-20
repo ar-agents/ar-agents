@@ -61,6 +61,12 @@ export function resolveLlm(): ResolvedLlm {
       baseURL: "https://openrouter.ai/api/v1",
       name: "openrouter",
       apiKey: key,
+      // Without this the SDK never sends the json_schema response_format, so
+      // generateObject degrades to freestyle JSON and schema misses (verified
+      // live: nemotron/gemma both failed extraction until this was set). Only
+      // pin models whose OpenRouter listing includes structured_outputs in
+      // supported_parameters.
+      supportsStructuredOutputs: true,
     });
     return { provider: "openrouter", modelId, model: provider(modelId) };
   }
@@ -118,20 +124,29 @@ export interface GenerateObjectParams {
 export async function gwGenerateObject(ctx: LlmContext, params: GenerateObjectParams): Promise<unknown> {
   const { provider, modelId, model } = resolveLlm();
   const promptChars = (params.prompt?.length ?? 0) + (params.instructions?.length ?? 0);
-  try {
-    const { object } = await generateObject({
-      model,
-      schema: params.schema,
-      prompt: params.prompt,
-      ...(params.instructions ? { instructions: params.instructions } : {}),
-      ...(params.maxOutputTokens ? { maxOutputTokens: params.maxOutputTokens } : {}),
-    });
-    await auditCall(ctx, { kind: "generateObject", model: modelId, provider, promptChars, outcome: "ok" });
-    return object;
-  } catch (e) {
-    await auditCall(ctx, { kind: "generateObject", model: modelId, provider, promptChars, outcome: "error" });
-    throw e;
+  // Two attempts on the OpenRouter path: free-tier models fail roughly one
+  // call in two (empty response / schema miss, measured 2026-07-20 on
+  // nemotron-3-super-120b). The gateway path keeps a single attempt, its
+  // failures are billing/config, not sampling noise.
+  const maxAttempts = provider === "openrouter" ? 2 : 1;
+  let lastError: unknown;
+  for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+    try {
+      const { object } = await generateObject({
+        model,
+        schema: params.schema,
+        prompt: params.prompt,
+        ...(params.instructions ? { instructions: params.instructions } : {}),
+        ...(params.maxOutputTokens ? { maxOutputTokens: params.maxOutputTokens } : {}),
+      });
+      await auditCall(ctx, { kind: "generateObject", model: modelId, provider, promptChars, outcome: "ok", attempt });
+      return object;
+    } catch (e) {
+      lastError = e;
+    }
   }
+  await auditCall(ctx, { kind: "generateObject", model: modelId, provider, promptChars, outcome: "error", attempt: maxAttempts });
+  throw lastError;
 }
 
 type StreamTextArg = Parameters<typeof streamText>[0];

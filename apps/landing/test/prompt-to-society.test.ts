@@ -54,6 +54,15 @@ describe("extractSocietyDraft", () => {
     if (!r.ok) expect(r.error).toBe("invalid_draft");
   });
 
+  it("rejects junk denominaciones smaller free-tier models emit (the string null, the tipo societario)", async () => {
+    for (const junk of ["null", "NULL", "Sociedad de Responsabilidad Limitada (SRL)", "SAS", "s.r.l."]) {
+      const generate = vi.fn(async () => ({ ...validDraft, denominacion: junk }));
+      const r = await extractSocietyDraft("plantillas de contratos por mercado pago", { generate });
+      expect(r.ok, `junk name accepted: ${junk}`).toBe(false);
+      if (!r.ok) expect(r.error).toBe("invalid_draft");
+    }
+  });
+
   it("rejects a sub-minimum-length objeto from the model", async () => {
     const generate = vi.fn(async () => ({ ...validDraft, objeto: "corto" }));
     const r = await extractSocietyDraft("algo", { generate });
