@@ -6,7 +6,7 @@ export const metadata: Metadata = {
   robots: NOINDEX,
   title: "Carta abierta al ministro · ar-agents",
   description:
-    "Carta abierta al Ministro Federico Sturzenegger sobre la implementación técnica del régimen de sociedades-IA. Reference implementation MIT, 39 paquetes en npm, 245 herramientas, AAIF working-group propuesto. Listo para usar el día que la ley salga.",
+    "Carta abierta al Ministro Federico Sturzenegger sobre la implementación técnica del régimen de sociedades-IA. Reference implementation MIT, 39 paquetes en npm, 252 herramientas, AAIF working-group propuesto. Listo para usar el día que la ley salga.",
   alternates: {
     canonical: "https://ar-agents.ar/al-ministro",
     languages: {
@@ -19,7 +19,7 @@ export const metadata: Metadata = {
     title:
       "Carta abierta al Ministro Sturzenegger, La capa técnica de las sociedades-IA ya está escrita",
     description:
-      "39 paquetes npm, MIT, 245 herramientas, 16 de 17 piezas operativas cubiertas. Listo para el día que la ley salga.",
+      "39 paquetes npm, MIT, 252 herramientas, 16 de 17 piezas operativas cubiertas. Listo para el día que la ley salga.",
     url: "https://ar-agents.ar/al-ministro",
   },
 };

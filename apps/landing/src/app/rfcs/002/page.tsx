@@ -242,7 +242,7 @@ export default function Rfc002Page() {
           >
             /api/discovery
           </a>{" "}
-          ✓, JSON aggregator, 245 tools indexed.
+          ✓, JSON aggregator, 252 tools indexed.
         </Li>
         <Li>
           <a

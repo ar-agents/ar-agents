@@ -29,7 +29,7 @@ const COPY = {
     caption_hitl: "eve parks the run durably until a person answers. That pause is the legal requirement, written as configuration.",
     eyebrow_glue: "the hard part",
     h2_glue: "The hard part of an agent is the data",
-    body_glue: "The hard part of building this agent was never the agent. It was the data: reaching AFIP, Mercado Pago, and the banks, validating a CUIT, without juggling certificates and tokens. ar-agents is that layer for Argentina: 245 tools as one hosted MCP server, zero credentials. eve consumes it in a single connection.",
+    body_glue: "The hard part of building this agent was never the agent. It was the data: reaching AFIP, Mercado Pago, and the banks, validating a CUIT, without juggling certificates and tokens. ar-agents is that layer for Argentina: 252 tools as one hosted MCP server, zero credentials. eve consumes it in a single connection.",
     caption_glue: "eve discovers the remote tools, hands them to the model, and brokers the auth for you. The model never sees the URL or the credentials. CUIT validation, padrón lookups, fiscal math, and the incorporation endpoint all arrive through this one file.",
     eyebrow_infra: "the infra",
     h2_infra: "The infrastructure is the output",
@@ -71,7 +71,7 @@ const COPY = {
     caption_hitl: "eve deja el run en pausa de forma durable hasta que una persona responde. Esa pausa es el requisito legal, escrito como configuración.",
     eyebrow_glue: "lo difícil",
     h2_glue: "Lo difícil de un agente son los datos",
-    body_glue: "Lo difícil de construir este agente nunca fue el agente. Fueron los datos: llegar a AFIP, Mercado Pago y los bancos, validar un CUIT, sin malabarear certificados y tokens. ar-agents es esa capa para Argentina: 245 tools como un solo MCP server hosteado, cero credenciales. eve la consume en una sola conexión.",
+    body_glue: "Lo difícil de construir este agente nunca fue el agente. Fueron los datos: llegar a AFIP, Mercado Pago y los bancos, validar un CUIT, sin malabarear certificados y tokens. ar-agents es esa capa para Argentina: 252 tools como un solo MCP server hosteado, cero credenciales. eve la consume en una sola conexión.",
     caption_glue: "eve descubre las tools remotas, se las da al modelo y maneja la auth por vos. El modelo nunca ve la URL ni las credenciales. La validación del CUIT, los lookups de padrón, el cálculo fiscal y el endpoint de constitución llegan todos por este único archivo.",
     eyebrow_infra: "la infra",
     h2_infra: "La infraestructura es el output",
@@ -350,7 +350,7 @@ export function EveContent() {
     lang === "es"
       ? [
           ["Conexión (MCP)", <>
-            <Mono>ar-agents.ar/api/mcp</Mono>. 245 tools argentinas, cero credenciales.
+            <Mono>ar-agents.ar/api/mcp</Mono>. 252 tools argentinas, cero credenciales.
             eve habla MCP, así que conectarlo no necesitó tocar el SDK.
           </>],
           ["Tools", <>
@@ -380,7 +380,7 @@ export function EveContent() {
         ]
       : [
           ["Connection (MCP)", <>
-            <Mono>ar-agents.ar/api/mcp</Mono>. 245 Argentine tools, zero credentials.
+            <Mono>ar-agents.ar/api/mcp</Mono>. 252 Argentine tools, zero credentials.
             eve speaks MCP, so connecting took no SDK change.
           </>],
           ["Tools", <>
@@ -623,7 +623,7 @@ export function EveContent() {
           {"  "}agent.ts            <span style={cm}>model + config (Opus 4.8 via AI Gateway)</span>{"\n"}
           {"  "}instructions.md     <span style={cm}>the assistant, in Argentine Spanish</span>{"\n"}
           {"  "}connections/{"\n"}
-          {"    "}<span style={str}>ar-agents.ts</span>      <span style={cm}>MCP → ar-agents.ar (245 tools)</span>{"\n"}
+          {"    "}<span style={str}>ar-agents.ts</span>      <span style={cm}>MCP → ar-agents.ar (252 tools)</span>{"\n"}
           {"  "}tools/{"\n"}
           {"    "}<span style={str}>incorporar_sociedad.ts</span>   <span style={cm}>needsApproval: always()</span>{"\n"}
           {"    "}registrar_decision.ts    <span style={cm}>signed audit log</span>{"\n"}

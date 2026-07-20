@@ -126,14 +126,14 @@ export function AlMinistroContent({ lang }: { lang: Lang }) {
             lang={lang}
             es={
               <>
-                <strong>245 herramientas</strong> con definiciones de
+                <strong>252 herramientas</strong> con definiciones de
                 tipo verificadas para Vercel AI SDK 6, el toolkit
                 estándar de la industria para agentes.
               </>
             }
             en={
               <>
-                <strong>245 tools</strong> with verified type
+                <strong>252 tools</strong> with verified type
                 definitions for Vercel AI SDK 6, the industry-standard
                 toolkit for agents.
               </>
