@@ -21,6 +21,7 @@
  * operational), never the MECHANICS behind it. See rule 4 below.
  */
 
+import { DEFAULT_LOCALE, type Locale } from "@/lib/ui/i18n";
 import { CORPUS_DIGEST } from "./corpus";
 
 export const STAGES = ["idea", "validacion", "spec", "constitucion", "operacion"] as const;
@@ -39,19 +40,51 @@ export interface SystemPromptOptions {
    *  `TAVILY_API_KEY` is set). When false, one line is appended noting live
    *  search is unavailable, so the model doesn't imply it can browse. */
   webSearchAvailable?: boolean;
+  /** The locale selected in the studio's language toggle (src/lib/ui/i18n.ts,
+   *  M1-3a), threaded through POST /api/agent (M1-3d). Defaults to
+   *  DEFAULT_LOCALE ("es") when omitted, e.g. from an older client that does
+   *  not send it yet. Reuses the same Locale type as the rest of the UI's
+   *  i18n layer on purpose, so there is exactly one "es" | "en" source of
+   *  truth instead of a parallel one for the coach. */
+  locale?: Locale;
+}
+
+/**
+ * Explicit, bilingual instruction telling the coach which language to answer
+ * in, per the locale selected in the studio's language toggle. Bilingual
+ * (Spanish line then English line) for the same reason the PREVIEW_FAILURE_NOTE
+ * in route.ts is bilingual: this note has to be understood regardless of
+ * which language the model currently thinks it is replying in. Keeps proper
+ * nouns and anteproyecto legal terms (sociedad, art. 102, IGJ, AFIP) as-is in
+ * English replies, since translating them would mislead.
+ */
+function buildLanguageInstruction(locale: Locale): string {
+  if (locale === "en") {
+    return [
+      "Idioma seleccionado en la interfaz: inglés (en). Respondé SIEMPRE en inglés, en tu respuesta completa, en cada turno de esta charla.",
+      "Selected UI language: English (en). Always reply in English, in your entire response, every turn of this conversation.",
+      "Mantené sin traducir los nombres propios y los términos legales del anteproyecto donde traducirlos confundiría (por ejemplo: sociedad, art. 102, IGJ, AFIP, y el nombre de la sociedad). Keep proper nouns and the anteproyecto's legal terms untranslated where translating would mislead (e.g. sociedad, art. 102, IGJ, AFIP, and the society's name).",
+    ].join("\n");
+  }
+  return [
+    "Idioma seleccionado en la interfaz: español (es). Respondé SIEMPRE en español rioplatense (es-AR), con vos, en tu respuesta completa, en cada turno de esta charla.",
+    "Selected UI language: Spanish (es). Always reply in Argentine Spanish (es-AR), using vos, in your entire response, every turn of this conversation.",
+  ].join("\n");
 }
 
 /**
  * Builds the coach system prompt for a given conversation stage. Composes,
- * in order: the role, the hard rules, the goal and conversation-pace
- * guidance, the corpus digest, and (only when the web research tool is NOT
- * registered) a one-line note that live search is unavailable. Stays well
- * under the ~6000 word ceiling covered by the buildSystemPrompt tests in
- * test/coach-corpus.test.ts.
+ * in order: the selected-language instruction (M1-3d), the role, the hard
+ * rules, the goal and conversation-pace guidance, the corpus digest, and
+ * (only when the web research tool is NOT registered) a one-line note that
+ * live search is unavailable. Stays well under the ~6000 word ceiling
+ * covered by the buildSystemPrompt tests in test/coach-corpus.test.ts.
  */
 export function buildSystemPrompt(stage?: Stage, options: SystemPromptOptions = {}): string {
+  const locale = options.locale ?? DEFAULT_LOCALE;
   const lines = [
-    "Espejá SIEMPRE el idioma del último mensaje del usuario. Mirror the language of the user's last message: if the user writes in English, your entire reply must be in English.",
+    buildLanguageInstruction(locale),
+    "Espejá SIEMPRE el idioma del último mensaje del usuario, salvo que contradiga el idioma seleccionado de arriba. Mirror the language of the user's last message, unless it contradicts the selected language above.",
     "Sos el coach de startups de ar-agents studio: ayudás a un humano a llevar una idea de negocio hasta una sociedad automatizada operando en Argentina, bajo el anteproyecto de reforma a la Ley General de Sociedades (art. 14 y 102), todavía no sancionado.",
     "Las etapas son: idea -> validación -> spec -> constitución -> operación. Guiá la charla en ese orden, sin saltar pasos.",
     stage ? `Etapa actual: ${STAGE_LABELS[stage]}.` : "",

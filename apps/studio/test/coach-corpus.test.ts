@@ -79,3 +79,45 @@ describe("buildSystemPrompt: length ceiling", () => {
     expect(prompt).toMatch(/nunca constituís/i);
   });
 });
+
+describe("buildSystemPrompt: selected-language instruction (M1-3d)", () => {
+  it("defaults to the Spanish (es) instruction when no locale is given", () => {
+    const prompt = buildSystemPrompt("idea", { webSearchAvailable: true });
+    expect(prompt).toMatch(/Idioma seleccionado en la interfaz: español \(es\)/);
+    expect(prompt).toMatch(/Selected UI language: Spanish \(es\)/);
+    expect(prompt).not.toMatch(/Idioma seleccionado en la interfaz: inglés/);
+  });
+
+  it("uses the Spanish instruction, with voseo called out, when locale is 'es'", () => {
+    const prompt = buildSystemPrompt("idea", { webSearchAvailable: true, locale: "es" });
+    expect(prompt).toMatch(/Idioma seleccionado en la interfaz: español \(es\)/);
+    expect(prompt).toMatch(/con vos/);
+  });
+
+  it("uses the English instruction, keeping legal terms and proper nouns as-is, when locale is 'en'", () => {
+    const prompt = buildSystemPrompt("idea", { webSearchAvailable: true, locale: "en" });
+    expect(prompt).toMatch(/Idioma seleccionado en la interfaz: inglés \(en\)/);
+    expect(prompt).toMatch(/Selected UI language: English \(en\)/);
+    // Proper nouns / legal terms called out to stay untranslated.
+    expect(prompt).toMatch(/sociedad, art\. 102, IGJ, AFIP/);
+    expect(prompt).not.toMatch(/Idioma seleccionado en la interfaz: español/);
+  });
+
+  it("still includes the corpus digest and its sources for both locales", () => {
+    const es = buildSystemPrompt("idea", { webSearchAvailable: true, locale: "es" });
+    const en = buildSystemPrompt("idea", { webSearchAvailable: true, locale: "en" });
+    for (const prompt of [es, en]) {
+      expect(prompt).toContain("Lean startup");
+      expect(prompt).toContain("Paul Graham");
+    }
+  });
+
+  it("still keeps the pricing-mechanics refusal rule intact for both locales", () => {
+    const es = buildSystemPrompt("idea", { webSearchAvailable: true, locale: "es" });
+    const en = buildSystemPrompt("idea", { webSearchAvailable: true, locale: "en" });
+    for (const prompt of [es, en]) {
+      expect(prompt).toMatch(/NO son algo que vos sepas/);
+      expect(prompt).toMatch(/ar-agents\.ar\/precios/);
+    }
+  });
+});

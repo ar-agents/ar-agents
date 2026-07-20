@@ -26,6 +26,7 @@ import { checkCap, recordUsage } from "@/lib/meter";
 import { estimateCostMicroUsd, resolveModelForAgent } from "@/lib/models";
 import { researchWeb, tavilyConfigured } from "@/lib/research";
 import { buildSocietySummary } from "@/lib/society";
+import { resolveInitialLocale } from "@/lib/ui/i18n";
 import { buildSystemPrompt, STAGES } from "@/coach/system-prompt";
 
 export const runtime = "nodejs";
@@ -33,6 +34,11 @@ export const runtime = "nodejs";
 const BodySchema = z.object({
   messages: z.array(z.record(z.string(), z.unknown())).min(1),
   stage: z.enum(STAGES).optional(),
+  // Loosely typed on purpose (M1-3d): an invalid or missing locale must fall
+  // back to "es", not 400 the whole request. resolveInitialLocale (the same
+  // helper the language toggle uses to hydrate from localStorage, see
+  // src/lib/ui/i18n.ts) does that narrowing below.
+  locale: z.unknown().optional(),
 });
 
 /** Exported for tests: lets test/research-tool.test.ts assert research_web
@@ -174,6 +180,12 @@ export async function POST(req: Request) {
     return Response.json({ ok: false, error: "no_model_configured" }, { status: 503 });
   }
 
+  // Only "es" | "en" ever reach buildSystemPrompt; anything else (missing,
+  // wrong type, unrecognized code) resolves to "es" via the same helper the
+  // client-side language toggle uses (src/lib/ui/i18n.ts).
+  const rawLocale = parsed.data.locale;
+  const locale = resolveInitialLocale(typeof rawLocale === "string" ? rawLocale : null);
+
   try {
     const result = streamText({
       model: resolved.model,
@@ -183,7 +195,7 @@ export async function POST(req: Request) {
       // coach models flip behavior run to run (measured in the M1-8 live
       // evals: same prompt, same persona, opposite outcomes).
       temperature: 0.2,
-      system: buildSystemPrompt(parsed.data.stage, { webSearchAvailable: tavilyConfigured() }),
+      system: buildSystemPrompt(parsed.data.stage, { webSearchAvailable: tavilyConfigured(), locale }),
       messages: await convertToModelMessages(validated.data),
       tools,
       // 8 steps (was 6): with the research_web per-request cap above, the
