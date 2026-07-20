@@ -26,7 +26,7 @@ import {
   type IdentityDoc as KeyBindingDoc,
 } from "@ar-agents/identity-attest/key-binding";
 import { jsonCors, preflight } from "@/lib/cors";
-import { clientIp, rateLimit } from "@/lib/ratelimit";
+import { clientIp, kvRateLimit, rateLimit } from "@/lib/ratelimit";
 import { safeExternalUrl } from "@/lib/ssrf";
 import {
   IdentityDocSchema,
@@ -46,6 +46,12 @@ export const runtime = "nodejs";
 const RL_MAX = 20;
 const RL_WINDOW_MS = 60_000;
 const MAX_DOC_BYTES = 64 * 1024;
+// Global daily ceiling on verifications (NOT per-IP). saveAgentRecord writes a
+// permanent KV record, so this is a durable-write path: per the kvRateLimit
+// doc, an unbounded flood of permanent records is the risk to cap. A party
+// rotating IPs (or spoofing x-forwarded-for) cannot get past this shared cap.
+const GLOBAL_DAILY_MAX = 5_000;
+const GLOBAL_WINDOW_SEC = 86_400;
 
 // Public RPCs for the EIP-1271 on-chain check. Fixed endpoints (not user
 // controlled) → no SSRF surface. Override via env for other chains / providers.
@@ -106,10 +112,48 @@ async function fetchWellKnownDoc(
 }
 
 async function handle(req: Request): Promise<Response> {
-  if (!rateLimit("identity-verify", clientIp(req), RL_MAX, RL_WINDOW_MS)) {
+  const ip = clientIp(req);
+  // Cheap in-memory backstop first (per-isolate), then the durable cross-isolate
+  // quota. verify persists a permanent record, so the durable per-IP gate fails
+  // CLOSED: a KV outage that disabled the only real quota must not wave through
+  // an unbounded flood of writes. Mirrors the layered pattern in
+  // /api/incorporate-preview.
+  if (!rateLimit("identity-verify", ip, RL_MAX, RL_WINDOW_MS)) {
     return jsonCors(
       { error: "rate_limited", note: "20 verifications per minute per IP." },
       { status: 429, headers: { "Retry-After": "60" } },
+    );
+  }
+  if (
+    !(await kvRateLimit("identity-verify", ip, RL_MAX, 60, { failClosed: true }))
+  ) {
+    return jsonCors(
+      { error: "rate_limited", note: "20 verifications per minute per IP." },
+      { status: 429, headers: { "Retry-After": "60" } },
+    );
+  }
+  if (
+    !(await kvRateLimit(
+      "identity-verify-global",
+      "all",
+      GLOBAL_DAILY_MAX,
+      GLOBAL_WINDOW_SEC,
+      { failClosed: true },
+    ))
+  ) {
+    return jsonCors(
+      { error: "rate_limited_global", note: "Daily verification ceiling reached." },
+      { status: 429, headers: { "Retry-After": "3600" } },
+    );
+  }
+
+  // Cap the request body (paste mode) the same way hosted mode caps the fetched
+  // doc, so a large paste cannot force an expensive canonicalize/hash.
+  const declaredLen = Number(req.headers.get("content-length") ?? "0");
+  if (Number.isFinite(declaredLen) && declaredLen > MAX_DOC_BYTES) {
+    return jsonCors(
+      { error: "bad_request", note: "Body too large." },
+      { status: 413 },
     );
   }
 
