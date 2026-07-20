@@ -14,7 +14,7 @@ vi.mock("../src/lib/ledger", () => ({
 
 import { generateObject, streamText } from "ai";
 import { appendLink } from "../src/lib/ledger";
-import { gwGenerateObject, gwStreamText, gatewayModel, DEFAULT_MODEL, MODEL_POSTURE } from "../src/lib/llm-gateway";
+import { gwGenerateObject, gwStreamText, gatewayModel, resolveLlm, DEFAULT_MODEL, DEFAULT_OPENROUTER_MODEL, MODEL_POSTURE } from "../src/lib/llm-gateway";
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 const mockGen = generateObject as any;
@@ -26,6 +26,8 @@ const mockAppend = appendLink as any;
 beforeEach(() => {
   vi.clearAllMocks();
   delete process.env.AR_AGENTS_LLM_MODEL;
+  delete process.env.AR_AGENTS_OPENROUTER_MODEL;
+  delete process.env.OPENROUTER_API_KEY;
 });
 
 describe("gatewayModel", () => {
@@ -33,6 +35,33 @@ describe("gatewayModel", () => {
     expect(gatewayModel()).toBe(DEFAULT_MODEL);
     process.env.AR_AGENTS_LLM_MODEL = "openai/gpt-x";
     expect(gatewayModel()).toBe("openai/gpt-x");
+  });
+});
+
+describe("resolveLlm", () => {
+  it("without OPENROUTER_API_KEY stays on the AI Gateway string path", () => {
+    const r = resolveLlm();
+    expect(r.provider).toBe("gateway");
+    expect(r.modelId).toBe(DEFAULT_MODEL);
+    expect(r.model).toBe(DEFAULT_MODEL);
+  });
+
+  it("with OPENROUTER_API_KEY routes via OpenRouter on the free default", () => {
+    process.env.OPENROUTER_API_KEY = "sk-or-test";
+    const r = resolveLlm();
+    expect(r.provider).toBe("openrouter");
+    expect(r.modelId).toBe(DEFAULT_OPENROUTER_MODEL);
+    // A provider-bound model instance, not the raw gateway string.
+    expect(typeof r.model).not.toBe("string");
+  });
+
+  it("AR_AGENTS_OPENROUTER_MODEL overrides the OpenRouter model id only", () => {
+    process.env.OPENROUTER_API_KEY = "sk-or-test";
+    process.env.AR_AGENTS_OPENROUTER_MODEL = "meta-llama/llama-x:free";
+    expect(resolveLlm().modelId).toBe("meta-llama/llama-x:free");
+    delete process.env.OPENROUTER_API_KEY;
+    // Gateway path ignores the OpenRouter override.
+    expect(resolveLlm().modelId).toBe(DEFAULT_MODEL);
   });
 });
 

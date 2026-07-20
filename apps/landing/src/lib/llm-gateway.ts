@@ -18,6 +18,7 @@
  * above; llm-gateway-boundary.test.ts locks the runtime call sites to this module.
  */
 
+import { createOpenAICompatible } from "@ai-sdk/openai-compatible";
 import { generateObject, streamText } from "ai";
 import type { z } from "zod";
 import { appendLink } from "./ledger";
@@ -25,9 +26,45 @@ import { appendLink } from "./ledger";
 /** The default gateway model id. String form => provider resolved by the AI Gateway. */
 export const DEFAULT_MODEL = "anthropic/claude-sonnet-4-6";
 
+/** Default model on the OpenRouter path. Mirrors the studio coach's proven
+ *  pick (apps/studio/src/lib/models.ts, M1-8: first model to pass the live
+ *  eval gate). Free tier, so this path works with a $0 balance. */
+export const DEFAULT_OPENROUTER_MODEL = "nvidia/nemotron-3-ultra-550b-a55b:free";
+
 /** The ONE place model selection lives. Provider/model switch = env only. */
 export function gatewayModel(): string {
   return process.env.AR_AGENTS_LLM_MODEL?.trim() || DEFAULT_MODEL;
+}
+
+type LlmModel = Parameters<typeof streamText>[0]["model"];
+
+export interface ResolvedLlm {
+  provider: "openrouter" | "gateway";
+  modelId: string;
+  model: LlmModel;
+}
+
+/**
+ * Provider resolution, env-only, same convention as the studio's model
+ * tiers (apps/studio/src/lib/models.ts): when OPENROUTER_API_KEY is set,
+ * route via OpenRouter (free-tier capable, survives a drained Vercel AI
+ * Gateway balance — the 2026-07-20 outage took down every landing model
+ * call including BYOK); otherwise keep the AI Gateway string path.
+ * AR_AGENTS_OPENROUTER_MODEL overrides the OpenRouter model id;
+ * AR_AGENTS_LLM_MODEL keeps overriding the gateway id, unchanged.
+ */
+export function resolveLlm(): ResolvedLlm {
+  const key = process.env.OPENROUTER_API_KEY?.trim();
+  if (key) {
+    const modelId = process.env.AR_AGENTS_OPENROUTER_MODEL?.trim() || DEFAULT_OPENROUTER_MODEL;
+    const provider = createOpenAICompatible({
+      baseURL: "https://openrouter.ai/api/v1",
+      name: "openrouter",
+      apiKey: key,
+    });
+    return { provider: "openrouter", modelId, model: provider(modelId) };
+  }
+  return { provider: "gateway", modelId: gatewayModel(), model: gatewayModel() };
 }
 
 /** Posture reported with every call: LLM access is mediated by the gateway. */
@@ -79,7 +116,7 @@ export interface GenerateObjectParams {
  * trusts the model's output). Audits the call (metadata only) via the ledger.
  */
 export async function gwGenerateObject(ctx: LlmContext, params: GenerateObjectParams): Promise<unknown> {
-  const model = gatewayModel();
+  const { provider, modelId, model } = resolveLlm();
   const promptChars = (params.prompt?.length ?? 0) + (params.instructions?.length ?? 0);
   try {
     const { object } = await generateObject({
@@ -89,10 +126,10 @@ export async function gwGenerateObject(ctx: LlmContext, params: GenerateObjectPa
       ...(params.instructions ? { instructions: params.instructions } : {}),
       ...(params.maxOutputTokens ? { maxOutputTokens: params.maxOutputTokens } : {}),
     });
-    await auditCall(ctx, { kind: "generateObject", model, promptChars, outcome: "ok" });
+    await auditCall(ctx, { kind: "generateObject", model: modelId, provider, promptChars, outcome: "ok" });
     return object;
   } catch (e) {
-    await auditCall(ctx, { kind: "generateObject", model, promptChars, outcome: "error" });
+    await auditCall(ctx, { kind: "generateObject", model: modelId, provider, promptChars, outcome: "error" });
     throw e;
   }
 }
@@ -113,11 +150,16 @@ export type GwStreamParams = Omit<StreamTextArg, "model" | "onFinish"> & {
  */
 export function gwStreamText(ctx: LlmContext, params: GwStreamParams): ReturnType<typeof streamText> {
   const callerOnFinish = params.onFinish;
+  const resolved = params.model ? null : resolveLlm();
   return streamText({
     ...params,
-    model: params.model ?? gatewayModel(),
+    model: params.model ?? resolved!.model,
     onFinish: async (event: OnFinishEvent) => {
-      void auditCall(ctx, { kind: "streamText", outcome: "finish" });
+      void auditCall(ctx, {
+        kind: "streamText",
+        outcome: "finish",
+        ...(resolved ? { model: resolved.modelId, provider: resolved.provider } : {}),
+      });
       if (callerOnFinish) await callerOnFinish(event);
     },
   } as StreamTextArg);
