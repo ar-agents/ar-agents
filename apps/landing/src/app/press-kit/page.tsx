@@ -231,9 +231,9 @@ export default function PressKitPage() {
         <li>
           <code style={{ fontFamily: FONT_MONO }}>GET /api/discovery</code> +{" "}
           <code style={{ fontFamily: FONT_MONO }}>?format=openapi</code>,
-          inventario de los 39 paquetes + las 245 tools + estos 3 endpoints
-          como OpenAPI 3.1 stub. Un agente que crawlea el toolkit lo lee y
-          decide qué llamar.
+          inventario de los 39 paquetes + las 245 tools + los 15 endpoints
+          hosteados como OpenAPI 3.1 stub. Un agente que crawlea el toolkit
+          lo lee y decide qué llamar.
         </li>
       </ul>
 

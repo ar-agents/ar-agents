@@ -112,6 +112,12 @@ function buildDiscoveryDoc(): DiscoveryDoc {
     tools: m.tools.map((t) => ({ name: t.name, description: noDash(t.description) })),
   }));
   const totalTools = packages.reduce((acc, p) => acc + p.toolCount, 0);
+  // SSOT for the "N hosted endpoints" claim quoted across the site
+  // (json-ld.tsx, faq/page.tsx, status/page.tsx, reference/page.tsx,
+  // data-room/page.tsx, press-kit/page.tsx). The rule: the count is this
+  // array's length (currently 15), it does NOT include /api/discovery
+  // itself since that's the index describing the others, not one of them.
+  // Bump every quoted page above whenever an entry is added or removed here.
   const endpoints: DiscoveryDoc["endpoints"] = [
     {
       name: "auto_incorporate",

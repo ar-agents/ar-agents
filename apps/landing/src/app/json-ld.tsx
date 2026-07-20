@@ -59,7 +59,7 @@ export function HomeJsonLd() {
           url: SITE_URL,
           name: "ar-agents",
           description:
-            "Open-source toolkit and reference implementation for Argentine sociedades automatizadas. 39 npm packages, 245 tools, 5 hosted endpoints.",
+            "Open-source toolkit and reference implementation for Argentine sociedades automatizadas. 39 npm packages, 245 tools, 15 hosted endpoints.",
           inLanguage: ["es-AR", "en"],
           potentialAction: {
             "@type": "SearchAction",

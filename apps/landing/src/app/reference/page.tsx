@@ -194,7 +194,10 @@ const SECTIONS: Section[] = [
         label: "GET /api/discovery",
         tone: "infra",
         description:
-          "Machine-readable inventory: 39 packages, 245 tools, 5 hosted endpoints. ?format=openapi → OpenAPI 3.1 stub.",
+          // Count = the `endpoints` array length in api/discovery/route.ts
+          // (every row below except this self-referencing one). Keep both
+          // in sync: add a row here whenever that array grows.
+          "Machine-readable inventory: 39 packages, 245 tools, 15 hosted endpoints. ?format=openapi → OpenAPI 3.1 stub.",
       },
       {
         url: "/api/auto-incorporate",
@@ -202,6 +205,34 @@ const SECTIONS: Section[] = [
         tone: "primary",
         description:
           "Self-incorporate an AR sociedad automatizada in one call. Returns generated source files + Vercel deploy URL + env-vars + checklist + signed audit-log reference. Idempotent.",
+      },
+      {
+        url: "/api/registry/good-standing",
+        label: "GET /api/registry/good-standing",
+        tone: "primary",
+        description:
+          "Public good-standing oracle. Resolve an entity by ?url=, ?id=, or ?cuit= and get a small Ed25519-signed answer before transacting with it.",
+      },
+      {
+        url: "/api/registry",
+        label: "GET /api/registry",
+        tone: "infra",
+        description:
+          "Machine-readable registry list, filterable by ?jurisdiction=, ?type=, ?status=. Cacheable, no auth.",
+      },
+      {
+        url: "/api/registry",
+        label: "POST /api/registry",
+        tone: "infra",
+        description:
+          "Self-list an entity. Mints a write-once owner token; starts unverified and flips to active once the certifier scores the declared URL high enough.",
+      },
+      {
+        url: "/api/certifier",
+        label: "GET /api/certifier",
+        tone: "infra",
+        description:
+          "Score any URL 0-100 against RFC-002 + RFC-004 + RFC-005 conformance (~11 checks). Same certifier the registry uses to gate self-listing.",
       },
       {
         url: "/api/play",
@@ -230,6 +261,46 @@ const SECTIONS: Section[] = [
         tone: "infra",
         description:
           "24px shields.io-style SVG verification badge. Embeddable in any README. Color + label updates live (verified / tampered / no-hmac / no entries).",
+      },
+      {
+        url: "/api/play/audit-stream/{sessionId}",
+        label: "GET /api/play/audit-stream/{sessionId}",
+        tone: "infra",
+        description:
+          "Server-Sent Events live-stream of audit entries. Initial snapshot + delta-emit every 2s + 15s keep-alive, 5min uptime cap.",
+      },
+      {
+        url: "/api/play/audit/{sessionId}/csv",
+        label: "GET /api/play/audit/{sessionId}/csv",
+        tone: "infra",
+        description: "RFC 4180 CSV export of the session's audit log. UTF-8 BOM for Excel compatibility.",
+      },
+      {
+        url: "/api/auditor/subscribe",
+        label: "POST /api/auditor/subscribe",
+        tone: "infra",
+        description:
+          "Subscribe to El Auditor (hosted proof-of-autonomy, USD 199/mo, settled via Mercado Pago). Returns a checkout init_point.",
+      },
+      {
+        url: "/api/auditor/activate",
+        label: "POST /api/auditor/activate",
+        tone: "infra",
+        description:
+          "Exchange an authorized Mercado Pago preapproval_id for an El Auditor API key. Idempotent.",
+      },
+      {
+        url: "/api/auditor/log",
+        label: "POST /api/auditor/log",
+        tone: "infra",
+        description:
+          "Write a signed (HMAC-SHA256 + Ed25519), durable, publicly-verifiable audit entry to your El Auditor session.",
+      },
+      {
+        url: "/api/auditor/status",
+        label: "GET /api/auditor/status",
+        tone: "infra",
+        description: "Check your El Auditor subscription status and audit session URLs.",
       },
     ],
   },
