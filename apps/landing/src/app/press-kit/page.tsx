@@ -49,7 +49,7 @@ const CONTACT_BLOCK = [
 
 const NUMBERS_ES = [
   { label: "Paquetes en npm", value: "39" },
-  { label: "Tools expuestas", value: "245" },
+  { label: "Tools expuestas", value: "252" },
   { label: "Recetas de cookbook", value: "30" },
   { label: "Subpaths de testing", value: "4" },
   { label: "Tests automatizados", value: "300+" },
@@ -231,7 +231,7 @@ export default function PressKitPage() {
         <li>
           <code style={{ fontFamily: FONT_MONO }}>GET /api/discovery</code> +{" "}
           <code style={{ fontFamily: FONT_MONO }}>?format=openapi</code>,
-          inventario de los 39 paquetes + las 245 tools + los 15 endpoints
+          inventario de los 39 paquetes + las 252 tools + los 15 endpoints
           hosteados como OpenAPI 3.1 stub. Un agente que crawlea el toolkit
           lo lee y decide qué llamar.
         </li>
@@ -255,7 +255,7 @@ export default function PressKitPage() {
       <DocP>
         <strong>El surface de tools:</strong>{" "}
         <DocCode>curl https://ar-agents.ar/api/discovery</DocCode>.
-        JSON machine-readable con los 39 paquetes y las 245 tools listadas
+        JSON machine-readable con los 39 paquetes y las 252 tools listadas
         explícitamente. <DocCode>?format=openapi</DocCode> devuelve un OpenAPI
         3.1.0 stub para auditing tools.
       </DocP>

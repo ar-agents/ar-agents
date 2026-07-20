@@ -99,7 +99,7 @@ const SECTIONS: Section[] = [
         url: "/playbook",
         label: "/playbook (en)",
         description:
-          "Flagship narrative document. 39 packages, 245 tools, the Edge-Runtime contract, RFC-001 governance, day-in-the-life of ACME-AI SAS.",
+          "Flagship narrative document. 39 packages, 252 tools, the Edge-Runtime contract, RFC-001 governance, day-in-the-life of ACME-AI SAS.",
       },
       {
         url: "/es/playbook",
@@ -197,7 +197,7 @@ const SECTIONS: Section[] = [
           // Count = the `endpoints` array length in api/discovery/route.ts
           // (every row below except this self-referencing one). Keep both
           // in sync: add a row here whenever that array grows.
-          "Machine-readable inventory: 39 packages, 245 tools, 15 hosted endpoints. ?format=openapi → OpenAPI 3.1 stub.",
+          "Machine-readable inventory: 39 packages, 252 tools, 15 hosted endpoints. ?format=openapi → OpenAPI 3.1 stub.",
       },
       {
         url: "/api/auto-incorporate",

@@ -1,8 +1,15 @@
 #!/usr/bin/env node
 /**
  * Regenerate `tools.manifest.json` for every package by parsing the package's
- * `src/tools.ts` for tool names and pulling descriptions from the
- * `DEFAULT_DESCRIPTIONS` constant when present.
+ * tool-definition source file for tool names and pulling descriptions from
+ * the `DEFAULT_DESCRIPTIONS` constant when present.
+ *
+ * Most packages define their tools in `src/tools.ts`. A few (mercadolibre,
+ * ap2) instead export an AI-SDK tool factory straight out of `src/ai-sdk.ts`
+ * and have no `src/tools.ts` at all; for those, `src/ai-sdk.ts` is used as
+ * the source file. Both shapes use the same `name: tool({ description: ... })`
+ * / `DEFAULT_DESCRIPTIONS` conventions, so the same extraction logic applies
+ * to either file untouched.
  *
  * Usage: `node scripts/regen-manifests.mjs`
  *
@@ -34,7 +41,6 @@ let skipped = 0;
 for (const pkg of packages) {
   const pkgDir = join(root, "packages", pkg);
   const pkgJsonPath = join(pkgDir, "package.json");
-  const toolsPath = join(pkgDir, "src", "tools.ts");
   const manifestPath = join(pkgDir, "tools.manifest.json");
 
   if (!existsSync(manifestPath)) {
@@ -42,8 +48,14 @@ for (const pkg of packages) {
     skipped++;
     continue;
   }
-  if (!existsSync(toolsPath)) {
-    console.log(`  ${pkg}: NO src/tools.ts — skipping`);
+
+  // Prefer src/tools.ts (the common shape); fall back to src/ai-sdk.ts for
+  // packages that export their AI SDK tool factory directly and never had a
+  // separate tools.ts (mercadolibre, ap2).
+  const candidateSources = ["tools.ts", "ai-sdk.ts"].map((f) => join(pkgDir, "src", f));
+  const toolsPath = candidateSources.find((p) => existsSync(p));
+  if (!toolsPath) {
+    console.log(`  ${pkg}: NO src/tools.ts or src/ai-sdk.ts - skipping`);
     skipped++;
     continue;
   }
