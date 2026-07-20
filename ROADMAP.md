@@ -59,7 +59,7 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: the builder agent can run web searches and fetch pages to validate a market before recommending a build; results cited in-conversation.
 
 ### M1-3 Spanish-first UX pass
-- status: split (2026-07-09, PR #168; decomposed into M1-3a..M1-3e at the bottom of this milestone)
+- status: done (2026-07-20; M1-3a..M1-3e all done, closed by the M1-3e live checks: es-AR default and full English both verified against production with a real model)
 - priority: P1
 - acceptance: es-AR is the default language end to end; English available. Copy follows the site's plain style.
 - note: apps/studio has no i18n layer today; es strings are hardcoded across five components (chat, journey-rail, constitution-card, operation-dashboard, page) and the layout metadata, and making the coach reply in English also edits src/coach/system-prompt.ts, which M1-1 (in-progress) owns. Too large for one run and it would collide with in-progress studio work, so it is decomposed rather than started. The sub-items sit at the milestone bottom per the "new items at the bottom" rule; a human may hoist them above M1-4/M1-8 to keep Spanish-first ahead in execution order.
@@ -121,7 +121,7 @@ Item format: `### <id> <title>` followed by `status`, `priority` (P0 highest), `
 - acceptance: the client sends the selected locale on POST /api/agent; buildSystemPrompt adds a language instruction (Spanish by default, English when selected) so the coach responds in the chosen language, with the corpus and its source links intact. Unit test: buildSystemPrompt returns the right language instruction per locale; the agent route test threads the locale through.
 
 ### M1-3e End-to-end language verification closes M1-3
-- status: blocked (2026-07-20: M1-3a, M1-3b, M1-3c, M1-3d are all done now; only the live end-to-end check remains, e.g. a journey eval run in English against a real model)
+- status: done (2026-07-20; two live checks against real models on the deployed M1-3d build: (1) a POST /api/agent turn on production studio.ar-agents.ar with locale "en" and an English prompt returned a fully English coach reply that kept sociedad/art. 102/IGJ/AFIP untranslated, and (2) a terminal chat turn with no locale sent (the CLI does not send one) returned an es-AR reply, proving the server-side "es" default. UI-side es default plus the language toggle were covered by M1-3a..M1-3c and their tests. On this, M1-3 is marked done.)
 - priority: P1
 - acceptance: a check (a test or the journey eval run in English) proves es-AR is the default and full English is available end to end across the UI and the coach, satisfying M1-3's original acceptance. On green, mark M1-3 done.
 
