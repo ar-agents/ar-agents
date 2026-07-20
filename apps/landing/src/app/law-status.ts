@@ -35,6 +35,10 @@ export type LawStatus = "pre" | "live";
 //     that finding, gated identically on !lawIsLive (mirrors the server finding
 //     the incorporate.ts test covers; the wizard's validate is a private client
 //     function, so it has no separate unit test).
+//   - apps/landing/src/app/api/agents/route.ts: comment-only. The `disclosure`
+//     field is static prose that mentions "LAW_STATUS 'pre'" to tell readers of
+//     the self-serve agent directory that listing there implies nothing about
+//     the sociedades-de-IA regime. It does NOT branch on the switch.
 //
 // Still NOT wired at all (no LAW_STATUS/lawIsLive reference to even flag as a
 // gap by the drift guard): byte-identical pre vs live today: registro/ and

@@ -66,6 +66,16 @@
         "default": "./dist/magic-link-sdk.cjs"
       }
     },
+    "./key-binding": {
+      "import": {
+        "types": "./dist/key-binding.d.ts",
+        "default": "./dist/key-binding.js"
+      },
+      "require": {
+        "types": "./dist/key-binding.d.cts",
+        "default": "./dist/key-binding.cjs"
+      }
+    },
     "./tools.manifest.json": "./tools.manifest.json"
   },
   "typesVersions": {
@@ -75,6 +85,9 @@
       ],
       "magic-link-sdk": [
         "./dist/magic-link-sdk.d.ts"
+      ],
+      "key-binding": [
+        "./dist/key-binding.d.ts"
       ]
     }
   },
@@ -149,6 +162,8 @@
   },
   "dependencies": {
     "@ar-agents/core": "workspace:^",
+    "@noble/curves": "^1.9.0",
+    "@noble/hashes": "^1.8.0",
     "jose": "^6.2.3"
   }
 }
