@@ -124,11 +124,13 @@ export interface GenerateObjectParams {
 export async function gwGenerateObject(ctx: LlmContext, params: GenerateObjectParams): Promise<unknown> {
   const { provider, modelId, model } = resolveLlm();
   const promptChars = (params.prompt?.length ?? 0) + (params.instructions?.length ?? 0);
-  // Two attempts on the OpenRouter path: free-tier models fail roughly one
-  // call in two (empty response / schema miss, measured 2026-07-20 on
-  // nemotron-3-super-120b). The gateway path keeps a single attempt, its
+  // Three attempts on the OpenRouter path: free-tier models fail roughly one
+  // call in two (empty response / schema miss / unparseable, measured
+  // 2026-07-20 on nemotron-3-super-120b; 2 attempts still 502'd 1 of 3 live
+  // previews). Attempts run ~10-20s each, so 3 fit the routes' nodejs
+  // maxDuration of 90. The gateway path keeps a single attempt, its
   // failures are billing/config, not sampling noise.
-  const maxAttempts = provider === "openrouter" ? 2 : 1;
+  const maxAttempts = provider === "openrouter" ? 3 : 1;
   let lastError: unknown;
   for (let attempt = 1; attempt <= maxAttempts; attempt++) {
     try {
