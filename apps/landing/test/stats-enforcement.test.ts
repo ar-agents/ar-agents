@@ -367,6 +367,12 @@ const HISTORICAL_ALLOWLIST: ReadonlyArray<{
     text: "5 packages",
     reason: 'cookbook recipe title ("Cross-package billing, 5 packages, one agent loop"), a specific recipe, not the site total',
   },
+  {
+    file: "src/app/eve/eve-content.tsx",
+    text: "11 tools",
+    reason:
+      "hosted /api/mcp endpoint's own tool count (zero-credential subset), verified against the server.registerTool() calls in src/app/api/[transport]/route.ts (11 registered tools), not the site total",
+  },
 
   // --- The /play demo's own tool count, verified against the `tools` object
   //     in src/app/api/play/route.ts (13 named tool definitions). This exact

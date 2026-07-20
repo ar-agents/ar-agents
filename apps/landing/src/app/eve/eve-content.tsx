@@ -350,8 +350,10 @@ export function EveContent() {
     lang === "es"
       ? [
           ["Conexión (MCP)", <>
-            <Mono>ar-agents.ar/api/mcp</Mono>. 245 tools argentinas, cero credenciales.
-            eve habla MCP, así que conectarlo no necesitó tocar el SDK.
+            <Mono>ar-agents.ar/api/mcp</Mono>. 11 tools sin credenciales (CUIT, CBU,
+            IVA/SICORE/SUSS, BCRA, registry); el resto de las 245 tools vive en los
+            packages npm, con tus propias credenciales. eve habla MCP, así que
+            conectarlo no necesitó tocar el SDK.
           </>],
           ["Tools", <>
             <Mono>incorporar_sociedad</Mono> y <Mono>registrar_decision</Mono>, un
@@ -380,8 +382,10 @@ export function EveContent() {
         ]
       : [
           ["Connection (MCP)", <>
-            <Mono>ar-agents.ar/api/mcp</Mono>. 245 Argentine tools, zero credentials.
-            eve speaks MCP, so connecting took no SDK change.
+            <Mono>ar-agents.ar/api/mcp</Mono>. 11 credential-free tools (CUIT, CBU,
+            IVA/SICORE/SUSS, BCRA, registry); the rest of the 245 tools live in the
+            npm packages, run with your own credentials. eve speaks MCP, so
+            connecting took no SDK change.
           </>],
           ["Tools", <>
             <Mono>incorporar_sociedad</Mono> and <Mono>registrar_decision</Mono>, one
