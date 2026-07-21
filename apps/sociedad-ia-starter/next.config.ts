@@ -35,6 +35,10 @@ const securityHeaders = [
 const nextConfig: NextConfig = {
   poweredByHeader: false,
   reactStrictMode: true,
+  // @coinbase/cdp-sdk lazily imports optional @x402/* subpath clients (svm/evm)
+  // that are not installed. Keeping the SDK external stops the bundler from
+  // statically resolving those dynamic imports, which otherwise fails the build.
+  serverExternalPackages: ["@coinbase/cdp-sdk"],
   turbopack: {
     root: path.resolve(__dirname, "../.."),
   },
