@@ -91,6 +91,13 @@ jobs:
         run: pnpm --filter sociedad-ia-starter run typecheck
       - name: Test starter
         run: pnpm --filter sociedad-ia-starter run test
+      # apps/studio ships a full vitest suite (31 files, 353 tests covering the
+      # coach, credential validators, society routes and UI helpers) that CI
+      # only typechecked via "Typecheck demo apps"; the tests never ran, so a
+      # studio regression could not fail CI. Run them here alongside the other
+      # apps, mirroring the landing and starter test steps.
+      - name: Test studio
+        run: pnpm --filter ar-agents-studio run test
       # The hello/demo apps are the public getting-started surface; their
       # typecheck scripts existed but nothing ran them, so they could rot
       # undetected. Recursive run skips apps without a typecheck script.
