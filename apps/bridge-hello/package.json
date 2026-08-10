@@ -14,7 +14,7 @@
     "@ar-agents/agentic-commerce-bridge": "workspace:*",
     "@ar-agents/ap2": "workspace:*",
     "@ar-agents/mercadolibre": "workspace:*",
-    "next": "16.2.12",
+    "next": "16.3.0",
     "react": "19.2.8",
     "react-dom": "19.2.8",
     "zod": "^4.4.3"
@@ -24,7 +24,7 @@
     "@types/react": "^19",
     "@types/react-dom": "^19",
     "eslint": "^9",
-    "eslint-config-next": "16.2.12",
+    "eslint-config-next": "16.3.0",
     "typescript": "^5"
   }
 }
