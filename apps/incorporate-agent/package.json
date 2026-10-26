@@ -17,8 +17,8 @@
   },
   "dependencies": {
     "ai": "^7.0.0",
-    "eve": "^0.27.6",
-    "zod": "4.4.3"
+    "eve": "^0.83.0",
+    "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "20",
